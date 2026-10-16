@@ -1,0 +1,36 @@
+{
+    "slug":  "kaniko",
+    "name":  "Kaniko",
+    "description":  "Builds container images from a Dockerfile inside a container or Kubernetes pod without a Docker daemon.",
+    "category":  "Developer Tools",
+    "image":  "gcr.io/kaniko-project/executor:latest",
+    "logo":  "https://cdn.simpleicons.org/kaniko",
+    "website":  "https://github.com/GoogleContainerTools/kaniko",
+    "docsUrl":  "https://github.com/GoogleContainerTools/kaniko#running-kaniko",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kaniko/context",
+                        "container":  "/workspace"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KANIKO_DESTINATION",
+                        "default":  "",
+                        "description":  "Registry destination to push the built image to"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

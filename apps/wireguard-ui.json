@@ -1,0 +1,50 @@
+{
+    "slug":  "wireguard-ui",
+    "name":  "WireGuard UI",
+    "description":  "Web interface for managing WireGuard VPN server peers and configurations.",
+    "category":  "Networking",
+    "image":  "ngoduykhanh/wireguard-ui:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wireguard.png",
+    "website":  "https://github.com/ngoduykhanh/wireguard-ui",
+    "docsUrl":  "https://github.com/ngoduykhanh/wireguard-ui",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wireguard-ui/db",
+                        "container":  "/app/db"
+                    },
+                    {
+                        "host":  "/opt/appdata/wireguard-ui/config",
+                        "container":  "/etc/wireguard"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WGUI_USERNAME",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "WGUI_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

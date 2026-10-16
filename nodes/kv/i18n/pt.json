@@ -1,0 +1,19 @@
+{
+  "label": "Armazenamento KV",
+  "description": "Ler, gravar ou excluir um valor no armazenamento chave-valor do fluxo",
+  "config": {
+    "operation": "Operação",
+    "key": "Chave",
+    "output_property": "Propriedade de saída",
+    "default_value": "Valor padrão",
+    "property": "Propriedade",
+    "ttl": "TTL (segundos)"
+  },
+  "options": {
+    "operation": {
+      "get": "Obter",
+      "set": "Gravar",
+      "delete": "Excluir"
+    }
+  }
+}

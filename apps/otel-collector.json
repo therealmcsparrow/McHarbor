@@ -4,7 +4,7 @@
     "description":  "Vendor-agnostic OpenTelemetry Collector for receiving, processing and exporting telemetry data.",
     "category":  "Monitoring",
     "image":  "otel/opentelemetry-collector:latest",
-    "logo":  "https://icon.horse/icon/opentelemetry.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=opentelemetry.io\u0026sz=128",
     "website":  "https://opentelemetry.io",
     "docsUrl":  "https://opentelemetry.io/docs/collector/",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

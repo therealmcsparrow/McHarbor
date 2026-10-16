@@ -1,0 +1,20 @@
+{
+  "widgets": {
+    "snapshotStatus": {
+      "label": "Estado de las copias",
+      "description": "Última copia correcta por destino y lo que está atrasado"
+    }
+  },
+  "snapshotStatusWidget": {
+    "title": "Estado de las copias",
+    "never": "nunca",
+    "noPlans": "No hay planes de copia configurados",
+    "overdueCount": "{{count}} atrasada",
+    "overdueCount_other": "{{count}} atrasadas",
+    "more": "{{count}} más",
+    "allCurrent": "Todo al día",
+    "viewAll": "Todas las copias",
+    "overdue": "Atrasado",
+    "current": "Al día"
+  }
+}

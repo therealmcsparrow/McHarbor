@@ -10,15 +10,20 @@ import {
   IconClock,
   IconCpu,
   IconDeviceDesktop,
-  IconPlug,
   IconServer,
   IconStack2,
 } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { useHostMetrics } from '@modules/dashboard/hooks/useHostMetrics';
+import { useHostMetrics } from '@resources/hooks/useHostMetrics';
 import { api } from '@core/api/client';
+import { cn } from '@resources/utils/cn';
+import { assertSuccess } from '@resources/utils/api-mutation';
+
+const COPYRIGHT_NOTICE = '© 2026 McSparrow';
+const PRODUCT_NAME = 'McHarbor';
+const DOCKER_NAME = 'Docker';
 
 const ARCH_LABELS: Record<string, string> = {
   x86_64: 'x64',
@@ -46,12 +51,16 @@ function formatUptime(seconds: number): string {
   return `${mins}m`;
 }
 
-function Separator() {
-  return <span className="text-muted-foreground/20 select-none">|</span>;
+function Cell({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn('flex h-full shrink-0 items-center gap-1.5 border-r border-border px-3', className)}>
+      {children}
+    </div>
+  );
 }
 
 function useClock() {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
@@ -62,15 +71,18 @@ function useClock() {
 export function Footer() {
   const { t, i18n } = useTranslation('common');
   const now = useClock();
-  const { data: metrics } = useHostMetrics();
+  const { data: metrics, isError: metricsError } = useHostMetrics();
   const { data: info } = useQuery({
     queryKey: ['about'],
-    queryFn: () => api.get<{ version: string }>('/about').then((r) => r.data),
+    queryFn: () => api.get<{ version: string }>('/about').then(assertSuccess),
     staleTime: 60_000,
   });
   const environments = useEnvironmentStore((s) => s.environments);
   const currentId = useEnvironmentStore((s) => s.currentId);
   const env = environments.find((e) => e.id === currentId);
+  // Metrics arriving at all is the signal that the Docker endpoint is
+  // reachable; a failing query is the signal that it is not.
+  const connectionHealthy = Boolean(metrics) && !metricsError;
 
   const timeStr = new Intl.DateTimeFormat(i18n.language, {
     hour: 'numeric',
@@ -78,89 +90,98 @@ export function Footer() {
     second: '2-digit',
   }).format(now);
 
-  const connectionLabel = env
-    ? t(`environments:connectionTypes.${env.connectionType}`, { defaultValue: env.connectionType })
-    : '';
+  const connectionLabel = env ? t(`environments:connectionTypes.${env.connectionType}`) : '';
 
   return (
-    <footer className="shrink-0 border-t border-border bg-card/80 backdrop-blur-sm px-4 py-1.5">
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        {/* Left: doc button + copyright */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={t('footer.documentation')}
-                className="size-6"
-                onClick={() => window.open('https://docs.mcharbor.io', '_blank', 'noopener')}
-              >
-                <IconBook className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('footer.documentation')}</TooltipContent>
-          </Tooltip>
-          <span className="text-muted-foreground/60">© 2026 McSparrow</span>
+    <footer className="relative z-10 h-7 shrink-0 border-t border-border bg-card">
+      <div className="flex h-full items-stretch text-[11px] text-muted-foreground">
+        {/* Left: docs and copyright */}
+        <div className="flex h-full min-w-0 flex-1 items-stretch">
+          <Cell>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('footer.documentation')}
+                  className="size-5 rounded-none"
+                  onClick={() => window.open('https://www.mcharbor.eu/docs', '_blank', 'noopener')}
+                >
+                  <IconBook className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('footer.documentation')}</TooltipContent>
+            </Tooltip>
+            <span className="text-muted-foreground/60">{COPYRIGHT_NOTICE}</span>
+          </Cell>
         </div>
 
-        {/* Center: environment metrics */}
+        {/* Center: environment metrics.
+            These eight facts used to carry eight different hues — a blue
+            monitor, a green plug, an amber CPU, a violet stack, a red disk.
+            None of them encoded state: the CPU count is 8 whether things
+            are going well or badly, so colouring it spent the reader's
+            attention on something that never changes.
+            They are all muted ink now, and exactly one element in this
+            strip stays coloured: the connection pip, which is the only
+            thing here that is actually reporting a condition. */}
         {metrics && (
-          <div className="flex items-center gap-2 text-muted-foreground/50">
-            <span className="inline-flex items-center gap-1">
-              <IconDeviceDesktop className="size-3 text-sky-400" />
-              {metrics.host.os} {formatArch(metrics.host.architecture)}
-            </span>
-            <Separator />
-            <span className="inline-flex items-center gap-1">
-              <IconBrandDocker className="size-3 text-blue-400" />
-              Docker {metrics.host.serverVersion}
-            </span>
+          <div className="flex h-full shrink-0 items-stretch border-l border-border">
             {connectionLabel && (
-              <>
-                <Separator />
-                <span className="inline-flex items-center gap-1">
-                  <IconPlug className="size-3 text-emerald-400" />
-                  {connectionLabel}
-                </span>
-              </>
+              <Cell>
+                {/* The one coloured element in the strip. It pulses only
+                    while connected — `mc-status-pulse` is gated on the
+                    motion preference, so it holds still for anyone who
+                    asked for that. */}
+                <output
+                  aria-label={connectionHealthy ? t('footer.connected') : t('footer.disconnected')}
+                  className={cn('size-1.5', connectionHealthy ? 'mc-status-pulse bg-success' : 'bg-danger')}
+                />
+                {env?.name && <span className="font-semibold text-foreground">{env.name}</span>}
+                <span className="text-muted-foreground/70">{connectionLabel}</span>
+              </Cell>
             )}
-            <Separator />
-            <span className="inline-flex items-center gap-1">
-              <IconCpu className="size-3 text-amber-400" />
+            <Cell className="text-muted-foreground/70">
+              <IconDeviceDesktop className="size-3" />
+              {metrics.host.os} {formatArch(metrics.host.architecture)}
+            </Cell>
+            <Cell className="text-muted-foreground/70">
+              <IconBrandDocker className="size-3" />
+              {DOCKER_NAME} {metrics.host.serverVersion}
+            </Cell>
+            <Cell className="text-muted-foreground/70">
+              <IconCpu className="size-3" />
               {metrics.host.ncpu} {t('footer.cores')}
-            </span>
-            <Separator />
-            <span className="inline-flex items-center gap-1">
-              <IconStack2 className="size-3 text-violet-400" />
+            </Cell>
+            <Cell className="text-muted-foreground/70">
+              <IconStack2 className="size-3" />
               {formatBytes(metrics.host.memTotal)} RAM
-            </span>
-            <Separator />
-            <span className="inline-flex items-center gap-1">
-              <IconServer className="size-3 text-rose-400" />
+            </Cell>
+            <Cell className="text-muted-foreground/70">
+              <IconServer className="size-3" />
               {formatBytes(metrics.disk.total)}
-            </span>
+            </Cell>
             {metrics.host.uptime > 0 && (
-              <>
-                <Separator />
-                <span className="inline-flex items-center gap-1">
-                  <IconClock className="size-3 text-teal-400" />
-                  {formatUptime(metrics.host.uptime)}
-                </span>
-              </>
+              <Cell className="text-muted-foreground/70">
+                <IconClock className="size-3" />
+                {formatUptime(metrics.host.uptime)}
+              </Cell>
             )}
-            <Separator />
-            <span className="inline-flex items-center gap-1">
-              <IconClock className="size-3 text-orange-400" />
+            <Cell className="text-muted-foreground/70 tabular-nums">
+              <IconClock className="size-3" />
               {timeStr}
-            </span>
+            </Cell>
           </div>
         )}
 
         {/* Right: version */}
-        <span className="shrink-0 text-muted-foreground/60">
-          {info?.version ? `McHarbor v${info.version}` : 'McHarbor'}
-        </span>
+        <div className="flex h-full min-w-0 flex-1 items-stretch justify-end">
+          <Cell className="border-r-0 border-l border-border">
+            <span className="text-muted-foreground/60">
+              {info?.version ? t('footer.version', { version: info.version }) : PRODUCT_NAME}
+            </span>
+          </Cell>
+        </div>
       </div>
     </footer>
   );

@@ -1,15 +1,9 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@resources/components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
@@ -41,41 +35,34 @@ function extractOctal(mode: string): string {
   return octal || '644';
 }
 
-export function ChmodDialog({
-  open,
-  onOpenChange,
-  containerId,
-  filePath,
-  currentMode,
-}: ChmodDialogProps) {
+export function ChmodDialog({ open: isOpen, onOpenChange, containerId, filePath, currentMode }: ChmodDialogProps) {
   const { t } = useTranslation('containers');
-  const [mode, setMode] = useState('644');
+  const [mode, setMode] = useState(() => extractOctal(currentMode));
   const chmodMutation = useChmod(containerId);
 
-  useEffect(() => {
+  const [appliedMode, setAppliedMode] = useState(currentMode);
+  if (appliedMode !== currentMode) {
+    setAppliedMode(currentMode);
     setMode(extractOctal(currentMode));
-  }, [currentMode]);
+  }
 
   const isValid = /^[0-7]{3,4}$/.test(mode);
 
   const handleSubmit = () => {
     if (!isValid) return;
-    chmodMutation.mutate(
-      { path: filePath, mode },
-      { onSuccess: () => onOpenChange(false) }
-    );
+    chmodMutation.mutate({ path: filePath, mode }, { onSuccess: () => onOpenChange(false) });
   };
 
   const fileName = filePath.split('/').pop() ?? filePath;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('files.changePermissions')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 p-4">
-          <div className="text-sm text-muted-foreground font-mono">{fileName}</div>
+          <div className="font-mono text-sm text-muted-foreground">{fileName}</div>
           <div className="space-y-1.5">
             <Label>{t('files.permissions')}</Label>
             <Input
@@ -85,13 +72,8 @@ export function ChmodDialog({
               maxLength={4}
               className="font-mono"
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              autoFocus
             />
-            {!isValid && mode.length > 0 && (
-              <p className="text-xs text-destructive">
-                {t('files.invalidMode')}
-              </p>
-            )}
+            {!isValid && mode.length > 0 && <p className="text-xs text-destructive">{t('files.invalidMode')}</p>}
           </div>
         </div>
         <DialogFooter>

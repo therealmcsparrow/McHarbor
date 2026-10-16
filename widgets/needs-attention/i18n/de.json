@@ -1,0 +1,23 @@
+{
+  "widgets": {
+    "needsAttention": {
+      "label": "Braucht Aufmerksamkeit",
+      "description": "Die wenigen Punkte, die wirklich einen Menschen brauchen, nach Tragweite sortiert"
+    }
+  },
+  "needsAttentionWidget": {
+    "title": "Braucht Aufmerksamkeit",
+    "empty": "Derzeit ist nichts zu tun",
+    "unavailable": "Containerzustand nicht lesbar",
+    "more": "{{count}} weitere",
+    "reason": {
+      "unhealthy": "Health Check fehlgeschlagen",
+      "restarting": "Neustartschleife",
+      "dead": "tot",
+      "exited": "beendet",
+      "snapshotOverdue": "Snapshot überfällig",
+      "snapshotNever": "nie gesichert"
+    },
+    "viewAll": "Alle anzeigen"
+  }
+}

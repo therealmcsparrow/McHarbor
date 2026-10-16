@@ -1,0 +1,45 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-request-tracker"
+name:     "Request Tracker"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Creates, comments on and resolves Best Practical Request Tracker (RT) tickets from McHarbor alerts through REST2, with a signed Scrip callout or polling for status."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.26"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_request_tracker"
+    scope:    "global"
+    category: "Communications"
+    label:    "Route alerts to Request Tracker"
+    description: "Required to route alert and workflow incidents to a Request Tracker communication channel."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-request-tracker"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "request_tracker"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "request_tracker"
+
+signature: ""
+checksum:  ""

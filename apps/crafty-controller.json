@@ -1,0 +1,62 @@
+{
+  "slug": "crafty-controller",
+  "name": "Crafty Controller",
+  "description": "Web panel to create, run and back up multiple Minecraft Java and Bedrock servers.",
+  "category": "Gaming",
+  "image": "registry.gitlab.com/crafty-controller/crafty-4:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/crafty-controller.png",
+  "website": "https://craftycontrol.com",
+  "docsUrl": "https://docs.craftycontrol.com/pages/getting-started/installation/docker/",
+  "ports": [
+    {
+      "host": 8443,
+      "container": 8443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 25565,
+      "container": 25565,
+      "protocol": "tcp"
+    },
+    {
+      "host": 19132,
+      "container": 19132,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/crafty-controller/backups",
+      "container": "/crafty/backups"
+    },
+    {
+      "host": "/opt/appdata/crafty-controller/logs",
+      "container": "/crafty/logs"
+    },
+    {
+      "host": "/opt/appdata/crafty-controller/servers",
+      "container": "/crafty/servers"
+    },
+    {
+      "host": "/opt/appdata/crafty-controller/config",
+      "container": "/crafty/config"
+    },
+    {
+      "host": "/opt/appdata/crafty-controller/import",
+      "container": "/crafty/import"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "lifecycleFeed": {
+      "label": "Lifecycle Feed",
+      "description": "Recent create, update and delete events across all resources"
+    }
+  },
+  "lifecycleFeedWidget": {
+    "title": "Lifecycle Feed",
+    "loading": "Loading lifecycle events...",
+    "empty": "No recent lifecycle events",
+    "more": "{{count}} more",
+    "viewAll": "View all",
+    "justNow": "just now"
+  }
+}

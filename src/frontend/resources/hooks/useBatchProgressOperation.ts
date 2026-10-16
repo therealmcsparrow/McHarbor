@@ -3,66 +3,17 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { operationFailedMessage } from '@resources/utils/api-mutation';
+import { toastError } from '@resources/utils/toast';
 
-export type BatchProgressStatus = 'idle' | 'running' | 'success' | 'error';
-export type BatchProgressItemStatus = 'pending' | 'running' | 'success' | 'error';
-export type BatchProgressLogLevel = 'info' | 'success' | 'warning' | 'error';
-
-export type BatchProgressItem = {
-  key: string;
-  label: string;
-  status: BatchProgressItemStatus;
-  detail?: string;
-};
-
-export type BatchProgressLogEntry = {
-  id: string;
-  itemKey?: string;
-  itemLabel?: string;
-  level: BatchProgressLogLevel;
-  message: string;
-  timestamp: string;
-};
-
-export type BatchProgressDialogState = {
-  open: boolean;
-  title: string;
-  description: string;
-  actionLabel: string;
-  status: BatchProgressStatus;
-  items: BatchProgressItem[];
-  total: number;
-  completed: number;
-  currentItemLabel?: string;
-  failureCount: number;
-  logs: BatchProgressLogEntry[];
-};
-
-export type BatchProgressResult<T> = {
-  total: number;
-  successCount: number;
-  failureCount: number;
-  successfulItems: T[];
-  failedItems: Array<{ item: T; error: Error }>;
-};
-
-type RunBatchProgressOptions<T> = {
-  title: string;
-  description: string;
-  actionLabel: string;
-  items: T[];
-  getKey: (item: T) => string;
-  getLabel: (item: T) => string;
-  execute: (item: T, context: BatchProgressContext) => Promise<{ detail?: string } | void>;
-  onComplete?: (result: BatchProgressResult<T>) => Promise<void> | void;
-  getSuccessToast?: (result: BatchProgressResult<T>) => string | undefined;
-  getErrorToast?: (result: BatchProgressResult<T>) => string | undefined;
-};
-
-export type BatchProgressContext = {
-  setDetail: (detail: string) => void;
-  log: (message: string, options?: { detail?: string; level?: BatchProgressLogLevel }) => void;
-};
+import type {
+  BatchProgressLogEntry,
+  BatchProgressDialogState,
+  BatchProgressResult,
+  RunBatchProgressOptions,
+  BatchProgressContext,
+} from './batchProgressTypes';
+export type * from './batchProgressTypes';
 
 const initialState: BatchProgressDialogState = {
   open: false,
@@ -82,7 +33,10 @@ function toError(error: unknown): Error {
   if (error instanceof Error) {
     return error;
   }
-  return new Error('Request failed');
+  if (typeof error === 'string' && error.trim() !== '') {
+    return new Error(error);
+  }
+  return new Error(operationFailedMessage());
 }
 
 export function useBatchProgressOperation() {
@@ -145,9 +99,7 @@ export function useBatchProgressOperation() {
         setDetail: (detail) => {
           setDialogState((current) => ({
             ...current,
-            items: current.items.map((entry, entryIndex) =>
-              entryIndex === index ? { ...entry, detail } : entry,
-            ),
+            items: current.items.map((entry, entryIndex) => (entryIndex === index ? { ...entry, detail } : entry)),
           }));
         },
         log: (message, options) => {
@@ -167,9 +119,7 @@ export function useBatchProgressOperation() {
         ...current,
         currentItemLabel: itemLabel,
         items: current.items.map((entry, entryIndex) =>
-          entryIndex === index
-            ? { ...entry, status: 'running', detail: undefined }
-            : entry,
+          entryIndex === index ? { ...entry, status: 'running', detail: undefined } : entry,
         ),
       }));
 
@@ -181,9 +131,7 @@ export function useBatchProgressOperation() {
           ...current,
           completed: index + 1,
           items: current.items.map((entry, entryIndex) =>
-            entryIndex === index
-              ? { ...entry, status: 'success', detail: result?.detail }
-              : entry,
+            entryIndex === index ? { ...entry, status: 'success', detail: result?.detail } : entry,
           ),
         }));
 
@@ -210,9 +158,7 @@ export function useBatchProgressOperation() {
           completed: index + 1,
           failureCount: failedItems.length,
           items: current.items.map((entry, entryIndex) =>
-            entryIndex === index
-              ? { ...entry, status: 'error', detail: resolvedError.message }
-              : entry,
+            entryIndex === index ? { ...entry, status: 'error', detail: resolvedError.message } : entry,
           ),
         }));
       }
@@ -243,7 +189,7 @@ export function useBatchProgressOperation() {
     } else {
       const errorToast = getErrorToast?.(result);
       if (errorToast) {
-        toast.error(errorToast);
+        toastError(failedItems[0]?.error ?? errorToast, errorToast);
       }
     }
 
@@ -251,11 +197,7 @@ export function useBatchProgressOperation() {
   }
 
   function closeDialog() {
-    setDialogState((current) =>
-      current.status === 'running'
-        ? current
-        : { ...current, open: false },
-    );
+    setDialogState((current) => (current.status === 'running' ? current : { ...current, open: false }));
   }
 
   return {

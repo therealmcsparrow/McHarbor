@@ -3,11 +3,7 @@
 
 import { IconArrowsExchange } from '@tabler/icons-react';
 import { Trans, useTranslation } from 'react-i18next';
-import {
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@resources/components/ui/Dialog';
+import { DialogDescription, DialogHeader, DialogTitle } from '@resources/components/ui/Dialog';
 
 type MoveContainerDialogHeaderProps = {
   containerName: string;

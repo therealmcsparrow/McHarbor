@@ -1,0 +1,46 @@
+{
+    "slug":  "vaultwarden-testing",
+    "name":  "Vaultwarden (Testing)",
+    "description":  "Testing channel build of Vaultwarden. Lightweight Bitwarden-compatible password manager server.",
+    "category":  "Security",
+    "image":  "vaultwarden/server:testing",
+    "logo":  "https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon.svg",
+    "website":  "https://github.com/dani-garcia/vaultwarden",
+    "docsUrl":  "https://github.com/dani-garcia/vaultwarden/wiki",
+    "ports":  [
+                  {
+                      "host":  9880,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vaultwarden-testing/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_TOKEN",
+                        "default":  "",
+                        "description":  "Admin panel token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SIGNUPS_ALLOWED",
+                        "default":  "true",
+                        "description":  "Allow new user signups"
+                    }
+                ],
+    "version":  "testing",
+    "latest":  {
+        "version":  "testing",
+        "release_date":  "2026-09-29"
+    }
+}

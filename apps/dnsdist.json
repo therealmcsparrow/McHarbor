@@ -1,0 +1,51 @@
+{
+    "slug":  "dnsdist",
+    "name":  "dnsdist",
+    "description":  "DNS load balancer and traffic filter that distributes queries across authoritative or recursive DNS servers.",
+    "category":  "Networking",
+    "image":  "powerdns/dnsdist-19:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=dnsdist.org\u0026sz=128",
+    "website":  "https://dnsdist.org/",
+    "docsUrl":  "https://dnsdist.org/guides/docker.html",
+    "ports":  [
+                  {
+                      "host":  5302,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5302,
+                      "container":  53,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dnsdist/config",
+                        "container":  "/etc/dnsdist"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DNSDIST_WEBPASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the built-in web console",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

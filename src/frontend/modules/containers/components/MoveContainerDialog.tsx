@@ -1,16 +1,12 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
 import type { NetworkInfo } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-} from '@resources/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent } from '@resources/components/ui/Dialog';
 import { useEnvironmentList } from '@resources/hooks/useEnvironmentList';
 import type { MoveNetworkConfig, MoveVolumeConfig } from '../hooks/useContainers';
 import { useMoveContainerPlan, useMoveContainerStream } from '../hooks/useContainers';
@@ -27,13 +23,13 @@ type MoveContainerDialogProps = {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 };
-export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }: MoveContainerDialogProps) {
+export function MoveContainerDialog({ container, open: isOpen, onOpenChange, onSuccess }: MoveContainerDialogProps) {
   const { t } = useTranslation('containers');
   const currentEnvId = useEnvironmentStore((s) => s.currentId);
   const { data: environments = [] } = useEnvironmentList();
   const moveStream = useMoveContainerStream();
   const dockerEnvironments = useMemo(
-    () => environments.filter((env) => env.orchestratorType === 'docker' && env.id !== currentEnvId),
+    () => environments.filter((env) => env.id !== currentEnvId),
     [environments, currentEnvId],
   );
   const [targetEnvId, setTargetEnvId] = useState('');
@@ -48,20 +44,17 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
   const [networkMode, setNetworkMode] = useState('');
   const [networks, setNetworks] = useState<MoveNetworkConfig[]>([]);
   const [volumes, setVolumes] = useState<MoveVolumeConfig[]>([]);
-  const initializedForRef = useRef<string | null>(null);
+  const [initializedFor, setInitializedFor] = useState<string | null>(null);
+  const [seededNetworksFor, setSeededNetworksFor] = useState<unknown>(null);
+  const [seededVolumesFor, setSeededVolumesFor] = useState<unknown>(null);
   const showProgress = moveStream.moving || moveStream.progress !== null;
   const defaultTargetEnvId = dockerEnvironments[0]?.id ?? '';
-  useEffect(() => {
-    if (!open) {
-      initializedForRef.current = null;
-      return;
-    }
-    if (showProgress || !container) return;
-
-    const initKey = `${container.id}:${defaultTargetEnvId}`;
-    if (initializedForRef.current === initKey) return;
-    initializedForRef.current = initKey;
-
+  if (!isOpen) {
+    if (initializedFor !== null) setInitializedFor(null);
+  } else if (!showProgress && container && initializedFor !== `${container.id}:${defaultTargetEnvId}`) {
+    setInitializedFor(`${container.id}:${defaultTargetEnvId}`);
+    setSeededNetworksFor(null);
+    setSeededVolumesFor(null);
     setTargetEnvId(defaultTargetEnvId);
     setTargetName(container?.name ?? '');
     setTransferImage(true);
@@ -75,39 +68,89 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     setNetworks([]);
     setVolumes([]);
     moveStream.reset();
-  }, [open, showProgress, container, defaultTargetEnvId, moveStream]);
-  const planQuery = useMoveContainerPlan(container?.id ?? '', targetEnvId, targetName, networkMode, networks, volumes, open);
+  }
+  const planQuery = useMoveContainerPlan(
+    container?.id ?? '',
+    targetEnvId,
+    targetName,
+    networkMode,
+    networks,
+    volumes,
+    isOpen,
+  );
   const targetNetworksQuery = useQuery({
     queryKey: ['networks', targetEnvId],
     queryFn: () =>
       api
         .get<NetworkInfo[]>('/networks', targetEnvId ? { env: targetEnvId } : {})
         .then((response) => response.data ?? []),
-    enabled: open && !!targetEnvId,
+    enabled: isOpen && !!targetEnvId,
     refetchInterval: 30_000,
   });
   const plan = planQuery.data;
   const targetOptions = dockerEnvironments.map((env) => ({ value: env.id, label: env.name }));
   const moveOptions = [
-    { id: 'transfer-image', title: t('moveDialog.transferImage'), description: t('moveDialog.transferImageDesc'), checked: transferImage, onCheckedChange: setTransferImage },
-    { id: 'create-networks', title: t('moveDialog.createNetworks'), description: t('moveDialog.createNetworksDesc'), checked: createMissingNetworks, onCheckedChange: setCreateMissingNetworks },
-    { id: 'create-volumes', title: t('moveDialog.createVolumes'), description: t('moveDialog.createVolumesDesc'), checked: createMissingVolumes, onCheckedChange: setCreateMissingVolumes },
-    { id: 'copy-volumes', title: t('moveDialog.copyVolumes'), description: t('moveDialog.copyVolumesDesc'), checked: copyNamedVolumes, onCheckedChange: setCopyNamedVolumes },
-    { id: 'stop-source', title: t('moveDialog.stopSource'), description: t('moveDialog.stopSourceDesc'), checked: stopSource, onCheckedChange: setStopSource },
-    { id: 'remove-source', title: t('moveDialog.removeSource'), description: t('moveDialog.removeSourceDesc'), checked: removeSource, onCheckedChange: setRemoveSource },
-    { id: 'start-target', title: t('moveDialog.startTarget'), description: t('moveDialog.startTargetDesc'), checked: startTarget, onCheckedChange: setStartTarget },
+    {
+      id: 'transfer-image',
+      title: t('moveDialog.transferImage'),
+      description: t('moveDialog.transferImageDesc'),
+      checked: transferImage,
+      onCheckedChange: setTransferImage,
+    },
+    {
+      id: 'create-networks',
+      title: t('moveDialog.createNetworks'),
+      description: t('moveDialog.createNetworksDesc'),
+      checked: createMissingNetworks,
+      onCheckedChange: setCreateMissingNetworks,
+    },
+    {
+      id: 'create-volumes',
+      title: t('moveDialog.createVolumes'),
+      description: t('moveDialog.createVolumesDesc'),
+      checked: createMissingVolumes,
+      onCheckedChange: setCreateMissingVolumes,
+    },
+    {
+      id: 'copy-volumes',
+      title: t('moveDialog.copyVolumes'),
+      description: t('moveDialog.copyVolumesDesc'),
+      checked: copyNamedVolumes,
+      onCheckedChange: setCopyNamedVolumes,
+    },
+    {
+      id: 'stop-source',
+      title: t('moveDialog.stopSource'),
+      description: t('moveDialog.stopSourceDesc'),
+      checked: stopSource,
+      onCheckedChange: setStopSource,
+    },
+    {
+      id: 'remove-source',
+      title: t('moveDialog.removeSource'),
+      description: t('moveDialog.removeSourceDesc'),
+      checked: removeSource,
+      onCheckedChange: setRemoveSource,
+    },
+    {
+      id: 'start-target',
+      title: t('moveDialog.startTarget'),
+      description: t('moveDialog.startTargetDesc'),
+      checked: startTarget,
+      onCheckedChange: setStartTarget,
+    },
   ];
 
-  useEffect(() => {
-    if (!open || !plan || networks.length > 0) return;
+  if (isOpen && plan && networks.length === 0 && seededNetworksFor !== plan) {
+    setSeededNetworksFor(plan);
     setNetworkMode(plan.networkMode ?? 'bridge');
     setNetworks(moveNetworkConfigsFromPlan(plan));
-  }, [open, plan, networks.length]);
+  }
 
-  useEffect(() => {
-    if (!open || !plan || volumes.length > 0) return;
+  if (isOpen && plan && volumes.length === 0 && seededVolumesFor !== plan) {
+    setSeededVolumesFor(plan);
     setVolumes(moveVolumeConfigsFromPlan(plan));
-  }, [open, plan, volumes.length]);
+  }
 
   if (!container) return null;
   const handleTargetEnvChange = (value: string) => {
@@ -115,6 +158,8 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     setNetworkMode('');
     setNetworks([]);
     setVolumes([]);
+    setSeededNetworksFor(null);
+    setSeededVolumesFor(null);
   };
   const handleMove = () => {
     moveStream.startMove(
@@ -153,7 +198,7 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     moveStream.abort();
   };
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-3xl">
         <MoveContainerDialogHeader containerName={container.name} />
         <DialogBody className="space-y-4">

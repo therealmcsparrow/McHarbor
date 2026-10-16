@@ -1,0 +1,49 @@
+{
+    "slug":  "jellyfin-preview",
+    "name":  "Jellyfin (Preview)",
+    "description":  "Preview channel build of Jellyfin. Free and open-source media server. Stream movies, TV, music, and more.",
+    "category":  "Media",
+    "image":  "jellyfin/jellyfin:preview",
+    "logo":  "https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg",
+    "website":  "https://jellyfin.org",
+    "docsUrl":  "https://jellyfin.org/docs/",
+    "ports":  [
+                  {
+                      "host":  9096,
+                      "container":  8096,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jellyfin-preview/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/jellyfin-preview/cache",
+                        "container":  "/cache"
+                    },
+                    {
+                        "host":  "/opt/appdata/jellyfin-preview/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JELLYFIN_PublishedServerUrl",
+                        "default":  "http://localhost:8096",
+                        "description":  "Public URL for the server"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "preview",
+    "latest":  {
+        "version":  "preview",
+        "release_date":  "2026-09-29"
+    }
+}

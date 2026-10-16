@@ -4,7 +4,7 @@
     "description":  "OpenResty full-fledged web platform with Nginx and LuaJIT for development.",
     "category":  "Developer Tools",
     "image":  "openresty/openresty:alpine",
-    "logo":  "https://icon.horse/icon/openresty.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=openresty.org\u0026sz=128",
     "website":  "https://openresty.org",
     "docsUrl":  "https://openresty.org/en/docker.html",
     "ports":  [
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "alpine"
+    "version":  "alpine",
+    "latest":  {
+        "version":  "alpine",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,26 @@
+{
+  "label": "Gerenciar stack",
+  "description": "Implantar, iniciar, parar ou remover um stack compose",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Ação",
+    "stack_name": "Nome da pilha",
+    "compose_source": "Fonte Compose",
+    "compose_content": "Conteúdo Compose",
+    "compose_path": "Caminho Compose",
+    "remove_volumes": "Remover volumes"
+  },
+  "options": {
+    "action": {
+      "deploy": "Implantar",
+      "up": "Iniciar (compose up)",
+      "down": "Parar (compose down)",
+      "remove": "Remover"
+    },
+    "compose_source": {
+      "message": "Mensagem",
+      "inline": "YAML em linha",
+      "file": "Caminho do arquivo"
+    }
+  }
+}

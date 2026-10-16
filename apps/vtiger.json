@@ -1,0 +1,46 @@
+{
+    "slug":  "vtiger",
+    "name":  "Vtiger CRM",
+    "description":  "Open source customer relationship management system for sales, support, and marketing.",
+    "category":  "Business & ERP",
+    "image":  "javanile/vtiger:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.vtiger.com\u0026sz=128",
+    "website":  "https://www.vtiger.com",
+    "docsUrl":  "https://github.com/javanile/vtiger",
+    "ports":  [
+                  {
+                      "host":  8126,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vtiger/html",
+                        "container":  "/var/www/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/vtiger/mysql",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Bundled MySQL root password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -6,9 +6,10 @@ package dockerinfo
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+
+	"github.com/moby/moby/client"
 )
 
 // Service handles Docker system info retrieval.
@@ -23,23 +24,24 @@ func NewService(pool *docker.ClientPool) *Service {
 
 // SystemInfo returns extended Docker daemon info for the given environment.
 func (s *Service) SystemInfo(ctx context.Context, envID string) (*DockerSystemInfo, error) {
-	cli, err := s.dockerPool.Get(envID)
+	cli, err := s.dockerPool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting Docker client: %w", err)
 	}
 
-	infoCtx, infoCancel := context.WithTimeout(ctx, 30*time.Second)
+	infoCtx, infoCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer infoCancel()
 
-	info, err := cli.Info(infoCtx)
+	infoRes, err := cli.Info(infoCtx, client.InfoOptions{})
+	info := infoRes.Info
 	if err != nil {
 		return nil, fmt.Errorf("fetching Docker info: %w", err)
 	}
 
-	verCtx, verCancel := context.WithTimeout(ctx, 30*time.Second)
+	verCtx, verCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer verCancel()
 
-	version, err := cli.ServerVersion(verCtx)
+	version, err := cli.ServerVersion(verCtx, client.ServerVersionOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("fetching Docker version: %w", err)
 	}
@@ -87,8 +89,8 @@ func (s *Service) SystemInfo(ctx context.Context, envID string) (*DockerSystemIn
 		ServerVersion: info.ServerVersion,
 		APIVersion:    version.APIVersion,
 		MinAPIVersion: version.MinAPIVersion,
-		GitCommit:     version.GitCommit,
-		GoVersion:     version.GoVersion,
+		GitCommit:     engineDetail(version, "GitCommit"),
+		GoVersion:     engineDetail(version, "GoVersion"),
 		OS:            info.OperatingSystem,
 		Architecture:  info.Architecture,
 		KernelVersion: info.KernelVersion,
@@ -128,4 +130,16 @@ func (s *Service) SystemInfo(ctx context.Context, envID string) (*DockerSystemIn
 		LoggingDriver: info.LoggingDriver,
 		Isolation:     string(info.Isolation),
 	}, nil
+}
+
+// engineDetail reads key from the "Engine" component of a /version response;
+// the moby client no longer surfaces the daemon's top-level GitCommit and
+// GoVersion, and every engine since 18.09 repeats them in the Engine details.
+func engineDetail(version client.ServerVersionResult, key string) string {
+	for _, c := range version.Components {
+		if c.Name == "Engine" {
+			return c.Details[key]
+		}
+	}
+	return ""
 }

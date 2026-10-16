@@ -1,0 +1,35 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "imageId": "ImageID",
+      "kind": "Kind",
+      "sourceUrl": "SourceURL",
+      "checksumUrl": "ChecksumURL",
+      "checksum": "Checksum",
+      "checksumAlgo": "ChecksumAlgo",
+      "signatureUrl": "SignatureURL",
+      "allowUnverified": true,
+      "fromLibrary": true,
+      "filename": "Filename",
+      "LibraryURL": "LibraryURL",
+      "LibraryToken": "LibraryToken"
+    }
+  ],
+  "wire": {
+    "operation": "fetch",
+    "envId": "env-1",
+    "imageId": "ImageID",
+    "kind": "Kind",
+    "sourceUrl": "SourceURL",
+    "checksumUrl": "ChecksumURL",
+    "checksum": "Checksum",
+    "checksumAlgo": "ChecksumAlgo",
+    "signatureUrl": "SignatureURL",
+    "allowUnverified": true,
+    "fromLibrary": true,
+    "filename": "Filename",
+    "libraryUrl": "LibraryURL",
+    "libraryToken": "LibraryToken"
+  }
+}

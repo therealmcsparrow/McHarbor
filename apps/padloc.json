@@ -1,0 +1,51 @@
+{
+    "slug":  "padloc",
+    "name":  "Padloc",
+    "description":  "Open-source password and secrets manager with end-to-end encrypted vaults and team sharing.",
+    "category":  "Security",
+    "image":  "padloc/server:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=padloc.app\u0026sz=128",
+    "website":  "https://padloc.app",
+    "docsUrl":  "https://github.com/padloc/padloc/blob/main/packages/server/README.md",
+    "ports":  [
+                  {
+                      "host":  3010,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/padloc/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PL_EMAIL_SERVER",
+                        "default":  "smtp.example.com",
+                        "description":  "SMTP server used to send verification and invite emails"
+                    },
+                    {
+                        "key":  "PL_EMAIL_USER",
+                        "default":  "",
+                        "description":  "SMTP username"
+                    },
+                    {
+                        "key":  "PL_EMAIL_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "SMTP password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

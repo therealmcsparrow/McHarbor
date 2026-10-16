@@ -1,0 +1,19 @@
+{
+  "label": "KV Store",
+  "description": "Read, write or delete a value in the workflow key-value store",
+  "config": {
+    "operation": "Operation",
+    "key": "Key",
+    "output_property": "Output Property",
+    "default_value": "Default Value",
+    "property": "Property",
+    "ttl": "TTL (seconds)"
+  },
+  "options": {
+    "operation": {
+      "get": "Get",
+      "set": "Set",
+      "delete": "Delete"
+    }
+  }
+}

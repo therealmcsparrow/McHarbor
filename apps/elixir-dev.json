@@ -4,7 +4,7 @@
     "description":  "Elixir 1.17 on Alpine, dynamic functional language on the Erlang VM with metaprogramming.",
     "category":  "Developer Tools",
     "image":  "elixir:1.17-alpine",
-    "logo":  "https://icon.horse/icon/elixir-lang.org",
+    "logo":  "https://cdn.simpleicons.org/elixir",
     "website":  "https://elixir-lang.org",
     "docsUrl":  "https://hexdocs.pm/elixir",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Mix build environment"
                     }
                 ],
-    "version":  "1.17-alpine"
+    "version":  "1.17-alpine",
+    "latest":  {
+        "version":  "1.17-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

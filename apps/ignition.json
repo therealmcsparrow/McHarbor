@@ -1,0 +1,57 @@
+{
+    "slug":  "ignition",
+    "name":  "Ignition",
+    "description":  "Industrial SCADA and MES application platform used for HMI, historian and alarming across plant-floor devices.",
+    "category":  "IoT & Industrial",
+    "image":  "inductiveautomation/ignition:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=inductiveautomation.com\u0026sz=128",
+    "website":  "https://inductiveautomation.com/ignition",
+    "docsUrl":  "https://www.docker.com/blog/getting-started-with-ignition-and-docker",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  8088,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8043,
+                      "container":  8043,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ignition/data",
+                        "container":  "/usr/local/bin/ignition/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GATEWAY_ADMIN_USERNAME",
+                        "default":  "admin",
+                        "description":  "Initial gateway admin username"
+                    },
+                    {
+                        "key":  "GATEWAY_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial gateway admin password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ACCEPT_IGNITION_EULA",
+                        "default":  "Y",
+                        "description":  "Accepts the Ignition EULA on first boot"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

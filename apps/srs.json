@@ -1,0 +1,50 @@
+{
+    "slug":  "srs",
+    "name":  "SRS",
+    "description":  "Simple realtime streaming server supporting RTMP, HLS, WebRTC and SRT ingest and playback.",
+    "category":  "Media",
+    "image":  "ossrs/srs:5",
+    "logo":  "https://opengraph.githubassets.com/1/ossrs/srs",
+    "website":  "https://ossrs.io",
+    "docsUrl":  "https://ossrs.io/lts/en-us/docs/v5/doc/getting-started",
+    "ports":  [
+                  {
+                      "host":  1935,
+                      "container":  1935,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1985,
+                      "container":  1985,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8082,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8005,
+                      "container":  8000,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/srs/config",
+                        "container":  "/usr/local/srs/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "5",
+    "latest":  {
+        "version":  "5",
+        "release_date":  "2026-09-29"
+    }
+}

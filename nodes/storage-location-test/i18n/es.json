@@ -1,0 +1,9 @@
+{
+  "label": "Probar ubicación de almacenamiento",
+  "description": "Ejecuta la prueba de conexión de una ubicación de almacenamiento y opcionalmente lee su capacidad",
+  "config": {
+    "storage_location_id": "Ubicación de almacenamiento",
+    "include_usage": "Incluir uso",
+    "fail_on_warn": "Fallar ante advertencia"
+  }
+}

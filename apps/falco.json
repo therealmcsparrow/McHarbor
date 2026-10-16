@@ -1,0 +1,36 @@
+{
+    "slug":  "falco",
+    "name":  "Falco",
+    "description":  "Runtime security agent that detects anomalous container and host behavior from kernel-level syscall events.",
+    "category":  "Security",
+    "image":  "falcosecurity/falco:latest",
+    "logo":  "https://cdn.simpleicons.org/falco",
+    "website":  "https://falco.org",
+    "docsUrl":  "https://falco.org/docs/setup/container/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/host/var/run/docker.sock"
+                    },
+                    {
+                        "host":  "/opt/appdata/falco/config",
+                        "container":  "/etc/falco"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

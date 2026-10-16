@@ -7,12 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/docker/docker/client"
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
@@ -21,6 +22,17 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
+
+// auditRunContainer names the container a backup run belongs to, empty when the
+// run cannot be read: an audit row without a display name is still worth
+// writing, and a run id alone means nothing once the run is gone.
+func (h *Handler) auditRunContainer(ctx context.Context, runID string) string {
+	run, err := h.service.Run(ctx, runID)
+	if err != nil || run == nil {
+		return ""
+	}
+	return run.ContainerName
+}
 
 // Handler handles container backup APIs.
 type Handler struct {
@@ -31,6 +43,21 @@ type Handler struct {
 // NewHandler creates a backup handler.
 func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{app: app, service: NewService(app.DB, app.DockerPool, app.Config.DataDir, app.BackupCrypto, app.Encryption, app.Logger)}
+}
+
+// SetPluginStorageAdapter injects the loaded plugin runtime so
+// the upload dispatcher can route plugin-owned LocationTypes
+// (any cloud-drive type contributed by a storage plugin)
+// through the plugin's StorageAdapterClient.Upload. Called from
+// main.go after bootPluginRuntime.
+func (h *Handler) SetPluginStorageAdapter(runtime any) {
+	h.service.SetPluginStorageAdapter(runtime)
+}
+
+// SetContainerRecreator injects the container recreate bridge a config restore
+// applies through. Called from Mount, alongside the scheduler's own service.
+func (h *Handler) SetContainerRecreator(r ContainerRecreator) {
+	h.service.SetContainerRecreator(r)
 }
 
 // HandleOptions returns backup choices for a container.
@@ -44,12 +71,12 @@ func (h *Handler) HandleOptions(w http.ResponseWriter, r *http.Request) {
 
 	options, err := h.service.Options(r.Context(), envID, id)
 	if err != nil {
-		if client.IsErrNotFound(err) {
+		if cerrdefs.IsNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
 		}
 		h.app.Logger.Error("container backup options failed", "env", envID, "container", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrContainerInspectFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerInspectFailed, err)
 		return
 	}
 	response.OK(w, options)
@@ -66,22 +93,26 @@ func (h *Handler) HandleRunAdhoc(w http.ResponseWriter, r *http.Request) {
 
 	var input RunBackupInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	input.SelectedMounts = cleanMountSelection(input.SelectedMounts)
 	run, err := h.service.StartAdhoc(r.Context(), envID, id, input)
 	if err != nil {
+		if errors.Is(err, ErrBackupDestinationRequired) {
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupDestinationRequired)
+			return
+		}
 		if errors.Is(err, ErrBackupEncryptionKeyNotConfigured) {
 			h.app.Logger.Warn("manual container backup rejected: encryption key missing", "env", envID, "container", id)
 			response.BadRequestCode(w, r, i18n.ErrContainerBackupKeyMissing)
 			return
 		}
 		h.app.Logger.Error("manual container backup failed", "env", envID, "container", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 		return
 	}
-	h.app.AuditLog.Log(r, audit.Entry{Action: "backup", EntityType: "container", EntityID: id, Details: "manual", EnvironmentID: envID})
+	h.app.AuditLog.Log(r, audit.Entry{Action: "backup", EntityType: "container", EntityID: id, EntityName: run.ContainerName, Details: "manual", EnvironmentID: envID})
 	response.OK(w, run)
 }
 
@@ -95,7 +126,7 @@ func (h *Handler) HandleListPlans(w http.ResponseWriter, r *http.Request) {
 	plans, err := h.service.ListPlans(r.Context(), envID, r.URL.Query().Get("containerId"))
 	if err != nil {
 		h.app.Logger.Error("list container backup plans failed", "env", envID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrSettingsFailed)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsFailed, err)
 		return
 	}
 	response.OK(w, plans)
@@ -110,7 +141,7 @@ func (h *Handler) HandleCreatePlan(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 	var input CreateBackupPlanInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if strings.TrimSpace(input.Name) == "" || strings.TrimSpace(input.ContainerID) == "" {
@@ -122,14 +153,18 @@ func (h *Handler) HandleCreatePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := validatePlanRetention(input.RetentionCount, input.RetentionDays); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	input.SelectedMounts = cleanMountSelection(input.SelectedMounts)
 	plan, err := h.service.CreatePlan(r.Context(), envID, input)
 	if err != nil {
+		if errors.Is(err, ErrBackupDestinationRequired) {
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupDestinationRequired)
+			return
+		}
 		h.app.Logger.Error("create container backup plan failed", "env", envID, "container", input.ContainerID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsUpdateFailed, err)
 		return
 	}
 	h.app.AuditLog.Log(r, audit.Entry{Action: "backup_plan.created", EntityType: "container", EntityID: input.ContainerID, EntityName: plan.Name, EnvironmentID: envID})
@@ -145,7 +180,7 @@ func (h *Handler) HandleUpdatePlan(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "planId")
 	var input UpdateBackupPlanInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if input.Cron != nil && strings.TrimSpace(*input.Cron) != "" && !validCronSpec(*input.Cron) {
@@ -162,7 +197,7 @@ func (h *Handler) HandleUpdatePlan(w http.ResponseWriter, r *http.Request) {
 			days = *input.RetentionDays
 		}
 		if err := validatePlanRetention(count, days); err != nil {
-			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 			return
 		}
 	}
@@ -172,8 +207,12 @@ func (h *Handler) HandleUpdatePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	plan, err := h.service.UpdatePlan(r.Context(), id, input)
 	if err != nil {
+		if errors.Is(err, ErrBackupDestinationRequired) {
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupDestinationRequired)
+			return
+		}
 		h.app.Logger.Error("update container backup plan failed", "plan", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsUpdateFailed, err)
 		return
 	}
 	if plan == nil {
@@ -191,17 +230,22 @@ func (h *Handler) HandleDeletePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "planId")
+	// Read before the delete: afterwards there is no row left to name.
+	planName := ""
+	if plan, planErr := h.service.Plan(r.Context(), id); planErr == nil && plan != nil {
+		planName = plan.Name
+	}
 	deleted, err := h.service.DeletePlan(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("delete container backup plan failed", "plan", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsUpdateFailed, err)
 		return
 	}
 	if !deleted {
 		response.NotFoundCode(w, r, i18n.ErrNotFound)
 		return
 	}
-	h.app.AuditLog.Log(r, audit.Entry{Action: "backup_plan.deleted", EntityType: "container", EntityID: id})
+	h.app.AuditLog.Log(r, audit.Entry{Action: "backup_plan.deleted", EntityType: "container", EntityID: id, EntityName: planName})
 	response.NoContent(w)
 }
 
@@ -223,7 +267,7 @@ func (h *Handler) HandleRelinkAllContainerLinks(w http.ResponseWriter, r *http.R
 	result, err := h.service.RelinkAllStaleContainerLinks(ctx)
 	if err != nil {
 		h.app.Logger.Error("bulk container link relink failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	h.app.AuditLog.Log(r, audit.Entry{
@@ -253,10 +297,10 @@ func (h *Handler) HandleRunPlan(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("run container backup plan failed", "plan", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 		return
 	}
-	h.app.AuditLog.Log(r, audit.Entry{Action: "backup", EntityType: "container", EntityID: run.ContainerID, Details: "plan=" + id, EnvironmentID: run.EnvironmentID})
+	h.app.AuditLog.Log(r, audit.Entry{Action: "backup", EntityType: "container", EntityID: run.ContainerID, EntityName: run.ContainerName, Details: "plan=" + id, EnvironmentID: run.EnvironmentID})
 	response.OK(w, run)
 }
 
@@ -274,10 +318,65 @@ func (h *Handler) HandleListRuns(w http.ResponseWriter, r *http.Request) {
 	runs, err := h.service.ListRuns(r.Context(), envID, containerID)
 	if err != nil {
 		h.app.Logger.Error("list container backup runs failed", "env", envID, "container", containerID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrSettingsFailed)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsFailed, err)
 		return
 	}
+
 	response.OK(w, runs)
+}
+
+// HandleListProviderRuns serves the backups every other subsystem took.
+//
+// A route of its own rather than a wider envelope on the runs list: half a
+// dozen callers read that list for container work alone, and changing its
+// shape to serve one page would have broken all of them to save one request.
+func (h *Handler) HandleListProviderRuns(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	envID := response.ParseEnvID(r)
+	providerRuns, sources := h.service.ProviderRuns(r.Context(), envID)
+	response.OK(w, BackupRunsPage{
+		ProviderRuns: providerRuns,
+		Sources:      append(hostBackupSource(), sources...),
+	})
+}
+
+// HandleListProviderPlans serves the schedules every other subsystem keeps.
+func (h *Handler) HandleListProviderPlans(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	envID := response.ParseEnvID(r)
+	providerPlans, sources := h.service.ProviderPlans(r.Context(), envID)
+	response.OK(w, BackupPlansPage{
+		ProviderPlans: providerPlans,
+		Sources:       append(hostBackupSource(), sources...),
+	})
+}
+
+// HandleRun returns one backup or restore run. The restore dialog polls
+// it for live progress, so it stays a plain read: no audit entry, and the
+// same view permission the list route carries.
+func (h *Handler) HandleRun(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	runID := chi.URLParam(r, "runId")
+	run, err := h.service.Run(r.Context(), runID)
+	if err != nil {
+		h.app.Logger.Error("read container backup run failed", "run", runID, "error", err)
+		response.InternalErrorCause(w, r, i18n.ErrSettingsFailed, err)
+		return
+	}
+	if run == nil {
+		response.NotFoundCode(w, r, i18n.ErrNotFound)
+		return
+	}
+	response.OK(w, run)
 }
 
 // HandleDownloadRun streams a completed backup archive.
@@ -295,7 +394,7 @@ func (h *Handler) HandleDownloadRun(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("download container backup failed", "run", runID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if download == nil {
@@ -310,15 +409,15 @@ func (h *Handler) HandleDownloadRun(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("open container backup archive failed", "run", runID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
-	defer file.Close()
+	defer closeLogged(file, "backup archive")
 
 	stat, err := file.Stat()
 	if err != nil || stat.IsDir() {
 		h.app.Logger.Error("stat container backup archive failed", "run", runID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -326,6 +425,7 @@ func (h *Handler) HandleDownloadRun(w http.ResponseWriter, r *http.Request) {
 		Action:     "backup.download",
 		EntityType: "container",
 		EntityID:   download.RunID,
+		EntityName: h.auditRunContainer(r.Context(), download.RunID),
 		Details:    "container backup archive downloaded",
 	})
 
@@ -343,6 +443,8 @@ func (h *Handler) HandleDeleteRun(w http.ResponseWriter, r *http.Request) {
 	}
 
 	runID := chi.URLParam(r, "runId")
+	// Read before the delete: afterwards there is no run left to name.
+	runContainer := h.auditRunContainer(r.Context(), runID)
 	deleted, err := h.service.DeleteRun(r.Context(), runID)
 	if err != nil {
 		if errors.Is(err, ErrBackupRunActive) {
@@ -350,7 +452,7 @@ func (h *Handler) HandleDeleteRun(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("delete container backup run failed", "run", runID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 		return
 	}
 	if !deleted {
@@ -362,6 +464,7 @@ func (h *Handler) HandleDeleteRun(w http.ResponseWriter, r *http.Request) {
 		Action:     "backup.delete",
 		EntityType: "container",
 		EntityID:   runID,
+		EntityName: runContainer,
 		Details:    "container backup run deleted",
 	})
 	response.NoContent(w)
@@ -395,17 +498,20 @@ func (h *Handler) HandleRetryDestinationUpload(w http.ResponseWriter, r *http.Re
 			"retry destination upload failed",
 			"run", runID, "destination", destinationID, "error", err,
 		)
-		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 		return
 	}
 	h.app.AuditLog.Log(r, audit.Entry{
 		Action:     "backup.retry_destination",
 		EntityType: "container",
 		EntityID:   runID,
+		EntityName: h.auditRunContainer(r.Context(), runID),
 		Details:    fmt.Sprintf("retry upload for destination %s", destinationID),
 	})
 	response.OK(w, destination)
 }
+
+// HandleCancelRun stops a running backup; a run that already finished is refused with its own code rather than altered.
 func (h *Handler) HandleCancelRun(w http.ResponseWriter, r *http.Request) {
 	if user := auth.RequireAuth(r); user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
@@ -420,7 +526,7 @@ func (h *Handler) HandleCancelRun(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("cancel container backup run failed", "run", runID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 		return
 	}
 	if run == nil {
@@ -432,6 +538,7 @@ func (h *Handler) HandleCancelRun(w http.ResponseWriter, r *http.Request) {
 		Action:        "backup.cancel",
 		EntityType:    "container",
 		EntityID:      run.ContainerID,
+		EntityName:    run.ContainerName,
 		Details:       "run=" + run.ID + " operation=" + run.Operation,
 		EnvironmentID: run.EnvironmentID,
 	})
@@ -449,7 +556,7 @@ func (h *Handler) HandleRestoreOptions(w http.ResponseWriter, r *http.Request) {
 	runID := chi.URLParam(r, "runId")
 	var input RestoreBackupOptionsInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -467,7 +574,7 @@ func (h *Handler) HandleRestoreOptions(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			h.app.Logger.Error("read container backup restore options failed", "run", runID, "error", err)
-			response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+			response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 			return
 		}
 	}
@@ -476,6 +583,148 @@ func (h *Handler) HandleRestoreOptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.OK(w, options)
+}
+
+// HandleRestoreFilesystemEntries returns the first-level children of
+// `innerPath` inside `container/filesystem.tar` for the named run.
+// Drives the restore dialog's per-file/per-folder tree when the
+// operator disables the "Full restore" toggle.
+func (h *Handler) HandleRestoreFilesystemEntries(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	runID := chi.URLParam(r, "runId")
+	var input RestoreFilesystemEntriesInput
+	if err := response.DecodeBody(r, &input); err != nil {
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+
+	items, truncated, limit, err := h.service.FilesystemEntriesForRestore(
+		r.Context(), runID, input.InnerPath, input.SecretKey,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrBackupRestoreSecretRequired):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
+			return
+		case errors.Is(err, ErrBackupRestoreKeyInvalid):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
+			return
+		case errors.Is(err, ErrBackupRunNotDownloadable):
+			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
+			return
+		default:
+			h.app.Logger.Error("read container backup filesystem entries failed", "run", runID, "error", err)
+			response.InternalErrorCause(w, r, i18n.ErrContainerBackupRestoreTreeEntriesFailed, err)
+			return
+		}
+	}
+	response.OK(w, RestoreEntriesResult{
+		Items:          items,
+		Truncated:      truncated,
+		MaxChildrenCap: limit,
+	})
+}
+
+// HandleRestoreMountEntries returns the first-level children of
+// `innerPath` inside `mounts/<safeTarget>.tar` for the named run.
+// Mount target is required and must match a source-mount path the
+// backup archive actually contains.
+func (h *Handler) HandleRestoreMountEntries(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	runID := chi.URLParam(r, "runId")
+	var input RestoreMountEntriesInput
+	if err := response.DecodeBody(r, &input); err != nil {
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+	if strings.TrimSpace(input.MountTarget) == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	items, truncated, limit, err := h.service.MountEntriesForRestore(
+		r.Context(), runID, input.MountTarget, input.InnerPath, input.SecretKey,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrBackupRestoreSecretRequired):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
+			return
+		case errors.Is(err, ErrBackupRestoreKeyInvalid):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
+			return
+		case errors.Is(err, ErrBackupRestoreMountMissing):
+			response.NotFoundCode(w, r, i18n.ErrContainerBackupRestoreMountMissing)
+			return
+		case errors.Is(err, ErrBackupRunNotDownloadable):
+			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
+			return
+		default:
+			h.app.Logger.Error("read container backup mount entries failed", "run", runID, "mount", input.MountTarget, "error", err)
+			response.InternalErrorCause(w, r, i18n.ErrContainerBackupRestoreTreeEntriesFailed, err)
+			return
+		}
+	}
+	response.OK(w, RestoreEntriesResult{
+		Items:          items,
+		Truncated:      truncated,
+		MaxChildrenCap: limit,
+	})
+}
+
+// HandleRestoreConfigEntries returns the synthetic config tree
+// children under `parentKey` for the named run. Drives the
+// per-key config picker when the operator disables the
+// "Full config" toggle.
+func (h *Handler) HandleRestoreConfigEntries(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	runID := chi.URLParam(r, "runId")
+	var input RestoreConfigEntriesInput
+	if err := response.DecodeBody(r, &input); err != nil {
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+
+	items, truncated, limit, err := h.service.ConfigEntriesForRestore(
+		r.Context(), runID, input.ParentKey, input.SecretKey,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrBackupRestoreSecretRequired):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
+			return
+		case errors.Is(err, ErrBackupRestoreKeyInvalid):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
+			return
+		case errors.Is(err, ErrBackupRestoreConfigMissing):
+			response.NotFoundCode(w, r, i18n.ErrContainerBackupRestoreConfigMissing)
+			return
+		case errors.Is(err, ErrBackupRunNotDownloadable):
+			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
+			return
+		default:
+			h.app.Logger.Error("read container backup config entries failed", "run", runID, "error", err)
+			response.InternalErrorCause(w, r, i18n.ErrContainerBackupRestoreTreeEntriesFailed, err)
+			return
+		}
+	}
+	response.OK(w, RestoreEntriesResult{
+		Items:          items,
+		Truncated:      truncated,
+		MaxChildrenCap: limit,
+	})
 }
 
 // HandleRestoreRun restores a completed backup archive to its original container.
@@ -488,12 +737,15 @@ func (h *Handler) HandleRestoreRun(w http.ResponseWriter, r *http.Request) {
 	runID := chi.URLParam(r, "runId")
 	var input RestoreBackupInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
 	run, err := h.service.StartRestore(r.Context(), runID, input)
 	if err != nil {
+		if h.refuseSelfRestore(w, r, audit.Entry{EntityType: "container_backup_run", EntityID: runID, Details: "op=restore"}, err) {
+			return
+		}
 		switch {
 		case errors.Is(err, ErrBackupRestoreSecretRequired):
 			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
@@ -501,15 +753,21 @@ func (h *Handler) HandleRestoreRun(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, ErrBackupRestoreKeyInvalid):
 			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
 			return
+		case errors.Is(err, ErrBackupRestoreConfigFilesystemConflict):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreConfigFsConflict)
+			return
+		case errors.Is(err, ErrBackupRestoreConfigUnsupported):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreConfigUnsupported)
+			return
 		case errors.Is(err, ErrBackupRunNotDownloadable), errors.Is(err, ErrBackupRestoreNoRestorableEntries):
 			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
 			return
-		case client.IsErrNotFound(err):
+		case cerrdefs.IsNotFound(err):
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
 		default:
 			h.app.Logger.Error("restore container backup failed", "run", runID, "error", err)
-			response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+			response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 			return
 		}
 	}
@@ -522,6 +780,7 @@ func (h *Handler) HandleRestoreRun(w http.ResponseWriter, r *http.Request) {
 		Action:        "backup.restore",
 		EntityType:    "container",
 		EntityID:      run.ContainerID,
+		EntityName:    run.ContainerName,
 		Details:       "restore_run=" + run.ID + " source_run=" + runID,
 		EnvironmentID: run.EnvironmentID,
 	})
@@ -543,16 +802,16 @@ func (h *Handler) HandleRestoreUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
-	defer file.Close()
+	defer closeLogged(file, "uploaded backup archive")
 
 	result, err := h.service.RestoreUploaded(r.Context(), RestoreUploadedBackupInput{
 		EnvironmentID: envID,
@@ -561,6 +820,9 @@ func (h *Handler) HandleRestoreUpload(w http.ResponseWriter, r *http.Request) {
 		Reader:        file,
 	})
 	if err != nil {
+		if h.refuseSelfRestore(w, r, audit.Entry{EntityType: "container", EntityID: containerID, EnvironmentID: envID, Details: "op=restore_upload"}, err) {
+			return
+		}
 		switch {
 		case errors.Is(err, ErrBackupRestoreSecretRequired):
 			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
@@ -568,15 +830,21 @@ func (h *Handler) HandleRestoreUpload(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, ErrBackupRestoreKeyInvalid):
 			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
 			return
+		case errors.Is(err, ErrBackupRestoreConfigFilesystemConflict):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreConfigFsConflict)
+			return
+		case errors.Is(err, ErrBackupRestoreConfigUnsupported):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreConfigUnsupported)
+			return
 		case errors.Is(err, ErrBackupRunNotDownloadable), errors.Is(err, ErrBackupRestoreNoRestorableEntries):
 			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
 			return
-		case client.IsErrNotFound(err):
+		case cerrdefs.IsNotFound(err):
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
 		default:
 			h.app.Logger.Error("restore uploaded container backup failed", "env", envID, "container", containerID, "error", err)
-			response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+			response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
 			return
 		}
 	}
@@ -590,6 +858,64 @@ func (h *Handler) HandleRestoreUpload(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response.OK(w, result)
+}
+
+// HandleStageUpload stores an uploaded backup archive as a run without restoring it, so
+// the restore dialog can read its contents and the operator can restore a selection.
+func (h *Handler) HandleStageUpload(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	containerID := chi.URLParam(r, "id")
+	if strings.TrimSpace(envID) == "" || strings.TrimSpace(containerID) == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+	defer closeLogged(file, "uploaded backup archive")
+
+	run, err := h.service.StageUploaded(r.Context(), RestoreUploadedBackupInput{
+		EnvironmentID: envID,
+		ContainerID:   containerID,
+		SecretKey:     r.FormValue("secretKey"),
+		Reader:        file,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrBackupRestoreSecretRequired):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyRequired)
+		case errors.Is(err, ErrBackupRestoreKeyInvalid):
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRestoreKeyInvalid)
+		case errors.Is(err, ErrBackupRestoreNoRestorableEntries):
+			response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
+		default:
+			h.app.Logger.Error("stage uploaded container backup failed", "env", envID, "container", containerID, "error", err)
+			response.InternalErrorCause(w, r, i18n.ErrContainerActionFailed, err)
+		}
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:        "backup.upload",
+		EntityType:    "container",
+		EntityID:      containerID,
+		Details:       "uploaded container backup archive staged as run " + run.ID,
+		EnvironmentID: envID,
+	})
+
+	response.OK(w, run)
 }
 
 // HandleRestoreTransfer streams one prepared restore archive entry to a connected agent.
@@ -658,10 +984,14 @@ func extendAgentArchiveTransferDeadline(w http.ResponseWriter, read, write bool)
 	deadline := time.Now().Add(backupUploadTimeout)
 	controller := http.NewResponseController(w)
 	if read {
-		_ = controller.SetReadDeadline(deadline)
+		if err := controller.SetReadDeadline(deadline); err != nil {
+			slog.Debug("container backups: extending read deadline unsupported", "error", err)
+		}
 	}
 	if write {
-		_ = controller.SetWriteDeadline(deadline)
+		if err := controller.SetWriteDeadline(deadline); err != nil {
+			slog.Debug("container backups: extending write deadline unsupported", "error", err)
+		}
 	}
 }
 
@@ -677,4 +1007,25 @@ func cleanMountSelection(input []string) []string {
 		out = append(out, mountPath)
 	}
 	return out
+}
+
+// The resolvers rbac.PinEnvToResource uses on the run, plan and snapshot-config
+// routes, so each is authorized on the environment its row lives in.
+func (h *Handler) runEnvironment(r *http.Request) (string, bool, error) {
+	return h.logResolve(h.service.RunEnvironment(r.Context(), chi.URLParam(r, "runId")))
+}
+
+func (h *Handler) planEnvironment(r *http.Request) (string, bool, error) {
+	return h.logResolve(h.service.PlanEnvironment(r.Context(), chi.URLParam(r, "planId")))
+}
+
+func (h *Handler) snapshotConfigEnvironment(r *http.Request) (string, bool, error) {
+	return h.logResolve(h.service.SnapshotConfigEnvironment(r.Context(), chi.URLParam(r, "id")))
+}
+
+func (h *Handler) logResolve(envID string, found bool, err error) (string, bool, error) {
+	if err != nil {
+		h.app.Logger.Error("container backups: resolving the row's environment", "error", err)
+	}
+	return envID, found, err
 }

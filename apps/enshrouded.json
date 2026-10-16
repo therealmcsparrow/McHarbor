@@ -1,0 +1,66 @@
+{
+    "slug":  "enshrouded",
+    "name":  "Enshrouded",
+    "description":  "Dedicated server for the survival action RPG Enshrouded.",
+    "category":  "Gaming",
+    "image":  "mornedhels/enshrouded-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/enshrouded.png",
+    "website":  "https://www.enshrouded.com",
+    "docsUrl":  "https://github.com/mornedhels/enshrouded-server",
+    "ports":  [
+                  {
+                      "host":  15636,
+                      "container":  15636,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  15637,
+                      "container":  15637,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/enshrouded/savegame",
+                        "container":  "/home/steam/enshrouded/savegame"
+                    },
+                    {
+                        "host":  "/opt/appdata/enshrouded/config",
+                        "container":  "/home/steam/enshrouded/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "My Enshrouded Server",
+                        "description":  "Server name shown in the server list"
+                    },
+                    {
+                        "key":  "SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SERVER_SLOT_COUNT",
+                        "default":  "16",
+                        "description":  "Maximum player slots"
+                    },
+                    {
+                        "key":  "UPDATE_CRON",
+                        "default":  "0 5 * * *",
+                        "description":  "Cron schedule for automatic updates"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

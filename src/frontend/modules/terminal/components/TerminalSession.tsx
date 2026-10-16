@@ -9,18 +9,31 @@ type TerminalSessionProps = {
   containerId: string;
   active: boolean;
   onDisconnect: () => void;
+  shell?: string;
+  user?: string;
+  workingDir?: string;
 };
 
-export default function TerminalSession({ containerId, active, onDisconnect }: TerminalSessionProps) {
+export default function TerminalSession({
+  containerId,
+  active,
+  onDisconnect,
+  shell,
+  user,
+  workingDir,
+}: TerminalSessionProps) {
   const { t } = useTranslation('terminal');
-  const { termRef, connected } = useXTerm(containerId, { autoConnect: active, active });
+  const { termRef, connected } = useXTerm(containerId, {
+    autoConnect: active,
+    active,
+    shell,
+    user,
+    workingDir,
+  });
 
   return (
     <>
-      <div
-        ref={termRef}
-        className="min-h-[400px] flex-1 rounded-lg border border-border bg-[#0a0a0a] p-1"
-      />
+      <div ref={termRef} className="min-h-[400px] flex-1 rounded-lg border border-border bg-background p-1" />
       {connected && (
         <div className="flex justify-end">
           <Button variant="outline" onClick={onDisconnect}>

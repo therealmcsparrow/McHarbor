@@ -11,6 +11,12 @@
     "pruneImagesDesc": "Remove all unused images. This cannot be undone.",
     "pruneVolumes": "Prune Volumes",
     "pruneVolumesDesc": "Remove all unused volumes. This cannot be undone.",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "pruneContainers": "Prune containers",
+    "pruneContainersDesc": "Remove all stopped containers. This cannot be undone.",
+    "checkUpdates": "Check updates",
+    "checkUpdatesDesc": "Look for newer images",
+    "liveLogs": "Live logs",
+    "liveLogsDesc": "Open the log stream"
   }
 }

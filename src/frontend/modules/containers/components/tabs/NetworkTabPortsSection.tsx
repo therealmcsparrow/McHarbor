@@ -1,122 +1,177 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconListDetails, IconLock, IconPlus, IconX } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import type { PortMappingEntry } from '../../types/edit-form';
+import type { ExposedPortRow } from '../../types/exposed-ports';
+import { PortContextDrawer } from '../PortContextDrawer';
+import { PortMappingEditRow } from './PortMappingEditRow';
 
 type NetworkTabPortsSectionProps = {
+  containerId: string;
+  allowConnectionTest: boolean;
   editing: boolean;
   exposedPorts: string[];
+  /** Edit mode: what the save will expose, and why a port may not be removable. */
+  exposedRows?: ExposedPortRow[];
+  onRemoveExposedPort?: (port: string) => void;
   portMappingKeys: string[];
   portMappings: PortMappingEntry[];
-  ports: string[];
+  publishedPortMappings: PortMappingEntry[];
   onAddPortMapping: () => void;
   onPortMappingChange: (index: number, field: keyof PortMappingEntry, value: string) => void;
   onRemovePortMapping: (index: number) => void;
+  /** Which card to render, so the configuration editor can place them in different columns. */
+  part?: 'all' | 'mappings' | 'exposed';
 };
 
 export function NetworkTabPortsSection({
+  containerId,
+  allowConnectionTest,
   editing,
   exposedPorts,
+  exposedRows = [],
+  onRemoveExposedPort,
   portMappingKeys,
   portMappings,
-  ports,
+  publishedPortMappings,
   onAddPortMapping,
   onPortMappingChange,
   onRemovePortMapping,
+  part = 'all',
 }: NetworkTabPortsSectionProps) {
   const { t } = useTranslation('containers');
-
+  const [selectedPort, setSelectedPort] = useState<PortMappingEntry | null>(null);
+  const portKey = `${containerId}|${editing}`;
+  const [portFor, setPortFor] = useState(portKey);
+  if (portFor !== portKey) {
+    setPortFor(portKey);
+    setSelectedPort(null);
+  }
   return (
     <>
-      <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.portMappings')}</h3>
-        {editing ? (
-          <div className="space-y-2">
-            {portMappings.length > 0 && (
-              <div className="grid grid-cols-[1fr_1fr_100px_80px_auto] gap-2 text-xs font-medium text-muted-foreground">
-                <span>{t('networkTab.hostPort')}</span>
-                <span>{t('networkTab.containerPort')}</span>
-                <span>{t('networkTab.hostIp')}</span>
-                <span>{t('networkTab.protocol')}</span>
-                <span className="w-8" />
-              </div>
-            )}
-            {portMappings.map((mapping, index) => (
-              <div key={portMappingKeys[index]} className="grid grid-cols-[1fr_1fr_100px_80px_auto] gap-2">
-                <input
-                  type="text"
-                  value={mapping.hostPort}
-                  onChange={(event) => onPortMappingChange(index, 'hostPort', event.target.value)}
-                  placeholder="8080"
-                  className="rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
+      {part !== 'exposed' && (
+        <div className="mc-glass rounded-lg p-6 lg:col-span-2">
+          <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+            {t('networkTab.portMappings')}
+          </h3>
+          {editing ? (
+            <div className="space-y-2">
+              {portMappings.length > 0 && (
+                <div className="hidden grid-cols-[1fr_1fr_100px_80px_auto] gap-2 text-xs font-medium text-muted-foreground sm:grid">
+                  <span>{t('networkTab.hostPort')}</span>
+                  <span>{t('networkTab.containerPort')}</span>
+                  <span>{t('networkTab.hostIp')}</span>
+                  <span>{t('networkTab.protocol')}</span>
+                  <span className="w-8" />
+                </div>
+              )}
+              {portMappings.map((mapping, index) => (
+                <PortMappingEditRow
+                  key={portMappingKeys[index]}
+                  mapping={mapping}
+                  index={index}
+                  onChange={onPortMappingChange}
+                  onRemove={onRemovePortMapping}
                 />
-                <input
-                  type="text"
-                  value={mapping.containerPort}
-                  onChange={(event) => onPortMappingChange(index, 'containerPort', event.target.value)}
-                  placeholder="80"
-                  className="rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={mapping.hostIp}
-                  onChange={(event) => onPortMappingChange(index, 'hostIp', event.target.value)}
-                  placeholder="0.0.0.0"
-                  className="rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-                />
-                <select
-                  value={mapping.protocol}
-                  onChange={(event) => onPortMappingChange(index, 'protocol', event.target.value)}
-                  className="rounded-md border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
-                >
-                  <option value="tcp">TCP</option>
-                  <option value="udp">UDP</option>
-                </select>
+              ))}
+              <Button variant="outline" size="sm" onClick={onAddPortMapping} className="mt-1">
+                <IconPlus className="mr-1 size-3.5" />
+                {t('edit.addPort')}
+              </Button>
+            </div>
+          ) : publishedPortMappings.length > 0 ? (
+            <div className="space-y-2">
+              {publishedPortMappings.map((mapping) => (
                 <Button
+                  key={`${mapping.hostIp}:${mapping.hostPort}:${mapping.containerPort}/${mapping.protocol}`}
                   variant="ghost"
-                  size="icon"
-                  onClick={() => onRemovePortMapping(index)}
-                  aria-label={t("network.removePort")}
-                  className="size-7 text-muted-foreground hover:text-red-500"
+                  onClick={() => setSelectedPort(mapping)}
+                  aria-haspopup="dialog"
+                  className="h-auto min-h-11 w-full justify-between rounded-md bg-muted px-3 py-2 font-mono text-xs sm:min-h-[1.875rem]"
                 >
-                  <IconTrash className="size-3.5" />
+                  <span className="min-w-0 text-left break-all">
+                    {mapping.hostIp}:{mapping.hostPort} → {mapping.containerPort}/{mapping.protocol}
+                  </span>
+                  <IconListDetails className="size-4 shrink-0 text-muted-foreground" />
                 </Button>
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={onAddPortMapping} className="mt-1">
-              <IconPlus className="mr-1 size-3.5" />
-              {t('edit.addPort')}
-            </Button>
-          </div>
-        ) : ports.length > 0 ? (
-          <div className="space-y-2">
-            {ports.map((port) => (
-              <div key={port} className="rounded-md bg-muted px-3 py-2 font-mono text-xs text-foreground">
-                {port}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t('networkTab.noPortMappings')}</p>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t('networkTab.noPortMappings')}</p>
+          )}
+        </div>
+      )}
 
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.exposedPorts')}</h3>
-        {exposedPorts.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {exposedPorts.map((port) => (
-              <Badge key={port} variant="secondary" className="font-mono text-xs">{port}</Badge>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t('networkTab.noExposedPorts')}</p>
-        )}
-      </div>
+      {part !== 'mappings' && (
+        <div className="mc-glass rounded-lg p-6">
+          <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+            {t('networkTab.exposedPorts')}
+          </h3>
+          {editing ? (
+            exposedRows.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {exposedRows.map((row) => (
+                    <Badge key={row.port} variant="secondary" className="gap-1 font-mono text-xs">
+                      {row.port}
+                      {row.lockedBy ? (
+                        <IconLock
+                          className="size-3 text-muted-foreground"
+                          // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- inline SVG icon; an <img> would need a data URI
+                          role="img"
+                          aria-label={
+                            row.lockedBy === 'image'
+                              ? t('networkTab.exposedLockedImage')
+                              : t('networkTab.exposedLockedMapping')
+                          }
+                        />
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-4 p-0"
+                          aria-label={t('networkTab.removeExposedPort', { port: row.port })}
+                          onClick={() => onRemoveExposedPort?.(row.port)}
+                        >
+                          <IconX className="size-3" />
+                        </Button>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+                {exposedRows.some((row) => row.lockedBy) && (
+                  <p className="text-xs text-muted-foreground">{t('networkTab.exposedLockedHint')}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t('networkTab.noExposedPorts')}</p>
+            )
+          ) : exposedPorts.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {exposedPorts.map((port) => (
+                <Badge key={port} variant="secondary" className="font-mono text-xs">
+                  {port}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t('networkTab.noExposedPorts')}</p>
+          )}
+        </div>
+      )}
+
+      {part !== 'exposed' && (
+        <PortContextDrawer
+          mapping={selectedPort}
+          allowConnectionTest={allowConnectionTest}
+          onClose={() => setSelectedPort(null)}
+        />
+      )}
     </>
   );
 }

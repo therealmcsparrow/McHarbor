@@ -4,57 +4,52 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const dnsLookup: NodeDefinition = {
-  "key": "dns-lookup",
-  "label": "DNS Lookup",
-  "category": "integration",
-  "description": "Resolve DNS records for a hostname",
-  "icon": "IconWorldSearch",
-  "configSchema": [
+  key: 'dns-lookup',
+  label: 'DNS Lookup',
+  category: 'integration',
+  description: 'Resolve DNS records for a hostname',
+  icon: 'IconWorldSearch',
+  configSchema: [
     {
-      "key": "hostname",
-      "label": "Hostname",
-      "type": "text",
-      "required": true
+      key: 'hostname',
+      label: 'Hostname',
+      type: 'text',
+      required: true,
     },
     {
-      "key": "record_type",
-      "label": "Record Type",
-      "type": "select",
-      "required": false,
-      "default": "A",
-      "options": [
+      key: 'record_type',
+      label: 'Record Type',
+      type: 'select',
+      required: false,
+      default: 'A',
+      options: [
         {
-          "value": "A",
-          "label": "A"
+          value: 'A',
+          label: 'A',
         },
         {
-          "value": "AAAA",
-          "label": "AAAA"
+          value: 'AAAA',
+          label: 'AAAA',
         },
         {
-          "value": "MX",
-          "label": "MX"
+          value: 'MX',
+          label: 'MX',
         },
         {
-          "value": "TXT",
-          "label": "TXT"
+          value: 'TXT',
+          label: 'TXT',
         },
         {
-          "value": "CNAME",
-          "label": "CNAME"
+          value: 'CNAME',
+          label: 'CNAME',
         },
         {
-          "value": "NS",
-          "label": "NS"
-        }
-      ]
-    }
+          value: 'NS',
+          label: 'NS',
+        },
+      ],
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

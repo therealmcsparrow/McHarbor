@@ -1,0 +1,21 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "id": "ID",
+      "name": "Name",
+      "backend": "Backend",
+      "target": "Target"
+    },
+    "Dir"
+  ],
+  "wire": {
+    "operation": "browse",
+    "envId": "env-1",
+    "poolId": "ID",
+    "name": "Name",
+    "backend": "Backend",
+    "target": "Target",
+    "path": "Dir"
+  }
+}

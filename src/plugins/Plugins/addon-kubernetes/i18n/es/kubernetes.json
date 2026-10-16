@@ -1,0 +1,416 @@
+{
+  "estate": {
+    "clusters": "Clústeres de Kubernetes"
+  },
+  "title": "Kubernetes",
+  "description": "Administre entornos de Kubernetes mediante un resumen al estilo Docker, tablas de recursos y detalles de cargas de trabajo.",
+  "actions": {
+    "refresh": "Actualizar",
+    "backTo": "Volver a {{kind}}",
+    "scale": "Escalar",
+    "restart": "Reiniciar",
+    "delete": "Eliminar",
+    "logs": "Registros",
+    "configure": "Configurar clústeres",
+    "searchIn": "Buscar en {{kind}}…",
+    "deleteSelected": "Eliminar seleccionados",
+    "restartSelected": "Reiniciar seleccionados"
+  },
+  "tabs": {
+    "label": "Secciones de Kubernetes",
+    "overview": "Resumen",
+    "resources": "Recursos",
+    "pods": "Pods",
+    "deployments": "Despliegues",
+    "workloads": "Cargas de trabajo",
+    "services": "Servicios",
+    "networking": "Redes",
+    "namespaces": "Espacios de nombres",
+    "nodes": "Nodos",
+    "events": "Eventos",
+    "config": "Configuración",
+    "storage": "Almacenamiento",
+    "capabilities": "Capacidades",
+    "menu": {
+      "open": "Abrir",
+      "openInNewTab": "Abrir en una pestaña nueva",
+      "copyLink": "Copiar enlace",
+      "reload": "Recargar"
+    }
+  },
+  "sections": {
+    "cluster": "Clúster",
+    "workloads": "Cargas de trabajo",
+    "networking": "Redes",
+    "storage": "Almacenamiento",
+    "inventory": "Inventario",
+    "details": "Detalles",
+    "containers": "Contenedores",
+    "conditions": "Condiciones"
+  },
+  "fields": {
+    "connected": "Conectado",
+    "version": "Versión",
+    "namespaceScope": "Ámbito de espacios de nombres",
+    "nodes": "Nodos"
+  },
+  "values": {
+    "yes": "Sí",
+    "allNamespaces": "Todos los espacios de nombres",
+    "no": "No"
+  },
+  "resources": {
+    "replicaSets": "ReplicaSets",
+    "hpas": "Autoescaladores horizontales de pods",
+    "endpoints": "Puntos de conexión",
+    "networkPolicies": "Políticas de red",
+    "persistentVolumes": "Volúmenes persistentes",
+    "claims": "Solicitudes",
+    "storageClasses": "Clases de almacenamiento",
+    "configMaps": "ConfigMaps",
+    "secrets": "Secretos",
+    "serviceAccounts": "Cuentas de servicio",
+    "resourceQuotas": "Cuotas de recursos",
+    "limitRanges": "Rangos de límites"
+  },
+  "columns": {
+    "kind": "Tipo",
+    "name": "Nombre",
+    "namespace": "Espacio de nombres",
+    "status": "Estado",
+    "ready": "Listo",
+    "restarts": "Reinicios",
+    "node": "Nodo",
+    "age": "Antigüedad",
+    "upToDate": "Actualizado",
+    "available": "Disponible",
+    "images": "Imágenes",
+    "type": "Tipo",
+    "clusterIP": "IP del clúster",
+    "externalIP": "IP externa",
+    "ports": "Puertos",
+    "roles": "Roles",
+    "version": "Versión",
+    "cpu": "CPU",
+    "memory": "Memoria",
+    "reason": "Motivo",
+    "object": "Objeto",
+    "message": "Mensaje",
+    "capacity": "Capacidad",
+    "storageClass": "Clase de almacenamiento",
+    "claim": "Solicitud",
+    "addresses": "Direcciones",
+    "target": "Destino",
+    "replicas": "Réplicas",
+    "description": "Descripción",
+    "actions": "Acciones",
+    "image": "Imagen",
+    "state": "Estado",
+    "restartCount": "Reinicios",
+    "ip": "IP",
+    "createdAt": "Creado",
+    "strategy": "Estrategia",
+    "desiredReplicas": "Deseado"
+  },
+  "empty": {
+    "resources": "No se encontraron recursos de Kubernetes.",
+    "capabilities": "No se han reportado sondeos de capacidades.",
+    "filtered": "Ningún recurso coincide con este filtro."
+  },
+  "errors": {
+    "summaryFailed": "Falló el resumen de Kubernetes",
+    "unavailable": "Kubernetes no disponible",
+    "verifyCredentials": "Seleccione un entorno de Kubernetes y verifique las credenciales del clúster.",
+    "detailUnavailable": "Detalle no disponible",
+    "detailMessage": "No se pudo cargar el recurso de Kubernetes seleccionado.",
+    "reason": {
+      "no_environment": "Aún no hay ningún clúster de Kubernetes configurado. Añade uno en la página Entornos para ver recursos aquí.",
+      "not_kubernetes": "El entorno seleccionado es un host de Docker, no un clúster de Kubernetes. Elige un clúster arriba.",
+      "unreachable": "No se pudo conectar con el clúster. Comprueba que el servidor de API esté activo y que las credenciales sigan siendo válidas."
+    }
+  },
+  "groups": {
+    "overview": "Resumen del clúster",
+    "workloads": "Cargas de trabajo",
+    "network": "Red",
+    "storage": "Almacenamiento",
+    "config": "Configuración",
+    "cluster": "Clúster"
+  },
+  "cluster": {
+    "label": "Clúster",
+    "add": "Añadir un clúster"
+  },
+  "scale": {
+    "title": "Escalar despliegue",
+    "description": "Define el número de réplicas de {{name}} en {{namespace}}.",
+    "replicas": "Réplicas",
+    "zeroWarning": "Escalar a 0 detiene todos los pods de este despliegue.",
+    "submit": "Escalar",
+    "applying": "Escalando…"
+  },
+  "logs": {
+    "title": "Registros del pod",
+    "description": "Registros de {{name}} en {{namespace}}.",
+    "tail": "Líneas",
+    "previous": "Instancia anterior",
+    "loading": "Leyendo registros…",
+    "empty": "Este contenedor no ha generado ninguna salida de registro."
+  },
+  "confirm": {
+    "deletePodTitle": "Eliminar pod",
+    "deletePodDescription": "¿Eliminar {{name}} en {{namespace}}? Un pod gestionado por un controlador se volverá a crear.",
+    "deleteDeploymentTitle": "Eliminar despliegue",
+    "deleteDeploymentDescription": "¿Eliminar {{name}} en {{namespace}}? Sus replica sets y pods se eliminan con él."
+  },
+  "toast": {
+    "scaled": "Despliegue escalado",
+    "restarted": "Reinicio del despliegue iniciado",
+    "deleted": "Recurso eliminado"
+  },
+  "stats": {
+    "podsDetail": "en {{namespaces}} espacios de nombres",
+    "deploymentsDetail": "{{replicaSets}} conjuntos de réplicas",
+    "servicesDetail": "{{endpoints}} puntos de conexión",
+    "nodesDetail": "{{events}} eventos"
+  },
+  "nav": {
+    "section": {
+      "kubernetes": "Kubernetes"
+    },
+    "overview": "Resumen del clúster",
+    "workloads": "Cargas de trabajo",
+    "network": "Red",
+    "storage": "Almacenamiento",
+    "config": "Configuración",
+    "cluster": "Clúster",
+    "clusters": "Conexiones"
+  },
+  "clusters": {
+    "title": "Conexiones de clúster",
+    "description": "{{count}} clústeres configurados",
+    "searchPlaceholder": "Buscar clústeres…",
+    "empty": "Aún no hay clústeres",
+    "emptyDescription": "Añada una conexión de clúster para gestionar cargas de trabajo.",
+    "default": "Predeterminado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "fromKubeconfig": "Desde kubeconfig",
+    "columns": {
+      "name": "Nombre",
+      "server": "Servidor API",
+      "namespace": "Espacio de nombres",
+      "credential": "Credencial",
+      "state": "Estado"
+    },
+    "credential": {
+      "kubeconfig": "Kubeconfig",
+      "token": "Token de portador",
+      "none": "Ninguna"
+    },
+    "actions": {
+      "add": "Añadir clúster",
+      "remove": "Eliminar",
+      "makeDefault": "Establecer como predeterminado",
+      "export": "Exportar",
+      "exportHint": "Exporta nombres y datos de conexión — nunca credenciales."
+    },
+    "form": {
+      "addTitle": "Añadir clúster",
+      "editTitle": "Editar clúster",
+      "description": "Las credenciales se cifran en reposo y la API nunca las devuelve.",
+      "name": "Nombre",
+      "namePlaceholder": "produccion",
+      "namespace": "Espacio de nombres",
+      "namespaceHelp": "Déjelo vacío para leer todos los espacios de nombres que la credencial pueda ver.",
+      "authMethod": "Autenticación",
+      "authKubeconfig": "Kubeconfig",
+      "authToken": "URL del servidor y token de portador",
+      "kubeconfig": "Kubeconfig",
+      "kubeconfigHelp": "Pegue el YAML completo del kubeconfig. Se usa el contexto actual.",
+      "kubeconfigPlaceholder": "apiVersion: v1\nkind: Config\n…",
+      "serverUrl": "URL del servidor API",
+      "bearerToken": "Token de portador",
+      "caCert": "Certificado CA",
+      "caCertHelp": "Opcional. Necesario cuando el servidor API usa una CA privada.",
+      "credentialOnFile": "Hay una credencial guardada. Déjelo vacío para conservarla.",
+      "isDefault": "Clúster predeterminado",
+      "environment": "Se ejecuta en el entorno",
+      "environmentHelp": "El entorno de McHarbor en el que se ejecuta este clúster. Al vincularlo, el clúster aparece en la tarjeta de ese entorno.",
+      "environmentNone": "No está en un entorno de McHarbor",
+      "isActive": "Activo"
+    },
+    "confirmRemove": {
+      "title": "¿Eliminar el clúster?",
+      "description": "¿Eliminar la conexión con {{name}}? El clúster en sí no se toca."
+    },
+    "toast": {
+      "created": "Clúster añadido",
+      "updated": "Clúster actualizado",
+      "deleted": "Clúster eliminado",
+      "exported": "{{count}} clústeres exportados"
+    }
+  },
+  "facets": {
+    "all": "Todos"
+  },
+  "detail": {
+    "breadcrumbLabel": "Ruta de navegación",
+    "tabs": {
+      "ariaLabel": "Secciones del recurso",
+      "overview": "Resumen",
+      "containers": "Contenedores",
+      "conditions": "Condiciones"
+    },
+    "empty": {
+      "containers": "Este pod aún no informa estados de contenedor.",
+      "conditions": "Este recurso no informa condiciones."
+    }
+  },
+  "overview": {
+    "general": "General",
+    "suggested": {
+      "title": "¿Qué quieres hacer?",
+      "description": "Ve directamente a la siguiente tarea probable del clúster.",
+      "inspectPods": "Revisar pods con fallos",
+      "reviewEvents": "Revisar eventos",
+      "viewNodes": "Ver nodos",
+      "viewWorkloads": "Ver cargas de trabajo",
+      "manageClusters": "Gestionar clústeres"
+    }
+  },
+  "insights": {
+    "title": "Información",
+    "clear": "No se detectaron problemas accionables en los datos actuales del clúster.",
+    "open": "Abrir detalles de {{title}}",
+    "severity": {
+      "info": "Información",
+      "warning": "Advertencia",
+      "error": "Crítico"
+    },
+    "failedPodsTitle": "{{count}} pods están fallando",
+    "failedPodsDescription": "{{name}} y otros no se están ejecutando. Revisa sus registros y eventos.",
+    "unreadyNodesTitle": "{{count}} nodos no están listos",
+    "unreadyNodesDescription": "{{name}} no acepta cargas de trabajo. El planificador lo evitará hasta que se recupere.",
+    "rolloutTitle": "{{count}} despliegues no alcanzan su objetivo",
+    "rolloutDescription": "{{name}} tiene menos réplicas listas de las deseadas. Puede que el despliegue siga en curso.",
+    "pendingPodsTitle": "{{count}} pods están pendientes",
+    "pendingPodsDescription": "Aún no se han programado. Normalmente se debe a la capacidad del nodo o a un volumen ausente.",
+    "warningEventsTitle": "{{count}} eventos de advertencia",
+    "warningEventsDescription": "El motivo más reciente es {{reason}}.",
+    "probesTitle": "{{count}} sondas de capacidad no están correctas",
+    "probesDescription": "Algunas funciones del clúster no se pudieron verificar con las credenciales actuales."
+  },
+  "badges": {
+    "connected": "Conectado",
+    "disconnected": "Desconectado"
+  },
+  "reporting": {
+    "category": {
+      "label": "Kubernetes",
+      "description": "Fiabilidad, almacenamiento y exposición de red, leídos del servidor de API de Kubernetes."
+    },
+    "platform": "Kubernetes",
+    "type": {
+      "reliability": {
+        "name": "Revisión de fiabilidad",
+        "description": "Pods que se reinician, cargas de trabajo no listas y de qué advierte el clúster."
+      },
+      "storage": {
+        "name": "Parque de almacenamiento",
+        "description": "Claims, volúmenes y clases de almacenamiento, y cuáles no usa nada."
+      },
+      "network": {
+        "name": "Exposición de red",
+        "description": "Qué es accesible desde fuera del clúster y qué espacios de nombres no tienen política de red."
+      }
+    }
+  },
+  "subject": {
+    "kubernetes-cluster": "Clúster",
+    "kubernetes-namespace": "Espacio de nombres"
+  },
+  "subjectAll": {
+    "kubernetes-cluster": "Clúster predeterminado",
+    "kubernetes-namespace": "Todos los espacios de nombres"
+  },
+  "widgets": {
+    "clusterHealth": {
+      "label": "Salud del clúster",
+      "description": "Fases de pods, despliegues y nodos de un vistazo, con veredicto",
+      "title": "Salud del clúster",
+      "allHealthy": "Todas las cargas de trabajo sanas",
+      "failedPods": "{{count}} pod fallando",
+      "failedPods_other": "{{count}} pods fallando",
+      "unreadyNodes": "{{count}} nodo no listo",
+      "unreadyNodes_other": "{{count}} nodos no listos",
+      "stalledRollouts": "{{count}} despliegue incompleto",
+      "stalledRollouts_other": "{{count}} despliegues incompletos",
+      "pendingPods": "{{count}} pod pendiente",
+      "pendingPods_other": "{{count}} pods pendientes",
+      "warnings": "Advertencias",
+      "inNamespaces": "en {{count}} espacios de nombres",
+      "ofReady": "de {{total}} listos",
+      "recentEvents": "de {{count}} eventos recientes",
+      "phase": {
+        "running": "En ejecución",
+        "pending": "Pendiente",
+        "failed": "Fallido",
+        "succeeded": "Completado",
+        "other": "Otros"
+      }
+    },
+    "workloads": {
+      "label": "Despliegues",
+      "description": "Progreso de despliegue por deployment, los bloqueados primero",
+      "title": "Despliegues",
+      "stalled": "{{count}} incompletos",
+      "allReady": "Todo listo",
+      "none": "Sin despliegues"
+    },
+    "events": {
+      "label": "Eventos del clúster",
+      "description": "Últimos eventos, advertencias primero",
+      "title": "Eventos del clúster",
+      "warnings": "{{count}} advertencias",
+      "noWarnings": "Sin advertencias",
+      "none": "Sin eventos recientes"
+    },
+    "common": {
+      "loading": "Leyendo clúster…",
+      "notConfigured": "Ningún clúster conectado",
+      "unreachable": "Clúster inaccesible",
+      "openHint": "Abre Kubernetes para añadir o reparar una conexión de clúster",
+      "more": "{{count}} más"
+    }
+  },
+  "runbook": {
+    "clusterDefault": "Clúster predeterminado",
+    "attach": {
+      "k8s_workload": "Deployment de Kubernetes"
+    },
+    "targets": {
+      "k8s_cluster": "Clúster de Kubernetes",
+      "k8s_pod": "Pod",
+      "k8s_deployment": "Despliegue"
+    },
+    "steps": {
+      "k8s_deployment_restart": "Reinicia progresivamente los pods del despliegue, como kubectl rollout restart",
+      "k8s_deployment_scale": "Establece el número de réplicas del despliegue",
+      "k8s_pod_delete": "Elimina el pod para que su controlador lo reemplace",
+      "k8s_pod_state": "La fase, los contenedores y los reinicios del pod",
+      "k8s_pod_logs": "Las últimas 150 líneas del registro del pod",
+      "k8s_deployment_state": "Las réplicas, el rollout y las condiciones del despliegue"
+    }
+  },
+  "search": {
+    "group": {
+      "deployments": "Despliegues de Kubernetes",
+      "pods": "Pods de Kubernetes"
+    },
+    "action": {
+      "addCluster": "Añadir clúster de Kubernetes",
+      "addClusterKeywords": "k8s kubeconfig clúster conectar"
+    }
+  }
+}

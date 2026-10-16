@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package versions reports McHarbor and agent versions and schedules self-updates.
 package versions
 
 import (
@@ -36,10 +37,10 @@ func (h *Handler) HandleInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := h.service.Info()
+	info, err := h.service.Info(r.Context())
 	if err != nil {
 		h.app.Logger.Error("failed to get version info", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -63,14 +64,8 @@ func (h *Handler) HandleSelfUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var req SelfUpdateRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
-	}
-
-	if h.app.Config != nil && h.app.Config.AuthDisable && user.ID == "system" {
-		// Synthetic admin in AUTH_DISABLE mode: the per-request RBAC
-		// middleware already accepted us via the wildcard path; nothing
-		// more to check here.
 	}
 
 	result, err := h.service.SelfUpdate(r.Context(), req.Image)
@@ -80,7 +75,7 @@ func (h *Handler) HandleSelfUpdate(w http.ResponseWriter, r *http.Request) {
 			response.BadRequestCode(w, r, i18n.ErrSystemSelfUpdateNotLocal)
 		default:
 			h.app.Logger.Error("versions: self-update failed", "error", err)
-			response.BadRequestCode(w, r, i18n.ErrSystemSelfUpdateFailed)
+			response.BadRequestCause(w, r, i18n.ErrSystemSelfUpdateFailed, err)
 		}
 		return
 	}
@@ -94,11 +89,11 @@ func (h *Handler) HandleSelfUpdate(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response.OK(w, struct {
-		Message string          `json:"message"`
-		Code    string          `json:"code"`
+		Message string           `json:"message"`
+		Code    string           `json:"code"`
 		Result  SelfUpdateResult `json:"result"`
 	}{
-		Message: i18n.T(i18n.FromRequest(r), i18n.MsgSystemSelfUpdateScheduled),
+		Message: i18n.T(i18n.FromContext(r.Context()), i18n.MsgSystemSelfUpdateScheduled),
 		Code:    string(i18n.MsgSystemSelfUpdateScheduled),
 		Result:  result,
 	})

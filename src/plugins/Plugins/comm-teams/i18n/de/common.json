@@ -1,0 +1,74 @@
+{
+  "config": {
+    "theme_color": { "help": "Optional. Hex-Farbe (ohne #) für den linken Akzentstreifen der Adaptive Card. Standard ist das Teams-Markenviolett. Nützlich zur Farbkodierung nach Umgebung oder Schweregrad." }
+  },
+  "page": {
+    "title": "Microsoft Teamss",
+    "subtitle": "Leitet Workflow-, Alarm- und Backup-Ereignisse als Adaptive Card an einen Microsoft-Teams-Kanal weiter, die an eine Incoming-Webhook-Connector-URL gesendet wird. Das Plugin unterstützt Test (sendet eine echte Adaptive Card mit der konfigurierten themeColor) und Senden (sendet Titel + Nachricht als Body der Adaptive Card) — es gibt keinen OAuth-Ablauf, da Incoming-Webhook-Connectoren nur URL-Anmeldedaten sind.",
+    "registerHint": "Fügen Sie auf der Seite Benachrichtigungen > Kanäle des Hosts einen Kanal hinzu und wählen Sie „teams“ als channel_type."
+  },
+  "fields": {
+    "webhookUrl":  "Webhook-URL",
+    "themeColor":  "Designfarbe"
+  },
+  "help": {
+    "webhookUrl":  "Incoming-Webhook-Connector-URL von Microsoft Teams. Kanalmenü (...) → Connectors → Incoming Webhook → Configure → URL kopieren. Die UUID in der URL ist die Anmeldeinformation — behandeln Sie sie als Geheimnis.",
+    "themeColor":  "Hex-Farbe (ohne #) für den linken Akzentstreifen der Adaptive Card. Standardmäßig das Teams-Markenviolett (5059C9)."
+  },
+  "toast": {
+    "registered": "Microsoft-Teams-Kanal gespeichert.",
+    "testPassed": "Microsoft-Teams-Verbindungstest bestanden.",
+    "testFailed": "Microsoft-Teams-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "noWebhook":   "Webhook-URL ist erforderlich. Fügen Sie die Incoming-Webhook-Connector-URL aus Teams ein.",
+    "sendFailed":  "Microsoft-Teams-Webhook-Post fehlgeschlagen: {{error}}",
+    "testFailed":  "Microsoft-Teams-Webhook lieferte {{status}}: {{body}}"
+  },
+  "form": {
+    "webhookTitle": "Eingehender Webhook von Microsoft Teams",
+    "webhookHelp": "Adaptive Card",
+    "webhookBody": "Das Plugin sendet eine **Adaptive Card** an die konfigurierte Webhook-URL. Der Benachrichtigungstitel wird zu einer fetten TextBlock-Überschrift (Größe Medium), die Nachricht zu einem umbrechenden TextBlock-Text, und die Karte trägt optional eine themeColor auf dem linken Akzentstreifen. Teams zeigt die Karte direkt im Kanal an — ohne Installation, ohne App-Berechtigungen und ohne Zustimmungsablauf.",
+    "themeTitle": "Designfarbe",
+    "themeHelp": "Akzentstreifen der Adaptive Card",
+    "themeIntro": "Teams zeigt die konfigurierte `themeColor` als farbigen Streifen am linken Rand jeder Adaptive Card an. Nutzen Sie sie zur Farbkodierung nach Umgebung oder Schweregrad:",
+    "themePurple": "`5059C9` — Teams-Markenviolett (Standard).",
+    "themeRed": "`DC3545` — Rot, für Produktionsalarme und Pager-Benachrichtigungen.",
+    "themeGreen": "`28A745` — Grün, für abgeschlossene Backups und Erfolgsmeldungen.",
+    "themeAmber": "`FFC107` — Bernstein, für Warnungen und eingeschränkten Dienst.",
+    "themeOutro": "Verwenden Sie die 6-stellige Hex-Schreibweise ohne das führende `#` — Adaptive Cards ignorieren das `#` und behandeln es als Teil des Farbnamens.",
+    "securityTitle": "Sicherheit der Webhook-URL",
+    "securityHelp": "Die UUID in der URL IST die Zugangsberechtigung",
+    "securityIntro": "Jeder, der die Webhook-URL besitzt, kann im Kanal posten — es gibt weder ein separates Token noch einen Signaturschlüssel. Behandeln Sie die URL wie ein Geheimnis:",
+    "securityGit": "Committen Sie sie nicht in Git (auch nicht in privaten Repositories).",
+    "securityShare": "Fügen Sie sie nicht in Slack, E-Mails oder Ticket-Kommentare ein, wo der Empfänger nicht in Ihrem Kanal posten muss.",
+    "securityRotate": "Rotieren Sie sie, indem Sie den Connector in Teams löschen, einen neuen erstellen und die neue URL hier einfügen. Alte URLs schlagen mit einem 410 Gone von Teams fehl, sobald der Connector entfernt wurde.",
+    "testTitle": "Verbindung testen",
+    "testHelp": "Was Sie erwarten können",
+    "testBody": "Der Testaufruf sendet eine echte Adaptive Card (`Title: McHarbor test notification`, Body `This is a test message from McHarbor.`) an Ihren Kanal. Teams antwortet bei einem funktionierenden Webhook mit `200 OK`; das Plugin wandelt jede Nicht-2xx-Antwort in einen strukturierten Fehler um, der den Upstream-Status und die ersten 256 Bytes des Response-Bodys zeigt. Die Karte erscheint als sichtbare Nachricht im Kanal — informieren Sie die Abonnenten, bevor Sie auf Testen klicken, damit kein falsch-positives Alarm-Ticket entsteht.",
+    "fields": {
+      "webhook_url": {
+        "label": "Webhook-URL",
+        "help": "URL des Incoming-Webhook-Connectors aus Microsoft Teams. Kanalmenü (...) → Connectors → Incoming Webhook → Configure → URL kopieren. Die UUID in der URL ist die Zugangsberechtigung — behandeln Sie sie wie ein Geheimnis."
+      },
+      "theme_color": {
+        "label": "Designfarbe",
+        "help": "Optional. Hex-Farbe (ohne #) für den linken Akzentstreifen der Adaptive Card. Standard ist das Teams-Markenviolett. Nützlich zur Farbkodierung nach Umgebung oder Schweregrad."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Einrichtungsanleitung für Microsoft Teams"
+  },
+  "guide": {
+    "step1": { "body": "Öffnen Sie Microsoft Teams und navigieren Sie zu dem Kanal, in dem Alarme landen sollen. Incoming-Webhook-Connectors gelten für genau einen Kanal — wiederholen Sie die folgenden Schritte für jeden Kanal, in dem Sie Alarme erhalten möchten." },
+    "step2": { "body": "Klicken Sie auf das Kanalmenü (••• neben dem Kanalnamen) → <b>Connectors</b>. Scrollen Sie in der Liste zu <b>Incoming Webhook</b> und klicken Sie auf <b>Configure</b>. Geben Sie dem Connector einen Namen (z. B. <code>McHarbor Alerts</code>) und laden Sie optional ein Bild hoch, das neben jeder vom Connector gesendeten Karte erscheint." },
+    "step3": { "body": "Klicken Sie auf <b>Create</b>. Teams zeigt die Webhook-URL an — kopieren Sie sie jetzt. Die URL enthält die Connector-UUID, die als Zugangsberechtigung dient; <warn>nach dem Schließen des Dialogs wird sie nicht mehr angezeigt</warn>. Fügen Sie sie links in das Feld <b>Webhook-URL</b> ein." },
+    "step4": { "body": "Klicken Sie auf <b>Done</b>, um den Konfigurationsdialog zu schließen. Der Connector ist nun aktiv und der Kanal akzeptiert POSTs an die URL. Es gibt keinen separaten „Veröffentlichen“-Schritt — Teams aktiviert Connectors sofort." },
+    "step5": { "body": "Optional: Setzen Sie <b>Designfarbe</b> auf einen 6-stelligen Hex-Wert (ohne #), um den linken Akzentstreifen der Adaptive Card einzufärben. Standard ist das Teams-Markenviolett (<code>5059C9</code>). Nützlich, um mehrere Umgebungen oder Schweregrade auf einen Blick zu unterscheiden." },
+    "step6": { "body": "Speichern Sie den Kanal. Klicken Sie auf <b>Verbindung testen</b> — das Plugin sendet eine Adaptive Card mit dem Titel \"McHarbor test notification\" und dem Text \"This is a test message from McHarbor.\" an Ihren Kanal. Die Karte sollte innerhalb von 1-2 Sekunden erscheinen." },
+    "step7": { "body": "Liefert der Test <code>400</code>, ist die Payload fehlerhaft — prüfen Sie, ob Sie die Webhook-URL verändert haben (z. B. Query-Parameter angehängt). Bei <code>404</code> wurde der Connector in Teams gelöscht, nachdem Sie die URL kopiert haben — erstellen Sie ihn neu und aktualisieren Sie das Feld. Sehen Sie in der Antwort <code>200 OK</code>, aber keine Karte in Teams, ist der Connector für einen anderen Kanal konfiguriert als den, den Sie gerade ansehen." },
+    "step8": { "body": "Um einzuschränken, welche Kanäle posten dürfen: Öffnen Sie den Konfigurationsdialog des Connectors in Teams und verwenden Sie die Option <b>Restrict to channels</b>. Dies gilt pro Connector und ist eine Einstellung auf Teams-Seite; das Plugin kann sie nicht durchsetzen." },
+    "step9": { "body": "Sobald der Kanal gespeichert ist, leiten Sie Workflow- oder Alarmereignisse über <b>Einstellungen > Benachrichtigungen > Regeln</b> dorthin. Die Teams-Zustellung ist Fire-and-Forget: Ein fehlgeschlagener POST wird im Audit-Log protokolliert und im Host-Toast angezeigt, der Host wiederholt ihn jedoch nicht." }
+  }
+}

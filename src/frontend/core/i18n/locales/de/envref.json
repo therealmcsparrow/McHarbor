@@ -1,0 +1,54 @@
+{
+  "title": "Umgebungsvariablen",
+  "description": "Jede Umgebungsvariable, die McHarbor und sein Agent lesen, erzeugt aus dem Quellcode und der Konfigurationsreferenz. Das Ändern einer davon erfordert das Neuerstellen des Containers.",
+  "searchPlaceholder": "Nach Name oder Beschreibung suchen",
+  "searchLabel": "Umgebungsvariablen suchen",
+  "count_one": "{{count}} Variable",
+  "count_other": "{{count}} Variablen",
+  "empty": "Keine Variable entspricht dem Filter.",
+  "filters": {
+    "scope": "Geltungsbereich",
+    "allScopes": "Alle",
+    "sensitiveOnly": "Nur sensible"
+  },
+  "scope": {
+    "server": "Server",
+    "agent": "Agent"
+  },
+  "columns": {
+    "name": "Variable",
+    "default": "Standard",
+    "description": "Was sie bewirkt",
+    "flags": "Markierungen"
+  },
+  "flags": {
+    "sensitive": "Sensibel",
+    "sensitiveHint": "Enthält ein Secret. Bewahren Sie es in einem Secret-Speicher auf, nie in einer eingecheckten Compose-Datei.",
+    "restart": "Neuerstellung erforderlich",
+    "restartHint": "Wird beim Start gelesen; eine Änderung wirkt erst, nachdem der Container neu erstellt wurde.",
+    "undocumented": "Undokumentiert",
+    "undocumentedHint": "Wird vom Code gelesen, ist aber in der Konfigurationsreferenz nicht beschrieben, meist weil McHarbor sie für einen Hilfscontainer selbst setzt.",
+    "notInCode": "Nicht von der Binärdatei gelesen",
+    "notInCodeHint": "Dokumentiert, wird aber vom Entrypoint oder der Compose-Datei statt von der Go-Binärdatei gelesen oder gar nicht mehr gelesen."
+  },
+  "copy": "{{name}} kopieren",
+  "copied": "Kopiert",
+  "manualCopy": "Variablennamen kopieren",
+  "sources": "Gelesen in {{files}}",
+  "noDescription": "Keine Beschreibung in der Konfigurationsreferenz.",
+  "sections": {
+    "application": "Anwendung",
+    "secrets": "Secrets",
+    "database": "Datenbank",
+    "docker": "Docker",
+    "tls": "TLS- und HTTP-Listener",
+    "networkTrust": "Netzwerkvertrauen",
+    "agentTransport": "Agent-Transport",
+    "plugins": "App Store und Plugins",
+    "nativeInstall": "Native Installation",
+    "authentication": "Authentifizierung",
+    "versionReporting": "Versionsmeldung",
+    "agent": "Agent",
+    "other": "Sonstige"
+  }
+}

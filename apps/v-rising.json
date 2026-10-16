@@ -1,0 +1,71 @@
+{
+    "slug":  "v-rising",
+    "name":  "V Rising",
+    "description":  "Dedicated server for the vampire survival game V Rising.",
+    "category":  "Gaming",
+    "image":  "trueosiris/vrising:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=playvrising.com\u0026sz=128",
+    "website":  "https://playvrising.com",
+    "docsUrl":  "https://github.com/TrueOsiris/docker-vrising",
+    "ports":  [
+                  {
+                      "host":  9876,
+                      "container":  9876,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  9877,
+                      "container":  9877,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/v-rising/persistent",
+                        "container":  "/mnt/vrising/persistentdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/v-rising/save",
+                        "container":  "/mnt/vrising/save-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "My V Rising Server",
+                        "description":  "Server name shown in the server list"
+                    },
+                    {
+                        "key":  "SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SERVER_PORT",
+                        "default":  "9876",
+                        "description":  "Game port"
+                    },
+                    {
+                        "key":  "SERVER_QUERY_PORT",
+                        "default":  "9877",
+                        "description":  "Steam query port"
+                    },
+                    {
+                        "key":  "SAVE_NAME",
+                        "default":  "world1",
+                        "description":  "Save slot name"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

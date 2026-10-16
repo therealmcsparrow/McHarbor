@@ -1,0 +1,56 @@
+{
+    "slug":  "slskd-canary",
+    "name":  "slskd (Canary)",
+    "description":  "Canary channel build of slskd. Modern web client and daemon for the Soulseek file-sharing network.",
+    "category":  "Media",
+    "image":  "slskd/slskd:canary",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/slskd.png",
+    "website":  "https://github.com/slskd/slskd",
+    "docsUrl":  "https://github.com/slskd/slskd/blob/master/docs/docker.md",
+    "ports":  [
+                  {
+                      "host":  6030,
+                      "container":  5030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  51300,
+                      "container":  50300,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/slskd-canary/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SLSKD_REMOTE_CONFIGURATION",
+                        "default":  "true",
+                        "description":  "Allow editing the configuration from the web UI"
+                    },
+                    {
+                        "key":  "SLSKD_SLSK_USERNAME",
+                        "default":  "",
+                        "description":  "Soulseek network username"
+                    },
+                    {
+                        "key":  "SLSKD_SLSK_PASSWORD",
+                        "default":  "",
+                        "description":  "Soulseek network password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "canary",
+    "latest":  {
+        "version":  "canary",
+        "release_date":  "2026-09-29"
+    }
+}

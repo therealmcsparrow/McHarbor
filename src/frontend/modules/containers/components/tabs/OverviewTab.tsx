@@ -1,50 +1,88 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@resources/components/ui/Badge';
 import { InfoRow } from '@resources/components/ui/InfoRow';
 import { formatDate } from '@resources/utils/format';
+import { containerStatePresentation } from '@resources/utils/container-state';
 import { ContainerStatsPanel } from '../ContainerStatsPanel';
+import { ContainerHistoryPanel } from '../ContainerHistoryPanel';
+import type { HistoryMetric } from '@resources/components/history-metrics';
 import type { ContainerInspect } from '@core/types/docker';
+import type { UseContainerStatsResult } from '../../hooks/useContainerStats';
+import type { DetailTabId } from '../ContainerDetailTabs';
+import { ContainerHealthCard } from '../ContainerHealthCard';
+import { ContainerUptimeCard } from '../ContainerUptimeCard';
+import { OverviewRuntimeCard } from './OverviewRuntimeCard';
+import { OverviewHealthcheckCard } from './OverviewHealthcheckCard';
+import { OverviewDevicesLimitsCards } from './OverviewDevicesLimitsCards';
+import { useContainerHealthHistory } from '../../hooks/useContainerHealthHistory';
+import { StatusIndicator } from '@resources/components/ui/StatusIndicator';
 
-const STATE_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
-  running: 'success',
-  exited: 'destructive',
-  paused: 'warning',
-  restarting: 'warning',
-  created: 'secondary',
-  dead: 'destructive',
-};
-
-const HEALTH_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
-  healthy: 'success',
-  unhealthy: 'destructive',
-  starting: 'warning',
-};
+const NO_RESTART_POLICY = 'no';
 
 type OverviewTabProps = {
   container: ContainerInspect;
+  stats?: UseContainerStatsResult;
+  onNavigate: (tab: DetailTabId) => void;
 };
 
-export function OverviewTab({ container }: OverviewTabProps) {
+export function OverviewTab({ container, stats, onNavigate }: OverviewTabProps) {
   const { t } = useTranslation('containers');
   const state = container.State?.Status ?? 'unknown';
-  const name = (container.Name ?? '').replace(/^\//, '');
+  const containerName = (container.Name ?? '').replace(/^\//, '');
   const isRunning = state === 'running';
   const hc = container.HostConfig;
   const health = container.State?.Health;
-  const healthcheck = container.Config?.Healthcheck;
+  const statePresentation = containerStatePresentation(state, health?.Status);
+  const { data: healthHistory, isLoading: healthLoading } = useContainerHealthHistory(container.Id);
+  // The four stat tiles drive which series the history panel draws. CPU is the
+  // default because it is the first tile and the one people check first.
+  const [historyMetric, setHistoryMetric] = useState<HistoryMetric>('cpu');
 
   return (
     <div className="space-y-6">
-      {isRunning && <ContainerStatsPanel containerId={container.Id} />}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ContainerHealthCard
+          history={healthHistory}
+          loading={healthLoading}
+          // The probe's settings live on Environment, not Resources -
+          // Resources holds CPU/memory/restart policy and has nothing about
+          // health. Pointing this at Resources sent people looking for health
+          // info to a tab that has none.
+          onTuneProbe={() => onNavigate('environment')}
+        />
+        <ContainerUptimeCard history={healthHistory} loading={healthLoading} />
+      </div>
+
+      {isRunning && (
+        <ContainerStatsPanel
+          containerId={container.Id}
+          stats={stats}
+          activeMetric={historyMetric}
+          onShowHistory={setHistoryMetric}
+        />
+      )}
+
+      {/* Stored history, unlike the live panel above: rendered for stopped
+          containers too, since their past is exactly what is worth seeing.
+          Those have no tiles to click, so the panel shows its own switcher. */}
+      <ContainerHistoryPanel
+        containerId={container.Id}
+        metric={historyMetric}
+        onMetricChange={setHistoryMetric}
+        showMetricSwitcher={!isRunning}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* General Info */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.general')}</h3>
-          <InfoRow label={t('overview.name')}>{name}</InfoRow>
+        <div className="mc-glass rounded-lg p-6">
+          <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+            {t('overview.general')}
+          </h3>
+          <InfoRow label={t('overview.name')}>{containerName}</InfoRow>
           <InfoRow label={t('overview.image')}>{container.Config?.Image ?? '-'}</InfoRow>
           <InfoRow label={t('overview.containerId')}>
             <span className="font-mono text-xs">{container.Id}</span>
@@ -60,28 +98,30 @@ export function OverviewTab({ container }: OverviewTabProps) {
             <span className="font-mono text-xs">{container.Config?.WorkingDir || '/'}</span>
           </InfoRow>
           <InfoRow label={t('overview.restartPolicy')}>
-            {hc?.RestartPolicy?.Name ?? 'no'}
-            {hc?.RestartPolicy?.MaximumRetryCount
-              ? ` (max ${hc.RestartPolicy.MaximumRetryCount})`
-              : ''}
+            {hc?.RestartPolicy?.Name ?? NO_RESTART_POLICY}
+            {hc?.RestartPolicy?.MaximumRetryCount ? ` (max ${hc.RestartPolicy.MaximumRetryCount})` : ''}
           </InfoRow>
           <InfoRow label={t('overview.platform')}>
-            {container.Config?.Domainname ? `${container.Config.Hostname}.${container.Config.Domainname}` : container.Config?.Hostname ?? '-'}
+            {container.Config?.Domainname
+              ? `${container.Config.Hostname}.${container.Config.Domainname}`
+              : (container.Config?.Hostname ?? '-')}
           </InfoRow>
           <InfoRow label={t('overview.user')}>
             <span className="font-mono text-xs">{container.Config?.User || '-'}</span>
           </InfoRow>
           <InfoRow label={t('overview.tty')}>
             {container.Config?.Tty ? t('common:labels.yes') : t('common:labels.no')}
-            {container.Config?.OpenStdin ? ' + Interactive' : ''}
+            {container.Config?.OpenStdin ? t('overview.interactiveSuffix') : ''}
           </InfoRow>
         </div>
 
         {/* State Details */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.stateDetails')}</h3>
+        <div className="mc-glass rounded-lg p-6">
+          <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+            {t('overview.stateDetails')}
+          </h3>
           <InfoRow label={t('overview.state')}>
-            <Badge variant={STATE_VARIANTS[state] ?? 'secondary'}>{state}</Badge>
+            <StatusIndicator tone={statePresentation.tone} label={state} pulse={state === 'running'} />
           </InfoRow>
           <InfoRow label={t('overview.pid')}>{container.State?.Pid ?? 0}</InfoRow>
           <InfoRow label={t('overview.exitCode')}>{container.State?.ExitCode ?? 0}</InfoRow>
@@ -94,7 +134,7 @@ export function OverviewTab({ container }: OverviewTabProps) {
           </InfoRow>
           {container.State?.Error && (
             <InfoRow label={t('overview.error')}>
-              <span className="text-red-500">{container.State.Error}</span>
+              <span className="text-danger">{container.State.Error}</span>
             </InfoRow>
           )}
           <InfoRow label={t('overview.startedAt')}>
@@ -111,111 +151,11 @@ export function OverviewTab({ container }: OverviewTabProps) {
           </InfoRow>
         </div>
 
-        {/* Runtime */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.runtime')}</h3>
-          <InfoRow label={t('overview.stopSignal')}>{container.Config?.StopSignal ?? 'SIGTERM'}</InfoRow>
-          <InfoRow label={t('overview.runtimeEngine')}>{hc?.Runtime || 'runc'}</InfoRow>
-          <InfoRow label={t('overview.logDriver')}>{hc?.LogConfig?.Type ?? 'json-file'}</InfoRow>
-          {hc?.LogConfig?.Config && Object.keys(hc.LogConfig.Config).length > 0 && (
-            <InfoRow label={t('overview.logOptions')}>
-              <div className="space-y-0.5">
-                {Object.entries(hc.LogConfig.Config).map(([k, v]) => (
-                  <div key={k} className="font-mono text-xs">
-                    <span className="text-muted-foreground">{k}=</span>{v}
-                  </div>
-                ))}
-              </div>
-            </InfoRow>
-          )}
-          <InfoRow label={t('overview.init')}>
-            {hc?.Init ? t('common:labels.yes') : t('common:labels.no')}
-          </InfoRow>
-          {hc?.PidsLimit !== null && hc?.PidsLimit !== undefined && hc.PidsLimit > 0 && (
-            <InfoRow label={t('overview.pidsLimit')}>{hc.PidsLimit}</InfoRow>
-          )}
-        </div>
+        <OverviewRuntimeCard container={container} />
 
-        {/* Health Check */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.healthcheck')}</h3>
-          {healthcheck?.Test && healthcheck.Test.length > 0 && healthcheck.Test[0] !== 'NONE' ? (
-            <>
-              <InfoRow label={t('overview.healthCommand')}>
-                <span className="font-mono text-xs">{healthcheck.Test.slice(1).join(' ')}</span>
-              </InfoRow>
-              <InfoRow label={t('overview.healthInterval')}>
-                {healthcheck.Interval ? `${healthcheck.Interval / 1e9}s` : '-'}
-              </InfoRow>
-              <InfoRow label={t('overview.healthTimeout')}>
-                {healthcheck.Timeout ? `${healthcheck.Timeout / 1e9}s` : '-'}
-              </InfoRow>
-              <InfoRow label={t('overview.healthRetries')}>{healthcheck.Retries ?? '-'}</InfoRow>
-              <InfoRow label={t('overview.healthStartPeriod')}>
-                {healthcheck.StartPeriod ? `${healthcheck.StartPeriod / 1e9}s` : '-'}
-              </InfoRow>
-              {health && (
-                <>
-                  <InfoRow label={t('overview.healthStatus')}>
-                    <Badge variant={HEALTH_VARIANTS[health.Status] ?? 'secondary'}>{health.Status}</Badge>
-                  </InfoRow>
-                  <InfoRow label={t('overview.healthFailingStreak')}>{health.FailingStreak}</InfoRow>
-                  {health.Log && health.Log.length > 0 && (
-                    <InfoRow label={t('overview.healthLastOutput')}>
-                      <div className="max-h-24 overflow-y-auto rounded-md bg-muted p-2 font-mono text-xs">
-                        {health.Log[health.Log.length - 1]?.Output || '-'}
-                      </div>
-                    </InfoRow>
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">{t('health.noHealthcheck')}</p>
-          )}
-        </div>
+        <OverviewHealthcheckCard container={container} />
 
-        {/* Devices */}
-        {hc?.Devices && hc.Devices.length > 0 && (
-          <div className="rounded-lg border border-border bg-card p-6">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.devices')}</h3>
-            {hc.Devices.map((d) => (
-              <div key={`${d.PathOnHost}:${d.PathInContainer}:${d.CgroupPermissions}`} className="flex gap-2 border-b border-border py-1.5 last:border-0">
-                <span className="font-mono text-xs text-foreground">{d.PathOnHost}</span>
-                <span className="text-xs text-muted-foreground">→</span>
-                <span className="font-mono text-xs text-foreground">{d.PathInContainer}</span>
-                <span className="font-mono text-xs text-muted-foreground">({d.CgroupPermissions})</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Ulimits */}
-        {hc?.Ulimits && hc.Ulimits.length > 0 && (
-          <div className="rounded-lg border border-border bg-card p-6">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.ulimits')}</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-muted">
-                  <tr className="border-b border-border">
-                    <th className="px-2 py-1.5 font-medium text-muted-foreground">{t('overview.ulimitName')}</th>
-                    <th className="px-2 py-1.5 font-medium text-muted-foreground">{t('overview.ulimitSoft')}</th>
-                    <th className="px-2 py-1.5 font-medium text-muted-foreground">{t('overview.ulimitHard')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {hc.Ulimits.map((u) => (
-                    <tr key={u.Name} className="border-b border-border last:border-0">
-                      <td className="px-2 py-1.5 font-mono text-foreground">{u.Name}</td>
-                      <td className="px-2 py-1.5 text-foreground">{u.Soft}</td>
-                      <td className="px-2 py-1.5 text-foreground">{u.Hard}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <OverviewDevicesLimitsCards container={container} />
       </div>
     </div>
   );

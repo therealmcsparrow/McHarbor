@@ -1,16 +1,37 @@
 # Project-specific Git ignore rules.
-# Put editor/OS noise in a user-level global ignore file instead:
-# git config --global core.excludesFile "$HOME/.gitignore_global"
+# Editor/OS/tooling noise lives in the user-level global ignore file:
+#   ~/.config/git/ignore  (git default when core.excludesFile is unset)
 
 # Dependencies
 node_modules/
-src/frontend/node_modules/
 
 # Build output
-src/frontend/dist/
 *.exe
-mcharbor
 .tools
+dist/
+tsconfig.tsbuildinfo
+
+# Compiled binaries — anchored, so a future source directory named
+# "mcharbor" is not swallowed by a bare pattern.
+/mcharbor
+/src/mcharbor
+/src/backend/mcharbor
+/src/agent/mcharbor-agent
+# Built agent binaries (make agent / make agent-cross). The directory is
+# kept; the binaries are build output.
+/agents/*
+!/agents/.gitkeep
+!/agents/BUILD
+!/agents/VERSION
+# Secrets
+/signing/*
+/secrets/*
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+.results/
 
 # Go
 src/backend/vendor/
@@ -19,27 +40,20 @@ src/backend/vendor/
 .env
 .env.*
 !.env.example
-secrets/
 *.pem
 *.key
 *.crt
 *.p12
 
+# Runtime state — SQLite, TLS key material, widget and custom-node stores.
+# These were covered only by the user-level global ignore, which no clone has.
+src/backend/data/
+
 # Database
-/data/
-mnt/backup/
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
-
-# Testing
-coverage/
-test-results/
-.results/
-*_test.go
-*.test.ts*
-tests/
 
 # Logs
 *.log
@@ -49,25 +63,34 @@ tests/
 
 # Temp
 tmp/
-.tmp/
-*.tsbuildinfo
-roadmap.md
+.devdocs/
+.tmp_c.jar
 
-# Marketing
-# The standalone website is excluded from the app build context, but the site
-# pages and assets themselves are versioned.
-website/*
-services/*
+# Development temps
 backupagent.md
 backuplocal.md
-.tools/check_bk.py
-.tools/check_i18n.py
-.tools/fix_brace.py
-.tools/fix_dup_lifecycle.py
-.tools/fix_dup.py
-.tools/fix_i18n_all.py
-.tools/fix_i18n_complete.py
-.tools/insert_backup_i18n.py
-.tools/insert_lifecycle_i18n.py
-.tools/nest_lifecycle_i18n.py
-.documentation/development/environment-pipeline.md
+cookies.txt
+/cli/*
+!/cli/.gitkeep
+/scripts/*
+!/scripts/sanity/
+!/scripts/hooks/
+!/scripts/lint/
+.tmp_c.jar
+
+# AI-Sanity
+src/**/CLAUDE.md
+src/**/AGENTS.md
+src/**/GEMINI.md
+src/**/.claude/
+src/**/.cursorrules
+src/**/.cursor/
+src/**/AI-*.md
+
+# Sanity baselines
+!/.instructions/
+/.instructions/*
+!/.instructions/sanity/
+/.instructions/sanity/*
+!/.instructions/sanity/baselines/
+/src/agent/mcharbor-agent

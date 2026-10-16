@@ -1,0 +1,45 @@
+{
+    "slug":  "athens",
+    "name":  "Athens",
+    "description":  "Go module proxy and checksum cache that speeds up builds and mirrors dependencies for reliability.",
+    "category":  "CI/CD",
+    "image":  "gomods/athens:latest",
+    "logo":  "https://icon.horse/icon/docs.gomods.io",
+    "website":  "https://docs.gomods.io",
+    "docsUrl":  "https://docs.gomods.io/install/",
+    "ports":  [
+                  {
+                      "host":  3020,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/athens/storage",
+                        "container":  "/var/lib/athens"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ATHENS_STORAGE_TYPE",
+                        "default":  "disk",
+                        "description":  "Storage backend for cached Go modules"
+                    },
+                    {
+                        "key":  "ATHENS_DISK_STORAGE_ROOT",
+                        "default":  "/var/lib/athens",
+                        "description":  "Root path for on-disk module storage"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

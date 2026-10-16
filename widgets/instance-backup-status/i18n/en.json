@@ -1,0 +1,21 @@
+{
+  "widgets": {
+    "instanceBackupStatus": {
+      "label": "Instance backup",
+      "description": "When this instance was last exported and last proven restorable, and each export schedule's last run"
+    }
+  },
+  "instanceBackupWidget": {
+    "title": "Instance backup",
+    "open": "Instance backup",
+    "noAccess": "Needs the instance_backup.view permission",
+    "unavailable": "Unable to read the export history",
+    "lastExport": "Last export {{when}}",
+    "never": "Never exported",
+    "lastVerified": "Last verified {{when}}",
+    "neverVerified": "Never verified by a restore rehearsal",
+    "failed": "Last run failed",
+    "ran": "Ran {{when}}",
+    "notRun": "Not run yet"
+  }
+}

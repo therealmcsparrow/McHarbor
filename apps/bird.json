@@ -1,0 +1,35 @@
+{
+    "slug":  "bird",
+    "name":  "BIRD Routing Daemon",
+    "description":  "Routing daemon implementing BGP, OSPF, RIP, and other routing protocols.",
+    "category":  "Networking",
+    "image":  "pierky/bird:2.0.9",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bird.png",
+    "website":  "https://bird.network.cz/",
+    "docsUrl":  "https://bird.network.cz/",
+    "ports":  [
+                  {
+                      "host":  179,
+                      "container":  179,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bird/config",
+                        "container":  "/etc/bird"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "2.0.9",
+    "latest":  {
+        "version":  "2.0.9",
+        "release_date":  "2026-09-29"
+    }
+}

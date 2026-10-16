@@ -4,7 +4,7 @@
     "description":  "In-memory graph database built for real-time streaming and high-performance analytics.",
     "category":  "Databases",
     "image":  "memgraph/memgraph:latest",
-    "logo":  "https://icon.horse/icon/memgraph.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=memgraph.com\u0026sz=128",
     "website":  "https://memgraph.com",
     "docsUrl":  "https://memgraph.com/docs",
     "ports":  [
@@ -38,5 +38,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

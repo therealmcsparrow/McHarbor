@@ -12,6 +12,7 @@
   "topConsumersWidget": {
     "cpuTitle": "Principaux consommateurs de processeur",
     "memoryTitle": "Principaux consommateurs de mémoire",
-    "noData": "Aucune statistique de conteneur disponible"
+    "noData": "Aucune statistique de conteneur disponible",
+    "total": "{{value}} au total"
   }
 }

@@ -1,0 +1,41 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mcharbor.fullname" . }}
+  labels:
+    {{- include "mcharbor.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  publishNotReadyAddresses: false
+  selector:
+    {{- include "mcharbor.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: {{ include "mcharbor.scheme" . }}
+      port: {{ .Values.service.port }}
+      targetPort: app
+      protocol: TCP
+      appProtocol: {{ include "mcharbor.scheme" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mcharbor.headlessName" . }}
+  labels:
+    {{- include "mcharbor.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "mcharbor.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: {{ include "mcharbor.scheme" . }}
+      port: 8705
+      targetPort: app
+      protocol: TCP
+      appProtocol: {{ include "mcharbor.scheme" . }}

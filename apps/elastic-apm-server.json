@@ -1,0 +1,45 @@
+{
+    "slug":  "elastic-apm-server",
+    "name":  "Elastic APM Server",
+    "description":  "Ingest server that receives application performance monitoring data and stores it in Elasticsearch.",
+    "category":  "Monitoring",
+    "image":  "docker.elastic.co/apm/apm-server:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/elastic.png",
+    "website":  "https://www.elastic.co/observability/application-performance-monitoring",
+    "docsUrl":  "https://www.elastic.co/guide/en/apm/guide/current/running-on-docker.html",
+    "ports":  [
+                  {
+                      "host":  8202,
+                      "container":  8200,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/elastic-apm-server/config",
+                        "container":  "/usr/share/apm-server/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOSTS",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "URL of the Elasticsearch cluster to store APM data"
+                    },
+                    {
+                        "key":  "KIBANA_HOST",
+                        "default":  "http://kibana:5601",
+                        "description":  "URL of Kibana used for APM index pattern setup"
+                    }
+                ],
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

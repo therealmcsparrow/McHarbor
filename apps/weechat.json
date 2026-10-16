@@ -1,0 +1,42 @@
+{
+    "slug":  "weechat",
+    "name":  "WeeChat",
+    "description":  "Extensible terminal chat client for IRC and other networks, run headless and accessed remotely via its relay protocol.",
+    "category":  "Communications",
+    "image":  "weechat/weechat:latest-alpine",
+    "logo":  "https://www.google.com/s2/favicons?domain=weechat.org\u0026sz=128",
+    "website":  "https://weechat.org",
+    "docsUrl":  "https://weechat.org/files/doc/stable/weechat_user.en.html#docker",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/weechat/home",
+                        "container":  "/home/user/.weechat"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WEECHAT_RELAY_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to connect to the WeeChat relay",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "128MB",
+    "version":  "latest-alpine",
+    "latest":  {
+        "version":  "latest-alpine",
+        "release_date":  "2026-09-29"
+    }
+}

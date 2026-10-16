@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Google Drive-back-upbestemmingen",
+    "subtitle": "Maak een back-up van containers naar een Google Drive-locatie. De plugin verzorgt OAuth-toestemming, hervatbaar uploaden (zodat back-ups van elke grootte worden ondersteund), Downloaden, Verwijderen en Weergeven tijdens de back-up via de Drive API v3.",
+    "registerHint": "Installeer de plugin storage-google-drive vanuit de App Store, voeg daarna een bestemming toe via de pagina Opslaglocaties van de host en kies \"Google Drive\" als type."
+  },
+  "fields": {
+    "clientId":     "OAuth-client-ID (Google Cloud-console)",
+    "clientSecret": "OAuth-clientgeheim (Google Cloud-console)",
+    "refreshToken": "Refresh-token (geleverd door de OAuth-toestemmingsflow)",
+    "folderId":     "Drive-map-ID (laat leeg om de hoofdmap van Mijn Drive te gebruiken)"
+  },
+  "help": {
+    "clientId":     "Uit Google Cloud-console → APIs & Services → Credentials. Maak een OAuth-client van het type \"Web application\" met de redirect-URI ingesteld op /api/storage-locations/oauth/callback van je McHarbor-host.",
+    "clientSecret": "Van dezelfde OAuth-client. Versleuteld opgeslagen door de AES-256-GCM-service van de host.",
+    "refreshToken": "Klik na het opslaan van de bestemming op \"Opslaan en verbinden\" om de Google-toestemmingsflow te voltooien en een langlevend refresh-token op te slaan.",
+    "folderId":     "Optioneel. Het staartstuk van een Drive-map-URL na /folders/. Laat leeg om naar de hoofdmap van Mijn Drive te uploaden."
+  },
+  "toast": {
+    "registered": "Google Drive-plugin geregistreerd.",
+    "testPassed": "Google Drive-verbindingstest geslaagd.",
+    "testFailed": "Google Drive-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noClientId":     "OAuth-client-ID is vereist.",
+    "noClientSecret": "OAuth-clientgeheim is vereist.",
+    "noRefreshToken": "Refresh-token is vereist. Voer eerst \"Opslaan en verbinden\" uit."
+  },
+  "form": {
+    "introTitle": "Google-accounttoestemming",
+    "introBody": "Sla deze locatie op en gebruik daarna Verbinden om accounttoestemming te geven. McHarbor slaat het geretourneerde refresh token versleuteld op.",
+    "clientId": {
+      "label": "OAuth Client ID",
+      "help": "Application (client) ID uit de Google Cloud console → APIs & Services → Credentials. De OAuth-client moet van het type \"Web application\" zijn, met de redirect-URI ingesteld op /api/storage-locations/oauth/callback van je McHarbor-host."
+    },
+    "clientSecret": {
+      "label": "OAuth Client Secret",
+      "help": "Client secret van dezelfde OAuth-client. Versleuteld opgeslagen door de AES-256-GCM-service van de host."
+    },
+    "basePath": {
+      "label": "Drive-map-ID",
+      "help": "Optioneel. ID van de Drive-map waar back-ups terechtkomen. Laat leeg om de Drive-hoofdmap te gebruiken. Ga naar drive.google.com → open de map → kopieer de ID uit de URL na /folders/."
+    }
+  },
+  "setup": {
+    "title": "Google Drive-installatiegids",
+    "steps": {
+      "enableApi": "Open in de Google Cloud console <b>APIs & Services → Library</b>, zoek naar <b>Google Drive API</b> en schakel deze in voor je project.",
+      "createClient": "Open <b>APIs & Services → Credentials → Create credentials → OAuth client ID</b>. Kies <b>Web application</b> als toepassingstype en voeg de URL <code>/api/storage-locations/oauth/callback</code> van je McHarbor-host toe aan de geautoriseerde redirect-URI's.",
+      "copyCredentials": "Kopieer de <b>Client ID</b> en het <b>Client Secret</b> van de OAuth-client naar het formulier links.",
+      "folderId": "Voer optioneel een Drive-map-ID in om uploads aan een specifieke map vast te pinnen. Laat leeg om de hoofdmap van Mijn Drive te gebruiken.",
+      "connect": "Klik op <b>Save and connect</b> (of <b>Connect</b> op de opslagkaart). Google vraagt je in te loggen met het account dat eigenaar is van de doel-Drive en de scope <code>drive.file</code> toe te staan. McHarbor slaat het geretourneerde refresh token versleuteld op en <warn>toont het nooit meer</warn>.",
+      "test": "Klik op <b>Test connection</b> om een testbestand te schrijven en te lezen in de opgeloste map."
+    }
+  }
+}

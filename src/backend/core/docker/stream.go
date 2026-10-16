@@ -5,9 +5,13 @@ package docker
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"strings"
 )
+
+const maxDockerStreamFrameBytes = 16 * 1024 * 1024
+const maxDockerStreamErrorBytes = 64 * 1024
 
 // DemuxOutput holds separated stdout and stderr from a Docker stream.
 type DemuxOutput struct {
@@ -68,6 +72,9 @@ func DemuxReader(r io.Reader, stdout, stderr io.Writer) error {
 
 		streamType := header[0]
 		size := binary.BigEndian.Uint32(header[4:8])
+		if size > maxDockerStreamFrameBytes {
+			return fmt.Errorf("docker stream frame exceeds %d bytes", maxDockerStreamFrameBytes)
+		}
 
 		var w io.Writer
 		switch streamType {
@@ -75,6 +82,16 @@ func DemuxReader(r io.Reader, stdout, stderr io.Writer) error {
 			w = stdout
 		case 2:
 			w = stderr
+		case 3:
+			limit := int64(size)
+			if limit > maxDockerStreamErrorBytes {
+				limit = maxDockerStreamErrorBytes
+			}
+			payload, readErr := io.ReadAll(io.LimitReader(r, limit))
+			if readErr != nil {
+				return readErr
+			}
+			return fmt.Errorf("docker stream error: %s", strings.TrimSpace(string(payload)))
 		default:
 			w = io.Discard
 		}

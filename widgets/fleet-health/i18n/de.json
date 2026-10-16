@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Flottenzustand",
+      "description": "Einzeiliges Urteil, ob etwas Ihre Aufmerksamkeit braucht, mit Absprung"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "Flotte wird geprüft…",
+    "empty": "Keine Container in dieser Umgebung.",
+    "unavailable": "Flottenzustand nicht verfügbar",
+    "barLabel": "Flottenzustand über {{count}} Container",
+    "subtitle": "{{count}} Container insgesamt",
+    "subtitle_other": "{{count}} Container insgesamt",
+    "verdict": {
+      "allUp": "Alles Kritische läuft.",
+      "down": "{{count}} Container ist ausgefallen.",
+      "down_other": "{{count}} Container sind ausgefallen."
+    },
+    "wants": {
+      "none": "Nichts braucht Sie.",
+      "some": "{{count}} Sache braucht Sie.",
+      "some_other": "{{count}} Sachen brauchen Sie."
+    },
+    "facts": {
+      "running": "{{running}} von {{total}} Containern laufen",
+      "updates": "{{count}} Image-Update verfügbar",
+      "updates_other": "{{count}} Image-Updates verfügbar",
+      "noUpdates": "keine ausstehenden Image-Updates",
+      "updatesUnchecked": "Image-Updates noch nicht geprüft",
+      "noRestarts": "keine Neustartschleifen in der Flotte",
+      "restarting": "{{count}} Container startet neu",
+      "restarting_other": "{{count}} Container starten neu"
+    },
+    "actions": {
+      "checkUpdates": "Updates prüfen",
+      "liveLogs": "Live-Protokoll"
+    },
+    "state": {
+      "running": "Läuft",
+      "unhealthy": "Fehlerhaft",
+      "paused": "Pausiert",
+      "exited": "Beendet"
+    },
+    "cards": {
+      "unhealthy": "{{name}} besteht seinen Health Check nicht",
+      "unhealthyDetail": "Läuft seit {{uptime}} · bedient weiterhin Anfragen",
+      "unhealthyDetailPlain": "Bedient weiterhin Anfragen",
+      "dead": "{{name}} ist tot",
+      "deadDetail": "Docker konnte ihn nicht am Laufen halten",
+      "restarting": "{{name}} startet neu",
+      "restartingDetail": "Docker versucht weiterhin, ihn zu starten",
+      "snapshots": "{{count}} Snapshot ist überfällig",
+      "snapshots_other": "{{count}} Snapshots sind überfällig",
+      "days": "{{count}} Tag",
+      "days_other": "{{count}} Tage",
+      "never": "nie ausgeführt",
+      "exited": "{{count}} Container ist gestoppt",
+      "exited_other": "{{count}} Container sind gestoppt",
+      "exitedDetail": "Wartet auf den Start",
+      "updates": "{{count}} Image-Update ist bereit",
+      "updates_other": "{{count}} Image-Updates sind bereit",
+      "updatesDetail": "Zum Anwenden pullen und neu erstellen",
+      "allClear": "Im Moment braucht Sie nichts",
+      "allClearDetail": "Jeder Container läuft und jeder Snapshot ist aktuell"
+    }
+  }
+}

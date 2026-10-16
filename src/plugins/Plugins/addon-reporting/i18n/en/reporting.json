@@ -1,0 +1,597 @@
+{
+  "nav": {
+    "section": {
+      "reporting": "Reporting"
+    }
+  },
+  "menu": {
+    "studio": "Report Studio",
+    "library": "Report Library",
+    "settings": "Reporting Settings",
+    "schedules": "Report Schedules"
+  },
+  "page": {
+    "studio": {
+      "title": "Report Studio",
+      "subtitle": "Choose a report, set the period, and generate. Every figure comes from this platform's own records."
+    },
+    "library": {
+      "title": "Report Library",
+      "subtitle": "Reports generated so far. Each one is a fixed record of what was true when it ran."
+    },
+    "settings": {
+      "title": "Reporting Settings",
+      "subtitle": "What appears on the cover of an exported report, and how much history to keep."
+    },
+    "schedules": {
+      "title": "Report Schedules",
+      "subtitle": "Reports that run on their own and deliver themselves"
+    }
+  },
+  "category": {
+    "custom": {
+      "label": "Custom",
+      "description": "Ask a question in your own words. A model decides which data it needs and writes the document."
+    },
+    "board": {
+      "label": "For the board",
+      "description": "One report, three altitudes: posture and risk for directors, targets for the platform lead, detail for the people on shift."
+    },
+    "assurance": {
+      "label": "Assurance",
+      "description": "Evidence for security review, incident retrospectives, access recertification and recovery testing."
+    },
+    "service": {
+      "label": "Service performance",
+      "description": "How the platform is performing against its targets, and how change is reaching it."
+    },
+    "platform": {
+      "label": "Platform",
+      "description": "The estate itself: environments, capacity, images and configuration."
+    },
+    "workload": {
+      "label": "Workload depth",
+      "description": "One object at a time, answered in depth: how each workload behaved over the period, not just how it looks now."
+    },
+    "operations": {
+      "label": "Operations",
+      "description": "The machinery that keeps the estate running — schedules, updates, alerting, agents, networks and storage."
+    },
+    "finance": {
+      "label": "Cost and efficiency",
+      "description": "What the estate consumes and who consumes it, as proportions the operator can price."
+    }
+  },
+  "level": {
+    "strategic": "Strategic",
+    "tactical": "Tactical",
+    "operational": "Operational",
+    "summary": "Summary",
+    "annex": "Annex"
+  },
+  "band": {
+    "strong": "Strong",
+    "stable": "Stable",
+    "watch": "Watch",
+    "at_risk": "At risk",
+    "critical": "Critical",
+    "not_assessed": "Not assessed"
+  },
+  "option": {
+    "include_detail": "Include operational detail",
+    "include_glossary": "Include glossary",
+    "include_narrative": "Include narrative",
+    "paper": {
+      "a4": "A4 · 210 × 297 mm",
+      "legal": "Legal · 216 × 356 mm"
+    }
+  },
+  "type": {
+    "change-approvals": {
+      "name": "Change Approvals & Privileged Access",
+      "description": "Approval requests and their outcomes, the rules that raise them, and every temporary elevation granted in the period."
+    },
+    "control-framework-evidence": {
+      "name": "Control Framework Evidence",
+      "description": "Evidence for a named control framework: which checks ran and what they found, which controls are evidenced rather than judged, and which ones McHarbor cannot see."
+    },
+    "compliance-posture": {
+      "name": "Compliance Posture",
+      "description": "The platform compliance posture control by control, with what passes, what fails and what could not be assessed."
+    },
+    "drift-enforcement": {
+      "name": "Configuration Drift & Enforcement",
+      "description": "Where running state departs from desired state, which proposals were approved, and what enforcement changed on its own."
+    },
+    "ha-posture": {
+      "name": "High Availability Posture",
+      "description": "Cluster nodes, heartbeats, leadership and failover history, and whether a standby is ready to take over."
+    },
+    "incident-narrative": {
+      "name": "Incident Narrative Review",
+      "description": "Incidents opened in the period, their findings and sources, how long each took to explain and to resolve, and what keeps recurring."
+    },
+    "instance-dr-readiness": {
+      "name": "Instance Disaster Recovery Readiness",
+      "description": "Backups of McHarbor itself: history, schedules, the age of the last good one, and every restore attempted."
+    },
+    "itsm-integration": {
+      "name": "ITSM Integration",
+      "description": "Tickets opened from alerts and incidents, how they were resolved, and which channels failed to sync."
+    },
+    "runbooks": {
+      "name": "Runbooks",
+      "description": "The procedures this instance holds: what each is attached to, its steps in order, whether it runs unattended, and which alert conditions have no runbook behind them. Scope it to one runbook to print that runbook on its own."
+    },
+    "secrets-hygiene": {
+      "name": "Secrets Hygiene",
+      "description": "Secret age and rotation, secrets nothing references, and how far a leaked secret would reach."
+    },
+    "webhook-delivery": {
+      "name": "Webhook Delivery",
+      "description": "Every outbound webhook, its delivery success rate, retries and the endpoints that keep failing."
+    },
+    "workflow-automation": {
+      "name": "Workflow Automation",
+      "description": "Workflow runs in the period, their success rate, the failures and the triggers that fire most."
+    },
+    "ad-hoc": {
+      "name": "AI generated report",
+      "description": "Describe the question in your own words and a model writes the document. It selects the data itself, and every figure it uses is checked against the platform's own records before the report is issued."
+    },
+    "access-review": {
+      "name": "Access & Identity Review",
+      "description": "Accounts, roles, groups and API keys, laid out for a periodic access recertification."
+    },
+    "agent-fleet": {
+      "name": "Remote Agent Fleet",
+      "description": "Agent connection state, version spread and staleness across every remote host."
+    },
+    "alerting-coverage": {
+      "name": "Alerting Coverage",
+      "description": "Which workloads an alert rule watches — and, from the measured history, which failures nobody was told about."
+    },
+    "audit-assurance": {
+      "name": "Audit Trail Assurance",
+      "description": "The completeness of the audit trail itself: severity spread, what it covers, and gaps in capture."
+    },
+    "automation-schedules": {
+      "name": "Scheduled Work & Automation",
+      "description": "Every schedule, update policy and backup plan, when each last ran, and which have never run at all."
+    },
+    "availability-slo": {
+      "name": "Availability & Service Levels",
+      "description": "Workloads running and reporting healthy, measured against target, with the observability gaps named."
+    },
+    "backup-recovery": {
+      "name": "Backup & Recovery",
+      "description": "Coverage of running workloads, run success rate, and how old the newest usable backup is."
+    },
+    "capacity-utilisation": {
+      "name": "Capacity & Utilisation",
+      "description": "Headroom on the tighter of CPU and memory, storage consumption, and what can be reclaimed today."
+    },
+    "change-delivery": {
+      "name": "Change & Delivery",
+      "description": "Deployment frequency and change failure rate, banded against the DORA benchmarks."
+    },
+    "container-service": {
+      "name": "Container Service Report",
+      "description": "One row per workload drawing together availability, image, stack, backup coverage and update automation."
+    },
+    "cost-allocation": {
+      "name": "Cost Allocation & Showback",
+      "description": "Consumption attributed to the stack that caused it, as shares rather than currency: the platform holds no rate card."
+    },
+    "credential-hygiene": {
+      "name": "Credential Hygiene",
+      "description": "API key age, expiry, scope breadth and last use — a revocation list rather than an inventory."
+    },
+    "data-protection-rpo": {
+      "name": "Data Protection & RPO",
+      "description": "Recovery point against conventional objectives, coverage of running workloads, and what has never been backed up."
+    },
+    "environment-comparison": {
+      "name": "Environment Comparison",
+      "description": "The same measures for every environment side by side, so version drift and stale agents are visible."
+    },
+    "environment-health": {
+      "name": "Environment Health",
+      "description": "Environment, engine, agent and resource condition across every connected host."
+    },
+    "executive-overview": {
+      "name": "Executive Platform Overview",
+      "description": "The flagship board report: posture across six domains, risk register, performance against target, and the detail behind both."
+    },
+    "healthcheck-quality": {
+      "name": "Health Check Quality",
+      "description": "Whether health checks are present, passing and fast enough — and which running workloads have none at all."
+    },
+    "image-supply-chain": {
+      "name": "Image & Supply Chain",
+      "description": "Image provenance, age, registries, update automation and assessed exposure."
+    },
+    "incident-problem": {
+      "name": "Incident & Problem Review",
+      "description": "What failed in the period, how quickly it recovered, and which workloads keep recurring."
+    },
+    "network-connectivity": {
+      "name": "Network & Connectivity",
+      "description": "Networks, drivers and attachments, so the blast radius of a compromised workload can be read rather than guessed."
+    },
+    "operational-readiness": {
+      "name": "Operational Readiness",
+      "description": "Each workload scored against five basics: health check, availability, backup, update policy and a scanned image."
+    },
+    "patch-currency": {
+      "name": "Patch & Update Currency",
+      "description": "How far the image estate has drifted, how much automation is closing, and which workloads no policy covers."
+    },
+    "permission-matrix": {
+      "name": "Role & Permission Matrix",
+      "description": "Roles ranked by breadth of access, who holds each one, and which roles nobody holds."
+    },
+    "platform-inventory": {
+      "name": "Platform Inventory",
+      "description": "McHarbor's own version, environments, agents, plugins and scheduled tasks."
+    },
+    "resource-efficiency": {
+      "name": "Resource Efficiency",
+      "description": "Headroom in both directions — too little is a resilience problem, too much is an efficiency one — and what can be reclaimed."
+    },
+    "security-compliance": {
+      "name": "Security & Compliance",
+      "description": "Vulnerability exposure by severity, scan coverage and freshness, access controls, and audit assurance."
+    },
+    "stability-flapping": {
+      "name": "Stability & Flapping",
+      "description": "Workloads that keep changing state. Separates many short transitions from few long outages, because the causes differ."
+    },
+    "stack-portfolio": {
+      "name": "Stack & Application Portfolio",
+      "description": "The per-container record rolled up to the stack, which is the unit a team is usually responsible for."
+    },
+    "uptime-availability": {
+      "name": "Uptime & Availability History",
+      "description": "Measured uptime per workload, outages, MTTR and error budget, from the platform's own 30-second history rather than from the current state."
+    },
+    "user-activity": {
+      "name": "User Activity",
+      "description": "Who operated the platform, how much, what they changed, and how much happened outside working hours."
+    },
+    "volume-data-estate": {
+      "name": "Volume & Data Estate",
+      "description": "Persistent data: how much there is, what owns it, what is orphaned, and whether anything would bring it back."
+    },
+    "workload-inventory": {
+      "name": "Workload Inventory",
+      "description": "A point-in-time record of every workload on every platform that answers, with the Docker images, volumes and networks behind it, for change control and handover."
+    }
+  },
+  "studio": {
+    "searchPlaceholder": "Search reports",
+    "searchEmptyTitle": "No report matches",
+    "searchEmptyDescription": "No report type matches that text. Clear the search to see the whole catalog.",
+    "searchCount": "{{shown}} of {{total}}",
+    "aiAuthored": "Written by an AI model",
+    "configure": "Configure",
+    "period": "Period",
+    "environment": "Environment",
+    "customRange": "Custom range",
+    "from": "From",
+    "to": "To",
+    "rangeInvalid": "The start date must be on or before the end date.",
+    "sections": "Sections",
+    "options": "Options",
+    "generate": "Generate report",
+    "generating": "Collecting data…",
+    "lastDays": "Last {{count}} days",
+    "pointInTime": "Point in time",
+    "pointInTimeHint": "This report describes the present, so it has no period.",
+    "scope": "Scoped to {{environment}}. The report contains only data you can already see.",
+    "scopeAll": "Scoped to all environments you can see.",
+    "error": "Could not generate the report. Check the environment is reachable and try again.",
+    "empty": {
+      "title": "No report types available",
+      "description": "The reporting catalog could not be loaded. Check that the plugin is enabled and try reloading."
+    },
+    "subject": "Scope",
+    "subjectKind": "Scope by",
+    "subjectHint": "Narrow the report to one object, or leave it covering everything.",
+    "subjectEmpty": "Nothing to scope to",
+    "scopeSubject": "Scoped to {{subject}}. The report contains only data you can already see.",
+    "prompt": "What should the report cover?",
+    "promptPlaceholder": "e.g. which images have critical vulnerabilities and are still running in production?",
+    "aiConnection": "AI connection",
+    "aiConnectionHint": "No AI provider is configured or available on this host. Ask an administrator to configure one in AI settings — the narrative will use standard wording until then.",
+    "aiConnectionRequired": "No AI provider is configured or available on this host. Ask an administrator to configure one in AI settings before generating this report.",
+    "environmentAll": "All environments"
+  },
+  "library": {
+    "count": "{{count}} report",
+    "count_other": "{{count}} reports",
+    "allTypes": "All report types",
+    "filterByType": "Filter by report type",
+    "searchPlaceholder": "Search reports",
+    "noMatches": "No reports match these filters",
+    "page": "Page {{page}} of {{total}}",
+    "retired": "Report type retired",
+    "retiredHint": "This report type was replaced by a cross-platform report. The document is kept exactly as it was generated.",
+    "col": {
+      "report": "Report",
+      "period": "Period",
+      "score": "Posture",
+      "generated": "Generated",
+      "actions": "Actions"
+    },
+    "delete": {
+      "title": "Delete this report?",
+      "description": "“{{title}}” will be removed permanently. Reports are records of a moment in time and cannot be regenerated identically."
+    },
+    "empty": {
+      "title": "No reports yet",
+      "description": "Generate your first report from the Report Studio. It takes a few seconds and reads only what you already have access to."
+    }
+  },
+  "viewer": {
+    "sections": "Report sections",
+    "generatedBy": "Prepared by {{user}}",
+    "error": "This report could not be loaded.",
+    "scope": "Scope: {{subject}}"
+  },
+  "scorecard": {
+    "overall": "Overall posture"
+  },
+  "settings": {
+    "saving": "Saving…",
+    "saved": "Saved",
+    "error": "Could not save settings.",
+    "organisation": {
+      "label": "Organisation name",
+      "help": "Printed above the title on the cover of every exported report."
+    },
+    "classification": {
+      "label": "Classification label",
+      "help": "Shown on the cover and in the footer of every page. For example: Internal, Confidential, Restricted."
+    },
+    "logo": {
+      "label": "Report logo",
+      "help": "The wordmark printed at the top of the cover page and at the start of every Word export. Leave it unset to use the McHarbor wordmark."
+    },
+    "icon": {
+      "label": "Report icon",
+      "help": "The small mark repeated in the running header of every PDF page. Leave it unset to use the McHarbor mark."
+    },
+    "defaultDays": {
+      "label": "Default period",
+      "help": "The number of days a report covers when its type does not specify its own."
+    },
+    "retain": {
+      "label": "Reports to keep",
+      "help": "Older reports are removed once this many are stored. Each report keeps its full rendered document."
+    },
+    "ai": {
+      "label": "AI narrative",
+      "help": "Let the configured AI provider improve the wording of the opening paragraph. It may never add, remove or restate a figure, and any failure falls back to the standard text. Off by default so reports stay reproducible."
+    },
+    "aiReports": {
+      "label": "AI-authored reports",
+      "help": "Lets the AI generated report type send estate detail — container, image, user and event records — to the configured AI provider so a model can write the document. Off by default."
+    },
+    "paper": {
+      "label": "Page size",
+      "help": "The paper every PDF and Word export is laid out on. Margins are 1.27 cm on all four sides whichever you pick."
+    },
+    "mark": {
+      "upload": "Upload",
+      "reset": "Use default",
+      "default": "Using the application logo from Settings → Customization.",
+      "hint": "PNG or SVG. An SVG is converted to PNG when you pick it, because the PDF and Word writers embed images rather than vector artwork.",
+      "badImage": "That file could not be read as an image.",
+      "tooLarge": "That image is too large. Keep it under 2 MB and 4000 pixels on a side."
+    }
+  },
+  "action": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "save": "Save changes",
+    "next": "Next",
+    "previous": "Previous",
+    "exportPdf": "Export PDF",
+    "exportDocx": "Export Word"
+  },
+  "error": {
+    "reporting": {
+      "invalid_request": "That request could not be understood.",
+      "unknown_type": "That report type does not exist.",
+      "not_found": "Report not found.",
+      "generate_failed": "The report could not be generated.",
+      "export_failed": "The export could not be produced.",
+      "unsupported_format": "That export format is not supported.",
+      "ai_disabled": "AI reports are switched off. An administrator can enable them in Reporting settings.",
+      "ai_unavailable": "No AI provider is configured or available on this host. Ask an administrator to configure one in AI settings.",
+      "ai_connection_unavailable": "The selected AI connection is unavailable. Choose another connection and try again.",
+      "prompt_required": "Describe what the report should cover.",
+      "ai_plan_failed": "The model could not work out which data this question needs. Try rephrasing it.",
+      "ai_author_failed": "The model could not produce a usable report from this data.",
+      "internal": "Something went wrong. Check the server logs for detail.",
+      "schedule_no_targets": "A schedule must deliver somewhere. Pick at least one channel or storage location.",
+      "schedule_bad_target": "That delivery destination is not a communication channel or a storage location.",
+      "schedule_bad_cron": "That schedule expression could not be read. It needs five fields, for example 0 7 * * 1.",
+      "schedule_running": "That schedule is already running.",
+      "delivery_failed": "delivery failed",
+      "delivery_unavailable": "delivery is not available on this installation",
+      "delivery_target_gone": "the destination no longer exists",
+      "schedule_bad_path": "That destination folder cannot be used. Give a relative folder with no leading slash, no drive letter and no “..” segment.",
+      "schedule_bad_filename": "That filename cannot be used. Give a plain name with no folder separator, no “..” and no extension, using only the tokens the field lists.",
+      "schedule_bad_recipient": "That alternative recipient cannot be used. Give it on one line, and only for a channel that accepts one."
+    }
+  },
+  "findings": {
+    "recommended": "Recommended:",
+    "owner": "Owner: {{owner}}"
+  },
+  "chart": {
+    "aria": "Chart"
+  },
+  "subject": {
+    "container": "Container",
+    "stack": "Stack",
+    "image": "Image",
+    "volume": "Volume",
+    "network": "Network",
+    "user": "User",
+    "group": "User group"
+  },
+  "subjectAll": {
+    "container": "All containers",
+    "stack": "All stacks",
+    "image": "All images",
+    "volume": "All volumes",
+    "network": "All networks",
+    "user": "All users",
+    "group": "All user groups"
+  },
+  "progress": {
+    "title": "Generating report",
+    "description": "Reading this platform’s own records. Nothing is written until the document is complete.",
+    "sources": "{{done}} of {{total}} sources read",
+    "failed": "The report could not be generated. Check the environment is reachable and try again.",
+    "stage": {
+      "queued": "Queued",
+      "collect": "Collecting data",
+      "analyze": "Analysing",
+      "build": "Writing the document",
+      "store": "Saving",
+      "done": "Ready"
+    }
+  },
+  "schedule": {
+    "enable": "Schedule this report",
+    "enableHint": "Run it on a recurring basis and deliver it automatically, using the settings above.",
+    "name": "Schedule name",
+    "format": "Delivered as",
+    "formatPdf": "PDF",
+    "formatDocx": "Word (.docx)",
+    "frequency": "Runs",
+    "frequencyDaily": "Every day",
+    "frequencyWeekly": "Every week",
+    "frequencyMonthly": "Every month",
+    "frequencyCustom": "Custom schedule",
+    "time": "At",
+    "weekdayLabel": "On",
+    "dayOfMonth": "On day",
+    "cron": "Schedule expression",
+    "cronPreview": "Runs on {{cron}} (UTC).",
+    "cronInvalid": "A schedule expression needs five fields, for example 0 7 * * 1.",
+    "targets": "Deliver to",
+    "targetsHint": "At least one destination is required. A schedule that delivers nowhere produces a report nobody reads.",
+    "targetsLoading": "Loading destinations…",
+    "targetsEmpty": "No communication channels or storage locations are configured yet. Add one before scheduling a report.",
+    "linkOnly": "Link only",
+    "libraryNotice": "Scheduled runs are not saved to the Report Library. Only the most recent run of each schedule is kept.",
+    "incomplete": "Give the schedule a name, a valid expression and at least one destination.",
+    "create": "Create schedule",
+    "weekday": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "path": "Destination folder",
+    "pathHint": "Relative to the location's own base path. Leave it empty for the default folder shown above.",
+    "pathInvalid": "Use a relative folder — no leading slash, no drive letter and no “..”.",
+    "filename": "Filename",
+    "filenamePlaceholder": "{name}-{date}",
+    "filenameHint": "Tokens: {{tokens}}. The extension is added automatically, so the file always matches the format it was rendered in.",
+    "filenameInvalid": "Use a plain filename — no folder separator, no “..” and no extension. Braces must be one of the tokens listed above.",
+    "recipient": "Send to instead",
+    "recipientPlaceholder": "Leave empty for the channel’s own destination",
+    "recipientHint": "Delivers this schedule somewhere other than the channel’s configured destination. The channel itself is unchanged.",
+    "recipientHintMultiple": "Delivers this schedule somewhere other than the channel’s configured destination, comma-separated for several. The channel itself is unchanged.",
+    "recipientInvalid": "That destination cannot be used. Give it on one line, with no line breaks."
+  },
+  "schedules": {
+    "searchPlaceholder": "Search schedules…",
+    "noMatches": "No schedules match that search.",
+    "nextRun": "Next: {{when}}",
+    "disabled": "Disabled",
+    "neverRun": "Not run yet",
+    "runNow": "Run now",
+    "targetMissing": "This destination no longer exists.",
+    "col": {
+      "schedule": "Schedule",
+      "cadence": "Runs",
+      "targets": "Delivers to",
+      "lastRun": "Last run",
+      "actions": "Actions"
+    },
+    "status": {
+      "running": "Running",
+      "success": "Delivered",
+      "partial": "Partly delivered",
+      "failed": "Failed"
+    },
+    "delete": {
+      "title": "Delete this schedule?",
+      "description": "“{{name}}” will stop running and its most recent run will be removed. Reports already delivered are unaffected."
+    },
+    "empty": {
+      "title": "No scheduled reports",
+      "description": "Open Report Studio, pick a report, and tick “Schedule this report” to have it run and deliver itself."
+    },
+    "run": {
+      "ranAt": "Last run {{when}}",
+      "loading": "Loading the last run…",
+      "error": "The last run could not be loaded.",
+      "delivery": "Delivery",
+      "noDelivery": "This run delivered to nothing.",
+      "attached": "document attached",
+      "linkOnly": "message sent, document not attached",
+      "failed": "delivery failed"
+    },
+    "edit": {
+      "action": "Edit schedule",
+      "title": "Edit schedule",
+      "enabled": "Schedule is active",
+      "period": "Reporting window (days)",
+      "periodHint": "Each run covers this many days ending at the moment it runs.",
+      "hint": "The report type cannot be changed. Create a new schedule to report on something else.",
+      "error": "The schedule could not be saved."
+    }
+  },
+  "widgets": {
+    "recentReports": {
+      "label": "Recent reports",
+      "description": "The newest documents in the library with their overall score",
+      "title": "Recent reports",
+      "inLibrary": "{{count}} in library",
+      "none": "No reports yet",
+      "noneHint": "Generate one from the Report Studio"
+    },
+    "reportSchedules": {
+      "label": "Report schedules",
+      "description": "Every schedule with its last outcome and next run, failures first",
+      "title": "Schedules",
+      "failing": "{{count}} failing",
+      "enabled": "{{count}} enabled",
+      "none": "No schedules",
+      "noneHint": "Schedule a report to have it delivered on a cadence",
+      "lastRun": "Last run {{when}}",
+      "neverRan": "Never ran",
+      "next": "next {{when}}",
+      "paused": "Paused"
+    },
+    "common": {
+      "loading": "Reading reports…",
+      "unavailable": "Reporting unavailable",
+      "more": "{{count}} more",
+      "justNow": "just now"
+    }
+  }
+}

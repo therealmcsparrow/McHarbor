@@ -1,0 +1,37 @@
+{
+    "slug":  "acme-sh",
+    "name":  "acme.sh",
+    "description":  "Pure shell ACME client for issuing and renewing certificates from Let's Encrypt and other ACME providers.",
+    "category":  "Security",
+    "image":  "neilpang/acme.sh:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://acme.sh",
+    "docsUrl":  "https://github.com/acmesh-official/acme.sh/wiki/Run-acme.sh-in-docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/acme-sh/data",
+                        "container":  "/acme.sh"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CF_Token",
+                        "default":  "change-me",
+                        "description":  "API token for the DNS provider used to complete DNS-01 challenges",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

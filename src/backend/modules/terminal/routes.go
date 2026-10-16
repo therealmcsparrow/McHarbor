@@ -4,9 +4,7 @@
 package terminal
 
 import (
-	"github.com/go-chi/chi/v5"
-
-	"github.com/therealmcsparrow/mcharbor/core/rbac"
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -14,9 +12,9 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/terminal", func(r chi.Router) {
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermTerminalAccess)).Get("/ws", h.HandleWS)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/terminal", func(r *apispec.Router) {
+			r.Get("/ws", h.HandleWS, apispec.WebSocket(), apispec.Scoped(), apispec.Query("container", ""), apispec.Query("shell", ""), apispec.Query("user", ""), apispec.Query("workDir", ""), apispec.Query("debugSession", "Attach to a debug shell installed by POST /containers/{id}/debug-shell; needs containers.debug_shell."))
 		})
 	})
 }

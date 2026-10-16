@@ -1,0 +1,164 @@
+{
+  "title": "Compliancepakketten",
+  "description": "Bewijs voor een benoemd controleraamwerk: de controles die McHarbor op een live host kan uitvoeren, het bewijs dat het vastlegt en de controles die het niet kan zien.",
+  "disclaimer": "Een pakket is bewijs voor een raamwerk, geen bewering van naleving ervan. Een geslaagde controle betekent dat de controle is geslaagd — of aan de eis wordt voldaan is jouw oordeel en dat van je auditor.",
+  "framework": {
+    "label": "Raamwerk",
+    "mappingOnly": "Alleen bewijskoppeling — dit raamwerk heeft geen mechanische controles"
+  },
+  "run": {
+    "never": "Nooit uitgevoerd",
+    "last": "Laatste run {{time}}",
+    "startedBy": "Gestart door",
+    "environment": "Omgeving",
+    "defaultEnvironment": "Standaardomgeving",
+    "trigger": {
+      "manual": "Handmatig gestart",
+      "scheduled": "Gepland"
+    },
+    "status": {
+      "running": "Bezig",
+      "completed": "Voltooid",
+      "failed": "Mislukt"
+    }
+  },
+  "actions": {
+    "runChecks": "Controles uitvoeren",
+    "showFacts": "Toon de feiten achter dit oordeel",
+    "hideFacts": "Verberg de feiten"
+  },
+  "runDialog": {
+    "title": "De controles nu uitvoeren",
+    "body": "Dit leest de Docker-daemon en elke container in de geselecteerde omgeving en legt een nieuwe run vast. Er verandert niets op de host.",
+    "confirm": "Controles uitvoeren",
+    "environment": "Omgeving"
+  },
+  "attestation": {
+    "title": "Akkoord",
+    "description": "Wie dit bewijs heeft beoordeeld en geaccepteerd, wanneer en bij welke run. Een akkoord wordt nooit bewerkt; een nieuwer akkoord vervangt het en beide blijven bewaard.",
+    "never": "Hier heeft nog niemand akkoord voor gegeven.",
+    "last": "Akkoord gegeven {{time}} door {{user}}",
+    "run": "Run {{id}}, gestart {{time}}",
+    "noRun": "Geen run: een akkoord op de review als geheel",
+    "action": "Akkoord geven",
+    "runOpen": "De run is nog bezig. Geef akkoord zodra hij klaar is.",
+    "dialog": {
+      "title": "Een akkoord vastleggen",
+      "body": "Dit legt onder je naam en de huidige tijd vast dat je het onderstaande bewijs hebt beoordeeld en accepteert. Het kan achteraf niet worden bewerkt of verwijderd.",
+      "confirm": "Akkoord vastleggen",
+      "framework": "Raamwerk",
+      "run": "Uitvoeren",
+      "note": "Notitie",
+      "notePlaceholder": "Wat je hebt beoordeeld, wat je hebt geaccepteerd en waar de beslissing is vastgelegd",
+      "noteRequired": "Een notitie is vereist: een akkoord zonder een woord van onderbouwing is geen bewijs van een review."
+    }
+  },
+  "toast": {
+    "started": "Controlerun gestart",
+    "failed": "De controlerun kon niet worden gestart"
+  },
+  "summary": {
+    "pass": "Geslaagd",
+    "warn": "Aandacht nodig",
+    "fail": "Mislukt",
+    "info": "Informatief",
+    "unknown": "Niet beoordeeld"
+  },
+  "verdict": {
+    "pass": "Geslaagd",
+    "warn": "Aandacht",
+    "fail": "Mislukt",
+    "info": "Info",
+    "unknown": "Niet beoordeeld"
+  },
+  "coverage": {
+    "mechanical": "Mechanisch gecontroleerd",
+    "evidenced": "Aangetoond uit vastgelegde gegevens",
+    "notCovered": "Niet gedekt"
+  },
+  "group": {
+    "host": "Hostconfiguratie",
+    "daemon": "Daemonconfiguratie",
+    "files": "Daemonconfiguratiebestanden",
+    "images": "Images en buildbestanden",
+    "runtime": "Containerruntime",
+    "operations": "Beveiligingsoperaties",
+    "swarm": "Swarm-configuratie"
+  },
+  "table": {
+    "control": "Controle",
+    "requirement": "Wat het vereist",
+    "verdict": "Oordeel",
+    "coverage": "Dekking",
+    "evidence": "Bewijs",
+    "empty": "Dit pakket is nog nooit uitgevoerd, dus geen enkele controle heeft nog een oordeel."
+  },
+  "notAssessed": {
+    "title": "Niet beoordeelde controles",
+    "body": "{{count}} controles van dit pakket hebben geen oordeel. Niet beoordeeld is geen geslaagd: het betekent dat het bewijs niet kon worden verzameld, of dat McHarbor de controle helemaal niet kan zien."
+  },
+  "fact": {
+    "serverVersion": "Docker Engine-versie",
+    "interContainerCommunication": "Communicatie tussen containers op de standaardbridge",
+    "debug": "Debuglogging",
+    "storageDriver": "Storagedriver",
+    "connectionType": "Geconfigureerd transport",
+    "usernsRemap": "Remapping van gebruikersnaamruimte",
+    "authorizationPlugins": "Autorisatieplugins",
+    "authorizationPluginNames": "Namen van autorisatieplugins",
+    "loggingDriver": "Standaard loggingdriver",
+    "liveRestore": "Live restore",
+    "seccompProfile": "Standaard seccomp-profiel",
+    "experimental": "Experimentele build",
+    "swarmState": "Swarm-status",
+    "containersChecked": "Geïnspecteerde containers",
+    "containersViolating": "Containers die deze controle overtreden",
+    "violations": "Betrokken containers",
+    "inspectFailures": "Mislukte inspecties"
+  },
+  "reason": {
+    "daemonUnavailable": "De Docker-daemon kon niet worden gelezen, dus deze controle heeft geen oordeel.",
+    "containersUnavailable": "De containerlijst kon niet worden gelezen, dus deze controle heeft geen oordeel.",
+    "inspectIncomplete": "Sommige containers konden niet worden geïnspecteerd, dus een schone uitkomst zou alleen de geïnspecteerde beschrijven.",
+    "containerListCapped": "Er bestaan meer containers dan één run inspecteert, dus dit resultaat dekt een deelverzameling.",
+    "noContainers": "Deze omgeving heeft geen containers, dus er was niets te controleren.",
+    "notCoveredByMcHarbor": "McHarbor kan deze controle niet zien. Ze wordt vermeld zodat de leemte zichtbaar is in plaats van impliciet.",
+    "evidencedNotChecked": "McHarbor legt het bewijs voor deze controle vast maar beoordeelt het niet.",
+    "versionRecorded": "De versie van de draaiende engine wordt vastgelegd. Of die actueel is voor deze host kan McHarbor niet weten.",
+    "versionUnreported": "De daemon meldde zijn versie niet.",
+    "iccEnabled": "Containers op de standaardbridge kunnen elkaar bereiken zonder dat een netwerk is gedeclareerd.",
+    "bridgeUnreadable": "Het standaardbridgenetwerk kon niet worden geïnspecteerd.",
+    "debugLoggingEnabled": "De daemon draait met debuglogging, wat verzoekdetails in het hostjournal vastlegt.",
+    "legacyStorageDriver": "De daemon gebruikt een storagedriver waar de benchmark bezwaar tegen heeft.",
+    "storageDriverUnreported": "De daemon meldde zijn storagedriver niet.",
+    "daemonTCPNoTLS": "De daemon wordt via gewone TCP benaderd, dus iedereen die de poort kan bereiken kan hem aansturen.",
+    "connectionTypeUnknown": "Het geconfigureerde transport van de omgeving kon niet worden gelezen.",
+    "usernsDisabled": "Remapping van gebruikersnaamruimte staat uit, dus root in een container is root op de host.",
+    "noAuthorizationPlugin": "Geen enkele autorisatieplugin beslist over daemonverzoeken.",
+    "loggingDriverLocal": "Containeruitvoer blijft op de host. Een sidecar die het elders naartoe stuurt voldoet aan de bedoeling en deze controle kan dat niet zien.",
+    "liveRestoreDisabled": "Containers stoppen wanneer de daemon stopt.",
+    "seccompDisabled": "Het standaard seccomp-profiel van de daemon is uitgeschakeld.",
+    "seccompUnreported": "De daemon meldde geen seccomp-profiel.",
+    "experimentalEnabled": "De daemon is een experimentele build.",
+    "swarmActive": "Swarm-modus is actief. Dat is alleen een bevinding op een host die er niet mee moet orkestreren.",
+    "containersRunAsRoot": "Containers draaien als root.",
+    "containersWithoutHealthcheck": "Containers declareren geen gezondheidscontrole.",
+    "containersAddCapabilities": "Containers voegen kernelcapabilities toe buiten de standaardset.",
+    "containersPrivileged": "Containers draaien geprivilegieerd, wat gelijk staat aan root op de host.",
+    "containersOnPrivilegedPorts": "Containers publiceren op een hostpoort onder 1024.",
+    "containersShareHostNetwork": "Containers delen de netwerknaamruimte van de host.",
+    "containersWithoutMemoryLimit": "Containers hebben geen geheugenlimiet, dus één kan de host uitputten.",
+    "containersWithoutCPULimit": "Containers hebben geen CPU-shares of -quota.",
+    "containersWritableRootfs": "Containers hebben een beschrijfbaar root-bestandssysteem.",
+    "containersRestartUnbounded": "Containers herstarten zonder begrensd aantal pogingen.",
+    "containersShareHostPID": "Containers delen de procesnaamruimte van de host.",
+    "containersShareHostIPC": "Containers delen de IPC-naamruimte van de host.",
+    "containersExposeHostDevices": "Containers krijgen rechtstreeks een hostapparaat.",
+    "containersSharedMountPropagation": "Containers gebruiken gedeelde mount-propagatie, waardoor ze naar de mountboom van de host kunnen schrijven.",
+    "containersShareHostUTS": "Containers delen de UTS-naamruimte van de host.",
+    "containersSeccompUnconfined": "Containers draaien met seccomp uitgeschakeld.",
+    "containersMayGainPrivileges": "Containers kunnen extra privileges verkrijgen.",
+    "containersWithoutPIDsLimit": "Containers hebben geen PID-limiet, dus een forkbom kan de host uitputten.",
+    "containersMountDockerSocket": "Containers mounten de Docker-socket, wat gelijk staat aan root op de host."
+  }
+}

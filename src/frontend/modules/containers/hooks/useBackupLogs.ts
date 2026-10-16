@@ -4,11 +4,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 
+import { assertSuccess } from '@resources/utils/api-mutation';
+
 export type BackupLogSeverity = 'info' | 'success' | 'warning' | 'error';
 
 export type BackupLog = {
   id: string;
   environmentId?: string;
+  environmentName?: string;
   planId?: string;
   planName?: string;
   runId?: string;
@@ -19,6 +22,9 @@ export type BackupLog = {
   severity: BackupLogSeverity;
   message: string;
   source: 'backup' | 'audit';
+  subjectKind: string;
+  refPlanId?: string;
+  refRunId?: string;
   createdAt: string;
 };
 
@@ -57,10 +63,7 @@ export function useBackupLogs(filters: BackupLogFilters = {}) {
   const qs = search.toString();
   return useQuery({
     queryKey: ['backup-logs', filters],
-    queryFn: () =>
-      api
-        .get<BackupLogListResponse>(`/backup-logs${qs ? `?${qs}` : ''}`)
-        .then((r) => r.data),
+    queryFn: () => api.get<BackupLogListResponse>(`/backup-logs${qs ? `?${qs}` : ''}`).then(assertSuccess),
     refetchInterval: 5_000,
   });
 }

@@ -4,8 +4,7 @@
 package dockerinfo
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,9 +12,9 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/docker", func(r chi.Router) {
-			r.Get("/info", h.HandleSystemInfo)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/docker", func(r *apispec.Router) {
+			r.Get("/info", h.HandleSystemInfo, apispec.Scoped())
 		})
 	})
 }

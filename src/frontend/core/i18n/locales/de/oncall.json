@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "label": "Bereitschaft",
+    "alerts": "Alarme",
+    "fleet": "Flotte",
+    "approvals": "Genehmigungen",
+    "device": "Gerät"
+  },
+  "update": {
+    "ready": "Eine neue Version von McHarbor ist bereit.",
+    "reload": "Neu laden"
+  },
+  "stale": {
+    "offline": "Offline. Angezeigt wird der Stand von {{time}}.",
+    "cached": "Gespeicherte Daten von {{time}} werden angezeigt. Sie sind möglicherweise veraltet."
+  },
+  "state": {
+    "loading": "Wird geladen",
+    "retry": "Erneut versuchen",
+    "loadFailed": "Dies konnte nicht geladen werden.",
+    "noAccess": "Sie benötigen die Berechtigung {{permission}}, um dies zu sehen."
+  },
+  "alerts": {
+    "title": "Alarme",
+    "empty": "In letzter Zeit wurde nichts ausgelöst.",
+    "firing": "Aktiv",
+    "resolved": "Gelöst",
+    "notification": "Hinweis",
+    "openContainer": "Container öffnen",
+    "expand": "Vollständige Meldung anzeigen",
+    "collapse": "Vollständige Meldung ausblenden"
+  },
+  "fleet": {
+    "title": "Flotte",
+    "empty": "Es sind keine Umgebungen konfiguriert.",
+    "inactive": "Inaktiv",
+    "unreachable": "Nicht erreichbar",
+    "reachable": "Erreichbar",
+    "running": "Läuft",
+    "stopped": "Gestoppt",
+    "restarting": "Startet neu",
+    "other": "Sonstige",
+    "problemsTitle": "Läuft nicht"
+  },
+  "container": {
+    "exitCode": "Exit-Code",
+    "startedAt": "Gestartet",
+    "finishedAt": "Beendet",
+    "restarts": "Neustarts",
+    "oomKilled": "Vom OOM-Killer gestoppt",
+    "health": "Zustand",
+    "healthLog": "Letzte Health-Checks",
+    "noHealth": "Es ist kein Health-Check konfiguriert.",
+    "recentAlerts": "Letzte Alarme für diesen Container",
+    "logs": "Logs",
+    "restart": "Neustarten",
+    "restartTitle": "{{name}} neu starten?",
+    "restartDescription": "Der Container wird gestoppt und wieder gestartet. Offene Verbindungen zu ihm werden getrennt.",
+    "restartOffline": "Sie sind offline, daher kann nichts neu gestartet werden.",
+    "back": "Zurück",
+    "error": "Docker hat einen Fehler für diesen Container gemeldet."
+  },
+  "logs": {
+    "title": "Logs",
+    "search": "Log durchsuchen",
+    "follow": "Folgen",
+    "pause": "Pausieren",
+    "empty": "Keine Logzeilen.",
+    "noMatches": "Keine Zeile entspricht der Suche.",
+    "reconnecting": "Verbindung zum Log-Stream wird wiederhergestellt"
+  },
+  "approvals": {
+    "title": "Genehmigungen",
+    "empty": "Es warten keine Anträge auf Berechtigungserhöhung.",
+    "approve": "Genehmigen",
+    "deny": "Ablehnen",
+    "requestedBy": "Beantragt von {{name}}",
+    "duration_one": "Für {{count}} Minute",
+    "duration_other": "Für {{count}} Minuten",
+    "environment": "Umgebung {{name}}",
+    "note": "Notiz für den Antragsteller",
+    "approveTitle": "Diese Erhöhung genehmigen?",
+    "denyTitle": "Diese Erhöhung ablehnen?",
+    "approveDescription": "{{requester}} erhält {{permission}} für {{minutes}} Minuten.",
+    "denyDescription": "{{requester}} erhält {{permission}} nicht."
+  },
+  "device": {
+    "title": "Dieses Gerät",
+    "pushTitle": "Push-Benachrichtigungen",
+    "pushIntro": "Alarme und Genehmigungsanfragen erreichen dieses Gerät auch dann, wenn McHarbor geschlossen ist.",
+    "transit": "Benachrichtigungen laufen über den Push-Dienst Ihres Browser-Herstellers (Google, Apple, Mozilla oder Microsoft). Die Nachricht wird für dieses Gerät verschlüsselt und enthält nur den Alarmtext und einen Link, der Push-Dienst erfährt jedoch, dass eine Benachrichtigung gesendet wurde.",
+    "unsupported": "Dieser Browser kann keine Push-Benachrichtigungen empfangen.",
+    "insecure": "Push-Benachrichtigungen benötigen ein vertrauenswürdiges HTTPS-Zertifikat. Öffnen Sie McHarbor mit einem öffentlich vertrauenswürdigen Zertifikat, um sie zu nutzen.",
+    "iosInstall": "Fügen Sie McHarbor auf iPhone und iPad zunächst zum Home-Bildschirm hinzu (Teilen, dann Zum Home-Bildschirm) und öffnen Sie es von dort.",
+    "denied": "Benachrichtigungen sind für McHarbor in den Einstellungen dieses Browsers blockiert.",
+    "label": "Gerätename",
+    "labelPlaceholder": "Mein Handy",
+    "enable": "Für dieses Gerät aktivieren",
+    "disable": "Für dieses Gerät deaktivieren",
+    "enabled": "Push-Benachrichtigungen sind für dieses Gerät aktiviert.",
+    "test": "Testbenachrichtigung senden",
+    "testResult_one": "An {{sent}} Gerät gesendet, {{failed}} fehlgeschlagen, {{removed}} entfernt.",
+    "testResult_other": "An {{sent}} Geräte gesendet, {{failed}} fehlgeschlagen, {{removed}} entfernt.",
+    "devicesTitle": "Ihre Geräte",
+    "noDevices": "Noch kein Gerät empfängt Push-Benachrichtigungen.",
+    "lastSeen": "Letzte Zustellung {{time}}",
+    "neverDelivered": "Noch nichts zugestellt",
+    "failing_one": "{{count}} fehlgeschlagene Zustellung",
+    "failing_other": "{{count}} fehlgeschlagene Zustellungen",
+    "revoke": "Widerrufen",
+    "revokeLabel": "{{name}} widerrufen",
+    "revokeTitle": "{{name}} widerrufen?",
+    "revokeDescription": "Dieses Gerät empfängt keine Push-Benachrichtigungen mehr. Es kann auf dem Gerät selbst wieder aktiviert werden.",
+    "revoked": "Gerät widerrufen",
+    "layoutTitle": "Layout",
+    "layoutAuto": "Automatisch (nach Bildschirmbreite)",
+    "layoutOncall": "Immer das Bereitschafts-Layout",
+    "layoutDesktop": "Immer das Desktop-Layout",
+    "openDesktop": "Desktop-Oberfläche öffnen",
+    "signOut": "Abmelden",
+    "workerUnavailable": "Dieser Browser hat den Hintergrund-Worker von McHarbor nicht gestartet, den Push benötigt. Laden Sie die Seite neu; falls es weiterhin fehlschlägt, wird das Zertifikat von diesem Gerät vermutlich nicht als vertrauenswürdig eingestuft."
+  }
+}

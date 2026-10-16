@@ -1,0 +1,287 @@
+/* Copyright (c) 2026 McSparrow. All rights reserved. */
+/* McHarbor is licensed under the McHarbor License. See LICENSE for details. */
+/* McHarbor default theme — Tidal.
+   Deep (dark) and Shallow (light), derived in OKLCH from the logo:
+   teal rgb(38,176,198) and deep blue rgb(39,106,162).
+
+   GENERATED from app.css by scripts/sync-default-theme.mjs — do not hand-edit.
+
+   Why it is generated: useApplyThemeTokens injects the active theme as a
+   <link>, so for anyone on the default theme this file cascades after
+   app.css and wins every token it declares. Hand-maintaining a second copy
+   of the same palette guarantees drift, and drift here is silent — the
+   app.css values simply stop rendering. */
+
+:root {
+
+  --background: oklch(0.978 0.007 226);
+  --foreground: oklch(0.225 0.032 252);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.225 0.032 252);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.225 0.032 252);
+  --primary: oklch(0.560 0.118 205);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.950 0.010 222);
+  --secondary-foreground: oklch(0.285 0.038 250);
+  --muted: oklch(0.950 0.010 222);
+  --muted-foreground: oklch(0.505 0.030 245);
+  --accent: oklch(0.940 0.016 210);
+  --accent-foreground: oklch(0.285 0.038 250);
+  --destructive: oklch(0.545 0.190 24);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.898 0.014 222);
+  --input: oklch(0.898 0.014 222);
+  --ring: oklch(0.560 0.118 205);
+
+  --sidebar: oklch(0.962 0.010 224);
+  --sidebar-foreground: oklch(0.225 0.032 252);
+  --sidebar-primary: oklch(0.560 0.118 205);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.940 0.016 210);
+  --sidebar-accent-foreground: oklch(0.285 0.038 250);
+  --sidebar-border: oklch(0.898 0.014 222);
+  --sidebar-ring: oklch(0.560 0.118 205);
+
+  /* ── Tidal surface language · Shallow ──────────────────────────────
+     Glass over aurora, hairlines instead of solid borders, layered
+     shadows. These are what make the interface look built rather than
+     assembled; the palette above only decides what colour it is. */
+  --canvas-2: oklch(0.995 0.003 226);
+  --glass: oklch(1 0 0 / 0.70);
+  --glass-2: oklch(1 0 0 / 0.92);
+  --glass-solid: oklch(1 0 0);
+  --glass-blur: 22px;
+  --hairline: oklch(0.52 0.045 244 / 0.17);
+  --hairline-2: oklch(0.52 0.045 244 / 0.30);
+  --edge-hi: oklch(1 0 0 / 0.9);
+  --shine: oklch(1 0 0 / 0.55);
+  --grid-line: oklch(0.42 0.05 250 / 0.09);
+  --scrim: oklch(0.42 0.05 250 / 0.28);
+
+  --accent-wash: oklch(0.560 0.118 205 / 0.13);
+  --accent-glow: oklch(0.560 0.118 205 / 0.26);
+
+  --shadow-1: 0 1px 2px oklch(0.45 0.04 248 / 0.10);
+  --shadow-2: 0 2px 5px oklch(0.45 0.04 248 / 0.09), 0 14px 34px -16px oklch(0.42 0.05 250 / 0.20);
+  --shadow-3: 0 4px 10px oklch(0.45 0.04 248 / 0.10), 0 32px 64px -24px oklch(0.42 0.05 250 / 0.24);
+
+  /* Three slow blurred washes behind everything. Light mode keeps them
+     faint — on a white canvas a little goes a long way. */
+  --aurora-a: oklch(0.86 0.10 200 / 0.30);
+  --aurora-b: oklch(0.80 0.09 262 / 0.26);
+  --aurora-c: oklch(0.88 0.08 176 / 0.22);
+
+  /* Status tones. Every value clears WCAG AA (4.5:1) both as text on
+     --card and as a solid fill carrying its own -fg. */
+  --status-success: oklch(0.535 0.123 158);
+  --status-success-fg: oklch(1 0 0);
+  --status-warning: oklch(0.568 0.123 68);
+  --status-warning-fg: oklch(1 0 0);
+  --status-danger: oklch(0.545 0.190 24);
+  --status-danger-fg: oklch(1 0 0);
+  --status-critical: oklch(0.470 0.186 18);
+  --status-critical-fg: oklch(1 0 0);
+  --status-info: oklch(0.520 0.130 245);
+  --status-info-fg: oklch(1 0 0);
+  --status-neutral: oklch(0.520 0.025 250);
+  --status-neutral-fg: oklch(1 0 0);
+
+  /* Chart ramp — validated for lightness band, chroma floor,
+     adjacent-pair colour-vision separation and contrast against the
+     surface. Assign in order; never cycle. */
+  --chart-1: oklch(0.588 0.101 206.2);
+  --chart-2: oklch(0.601 0.136 64.3);
+  --chart-3: oklch(0.530 0.175 290.0);
+  --chart-4: oklch(0.580 0.144 154.8);
+  --chart-5: oklch(0.522 0.152 251.0);
+  --chart-6: oklch(0.540 0.185 20.0);
+  --chart-7: oklch(0.539 0.169 337.2);
+  --chart-8: oklch(0.552 0.119 116.1);
+
+  /* ── generated: theme token contract ── */
+  /* Status tones — derived from this theme's own surface.
+     Hues are fixed by meaning; chroma follows the theme; lightness
+     is solved against --card for >= 4.6:1. */
+  --status-success: oklch(0.545 0.128 158.0);
+  --status-success-fg: oklch(1.000 0.000 0.0);
+  --status-warning: oklch(0.568 0.121 74.0);
+  --status-warning-fg: oklch(1.000 0.000 0.0);
+  --status-danger: oklch(0.515 0.167 24.0);
+  --status-danger-fg: oklch(1.000 0.000 0.0);
+  --status-critical: oklch(0.492 0.197 12.0);
+  --status-critical-fg: oklch(1.000 0.000 0.0);
+  --status-info: oklch(0.537 0.123 240.0);
+  --status-info-fg: oklch(1.000 0.000 0.0);
+  --status-neutral: oklch(0.515 0.022 245.0);
+  --status-neutral-fg: oklch(1.000 0.000 0.0);
+
+  /* Chart ramp — the validated relative hue spacing, rotated so
+     step 1 sits on this theme's primary hue. */
+  /* rotation nudged 22° off --primary for CVD separation */
+  --chart-1: oklch(0.554 0.099 183.0);
+  --chart-2: oklch(0.554 0.145 45.5);
+  --chart-3: oklch(0.554 0.155 267.7);
+  --chart-4: oklch(0.554 0.144 132.8);
+  --chart-5: oklch(0.554 0.107 227.4);
+  --chart-6: oklch(0.554 0.174 357.6);
+  --chart-7: oklch(0.554 0.157 312.4);
+  --chart-8: oklch(0.554 0.114 93.9);
+
+  /* Surface language — glass, hairlines, shadows, aurora.
+     Alpha direction follows the mode: white over a dark canvas,
+     ink over a light one. Aurora hues orbit this theme's primary. */
+  --canvas-2: oklch(1.000 0.000 0.0);
+  --glass: oklch(1 0 0 / 0.7);
+  --glass-2: oklch(1 0 0 / 0.92);
+  --glass-solid: oklch(1 0 0 / 1);
+  --glass-blur: 22px;
+  --hairline: oklch(0.52 0.045 245 / 0.17);
+  --hairline-2: oklch(0.52 0.045 245 / 0.3);
+  --edge-hi: oklch(1 0 0 / 0.9);
+  --shine: oklch(1 0 0 / 0.55);
+  --grid-line: oklch(0.42 0.05 245 / 0.09);
+  --scrim: oklch(0.42 0.05 245 / 0.28);
+  --structure: oklch(0.440 0.118 250);
+  --accent-wash: oklch(0.560 0.096 205.0 / 0.13);
+  --accent-glow: oklch(0.560 0.096 205.0 / 0.26);
+  --shadow-1: 0 1px 2px oklch(0.45 0.04 245 / 0.1);
+  --shadow-2: 0 2px 5px oklch(0.45 0.04 245 / 0.09), 0 14px 34px -16px oklch(0.42 0.05 245 / 0.2);
+  --shadow-3: 0 4px 10px oklch(0.45 0.04 245 / 0.1), 0 32px 64px -24px oklch(0.42 0.05 245 / 0.24);
+  --aurora-a: oklch(0.86 0.100 205 / 0.3);
+  --aurora-b: oklch(0.80 0.090 267 / 0.26);
+  --aurora-c: oklch(0.88 0.080 177 / 0.22);
+  /* ── end generated ── */
+}
+
+.dark {
+
+  --background: oklch(0.168 0.026 252);
+  --foreground: oklch(0.945 0.012 220);
+  --card: oklch(0.216 0.028 252);
+  --card-foreground: oklch(0.945 0.012 220);
+  --popover: oklch(0.216 0.028 252);
+  --popover-foreground: oklch(0.945 0.012 220);
+  --primary: oklch(0.775 0.115 203);
+  --primary-foreground: oklch(0.150 0.024 252);
+  --secondary: oklch(0.262 0.030 252);
+  --secondary-foreground: oklch(0.945 0.012 220);
+  --muted: oklch(0.262 0.030 252);
+  --muted-foreground: oklch(0.660 0.028 235);
+  --accent: oklch(0.272 0.034 250);
+  --accent-foreground: oklch(0.945 0.012 220);
+  --destructive: oklch(0.680 0.180 22);
+  --destructive-foreground: oklch(0.150 0.024 252);
+  --border: oklch(0.305 0.032 252);
+  --input: oklch(0.305 0.032 252);
+  --ring: oklch(0.775 0.115 203);
+
+  --sidebar: oklch(0.148 0.024 254);
+  --sidebar-foreground: oklch(0.860 0.020 224);
+  --sidebar-primary: oklch(0.775 0.115 203);
+  --sidebar-primary-foreground: oklch(0.150 0.024 252);
+  --sidebar-accent: oklch(0.248 0.032 252);
+  --sidebar-accent-foreground: oklch(0.945 0.012 220);
+  --sidebar-border: oklch(0.305 0.032 252);
+  --sidebar-ring: oklch(0.775 0.115 203);
+
+  /* ── Tidal surface language · Deep ─────────────────────────────── */
+  --canvas-2: oklch(0.205 0.030 252);
+  --glass: oklch(1 0 0 / 0.048);
+  --glass-2: oklch(1 0 0 / 0.075);
+  --glass-solid: oklch(0.225 0.030 252);
+  --glass-blur: 22px;
+  --hairline: oklch(1 0 0 / 0.085);
+  --hairline-2: oklch(1 0 0 / 0.16);
+  --edge-hi: oklch(1 0 0 / 0.10);
+  --shine: oklch(1 0 0 / 0.07);
+  --grid-line: oklch(1 0 0 / 0.06);
+  --scrim: oklch(0.10 0.02 250 / 0.62);
+
+  --accent-wash: oklch(0.775 0.115 203 / 0.13);
+  --accent-glow: oklch(0.775 0.115 203 / 0.32);
+
+  --shadow-1: 0 1px 2px oklch(0.10 0.02 250 / 0.40);
+  --shadow-2: 0 2px 5px oklch(0.10 0.02 250 / 0.34), 0 14px 34px -16px oklch(0.08 0.02 250 / 0.72);
+  --shadow-3: 0 4px 10px oklch(0.10 0.02 250 / 0.38), 0 32px 64px -24px oklch(0.06 0.02 250 / 0.82);
+
+  --aurora-a: oklch(0.70 0.15 200 / 0.17);
+  --aurora-b: oklch(0.52 0.17 268 / 0.26);
+  --aurora-c: oklch(0.62 0.13 176 / 0.11);
+
+  --status-success: oklch(0.735 0.150 158);
+  --status-success-fg: oklch(0.168 0.026 252);
+  --status-warning: oklch(0.782 0.145 78);
+  --status-warning-fg: oklch(0.168 0.026 252);
+  --status-danger: oklch(0.680 0.180 22);
+  --status-danger-fg: oklch(0.168 0.026 252);
+  --status-critical: oklch(0.645 0.212 16);
+  --status-critical-fg: oklch(0.168 0.026 252);
+  --status-info: oklch(0.720 0.115 232);
+  --status-info-fg: oklch(0.168 0.026 252);
+  --status-neutral: oklch(0.680 0.025 250);
+  --status-neutral-fg: oklch(0.168 0.026 252);
+
+  --chart-1: oklch(0.662 0.113 205.4);
+  --chart-2: oklch(0.660 0.145 67.9);
+  --chart-3: oklch(0.600 0.155 290.1);
+  --chart-4: oklch(0.659 0.144 155.2);
+  --chart-5: oklch(0.581 0.145 249.8);
+  --chart-6: oklch(0.600 0.174 20.0);
+  --chart-7: oklch(0.628 0.157 334.8);
+  --chart-8: oklch(0.653 0.140 116.3);
+
+  /* ── generated: theme token contract ── */
+  /* Status tones — derived from this theme's own surface.
+     Hues are fixed by meaning; chroma follows the theme; lightness
+     is solved against --card for >= 4.6:1. */
+  --status-success: oklch(0.732 0.141 158.0);
+  --status-success-fg: oklch(0.168 0.026 252.0);
+  --status-warning: oklch(0.780 0.141 74.0);
+  --status-warning-fg: oklch(0.168 0.026 252.0);
+  --status-danger: oklch(0.682 0.163 24.0);
+  --status-danger-fg: oklch(0.168 0.026 252.0);
+  --status-critical: oklch(0.644 0.205 12.0);
+  --status-critical-fg: oklch(0.168 0.026 252.0);
+  --status-info: oklch(0.718 0.130 240.0);
+  --status-info-fg: oklch(0.168 0.026 252.0);
+  --status-neutral: oklch(0.682 0.022 235.0);
+  --status-neutral-fg: oklch(0.168 0.026 252.0);
+
+  /* Chart ramp — the validated relative hue spacing, rotated so
+     step 1 sits on this theme's primary hue. */
+  /* rotation nudged 20° off --primary for CVD separation */
+  --chart-1: oklch(0.632 0.110 183.0);
+  --chart-2: oklch(0.632 0.141 45.5);
+  --chart-3: oklch(0.632 0.151 267.7);
+  --chart-4: oklch(0.632 0.140 132.8);
+  --chart-5: oklch(0.632 0.123 227.4);
+  --chart-6: oklch(0.632 0.170 357.6);
+  --chart-7: oklch(0.632 0.153 312.4);
+  --chart-8: oklch(0.632 0.130 93.9);
+
+  /* Surface language — glass, hairlines, shadows, aurora.
+     Alpha direction follows the mode: white over a dark canvas,
+     ink over a light one. Aurora hues orbit this theme's primary. */
+  --canvas-2: oklch(0.253 0.028 252.0);
+  --glass: oklch(1 0 0 / 0.048);
+  --glass-2: oklch(1 0 0 / 0.075);
+  --glass-solid: oklch(0.225 0.028 252.0);
+  --glass-blur: 22px;
+  --hairline: oklch(1 0 0 / 0.085);
+  --hairline-2: oklch(1 0 0 / 0.16);
+  --edge-hi: oklch(1 0 0 / 0.1);
+  --shine: oklch(1 0 0 / 0.07);
+  --grid-line: oklch(1 0 0 / 0.06);
+  --scrim: oklch(0.1 0.02 235 / 0.62);
+  --structure: oklch(0.560 0.115 248);
+  --accent-wash: oklch(0.775 0.115 203.0 / 0.13);
+  --accent-glow: oklch(0.775 0.115 203.0 / 0.32);
+  --shadow-1: 0 1px 2px oklch(0.1 0.02 235 / 0.4);
+  --shadow-2: 0 2px 5px oklch(0.1 0.02 235 / 0.34), 0 14px 34px -16px oklch(0.08 0.02 235 / 0.72);
+  --shadow-3: 0 4px 10px oklch(0.1 0.02 235 / 0.38), 0 32px 64px -24px oklch(0.06 0.02 235 / 0.82);
+  --aurora-a: oklch(0.70 0.119 203 / 0.17);
+  --aurora-b: oklch(0.52 0.166 265 / 0.26);
+  --aurora-c: oklch(0.62 0.117 175 / 0.11);
+  /* ── end generated ── */
+}

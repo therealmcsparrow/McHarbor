@@ -4,7 +4,7 @@
   "description": "Nginx plus LuaJIT and a curated set of Lua libraries for powerful web apps.",
   "category": "Networking",
   "image": "openresty/openresty:alpine",
-  "logo": "https://openresty.org/images/logo.png",
+  "logo": "https://www.google.com/s2/favicons?domain=openresty.org\u0026sz=128",
   "website": "https://openresty.org",
   "docsUrl": "https://openresty.org/en/documentation.html",
   "ports": [
@@ -36,5 +36,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "alpine"
+  "version":  "alpine",
+  "latest":  {
+      "version":  "alpine",
+      "release_date":  "2026-09-10"
+  }
 }

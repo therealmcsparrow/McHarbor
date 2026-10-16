@@ -1,0 +1,37 @@
+{
+    "slug":  "gocd-agent",
+    "name":  "GoCD Agent",
+    "description":  "Build agent that registers with a GoCD server and runs the pipeline jobs assigned to it.",
+    "category":  "CI/CD",
+    "image":  "gocd/gocd-agent-docker-dind:v24.3.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gocd.svg",
+    "website":  "https://www.gocd.org",
+    "docsUrl":  "https://docs.gocd.org/current/installation/install/agent/docker.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gocd-agent/home",
+                        "container":  "/home/go"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GO_SERVER_URL",
+                        "default":  "https://gocd-server:8154/go",
+                        "description":  "URL of the GoCD server this agent registers with"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "v24.3.0",
+    "latest":  {
+        "version":  "v24.3.0",
+        "release_date":  "2026-09-29"
+    }
+}

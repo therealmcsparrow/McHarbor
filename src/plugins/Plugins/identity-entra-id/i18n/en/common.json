@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Federate McHarbor login to an Azure AD tenant. Plugin handles the OIDC authorization-code flow against the v2.0 endpoints at login.microsoftonline.com plus the Microsoft Graph API for admin-group fetch.",
+    "registerHint": "Add a provider from the host's Settings > Security > Identity Providers page and pick \"Microsoft Entra ID\" as the provider_type."
+  },
+  "fields": {
+    "tenant_id":     "Tenant ID",
+    "client_id":     "Client ID",
+    "client_secret": "Client Secret",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "tenant_id":     "Azure AD tenant ID (UUID). Use 'common' for multi-tenant apps, 'organizations' for any work or school account, or leave 'common' for personal accounts too.",
+    "client_id":     "Application (client) ID from the App Registration overview page.",
+    "client_secret": "Client secret value from the App Registration's Certificates & secrets page. Stored encrypted at rest.",
+    "scopes":        "Space-separated OAuth scopes. Defaults to openid profile email. Use 'https://graph.microsoft.com/.default' to enable group fetching via the Graph API."
+  },
+  "guide": {
+    "title":    "Set up Microsoft Entra ID in McHarbor",
+    "subtitle": "Register a confidential client application in your Azure AD tenant and grant Microsoft Graph permissions if you want admin-group fetching enabled.",
+    "step1": {
+      "title": "Open the App Registration blade",
+      "body":  "In the Azure portal, navigate to Microsoft Entra ID > App registrations > New registration. Pick a name (e.g. \"McHarbor SSO\") and select the account types you want to support (single-tenant, multi-tenant, or personal)."
+    },
+    "step2": {
+      "title": "Set the redirect URI",
+      "body":  "Under Redirect URI, pick Web and enter the McHarbor callback URL shown on the provider edit page. The host appends /api/identity-providers/callback to your McHarbor base URL — copy it exactly to avoid silent auth-code mismatches."
+    },
+    "step3": {
+      "title": "Create a client secret",
+      "body":  "Open Certificates & secrets > New client secret. Pick a sensible expiry (90 or 180 days) and set a calendar reminder. Copy the secret VALUE (not the Secret ID) into the Client Secret field on the provider form. McHarbor stores it AES-256-GCM encrypted."
+    },
+    "step4": {
+      "title": "Copy the Application (client) ID",
+      "body":  "Back on the App Registration overview page, copy the Application (client) ID into the Client ID field on the provider form."
+    },
+    "step5": {
+      "title": "Copy the Directory (tenant) ID",
+      "body":  "Still on the overview page, copy the Directory (tenant) ID into the Tenant ID field on the provider form. Use \"common\" if you registered the app as multi-tenant."
+    },
+    "step6": {
+      "title": "(Optional) Grant Microsoft Graph Group.Read.All",
+      "body":  "If you want the admin group's group-mapping wizard to populate Entra groups, open API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Click Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Test the connection",
+      "body":  "Back in McHarbor, click \"Test connection\" on the provider form. A green result means the OIDC discovery document resolved and a client-credentials token exchange succeeded against login.microsoftonline.com — the configuration is valid. You can now enable the provider and use \"Sign in with Microsoft\" on the login page."
+    }
+  }
+}

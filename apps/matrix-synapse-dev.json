@@ -1,0 +1,51 @@
+{
+    "slug":  "matrix-synapse-dev",
+    "name":  "Synapse (Dev)",
+    "description":  "Dev channel build of Synapse. Reference Matrix homeserver implementation written in Python with federated chat.",
+    "category":  "Communications",
+    "image":  "matrixdotorg/synapse:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/matrix-synapse.png",
+    "website":  "https://matrix.org",
+    "docsUrl":  "https://element-hq.github.io/synapse/latest",
+    "ports":  [
+                  {
+                      "host":  9008,
+                      "container":  8008,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9448,
+                      "container":  8448,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/matrix-synapse-dev/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SYNAPSE_SERVER_NAME",
+                        "default":  "matrix.example.com",
+                        "description":  "Public server name"
+                    },
+                    {
+                        "key":  "SYNAPSE_REGISTRATION_SHARED_SECRET",
+                        "default":  "",
+                        "description":  "Shared secret for registration",
+                        "secret":  true
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

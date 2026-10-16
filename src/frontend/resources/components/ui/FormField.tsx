@@ -18,9 +18,7 @@ export function FormField({ label, htmlFor, description, className, children }: 
     <div className={cn('space-y-1.5', className)}>
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {description && (
-        <p className="text-xs text-muted-foreground">{description}</p>
-      )}
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
     </div>
   );
 }

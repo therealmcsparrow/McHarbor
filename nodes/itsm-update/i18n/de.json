@@ -1,0 +1,9 @@
+{
+  "label": "Ticket aktualisieren",
+  "description": "Dem von einem Schlüssel geöffneten Ticket eine Notiz hinzufügen, ohne seinen Zustand zu ändern",
+  "config": {
+    "channel_id": "Ticketing-Kanal",
+    "dedup_key": "Ticketschlüssel",
+    "message": "Nachricht"
+  }
+}

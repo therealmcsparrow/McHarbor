@@ -4,7 +4,7 @@
     "description":  "Suite of code review, project management, and collaboration tools.",
     "category":  "Developer Tools",
     "image":  "phabricator/phabricator:latest",
-    "logo":  "https://icon.horse/icon/www.phacility.com",
+    "logo":  "https://cdn.simpleicons.org/phabricator",
     "website":  "https://www.phacility.com",
     "docsUrl":  "https://www.phacility.com/phabricator/",
     "ports":  [
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

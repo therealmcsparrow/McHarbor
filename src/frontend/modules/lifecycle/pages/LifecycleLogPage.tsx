@@ -3,187 +3,219 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconRefresh } from '@tabler/icons-react';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { Select } from '@resources/components/ui/Select';
-import { Button } from '@resources/components/ui/Button';
-import { Spinner } from '@resources/components/ui/Spinner';
-import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
-import {
-  DateRangeFilter,
-  DEFAULT_DATE_RANGE_VALUE,
-  type DateRangeFilterValue,
-} from '@resources/components/DateRangeFilter';
+import { IconHistory } from '@tabler/icons-react';
+import { TablePage } from '@resources/layout/TablePage';
+import { DEFAULT_DATE_RANGE_VALUE, type DateRangeFilterValue } from '@resources/components/DateRangeFilter';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { resolveDateRange } from '@resources/utils/date-range';
 import { useLocaleFormat } from '@resources/hooks/useLocaleFormat';
-import { useLifecycleEvents, type LifecycleEvent, type LifecycleSubjectType, type LifecycleSeverity } from '../hooks/useLifecycle';
-import { LifecycleRow, LifecyclePagination } from '../components/LifecycleRow';
+import { useUrlNumberState, useUrlSearchState } from '@resources/hooks/useUrlSearchState';
+import { DegradedStateBanner } from '@resources/components/DegradedStateBanner';
+import { EnvironmentScopeFilter } from '@resources/components/EnvironmentScopeFilter';
+import { ViewModeToggle } from '@resources/components/ViewModeToggle';
+import {
+  useLifecycleEvents,
+  type LifecycleEvent,
+  type LifecycleListParams,
+  type LifecycleSubjectType,
+  type LifecycleSeverity,
+} from '../hooks/useLifecycle';
+import { useLifecycleColumns } from '../components/LifecycleColumns';
+import { LifecycleFilterControls } from '../components/LifecycleFilterControls';
+import { severityValues } from '../components/lifecycle-filter-options';
+import { useLifecycleSubjectTypes } from '../hooks/useLifecycleSubjectTypes';
+import { LifecycleDetailsDialog } from '../components/LifecycleDetailsDialog';
+import { LifecycleTimelineView } from '../components/LifecycleTimelineView';
+import { useLifecycleViewStore } from '../stores/lifecycle-view';
+import { useLifecycleFilterChips, useResolvedDateRange } from './useLifecycleFilterChips';
+import { useLifecycleSavedFilters } from './useLifecycleSavedFilters';
 
-
-const SUBJECT_TYPES: { value: LifecycleSubjectType | ''; labelKey: string }[] = [
-  { value: '', labelKey: 'lifecycle.subjectType.all' },
-  { value: 'container', labelKey: 'lifecycle.subjectType.container' },
-  { value: 'image', labelKey: 'lifecycle.subjectType.image' },
-  { value: 'volume', labelKey: 'lifecycle.subjectType.volume' },
-  { value: 'network', labelKey: 'lifecycle.subjectType.network' },
-  { value: 'stack', labelKey: 'lifecycle.subjectType.stack' },
-];
-
-const SEVERITIES: { value: LifecycleSeverity | ''; labelKey: string }[] = [
-  { value: '', labelKey: 'lifecycle.severity.all' },
-  { value: 'success', labelKey: 'lifecycle.severity.success' },
-  { value: 'info', labelKey: 'lifecycle.severity.info' },
-  { value: 'warning', labelKey: 'lifecycle.severity.warning' },
-  { value: 'error', labelKey: 'lifecycle.severity.error' },
-];
+const PER_PAGE = 50;
 
 export default function LifecycleLogPage() {
   const { t } = useTranslation('settings');
-  const { t: tc } = useTranslation('common');
-  const envId = useEnvironmentStore((s) => s.currentId);
+  const [envId, setEnvId] = useUrlSearchState<string>('', { param: 'scope' });
   const environments = useEnvironmentStore((s) => s.environments);
+  const viewMode = useLifecycleViewStore((s) => s.viewMode);
+  const setViewMode = useLifecycleViewStore((s) => s.setViewMode);
 
-  const [subjectType, setSubjectType] = useState<LifecycleSubjectType | ''>('');
-  const [severity, setSeverity] = useState<LifecycleSeverity | ''>('');
-  const [search, setSearch] = useState('');
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [page, setPage] = useState(1);
+  const subjectOptions = useLifecycleSubjectTypes();
+  const subjectTypeValues = useMemo(() => subjectOptions.map((o) => o.value), [subjectOptions]);
+  const [subjectType, setSubjectType] = useUrlSearchState<LifecycleSubjectType>('', {
+    param: 'subject',
+    allowed: subjectTypeValues,
+  });
+  const [severity, setSeverity] = useUrlSearchState<LifecycleSeverity | ''>('', {
+    param: 'severity',
+    allowed: severityValues,
+  });
+  const [search, setSearch] = useUrlSearchState<string>('');
+  const [page, setPage] = useUrlNumberState(1);
   const [dateRange, setDateRange] = useState<DateRangeFilterValue>(DEFAULT_DATE_RANGE_VALUE);
+  const [selected, setSelected] = useState<LifecycleEvent | null>(null);
 
-  const resolvedRange = useMemo(
-    () => resolveDateRange(dateRange.preset, dateRange.custom),
-    [dateRange],
-  );
+  const resolvedRange = useResolvedDateRange(dateRange);
 
-  const params = useMemo(
+  // The API does the filtering — subject, severity, text and range all go over
+  // the wire — so TablePage receives rows that are already narrowed.
+  const params = useMemo<LifecycleListParams>(
     () => ({
       page,
-      perPage: 50,
+      perPage: PER_PAGE,
       envId: envId === '' ? undefined : envId,
       subjectType,
       severity,
       from: resolvedRange.from?.toISOString(),
-      to: resolvedRange.to?.toISOString(),
+      // The API names the upper bound `until`, not `to`.
+      until: resolvedRange.to?.toISOString(),
       search,
     }),
     [page, envId, subjectType, severity, search, resolvedRange.from, resolvedRange.to],
   );
 
-  const { data, isLoading, isFetching, refetch } = useLifecycleEvents(params);
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / (data?.perPage ?? 50)));
+  const { data, isLoading, isFetching, refetch, error, failureCount, errorUpdatedAt } = useLifecycleEvents(params);
   const formatPrefs = useLocaleFormat();
+  const columns = useLifecycleColumns({ formatPrefs, environments, onSelect: setSelected });
 
-  function toggleExpanded(id: string) {
-    setExpanded((current) => ({ ...current, [id]: !current[id] }));
-  }
+  const items = useMemo(() => data?.items ?? [], [data]);
+  const total = data?.total ?? 0;
+  const perPage = data?.perPage ?? PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const from = total === 0 ? 0 : (page - 1) * perPage + 1;
+  const to = items.length === 0 ? 0 : from + items.length - 1;
+
+  const savedFilters = useLifecycleSavedFilters({
+    envId,
+    setEnvId,
+    subjectType,
+    setSubjectType,
+    severity,
+    setSeverity,
+    search,
+    setSearch,
+    dateRange,
+    setDateRange,
+    setPage,
+  });
+
+  const chips = useLifecycleFilterChips({
+    subjectType,
+    setSubjectType,
+    severity,
+    setSeverity,
+    dateRange,
+    setDateRange,
+    setPage,
+    t,
+  });
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader
+    <>
+      <TablePage
+        id="lifecycle"
         title={t('lifecycle.title')}
         description={t('lifecycle.description')}
-        actions={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            aria-label={tc('actions.refresh')}
-          >
-            <IconRefresh className="size-4" />
-            {tc('actions.refresh')}
-          </Button>
+        actions={<ViewModeToggle value={viewMode} onChange={setViewMode} />}
+        banner={
+          <DegradedStateBanner
+            error={error}
+            failureCount={failureCount}
+            updatedAt={errorUpdatedAt}
+            onRetry={() => void refetch()}
+          />
         }
-      />
-
-      <SearchFilterToolbar
-        query={search}
-        onQueryChange={setSearch}
-        mode={'contains'}
-        onModeChange={() => undefined}
-        placeholder={t('lifecycle.searchPlaceholder')}
-        extraControls={
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <Select
-              value={subjectType}
-              onChange={(v) => {
-                setSubjectType(v as LifecycleSubjectType | '');
+        search={{
+          value: search,
+          onChange: (value) => {
+            setSearch(value);
+            setPage(1);
+          },
+          // The API matches substrings only; offering exact/regex here would
+          // promise three modes and deliver one.
+          mode: 'contains',
+          onModeChange: () => undefined,
+          placeholder: t('lifecycle.searchPlaceholder'),
+        }}
+        savedFilters={savedFilters}
+        filters={
+          <>
+            <EnvironmentScopeFilter
+              value={envId}
+              onChange={(value) => {
+                setEnvId(value);
                 setPage(1);
               }}
-              options={SUBJECT_TYPES.map((opt) => ({
-                value: opt.value,
-                label: t(opt.labelKey),
-              }))}
-              ariaLabel={t('lifecycle.subjectTypeLabel')}
             />
-            <Select
-              value={severity}
-              onChange={(v) => {
-                setSeverity(v as LifecycleSeverity | '');
+            <LifecycleFilterControls
+              subjectType={subjectType}
+              onSubjectTypeChange={(value) => {
+                setSubjectType(value);
                 setPage(1);
               }}
-              options={SEVERITIES.map((opt) => ({
-                value: opt.value,
-                label: t(opt.labelKey),
-              }))}
-              ariaLabel={t('lifecycle.severityLabel')}
+              severity={severity}
+              onSeverityChange={(value) => {
+                setSeverity(value);
+                setPage(1);
+              }}
+              dateRange={dateRange}
+              onDateRangeChange={(value) => {
+                setDateRange(value);
+                setPage(1);
+              }}
             />
-            <DateRangeFilter
-              value={dateRange}
-              onChange={setDateRange}
-            />
-          </div>
+          </>
         }
+        toolbar={{
+          // Column and density controls act on the table; the timeline has
+          // neither columns nor row height to steer.
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-lifecycle' },
+          chips: {
+            items: chips,
+            onClear: () => {
+              setSubjectType('');
+              setSeverity('');
+              setDateRange(DEFAULT_DATE_RANGE_VALUE);
+              setSearch('');
+              setPage(1);
+            },
+          },
+        }}
+        columns={columns}
+        data={items}
+        loading={isLoading && items.length === 0}
+        empty={{ icon: <IconHistory className="size-8" />, title: t('lifecycle.empty') }}
+        getRowId={(evt) => evt.id}
+        onRowClick={setSelected}
+        body={
+          viewMode === 'table' ? undefined : (
+            <LifecycleTimelineView
+              events={items}
+              loading={isLoading}
+              formatPrefs={formatPrefs}
+              environments={environments}
+              onSelect={setSelected}
+              emptyTitle={t('lifecycle.empty')}
+            />
+          )
+        }
+        pagination={{
+          mode: 'server',
+          page,
+          totalPages,
+          pageSize: perPage,
+          total,
+          from,
+          to,
+          onPageChange: setPage,
+          // Page size is fixed by the API call this page makes.
+          onPageSizeChange: () => undefined,
+          pageSizeOptions: [PER_PAGE],
+        }}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card">
-        <div className="border-b border-border bg-muted px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground grid grid-cols-[auto_140px_1fr_140px_140px] items-center gap-3">
-          <span className="w-4" />
-          <span>{t('lifecycle.headerSubject')}</span>
-          <span>{t('lifecycle.headerDetail')}</span>
-          <span>{t('lifecycle.headerSeverity')}</span>
-          <span className="text-right">{t('lifecycle.headerTime')}</span>
-        </div>
-        <div className="min-h-0 flex-1 overflow-auto">
-          {isLoading && items.length === 0 ? (
-            <div className="flex items-center justify-center p-12">
-              <Spinner size="lg" />
-            </div>
-          ) : items.length === 0 ? (
-            <div className="p-12 text-center text-sm text-muted-foreground">
-              {t('lifecycle.empty')}
-            </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {items.map((ev: LifecycleEvent) => (
-                <LifecycleRow
-                  key={ev.id}
-                  event={ev}
-                  expanded={!!expanded[ev.id]}
-                  onToggle={toggleExpanded}
-                  formatPrefs={formatPrefs}
-                  environments={environments}
-                />
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      <LifecyclePagination
-        page={page}
-        totalPages={totalPages}
-        total={total}
-        disabled={isFetching}
-        onPageChange={setPage}
-        totalLabel={t('lifecycle.total')}
-        pageOfLabel={t('lifecycle.pageOf')}
-        previousLabel={t('lifecycle.previous')}
-        nextLabel={t('lifecycle.next')}
-      />
-    </div>
+      <LifecycleDetailsDialog event={selected} onOpenChange={(isOpen) => !isOpen && setSelected(null)} />
+    </>
   );
 }

@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "Ce qu'il faut surveiller",
+    "container": "Un conteneur",
+    "stack": "Une stack",
+    "environment": "Tout ce qui se trouve dans cet environnement"
+  },
+  "kindHint": {
+    "container": "Dérive lorsque le conteneur est manquant, arrêté, exécute une autre image ou que sa configuration diffère.",
+    "stack": "Dérive lorsqu'un service du fichier compose de la stack est manquant ou à l'arrêt, ou que la stack exécute des conteneurs que son fichier ne déclare pas.",
+    "environment": "Dérive lorsqu'un conteneur s'exécute ici sans qu'aucune surveillance de conteneur ou de stack de cet environnement n'en rende compte. Ajoutez le label mcharbor.reconciler.ignore=true à un conteneur pour l'exclure."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Choisir une stack",
+  "target": {
+    "environment": "Environnement entier"
+  },
+  "class": {
+    "configuration": "Configuration",
+    "state": "État",
+    "existence": "Existence",
+    "image": "Image"
+  },
+  "details": {
+    "open": "Afficher ce qui a dérivé",
+    "title": "Ce qui a dérivé : {{name}}",
+    "description": "Vérifié {{time}}.",
+    "field": "Champ",
+    "expected": "Attendu",
+    "actual": "Réel",
+    "firstSeen": "Première détection",
+    "none": "Aucune dérive n'a été trouvée lors de la dernière vérification."
+  },
+  "observeOnly": "Les surveillances de stack et d'environnement ne peuvent pas être réconciliées directement ; proposez plutôt un correctif.",
+  "report": {
+    "title": "Rapport de dérive",
+    "description": "Toutes les dérives confirmées sur l'ensemble des surveillances, les plus anciennes en premier.",
+    "open": "Rapport de dérive",
+    "back": "Retour aux surveillances",
+    "empty": "Rien n'a dérivé.",
+    "classFilter": "Classe",
+    "allClasses": "Toutes les classes",
+    "columns": {
+      "watch": "Surveillance",
+      "class": "Classe",
+      "field": "Champ",
+      "expected": "Attendu",
+      "actual": "Réel",
+      "firstSeen": "Première détection",
+      "checked": "Vérifié"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Géré par une source Git : supprimez plutôt son document dans le dépôt.",
+  "mode": {
+    "column": "Réponse",
+    "change": "Modifier la réponse à la dérive",
+    "title": "Réponse à la dérive : {{name}}",
+    "description": "Choisissez ce que McHarbor fait lorsque cette surveillance dérive.",
+    "label": "En cas de dérive",
+    "observe": "Observer",
+    "propose": "Proposer un correctif",
+    "enforce": "Appliquer",
+    "save": "Enregistrer",
+    "confirmEnforce": "Laisser McHarbor corriger automatiquement",
+    "enforceWarning": "Appliquer modifie les conteneurs sans demander à personne. Cela n'agit que si l'application est activée dans les paramètres du réconciliateur, dans les limites de sa capacité par passe et de son délai de refroidissement, et s'arrête en cas d'échecs répétés jusqu'à ce que quelqu'un le réinitialise.",
+    "hint": {
+      "observe": "Enregistrer la dérive, envoyer une alerte, et ne rien modifier.",
+      "propose": "Rédiger aussi un plan de restauration de l'état souhaité, à examiner et à approuver.",
+      "enforce": "Appliquer automatiquement le plan lorsque chaque étape peut être exécutée sans intervention humaine ; sinon, rédiger un plan à examiner."
+    }
+  },
+  "proposals": {
+    "open": "Plans",
+    "proposeNow": "Proposer un correctif",
+    "title": "Plans de réconciliation",
+    "description": "Plans de restauration de l'état souhaité en attente de revue, et historique de chaque plan appliqué par une personne ou par l'application automatique.",
+    "statusFilter": "Statut",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucun plan.",
+    "errorTitle": "Pourquoi le plan a échoué",
+    "stepError": "Pourquoi cette étape a échoué",
+    "dialogTitle": "Plan pour {{name}}",
+    "dialogDescription": "Rédigé {{time}}.",
+    "staleNotice": "La dérive a changé depuis la rédaction de ce plan ; il n'a donc pas été appliqué. Voici le plan pour la dérive actuelle ; examinez-le à nouveau.",
+    "drift": "Ce qui a dérivé",
+    "plan": "Ce que fait le plan",
+    "noSteps": "Rien à faire.",
+    "approveWarning": "Approuver applique ces étapes à l'environnement immédiatement. McHarbor revérifie d'abord la dérive et refuse si elle a changé.",
+    "rejectNote": "Pourquoi (facultatif)",
+    "approve": "Approuver et appliquer",
+    "reject": "Rejeter",
+    "confirmApprove": "Appliquer maintenant",
+    "confirmReject": "Rejeter le plan",
+    "columns": {
+      "watch": "Surveillance",
+      "status": "Statut",
+      "origin": "Origine",
+      "steps": "Étapes",
+      "created": "Rédigé",
+      "resolvedBy": "Résolu par"
+    },
+    "status": {
+      "pending": "En attente de revue",
+      "applying": "Application en cours",
+      "applied": "Appliqué",
+      "failed": "Échec",
+      "rejected": "Rejeté",
+      "superseded": "Remplacé"
+    },
+    "origin": {
+      "propose": "Proposition",
+      "enforce": "Application automatique"
+    }
+  },
+  "step": {
+    "start": "Démarrer",
+    "stop": "Arrêter",
+    "remove": "Supprimer",
+    "recreate": "Recréer",
+    "stack_up": "Déployer la stack",
+    "manual": "Intervention humaine requise",
+    "plugin": "Modifier",
+    "disruptive": "Interrompt le service"
+  },
+  "stepResult": {
+    "done": "Terminée",
+    "failed": "Échec",
+    "skipped": "Ignorée",
+    "manual": "Laissée à une personne"
+  },
+  "manual": {
+    "missing": "Le conteneur n'existe pas, et l'état souhaité ne contient pas assez d'informations pour le créer. Déployez-le, puis vérifiez à nouveau.",
+    "compose_managed": "Le conteneur appartient à une stack compose ; modifiez la stack plutôt que le conteneur.",
+    "ports": "Les ports publiés ne peuvent pas être modifiés par recréation ; modifiez le conteneur ou sa stack.",
+    "mounts": "Les montages ne peuvent pas être modifiés par recréation ; modifiez le conteneur ou sa stack.",
+    "networks": "Rattachez le conteneur à ses réseaux depuis la page du conteneur ou du réseau.",
+    "protected": "Il s'agit d'un conteneur protégé (McHarbor ou son agent) qui n'est jamais modifié automatiquement.",
+    "stack_remove": "La suppression d'une stack n'est jamais planifiée ; arrêtez-la et retirez-la depuis la page de la stack.",
+    "stack_stop": "L'arrêt d'une stack n'est jamais planifié ; arrêtez-la depuis la page de la stack.",
+    "git_compose": "Le fichier compose de la stack provient de Git ; déployez-la via son pipeline GitOps."
+  },
+  "refusal": {
+    "stale": "La dérive a changé depuis la rédaction de ce plan. Un nouveau plan a été rédigé à la place.",
+    "unknown": "L'environnement est actuellement injoignable ; rien n'a donc été modifié.",
+    "no_drift": "Il n'y a aucune dérive à traiter.",
+    "cannot_act": "Ce nœud McHarbor ne peut pas appliquer de modifications.",
+    "not_pending": "Quelqu'un a déjà résolu ce plan.",
+    "git_managed": "Cette surveillance est gérée par une source Git. Modifiez-la dans le dépôt.",
+    "enforce_route": "L'application automatique s'active depuis le paramètre de réponse de la surveillance.",
+    "bad_mode": "Mode de réponse inconnu.",
+    "not_git_managed": "Cette surveillance n'est pas gérée par une source Git.",
+    "not_expressible": "Aucune part de cette dérive ne peut être réécrite dans le dépôt.",
+    "git_failed": "Git a refusé la modification. Vérifiez les identifiants et la branche du dépôt.",
+    "sync_failed": "La synchronisation a échoué ; la raison est indiquée sur la source.",
+    "confirm_passes_range": "Les passes de confirmation doivent être comprises entre 1 et 10.",
+    "actions_per_pass_range": "Les actions par passe doivent être comprises entre 1 et 25.",
+    "cooldown_range": "Le délai de refroidissement doit être compris entre 0 et 86400 secondes.",
+    "failure_threshold_range": "Le seuil d'échec doit être compris entre 1 et 20.",
+    "source_fields_required": "Un nom, un dépôt et un environnement sont requis.",
+    "invalid_branch": "Ce nom de branche n'est pas valide.",
+    "path_escapes_repo": "Le chemin doit rester à l'intérieur du dépôt.",
+    "invalid": "La requête n'était pas valide."
+  },
+  "pullRequest": {
+    "action": "Accepter la dérive dans Git",
+    "title": "Accepter la dérive dans Git : {{name}}",
+    "description": "McHarbor réécrit le document de cette surveillance pour qu'il corresponde à ce qui s'exécute, le pousse sur une nouvelle branche et ouvre une pull request pour revue. Rien ne change tant que quelqu'un ne l'a pas fusionnée.",
+    "confirm": "Pousser la branche et ouvrir la demande",
+    "branch": "Branche :",
+    "open": "Ouvrir la pull request",
+    "noRequest": "La branche a été poussée, mais aucune pull request n'a été ouverte : {{error}}",
+    "changed": "Modifié : {{fields}}",
+    "skipped": "Non exprimable, toujours en dérive : {{fields}}"
+  },
+  "sources": {
+    "open": "Sources Git",
+    "title": "Sources Git",
+    "description": "Dépôts dont les documents constituent l'état souhaité. Un commit modifie l'intention en une passe du réconciliateur ; les lignes issues de Git se modifient dans le dépôt.",
+    "add": "Ajouter une source Git",
+    "addTitle": "Ajouter une source Git",
+    "addDescription": "Chaque document YAML ou JSON sous ce chemin devient une surveillance dans l'environnement actuel.",
+    "name": "Nom",
+    "repository": "Dépôt",
+    "repositoryPlaceholder": "Choisir un dépôt",
+    "branch": "Branche",
+    "path": "Répertoire",
+    "formatHint": "Un document contient name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe ou propose) et config ; un fichier peut en lister plusieurs sous desiredStates. L'application automatique (enforce) ne peut pas être définie depuis Git.",
+    "where": "Branche et répertoire",
+    "state": "État",
+    "failing": "En échec",
+    "syncing": "Synchronisation",
+    "paused": "En pause",
+    "errorTitle": "Pourquoi la synchronisation a échoué",
+    "rows": "Surveillances",
+    "commit": "Commit",
+    "synced": "Dernière synchronisation",
+    "syncNow": "Synchroniser maintenant",
+    "empty": "Aucune source Git.",
+    "deleteTitle": "Supprimer la source Git",
+    "deleteDescription": "Cesser de lire l'état souhaité depuis {{name}}. Ses surveillances sont conservées et pourront ensuite être modifiées ici.",
+    "deleteConfirm": "Supprimer la source"
+  },
+  "settings": {
+    "title": "Paramètres du réconciliateur",
+    "description": "Comment la dérive est confirmée, et les limites dans lesquelles l'application automatique agit.",
+    "confirmPasses": "Passes pour confirmer la dérive",
+    "confirmPassesHint": "La dérive n'est enregistrée qu'après ce nombre de vérifications consécutives qui la constatent, afin qu'une mise à jour progressive ne soit pas signalée. Augmentez-le sur les hôtes lents.",
+    "save": "Enregistrer",
+    "enforcement": "Application automatique",
+    "enforcementHint": "Désactivée par défaut. Seules les surveillances réglées sur Appliquer sont traitées, et uniquement dans ces limites.",
+    "enforceEnabled": "Application automatique activée",
+    "maxActions": "Modifications par passe",
+    "cooldownMinutes": "Délai de refroidissement par surveillance (minutes)",
+    "threshold": "Échecs avant arrêt",
+    "saveEnforcement": "Enregistrer l'application automatique",
+    "breakerOpen": "L'application automatique s'est arrêtée après des échecs répétés à {{time}}. Rien n'est appliqué tant qu'elle n'est pas réinitialisée.",
+    "reset": "Réinitialiser et reprendre",
+    "confirmReset": "Reprendre l'application automatique"
+  },
+  "pick": {
+    "manual": "Saisir manuellement…",
+    "fromList": "Choisir dans la liste",
+    "container": "Sélectionner un conteneur",
+    "containerHint": "Choisir un conteneur existant renseigne l'image et le statut qu'il exécute actuellement. Saisissez un nom manuellement pour en déclarer un qui n'existe pas encore.",
+    "image": "Sélectionner une image",
+    "select": "Sélectionner…",
+    "loading": "Chargement…"
+  },
+  "plugin": {
+    "cluster": "Cluster",
+    "environment": "Environnement",
+    "pinHint": "Ne fixez que ce qui doit être maintenu. Une propriété laissée sur « Non gérée » n'est jamais vérifiée.",
+    "useCurrent": "Utiliser les valeurs actuelles",
+    "notManaged": "Non gérée",
+    "yes": "Oui",
+    "no": "Non"
+  }
+}

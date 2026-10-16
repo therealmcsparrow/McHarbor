@@ -1,0 +1,37 @@
+{
+    "slug":  "phppgadmin",
+    "name":  "phpPgAdmin",
+    "description":  "Web-based administration tool for creating, browsing and managing PostgreSQL databases.",
+    "category":  "Developer Tools",
+    "image":  "dockage/phppgadmin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/postgresql.png",
+    "website":  "https://github.com/dockage/phppgadmin",
+    "docsUrl":  "https://github.com/dockage/phppgadmin#readme",
+    "ports":  [
+                  {
+                      "host":  8092,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PHP_PG_ADMIN_SERVER_HOST",
+                        "default":  "postgres",
+                        "description":  "Hostname of the PostgreSQL server to connect to"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

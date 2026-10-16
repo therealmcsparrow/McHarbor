@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Anzeigename für diesen Slack-Kommunikationskanal." },
+    "webhook_url": { "help": "Slack-Incoming-Webhook-URL. Wird im Ruhezustand verschlüsselt gespeichert." }
+  },
+  "title": "Slack-Benachrichtigungszustellung",
+  "subtitle": "Vom Plugin verwaltet",
+  "description": "Dieses Plugin verwaltet Slack. Es speichert die Slack-Webhook-URL im Kanal selbst und sendet Benachrichtigungen über die Plugin-Laufzeit.",
+  "nameLabel": "Kanalname",
+  "namePlaceholder": "Betriebs-Slack",
+  "webhookUrlLabel": "Webhook-URL",
+  "securityTitle": "Sicherheit",
+  "securityHelp": "Verschlüsselte Webhook-URL",
+  "securityDescription": "Die Webhook-URL wird im Ruhezustand verschlüsselt gespeichert. Erstellen Sie einen eigenen Incoming Webhook für McHarbor, damit er unabhängig rotiert werden kann.",
+  "testTitle": "Verbindung testen",
+  "testHelp": "Sendet eine Nachricht",
+  "testDescription": "Die Testaktion des Hosts sendet eine echte Nachricht an den konfigurierten Slack-Kanal. Verwenden Sie zuerst einen privaten Testkanal, wenn der Webhook auf einen Bereitschaftsraum zeigt.",
+  "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+  "requiredField": "Erforderlich",
+  "setupGuideTitle": "Einrichtungsanleitung für den Slack-Kommunikationskanal",
+  "guide": {
+    "step1": { "body": "Öffnen Sie den Ziel-Slack-Workspace und erstellen oder wählen Sie den Kanal, der die McHarbor-Benachrichtigungen erhalten soll." },
+    "step2": { "body": "Erstellen Sie eine Slack-App, aktivieren Sie <b>Incoming Webhooks</b>, fügen Sie dem Zielkanal einen Webhook hinzu und kopieren Sie die Webhook-URL." },
+    "step3": { "body": "Fügen Sie die Webhook-URL in diese Kanalkonfiguration ein. McHarbor speichert sie verschlüsselt und blendet sie in API-Antworten aus." },
+    "step4": { "body": "Speichern Sie den Kanal und klicken Sie auf <b>Verbindung testen</b>. Das Plugin sendet eine echte Testnachricht an Slack über denselben Pfad, der für Live-Workflow-, Alarm- und Backup-Ereignisse genutzt wird." },
+    "step5": { "body": "Schlägt der Test fehl, prüfen Sie, ob für die App weiterhin Incoming Webhooks aktiviert sind, der Webhook nicht widerrufen wurde und der Zielkanal noch existiert." }
+  }
+}

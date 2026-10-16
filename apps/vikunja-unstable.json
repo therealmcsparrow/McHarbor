@@ -1,0 +1,40 @@
+{
+    "slug":  "vikunja-unstable",
+    "name":  "Vikunja (Unstable)",
+    "description":  "Unstable channel build of Vikunja. Task and project management for personal and team workflows.",
+    "category":  "Productivity",
+    "image":  "vikunja/vikunja:unstable",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vikunja.png",
+    "website":  "https://vikunja.io",
+    "docsUrl":  "https://vikunja.io/docs",
+    "ports":  [
+                  {
+                      "host":  4456,
+                      "container":  3456,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vikunja-unstable/files",
+                        "container":  "/app/vikunja/files"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VIKUNJA_SERVICE_PUBLICURL",
+                        "default":  "http://localhost:3456",
+                        "description":  "Public URL"
+                    }
+                ],
+    "version":  "unstable",
+    "latest":  {
+        "version":  "unstable",
+        "release_date":  "2026-09-29"
+    }
+}

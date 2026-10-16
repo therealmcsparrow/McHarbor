@@ -1,26 +1,75 @@
 {
   "title": "Painel",
   "description": "Visão geral do seu ambiente Docker",
+  "summary": {
+    "environments_one": "{{count}} ambiente",
+    "environments_other": "{{count}} ambientes",
+    "containers_one": "{{count}} contêiner",
+    "containers_other": "{{count}} contêineres",
+    "acrossStacks_one": "em {{count}} stack",
+    "acrossStacks_other": "em {{count}} stacks",
+    "vms_one": "{{count}} máquina virtual",
+    "vms_other": "{{count}} máquinas virtuais",
+    "acrossEnvironments_one": "em {{count}} ambiente",
+    "acrossEnvironments_other": "em {{count}} ambientes",
+    "agentsBehind_one": "{{count}} agente uma versão atrás",
+    "agentsBehind_other": "{{count}} agentes uma versão atrás",
+    "scansNeedReview_one": "{{count}} verificação precisa de revisão",
+    "scansNeedReview_other": "{{count}} verificações precisam de revisão",
+    "unreachable_one": "{{count}} host inacessível",
+    "unreachable_other": "{{count}} hosts inacessíveis"
+  },
   "addWidget": "Adicionar widget",
-  "editDashboard": "Editar painel",
-  "doneEditing": "Edição concluída",
   "edit": "Editar",
-  "done": "Feito",
-  "reset": "Reiniciar",
+  "done": "Concluído",
+  "reset": "Redefinir",
   "loading": "Carregando...",
   "addWidgets": "Adicionar widgets",
   "addWidgetsDescription": "Selecione widgets para adicionar ao seu painel",
   "categories": {
     "resources": "Recursos",
-    "host": "Hospedar",
+    "host": "Host",
     "metrics": "Métricas",
     "monitoring": "Monitoramento",
     "operations": "Operações",
-    "kubernetes": "Kubernetes"
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Remover widget",
     "decreaseHeight": "Diminuir altura",
-    "increaseHeight": "Aumentar altura"
+    "increaseHeight": "Aumentar altura",
+    "failed": "Não foi possível mostrar {{title}}",
+    "retry": "Tentar novamente",
+    "size": "Tamanho",
+    "width": "Largura",
+    "height": "Altura"
+  },
+  "template": {
+    "pickerLabel": "Layouts do painel",
+    "wizardPrompt": "Começar com um layout"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "O que está em execução, onde, e as ações rápidas que você mais usa"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Execuções de fluxos de trabalho, alertas e vulnerabilidades em destaque"
+      },
+      "production": {
+        "name": "Produção",
+        "description": "Capacidade, alertas, vulnerabilidades e armazenamento em um relance"
+      },
+      "monitoring": {
+        "name": "Monitoramento",
+        "description": "Séries temporais e maiores consumidores, para acompanhar tendências"
+      },
+      "starter": {
+        "name": "Inicial",
+        "description": "O veredito e seus contêineres — todo o resto você adiciona quando precisar"
+      }
+    }
   }
 }

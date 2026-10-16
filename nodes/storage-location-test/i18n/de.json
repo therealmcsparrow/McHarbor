@@ -1,0 +1,9 @@
+{
+  "label": "Speicherort testen",
+  "description": "Verbindungstest für einen Speicherort ausführen und optional die Kapazität lesen",
+  "config": {
+    "storage_location_id": "Speicherort",
+    "include_usage": "Belegung einbeziehen",
+    "fail_on_warn": "Bei Warnung fehlschlagen"
+  }
+}

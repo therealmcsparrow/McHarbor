@@ -1,7 +1,9 @@
 {
-  "label": "Run Backup Plan",
-  "description": "Run a saved container backup plan",
+  "label": "Ejecutar plan de copia de seguridad",
+  "description": "Ejecuta un plan de copia de seguridad de contenedores guardado",
   "config": {
-    "plan_id": "Plan ID"
+    "environment": "Entorno",
+    "container": "Contenedor (filtro)",
+    "plan_id": "Plan de copia de seguridad"
   }
 }

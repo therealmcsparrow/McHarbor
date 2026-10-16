@@ -13,6 +13,8 @@
     "image": "Image",
     "state": "Status",
     "viewAll": "Alles bekijken ({{count}})",
-    "viewAllArrow": "Alles bekijken"
+    "viewAllArrow": "Alles bekijken",
+    "running": "{{running}} van {{total}} actief",
+    "more": "{{count}} meer"
   }
 }

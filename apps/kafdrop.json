@@ -1,0 +1,38 @@
+{
+    "slug":  "kafdrop",
+    "name":  "Kafdrop",
+    "description":  "Web UI for viewing Kafka topics, partitions, consumers, and messages.",
+    "category":  "Message Queues",
+    "image":  "obsidiandynamics/kafdrop:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/obsidiandynamics/kafdrop",
+    "docsUrl":  "https://github.com/obsidiandynamics/kafdrop#running",
+    "ports":  [
+                  {
+                      "host":  9010,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KAFKA_BROKERCONNECT",
+                        "default":  "kafka:9092",
+                        "description":  "Comma-separated list of Kafka broker addresses"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

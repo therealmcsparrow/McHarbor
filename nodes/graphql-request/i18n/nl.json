@@ -1,6 +1,6 @@
 {
   "label": "GraphQL-aanvraag",
-  "description": "Send a GraphQL request and store the parsed response",
+  "description": "Verstuur een GraphQL-verzoek en sla het verwerkte antwoord op",
   "config": {
     "url": "URL",
     "query": "Query",

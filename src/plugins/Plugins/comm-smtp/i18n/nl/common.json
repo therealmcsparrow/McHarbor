@@ -1,0 +1,60 @@
+{
+  "config": {
+    "name": { "help": "Weergavenaam voor dit SMTP-communicatiekanaal." },
+    "host": { "help": "Hostnaam of IP-adres van de SMTP-relay." },
+    "port": { "help": "SMTP-poort. Gebruik 587 voor STARTTLS, 465 voor impliciete TLS of 25 voor gewone/interne relays." },
+    "encryption": { "help": "Een van starttls, ssl_tls of none. STARTTLS wordt aanbevolen voor poort 587." },
+    "auth_method": { "help": "Een van none, plain, login of cram_md5." },
+    "username": { "help": "Gebruikersnaam voor SMTP AUTH. Laat leeg als de authenticatie none is." },
+    "password": { "help": "Wachtwoord of app-wachtwoord voor SMTP AUTH. Versleuteld opgeslagen." },
+    "from_address": { "help": "Envelopafzender en From-header." },
+    "from_name": { "help": "Optionele weergavenaam voor de From-header." },
+    "to": { "help": "Kommagescheiden e-mailadressen van de ontvangers." },
+    "subject_prefix": { "help": "Optioneel voorvoegsel dat aan elk meldingsonderwerp wordt toegevoegd." }
+  },
+  "menu": {
+    "root": "SMTP"
+  },
+  "forms": {
+    "config": "SMTP-configuratie",
+    "setupGuide": "SMTP-installatiegids"
+  },
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "usernameRequired": "Gebruikersnaam is verplicht",
+  "passwordRequired": "Wachtwoord is verplicht",
+  "title": "Meldingen versturen via SMTP",
+  "subtitle": "Communicatiekanaal van de plugin",
+  "description": "Deze plugin beheert het SMTP-communicatiekanaal. Hij bewaart de SMTP-instellingen in het kanaal zelf en gebruikt de verwijderde e-mailserverfunctie van de host niet.",
+  "nameLabel": "Kanaalnaam",
+  "namePlaceholder": "Operations-e-mail",
+  "hostLabel": "SMTP-host",
+  "portLabel": "SMTP-poort",
+  "encryptionLabel": "Versleuteling",
+  "authMethodLabel": "Authenticatie",
+  "usernameLabel": "Gebruikersnaam",
+  "passwordLabel": "Wachtwoord",
+  "fromAddressLabel": "Afzenderadres",
+  "fromNameLabel": "Afzendernaam",
+  "toLabel": "Ontvangers",
+  "subjectPrefixLabel": "Onderwerpvoorvoegsel",
+  "securityTitle": "Beveiliging",
+  "securityHelp": "TLS en SMTP AUTH",
+  "securityDescription": "Gebruik STARTTLS voor poort 587, SSL/TLS voor poort 465 en alleen geen versleuteling voor vertrouwde interne relays.",
+  "testTitle": "Verbinding testen",
+  "testHelp": "Verstuurt een e-mail",
+  "testDescription": "De testactie van de host verstuurt een echte e-mail via dit kanaal. Gebruik eerst een testontvanger als je relay een mailbox van een dienstdoende medewerker oproept.",
+  "requiredField": "Verplicht",
+  "setupGuideTitle": "Installatiehandleiding voor het SMTP-communicatiekanaal",
+  "guide": {
+    "step1": { "body": "Maak een SMTP-relayaccount aan of kies er een dat speciaal voor McHarbor-meldingen is bedoeld. Gebruik bij voorkeur een app-wachtwoord of een beperkte relay-referentie in plaats van het wachtwoord van een persoonlijke mailbox." },
+    "step2": { "body": "Stel <b>SMTP-host</b> en <b>SMTP-poort</b> in. Gebruik poort <code>587</code> met <code>encryption=starttls</code> voor de meeste providers, poort <code>465</code> met <code>encryption=ssl_tls</code> voor impliciete TLS, of poort <code>25</code> met <code>encryption=none</code> alleen voor vertrouwde interne relays." },
+    "step3": { "body": "Kies de authenticatiemethode die je relay ondersteunt: <code>none</code>, <code>plain</code>, <code>login</code> of <code>cram_md5</code>. Vul <b>Gebruikersnaam</b> en <b>Wachtwoord</b> in bij elke methode behalve <code>none</code>." },
+    "step4": { "body": "Stel <b>Afzenderadres</b> in op een vaste afzender, zoals <code>mcharbor@example.com</code>. Sommige providers eisen dat dit adres overeenkomt met het geauthenticeerde account of een geverifieerde afzenderidentiteit." },
+    "step5": { "body": "Voeg een of meer ontvangers toe, gescheiden door komma's. Begin met een testmailbox en schakel over op je operations- of dienstdoende distributielijst zodra de bezorging is bevestigd." },
+    "step6": { "body": "Stel optioneel een <b>Onderwerpvoorvoegsel</b> in, bijvoorbeeld <code>[McHarbor Prod]</code>, zodat meldingen eenvoudig te filteren zijn in mailclients en ticketsystemen." },
+    "step7": { "body": "Sla het kanaal op en klik op <b>Verbinding testen</b>. De plugin verstuurt een echte testmail via hetzelfde SMTP-pad dat voor live workflow-, alert- en back-upgebeurtenissen wordt gebruikt." },
+    "step8": { "body": "Als de test mislukt met een authenticatiefout, controleer dan de gebruikersnaam, het app-wachtwoord, de afzenderidentiteit en de SMTP AUTH-instellingen van de provider. Als STARTTLS mislukt, controleer dan de combinatie van poort en versleuteling." }
+  },
+  "encryptionOption": { "none": "Geen" },
+  "authOption": { "none": "Geen", "plain": "Plain", "login": "Login" }
+}

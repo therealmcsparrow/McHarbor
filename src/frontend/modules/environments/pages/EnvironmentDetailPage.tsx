@@ -1,245 +1,184 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useLayoutEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@resources/components/ui/Tabs';
-import { Spinner } from '@resources/components/ui/Spinner';
+import { Card } from '@resources/components/ui/Card';
+import { ErrorState } from '@resources/components/ui/ErrorState';
+import { HeaderBreadcrumb } from '@resources/layout/HeaderBreadcrumb';
 import { useHeaderSlot } from '@resources/stores/headerSlot';
-import { AgentTokenDialog } from '../components/AgentTokenDialog';
-import { EnvironmentActivityTab } from '../components/EnvironmentActivityTab';
-import { EnvironmentAutomationTab } from '../components/EnvironmentAutomationTab';
+import { EnvironmentDetailDialogs } from '../components/EnvironmentDetailDialogs';
 import { EnvironmentDetailHeader } from '../components/EnvironmentDetailHeader';
-import { EnvironmentOverviewPanel } from '../components/EnvironmentOverviewPanel';
-import { EnvironmentRetentionTab } from '../components/EnvironmentRetentionTab';
-import { useEnvironmentDetailState, type AutoUpdateDay } from '../hooks/useEnvironmentDetailState';
+import { EnvironmentDetailSkeleton } from '../components/EnvironmentDetailSkeleton';
+import { EnvironmentDetailTabs } from '../components/EnvironmentDetailTabs';
+import { EnvironmentTabPanels } from '../components/EnvironmentTabPanels';
+import { useEnvironmentDetailState } from '../hooks/useEnvironmentDetailState';
+import { useEnvironmentDetailNav } from '../hooks/useEnvironmentDetailNav';
+import { useEnvironmentSiblings } from '../hooks/useEnvironmentSiblings';
+import { useCancelMigration } from '../hooks/useEnvironmentMigration';
 import { useGlobalDiskThresholdPercent } from '../hooks/useGlobalDiskThreshold';
-import { useRegenerateToken, useUpdateEnvironment } from '../hooks/useEnvironmentActions';
+import {
+  deriveEnvironmentStatus,
+  useRegenerateToken,
+  useTestEnvironment,
+  useUpdateEnvironment,
+} from '../hooks/useEnvironmentActions';
 import { useEnvironment, useEnvironmentHostMetrics, useEnvironmentMetrics } from '../hooks/useEnvironments';
-import { EnvironmentDockerTab } from '../components/EnvironmentDockerTab';
-import { EnvironmentHostLogsTab } from '../components/EnvironmentHostLogsTab';
-import { EnvironmentHostTab } from '../components/EnvironmentHostTab';
-import { EnvironmentHostTerminalTab } from '../components/EnvironmentHostTerminalTab';
-import { EnvironmentProcessesTab } from '../components/EnvironmentProcessesTab';
-import { normalizeTimezone } from '../timezones';
+import { buildSavePayload, isSaveTab, isTabDirty } from './environment-detail-save';
 
 export default function EnvironmentDetailPage() {
   const { t } = useTranslation('environments');
-  const { t: tc } = useTranslation('common');
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: env, isLoading: envLoading } = useEnvironment(id);
+  const siblings = useEnvironmentSiblings();
+  const cancelMigration = useCancelMigration();
+  const [migrateOpen, setMigrateOpen] = useState(false);
   const { data: stats } = useEnvironmentMetrics(id, env?.collectContainerMetricsEnabled ?? true);
   const { data: hostMetrics } = useEnvironmentHostMetrics(id);
   const regenToken = useRegenerateToken();
+  const testEnv = useTestEnvironment();
   const updateEnvironment = useUpdateEnvironment();
   const globalDiskThreshold = useGlobalDiskThresholdPercent();
   const setHeaderActive = useHeaderSlot((store) => store.setActive);
   const state = useEnvironmentDetailState(env);
+  const [testOpen, setTestOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const nav = useEnvironmentDetailNav(id, env);
+  const { activeTab, pluginTab } = nav;
 
-  useEffect(() => {
+  // AppLayout drops the shell padding while the header slot is claimed; the
+  // page puts it back itself, exactly as the container detail page does.
+  useLayoutEffect(() => {
     setHeaderActive(true);
     return () => setHeaderActive(false);
   }, [setHeaderActive]);
 
   if (envLoading) {
-    return <div className="flex h-64 items-center justify-center"><Spinner size="lg" /></div>;
+    return <EnvironmentDetailSkeleton />;
   }
 
   if (!env) {
     return (
-      <div className="space-y-6 p-5">
-        {document.getElementById('header-slot')
-          ? createPortal(
-              <EnvironmentDetailHeader title={t('detail.notFound')} backLabel={t('detail.back')} onBack={() => navigate('/environments')} />,
-              document.getElementById('header-slot')!,
-            )
-          : null}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">{t('detail.notFoundDescription')}</p>
-        </div>
+      <div>
+        <HeaderBreadcrumb crumbs={[{ label: t('title'), to: '/environments' }, { label: t('detail.notFound') }]} />
+        <ErrorState
+          variant="page"
+          title={t('detail.notFound')}
+          description={t('detail.notFoundDescription')}
+          primaryAction={{
+            label: t('detail.backToEnvironments'),
+            onClick: () => navigate('/environments'),
+          }}
+        />
       </div>
     );
   }
 
-  const showSaveAction = state.activeTab === 'activity' || state.activeTab === 'automation' || state.activeTab === 'retention';
-  const saveDisabled =
-    updateEnvironment.isPending ||
-    (state.activeTab === 'activity'
-      ? !state.activityIsDirty
-      : state.activeTab === 'automation'
-        ? !state.automationIsDirty
-        : state.activeTab === 'retention'
-          ? !state.retentionIsDirty
-          : true);
-  const saveLabel = updateEnvironment.isPending ? tc('actions.saving') : tc('actions.save');
+  const connectionStatus = deriveEnvironmentStatus(env);
+  const showSaveAction = isSaveTab(activeTab);
+  const saveDisabled = updateEnvironment.isPending || !(showSaveAction && isTabDirty(activeTab, state));
+  const saveLabel = updateEnvironment.isPending
+    ? t('actions.saving', { ns: 'common' })
+    : t('actions.save', { ns: 'common' });
 
-  const activeTabPayload = (() => {
-    if (state.activeTab === 'activity') {
-      return {
-        trackContainerEventsEnabled: state.trackContainerEventsEnabled,
-        collectContainerMetricsEnabled: state.collectContainerMetricsEnabled,
-        highlightContainerChangesEnabled: state.highlightContainerChangesEnabled,
-        dockerDiskUsageNotificationsEnabled: state.dockerDiskUsageNotificationsEnabled,
-        dockerDiskUsageThresholdPercent: state.normalizedThreshold,
-        dockerDiskUsageUseGlobalDefault: state.dockerDiskUsageUseGlobalDefault,
-      };
-    }
-    if (state.activeTab === 'automation') {
-      return {
-        scheduledUpdateCheckEnabled: state.scheduledUpdateCheckEnabled,
-        automaticImagePruningEnabled: state.automaticImagePruningEnabled,
-        imagePruneDanglingOnly: state.imagePruneDanglingOnly,
-        timezone: normalizeTimezone(state.timezone),
-      };
-    }
-    return {
-      logRetentionDays: state.normalizedLogRetention,
-      containerPruneEnabled: state.containerPruneEnabled,
-      containerPruneStoppedDays: state.normalizedContainerPruneDays,
-      metricRetentionHours: state.normalizedMetricHours,
-    };
-  })();
+  const isConsoleTab = activeTab === 'terminal' || activeTab === 'logs';
+
+  const handleRegenerateToken = () =>
+    regenToken.mutate(id, {
+      onSuccess: (data) => {
+        state.setRegeneratedToken(data.token);
+        state.setRegeneratedPin(data.caFingerprint ?? '');
+        state.setTokenDialogOpen(true);
+      },
+    });
 
   return (
-    <div className="space-y-6 p-5">
-      {document.getElementById('header-slot')
-        ? createPortal(
-            <EnvironmentDetailHeader
-              title={env.name}
-              description={t('detail.connectionDescription', { type: env.connectionType.toUpperCase() })}
-              backLabel={t('detail.back')}
-              onBack={() => navigate('/environments')}
-              saveLabel={showSaveAction ? saveLabel : undefined}
-              onSave={
-                showSaveAction
-                  ? () => updateEnvironment.mutate({ id: env.id, data: activeTabPayload })
-                  : undefined
-              }
-              saveDisabled={saveDisabled}
-              savePending={updateEnvironment.isPending}
-            />,
-            document.getElementById('header-slot')!,
-          )
-        : null}
+    <div className="flex h-full min-h-0 flex-col gap-4 p-6">
+      <HeaderBreadcrumb
+        crumbs={[{ label: t('title'), to: '/environments' }, { label: env.name }]}
+        siblings={siblings}
+        currentId={env.id}
+      />
 
-      <Tabs value={state.activeTab} onValueChange={(value) => state.setActiveTab(value as typeof state.activeTab)} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">{t('detail.tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="activity">{t('detail.tabs.activity')}</TabsTrigger>
-          <TabsTrigger value="automation">{t('detail.tabs.automation')}</TabsTrigger>
-          <TabsTrigger value="retention">{t('detail.tabs.retention')}</TabsTrigger>
-          <TabsTrigger value="host">{t('detail.tabs.host')}</TabsTrigger>
-          <TabsTrigger value="docker">{t('detail.tabs.docker')}</TabsTrigger>
-          <TabsTrigger value="processes">{t('detail.tabs.processes')}</TabsTrigger>
-          <TabsTrigger value="terminal">{t('detail.tabs.terminal')}</TabsTrigger>
-          <TabsTrigger value="logs">{t('detail.tabs.logs')}</TabsTrigger>
-        </TabsList>
+      {/* The page head (identity and actions) is portalled into the shell's
+          band by EnvironmentDetailHeader; this card holds the group tabs. */}
+      <EnvironmentDetailHeader
+        env={env}
+        status={connectionStatus}
+        onTestConnection={() => {
+          setTestOpen(true);
+          testEnv.mutate(env.id);
+        }}
+        testPending={testEnv.isPending}
+        onRegenerateToken={handleRegenerateToken}
+        regeneratePending={regenToken.isPending}
+        onEdit={() => setEditOpen(true)}
+        saveLabel={showSaveAction ? saveLabel : undefined}
+        onSave={
+          showSaveAction
+            ? () =>
+                updateEnvironment.mutate({
+                  id: env.id,
+                  data: buildSavePayload(activeTab, state),
+                })
+            : undefined
+        }
+        saveDisabled={saveDisabled}
+        savePending={updateEnvironment.isPending}
+      />
+      <Card className="flex-none overflow-visible">
+        <EnvironmentDetailTabs
+          activeTab={activeTab}
+          onTabChange={nav.setActiveTab}
+          pluginTabs={nav.pluginTabs}
+          activePluginTab={pluginTab}
+          onPluginTabChange={nav.setPluginTab}
+          labelFor={(tab) => t(`detail.tabs.${tab}`)}
+          groupLabelFor={(key) => t(key)}
+          ariaLabel={t('detail.title')}
+          hiddenTabs={nav.hiddenTabs}
+        />
+      </Card>
 
-        <TabsContent value="overview" className="space-y-6">
-          <EnvironmentOverviewPanel
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div
+          id="environment-detail-panel"
+          role="tabpanel"
+          aria-labelledby={`environment-tab-${activeTab}`}
+          tabIndex={0}
+          className={`flex min-h-0 flex-1 flex-col ${isConsoleTab ? 'overflow-hidden' : 'overflow-y-auto'}`}
+        >
+          <EnvironmentTabPanels
             env={env}
+            state={state}
+            activeTab={activeTab}
+            pluginTab={pluginTab}
+            nativeAgent={nav.nativeAgent}
             stats={stats}
             hostMetrics={hostMetrics}
-            onRegenerateToken={() =>
-              regenToken.mutate(id, {
-                onSuccess: (data) => {
-                  state.setRegeneratedToken(data.token);
-                  state.setTokenDialogOpen(true);
-                },
-              })
-            }
-            isRegenerating={regenToken.isPending}
-            t={t}
-          />
-        </TabsContent>
-        <TabsContent value="activity">
-          <EnvironmentActivityTab
-            env={env}
-            trackContainerEventsEnabled={state.trackContainerEventsEnabled}
-            collectContainerMetricsEnabled={state.collectContainerMetricsEnabled}
-            highlightContainerChangesEnabled={state.highlightContainerChangesEnabled}
-            dockerDiskUsageNotificationsEnabled={state.dockerDiskUsageNotificationsEnabled}
-            dockerDiskUsageThresholdPercent={state.dockerDiskUsageThresholdPercent}
-            dockerDiskUsageUseGlobalDefault={state.dockerDiskUsageUseGlobalDefault}
             globalDiskThresholdPercent={globalDiskThreshold.data ?? 80}
             isSaving={updateEnvironment.isPending}
-            onTrackContainerEventsChange={state.setTrackContainerEventsEnabled}
-            onCollectContainerMetricsChange={state.setCollectContainerMetricsEnabled}
-            onHighlightContainerChangesChange={state.setHighlightContainerChangesEnabled}
-            onDockerDiskUsageNotificationsChange={state.setDockerDiskUsageNotificationsEnabled}
-            onDockerDiskUsageThresholdChange={state.setDockerDiskUsageThresholdPercent}
-            onDockerDiskUsageUseGlobalDefaultChange={state.setDockerDiskUsageUseGlobalDefault}
+            onRegenerateToken={handleRegenerateToken}
+            isRegenerating={regenToken.isPending}
+            onMigrate={() => setMigrateOpen(true)}
+            onCancelMigration={env.pendingConnectionType ? () => cancelMigration.mutate(env.id) : undefined}
+            cancelMigrationPending={cancelMigration.isPending}
           />
-        </TabsContent>
-        <TabsContent value="automation">
-          <EnvironmentAutomationTab
-            env={env}
-            scheduledUpdateCheckEnabled={state.scheduledUpdateCheckEnabled}
-            automaticImagePruningEnabled={state.automaticImagePruningEnabled}
-            imagePruneDanglingOnly={state.imagePruneDanglingOnly}
-            timezone={state.timezone}
-            isSaving={updateEnvironment.isPending}
-            onScheduledUpdateCheckChange={state.setScheduledUpdateCheckEnabled}
-            onAutomaticImagePruningChange={state.setAutomaticImagePruningEnabled}
-            onImagePruneDanglingOnlyChange={state.setImagePruneDanglingOnly}
-            onTimezoneChange={state.setTimezone}
-          />
-        </TabsContent>
-        <TabsContent value="retention">
-          <EnvironmentRetentionTab
-            env={env}
-            logRetentionDays={state.logRetentionDays}
-            containerPruneEnabled={state.containerPruneEnabled}
-            containerPruneStoppedDays={state.containerPruneStoppedDays}
-            autoUpdateEnabled={state.autoUpdateEnabled}
-            autoUpdateWindowStart={state.autoUpdateWindowStart}
-            autoUpdateWindowEnd={state.autoUpdateWindowEnd}
-            autoUpdateDaysSelected={state.autoUpdateDaysSelected}
-            metricRetentionHours={state.metricRetentionHours}
-            isSaving={updateEnvironment.isPending}
-            onLogRetentionChange={state.setLogRetentionDays}
-            onContainerPruneEnabledChange={state.setContainerPruneEnabled}
-            onContainerPruneStoppedDaysChange={state.setContainerPruneStoppedDays}
-            onAutoUpdateEnabledChange={state.setAutoUpdateEnabled}
-            onAutoUpdateWindowStartChange={state.setAutoUpdateWindowStart}
-            onAutoUpdateWindowEndChange={state.setAutoUpdateWindowEnd}
-            onAutoUpdateDayToggle={(day) => {
-              const next = new Set(state.autoUpdateDaysSelected);
-              if (next.has(day as AutoUpdateDay)) {
-                next.delete(day as AutoUpdateDay);
-              } else {
-                next.add(day as AutoUpdateDay);
-              }
-              state.setAutoUpdateDaysSelected(next);
-            }}
-            onMetricRetentionChange={state.setMetricRetentionHours}
-          />
-        </TabsContent>
-        <TabsContent value="host">
-          <EnvironmentHostTab envId={env.id} env={env} />
-        </TabsContent>
-        <TabsContent value="docker">
-          <EnvironmentDockerTab envId={env.id} />
-        </TabsContent>
-        <TabsContent value="processes">
-          <EnvironmentProcessesTab envId={env.id} />
-        </TabsContent>
-        <TabsContent value="terminal">
-          <EnvironmentHostTerminalTab envId={env.id} />
-        </TabsContent>
-        <TabsContent value="logs">
-          <EnvironmentHostLogsTab envId={env.id} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
-      <AgentTokenDialog
-        open={state.tokenDialogOpen}
-        onOpenChange={state.setTokenDialogOpen}
-        token={state.regeneratedToken}
-        serverUrl={`${window.location.protocol}//${window.location.host}`}
+      <EnvironmentDetailDialogs
+        env={env}
+        state={state}
+        testEnv={testEnv}
+        migrateOpen={migrateOpen}
+        onMigrateOpenChange={setMigrateOpen}
+        editOpen={editOpen}
+        onEditOpenChange={setEditOpen}
+        testOpen={testOpen}
+        onTestOpenChange={setTestOpen}
       />
     </div>
   );

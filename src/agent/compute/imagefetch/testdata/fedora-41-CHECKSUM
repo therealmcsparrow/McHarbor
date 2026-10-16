@@ -1,0 +1,33 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+# Fedora-Cloud-Base-AmazonEC2-41-1.4.x86_64.raw.xz: 505453192 bytes
+SHA256 (Fedora-Cloud-Base-AmazonEC2-41-1.4.x86_64.raw.xz) = 5d3b0829c1928bddcb0b78cb3232c417ca0f1fcf108ff41e73a3e9c2f7556e91
+# Fedora-Cloud-Base-Azure-41-1.4.x86_64.vhdfixed.xz: 526119000 bytes
+SHA256 (Fedora-Cloud-Base-Azure-41-1.4.x86_64.vhdfixed.xz) = 57763094dcf0b6657416c997d314920ce2db8dcb57d221067e252220b5fae9b3
+# Fedora-Cloud-Base-GCE-41-1.4.x86_64.tar.gz: 485472586 bytes
+SHA256 (Fedora-Cloud-Base-GCE-41-1.4.x86_64.tar.gz) = 3d73b07b511065223f3e50679eaf6993e14dc8e9ccfd6ed6fc23032f40375230
+# Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2: 491716608 bytes
+SHA256 (Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2) = 6205ae0c524b4d1816dbd3573ce29b5c44ed26c9fbc874fbe48c41c89dd0bac2
+# Fedora-Cloud-Base-UEFI-UKI-41-1.4.x86_64.qcow2: 519700480 bytes
+SHA256 (Fedora-Cloud-Base-UEFI-UKI-41-1.4.x86_64.qcow2) = 2a39a9c66d4c18f6541e0ca160beaceeb6b3f802e9f24affaf8292d679e0f1c2
+# Fedora-Cloud-Base-Vagrant-VirtualBox-41-1.4.x86_64.vagrant.virtualbox.box: 677482463 bytes
+SHA256 (Fedora-Cloud-Base-Vagrant-VirtualBox-41-1.4.x86_64.vagrant.virtualbox.box) = 4e40de05aa9bfec1cdd022ee34fe607b5ae301fd2cc6c2a6a12fee836c663ce5
+# Fedora-Cloud-Base-Vagrant-libvirt-41-1.4.x86_64.vagrant.libvirt.box: 686862482 bytes
+SHA256 (Fedora-Cloud-Base-Vagrant-libvirt-41-1.4.x86_64.vagrant.libvirt.box) = 6a7776e37514ae2b7986cb2d36c2ce9ed061d99f4bb2da7cfd8b13b163569189
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEERmzy2LYLwwV6qUU+0GIkYumdatEFAmcg/qAACgkQ0GIkYumd
+atEREw/9E3OAvpQYRNg12BIi9jKcVSF1apGjSX9/Km2N5EycEFvaAC8t04ZTcsfw
+PY86axfiU2+qIX4HqL8iZvSq9ob6dbIx2eYCrLXzYfftNOjiSC8VnYGLgXayqGyi
+2Ln2j2JrSvhlNABv1YkuZzPtgl/u163+FR+VU4ZLbNN34Cw7RxoeRuNu141gkQKH
+oVvw2EMO7ejxPLI6qNI3cpXdQQ9SbH+8dslGw3pYyOxelmbNk0hssQP5F1b0gJbG
+jO/9bnByEL+nHJY9aIXoddABxBAgxvw4TpVvq3X2Daq9uydGCx7OBuC2acU3CIDR
+hT1cHxlfTpl2gj+W6kH6UdOvKh2g5FqGBhC4EJ95gNYNTHjX9X6Jx5Q4TV37siD4
+wOx465iNS41PmySTDOR4cjNSjqUlU5Ifn9PdLtjqG2W4cdHK95ckRXDAqH0bXWhx
+nUNkmuwFRqWePI7trSOct4LhAORAXu6Os9xG6fhWjSQMOYe+ANq2ezsjnSlffkAU
+6llRsCd+fpwO8hDyvtP/9tklNaRzNz7+r9a/xJk5bu6eT2LEp+HszOeoYXetIoCe
+STzC77oCgHPTSfl3FCUOPWpJE5RUit+r7eR7rgLo/MbAw46IXaBM57vWpUVDXjez
+p7tEBA/h1WC7r/+v2j4Ssbt58gnAMZehW6WG7wuVrvsB85GMR1M=
+=Ti5m
+-----END PGP SIGNATURE-----

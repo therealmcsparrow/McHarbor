@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "Destinos de backup do TrueNAS",
+    "subtitle": "Faça backup de contêineres em uma instância do TrueNAS via WebDAV (RFC 4918). O TrueNAS expõe o WebDAV no caminho configurado do compartilhamento (padrão /webdav para o compartilhamento WebDAV padrão). Os operadores se autenticam com um usuário local do TrueNAS + senha via autenticação HTTP Basic. Uploads em partes usam PUT com Content-Range, suportado no lado do servidor pelo servidor Samba do TrueNAS.",
+    "registerHint": "Clique em Testar conexão para verificar se o endpoint WebDAV está acessível e as credenciais são válidas."
+  },
+  "fields": {
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "folderId": "Subpasta no compartilhamento WebDAV"
+  },
+  "toast": {
+    "registered": "Plugin do TrueNAS registrado.",
+    "testPassed": "Teste de conexão do TrueNAS concluído com sucesso.",
+    "testFailed": "O teste de conexão do TrueNAS falhou: {{error}}"
+  },
+  "error": {
+    "noHost": "A URL base do TrueNAS é obrigatória.",
+    "noUsername": "O nome de usuário do TrueNAS é obrigatório.",
+    "noPassword": "A senha do TrueNAS é obrigatória."
+  },
+  "form": {
+    "hostLabel": "URL base do TrueNAS",
+    "hostHelp": "URL base do servidor TrueNAS, por exemplo https://nas.local. Não adicione barra no final.",
+    "usernameHelp": "Usuário local do TrueNAS. O usuário deve ter acesso de leitura e gravação ao compartilhamento WebDAV configurado.",
+    "passwordHelp": "Senha do usuário local do TrueNAS. Armazenada criptografada em repouso pelo serviço AES-256-GCM do host.",
+    "basePathLabel": "Subpasta (opcional)",
+    "basePathHelp": "Subpasta opcional sob a raiz WebDAV do compartilhamento. Deixe em branco para usar a raiz do compartilhamento.",
+    "apiPathLabel": "Caminho WebDAV (avançado)",
+    "apiPathHelp": "Substitui o caminho WebDAV. O padrão é /webdav. Operadores com vários compartilhamentos WebDAV podem defini-lo como /webdav/{share-name}.",
+    "introTitle": "Credenciais do TrueNAS",
+    "introBody": "O TrueNAS usa uma conta de usuário local para a autenticação WebDAV. O usuário deve ter acesso de leitura e gravação ao compartilhamento WebDAV configurado. O McHarbor armazena a senha criptografada em repouso."
+  },
+  "setup": {
+    "title": "Guia de configuração do TrueNAS",
+    "step1": "No lado do TrueNAS, crie um compartilhamento WebDAV: <b>Services → SMB</b> → adicione um compartilhamento. Defina o caminho como um diretório onde os backups serão gravados (por exemplo, <code>/mnt/tank/backups</code>). O TrueNAS expõe o compartilhamento em <code>/webdav</code> por padrão depois que o serviço WebDAV é habilitado (<b>Services → SMB → advanced settings</b> ou pelo serviço específico de WebDAV em versões mais recentes).",
+    "step2": "Crie um usuário local do TrueNAS (ou use um existente) com acesso de leitura e gravação ao diretório do compartilhamento. O diretório pessoal do usuário não importa — apenas a ACL do compartilhamento.",
+    "step3": "No McHarbor, cole a URL base do TrueNAS (por exemplo, <code>https://nas.local</code> — sem barra no final), o nome de usuário e a senha do usuário no formulário à esquerda. Opcional: defina uma subpasta sob a raiz WebDAV do compartilhamento (por exemplo, <code>Backups/2026</code>) e deixe o McHarbor criar as pastas intermediárias automaticamente.",
+    "step4": "Clique em <b>Test connection</b> para gravar e ler um arquivo de teste na pasta resolvida. O plugin executa um <code>PROPFIND</code> WebDAV autenticado por HTTP Basic em <code>/webdav</code> para confirmar que o destino está acessível e que as credenciais são válidas.",
+    "step5": "Em configurações com vários compartilhamentos, defina o <b>WebDAV path override</b> (por exemplo, <code>/webdav/Backups</code>) para apontar para o caminho do compartilhamento sob a raiz WebDAV.",
+    "step6": "Dispare um backup. O plugin envia o arquivo via WebDAV usando PUT fragmentado com <code>Content-Range</code>. O servidor WebDAV do TrueNAS baseado em samba.org oferece suporte a uploads fragmentados, de modo que até backups com mais de 10 GB são transmitidos sem armazenar toda a carga em memória de uma só vez."
+  }
+}

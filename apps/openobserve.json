@@ -1,0 +1,46 @@
+{
+    "slug":  "openobserve",
+    "name":  "OpenObserve",
+    "description":  "Unified observability platform for logs, metrics, and traces with built-in storage and a query UI.",
+    "category":  "Monitoring",
+    "image":  "openobserve/openobserve:latest",
+    "logo":  "https://github.com/openobserve.png",
+    "website":  "https://openobserve.ai",
+    "docsUrl":  "https://openobserve.ai/docs/quickstart/",
+    "ports":  [
+                  {
+                      "host":  5080,
+                      "container":  5080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openobserve/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZO_ROOT_USER_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Initial root user email"
+                    },
+                    {
+                        "key":  "ZO_ROOT_USER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial root user password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

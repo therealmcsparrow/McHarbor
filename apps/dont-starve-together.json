@@ -1,0 +1,68 @@
+{
+    "slug":  "dont-starve-together",
+    "name":  "Don't Starve Together",
+    "description":  "Dedicated server for the co-op survival game Don't Starve Together.",
+    "category":  "Gaming",
+    "image":  "jamesits/dst-server:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.klei.com\u0026sz=128",
+    "website":  "https://www.klei.com/games/dont-starve-together",
+    "docsUrl":  "https://github.com/jamesits/docker-dst-server",
+    "ports":  [
+                  {
+                      "host":  10999,
+                      "container":  10999,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  12346,
+                      "container":  12346,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  12347,
+                      "container":  12347,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dont-starve-together/config",
+                        "container":  "/home/steam/.klei/DoNotStarveTogether"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DST_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Klei cluster authentication token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DST_CLUSTER_NAME",
+                        "default":  "My DST Cluster",
+                        "description":  "Cluster name shown in the server list"
+                    },
+                    {
+                        "key":  "DST_CLUSTER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DST_CLUSTER_INTENTION",
+                        "default":  "cooperative",
+                        "description":  "Cluster game mode (cooperative, social, competitive, madness)"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

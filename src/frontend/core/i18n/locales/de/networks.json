@@ -6,12 +6,21 @@
   "tableView": "Tabellenansicht",
   "cardView": "Kartenansicht",
   "columns": {
+    "attachable": "Anschließbar",
+    "ipamDriver": "IPAM-Treiber",
+    "labels": "Labels",
+    "builtIn": "Integriert",
+    "usedBy": "Verwendet von",
+    "groupRelations": "Beziehungen",
+    "groupNetwork": "Netzwerk",
     "name": "Name",
     "id": "ID",
     "driver": "Treiber",
     "scope": "Bereich",
     "subnet": "Subnetz",
     "gateway": "Gateway",
+    "ipRange": "IP-Bereich",
+    "options": "Optionen",
     "internal": "Intern",
     "containers": "Container",
     "created": "Erstellt",
@@ -43,6 +52,40 @@
     "parentInterface": "Übergeordnete Schnittstelle",
     "parentPlaceholder": "eth0",
     "parentHelp": "Host-Netzwerkschnittstelle zum Anbinden",
+    "parentSelect": "Schnittstelle auswählen",
+    "parentLoading": "Host-Schnittstellen werden gelesen...",
+    "parentManual": "Manuell eingeben...",
+    "parentManualHelp": "Geben Sie den Schnittstellennamen genau so ein, wie der Host ihn meldet.",
+    "parentBackToList": "Zurück zur Liste",
+    "parentKind": {
+      "physical": "Physisch",
+      "bond": "Bond",
+      "vlan": "VLAN",
+      "unknown": "Schnittstelle"
+    },
+    "parentDown": "inaktiv",
+    "parentInUseShort": "in Verwendung",
+    "parentDetail": "{{kind}} \u00b7 MTU {{mtu}} \u00b7 {{addresses}}",
+    "parentNoAddress": "keine IP-Adresse",
+    "parentDownHelp": "Diese Schnittstelle ist derzeit inaktiv. Aktivieren Sie sie auf dem Host, bevor Container das Netzwerk nutzen können.",
+    "parentInUse": "Bereits übergeordnete Schnittstelle von {{networks}}. Ein zweites Netzwerk auf derselben Schnittstelle ist erlaubt, aber selten beabsichtigt.",
+    "parentDefaultRoute": "Dies ist die Schnittstelle der Standardroute des Hosts. Container im Netzwerk erreichen das LAN, der Host selbst kann sie jedoch nicht erreichen.",
+    "parentNoneFound": "Auf diesem Host wurde keine physische, Bond- oder VLAN-Schnittstelle gefunden.",
+    "parentNoAgent": "McHarbor kann die Schnittstellen dieses Hosts nicht aus seinem Container heraus lesen. Installieren Sie den Agent auf dem Host, um sie aufzulisten, oder geben Sie den Schnittstellennamen ein.",
+    "parentAgentUnreachable": "Der Agent dieser Umgebung hat nicht geantwortet, daher können die Schnittstellen nicht aufgelistet werden. Prüfen Sie, ob der Agent verbunden ist (starten Sie ihn auf dem Host neu, falls er hängt), oder geben Sie den Schnittstellennamen ein.",
+    "modeHelp": {
+      "macvlan": {
+        "bridge": "Container erhalten eine eigene MAC im LAN und kommunizieren direkt miteinander. Der Host kann sie nicht erreichen. Die übliche Wahl.",
+        "vepa": "Der gesamte Verkehr, auch von Container zu Container, verlässt das System über den physischen Switch. Erfordert einen Switch mit aktiviertem Hairpin (Reflective Relay).",
+        "passthru": "Ein Container übernimmt die übergeordnete Schnittstelle vollständig. Es ist nur ein einziges Netzwerk mit einem Endpunkt möglich.",
+        "private": "Container sind selbst über den Switch voneinander isoliert. Nur externer Verkehr wird durchgelassen."
+      },
+      "ipvlan": {
+        "l2": "Container teilen sich die MAC der übergeordneten Schnittstelle und erhalten eine eigene IP im selben Subnetz. Verhält sich wie macvlan bridge ohne zusätzliche MACs.",
+        "l3": "Die übergeordnete Schnittstelle routet zwischen Container-Subnetzen. Kein Broadcast oder DHCP; Routen zum Container-Subnetz müssen upstream vorhanden sein.",
+        "l3s": "Layer 3 mit Connection Tracking, sodass Netfilter und veröffentlichte Ports funktionieren. Etwas langsamer als l3."
+      }
+    },
     "mode": "Modus",
     "internal": "Intern",
     "internalHelp": "Externen Zugriff einschränken",
@@ -51,9 +94,21 @@
     "ipam": "IPAM-Konfiguration",
     "addSubnet": "Subnetz hinzufügen",
     "ipamRequired": "Subnetz und Gateway sind in der Regel für {{driver}}-Netzwerke erforderlich.",
+    "ipv6": "IPv6 aktivieren",
+    "ipv6Hint": "Erlaubt dem Netzwerk ein IPv6-Subnetz: füge unten eines hinzu, z. B. das /64 deines LANs für macvlan, neben dem IPv4-Subnetz.",
     "subnetPlaceholder": "Subnetz (z.B. 192.168.1.0/24)",
     "gatewayPlaceholder": "Gateway (z.B. 192.168.1.1)",
-    "ipRangePlaceholder": "IP-Bereich (optional)",
+    "ipRangePlaceholder": "IP-Bereich, CIDR (optional, z. B. 192.168.1.192/27)",
+    "errors": {
+      "invalidSubnet": "Das Subnetz muss in CIDR-Notation angegeben werden, zum Beispiel 192.168.1.0/24.",
+      "invalidGateway": "Das Gateway muss eine einzelne IP-Adresse sein, zum Beispiel 192.168.1.1, ohne /Präfix.",
+      "invalidIpRange": "Der IP-Bereich muss ein CIDR-Block innerhalb des Subnetzes sein, zum Beispiel 192.168.1.192/27, kein Start-End-Bereich.",
+      "invalidAuxAddress": "Zusätzliche Adressen müssen einzelne IP-Adressen sein.",
+      "gatewayOutsideSubnet": "Das Gateway muss innerhalb des Subnetzes liegen.",
+      "ipRangeOutsideSubnet": "Der IP-Bereich muss innerhalb des Subnetzes liegen.",
+      "ipv6SubnetNeedsEnable": "Ein IPv6-Subnetz erfordert, dass IPv6 im Netzwerk aktiviert ist.",
+      "addressFamilyMismatch": "Gateway, IP-Bereich oder reservierte Adresse müssen dieselbe IP-Version wie ihr Subnetz haben."
+    },
     "advanced": "Erweiterte Optionen",
     "customOptions": "Benutzerdefinierte Optionen",
     "customOptionsHelp": "Treiberspezifische Optionen als Schlüssel-Wert-Paare. Übergeordnete Schnittstelle und Modus werden über ihre dedizierten Felder eingestellt.",
@@ -62,7 +117,51 @@
     "optionKey": "Optionsschlüssel",
     "optionValue": "Optionswert",
     "labelKey": "Label-Schlüssel",
-    "labelValue": "Label-Wert"
+    "labelValue": "Label-Wert",
+    "removeSubnet": "Subnetz entfernen"
+  },
+  "hostLink": {
+    "switch": "Host-Schnittstelle erstellen",
+    "hint": "Fügt neben dem macvlan-Parent eine Schnittstelle auf dem Host hinzu, damit der Host die Container in diesem Netzwerk erreichen kann.",
+    "passthru": "Im Passthru-Modus nicht verfügbar: Ein Container übernimmt die Parent-Schnittstelle, daneben kann der Host keine haben.",
+    "name": "Schnittstellenname",
+    "namePlaceholder": "mcvlan0",
+    "ipv4": "IPv4-Adresse des Hosts",
+    "ipv4Placeholder": "z. B. 192.168.1.250/24, außerhalb des IP-Bereichs",
+    "ipv6": "IPv6-Adresse des Hosts",
+    "ipv6Placeholder": "z. B. 2001:db8:1::250/64",
+    "auto": "Automatisch (SLAAC)",
+    "autoHint": "Der Host konfiguriert seine IPv6-Adresse über Router Advertisements statt mit einer festen Adresse.",
+    "title": "Host-Schnittstelle",
+    "parent": "Parent-Schnittstelle",
+    "state": "Zustand",
+    "states": {
+      "present": "Vorhanden",
+      "missing": "Fehlt",
+      "unknown": "Unbekannt",
+      "none": "Keine"
+    },
+    "missingHint": "Die Schnittstelle ist nicht auf dem Host, zum Beispiel nach einem Neustart. Erneut anwenden legt sie mit den in diesem Netzwerk gespeicherten Einstellungen neu an.",
+    "reapply": "Erneut anwenden",
+    "reapplying": "Wird angewendet...",
+    "applied": "Host-Schnittstelle angewendet",
+    "unavailable": {
+      "agent_unreachable": "Der Agent dieser Umgebung hat nicht geantwortet, daher kann die Host-Schnittstelle gerade nicht verwaltet werden.",
+      "agent_outdated": "Der Agent auf diesem Host ist zu alt, um Host-Schnittstellen zu verwalten. Aktualisieren Sie den Agent.",
+      "containerized": "McHarbor läuft hier in einem Container und kann die Schnittstellen des Hosts nicht ändern. Binden Sie den Host über einen Agent an."
+    },
+    "errors": {
+      "invalidName": "Der Schnittstellenname muss aus 1 bis 15 Buchstaben, Ziffern, Punkten, Unterstrichen oder Bindestrichen bestehen und darf nicht dem Parent entsprechen.",
+      "nameReserved": "Dieser Schnittstellenname beginnt mit einem Präfix, das McHarbor für eigene Schnittstellen reserviert. Wählen Sie einen anderen Namen.",
+      "needsMacvlan": "Eine Host-Schnittstelle benötigt ein macvlan-Netzwerk mit einer Parent-Schnittstelle.",
+      "addressInvalid": "Die Host-Adresse muss ein CIDR wie 192.168.1.250/24 sein, in einem Subnetz des Netzwerks liegen und dieselbe IP-Version haben; für eine IPv6-Adresse muss IPv6 aktiviert sein. Geben Sie der Schnittstelle mindestens eine Adresse.",
+      "addressInRange": "Die Host-Adresse liegt im IP-Bereich des Netzwerks, aus dem Docker Container Adressen zuteilt. Wählen Sie eine Adresse außerhalb.",
+      "passthru": "Eine Host-Schnittstelle kann nicht mit dem macvlan-Passthru-Modus verwendet werden.",
+      "notConfigured": "Dieses Netzwerk hat keine Host-Schnittstelle.",
+      "nameTaken": "Auf dem Host existiert bereits eine Schnittstelle mit diesem Namen, die nicht von McHarbor erstellt wurde.",
+      "failed": "Die Host-Schnittstelle konnte nicht angewendet werden.",
+      "unavailable": "Host-Schnittstellen können hier nicht verwaltet werden."
+    }
   },
   "toast": {
     "created": "Netzwerk erstellt",
@@ -84,11 +183,12 @@
     "description": "Dies wird <bold>{{count}}</bold> Netzwerke dauerhaft entfernen.",
     "networks": "Netzwerke",
     "andXMore": "und {{count}} weitere",
-    "inUse": "in Verwendung",
-    "inUseWarning": "{{count}} ausgewählte(s) Netzwerk(e) sind noch mit laufenden Containern verbunden. Das Entfernen schlägt für diese fehl, sofern die Container nicht zuerst gestoppt oder getrennt werden.",
+    "inUseWarning_one": "{{count}} ausgewähltes Netzwerk ist noch mit laufenden Containern verbunden. Das Entfernen schlägt dafür fehl, sofern die Container nicht zuerst gestoppt oder getrennt werden.",
+    "inUseWarning_other": "{{count}} ausgewählte Netzwerke sind noch mit laufenden Containern verbunden. Das Entfernen schlägt für diese fehl, sofern die Container nicht zuerst gestoppt oder getrennt werden.",
     "forceLabel": "Ich verstehe und möchte das Entfernen trotzdem versuchen",
     "removing": "Wird entfernt...",
-    "builtInSkipped": "{{count}} integrierte(s) Netzwerk(e) übersprungen (kann nicht entfernt werden)",
+    "builtInSkipped_one": "{{count}} integriertes Netzwerk übersprungen (kann nicht entfernt werden)",
+    "builtInSkipped_other": "{{count}} integrierte Netzwerke übersprungen (können nicht entfernt werden)",
     "noneEligible": "Keine Netzwerke sind für das Entfernen geeignet."
   },
   "actions": {
@@ -144,7 +244,14 @@
     "connect": "Verbinden",
     "selectContainer": "Container",
     "selectPlaceholder": "Container auswählen...",
-    "view": "Details anzeigen"
+    "view": "Details anzeigen",
+    "tabs": {
+      "ariaLabel": "Netzwerk-Abschnitte",
+      "overview": "Übersicht",
+      "containers": "Container",
+      "configuration": "Konfiguration"
+    },
+    "noConfiguration": "Dieses Netzwerk trägt keine eigenen Optionen oder Labels."
   },
   "keyValue": {
     "removeRow": "Zeile entfernen"
@@ -153,5 +260,15 @@
     "create": {
       "removeSubnet": "Subnetz entfernen"
     }
+  },
+  "recreate": {
+    "errors": {
+      "restored": "Docker hat die neuen Einstellungen abgelehnt. Das ursprüngliche Netzwerk wurde wiederhergestellt und die Container mit ihren Adressen neu verbunden; nichts wurde geändert.",
+      "lost": "Docker hat die neuen Einstellungen abgelehnt, und das ursprüngliche Netzwerk konnte nicht wiederhergestellt werden. Die Container sind jetzt getrennt: Erstelle das Netzwerk neu und verbinde sie wieder."
+    },
+    "reconnectFailed_one": "{{count}} Container konnte nicht neu verbunden werden: {{names}}",
+    "reconnectFailed_other": "{{count}} Container konnten nicht neu verbunden werden: {{names}}",
+    "addressesChanged_one": "{{count}} Container hat eine neue Adresse erhalten, weil die alte außerhalb der neuen Subnetze liegt: {{names}}",
+    "addressesChanged_other": "{{count}} Container haben neue Adressen erhalten, weil die alten außerhalb der neuen Subnetze liegen: {{names}}"
   }
 }

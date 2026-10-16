@@ -10,6 +10,8 @@
     "container": "Container",
     "mapping": "Host → Container",
     "protocol": "Protokoll",
-    "noPorts": "Keine veröffentlichten Ports gefunden"
+    "noPorts": "Keine veröffentlichten Ports gefunden",
+    "published": "{{count}} veröffentlicht",
+    "more": "{{count}} weitere"
   }
 }

@@ -1,0 +1,38 @@
+{
+    "slug":  "falcosidekick",
+    "name":  "Falcosidekick",
+    "description":  "Forwards Falco security alerts to Slack, email, SIEMs, and dozens of other outputs.",
+    "category":  "Security",
+    "image":  "falcosecurity/falcosidekick:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=falco.org\u0026sz=128",
+    "website":  "https://github.com/falcosecurity/falcosidekick",
+    "docsUrl":  "https://github.com/falcosecurity/falcosidekick#configuration",
+    "ports":  [
+                  {
+                      "host":  2801,
+                      "container":  2801,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SLACK_WEBHOOKURL",
+                        "default":  "change-me",
+                        "description":  "Slack webhook URL for forwarding Falco alerts",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

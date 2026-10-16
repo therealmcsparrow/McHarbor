@@ -10,6 +10,8 @@
     "container": "Récipient",
     "mapping": "Hôte → Conteneur",
     "protocol": "Protocole",
-    "noPorts": "Aucun port publié trouvé"
+    "noPorts": "Aucun port publié trouvé",
+    "published": "{{count}} publiés",
+    "more": "{{count}} de plus"
   }
 }

@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "Destinos de backup do OneDrive for Business",
+    "subtitle": "Faça backup de contêineres em drives do OneDrive for Business em um tenant corporativo/escolar. O plugin trata Test, Upload, Download, Exclusão e Listagem no momento do backup. Backups grandes usam a sessão de upload em partes da Microsoft, então não há limite de tamanho.",
+    "registerHint": "Adicione um destino na página Locais de armazenamento do host e escolha \"OneDrive for Business\" como tipo."
+  },
+  "fields": {
+    "clientId":     "ID do aplicativo (cliente) do Azure AD",
+    "clientSecret": "Segredo do cliente do Azure AD",
+    "refreshToken": "Refresh token (entregue pelo fluxo de consentimento OAuth)",
+    "tenantId":     "ID do tenant do Azure AD",
+    "upn":          "User Principal Name (UPN) da conta de serviço",
+    "driveId":      "ID do drive (deixe vazio para usar o drive da conta de serviço)"
+  },
+  "help": {
+    "clientId":     "Registre um aplicativo em https://entra.microsoft.com → App registrations. O aplicativo deve ter as permissões delegadas Files.ReadWrite.All e User.Read.",
+    "clientSecret": "Gere um segredo do cliente no registro de aplicativo do Azure AD. Ele é criptografado em repouso pelo serviço AES-256-GCM do host.",
+    "refreshToken": "Após salvar o destino, clique em \"Salvar e conectar\" para concluir o fluxo de consentimento da Microsoft e armazenar um refresh token de longa duração.",
+    "tenantId":     "Encontre o ID do seu tenant em https://entra.microsoft.com → Tenant properties.",
+    "upn":          "O User Principal Name da conta de serviço (ex.: backups@contoso.onmicrosoft.com). Obrigatório quando o ID do drive está vazio.",
+    "driveId":      "Opcional. Deixe vazio para usar o drive da conta de serviço."
+  },
+  "toast": {
+    "registered": "Plugin do OneDrive for Business registrado.",
+    "testPassed": "Teste de conexão do OneDrive for Business concluído com sucesso.",
+    "testFailed": "O teste de conexão do OneDrive for Business falhou: {{error}}"
+  },
+  "error": {
+    "noClientId":     "O ID do aplicativo (cliente) do Azure AD é obrigatório.",
+    "noClientSecret": "O segredo do cliente do Azure AD é obrigatório.",
+    "noRefreshToken": "O refresh token é obrigatório. Execute \"Salvar e conectar\" primeiro.",
+    "noTenantId":     "O ID do tenant do Azure AD é obrigatório para destinos OneDrive for Business.",
+    "noUpn":          "O User Principal Name (UPN) é obrigatório quando nenhum ID de drive está definido."
+  },
+  "form": {
+    "intro": {
+      "title": "Consentimento do Microsoft 365",
+      "body": "Salve este local e use Conectar para conceder o consentimento da conta. O McHarbor armazena os tokens retornados criptografados."
+    },
+    "tenantId": {
+      "label": "ID do tenant",
+      "help": "ID do tenant do Microsoft Entra (GUID). Disponível no centro de administração do Entra > Overview. O fluxo de consentimento OAuth redireciona para login.microsoftonline.com/{tenant_id}/…"
+    },
+    "clientId": {
+      "label": "ID do cliente",
+      "help": "Application (client) ID do registro de aplicativo do Entra com a permissão delegada Files.ReadWrite e um URI de redirecionamento Web apontando para este host McHarbor."
+    },
+    "clientSecret": {
+      "label": "Segredo do cliente",
+      "help": "Valor do client secret do centro de administração do Entra → App registrations → Certificates & secrets. Armazenado criptografado em repouso."
+    },
+    "driveId": {
+      "label": "ID do drive",
+      "help": "Opcional. Identificador de drive do Graph totalmente qualificado. Deixe em branco para usar o drive da conta de serviço (resolvido via UPN ou /me/drive)."
+    },
+    "basePath": {
+      "label": "Caminho base",
+      "help": "Opcional. Caminho do Graph dentro do drive, por exemplo /Backups/2026. Deixe em branco para usar a raiz do drive. Intencionalmente não preenchido."
+    },
+    "upn": {
+      "label": "Nome principal do usuário (UPN)",
+      "help": "Opcional. UPN da conta de serviço, por exemplo backups@contoso.onmicrosoft.com. Quando drive_id também está em branco, os uploads vão para /users/{upn}/drive; se upn e drive_id estiverem em branco, /me/drive (o usuário do refresh token) é usado como alternativa."
+    }
+  },
+  "setup": {
+    "title": "Guia de configuração do OneDrive for Business",
+    "step1": "No centro de administração do Microsoft Entra, abra <b>App registrations > New registration</b>. Escolha <b>Accounts in this organizational directory only</b> como tipo de conta compatível e copie o <b>Tenant ID</b> da página <b>Overview</b> — cole-o no campo <b>Tenant ID</b> à esquerda.",
+    "step2": "Em <b>Certificates & secrets</b>, crie um novo client secret. Copie o <b>Value</b> (não o <b>Secret ID</b>) — cole-o no campo <b>Client Secret</b> à esquerda. Copie o <b>Application (client) ID</b> para o campo <b>Client ID</b>.",
+    "step3": "Conceda ao aplicativo as permissões de aplicativo <code>Files.ReadWrite.All</code> e <code>User.Read</code> (consentimento do administrador necessário). O fluxo OAuth solicitará <code>offline_access</code> em nome do operador.",
+    "step4": "Defina o <b>UPN</b> como a conta de serviço para a qual você quer fazer backup. Deixe em branco para usar o usuário do refresh token (<code>/me/drive</code>). <b>Drive ID</b> é opcional — deixe em branco para usar o drive resolvido (a conta de serviço quando o UPN está definido; caso contrário, o usuário do refresh token).",
+    "step5": "Deixe <b>Base Path</b> em branco para a raiz do drive, ou informe um caminho do Graph explícito como <code>/Backups/2026</code>. O formulário não preenche nenhum valor padrão.",
+    "step6": "Clique em <b>Save and connect</b> (ou em <b>Connect</b> no cartão de armazenamento). A Microsoft pedirá que você entre e conceda os scopes solicitados. O McHarbor armazena o refresh token retornado criptografado e <warn>nunca o mostra novamente</warn>.",
+    "step7": "Clique em <b>Test connection</b> para gravar e ler um objeto de teste no drive escolhido."
+  }
+}

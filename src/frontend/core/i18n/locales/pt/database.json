@@ -1,0 +1,295 @@
+{
+  "errorTitle": "Não foi possível ler a configuração do banco de dados",
+  "driver": {
+    "sqlite": {
+      "name": "SQLite",
+      "description": "Um único arquivo dentro do diretório de dados do McHarbor. Sem servidor para manter nem credenciais para guardar. Apenas um nó."
+    },
+    "postgres": {
+      "name": "PostgreSQL",
+      "description": "Um PostgreSQL 12 ou mais recente externo. A escolha mais completa para um banco compartilhado, inclusive multinó ativo/passivo."
+    },
+    "mysql": {
+      "name": "MySQL / MariaDB",
+      "description": "Um MySQL 8 ou MariaDB 10.6 ou mais recente externo. Mesmas capacidades do PostgreSQL; escolha o que você já executa."
+    },
+    "mssql": {
+      "name": "Microsoft SQL Server",
+      "description": "Um Microsoft SQL Server 2022 ou mais recente externo. Validado para multinó active/passive, como PostgreSQL, MySQL e MariaDB."
+    }
+  },
+  "picker": {
+    "label": "Backend do banco de dados",
+    "current": "Em uso"
+  },
+  "current": {
+    "title": "Banco de dados atual",
+    "target": "Conexão",
+    "version": "Versão do servidor",
+    "tables": "Tabelas",
+    "rows": "Linhas",
+    "source": {
+      "env": "Do ambiente",
+      "secret": "De um segredo armazenado",
+      "default": "Padrão interno"
+    },
+    "envPinnedTitle": "Fixado pelo ambiente",
+    "envPinnedBody": "MCHARBOR_DB_DRIVER está definida neste contêiner, portanto é ela que decide qual banco o McHarbor abre. Qualquer escolha feita aqui seria ignorada na próxima inicialização. Remova essa variável do seu arquivo Compose para gerenciar o banco por esta tela.",
+    "noRestart": "O McHarbor não pode se reiniciar aqui — nenhum socket Docker local está acessível. Após uma migração, você precisará reiniciar o contêiner manualmente antes que o novo banco assuma."
+  },
+  "choose": {
+    "title": "Mudar para outro banco de dados",
+    "description": "Escolha um backend, teste a conexão e migre. Todas as linhas são copiadas; o McHarbor reinicia no novo banco ao terminar.",
+    "inUse": "O McHarbor está rodando em {{driver}} agora. Escolha um backend diferente acima para copiar todas as linhas para ele, ou mova-o para outro banco de dados {{driver}}.",
+    "moveSameKind": "Mover para outro banco de dados {{driver}}",
+    "sameKindHint": "Informe o novo arquivo ou servidor. O McHarbor se recusa a copiar para o banco de dados em que está rodando.",
+    "restartAfter": "Reiniciar automaticamente quando a migração terminar",
+    "restartAfterHelp": "O McHarbor lê sua conexão uma única vez, na inicialização, então o novo banco só assume após um reinício.",
+    "warningTitle": "O que acontece durante a execução",
+    "warningBody": "O McHarbor fica parado durante a cópia: requisições de API que alteram dados recebem 503 e todos os coletores e agendadores em segundo plano pulam seu ciclo. Ciclos já em andamento são aguardados antes da leitura da primeira linha, e passagens de recuperação depois copiam tudo o que ainda tiver chegado ao banco antigo. A leitura da interface continua funcionando o tempo todo.",
+    "warningOldDatabase": "O banco antigo nunca é tocado. Nada é excluído dele e, até que você decida o contrário, ele permanece exatamente como estava — portanto, se algo parecer errado depois, remover a configuração salva devolve o McHarbor diretamente a ele."
+  },
+  "form": {
+    "host": "Host",
+    "port": "Porta",
+    "database": "Nome do banco de dados",
+    "databasePlaceholder": "mcharbor",
+    "user": "Usuário",
+    "password": "Senha",
+    "sslMode": "Modo SSL",
+    "tls": "TLS",
+    "encrypt": "Criptografia",
+    "sslHelp": "A conexão carrega todas as credenciais que o McHarbor guarda. Só desative a criptografia em uma rede que você controle de ponta a ponta.",
+    "trustServerCertificate": "Confiar no certificado do servidor",
+    "trustServerCertificateHelp": "Aceita o certificado do servidor sem verificá-lo, como uma instalação padrão do SQL Server com certificado autoassinado exige. A conexão continua criptografada, mas deixa de ser protegida contra alguém que se passe pelo servidor.",
+    "mssqlSnapshot": "O McHarbor espera que READ_COMMITTED_SNAPSHOT esteja ativado neste banco de dados, para que leituras longas nunca bloqueiem gravações. O teste de conexão avisa quando está desativado e mostra a instrução que o ativa.",
+    "path": "Caminho do arquivo",
+    "pathHelp": "Onde o arquivo SQLite fica dentro do contêiner. Deixe vazio para o padrão configurado.",
+    "rawMode": "Informar uma string de conexão em vez disso",
+    "rawModeHelp": "Para bancos gerenciados cuja string de conexão traz opções que este formulário não modela.",
+    "dsn": "String de conexão",
+    "dsnHelp": "Usada exatamente como escrita. Todos os campos acima são ignorados enquanto isto estiver ativo.",
+    "credentialsStored": "As credenciais são criptografadas com a chave secreta do McHarbor e armazenadas no diretório de dados — nunca em uma variável de ambiente e nunca devolvidas a esta página."
+  },
+  "test": {
+    "title": "Teste de conexão",
+    "run": "Testar conexão",
+    "running": "Testando…",
+    "passed": "O teste de conexão passou",
+    "failed": "O teste de conexão falhou",
+    "status": {
+      "pass": "aprovado",
+      "warn": "aviso",
+      "fail": "falhou",
+      "skip": "não executado"
+    },
+    "steps": {
+      "validate": {
+        "title": "Dados completos",
+        "description": "O host, o banco e o usuário estão preenchidos e a string de conexão pode ser montada."
+      },
+      "resolve": {
+        "title": "Host acessível",
+        "description": "O endereço resolve e aceita uma conexão TCP — isso separa um firewall de uma senha errada."
+      },
+      "connect": {
+        "title": "Conexão aceita",
+        "description": "O banco abriu a sessão e aceitou as credenciais."
+      },
+      "version": {
+        "title": "Versão suportada",
+        "description": "PostgreSQL 12+, MySQL 8+, MariaDB 10.6+ ou SQL Server 2022+; servidores mais antigos não têm a sintaxe que o esquema do McHarbor usa."
+      },
+      "privileges": {
+        "title": "Acesso de escrita",
+        "description": "O usuário consegue criar uma tabela, gravar nela, lê-la de volta e removê-la."
+      },
+      "schema": {
+        "title": "Conteúdo do destino",
+        "description": "Se o banco está vazio ou já contém tabelas que a migração limparia primeiro."
+      },
+      "encoding": {
+        "title": "Conjunto de caracteres UTF-8",
+        "description": "Nomes de contêiner, notas de stack e mensagens carregam texto do usuário; um banco latin1 o corromperia."
+      }
+    }
+  },
+  "migration": {
+    "title": "Migração do banco de dados",
+    "start": "Migrar dados",
+    "starting": "Preparando…",
+    "cancel": "Cancelar migração",
+    "cancelling": "Cancelando…",
+    "close": "Fechar",
+    "closeRestarting": "Fechar — o McHarbor está reiniciando",
+    "rows": "{{copied}} de {{total}} linhas",
+    "currentTable": "Copiando {{table}} ({{index}} de {{total}})",
+    "tables": "Tabelas",
+    "warnings": "Vale saber",
+    "done": "Migração concluída",
+    "failed": "A migração falhou",
+    "failedSafe": "Nada mudou: o McHarbor continua rodando no banco original e a configuração salva não foi gravada.",
+    "cancelled": "Migração cancelada",
+    "restartScheduled": "O McHarbor está reiniciando no novo banco. Esta página deixará de responder por um instante.",
+    "restartRequired": "Reinicie o contêiner do McHarbor para começar a usar o novo banco.",
+    "phase": {
+      "prepare": "Verificando",
+      "schema": "Criando o esquema",
+      "inventory": "Contando linhas",
+      "copy": "Copiando dados",
+      "verify": "Verificando",
+      "persist": "Salvando a configuração",
+      "restart": "Reiniciando",
+      "catchup": "Recuperando"
+    },
+    "caughtUp": "{{count}} linhas chegaram durante a cópia e foram recuperadas",
+    "deltaPass": "Passagem de recuperação {{pass}}"
+  },
+  "setup": {
+    "title": "Escolha um banco de dados",
+    "description": "O McHarbor guarda tudo o que sabe em um banco SQL. Escolha um agora, antes de criar a primeira conta — mudar depois significa copiar todas as linhas.",
+    "testRequired": "A conexão precisa passar no teste antes de continuar.",
+    "continue": "Continuar",
+    "restartingTitle": "Aplicando sua escolha",
+    "restartingBody": "O McHarbor está reiniciando no banco que você escolheu. Esta página vai recarregar sozinha em alguns segundos.",
+    "restartManualBody": "Sua escolha foi salva. Reinicie o contêiner do McHarbor para começar a usá-la e recarregue esta página."
+  },
+  "errors": {
+    "err.database.config_invalid": "Os dados de conexão estão incompletos ou malformados.",
+    "err.database.connect_failed": "Não foi possível conectar ao banco de dados.",
+    "err.database.auth_failed": "O banco de dados rejeitou o usuário ou a senha.",
+    "err.database.unreachable": "Não foi possível alcançar o host do banco de dados.",
+    "err.database.version_unsupported": "Essa versão do servidor é antiga demais para o McHarbor.",
+    "err.database.privileges": "O usuário do banco não pode criar tabelas neste banco de dados.",
+    "err.database.encoding": "O banco de dados não usa um conjunto de caracteres UTF-8.",
+    "err.database.env_pinned": "O banco está fixado por MCHARBOR_DB_DRIVER e não pode ser alterado aqui.",
+    "err.database.migration_running": "Já existe uma migração em andamento.",
+    "err.database.migration_failed": "A migração falhou.",
+    "err.database.schema_failed": "O esquema do McHarbor não pôde ser criado no banco de destino.",
+    "err.database.same_target": "Esse é o banco em que o McHarbor já está rodando.",
+    "err.database.cleanup_unavailable": "Não há banco antigo que esta instalação possa excluir.",
+    "err.database.cleanup_failed": "Os arquivos do banco antigo não puderam ser excluídos."
+  },
+  "cleanup": {
+    "title": "Banco de dados antigo",
+    "description": "O McHarbor mudou para outro backend. O arquivo SQLite que ele usava antes continua no disco, intacto.",
+    "delete": "Excluir o banco de dados antigo",
+    "reclaim": "Excluí-los libera {{size}}.",
+    "checkFirst": "Verifique primeiro se o novo banco está correto. Isso não pode ser desfeito, e o arquivo antigo é a única cópia de tudo o que a migração não levou.",
+    "confirmTitle": "Excluir permanentemente o banco antigo?",
+    "confirmBody_one": "Isso remove {{count}} arquivo em {{path}}, liberando {{size}}. Não há como desfazer, e o McHarbor não guarda cópia. Só faça isso quando tiver certeza de que o novo banco está completo.",
+    "confirmBody_other": "Isso remove {{count}} arquivos em {{path}}, liberando {{size}}. Não há como desfazer, e o McHarbor não guarda cópia. Só faça isso quando tiver certeza de que o novo banco está completo.",
+    "removed_one": "{{count}} arquivo excluído",
+    "removed_other": "{{count}} arquivos excluídos",
+    "failed": "Os arquivos do banco antigo não puderam ser excluídos",
+    "inUse": "Nada a excluir: o McHarbor ainda está rodando no seu banco SQLite. Isto aparece após uma migração para PostgreSQL ou MySQL."
+  },
+  "check": {
+    "title": "Verificação de integridade do banco de dados",
+    "description": "Procura problemas de integridade, linhas órfãs, drift de esquema e espaço recuperável.",
+    "run": "Executar verificação",
+    "running": "Executando…",
+    "never": "Nunca executada",
+    "lastRun": "A última execução encontrou {{failed}} constatações com falha e {{warned}} com aviso",
+    "repair": "Aplicar reparos ({{count}})",
+    "repairConfirm": "Aplicar reparos",
+    "confirmTitle": "Aplicar os reparos selecionados?",
+    "confirmBody": "Aplicar {{count}} reparos ao banco de dados?",
+    "confirmDestructive": "Isto exclui linhas e não pode ser desfeito. Aplicar {{count}} reparos, incluindo pelo menos um que exclui linhas órfãs?",
+    "dialog": {
+      "title": "Executando verificação de integridade do banco de dados",
+      "description": "Isto verifica a integridade, as linhas órfãs, o esquema e o espaço recuperável do banco de dados ativo.",
+      "cancel": "Cancelar",
+      "close": "Fechar"
+    },
+    "toast": {
+      "startFailed": "Não foi possível iniciar a verificação",
+      "repaired": "{{count}} linhas reparadas",
+      "repairFailed": "O reparo falhou"
+    },
+    "family": {
+      "integrity": "Integridade",
+      "orphans": "Linhas órfãs",
+      "schema": "Esquema",
+      "bloat": "Tamanho e retenção"
+    },
+    "severity": {
+      "ok": "OK",
+      "info": "Info",
+      "warn": "Aviso",
+      "fail": "Falhou",
+      "skip": "Ignorado"
+    },
+    "phase": {
+      "queued": "Na fila",
+      "inventory": "Contando tabelas",
+      "integrity": "Verificando integridade",
+      "orphans": "Verificando linhas órfãs",
+      "schema": "Verificando esquema",
+      "bloat": "Verificando tamanho e retenção",
+      "done": "Concluído",
+      "failed": "Falhou",
+      "cancelled": "Cancelado"
+    },
+    "remedy": {
+      "vacuum": "Executar VACUUM",
+      "apply_migrations": "Aplicar migrações pendentes",
+      "create_index": "Criar o índice ausente",
+      "delete_orphans": "Excluir as linhas órfãs"
+    },
+    "reason": {
+      "driver_no_native_integrity": "Este driver não tem verificação de integridade nativa; apenas índices inválidos são relatados.",
+      "unresolved_relation": "O nome da coluna parecia uma chave estrangeira, mas nenhuma tabela e coluna correspondentes foi encontrada.",
+      "unparseable_statement": "A instrução da migração não correspondeu a uma forma reconhecida de CREATE ou DROP INDEX.",
+      "driver_server_managed": "A recuperação de espaço é gerenciada pelo servidor de banco de dados, não pelo McHarbor.",
+      "pragma_failed": "O pragma do SQLite usado para medir isto não retornou um valor.",
+      "table_absent": "A tabela que esta janela de retenção rege não existe neste banco de dados.",
+      "retention_disabled": "A janela de retenção está definida para manter as linhas para sempre, então nada é aplicado.",
+      "size_stats_unavailable": "Este driver ou build não expõe estatísticas de tamanho por tabela.",
+      "governed_table": "Este é um registro de auditoria governado. A referência é relatada, mas o McHarbor não oferecerá excluí-la."
+    },
+    "finding": {
+      "table_count": "{{count}} tabelas verificadas",
+      "integrity_ok": "Nenhum problema de integridade encontrado",
+      "integrity_corrupt": "{{count}} problemas de integridade relatados por PRAGMA integrity_check",
+      "integrity_unavailable": "A verificação de integridade não pôde ser executada",
+      "integrity_partial": "Neste driver só é possível uma verificação de integridade parcial",
+      "integrity_table_failed": "CHECK TABLE falhou em {{table}}",
+      "integrity_table_problem": "CHECK TABLE relatou um problema em {{table}}",
+      "fk_check_ok": "Nenhuma violação de chave estrangeira encontrada",
+      "fk_check_unavailable": "A verificação de chaves estrangeiras não pôde ser executada",
+      "fk_violation": "{{count}} linhas em {{table}} violam uma chave estrangeira",
+      "invalid_index": "O índice {{index}} em {{table}} está marcado como inválido",
+      "orphan_rows": "{{count}} linhas em {{table}}.{{column}} apontam para uma linha de {{refTable}} que não existe mais",
+      "orphans_none": "Nenhuma linha órfã em {{count}} relações",
+      "orphan_unmapped": "{{count}} colunas parecem referências, mas não puderam ser mapeadas",
+      "orphan_excluded": "{{count}} colunas são excluídas da verificação de órfãs pelo nome",
+      "orphan_query_failed": "Não foi possível contar as órfãs em {{table}}.{{column}} em relação a {{refTable}}.{{refColumn}}",
+      "orphan_discovery_failed": "Não foi possível descobrir as relações de chave estrangeira a verificar",
+      "migrations_ok": "Todas as {{count}} migrações foram aplicadas",
+      "migrations_pending": "{{count}} migrações não foram aplicadas",
+      "migrations_unknown": "{{count}} migrações aplicadas não estão neste build",
+      "schema_read_failed": "Não foi possível ler os arquivos de migração no disco",
+      "schema_ledger_failed": "Não foi possível ler o registro de migrações",
+      "indexes_ok": "Todos os {{count}} índices declarados existem",
+      "index_missing": "O índice {{index}} está declarado em {{table}}, mas ausente",
+      "index_unparsed": "{{count}} instruções de índice no conjunto de migrações não puderam ser analisadas",
+      "index_read_failed": "Não foi possível ler os índices declarados do conjunto de migrações",
+      "index_list_failed": "Não foi possível listar os índices do banco de dados",
+      "table_rows": "{{table}} tem {{count}} linhas",
+      "total_rows": "{{count}} linhas em todas as tabelas",
+      "table_size": "{{table}} tem {{size}}",
+      "total_size": "{{size}} em todas as tabelas",
+      "table_size_unavailable": "As estatísticas de tamanho de tabela não estão disponíveis neste driver",
+      "wal_size": "O write-ahead log tem {{size}}",
+      "reclaimable": "{{size}} poderiam ser recuperados por um VACUUM",
+      "reclaim_none": "Nada a recuperar",
+      "reclaim_unavailable": "Não foi possível determinar o espaço recuperável",
+      "row_count_failed": "Não foi possível contar as linhas de {{table}}",
+      "retention_overrun": "{{table}} contém {{count}} linhas mais antigas que sua janela de retenção",
+      "retention_disabled": "A janela de retenção de {{table}} está desativada, então nada é aplicado",
+      "retention_table_missing": "{{table}} não existe, então sua janela de retenção não foi verificada",
+      "retention_query_failed": "Não foi possível verificar {{table}} em relação à sua janela de retenção"
+    }
+  }
+}

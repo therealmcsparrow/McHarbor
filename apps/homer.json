@@ -1,0 +1,35 @@
+{
+  "slug": "homer",
+  "name": "Homer",
+  "description": "Static, YAML-configured homepage for your server links and service health.",
+  "category": "Dashboards",
+  "image": "b4bz/homer:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homer.png",
+  "website": "https://github.com/bastienwirtz/homer",
+  "docsUrl": "https://github.com/bastienwirtz/homer/blob/main/docs/configuration.md",
+  "ports": [
+    {
+      "host": 8108,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/homer/assets",
+      "container": "/www/assets"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "INIT_ASSETS",
+      "default": "1",
+      "description": "Copy the example config into an empty assets folder"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

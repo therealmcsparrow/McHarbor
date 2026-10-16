@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Kanaalnaam" },
+    "region": { "label": "Serviceregio", "help": "us of eu. Moet overeenkomen met de regio waarin je PagerDuty-account zich bevindt." },
+    "routing_key": { "label": "Integratiesleutel (routing)", "help": "Sleutel van 32 tekens uit de Events API V2-integratie van de service." },
+    "rest_api_key": { "label": "REST API-sleutel (alleen-lezen)", "help": "Optioneel. Schakelt statuspolling en incidentlinks in." },
+    "webhook_signing_secret": { "label": "Ondertekeningsgeheim voor webhooks", "help": "Wordt één keer getoond wanneer het v3-webhookabonnement wordt aangemaakt." },
+    "update_on_repeat": { "label": "Opnieuw triggeren bij herhaald afgaan" },
+    "poll_interval_minutes": { "label": "Pollinginterval (minuten)", "help": "0 schakelt polling uit. Vereist een REST-sleutel." },
+    "severity_map": { "label": "Ernstmapping (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Kanaalnaam",
+      "placeholder": "PagerDuty — Platform"
+    },
+    "region": {
+      "label": "Serviceregio",
+      "help": "Moet overeenkomen met de serviceregio waarin je PagerDuty-account zich bevindt.",
+      "us": "Verenigde Staten (standaard)",
+      "eu": "Europese Unie"
+    },
+    "routing_key": {
+      "label": "Integratiesleutel (routing)",
+      "placeholder": "Sleutel van 32 tekens",
+      "help": "Uit de Events API V2-integratie van de service. Versleuteld opgeslagen."
+    },
+    "rest_api_key": {
+      "label": "REST-API-sleutel (alleen-lezen)",
+      "placeholder": "Optioneel",
+      "help": "Optioneel. Schakelt statuspolling, incidentnummers en links in."
+    },
+    "webhook_signing_secret": {
+      "label": "Webhook-ondertekeningsgeheim",
+      "placeholder": "Optioneel",
+      "help": "Eenmalig getoond door PagerDuty wanneer het v3-webhookabonnement wordt aangemaakt."
+    },
+    "update_on_repeat": {
+      "label": "Opnieuw triggeren bij herhaald afgaan",
+      "help": "Wanneer een alert opnieuw afgaat terwijl het incident open is, wordt nog een trigger op dezelfde sleutel verzonden."
+    },
+    "poll_interval_minutes": {
+      "label": "Pollinterval (minuten)",
+      "help": "0 schakelt polling uit. Polling vereist een REST-API-sleutel."
+    },
+    "severity_map": {
+      "label": "Ernstmapping (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Optioneel. Koppelt critical, warning en info aan critical, error, warning of info van PagerDuty."
+    },
+    "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+    "errors": {
+      "required": "Vereist",
+      "routingKeyLength": "De routingsleutel is precies 32 tekens.",
+      "pollRange": "Voer een getal van 0 tot 60 in."
+    }
+  },
+  "guide": {
+    "title": "PagerDuty-kanaal instellen",
+    "steps": {
+      "service": "Open in PagerDuty <b>Services → Service Directory</b> en selecteer (of maak) de service die McHarbor-alerts moeten pagen.",
+      "integration": "Open op de service het tabblad <b>Integrations</b>, kies <b>Add an integration</b>, selecteer <b>Events API V2</b> en sla op.",
+      "routingKey": "Kopieer de <b>Integration Key</b> (32 tekens) naar <b>Integratiesleutel (routing)</b> hier.",
+      "region": "Kies <b>Europese Unie</b> als je PagerDuty-account in de EU-serviceregio zit; laat anders <b>Verenigde Staten</b> staan.",
+      "restKey": "Optioneel: maak onder <b>Integrations → API Access Keys</b> een alleen-lezen API-sleutel aan en plak die in <b>REST-API-sleutel</b> om polling en incidentlinks in te schakelen.",
+      "inbound": "Sla dit kanaal op, open het opnieuw via <b>Instellingen → Integraties → Communicatie</b> en selecteer onder <b>Ticketstatus vanuit de ITSM</b> <b>Inkomende URL aanmaken</b>. Kopieer de URL; hij eindigt op <code>/api/incident-webhooks/</code> gevolgd door een token. Het ondertekeningsgeheim ernaast wordt niet door PagerDuty gebruikt.",
+      "webhook": "Open in PagerDuty <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, plak de inkomende URL, beperk hem tot dezelfde service, abonneer op <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> en <code>incident.reopened</code>, en kopieer daarna het ondertekeningsgeheim <warn>dat eenmalig wordt getoond</warn> naar <b>Webhook-ondertekeningsgeheim</b> op dit kanaal (of naar <b>Ondertekeningsgeheim uitgegeven door de ITSM</b>).",
+      "save": "Sla het kanaal op en selecteer <b>Verbinding testen</b>. Het controleert de configuratie en de REST-sleutel zonder iemand te pagen.",
+      "testEvent": "Gebruik <b>Send Test Event</b> op de PagerDuty-integratiepagina om de routingsleutel te bewijzen. De test van McHarbor triggert nooit een incident."
+    },
+    "note": "Alertgroepering in PagerDuty kan een McHarbor-alert samenvoegen met het incident van een andere alert. Dat incident draagt de sleutel van de andere alert, dus McHarbor kan de bevestiging of oplossing ervan niet teruglezen; de alert wordt in PagerDuty nog steeds opgelost wanneer hij in McHarbor verdwijnt."
+  }
+}

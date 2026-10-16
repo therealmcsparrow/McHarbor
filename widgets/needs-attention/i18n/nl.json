@@ -1,0 +1,23 @@
+{
+  "widgets": {
+    "needsAttention": {
+      "label": "Aandacht nodig",
+      "description": "De paar zaken die echt een mens nodig hebben, op ernst gesorteerd"
+    }
+  },
+  "needsAttentionWidget": {
+    "title": "Aandacht nodig",
+    "empty": "Er is nu niets dat je aandacht nodig heeft",
+    "unavailable": "Containerstatus kan niet worden gelezen",
+    "more": "Nog {{count}}",
+    "reason": {
+      "unhealthy": "health check faalt",
+      "restarting": "herstartlus",
+      "dead": "dood",
+      "exited": "gestopt",
+      "snapshotOverdue": "snapshot te laat",
+      "snapshotNever": "nooit gesnapshot"
+    },
+    "viewAll": "Alles tonen"
+  }
+}

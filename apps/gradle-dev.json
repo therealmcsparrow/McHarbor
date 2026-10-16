@@ -4,7 +4,7 @@
     "description":  "Gradle 8 on JDK 21, flexible build automation tool for multi-language software projects.",
     "category":  "Developer Tools",
     "image":  "gradle:8-jdk21",
-    "logo":  "https://icon.horse/icon/gradle.org",
+    "logo":  "https://cdn.simpleicons.org/gradle",
     "website":  "https://gradle.org",
     "docsUrl":  "https://docs.gradle.org",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Gradle user home directory"
                     }
                 ],
-    "version":  "8-jdk21"
+    "version":  "8-jdk21",
+    "latest":  {
+        "version":  "8-jdk21",
+        "release_date":  "2026-09-10"
+    }
 }

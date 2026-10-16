@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { createElement, useState } from 'react';
 import { IconBox } from '@tabler/icons-react';
 import type { TablerIcon } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
@@ -55,6 +55,5 @@ export function ContainerIcon({ image, className }: ContainerIconProps) {
     );
   }
 
-  const Icon = getIconForImage(image);
-  return <Icon className={cn('size-4 shrink-0 text-muted-foreground', className)} />;
+  return createElement(getIconForImage(image), { className: cn('size-4 shrink-0 text-muted-foreground', className) });
 }

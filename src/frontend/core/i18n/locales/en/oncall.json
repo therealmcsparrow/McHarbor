@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "label": "On-call",
+    "alerts": "Alerts",
+    "fleet": "Fleet",
+    "approvals": "Approvals",
+    "device": "Device"
+  },
+  "update": {
+    "ready": "A new version of McHarbor is ready.",
+    "reload": "Reload"
+  },
+  "stale": {
+    "offline": "Offline. Showing what was known at {{time}}.",
+    "cached": "Showing saved data from {{time}}. It may be out of date."
+  },
+  "state": {
+    "loading": "Loading",
+    "retry": "Try again",
+    "loadFailed": "This could not be loaded.",
+    "noAccess": "You need the {{permission}} permission to see this."
+  },
+  "alerts": {
+    "title": "Alerts",
+    "empty": "Nothing has fired recently.",
+    "firing": "Firing",
+    "resolved": "Resolved",
+    "notification": "Notice",
+    "openContainer": "Open container",
+    "expand": "Show the full message",
+    "collapse": "Hide the full message"
+  },
+  "fleet": {
+    "title": "Fleet",
+    "empty": "No environments are configured.",
+    "inactive": "Inactive",
+    "unreachable": "Unreachable",
+    "reachable": "Reachable",
+    "running": "Running",
+    "stopped": "Stopped",
+    "restarting": "Restarting",
+    "other": "Other",
+    "problemsTitle": "Not running"
+  },
+  "container": {
+    "exitCode": "Exit code",
+    "startedAt": "Started",
+    "finishedAt": "Finished",
+    "restarts": "Restarts",
+    "oomKilled": "Stopped by the out-of-memory killer",
+    "health": "Health",
+    "healthLog": "Recent health checks",
+    "noHealth": "No health check is configured.",
+    "recentAlerts": "Recent alerts for this container",
+    "logs": "Logs",
+    "restart": "Restart",
+    "restartTitle": "Restart {{name}}?",
+    "restartDescription": "The container stops and starts again. Open connections to it are dropped.",
+    "restartOffline": "You are offline, so nothing can be restarted.",
+    "back": "Back",
+    "error": "Docker reported an error for this container."
+  },
+  "logs": {
+    "title": "Logs",
+    "search": "Search the log",
+    "follow": "Follow",
+    "pause": "Pause",
+    "empty": "No log lines.",
+    "noMatches": "No line matches the search.",
+    "reconnecting": "Reconnecting to the log stream"
+  },
+  "approvals": {
+    "title": "Approvals",
+    "empty": "No elevation requests are waiting.",
+    "approve": "Approve",
+    "deny": "Deny",
+    "requestedBy": "Requested by {{name}}",
+    "duration_one": "For {{count}} minute",
+    "duration_other": "For {{count}} minutes",
+    "environment": "Environment {{name}}",
+    "note": "Note for the requester",
+    "approveTitle": "Approve this elevation?",
+    "denyTitle": "Deny this elevation?",
+    "approveDescription": "{{requester}} gets {{permission}} for {{minutes}} minutes.",
+    "denyDescription": "{{requester}} does not get {{permission}}."
+  },
+  "device": {
+    "title": "This device",
+    "pushTitle": "Push notifications",
+    "pushIntro": "Alerts and approval requests arrive on this device even when McHarbor is closed.",
+    "transit": "Notifications travel through your browser vendor's push service (Google, Apple, Mozilla or Microsoft). The message is encrypted for this device and carries only the alert text and a link, but the push service does learn that a notification was sent.",
+    "unsupported": "This browser cannot receive push notifications.",
+    "insecure": "Push notifications need a trusted HTTPS certificate. Open McHarbor on a publicly trusted certificate to use them.",
+    "iosInstall": "On iPhone and iPad, add McHarbor to the Home Screen first (Share, then Add to Home Screen), and open it from there.",
+    "denied": "Notifications are blocked for McHarbor in this browser's settings.",
+    "label": "Device name",
+    "labelPlaceholder": "My phone",
+    "enable": "Turn on for this device",
+    "disable": "Turn off for this device",
+    "enabled": "Push notifications are on for this device.",
+    "test": "Send a test notification",
+    "testResult_one": "Sent to {{sent}} device, {{failed}} failed, {{removed}} removed.",
+    "testResult_other": "Sent to {{sent}} devices, {{failed}} failed, {{removed}} removed.",
+    "devicesTitle": "Your devices",
+    "noDevices": "No device receives push notifications yet.",
+    "lastSeen": "Last delivery {{time}}",
+    "neverDelivered": "Nothing delivered yet",
+    "failing_one": "{{count}} failed delivery",
+    "failing_other": "{{count}} failed deliveries",
+    "revoke": "Revoke",
+    "revokeLabel": "Revoke {{name}}",
+    "revokeTitle": "Revoke {{name}}?",
+    "revokeDescription": "This device stops receiving push notifications. It can be turned on again from the device itself.",
+    "revoked": "Device revoked",
+    "layoutTitle": "Layout",
+    "layoutAuto": "Automatic (by screen width)",
+    "layoutOncall": "Always the on-call layout",
+    "layoutDesktop": "Always the desktop layout",
+    "openDesktop": "Open the desktop interface",
+    "signOut": "Sign out",
+    "workerUnavailable": "This browser did not start McHarbor's background worker, which push needs. Reload the page; if it keeps failing, the certificate is probably not trusted by this device."
+  }
+}

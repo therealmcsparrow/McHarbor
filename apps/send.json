@@ -1,0 +1,35 @@
+{
+    "slug":  "send",
+    "name":  "Send",
+    "description":  "Self-hosted encrypted file sharing service, a community-maintained continuation of Firefox Send.",
+    "category":  "Storage",
+    "image":  "registry.gitlab.com/timvisee/send:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/send.png",
+    "website":  "https://gitlab.com/timvisee/send",
+    "docsUrl":  "https://gitlab.com/timvisee/send-docker-compose",
+    "ports":  [
+                  {
+                      "host":  8120,
+                      "container":  1443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/send/uploads",
+                        "container":  "/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

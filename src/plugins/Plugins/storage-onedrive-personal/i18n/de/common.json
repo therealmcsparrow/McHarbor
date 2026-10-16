@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "OneDrive-(Personal)-Backup-Ziele",
+    "subtitle": "Sichert Container auf Ihr persönliches OneDrive. Das Plugin übernimmt Test, Upload, Download, Löschen und Auflisten zur Backup-Zeit. Große Backups verwenden die Chunked-Upload-Sitzung von Microsoft, sodass es keine Größenbeschränkung gibt.",
+    "registerHint": "Fügen Sie auf der Seite Speicherorte des Hosts ein Ziel hinzu und wählen Sie „OneDrive (Personal)“ als Typ."
+  },
+  "fields": {
+    "clientId":     "Azure-AD-Anwendungs-(Client-)ID",
+    "clientSecret": "Azure-AD-Client-Secret",
+    "refreshToken": "Refresh-Token (vom OAuth-Zustimmungsablauf geliefert)",
+    "tenant":       "Tenant (consumers / common / organizations)"
+  },
+  "help": {
+    "clientId":     "Registrieren Sie eine App unter https://entra.microsoft.com → App registrations. Die App benötigt die delegierte Berechtigung Files.ReadWrite und die auf Ihre McHarbor-Instanz konfigurierte Redirect-URI.",
+    "clientSecret": "Erzeugen Sie in der Azure-AD-App-Registrierung ein Client-Secret. Es wird im Ruhezustand vom AES-256-GCM-Dienst des Hosts verschlüsselt.",
+    "refreshToken": "Klicken Sie nach dem Speichern des Ziels auf „Speichern und verbinden“, um den Microsoft-Zustimmungsablauf abzuschließen und einen langlebigen Refresh-Token zu speichern.",
+    "tenant":       "Verwenden Sie „consumers“ für persönliche Konten. Verwenden Sie OneDrive for Business oder SharePoint Online für Geschäfts-/Schulkonten."
+  },
+  "toast": {
+    "registered": "OneDrive-(Personal)-Plugin registriert.",
+    "testPassed": "OneDrive-(Personal)-Verbindungstest bestanden.",
+    "testFailed": "OneDrive-(Personal)-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure-AD-Anwendungs-(Client-)ID ist erforderlich.",
+    "noClientSecret": "Azure-AD-Client-Secret ist erforderlich.",
+    "noRefreshToken": "Refresh-Token ist erforderlich. Führen Sie zuerst „Speichern und verbinden“ aus."
+  },
+  "form": {
+    "driveId": {
+      "label": "Drive ID",
+      "help": "Optional. Leer lassen, um das vom Anbieter zurückgegebene Standard-Drive zu verwenden."
+    },
+    "basePath": {
+      "label": "Basispfad",
+      "help": "Optional. Graph-Pfad innerhalb des Drives, z. B. /Backups/2026. Leer lassen, um das Drive-Stammverzeichnis zu verwenden."
+    },
+    "clientId": {
+      "label": "Client ID",
+      "help": "Optional. Leer lassen, um den im Plugin eingebetteten Standardwert zu verwenden. Trage deine eigene Application-(Client-)ID aus dem Entra Admin Center ein, wenn du eine eigene Azure-AD-App für OneDrive Personal registriert hast."
+    },
+    "clientSecret": {
+      "label": "Client Secret",
+      "help": "Optional. Leer lassen, wenn deine App-Registrierung ein öffentlicher Client vom Typ Mobile and desktop applications ist (der empfohlene Weg für persönliche Microsoft-Konten). Nur für Web-Registrierungen ausfüllen."
+    },
+    "intro": {
+      "title": "Microsoft-Konto erforderlich",
+      "save": "Speichere diesen Speicherort und klicke dann auf ",
+      "signIn": "Bei Microsoft anmelden",
+      "redirect": ". Du wirst weitergeleitet zu ",
+      "account": " wo du dich mit dem live.com-Konto (persönliches Microsoft-Konto) anmelden musst, dem das OneDrive gehört, in das du sichern möchtest, und die angeforderten ",
+      "comma": ", ",
+      "and": " und ",
+      "tail": "-Scopes zu erteilen. McHarbor speichert das zurückgegebene Refresh-Token verschlüsselt und zeigt es nie wieder an."
+    }
+  },
+  "setup": {
+    "title": "OneDrive-(Personal)-Einrichtungsanleitung",
+    "steps": {
+      "save": "Speichere diesen Speicherort. Das Plugin bringt eine eingebettete App-Registrierung mit, daher sind keine Felder erforderlich. Trage optional deine eigene <b>Client ID</b> ein, wenn du eine eigene Azure-AD-App für OneDrive Personal registriert hast, sowie <b>Drive ID</b> / <b>Base Path</b>, wenn du einen bestimmten Drive-Ordner festlegen möchtest.",
+      "signIn": "Klicke auf <b>Sign in with Microsoft</b> (oder <b>Connect</b> auf der Speicherkarte). Du wirst zu <code>login.live.com</code> weitergeleitet — melde dich mit dem persönlichen Microsoft-Konto (<code>live.com</code> / <code>hotmail.com</code> / <code>outlook.com</code>) an, dem das OneDrive gehört, in das du sichern möchtest.",
+      "grant": "Erteile die angeforderten Scopes <code>Files.ReadWrite</code>, <code>User.Read</code> und <code>offline_access</code>. McHarbor speichert das zurückgegebene Refresh-Token verschlüsselt und <warn>zeigt es nie wieder an</warn>.",
+      "test": "Klicke auf <b>Test connection</b>, um ein Testobjekt im gewählten Drive zu schreiben und wieder zu lesen."
+    }
+  }
+}

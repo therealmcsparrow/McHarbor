@@ -1,0 +1,55 @@
+{
+    "slug":  "deconz-beta",
+    "name":  "deCONZ (Beta)",
+    "description":  "Beta channel build of deCONZ. Zigbee gateway software for the Phoscon ConBee and RaspBee adapters.",
+    "category":  "Home Automation",
+    "image":  "deconzcommunity/deconz:beta",
+    "logo":  "https://www.google.com/s2/favicons?domain=phoscon.de\u0026sz=128",
+    "website":  "https://phoscon.de",
+    "docsUrl":  "https://github.com/deconz-community/deconz-docker",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6900,
+                      "container":  5900,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/deconz-beta/config",
+                        "container":  "/opt/deCONZ"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DECONZ_DEVICE",
+                        "default":  "/dev/ttyACM0",
+                        "description":  "Zigbee adapter device path"
+                    },
+                    {
+                        "key":  "DECONZ_VNC_MODE",
+                        "default":  "1",
+                        "description":  "Enable VNC mode (1 to enable)"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "slug":  "opentofu",
+    "name":  "OpenTofu",
+    "description":  "Open-source, community-governed fork of Terraform for declarative infrastructure provisioning.",
+    "category":  "Developer Tools",
+    "image":  "ghcr.io/opentofu/opentofu:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/opentofu.png",
+    "website":  "https://opentofu.org",
+    "docsUrl":  "https://opentofu.org/docs/intro/install/docker/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opentofu/workspace",
+                        "container":  "/workspace"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

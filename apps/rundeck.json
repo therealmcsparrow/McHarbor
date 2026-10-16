@@ -1,0 +1,41 @@
+{
+    "slug":  "rundeck",
+    "name":  "Rundeck",
+    "description":  "Self-service operations console for running and scheduling ad-hoc jobs and runbooks across servers.",
+    "category":  "CI/CD",
+    "image":  "rundeck/rundeck:5.0.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rundeck.png",
+    "website":  "https://www.rundeck.com",
+    "docsUrl":  "https://docs.rundeck.com/docs/administration/install/installing-docker.html",
+    "ports":  [
+                  {
+                      "host":  4440,
+                      "container":  4440,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rundeck/data",
+                        "container":  "/home/rundeck/server/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RUNDECK_GRAILS_URL",
+                        "default":  "http://localhost:4440",
+                        "description":  "External base URL Rundeck advertises to users"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "5.0.0",
+    "latest":  {
+        "version":  "5.0.0",
+        "release_date":  "2026-09-29"
+    }
+}

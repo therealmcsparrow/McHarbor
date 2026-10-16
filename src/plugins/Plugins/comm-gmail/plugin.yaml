@@ -1,0 +1,51 @@
+# plugin.yaml — manifest for the comm-gmail plugin.
+#
+# Single-channel Gmail notification adapter. This is intentionally a
+# communication plugin, not an email-server adapter: it registers one
+# NotificationAdapterSpec and delivers notification messages through a
+# configured Gmail API sender directly from Settings > Notifications > Channels.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-gmail"
+name:     "Gmail"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Gmail communication channel. Delivers workflow, alert, and backup notifications as email through the Gmail API. Install this plugin to add 'Gmail' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_gmail"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Gmail communication channels"
+    description: "Required to route workflow, alert, or backup events to a Gmail communication channel."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-gmail"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "gmail"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "gmail"
+  capabilities:
+    - kind:         "email-channel"
+      channel_type: "gmail"
+
+signature: ""
+checksum:  ""

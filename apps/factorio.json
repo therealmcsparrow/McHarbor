@@ -1,0 +1,51 @@
+{
+    "slug":  "factorio",
+    "name":  "Factorio",
+    "description":  "Dedicated server for the factory-building automation game Factorio.",
+    "category":  "Gaming",
+    "image":  "factoriotools/factorio:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=factorio.com\u0026sz=128",
+    "website":  "https://factorio.com",
+    "docsUrl":  "https://github.com/factoriotools/factorio-docker",
+    "ports":  [
+                  {
+                      "host":  34197,
+                      "container":  34197,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/factorio/data",
+                        "container":  "/factorio"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SAVE_NAME",
+                        "default":  "world",
+                        "description":  "Save file name"
+                    },
+                    {
+                        "key":  "GENERATE_NEW_SAVE",
+                        "default":  "true",
+                        "description":  "Generate a new save if none exists"
+                    },
+                    {
+                        "key":  "UPDATE_MODS_ON_START",
+                        "default":  "false",
+                        "description":  "Update installed mods on container start"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

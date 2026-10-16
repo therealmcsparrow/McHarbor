@@ -1,20 +1,18 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconBell, IconClock, IconShieldCheck } from '@tabler/icons-react';
+import { IconBell, IconShieldCheck } from '@tabler/icons-react';
 import { Switch } from '@resources/components/ui/Switch';
-import { NumberInput } from '@resources/components/ui/NumberInput';
-import {
-  useSaveSelfUpdateSettings,
-  useSelfUpdateSettings,
-} from '../hooks/useUpdates';
+import { useSaveSelfUpdateSettings, useSelfUpdateSettings } from '../hooks/useUpdates';
 import { useNotificationChannels } from '../hooks/useNotificationChannels';
 
 export function SelfUpdateSettingsCard() {
   const { t } = useTranslation('settings');
   const { data: settings, isFetching } = useSelfUpdateSettings();
   const save = useSaveSelfUpdateSettings();
+  const enabledId = useId();
 
   const { data: allChannels = [] } = useNotificationChannels();
   const channels = allChannels.filter((c) => c.enabled);
@@ -43,53 +41,25 @@ export function SelfUpdateSettingsCard() {
           <IconBell className="size-4" />
         </span>
         <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            {t('about.selfUpdate.title')}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {t('about.selfUpdate.subtitle')}
-          </p>
+          <h3 className="text-sm font-semibold text-foreground">{t('about.selfUpdate.title')}</h3>
+          <p className="text-xs text-muted-foreground">{t('about.selfUpdate.subtitle')}</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {/* Enable toggle */}
-        <label className="flex items-center justify-between gap-4">
+        <label htmlFor={enabledId} className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-foreground">
-              {t('about.selfUpdate.enabledLabel')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t('about.selfUpdate.enabledHint')}
-            </p>
+            <p className="text-sm font-medium text-foreground">{t('about.selfUpdate.enabledLabel')}</p>
+            <p className="text-xs text-muted-foreground">{t('about.selfUpdate.enabledHint')}</p>
           </div>
           <Switch
+            id={enabledId}
             checked={settings.enabled}
             onCheckedChange={(v) => update({ enabled: v })}
             disabled={isFetching || save.isPending}
           />
         </label>
-
-        {/* Check interval */}
-        <div>
-          <label className="mb-1.5 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <IconClock className="size-3.5" />
-            {t('about.selfUpdate.intervalLabel')}
-          </label>
-          <div className="flex items-center gap-2">
-            <NumberInput
-              value={settings.intervalHours}
-              min={1}
-              max={168}
-              onChange={(v) => update({ intervalHours: v })}
-              disabled={isFetching || save.isPending || !settings.enabled}
-              className="w-32"
-            />
-            <span className="text-xs text-muted-foreground">
-              {t('about.selfUpdate.intervalSuffix')}
-            </span>
-          </div>
-        </div>
 
         {/* Notification channels */}
         <div>
@@ -108,13 +78,15 @@ export function SelfUpdateSettingsCard() {
                 return (
                   <label
                     key={c.id}
-                    className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-sm"
+                    htmlFor={`${enabledId}-${c.id}`}
+                    className="mc-glass flex items-center gap-3 rounded-md px-3 py-2 text-sm"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground truncate">{c.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium text-foreground">{c.name}</div>
                       <div className="text-xs text-muted-foreground">{c.channelType}</div>
                     </div>
                     <Switch
+                      id={`${enabledId}-${c.id}`}
                       checked={checked}
                       onCheckedChange={() => toggleChannel(c.id)}
                       disabled={isFetching || save.isPending || !settings.enabled}
@@ -125,9 +97,7 @@ export function SelfUpdateSettingsCard() {
               })}
             </div>
           )}
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t('about.selfUpdate.channelsHint')}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('about.selfUpdate.channelsHint')}</p>
         </div>
       </div>
     </div>

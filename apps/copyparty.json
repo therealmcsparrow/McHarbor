@@ -1,0 +1,39 @@
+{
+    "slug":  "copyparty",
+    "name":  "copyparty",
+    "description":  "Portable single-binary file server with upload, sharing, and media browsing over a web UI.",
+    "category":  "Storage",
+    "image":  "copyparty/ac:latest",
+    "logo":  "https://github.com/9001.png",
+    "website":  "https://github.com/9001/copyparty",
+    "docsUrl":  "https://github.com/9001/copyparty#docker",
+    "ports":  [
+                  {
+                      "host":  8118,
+                      "container":  3923,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/copyparty/data",
+                        "container":  "/w"
+                    },
+                    {
+                        "host":  "/opt/appdata/copyparty/config",
+                        "container":  "/cfg"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

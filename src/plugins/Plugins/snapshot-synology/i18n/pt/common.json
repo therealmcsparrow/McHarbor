@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "Conexão com o DSM",
+    "targetSection": "Destino do snapshot",
+    "advancedSection": "Avançado",
+    "dsmUrl": {
+      "label": "URL do DSM",
+      "help": "URL base da interface web do Synology DSM. Inclua a porta se não for padrão (padrão 5000 para HTTP, 5001 para HTTPS)."
+    },
+    "username": {
+      "label": "Nome de usuário",
+      "help": "Conta do DSM com permissão para gerenciar snapshots. Use uma conta de serviço dedicada."
+    },
+    "password": {
+      "label": "Senha",
+      "help": "Senha do DSM ou senha específica de aplicativo."
+    },
+    "shareName": {
+      "label": "Pasta compartilhada",
+      "help": "Nome da pasta compartilhada da qual será feito o snapshot (sem barra inicial)."
+    },
+    "ignoreCert": {
+      "label": "Ignorar erros de certificado",
+      "help": "Necessário quando o DSM usa um certificado autoassinado."
+    },
+    "appPasswordHint": "Recomendação: crie uma senha específica de aplicativo em DSM Control Panel → User &amp; Team → User → App Passwords. Isso limita as credenciais apenas a operações de backup e pode ser revogado sem alterar a senha principal."
+  },
+  "setup": {
+    "title": "Antes de começar",
+    "intro": "O snapshot-synology conversa com a API REST do Backup Service do DSM 7.x. Confirme que o lado do DSM está configurado e depois preencha o formulário.",
+    "steps": [
+      {
+        "title": "Ative a API do Backup Service",
+        "body": "Control Panel → External Access → Certificate → Add. Abra Control Panel → Backup Service e confirme que o serviço está em execução. A API REST escuta na porta HTTPS do DSM (padrão 5001)."
+      },
+      {
+        "title": "Crie uma senha específica de aplicativo",
+        "body": "Control Panel → User &amp; Team → User → Account → App Passwords → Add. Nomeie-a 'McHarbor snapshots' e conceda apenas as permissões necessárias (DSM e Backup Service). A senha gerada é a que você cola no formulário."
+      },
+      {
+        "title": "Escolha ou crie uma pasta compartilhada",
+        "body": "Abra Control Panel → Shared Folder. Faça o snapshot de uma pasta existente (recomendado: uma pasta vazia reservada para backups do McHarbor) ou crie uma nova. Anote o nome da pasta exatamente — ele diferencia maiúsculas de minúsculas no DSM."
+      },
+      {
+        "title": "Verifique o alcance do DSM a partir do host",
+        "body": "No host onde o McHarbor roda, confirme a conectividade HTTPS. Substitua nas.local pelo nome do host do seu DSM:",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Teste a conexão",
+        "body": "Após salvar a configuração, clique em 'Testar conexão' na aba Snapshots. Um resultado verde confirma que o DSM aceitou as credenciais e a pasta compartilhada está acessível."
+      }
+    ]
+  }
+}

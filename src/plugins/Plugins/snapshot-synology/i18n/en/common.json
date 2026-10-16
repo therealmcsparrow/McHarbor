@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "DSM connection",
+    "targetSection": "Snapshot target",
+    "advancedSection": "Advanced",
+    "dsmUrl": {
+      "label": "DSM URL",
+      "help": "Base URL of the Synology DSM web UI. Include the port if non-standard (default 5000 for HTTP, 5001 for HTTPS)."
+    },
+    "username": {
+      "label": "Username",
+      "help": "DSM account with permission to manage snapshots. Use a dedicated service account."
+    },
+    "password": {
+      "label": "Password",
+      "help": "DSM password or app-specific password."
+    },
+    "shareName": {
+      "label": "Shared folder",
+      "help": "Name of the shared folder to snapshot (without leading slash)."
+    },
+    "ignoreCert": {
+      "label": "Ignore certificate errors",
+      "help": "Required when the DSM uses a self-signed certificate."
+    },
+    "appPasswordHint": "Recommendation: create an app-specific password from DSM Control Panel → User &amp; Team → User → App Passwords. This scopes credentials to backup operations only and can be revoked without changing the primary password."
+  },
+  "setup": {
+    "title": "Before you start",
+    "intro": "snapshot-synology talks to the DSM 7.x Backup Service REST API. Confirm the DSM side is configured, then fill in the form.",
+    "steps": [
+      {
+        "title": "Enable the Backup Service API",
+        "body": "Control Panel → External Access → Certificate → Add. Open Control Panel → Backup Service and confirm the service is running. The REST API listens on the DSM HTTPS port (default 5001)."
+      },
+      {
+        "title": "Create an app-specific password",
+        "body": "Control Panel → User &amp; Team → User → Account → App Passwords → Add. Label it 'McHarbor snapshots' and grant only the permissions needed (DSM and Backup Service). The generated password is what you paste into the form."
+      },
+      {
+        "title": "Choose or create a shared folder",
+        "body": "Open Control Panel → Shared Folder. Either snapshot an existing folder (recommended: an empty folder reserved for McHarbor backups) or create a new one. Note the folder name exactly — it is case-sensitive on the DSM."
+      },
+      {
+        "title": "Verify DSM reachability from the host",
+        "body": "From the host where McHarbor runs, confirm HTTPS connectivity. Replace nas.local with your DSM hostname:",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Test the connection",
+        "body": "After saving the configuration, click 'Test Connection' in the Snapshots tab. A green probe result confirms the DSM accepted the credentials and the shared folder is reachable."
+      }
+    ]
+  }
+}

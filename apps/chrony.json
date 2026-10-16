@@ -1,0 +1,40 @@
+{
+    "slug":  "chrony",
+    "name":  "Chrony NTP Server",
+    "description":  "NTP server that keeps system clocks synchronized over a network.",
+    "category":  "Networking",
+    "image":  "cturra/ntp:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chrony.png",
+    "website":  "https://chrony-project.org/",
+    "docsUrl":  "https://chrony-project.org/",
+    "ports":  [
+                  {
+                      "host":  1230,
+                      "container":  123,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/chrony/config",
+                        "container":  "/etc/chrony"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NTP_SERVERS",
+                        "default":  "0.pool.ntp.org,1.pool.ntp.org,2.pool.ntp.org,3.pool.ntp.org",
+                        "description":  "Upstream NTP servers to sync from"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

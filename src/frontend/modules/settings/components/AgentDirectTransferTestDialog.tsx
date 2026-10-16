@@ -27,17 +27,16 @@ type AgentDirectTransferTestDialogProps = {
 };
 
 export function AgentDirectTransferTestDialog({
-  open,
+  open: isOpen,
   onOpenChange,
   pending,
   result,
   requestError,
 }: AgentDirectTransferTestDialogProps) {
   const { t } = useTranslation('settings');
-  const { t: tc } = useTranslation('common');
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('agent.directTransferTest.dialogTitle')}</DialogTitle>
@@ -60,7 +59,7 @@ export function AgentDirectTransferTestDialog({
         </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{tc('actions.close')}</Button>
+            <Button variant="outline">{t('actions.close', { ns: 'common' })}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

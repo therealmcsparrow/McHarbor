@@ -17,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/therealmcsparrow/mcharbor-agent/internal/errlog"
 )
 
 const transferReceiverTTL = 30 * time.Minute
@@ -50,6 +52,8 @@ type transferReporter func(WSMessage)
 type TransferServer struct {
 	listen       string
 	advertiseURL string
+	candidates   []string
+	port         int
 	agentMarker  string
 	proxy        *Proxy
 	logger       *slog.Logger
@@ -60,15 +64,44 @@ type TransferServer struct {
 	reporterMu   sync.Mutex
 }
 
+// NewTransferServer builds the direct-transfer receiver.
+//
+// Only a blank listen address disables it. An operator who sets no advertise URL
+// gets one derived from the host's own interfaces, so agent-to-agent transfer
+// works with no configuration on the common topologies. An explicit advertise
+// URL still wins outright, because the operator knows about port forwarding and
+// reverse proxies that no amount of interface enumeration can discover.
 func NewTransferServer(listen, advertiseURL, agentToken string, proxy *Proxy, logger *slog.Logger) *TransferServer {
 	listen = strings.TrimSpace(listen)
 	advertiseURL = strings.TrimRight(strings.TrimSpace(advertiseURL), "/")
-	if listen == "" || advertiseURL == "" {
+	if listen == "" {
 		return nil
 	}
+
+	candidates := make([]string, 0, 4)
+	if advertiseURL != "" {
+		candidates = append(candidates, advertiseURL)
+	}
+	// Local candidates come after any explicit URL but before the reflexive
+	// candidate the server appends. Two agents behind the same router reach
+	// each other on a LAN address; most consumer routers will not hairpin the
+	// public one, so trying local first avoids a guaranteed failed probe.
+	for _, candidate := range deriveLocalCandidates(listen) {
+		if candidate != advertiseURL {
+			candidates = append(candidates, candidate)
+		}
+	}
+
+	primary := advertiseURL
+	if primary == "" && len(candidates) > 0 {
+		primary = candidates[0]
+	}
+
 	return &TransferServer{
 		listen:       listen,
-		advertiseURL: advertiseURL,
+		advertiseURL: primary,
+		candidates:   candidates,
+		port:         transferPortFromListen(listen),
 		agentMarker:  shortTokenFingerprint(agentToken),
 		proxy:        proxy,
 		logger:       logger,
@@ -88,13 +121,14 @@ func (s *TransferServer) Start(ctx context.Context) error {
 		Handler:           mux,
 		ReadHeaderTimeout: 15 * time.Second,
 	}
-	listener, err := net.Listen("tcp", s.listen)
+	var listenConfig net.ListenConfig
+	listener, err := listenConfig.Listen(ctx, "tcp", s.listen)
 	if err != nil {
 		return fmt.Errorf("listening for direct transfers: %w", err)
 	}
 	go func() {
 		<-ctx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
 		if err := s.server.Shutdown(shutdownCtx); err != nil {
 			s.logger.Warn("direct transfer server shutdown failed", "error", err)
@@ -114,6 +148,25 @@ func (s *TransferServer) AdvertiseURL() string {
 		return ""
 	}
 	return s.advertiseURL
+}
+
+// Candidates returns every base URL a peer agent may try, in preference order.
+func (s *TransferServer) Candidates() []string {
+	if s == nil {
+		return nil
+	}
+	out := make([]string, len(s.candidates))
+	copy(out, s.candidates)
+	return out
+}
+
+// Port returns the listening port, which the server uses to build the
+// reflexive candidate from the address it observed the agent connect from.
+func (s *TransferServer) Port() int {
+	if s == nil {
+		return 0
+	}
+	return s.port
 }
 
 func (s *TransferServer) SetReporter(reporter transferReporter) {
@@ -204,7 +257,7 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 		s.logReceiverAuthFailure(transferID, transferKindImage, r.RemoteAddr, check)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
-			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+			errlog.Discard(r.Body, 1024)
 		}
 		return
 	}
@@ -245,7 +298,7 @@ func (s *TransferServer) handleArchiveUpload(w http.ResponseWriter, r *http.Requ
 		s.logReceiverAuthFailure(transferID, transferKindArchive, r.RemoteAddr, check)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
-			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+			errlog.Discard(r.Body, 1024)
 		}
 		return
 	}
@@ -290,13 +343,13 @@ func (s *TransferServer) handleProbeUpload(w http.ResponseWriter, r *http.Reques
 		s.logReceiverAuthFailure(transferID, transferKindProbe, r.RemoteAddr, check)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
-			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+			errlog.Discard(r.Body, 1024)
 		}
 		return
 	}
 	s.logger.Debug("direct transfer receiver authorized", "transferId", transferID, "kind", transferKindProbe, "remote", r.RemoteAddr)
 	if r.Body != nil {
-		io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+		errlog.Discard(r.Body, 1024)
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

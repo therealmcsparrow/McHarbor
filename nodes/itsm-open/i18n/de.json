@@ -1,0 +1,18 @@
+{
+  "label": "Ticket öffnen",
+  "description": "Ein Ticket in einem ITSM über einen incidentfähigen Kanal öffnen oder erneut melden",
+  "config": {
+    "channel_id": "Ticketing-Kanal",
+    "dedup_key": "Ticketschlüssel",
+    "severity": "Schweregrad",
+    "title": "Titel",
+    "message": "Nachricht"
+  },
+  "options": {
+    "severity": {
+      "critical": "Kritisch",
+      "warning": "Warnung",
+      "info": "Info"
+    }
+  }
+}

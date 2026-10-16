@@ -15,6 +15,34 @@
       "image": "Image",
       "volume": "Volume",
       "network": "Reseau"
+    },
+    "action": {
+      "create": "Création",
+      "start": "Démarrage",
+      "stop": "Arrêt",
+      "restart": "Redémarrage",
+      "die": "Fin (die)",
+      "kill": "Arrêt forcé (kill)",
+      "destroy": "Destruction",
+      "pause": "Pause",
+      "unpause": "Reprise",
+      "oom": "Mémoire insuffisante",
+      "health_status": "État de santé",
+      "rename": "Renommage",
+      "update": "Mise à jour",
+      "exec_create": "Création d'exec",
+      "exec_start": "Démarrage d'exec",
+      "exec_die": "Fin d'exec",
+      "pull": "Téléchargement (pull)",
+      "push": "Envoi (push)",
+      "delete": "Suppression",
+      "tag": "Étiquetage",
+      "untag": "Retrait d'étiquette",
+      "prune": "Nettoyage",
+      "mount": "Montage",
+      "unmount": "Démontage",
+      "connect": "Connexion",
+      "disconnect": "Déconnexion"
     }
   }
 }

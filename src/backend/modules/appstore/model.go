@@ -33,10 +33,30 @@ type AppTemplate struct {
 	Source          string `json:"source"`
 	Version         string `json:"version"`
 	UpdatedAt       string `json:"updatedAt"`
+	// Latest is what the catalog server publishes about the app's newest
+	// release: the real version string (never the "latest" tag) and the date
+	// it shipped. The catalog owns these values; McHarbor only carries and
+	// reads them. Nil for a catalog that does not emit the block, which is
+	// when the registry lookup below supplies the card's numbers instead.
+	Latest *LatestRelease `json:"latest,omitempty"`
+	// Registry-sourced facts about the image this app installs: the newest
+	// release tag the distribution publishes and when that tag was built.
+	// Empty until the background lookup has answered for this image, which is
+	// when the card falls back to the catalog's own version and sync date.
+	RegistryVersion   string `json:"registryVersion,omitempty"`
+	RegistryUpdatedAt string `json:"registryUpdatedAt,omitempty"`
 	// Populated at query time from the installation records.
 	Installed     bool              `json:"installed"`
 	StackID       string            `json:"stackId,omitempty"`
 	Installations []AppInstallation `json:"installations"`
+}
+
+// LatestRelease is the catalog server's statement about an app's newest
+// release. release_date is snake_case because that is the key the catalog
+// emits.
+type LatestRelease struct {
+	Version     string `json:"version"`
+	ReleaseDate string `json:"release_date"`
 }
 
 // PortMapping defines a container port mapping.
@@ -86,6 +106,11 @@ type InstallRequest struct {
 	Volumes       []VolumeMount     `json:"volumes,omitempty"`
 	EnvVars       map[string]string `json:"envVars,omitempty"`
 	Network       *NetworkConfig    `json:"network,omitempty"`
+	// SecretFileMode delivers any ${secret:NAME} in EnvVars as a file under
+	// /run/secrets instead of putting the value in the container's
+	// environment. Carried straight through onto the stack this install
+	// creates; see modules/stacks/filemode.go.
+	SecretFileMode bool `json:"secretFileMode,omitempty"`
 }
 
 // InstallResult is returned after a successful install.

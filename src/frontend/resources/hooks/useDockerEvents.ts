@@ -29,29 +29,30 @@ export function useDockerEvents() {
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const invalidate = useCallback(
-    (event: DockerEvent) => {
-      switch (event.type) {
+    (evt: DockerEvent) => {
+      switch (evt.type) {
         case 'container':
           // Only invalidate list + inspect queries — NOT container-processes,
           // container-logs, container-stats etc. which have their own polling.
-          queryClient.invalidateQueries({ queryKey: ['containers'], exact: false });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['events'] });
+          void queryClient.invalidateQueries({ queryKey: ['containers'], exact: false });
+          void queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+          void queryClient.invalidateQueries({ queryKey: ['events'] });
           break;
         case 'image':
-          queryClient.invalidateQueries({ queryKey: ['images'] });
+          void queryClient.invalidateQueries({ queryKey: ['images'] });
           break;
         case 'volume':
-          queryClient.invalidateQueries({ queryKey: ['volumes'] });
+          void queryClient.invalidateQueries({ queryKey: ['volumes'] });
           break;
         case 'network':
-          queryClient.invalidateQueries({ queryKey: ['networks'] });
+          void queryClient.invalidateQueries({ queryKey: ['networks'] });
           break;
       }
     },
     [queryClient],
   );
 
+  const connectRef = useRef<() => void>(() => undefined);
   const connect = useCallback(() => {
     sourceRef.current?.close();
     if (reconnectTimer.current) {
@@ -87,11 +88,12 @@ export function useDockerEvents() {
     es.onerror = () => {
       es.close();
       // Reconnect after 5 seconds
-      reconnectTimer.current = setTimeout(connect, 5000);
+      reconnectTimer.current = setTimeout(() => connectRef.current(), 5000);
     };
   }, [currentEnvironment, envId, invalidate, trackContainerEventsEnabled, uploadActive]);
 
   useEffect(() => {
+    connectRef.current = connect;
     connect();
     return () => {
       sourceRef.current?.close();

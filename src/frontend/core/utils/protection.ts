@@ -27,21 +27,14 @@ function imageRepository(ref?: string | null) {
 
 function isMcHarborImageRef(ref?: string | null) {
   const repo = imageRepository(ref);
-  return repo === 'ghcr.io/therealmcsparrow/mcharbor' ||
-    repo === 'therealmcsparrow/mcharbor' ||
-    repo === 'mcharbor';
+  return repo === 'ghcr.io/therealmcsparrow/mcharbor' || repo === 'therealmcsparrow/mcharbor' || repo === 'mcharbor';
 }
 
 function containerProtectionParts(container: ContainerInfo | ContainerInspect) {
-  const labels = 'Labels' in container
-    ? container.Labels
-    : container.Config?.Labels;
-  const names = 'Names' in container
-    ? container.Names
-    : [container.Name];
-  const image = 'Image' in container && !('Names' in container)
-    ? container.Config?.Image ?? container.Image
-    : container.Image;
+  const labels = 'Labels' in container ? container.Labels : container.Config?.Labels;
+  const names = 'Names' in container ? container.Names : [container.Name];
+  const image =
+    'Image' in container && !('Names' in container) ? (container.Config?.Image ?? container.Image) : container.Image;
 
   return { labels, names, image };
 }
@@ -53,8 +46,8 @@ export function isMcHarborContainer(container: ContainerInfo | ContainerInspect)
     return true;
   }
   if (isMcHarborImageRef(image)) return true;
-  return names.some((name) => {
-    const normalized = name.replace(/^\//, '').trim().toLowerCase();
+  return names.some((itemName) => {
+    const normalized = itemName.replace(/^\//, '').trim().toLowerCase();
     return normalized === mcHarborService || normalized.startsWith('mcharbor-mcharbor-');
   });
 }
@@ -89,4 +82,24 @@ type StackLike = {
 export function isProtectedStack(stack: StackLike) {
   void stack;
   return false;
+}
+
+const helperLabel = 'com.mcharbor.helper';
+const appRoleLabel = 'com.mcharbor.role';
+
+export type HostSelfGateKind = 'lifecycle' | 'exec';
+
+/**
+ * Whether acting on the container needs host_self.manage on top of its own key. The
+ * backend's SelfTarget/HostAccess flags are authoritative (they see the own-container id);
+ * the label and name checks only cover a payload that predates them. `exec` also covers a
+ * container on McHarbor's own environment that reaches its host.
+ */
+export function needsHostSelf(container: ContainerInfo | ContainerInspect | null | undefined, kind: HostSelfGateKind) {
+  if (!container) return false;
+  if (container.SelfTarget) return true;
+  const { labels } = containerProtectionParts(container);
+  if (labels?.[helperLabel]?.trim() || labels?.[appRoleLabel]?.trim().toLowerCase() === 'app') return true;
+  if (isMcHarborContainer(container)) return true;
+  return kind === 'exec' && (container.HostAccess?.length ?? 0) > 0;
 }

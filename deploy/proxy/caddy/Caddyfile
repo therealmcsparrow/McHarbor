@@ -1,0 +1,29 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+mcharbor.example.com {
+	reverse_proxy https://mcharbor-node-1:8705 https://mcharbor-node-2:8705 {
+		lb_policy first
+		lb_try_duration 10s
+		lb_try_interval 250ms
+
+		health_uri /api/readyz
+		health_interval 5s
+		health_timeout 3s
+		health_status 200
+
+		fail_duration 10s
+		unhealthy_status 503
+
+		flush_interval -1
+		stream_close_delay 5m
+
+		header_up X-Real-IP {remote_host}
+
+		transport http {
+			tls_insecure_skip_verify
+			dial_timeout 5s
+			keepalive 90s
+		}
+	}
+}

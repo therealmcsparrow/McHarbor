@@ -1,0 +1,98 @@
+# plugin.yaml — manifest for the comm-teams plugin.
+#
+# Single-channel Microsoft Teams notification adapter. The plugin
+# owns one ChannelType ("teams") and registers a NotificationAdapter-
+# Client that POSTs an Adaptive Card to a Teams Incoming Webhook
+# connector URL. Title becomes a bold TextBlock header; Message
+# becomes a wrapping TextBlock body. The webhook URL is the auth
+# credential — Teams encodes the connector secret in the URL itself.
+#
+# Family: comm-* (notification channels). Distinct from storage-*
+# adapters: comm plugins implement plugin.NotificationAdapterClient
+# (Test + Send only) and never see Upload/Download/Delete/List.
+#
+# RBAC: comm channels register one adds_permission so operators can
+# grant "send alerts to this channel" as a discrete, auditable
+# capability. The host's "channels" admin UI is gated on
+# settings.manage; the per-channel permission gates the alert
+# routing rules.
+#
+# Auth model: Teams Incoming Webhook connectors are URL-only — the
+# random UUID in the URL path IS the auth token. Anyone holding
+# the URL can post to the channel. There is no separate Bearer /
+# Basic field. Operators rotate by re-creating the connector in
+# Teams and updating the URL here.
+#
+# Why webhook (not Bot Framework): webhook connectors are zero-
+# install from the operator's side (no Azure app registration,
+# no consent flow, no Graph API). They cover the common case —
+# posting an alert into a channel. Bot Framework + proactive
+# messages are a follow-up if operators need thread replies,
+# @mentions, or adaptive-card actions.
+#
+# Naming: webhook_url is required; everything else is cosmetic.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-teams"
+name:     "Microsoft Teams"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Microsoft Teams Incoming Webhook connector channel. POSTs an Adaptive Card with Title as a bold TextBlock header and Message as a wrapping TextBlock body to a Teams channel webhook URL. Install this plugin to add 'teams' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   notification.adapter.register  required — register NotificationAdapterSpec
+#   audit.emit                     required — every plugin should audit.
+#
+# encryption.handle.read is intentionally omitted — the Teams
+# webhook URL is treated as plain text (same as Slack/Discord
+# channels in the host's communications module). Operators who
+# want it encrypted can configure at the channel_type level once
+# the host gains a typed-secret migration path.
+permissions:
+  - notification.adapter.register
+  - audit.emit
+
+# Adds one permission key. Operators with channels.use_comm_teams
+# (or the broader channels:send) can route events to this channel.
+adds_permissions:
+  - key:      "channels.use_comm_teams"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Microsoft Teams channels"
+    description: "Required to route workflow, alert, or backup events to a Microsoft Teams channel."
+
+# No consumes_permissions — this plugin never gates itself on
+# another plugin's permission.
+
+contributes:
+  routes: []
+  # No `menu:` block — comm channels are managed from the host's
+  # Settings > Notifications > Channels page, which lists every
+  # registered ChannelType (built-in + plugin).
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-teams"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` and mounts
+  # it into the matching host slot at edit / setup-guide time.
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "teams"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "teams"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-teams"
+      channel_type: "teams"
+
+signature: ""
+checksum:  ""

@@ -1,0 +1,103 @@
+{
+  "config": {
+    "server_url": { "help": "URL base do seu servidor ntfy. O padrão é https://ntfy.sh — altere para a sua instância auto-hospedada (por exemplo, https://ntfy.example.com) em instalações locais." },
+    "topic": { "help": "Nome do tópico que os assinantes recebem no aplicativo ntfy. Use um nome único (por exemplo, mcharbor-alerts-prod). O ntfy.sh permite até 64 caracteres de [a-zA-Z0-9_-]." },
+    "access_token": { "help": "Token da ntfy com escopo de tópico. Clique em \"Get token\" na página do tópico na interface web do ntfy. Tem prioridade sobre usuário/senha quando definido. Armazenado criptografado." },
+    "priority": { "help": "Opcional. Um entre min, low, default, high, urgent. Corresponde à prioridade inteira do ntfy 1/2/3/4/5. Deixe em branco para usar o padrão do servidor." },
+    "tags": { "help": "Opcional. Atalhos de emoji separados por vírgulas, exibidos como ícones em linha no aplicativo móvel do ntfy (por exemplo, \"warning,rocket\"). Veja o catálogo em https://docs.ntfy.sh/emojis/." }
+  },
+  "page": {
+    "title": "ntfys",
+    "subtitle": "Encaminhe eventos de workflow, alerta e backup para um tópico ntfy via HTTP POST. O plugin trata Test (publica uma mensagem de teste real) e Send (publica Título + Mensagem como corpo). Não há fluxo OAuth porque o ntfy usa tokens de tópico estáticos ou autenticação HTTP Basic.",
+    "registerHint": "Adicione um canal na página Notificações > Canais do host e escolha \"ntfy\" como channel_type."
+  },
+  "fields": {
+    "serverUrl":    "URL do servidor",
+    "topic":        "Tópico",
+    "accessToken":  "Token de acesso",
+    "username":     "Nome de usuário",
+    "password":     "Senha",
+    "priority":     "Prioridade",
+    "tags":         "Etiquetas"
+  },
+  "help": {
+    "serverUrl":    "URL base do seu servidor ntfy. O padrão é https://ntfy.sh — altere para sua instância auto-hospedada em configurações locais.",
+    "topic":        "Nome do tópico que os assinantes recebem no aplicativo ntfy. Use um nome único por ambiente.",
+    "accessToken":  "Token com escopo de tópico do ntfy. Clique em 'Get token' na página do tópico na interface web do ntfy. Criptografado em repouso.",
+    "username":     "Nome de usuário HTTP Basic para ntfy auto-hospedado. Usado apenas quando access_token está em branco.",
+    "password":     "Senha HTTP Basic para ntfy auto-hospedado. Usada apenas quando access_token está em branco. Criptografada em repouso.",
+    "priority":     "Um entre min, low, default, high, urgent. Corresponde à prioridade inteira do ntfy 1/2/3/4/5. Deixe em branco para o padrão do servidor.",
+    "tags":         "Shortcodes de emoji separados por vírgula, exibidos como ícones embutidos no aplicativo móvel do ntfy."
+  },
+  "toast": {
+    "registered": "Canal ntfy salvo.",
+    "testPassed": "Teste de conexão do ntfy concluído com sucesso.",
+    "testFailed": "O teste de conexão do ntfy falhou: {{error}}"
+  },
+  "error": {
+    "noTopic":     "O tópico é obrigatório. Defina o nome do tópico em que os assinantes receberão alertas.",
+    "noServer":    "A URL do servidor é obrigatória. O padrão é https://ntfy.sh quando em branco.",
+    "sendFailed":  "Falha ao publicar no ntfy: {{error}}",
+    "testFailed":  "A publicação do ntfy em {{topic}} retornou {{status}}: {{body}}"
+  },
+  "form": {
+    "publishTitle": "API de publicação do ntfy",
+    "publishHelp": "HTTP POST",
+    "publishBody": "O ntfy é um serviço HTTP de publicação/assinatura. O plugin envia por POST o título da notificação como cabeçalho `Title` e a mensagem como corpo da requisição para `<server_url>/<topic>`. Os assinantes a recebem imediatamente no aplicativo ntfy para Android/iOS ou na web. Clique em **Salvar** e depois em **Testar a conexão** para verificar que o tópico e as credenciais permitem uma publicação real.",
+    "authTitle": "Autenticação",
+    "authHelp": "Token ou Basic",
+    "authToken": "**Token de acesso** — a opção preferida. Token com escopo de tópico, obtido na interface web do ntfy, nas configurações do tópico. Enviado como `Authorization: Bearer <token>`. Cada tópico tem o seu próprio token, então revogar um não afeta os outros.",
+    "authBasic": "**Nome de usuário + senha** — para ntfy auto-hospedado com autenticação por usuário. Enviados como HTTP Basic. Usados somente quando o token de acesso está em branco.",
+    "authNone": "**Nenhum dos dois** — adequado para tópicos públicos no ntfy.sh. Qualquer pessoa que conheça o nome do tópico pode publicar, então escolha um nome longo e impossível de adivinhar para alertas de produção.",
+    "priorityTitle": "Prioridade e etiquetas",
+    "priorityHelp": "Interrupção no celular",
+    "priorityBody": "Defina a prioridade como **high** ou **urgent** para ignorar o modo Não perturbe no iOS e no Android. O ntfy associa urgent (5) ao volume do fluxo de alarme do telefone no Android — use com moderação. As etiquetas são ícones em linha no aplicativo móvel; escolha um ou dois atalhos por tipo de canal (por exemplo, `warning` para alertas, `rocket` para backups concluídos) para que os assinantes possam percorrer o tópico visualmente.",
+    "testTitle": "Testar a conexão",
+    "testHelp": "O que esperar",
+    "testBody": "A chamada de teste publica uma mensagem real (`Title: McHarbor test notification`, corpo `McHarbor test notification`) no seu tópico. O servidor ntfy retorna 200 OK em caso de sucesso; o plugin converte qualquer resposta que não seja 2xx em um erro estruturado com o código de status do servidor e os primeiros 256 bytes do corpo de erro JSON. Os assinantes verão a mensagem de teste — avise-os antes de clicar em Testar para que ela não gere um ticket de alerta falso positivo.",
+    "fields": {
+      "server_url": {
+        "label": "URL do servidor",
+        "help": "URL base do seu servidor ntfy. O padrão é https://ntfy.sh — altere para a sua instância auto-hospedada (por exemplo, https://ntfy.example.com) em instalações locais."
+      },
+      "topic": {
+        "label": "Tópico",
+        "help": "Nome do tópico que os assinantes recebem no aplicativo ntfy. Use um nome único (por exemplo, mcharbor-alerts-prod). O ntfy.sh permite até 64 caracteres de [a-zA-Z0-9_-]."
+      },
+      "access_token": {
+        "label": "Token de acesso",
+        "help": "Token da ntfy com escopo de tópico. Clique em \"Get token\" na página do tópico na interface web do ntfy. Tem prioridade sobre usuário/senha quando definido. Armazenado criptografado."
+      },
+      "username": {
+        "label": "Nome de usuário",
+        "help": "Nome de usuário da autenticação HTTP Basic para ntfy auto-hospedado. Usado somente quando access_token está em branco."
+      },
+      "password": {
+        "label": "Senha",
+        "help": "Senha da autenticação HTTP Basic para ntfy auto-hospedado. Usada somente quando access_token está em branco. Armazenada criptografada."
+      },
+      "priority": {
+        "label": "Prioridade",
+        "help": "Opcional. Define o comportamento de interrupção no aplicativo móvel do ntfy. min=1, low=2, default=3, high=4, urgent=5. Deixe em branco para usar o padrão do servidor."
+      },
+      "tags": {
+        "label": "Etiquetas",
+        "help": "Opcional. Atalhos de emoji separados por vírgulas, exibidos como ícones em linha no aplicativo móvel do ntfy (por exemplo, \"warning,rocket\"). Veja o catálogo em https://docs.ntfy.sh/emojis/."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Guia de configuração do ntfy"
+  },
+  "guide": {
+    "step1": { "body": "Decida para onde vão os seus alertas: ntfy.sh (nuvem, gratuito, somente tópicos públicos por padrão) ou ntfy auto-hospedado (imagem Docker, controle total sobre a autenticação e a privacidade dos tópicos). Defina <b>URL do servidor</b> de acordo — deixe em branco para o ntfy.sh." },
+    "step2": { "body": "Escolha um nome de tópico. O ntfy.sh permite até 64 caracteres de <code>[a-zA-Z0-9_-]</code>. Use um nome único por ambiente (por exemplo, <code>mcharbor-alerts-prod</code>, <code>mcharbor-alerts-staging</code>) para que os assinantes possam silenciar um sem perder o outro. O próprio nome do tópico é o endpoint de publicação, então <warn>não coloque segredos nele</warn>." },
+    "step3": { "body": "Assine no dispositivo receptor: instale o aplicativo ntfy para Android ou iOS (ou acesse ntfy.sh em um navegador) e toque em + para adicionar um tópico. Digite exatamente o mesmo nome usado na etapa 2. Sem um assinante neste dispositivo, os seus alertas não vão a lugar nenhum." },
+    "step4": { "body": "Para o ntfy.sh: abra o tópico na interface web, clique no ícone de cadeado e gere um token de acesso com escopo de tópico. Cole-o no campo <b>Token de acesso</b> à esquerda. Os tópicos na nuvem são de leitura pública, a menos que você marque a caixa \"authenticated users only\"; publicações protegidas por token continuam com leitura pública por padrão, então o token impede que usuários aleatórios da internet injetem mensagens, mas não que as leiam." },
+    "step5": { "body": "Para ntfy auto-hospedado: preencha <b>Nome de usuário</b> + <b>Senha</b> para a autenticação HTTP Basic (definida na configuração do ntfy em <code>auth-default-access</code>). O plugin usa um token Bearer se <b>Token de acesso</b> estiver definido e recorre ao Basic quando só há usuário + senha. Se ambos estiverem presentes, o token prevalece." },
+    "step6": { "body": "Opcional: defina <b>Prioridade</b> como <code>high</code> ou <code>urgent</code> para ignorar o modo Não perturbe. urgent corresponde ao inteiro 5 do ntfy — o Android o reproduz no fluxo de alarme e o iOS se sobrepõe ao modo silencioso. Use apenas para alertas de indisponibilidade e de falha de backup." },
+    "step7": { "body": "Opcional: adicione <b>Etiquetas</b> como uma lista de atalhos de emoji separados por vírgulas (por exemplo, \"<code>warning,rocket</code>\") — o aplicativo móvel do ntfy os exibe como ícones em linha ao lado de cada mensagem. Veja o catálogo em <code>https://docs.ntfy.sh/emojis/</code>." },
+    "step8": { "body": "Salve o canal. Clique em <b>Testar a conexão</b> — o plugin publica \"<code>McHarbor test notification</code>\" no seu tópico. O dispositivo assinante deve recebê-lo em 1-2 segundos. Se o teste retornar <code>401</code>, o token de acesso está errado; se retornar <code>404</code>, o nome do tópico não corresponde ao que os assinantes adicionaram; se retornar <code>429</code>, o ntfy.sh limitou a publicação (5 mensagens a cada 10 s por tópico no plano gratuito)." },
+    "step9": { "body": "Depois de salvar o canal, direcione eventos de fluxo de trabalho ou de alerta para ele em <b>Configurações > Notificações > Regras</b>. A entrega do ntfy é do tipo \"disparar e esquecer\": uma publicação com falha é registrada no log de auditoria e exibida no toast do host, mas o host não tenta novamente." }
+  }
+}

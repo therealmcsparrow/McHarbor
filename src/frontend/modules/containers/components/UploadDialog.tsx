@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
+import { PlainButton } from '@resources/components/ui/PlainButton';
 import { formatBytes } from '@resources/utils/format';
 import { useUploadFile } from '../hooks/useContainerFiles';
 import { UploadProgress } from './UploadProgress';
@@ -34,12 +35,7 @@ type UploadDialogProps = {
 
 const emptySelection: UploadSelection = { files: [], directories: [] };
 
-export function UploadDialog({
-  open,
-  onOpenChange,
-  containerId,
-  currentPath,
-}: UploadDialogProps) {
+export function UploadDialog({ open: isOpen, onOpenChange, containerId, currentPath }: UploadDialogProps) {
   const { t } = useTranslation('containers');
   const [selection, setSelection] = useState<UploadSelection>(emptySelection);
   const [isDragging, setIsDragging] = useState(false);
@@ -57,20 +53,20 @@ export function UploadDialog({
 
   const clearSelection = () => setSelection({ files: [], directories: [] });
 
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
+  const handleDragOver = useCallback((evt2: React.DragEvent) => {
+    evt2.preventDefault();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
+  const handleDragLeave = useCallback((evt2: React.DragEvent) => {
+    evt2.preventDefault();
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback(async (event: React.DragEvent) => {
-    event.preventDefault();
+  const handleDrop = useCallback(async (evt2: React.DragEvent) => {
+    evt2.preventDefault();
     setIsDragging(false);
-    const droppedSelection = await selectionFromDataTransfer(event.dataTransfer);
+    const droppedSelection = await selectionFromDataTransfer(evt2.dataTransfer);
     setSelection((current) => mergeUploadSelections(current, droppedSelection));
   }, []);
 
@@ -97,7 +93,7 @@ export function UploadDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{t('files.upload')}</DialogTitle>
@@ -105,40 +101,35 @@ export function UploadDialog({
         </DialogHeader>
         <div className="space-y-3 p-4">
           <div className="font-mono text-xs text-muted-foreground">{currentPath}</div>
-          <div
-            className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 text-center transition-colors ${
-              isDragging
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-muted-foreground'
+          <PlainButton
+            className={`flex min-h-[140px] w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 text-center transition-colors ${
+              isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => event.key === 'Enter' && fileInputRef.current?.click()}
           >
             {hasSelection ? (
-              <div className="flex flex-col items-center gap-1.5 text-sm text-foreground">
-                <div className="flex items-center gap-2">
+              <span className="flex flex-col items-center gap-1.5 text-sm text-foreground">
+                <span className="flex items-center gap-2">
                   <IconFile className="size-5 text-muted-foreground" />
                   <span>{t('files.uploadSelection', { count: selection.files.length })}</span>
-                </div>
+                </span>
                 <span className="text-xs text-muted-foreground">
                   {formatBytes(uploadSize)}
                   {selection.directories.length > 0
                     ? ` - ${t('files.uploadFolders', { count: selection.directories.length })}`
                     : ''}
                 </span>
-              </div>
+              </span>
             ) : (
-              <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+              <span className="flex flex-col items-center gap-1.5 text-muted-foreground">
                 <IconUpload className="size-6" />
                 <span className="text-sm">{t('files.dropOrClick')}</span>
-              </div>
+              </span>
             )}
-          </div>
+          </PlainButton>
 
           <UploadSelectionList selection={selection} />
 
@@ -165,10 +156,10 @@ export function UploadDialog({
             type="file"
             multiple
             className="hidden"
-            onChange={(event) => {
-              const nextSelection = selectionFromFileList(event.target.files);
+            onChange={(changeEvent) => {
+              const nextSelection = selectionFromFileList(changeEvent.target.files);
               setSelection((current) => mergeUploadSelections(current, nextSelection));
-              event.target.value = '';
+              changeEvent.target.value = '';
             }}
           />
           <input
@@ -176,10 +167,10 @@ export function UploadDialog({
             type="file"
             multiple
             className="hidden"
-            onChange={(event) => {
-              const nextSelection = selectionFromFileList(event.target.files);
+            onChange={(evt) => {
+              const nextSelection = selectionFromFileList(evt.target.files);
               setSelection((current) => mergeUploadSelections(current, nextSelection));
-              event.target.value = '';
+              evt.target.value = '';
             }}
           />
         </div>
@@ -187,10 +178,7 @@ export function UploadDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t('edit.cancelChanges')}
           </Button>
-          <Button
-            onClick={handleUpload}
-            disabled={!hasSelection || uploadMutation.isPending}
-          >
+          <Button onClick={handleUpload} disabled={!hasSelection || uploadMutation.isPending}>
             {uploadMutation.isPending ? t('files.uploading') : t('files.upload')}
           </Button>
         </DialogFooter>

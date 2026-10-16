@@ -1,0 +1,872 @@
+{
+  "title": "Compute",
+  "description": "Draai virtuele machines en systeemcontainers op je eigen hosts. Dit onderdeel bevat wat beide nodig hebben: wat elke host kan draaien, waar gastschijven staan, aan welk netwerk gasten worden gekoppeld en welke images beschikbaar zijn.",
+  "nav": {
+    "overview": "Overzicht",
+    "images": "Afbeeldingen",
+    "pools": "Opslagpools",
+    "networks": "Netwerken",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "refresh": "Vernieuwen",
+    "probe": "Deze host opnieuw controleren",
+    "enable": "Compute inschakelen",
+    "disable": "Compute uitschakelen",
+    "createPool": "Pool aanmaken",
+    "createNetwork": "Netwerk toevoegen",
+    "addImage": "Image toevoegen",
+    "download": "Downloaden",
+    "cancel": "Annuleren",
+    "evict": "Van host verwijderen",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "setDefault": "Als standaard instellen",
+    "runWizard": "Compute instellen",
+    "copyCommand": "Opdracht kopiëren",
+    "viewLeases": "Leases bekijken",
+    "probing": "Deze host wordt gecontroleerd…"
+  },
+  "overview": {
+    "title": "Compute-overzicht",
+    "subtitle": "Elke host, met wat die kan draaien. Een host moet compute ingeschakeld hebben, plus een opslagpool en een netwerk voordat er gasten op kunnen draaien.",
+    "empty": {
+      "title": "Nog geen host is ingesteld voor compute",
+      "body": "Virtuele machines en systeemcontainers draaien op een machine waarop de McHarbor-agent is geïnstalleerd, niet in McHarbor zelf. Kies hieronder een agenthost en voer de installatie uit om hem klaar te maken.",
+      "action": "Een host instellen"
+    },
+    "setupComplete": "Klaar voor gasten",
+    "setupIncomplete": "Installatie niet voltooid",
+    "needsPool": "Nog geen opslagpool",
+    "needsNetwork": "Nog geen netwerk",
+    "guestCounts": "{{running}} actief van {{total}}",
+    "cachedImages_one": "{{count}} image op deze host",
+    "cachedImages_other": "{{count}} images op deze host",
+    "tableView": "Tabelweergave",
+    "cardView": "Kaartweergave",
+    "searchPlaceholder": "Hosts zoeken…",
+    "noMatches": "Geen host komt overeen met die zoekopdracht.",
+    "poolCount_one": "{{count}} pool",
+    "poolCount_other": "{{count}} pools",
+    "columns": {
+      "host": "Host",
+      "status": "Status",
+      "platform": "Platform",
+      "pools": "Opslag",
+      "networks": "Netwerken",
+      "images": "Afbeeldingen"
+    },
+    "status": {
+      "ready": "Klaar voor gasten",
+      "incomplete": "Installatie niet voltooid",
+      "disabled": "Compute uit",
+      "offline": "Agent offline",
+      "tooOld": "Agent te oud",
+      "notAgent": "Geen agenthost"
+    },
+    "sharedLibrary": "Gedeelde imagebibliotheek",
+    "sharedLibraryOn": "Eenmaal gedownloade images zijn hier al aanwezig.",
+    "sharedLibraryOff": "Deze host downloadt van elke image een eigen kopie.",
+    "sharedLibraryHint": "Zet dit alleen aan als de agent van deze host de gedeelde bibliotheekmap op {{path}} koppelt. McHarbor kan dat vanaf hier niet controleren en vertrouwt dus op jouw woord."
+  },
+  "capability": {
+    "title": "Wat deze host kan draaien",
+    "subtitle": "Rechtstreeks op de host gecontroleerd. Bij alles wat ontbreekt staat precies wat je moet installeren of wijzigen.",
+    "neverProbed": "Deze host is nog niet gecontroleerd.",
+    "probedAt": "Gecontroleerd {{when}}",
+    "canRunVms": "Kan virtuele machines draaien",
+    "cannotRunVms": "Kan geen virtuele machines draaien",
+    "canRunContainers": "Kan systeemcontainers draaien",
+    "cannotRunContainers": "Kan geen systeemcontainers draaien",
+    "blocks": {
+      "vm": "Blokkeert virtuele machines",
+      "ct": "Blokkeert systeemcontainers",
+      "both": "Blokkeert beide soorten gasten"
+    },
+    "unsupported": {
+      "title": "Deze host kan geen gasten draaien",
+      "body": "Compute vereist een Linux-host. KVM is een Linux-kernelmodule en systeemcontainers zijn Linux-namespaces en cgroups, dus er is geen equivalent op dit platform. Installeer de agent op een Linux-machine om daar gasten te draaien."
+    },
+    "seccompOff": {
+      "title": "Deze agent heeft geen syscallfilter",
+      "body": "Hij is gebouwd zonder seccomp-ondersteuning, dus systeemcontainers draaien zonder syscallfiltering. Isolatie via user namespaces blijft van kracht: root in een container is op de host nog steeds een gewone gebruiker, maar de extra syscallbeperking ontbreekt. Installeer een agentbuild die met seccomp is gecompileerd om die te krijgen."
+    },
+    "supervisor": {
+      "dbus": "Gasten worden bewaakt via de systemd-systeembus, zodat een crash direct wordt gemeld.",
+      "systemd-run": "De systeembus is niet bereikbaar, dus gasten worden bewaakt via systemd-run. Ze overleven nog steeds een herstart van de agent, maar een gecrashte gast wordt pas bij de volgende controle opgemerkt in plaats van direct."
+    },
+    "items": {
+      "kvm_device": "Hardwarevirtualisatieapparaat",
+      "cpu_virt": "CPU-virtualisatieondersteuning",
+      "qemu": "QEMU",
+      "qemu_img": "qemu-img",
+      "ovmf": "UEFI-firmware",
+      "swtpm": "Software-TPM",
+      "cgroup2": "cgroup v2",
+      "userns": "Gebruikersnamespaces",
+      "subuid": "Subordinate gebruikers-ID's",
+      "idmapped_mounts": "Idmapped mounts",
+      "systemd": "systemd",
+      "dbus": "Systeemberichtenbus",
+      "seccomp": "Syscallfiltering",
+      "iommu": "IOMMU (apparaatdoorgifte)",
+      "host_network": "Toegang tot hostnetwerk"
+    },
+    "remediation": "Zo los je dit op",
+    "present": "Beschikbaar",
+    "missing": "Ontbreekt",
+    "critical": "Vereist",
+    "probeFailed": "De controle is niet voltooid",
+    "probeFailedRetry": "De host heeft niet op de controle gereageerd. Probeer het opnieuw en kijk in het serverlog voor details als het blijft mislukken.",
+    "installButton": "Installeren",
+    "installTitle": "{{item}} installeren?",
+    "installDescription": "De agent van de host installeert de pakketten voor {{item}} met de pakketbeheerder van de host, als root. De controle stelde deze opdracht voor:",
+    "installConfirm": "Installeren",
+    "installDone": "{{item}} geïnstalleerd ({{packages}}).",
+    "installFailed": "De installatie is niet voltooid."
+  },
+  "agent": {
+    "required": {
+      "title": "Gasten draaien op een agenthost",
+      "body": "Deze omgeving praat rechtstreeks met Docker in plaats van via een agent en kan dus geen gasten hosten. Een virtuele machine die vanuit McHarbor zelf wordt gestart, zou bij de volgende deploy van McHarbor worden beëindigd en het netwerk zou achter de NAT van Docker zitten in plaats van op je LAN. Installeer de agent op de machine die gasten moet hosten en voeg die toe als omgeving."
+    },
+    "offline": {
+      "title": "De agent van deze host is offline",
+      "body": "Compute-opdrachten worden nooit voor later in de wachtrij gezet: een \"start deze VM\" die twintig minuten nadat je het had opgegeven alsnog wordt uitgevoerd, is erger dan een fout. Verbind de agent opnieuw en probeer het nogmaals."
+    },
+    "tooOld": {
+      "title": "Deze agent is te oud voor compute",
+      "body": "Voor het draaien van gasten is agent {{required}} of nieuwer nodig; deze host draait {{current}}.",
+      "action": "Deze agent bijwerken"
+    }
+  },
+  "pools": {
+    "state": {
+      "unknown": "Onbekend",
+      "ready": "Klaar",
+      "error": "Fout"
+    },
+    "detail": {
+      "back": "Terug naar pools",
+      "instant": "Directe klonen",
+      "instantYes": "Ondersteund",
+      "instantNo": "Niet ondersteund",
+      "tabs": {
+        "overview": "Overzicht",
+        "files": "Bestanden"
+      },
+      "missing": {
+        "title": "Pool niet gevonden",
+        "description": "Deze pool staat niet meer op de host of is verwijderd terwijl deze pagina open stond."
+      }
+    },
+    "files": {
+      "up": "Een map omhoog",
+      "breadcrumb": "Poolmappen",
+      "refresh": "Lijst vernieuwen",
+      "newFolder": "Nieuwe map",
+      "edit": "Bestand bewerken",
+      "rename": "Hernoemen",
+      "delete": "Verwijderen",
+      "column": {
+        "name": "Naam",
+        "size": "Grootte",
+        "mode": "Modus",
+        "modified": "Gewijzigd",
+        "actions": "Acties"
+      },
+      "empty": {
+        "title": "Deze map is leeg",
+        "description": "Hier is nog niets naartoe geschreven."
+      },
+      "dialog": {
+        "newFolderTitle": "Nieuwe map",
+        "renameTitle": "Hernoemen",
+        "namePlaceholder": "Naam",
+        "deleteTitle": "Dit item verwijderen?",
+        "deleteDescription": "{{name}} wordt uit de pool verwijderd. Een map wordt met alles erin verwijderd."
+      },
+      "toast": {
+        "saved": "Bestand opgeslagen",
+        "saveFailed": "Kan het bestand niet opslaan",
+        "created": "Map aangemaakt",
+        "createFailed": "Kan de map niet aanmaken",
+        "renamed": "Hernoemd",
+        "renameFailed": "Kan niet hernoemen",
+        "deleted": "Verwijderd",
+        "deleteFailed": "Kan niet verwijderen"
+      },
+      "notBrowsable": {
+        "title": "Deze pool heeft geen bestanden om te bladeren",
+        "description": "Een LVM-thin-pool bewaart zijn volumes als blokapparaten, dus er is geen mappenstructuur om te openen."
+      },
+      "denied": {
+        "title": "Je kunt deze pool niet doorbladeren",
+        "description": "Voor het doorbladeren van een pool is de permissie compute.pools.browse nodig."
+      }
+    },
+    "title": "Opslagpools",
+    "subtitle": "Een pool is een plek op één host waar gastschijven en containerbestandssystemen staan.",
+    "empty": {
+      "title": "Nog geen opslagpools",
+      "body": "Gasten hebben een plek nodig voor hun schijven. Maak een pool aan op een host om te beginnen.",
+      "action": "Eerste pool aanmaken"
+    },
+    "columns": {
+      "name": "Naam",
+      "host": "Host",
+      "backend": "Type",
+      "target": "Locatie",
+      "capacity": "Capaciteit",
+      "volumes": "Gastvolumes",
+      "state": "Status",
+      "used": "Gebruikt",
+      "allocated": "Toegewezen"
+    },
+    "backend": {
+      "dir": "Map",
+      "zfs": "ZFS",
+      "lvm": "LVM thin",
+      "btrfs": "Btrfs"
+    },
+    "instant": {
+      "label": "Directe klonen",
+      "tooltip": "Bij dit type zijn snapshots en klonen metadatabewerkingen: ze zijn direct klaar, ongeacht de schijfgrootte. Tien containers maken vanuit één template duurt minder dan een seconde."
+    },
+    "slowClones": {
+      "label": "Kopiërende klonen",
+      "tooltip": "Een mappool kopieert gegevens om te klonen en koppelt snapshotbestanden aan elkaar. Het werkt overal en er hoeft niets geïnstalleerd te zijn, maar klonen duren zo lang als de gegevens groot zijn en lange snapshotketens vertragen het lezen."
+    },
+    "create": {
+      "title": "Een opslagpool aanmaken",
+      "environment": "Host",
+      "name": "Poolnaam",
+      "backend": "Opslagtype",
+      "target": "Locatie",
+      "targetHint": {
+        "dir": "Een absoluut pad op de host, bijvoorbeeld /var/lib/mcharbor/compute.",
+        "zfs": "Een ZFS-dataset, bijvoorbeeld tank/mcharbor.",
+        "lvm": "Een volumegroep en thin pool, bijvoorbeeld vg0/mcharbor.",
+        "btrfs": "Een absoluut pad op een gekoppeld btrfs-bestandssysteem."
+      },
+      "recommended": "Aanbevolen",
+      "recommendedWhy": "Deze host heeft {{backend}}, waarbij snapshots en klonen van gasten direct klaar zijn, ongeacht de grootte.",
+      "unavailable": "Niet beschikbaar op deze host",
+      "makeDefault": "Deze pool standaard gebruiken voor nieuwe gasten",
+      "submit": "Pool aanmaken"
+    },
+    "delete": {
+      "title": "{{name}} verwijderen?",
+      "body": "De pool wordt losgekoppeld van McHarbor. Er wordt niets op de host verwijderd, tenzij je dat hieronder afdwingt.",
+      "inUse": "Deze pool bevat nog gastvolumes: {{volumes}}. Verwijder of verplaats die gasten eerst.",
+      "force": "Ook alle gastvolumes in deze pool verwijderen",
+      "forceWarning": "Dit vernietigt gastschijven definitief. Dit kan niet ongedaan worden gemaakt.",
+      "confirmName": "Typ {{name}} om te bevestigen",
+      "submit": "Pool verwijderen"
+    },
+    "capacityWarning": "Deze pool is voor {{percent}}% vol. Een pool die vol raakt, pauzeert alle gasten erop.",
+    "overcommit": "Gasten op deze pool zijn ingericht met {{allocated}} tegenover {{capacity}} aan echte ruimte. Dat is prima zolang ze thin blijven, maar de pool pauzeert alle gasten als hij echt vol raakt.",
+    "searchPlaceholder": "Pools zoeken…",
+    "move": {
+      "title": "Gegevens van {{name}} verplaatsen",
+      "body": "De pool bewaart de schijven van zijn gasten in één map. Bij het verplaatsen worden ze naar de nieuwe locatie gekopieerd, worden alle rijen die ernaar verwijzen bijgewerkt en worden de paden in de images herschreven.",
+      "target": "Nieuwe locatie",
+      "current": "Nu op {{path}}",
+      "check": "Controleren",
+      "planning": "De host wordt gevraagd wat er staat...",
+      "footprint": "{{entries}} bestanden, {{size}}.",
+      "progress": "{{percent}}% - {{moved}} van {{total}}",
+      "finished": "Klaar. {{count}} items verplaatst.",
+      "failed": "Het verplaatsen is mislukt.",
+      "stopped": "{{count}} gast(en) zijn hiervoor afgesloten. Start ze opnieuw vanuit de machinelijst.",
+      "submit": "De gegevens verplaatsen",
+      "repair": "Koppelingen herstellen",
+      "repairHint": "Gebruik dit als de gegevens zijn verplaatst maar de gasten niet starten: het herschrijft de paden in de schijfimages en de snapshotmanifesten. Er wordt niets gekopieerd en geen gast gestopt.",
+      "repaired": "{{count}} verwijzing(en) hersteld.",
+      "willStop": {
+        "title": "{{count}} gast(en) worden afgesloten",
+        "body": "Een gast kan niet blijven draaien terwijl zijn schijf wordt verplaatst. Ze worden vóór het verplaatsen netjes afgesloten en daarna niet opnieuw gestart, dus start ze vanuit de machinelijst zodra het klaar is."
+      },
+      "action": "Gegevens verplaatsen"
+    }
+  },
+  "networks": {
+    "title": "Gastnetwerken",
+    "subtitle": "Hoe gasten het netwerk bereiken. Zowel virtuele machines als systeemcontainers gebruiken dezelfde netwerken.",
+    "empty": {
+      "title": "Nog geen gastnetwerken",
+      "body": "Gasten hebben een netwerk nodig om aan te koppelen. De eenvoudigste optie is een bridge die je al op de host hebt.",
+      "action": "Een netwerk toevoegen"
+    },
+    "columns": {
+      "name": "Naam",
+      "host": "Host",
+      "mode": "Modus",
+      "bridge": "Bridge",
+      "subnet": "Subnet",
+      "guests": "Gasten",
+      "state": "Status",
+      "attachment": "Koppeling",
+      "hostInterface": "Hostinterface"
+    },
+    "mode": {
+      "bridged": "Overbrugd",
+      "managed": "Beheerd",
+      "bridgedHint": "Gasten sluiten aan op een bridge die je al hebt en krijgen adressen van je eigen DHCP-server. McHarbor maakt alleen de eigen interface van de gast aan en raakt de bridge of de fysieke verbinding nooit aan.",
+      "managedHint": "McHarbor maakt naast je adapters een eigen bridge aan, deelt daarop adressen uit en maskeert gastverkeer naar buiten via de interface die je kiest. Je adapters worden niet gewijzigd en aan niets gekoppeld. Gebruik dit als de host één netwerkinterface heeft en geen bridge.",
+      "external": "Extern (adapter delen)",
+      "externalHint": "McHarbor koppelt een van de eigen adapters van de host aan een bridge en verplaatst het adres van de host daarheen, zodat gasten op je LAN zitten en adressen krijgen van je eigen DHCP-server. Hetzelfde idee als een externe switch in Hyper-V of bridged networking in VMware. Configureert de adapter opnieuw en draait zichzelf terug als de host niet meer reageert.",
+      "macvlan": "macvlan (rechtstreeks op een adapter)",
+      "macvlanHint": "Elke gast krijgt een eigen MAC-adres en zit rechtstreeks op je LAN, met een adres van je eigen DHCP-server. De adapter zelf wordt niet opnieuw geconfigureerd en de host blijft erop werken. Let op: de host kan zijn eigen gasten op dit netwerk niet bereiken, tenzij je hieronder hosttoegang inschakelt."
+    },
+    "create": {
+      "title": "Een gastnetwerk toevoegen",
+      "environment": "Host",
+      "name": "Netwerknaam",
+      "mode": "Modus",
+      "bridge": "Bridge",
+      "bridgePlaceholder": "Selecteer een bridge op deze host",
+      "noBridges": "Deze host heeft geen bridges. Maak er een aan op de host of gebruik in plaats daarvan een beheerd netwerk.",
+      "vlan": "VLAN-tag",
+      "vlanHint": "Laat leeg tenzij gasten op een specifiek VLAN moeten zitten. Gasten hoeven er niets van te weten.",
+      "subnet": "Subnet",
+      "gateway": "Gatewayadres",
+      "dhcp": "Adressen uitdelen op dit netwerk",
+      "dhcpRange": "Adresbereik",
+      "nat": "Gastverkeer via de host naar buiten routeren",
+      "uplink": "Uitgaande interface",
+      "submit": "Netwerk toevoegen",
+      "noHostNetwork": "Deze agent kan het netwerk van de host niet zien. Hij draait in zijn eigen netwerknamespace, meestal een container zonder hostnetwerk, dus geen bridge of uitgaande interface op de host is vanaf hier bereikbaar. Draai de agent met hostnetwerk en NET_ADMIN en probeer het opnieuw.",
+      "noUplinks": "Deze host heeft geen fysieke, gebonden of VLAN-interface om gastverkeer via naar buiten te routeren.",
+      "uplinkPlaceholder": "Selecteer de interface waarlangs gastverkeer vertrekt",
+      "uplinkDefaultRoute": "{{link}} (standaardroute van deze host)",
+      "uplinkHint": "Gastverkeer wordt via deze interface gemaskeerd naar buiten gestuurd. De interface zelf wordt niet gewijzigd, niet aan de bridge gekoppeld en behoudt zijn eigen adres. De interface met de standaardroute van de host is de normale keuze.",
+      "adapter": "Te delen adapter",
+      "adapterPlaceholder": "Selecteer een adapter",
+      "adapterHint": "De adapter sluit aan op een bridge die McHarbor aanmaakt en het eigen adres en de routes van de host verhuizen naar die bridge. Gasten zitten dan rechtstreeks op hetzelfde netwerk als de host, met adressen van je eigen DHCP-server.",
+      "acceptExternal": "Ik begrijp dat de hostadapter hierdoor opnieuw wordt geconfigureerd",
+      "adapterBusy": "{{link}} draagt al {{interfaces}}. De host bridget geen adapter waar andere interfaces bovenop staan. Verwijder die eerst of kies een andere adapter.",
+      "adapterBusyOption": "{{link}} — in gebruik",
+      "parent": "Bovenliggende interface",
+      "parentPlaceholder": "Kies een adapter",
+      "parentHint": "De adapter waarop gasten worden gestapeld. Hij wordt niet opnieuw geconfigureerd: zijn adres, zijn routes en het hostverkeer erop blijven precies zoals ze zijn.",
+      "linkMode": "Modus",
+      "directVlanHint": "Laat leeg voor een netwerk zonder tag. Met een tag zet McHarbor gasten op dat VLAN door een subinterface op {{parent}} aan te maken en ze daarop te stapelen.",
+      "hostAccess": "Laat deze host zijn gasten bereiken",
+      "hostAccessPassthru": "Passthru geeft de adapter aan één gast, dus de host kan er geen adres op hebben.",
+      "hostAccessIp": "Adres voor deze host",
+      "hostAccessIpHint": "Een adres en prefix op het gastsubnet, zoals 192.168.1.9/24. Laat leeg om de interface zonder adres te activeren en de host het zelf te laten claimen.",
+      "ipv6": "IPv6",
+      "ipv6Hint": "Geef de interface van deze host ook IPv6. Zonder adres hieronder configureert hij zichzelf via router advertisements (SLAAC).",
+      "hostLinkName": "Naam van de hostinterface",
+      "hostLinkNameAuto": "Automatisch gegenereerd, zoals mcharbor-h1a2b3",
+      "hostLinkNameHint": "Dit wordt een echte netwerkinterface op de host, dus de naam verschijnt in ip link en kan in firewallregels van de host worden gebruikt. Maximaal 15 letters, cijfers, punten, streepjes of underscores. Namen die beginnen met mcharbor-, mcht, mchv of mchd zijn gereserveerd.",
+      "hostAccessIpv6": "IPv6-adres voor deze host",
+      "hostAccessIpv6Hint": "Een IPv6-adres met prefix, zoals fd00::9/64. Laat leeg om de host zichzelf te laten configureren via router advertisements (SLAAC)."
+    },
+    "delete": {
+      "title": "{{name}} verwijderen?",
+      "bridgedBody": "Dit verwijdert het netwerk uit McHarbor. De bridge zelf is van jou en blijft ongemoeid.",
+      "managedBody": "Dit verwijdert de bridge die McHarbor voor dit netwerk heeft aangemaakt, samen met de adressering en routering.",
+      "submit": "Netwerk verwijderen",
+      "externalBody": "Dit geeft de adapter terug aan de host: hij verlaat de McHarbor-bridge en zijn adres en routes verhuizen terug. De door McHarbor aangemaakte bridge wordt verwijderd.",
+      "macvlanBody": "Dit verwijdert het netwerk uit McHarbor. De bovenliggende interface en eventuele macvlan-koppelingen erop blijven ongemoeid."
+    },
+    "leases": {
+      "title": "Uitgedeelde adressen",
+      "empty": "Op dit netwerk zijn nog geen adressen uitgedeeld.",
+      "columns": {
+        "ip": "Adres",
+        "mac": "Hardwareadres",
+        "hostname": "Gemelde naam",
+        "guest": "Gast",
+        "expires": "Verloopt"
+      },
+      "hostnameNote": "De gemelde naam komt van de gast zelf en wordt als gewone tekst getoond."
+    },
+    "externalWarning": "{{link}} wordt aan een McHarbor-bridge gekoppeld en zijn adres wordt naar die bridge verplaatst. Als het niet meer werkt, herstelt McHarbor het na 45 seconden automatisch. De host blijft pas gewijzigd nadat McHarbor heeft bevestigd dat hij deze agent nog kan bereiken.",
+    "externalWarningDefaultRoute": "{{link}} draagt de standaardroute van deze host, dus dit configureert de verbinding die je nu gebruikt opnieuw. Het adres en de standaardroute verhuizen samen naar de McHarbor-bridge; gaat er iets mis, dan zet de agent ze na 45 seconden terug zonder dat je de host hoeft te bereiken.",
+    "searchPlaceholder": "Netwerken zoeken…",
+    "plan": {
+      "title": "Wat dit op deze host doet",
+      "stepsTitle": "Wanneer je dit netwerk toevoegt",
+      "removeTitle": "Wanneer je dit netwerk verwijdert",
+      "cautionTitle": "Goed om te weten voordat je dit doet",
+      "bridgedCreatesNothing": "Er wordt niets op de host opnieuw geconfigureerd. {{bridge}} behoudt zijn adres, routes en MTU en er wordt geen fysieke adapter aangeraakt.",
+      "bridgedTap": "Telkens als een gast start, wordt er een tap- of veth-interface met de naam mcht… / mchv… voor aangemaakt en aan {{bridge}} gekoppeld. Die wordt weer verwijderd als de gast stopt.",
+      "bridgedVlan": "De eigen poort van de gast wordt getagd met VLAN {{vlan}}. {{bridge}} zelf krijgt geen andere tag.",
+      "bridgedRemove": "Er gebeurt niets op de host. De bridge is van jou; alleen het McHarbor-record wordt verwijderd.",
+      "managedBridge": "Er wordt een nieuwe bridge met de naam mcharbor-brN aangemaakt en geactiveerd. Geen van de bestaande adapters wordt eraan gekoppeld.",
+      "managedAddress": "{{gateway}} wordt aan die bridge toegewezen, zodat de host antwoordt als gateway voor {{subnet}}.",
+      "managedDhcp": "Een DHCP-server in de agent begint op die bridge te antwoorden en deelt adressen uit {{subnet}} uit. Er komt geen DHCP-verkeer op de rest van je netwerk.",
+      "managedNat": "net.ipv4.ip_forward wordt ingeschakeld en er worden iptables-regels toegevoegd: een MASQUERADE in nat/POSTROUTING voor {{subnet}} dat via {{uplink}} vertrekt, plus twee FORWARD-accepts omdat een Docker-host die chain op DROP zet. Elke regel is getagd met dit netwerk, zodat verwijderen precies deze vindt.",
+      "managedUplinkUntouched": "{{uplink}} wordt niet aan de bridge gekoppeld, niet opnieuw geadresseerd en niet opnieuw geconfigureerd. Hij wordt alleen genoemd als de interface waarlangs gemaskeerd verkeer vertrekt.",
+      "managedTap": "Elke draaiende gast krijgt een tap of veth die aan de nieuwe bridge is gekoppeld en weer wordt verwijderd als de gast stopt.",
+      "managedRemove": "De DHCP-server stopt, de getagde iptables-regels worden verwijderd en de bridge wordt verwijderd. ip_forward blijft ingeschakeld.",
+      "externalBridge": "Er wordt een nieuwe bridge met de naam mcharbor-brN aangemaakt met dezelfde MTU als {{adapter}}, zodat grote frames niet gaan verdwijnen.",
+      "externalEnslave": "{{adapter}} wordt als slave aan die bridge gekoppeld. De bridge neemt zijn MAC-adres over en gasten zitten dan rechtstreeks op hetzelfde netwerk als de host.",
+      "externalAddresses": "Elk IPv4-adres op {{adapter}} wordt eerst aan de bridge toegevoegd en pas daarna van de adapter verwijderd, zodat de host nooit zonder adres zit.",
+      "externalRoutes": "Elke route die naar {{adapter}} wees, inclusief de standaardroute, wordt naar de bridge omgeleid.",
+      "externalRollback": "Voordat de agent antwoordt, wordt een terugdraaiing van 45 seconden ingesteld. McHarbor annuleert die pas nadat de agent via dezelfde verbinding antwoordt. Als de wijziging de host dus heeft afgesneden, bevestigt niets dat en zet de agent de adapter, zijn adressen en routes terug zonder dat je de host hoeft te bereiken.",
+      "externalFailure": "Elke fout halverwege wordt direct ongedaan gemaakt en de door McHarbor aangemaakte bridge wordt weer verwijderd.",
+      "externalRemove": "{{adapter}} wordt van de bridge losgekoppeld, zijn adressen en routes verhuizen terug en de door McHarbor aangemaakte bridge wordt verwijderd.",
+      "externalCaveatIpv6": "Alleen IPv4-adressen en -routes worden meegenomen. Een IPv6-adres op {{adapter}} blijft op de adapter en volgt de host niet naar de bridge.",
+      "externalCaveatManager": "Wat {{adapter}} ook configureert op de host (NetworkManager, systemd-networkd, een DHCP-client), het richt zich nog steeds op de adapter en niet op de bridge. Het kan het adres terugnemen of de lease laten verlopen, wat de gebruikelijke reden is dat een overgenomen adapter na een minuut of twee stil valt en de agent offline gaat.",
+      "externalCaveatStack": "{{adapter}} mag niet al als slave zijn gekoppeld en mag geen VLAN, macvlan of Docker-macvlan-shim hebben. De kernel weigert een adapter te bridgen waar interfaces bovenop gestapeld staan.",
+      "externalCaveatSession": "Als {{adapter}} de adapter is waarmee deze agent met McHarbor praat, wordt de verbinding kort onderbroken terwijl het adres verhuist. Dat is normaal; een verbreking die aanhoudt, activeert het terugdraaien.",
+      "directUntouched": "{{parent}} blijft precies zoals hij is: er wordt geen adres verplaatst, niets als slave gekoppeld en de host blijft erop werken.",
+      "directVlan": "Maak een VLAN {{vlan}}-subinterface op {{parent}} om gasten op te stapelen.",
+      "directChild": {
+        "macvlan": "Geef elke gast een eigen interface en MAC-adres, gestapeld op {{parent}}, aangemaakt als de gast start en verwijderd als hij stopt."
+      },
+      "directUpstream": "Geen DHCP en geen NAT: gasten halen hun adressen van het LAN, net als elke andere machine daarop.",
+      "directShim": "Voeg nog een interface voor deze host toe, zodat hij zijn eigen gasten kan bereiken.",
+      "directShimAddress": "Voeg nog een interface voor deze host toe op {{address}}, zodat hij zijn eigen gasten kan bereiken.",
+      "directShimNamed": "Noem die interface {{name}} op de host en markeer hem als van McHarbor, zodat hij samen met het netwerk wordt verwijderd.",
+      "directShimIpv6": "Geef die interface het IPv6-adres {{address}}.",
+      "directShimSlaac": "Laat die interface zijn IPv6-adres configureren via router advertisements (SLAAC).",
+      "directRemove": "Als je dit netwerk verwijdert, wordt de eigen interface van de host erop verwijderd en, als McHarbor er een heeft aangemaakt, de VLAN-subinterface. {{parent}} zelf wordt nooit aangeraakt.",
+      "directCaveatHost": "Zonder hosttoegang kunnen gasten op dit netwerk deze host niet bereiken en kan deze host hen niet bereiken. Dat is geen misconfiguratie, maar zo werken {{parent}} en zijn kinderen.",
+      "directCaveatIsolation": "In deze modus kunnen gasten op deze host elkaar niet rechtstreeks bereiken. Kies bridgemodus als dat nodig is."
+    },
+    "edit": {
+      "title": "{{name}} bewerken",
+      "subtitle": "Wijzig hoe dit netwerk wordt gekoppeld. De host wordt opnieuw geconfigureerd zodra je opslaat.",
+      "submit": "Wijzigingen opslaan",
+      "modeLocked": "De modus bepaalt wat dit netwerk op de host bezit en kan niet worden gewijzigd. Verwijder het en maak een nieuw netwerk om te wisselen.",
+      "guestsWarning": "Gasten die al zijn gekoppeld, houden de bridge of adapter die ze kregen. Koppel hun interface opnieuw of maak de gast opnieuw aan om ze naar de nieuwe te verplaatsen."
+    },
+    "directHostWarning": "Gasten op dit netwerk kunnen je hele LAN bereiken, maar deze host zelf niet: de kernel forwardt nooit tussen {{parent}} en de kinderen die erop zijn gestapeld. Schakel hieronder hosttoegang in als de host iets draait wat de gasten nodig hebben.",
+    "linkMode": {
+      "macvlan": {
+        "bridge": "bridge — gasten kunnen met elkaar praten",
+        "bridgeHint": "De gebruikelijke keuze. Gasten op deze host bereiken elkaar rechtstreeks en het LAN via de adapter.",
+        "vepa": "vepa — alles gaat naar de switch",
+        "vepaHint": "Gasten bereiken elkaar alleen als de switch verkeer terugkaatst (hairpin-modus). Zonder dat kunnen gasten op deze host elkaar helemaal niet zien.",
+        "private": "private — gasten zijn geïsoleerd",
+        "privateHint": "Gasten op deze host kunnen elkaar nooit bereiken, ook niet via de switch. Ze bereiken nog wel de rest van het LAN.",
+        "passthru": "passthru — één gast bezit de adapter",
+        "passthruHint": "Eén gast neemt de adapter over, inclusief de mogelijkheid het MAC-adres te wijzigen. Geen tweede gast en geen hostadres kunnen hem delen."
+      }
+    }
+  },
+  "images": {
+    "title": "Afbeeldingen",
+    "subtitle": "Schijfimages voor virtuele machines en bestandssysteemarchieven voor systeemcontainers. Catalogusimages worden rechtstreeks van de distributie naar je host gedownload; images die je uploadt worden door McHarbor bewaard en naar een host gekopieerd wanneer je ze daar beschikbaar maakt.",
+    "empty": {
+      "title": "Nog geen images gedownload",
+      "body": "Kies hieronder een distributie en download die naar een host, of upload een eigen image. In beide gevallen hoeft hij maar één keer per host aan te komen.",
+      "action": "Images bekijken"
+    },
+    "kind": {
+      "cloud_image": "Image van virtuele machine",
+      "rootfs": "Containerbestandssysteem",
+      "iso": "Installatieschijf",
+      "all": "Alle types"
+    },
+    "columns": {
+      "name": "Naam",
+      "kind": "Type",
+      "arch": "Architectuur",
+      "size": "Grootte",
+      "state": "Op deze host"
+    },
+    "state": {
+      "absent": "Niet op deze host",
+      "pending": "Wachten",
+      "downloading": "Downloaden",
+      "ready": "Klaar",
+      "failed": "Mislukt"
+    },
+    "verified": "Checksum geverifieerd",
+    "signed": "Handtekening geverifieerd",
+    "verifiedTooltip": "De download is gecontroleerd aan de hand van de checksum die de distributie publiceert.",
+    "signedTooltip": "Het checksumbestand van de distributie is ook gecontroleerd aan de hand van een ondertekeningssleutel die met de agent wordt meegeleverd.",
+    "unsigned": {
+      "title": "Niet ondertekend",
+      "body": "De distributie publiceert geen handtekening voor dit image, dus alleen de checksum wordt gecontroleerd, en die checksum komt van dezelfde mirror als het image. Het wordt nog steeds gedownload."
+    },
+    "builtin": "Ingebouwd",
+    "downloadTo": "Beschikbaar maken op",
+    "downloading": "Downloaden {{percent}}%",
+    "add": {
+      "title": "Een image toevoegen",
+      "kind": "Type",
+      "displayName": "Naam",
+      "distro": "Distributie",
+      "release": "Release",
+      "arch": "Architectuur",
+      "sourceUrl": "Downloadadres",
+      "sourceUrlHint": "Moet een https-adres zijn. De host downloadt er rechtstreeks van.",
+      "checksumUrl": "Adres van checksumbestand",
+      "checksumUrlHint": "Het gepubliceerde checksumbestand van de distributie. Sterk aanbevolen: zonder checksum is er geen manier om te zien of wat binnenkomt ook is wat gepubliceerd is.",
+      "checksum": "Checksum",
+      "signatureUrl": "Adres van handtekeningbestand",
+      "initSystem": "Opstartsysteem",
+      "submit": "Image toevoegen"
+    },
+    "unverified": {
+      "title": "Deze bron publiceert geen checksum",
+      "body": "Er is geen manier om te zien of wat binnenkomt is wat de uitgever bedoelde. Deze image wordt de opstartschijf van een gast, dus behandel hem zoals je een niet-ondertekend programma zou behandelen.",
+      "acknowledge": "Toch downloaden",
+      "recorded": "Je beslissing wordt vastgelegd in het auditlog."
+    },
+    "evict": {
+      "title": "{{name}} van deze host verwijderen?",
+      "body": "De gedownloade kopie wordt van de host verwijderd. De catalogusvermelding blijft bestaan, zodat hij opnieuw kan worden gedownload.",
+      "inUse": "Deze image is de schijf van een draaiende gast en kan niet worden verwijderd.",
+      "submit": "Van host verwijderen"
+    },
+    "deleteBuiltin": "Ingebouwde catalogusvermeldingen kunnen niet worden verwijderd. Verwijder in plaats daarvan de gedownloade kopie.",
+    "sizeApproximate": "Geschatte downloadgrootte volgens de catalogus. De exacte grootte wordt vastgelegd zodra hij op de host staat.",
+    "upload": {
+      "action": "Image uploaden",
+      "title": "Een image uploaden",
+      "body": "Voeg een eigen schijfimage, bestandssysteemarchief of installatieschijf toe. Het wordt één keer geüpload en door McHarbor bewaard, en de eerste keer dat je het op een host beschikbaar maakt naar die host gekopieerd.",
+      "file": "Imagebestand",
+      "fileHint": "qcow2, img, raw, iso, vmdk, vhd, vhdx of een gecomprimeerd archief.",
+      "selected": "Geselecteerd — {{size}}",
+      "kind": "Type",
+      "displayName": "Naam",
+      "distro": "Distributie",
+      "release": "Release",
+      "arch": "Architectuur",
+      "initSystem": "Opstartsysteem",
+      "initSystemPlaceholder": "Kies een opstartsysteem",
+      "initSystemHint": "Welke init een containerbestandssysteem gebruikt, zodat er automatisch het juiste profiel voor wordt gekozen.",
+      "progress": "Uploaden {{percent}}%",
+      "submit": "Uploaden"
+    },
+    "library": {
+      "title": "Gedeelde imagebibliotheek",
+      "path": "McHarbor schrijft naar {{path}}",
+      "agentMount": "Optioneel: een host die {{path}} koppelt, gebruikt het bestand ter plekke in plaats van het te kopiëren",
+      "usage": "{{count}} bestanden · {{size}}",
+      "unwritable": "Er kan niet naar de imagebibliotheekmap worden geschreven. Uploads mislukken totdat dit is opgelost."
+    },
+    "origin": {
+      "upload": "Geüpload",
+      "library": "Gedeelde bibliotheek",
+      "send": "Beschikbaar maken"
+    },
+    "searchPlaceholder": "Images zoeken…",
+    "catalog": {
+      "reload": "Catalogus opnieuw laden"
+    },
+    "downloadEverywhere": "Op alle hosts beschikbaar maken",
+    "sharedLibraryNote": "{{count}} host(s) delen een bibliotheek ({{hosts}}), dus één download dekt ze allemaal.",
+    "filter": {
+      "os": "Besturingssysteem",
+      "allOs": "Alle besturingssystemen"
+    },
+    "phase": {
+      "downloading": "Downloaden",
+      "verifying": "Checksum verifiëren",
+      "decompressing": "Uitpakken",
+      "installing": "Installeren"
+    }
+  },
+  "hosts": {
+    "roots": {
+      "title": "Opslaglocaties",
+      "hint": "Waar deze host de status van virtuele machines, container-rootfs-structuren en gecachete images bewaart. Laat een veld leeg om over te nemen.",
+      "vmPath": "Status van virtuele machines",
+      "diskPath": "Container-rootfs-structuren",
+      "imagePath": "Imagecache",
+      "inherited": "Overgenomen",
+      "notApplied": "Niet toegepast op de host",
+      "save": "Locaties opslaan",
+      "reset": "Overschrijving wissen",
+      "retry": "Opnieuw proberen op host",
+      "source": {
+        "global": "McHarbor-standaard",
+        "environment": "Voor deze host ingesteld",
+        "agent": "Agentstandaard"
+      }
+    },
+    "detail": {
+      "open": "Hostdetails",
+      "back": "Terug naar hosts",
+      "missing": {
+        "title": "Deze host is er niet",
+        "description": "Hij is mogelijk verwijderd, of compute is er nooit voor ingeschakeld."
+      },
+      "tabs": {
+        "overview": "Overzicht",
+        "settings": "Instellingen",
+        "tests": "Tests",
+        "logs": "Logboeken"
+      }
+    },
+    "overview": {
+      "os": "Besturingssysteem",
+      "arch": "Architectuur",
+      "kernel": "Kernel",
+      "agentVersion": "Agentversie",
+      "probedAt": "Laatst gecontroleerd",
+      "unknown": "Niet gemeld",
+      "unsupported": "Deze host kan geen gasten draaien:"
+    },
+    "settings": {
+      "general": "Host",
+      "computeEnabled": "Compute ingeschakeld",
+      "computeEnabledHint": "Als je dit uitschakelt, worden de pools, netwerken en images van deze host verborgen zonder ze te verwijderen.",
+      "sharedLibrary": "Gedeelde imagebibliotheek",
+      "sharedLibraryHint": "Zet dit alleen aan als deze host de imagebibliotheek van McHarbor koppelt op /var/lib/mcharbor/compute/images.",
+      "defaultPool": "Standaardopslagpool",
+      "defaultPoolHint": "Nieuwe gastschijven komen hier terecht tenzij een andere pool wordt gekozen.",
+      "defaultNetwork": "Standaardnetwerk",
+      "defaultNetworkHint": "Nieuwe gasten worden hieraan gekoppeld tenzij een ander netwerk wordt gekozen.",
+      "nonePicked": "Niet ingesteld",
+      "movePool": "Pool verplaatsen",
+      "noPools": {
+        "title": "Nog geen opslagpool",
+        "description": "Een pool is waar gastschijven staan. Deze host kan geen gasten dragen totdat hij er een heeft."
+      },
+      "noNetworks": {
+        "title": "Nog geen netwerk",
+        "description": "Een netwerk is waar gasten aan worden gekoppeld. Voeg er een toe voordat je een gast op deze host aanmaakt."
+      }
+    },
+    "tests": {
+      "checklist": "Gereedheid",
+      "checklistHint": "Wat deze host nog nodig heeft voordat hij een gast kan dragen.",
+      "state": {
+        "pass": "Klaar",
+        "warn": "Controleren waard",
+        "fail": "Blokkerend"
+      },
+      "rows": {
+        "agent": "Agent bereikbaar",
+        "probed": "Host gecontroleerd",
+        "supported": "Host ondersteund",
+        "vms": "Kan virtuele machines draaien",
+        "containers": "Kan systeemcontainers draaien",
+        "pool": "Opslagpool aanwezig",
+        "network": "Netwerk aanwezig",
+        "sharedLibrary": "Gedeelde imagebibliotheek gekoppeld"
+      }
+    },
+    "logs": {
+      "sourceLabel": "Logbron",
+      "tailLabel": "Te lezen regels",
+      "guestLabel": "Gast",
+      "empty": "Uit deze bron is niets gelezen.",
+      "denied": "Voor het lezen van de besturingssysteemlogs van deze host is de permissie logs.view nodig.",
+      "readFailed": "Dit log kon niet worden gelezen:",
+      "pickGuest": "Kies een gast om zijn log te lezen.",
+      "noGuests": "Geen gasten op deze host",
+      "sources": {
+        "activity": "Compute-activiteit",
+        "system": "Systeem",
+        "kernel": "Kernel",
+        "auth": "Authenticatie",
+        "docker": "Docker",
+        "libvirt": "libvirt",
+        "agent": "McHarbor-agent",
+        "qemu": "Gast (QEMU)"
+      },
+      "notices": {
+        "permission_denied": "De agent kon een van de logbestanden van deze host niet lezen. Hij heeft toestemming nodig om ze te lezen.",
+        "no_supported_log_source": "Deze host bewaart geen log op de plekken waar McHarbor keek en journalctl is niet beschikbaar.",
+        "no_var_log_dir": "Deze host heeft geen map /var/log.",
+        "no_journalctl": "journalctl is niet geïnstalleerd op deze host.",
+        "journalctl_failed": "journalctl is uitgevoerd maar leverde niets bruikbaars op.",
+        "no_guests": "Deze host draait nog geen McHarbor-gasten, dus er is geen gastlog om te lezen.",
+        "unknown": "De agent meldde: {{code}}"
+      }
+    }
+  },
+  "wizard": {
+    "title": "Compute instellen",
+    "subtitle": "Vier stappen om een host klaar te maken voor gasten.",
+    "steps": {
+      "host": "Kies een host",
+      "capability": "Controleer de host",
+      "pool": "Opslag",
+      "network": "Netwerk",
+      "image": "Eerste image",
+      "summary": "Samenvatting"
+    },
+    "host": {
+      "title": "Welke host moet gasten draaien?",
+      "body": "Gasten draaien op een machine waarop de McHarbor-agent is geïnstalleerd. Staat de gewenste machine er niet bij, installeer dan eerst de agent erop en voeg hem toe als omgeving.",
+      "noAgentHosts": "Er zijn geen agenthosts verbonden. Installeer de agent op de machine die gasten moet draaien."
+    },
+    "capability": {
+      "title": "Wat deze host kan draaien",
+      "body": "Alles hieronder is op de host zelf gecontroleerd. Items die als vereist zijn gemarkeerd, moeten worden opgelost voordat gasten kunnen draaien.",
+      "allGood": "Deze host is klaar.",
+      "blockers_one": "{{count}} vereist item ontbreekt.",
+      "blockers_other": "{{count}} vereiste items ontbreken."
+    },
+    "pool": {
+      "title": "Waar moeten gastschijven staan?",
+      "body": "Kies een opslagtype. Heeft deze host ZFS of Btrfs, gebruik dat dan: snapshots en klonen zijn direct klaar in plaats van dat de gegevens worden gekopieerd."
+    },
+    "network": {
+      "title": "Hoe moeten gasten het netwerk bereiken?",
+      "body": "Heeft deze host al een bridge, dan is het koppelen van gasten daaraan de eenvoudigste en veiligste optie: er verandert niets aan het eigen netwerk van de host."
+    },
+    "image": {
+      "title": "Een eerste image downloaden",
+      "body": "Optioneel en het kan later. Als je er nu een downloadt, kan de eerste gast meteen worden aangemaakt."
+    },
+    "summary": {
+      "title": "Klaar",
+      "body": "Deze host kan nu gasten draaien. Installeer Virtual Machines of System Containers om er aan te maken.",
+      "installKvm": "Virtual Machines installeren",
+      "installLxc": "System Containers installeren"
+    },
+    "finish": "Voltooien",
+    "back": "Terug",
+    "next": "Volgende",
+    "skip": "Deze stap overslaan",
+    "close": "Sluiten"
+  },
+  "widgets": {
+    "computeCapacity": {
+      "label": "Compute-capaciteit",
+      "description": "Gebruik van opslagpools over je computehosts, met de volste eerst."
+    },
+    "computeHosts": {
+      "label": "Computehosts",
+      "description": "Welke hosts gasten kunnen draaien en wat de hosts tegenhoudt die dat niet kunnen."
+    },
+    "computeImages": {
+      "label": "Imagebibliotheek",
+      "description": "Hoeveel schijfruimte de gecachete gastimages innemen en waar ze zijn gecachet.",
+      "cached_one": "{{count}} gecachete image",
+      "cached_other": "{{count}} gecachete images",
+      "onHost_one": "{{count}} image",
+      "onHost_other": "{{count}} images"
+    },
+    "computeNetworks": {
+      "label": "Gastnetwerken",
+      "description": "De netwerken waaraan elke computehost een gast kan koppelen.",
+      "total": "netwerken",
+      "missing_one": "{{count}} host heeft er geen",
+      "missing_other": "{{count}} hosts hebben er geen"
+    }
+  },
+  "err": {
+    "compute": {
+      "unauthorized": "Je bent niet aangemeld.",
+      "invalid_request": "Iets in dat formulier was ongeldig.",
+      "not_found": "Dat bestaat niet meer.",
+      "name_taken": "Die naam is al in gebruik op deze host.",
+      "agent_required": "Gasten draaien op een agenthost. Deze omgeving is niet via een agent verbonden.",
+      "agent_failed": "De host kon dat niet voltooien:",
+      "pool_in_use": "Deze pool bevat nog gastvolumes.",
+      "pool_browse_unavailable": "Deze McHarbor is te oud om poolbestanden te doorbladeren. Werk de host bij en probeer het opnieuw.",
+      "pool_not_browsable": "Een LVM-thin-pool bewaart zijn volumes als blokapparaten, dus er zijn geen bestanden om te doorbladeren.",
+      "invalid_target": "Die locatie kan niet voor een opslagpool worden gebruikt.",
+      "image_unverified": "Deze bron publiceert geen checksum, dus de download is geweigerd.",
+      "image_builtin": "Ingebouwde catalogusvermeldingen kunnen niet worden verwijderd.",
+      "not_ready": "Dit onderdeel is nog aan het opstarten. Probeer het zo meteen opnieuw.",
+      "library_unavailable": "Er kan niet naar de imagebibliotheekmap worden geschreven. De details staan in het serverlog.",
+      "upload_empty": "Er is geen bestand geüpload.",
+      "upload_too_large": "Dat bestand is groter dan de uploadlimiet.",
+      "upload_extension": "Die bestandsextensie is geen ondersteund imageformaat.",
+      "upload_failed": "De upload is niet voltooid.",
+      "agent_outdated": "De agent op deze host is hier te oud voor. Voor beheerde en gedeelde netwerken is agent 3.4.0 of nieuwer nodig. Werk de agent bij en probeer het opnieuw.",
+      "agent_offline": "Er is op dit moment geen agent verbonden voor deze host, dus de host kan niet worden gewijzigd. Verbind de agent opnieuw en probeer het nogmaals.",
+      "uplink_busy": "Die adapter kan niet worden gebruikt. Hij draagt al andere interfaces, zoals een VLAN of de shim die een Docker-macvlan-netwerk achterlaat, en de host weigert hem te bridgen totdat die zijn verwijderd. Kies een andere adapter of maak in plaats daarvan een beheerd netwerk aan.",
+      "host_link_invalid": "Die hostinterface-instelling kan niet worden gebruikt. Gebruik maximaal 15 letters, cijfers, punten, streepjes of underscores, vermijd de gereserveerde prefixen en geef alleen een IPv6-adres op als IPv6 en hosttoegang aanstaan.",
+      "host_link_name_taken": "Er bestaat al een interface met die naam op de host die niet door McHarbor is aangemaakt. Kies een andere naam.",
+      "host_link_parent_not_found": "De bovenliggende interface bestaat niet meer op de host. Kies een adapter die aanwezig is en probeer het opnieuw.",
+      "host_link_permission_denied": "De agent mag op deze host geen netwerkinterfaces aanmaken. Hij heeft de capability NET_ADMIN en geïnstalleerde iproute2 nodig.",
+      "image_fetch_failed": "Het downloaden van de image naar de host is mislukt: {{error}}",
+      "image_fetch_failed_unknown": "Het downloaden van de image naar de host is mislukt.",
+      "invalid_path": "Die locatie moet een absoluut pad zijn en mag geen systeemmap zijn.",
+      "locations_not_applied": "De locaties zijn opgeslagen, maar deze host heeft ze niet overgenomen:"
+    }
+  },
+  "msg": {
+    "compute": {
+      "environment_saved": "Hostinstellingen opgeslagen.",
+      "pool_created": "Opslagpool aangemaakt.",
+      "pool_deleted": "Opslagpool verwijderd.",
+      "network_created": "Netwerk toegevoegd.",
+      "network_deleted": "Netwerk verwijderd.",
+      "image_added": "Image aan de catalogus toegevoegd.",
+      "image_fetched": "Image naar de host gedownload.",
+      "image_evicted": "Image van de host verwijderd.",
+      "image_deleted": "Image uit de catalogus verwijderd.",
+      "image_uploaded": "Image naar de gedeelde bibliotheek geüpload.",
+      "catalog_reloaded": "Imagecatalogus opnieuw geladen.",
+      "fetch_started_all": "Downloads gestart op elke host die dat nodig had.",
+      "fetch_started": "Het downloaden van de image naar de host is gestart.",
+      "locations_saved": "Compute-locaties opgeslagen.",
+      "locations_removed": "Overschrijving verwijderd.",
+      "locations_applied": "Locaties op de host toegepast."
+    }
+  },
+  "reports": {
+    "platform": "Compute",
+    "readiness": {
+      "label": "Gereedheid van computehosts",
+      "description": "Wat elke host kan draaien en wat de hosts tegenhoudt die dat niet kunnen, met de oplossing voor de eigen distributie van elke host."
+    },
+    "hygiene": {
+      "label": "Hygiëne van compute-images en -leases",
+      "description": "Imagedownloads per host die zijn mislukt of vastgelopen, images die geen enkele host bevat en DHCP-leases die verouderd, verlopen of verweesd zijn."
+    },
+    "options": {
+      "includeRemediation": "Opnemen hoe elke blokkade wordt opgelost",
+      "aiSummary": "Een geschreven beoordeling toevoegen (gebruikt je geconfigureerde AI-provider)",
+      "onlyIssues": "Alleen hosts, images en items die aandacht nodig hebben"
+    }
+  },
+  "nodes": {
+    "hostCapability": {
+      "label": "Hostcapaciteit",
+      "description": "Lees wat een computehost kan draaien. Routeert naar de foutpoort als de host het gasttype waarnaar je vraagt niet kan draaien."
+    },
+    "poolCapacity": {
+      "label": "Poolcapaciteit",
+      "description": "Meet een opslagpool en vertak op hoe vol hij is. Gebruik dit voordat je een gastschijf toewijst."
+    },
+    "ensureImage": {
+      "label": "Image garanderen",
+      "description": "Zorg dat een catalogusimage naar een host is gedownload voordat een aanmaakstap wordt uitgevoerd."
+    }
+  },
+  "alerts": {
+    "poolNearFull": "Opslagpool bijna vol",
+    "poolOvercommitted": "Opslagpool overcommitted",
+    "hostLostKvm": "Host heeft hardwarevirtualisatie verloren",
+    "hostUnreachable": "Computehost onbereikbaar",
+    "imageFetchFailed": "Imagedownload mislukt"
+  },
+  "badges": {
+    "default": "Standaard"
+  },
+  "runbook": {
+    "targets": {
+      "compute_pool": "Opslagpool"
+    },
+    "steps": {
+      "compute_capability_probe": "Controleer de host van deze omgeving opnieuw op KVM-, QEMU- en LXC-ondersteuning",
+      "compute_pool_state": "De backend, capaciteit en het gebruik van de opslagpool",
+      "compute_capability": "Wat de host van deze omgeving kan draaien: KVM, QEMU, LXC en waarom niet"
+    }
+  },
+  "search": {
+    "group": {
+      "hosts": "Compute-hosts",
+      "pools": "Opslagpools",
+      "images": "Compute-images"
+    },
+    "action": {
+      "setupHost": "Een compute-host instellen",
+      "setupHostKeywords": "compute inschakelen host wizard kvm lxc",
+      "createPool": "Opslagpool maken",
+      "createPoolKeywords": "nieuwe pool opslag schijf zfs lvm btrfs",
+      "uploadImage": "Compute-image uploaden",
+      "uploadImageKeywords": "uploaden iso qcow2 cloud image"
+    }
+  }
+}

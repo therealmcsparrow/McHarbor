@@ -1,15 +1,15 @@
 {
-  "label": "Aggregate",
-  "description": "Collect items for later aggregation in the executor",
+  "label": "Aggregeren",
+  "description": "Verzamel items voor latere aggregatie in de executor",
   "config": {
-    "group_by": "Group By",
+    "group_by": "Groeperen op",
     "mode": "Modus"
   },
   "options": {
     "mode": {
-      "list": "List",
-      "count": "Count",
-      "sum": "Sum"
+      "list": "Lijst",
+      "count": "Aantal",
+      "sum": "Som"
     }
   }
 }

@@ -1,6 +1,6 @@
 {
-  "label": "HTTP Response",
-  "description": "Set the outgoing status code and headers on the message",
+  "label": "HTTP-Antwort",
+  "description": "Den ausgehenden Statuscode und die Header an der Nachricht setzen",
   "config": {
     "status_code": "Statuscode",
     "headers": "Header"

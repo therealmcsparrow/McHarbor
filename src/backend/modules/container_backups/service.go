@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package container_backups snapshots container filesystems, mounts and configuration to encrypted archives, uploads them to storage destinations and restores them.
 package container_backups
 
 import (
@@ -13,18 +14,18 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 	"github.com/rs/xid"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
@@ -32,6 +33,11 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
+	"github.com/therealmcsparrow/mcharbor/core/snapshotdrivers"
+
+	"github.com/therealmcsparrow/mcharbor/core/plugin/services"
+	"github.com/therealmcsparrow/mcharbor/core/telemetry"
 )
 
 // ErrBackupEncryptionKeyNotConfigured means encrypted backups cannot run until the Docker secret is mounted.
@@ -56,6 +62,41 @@ var ErrBackupRunActive = errors.New("backup run is still running")
 // be cancelled.
 var ErrBackupRunNotCancellable = errors.New("backup run is not cancellable")
 
+// ErrBackupDestinationRequired is returned when a plan or an ad-hoc run
+// is submitted with no storage destination at all. The default local
+// location used to be force-added server-side; it is now a UI default
+// the user may clear, so the emptiness has to be rejected explicitly.
+var ErrBackupDestinationRequired = errors.New("at least one backup destination is required")
+
+// ErrSnapshotConfigRequired is returned when a plan asks for snapshot
+// consistency without naming the snapshot configuration to use.
+var ErrSnapshotConfigRequired = errors.New("snapshot consistency requires a snapshot configuration")
+
+// ErrBackupRestoreMountMissing means the named mount tar does not exist in the archive.
+var ErrBackupRestoreMountMissing = errors.New("backup archive does not contain that mount tar")
+
+// ErrBackupRestoreConfigUnsupported means the selection named only container
+// configuration. The archive carries container/inspect.json, but nothing applies
+// it: env, labels, ports and restart policy cannot be changed on a live
+// container, so restoring config means recreating the container, which the
+// restore pipeline does not do. Selecting config alone can therefore never
+// succeed, and saying so beats a generic "no restorable entries".
+var ErrBackupRestoreConfigUnsupported = errors.New("restoring container configuration is not supported")
+
+// ErrBackupRestoreConfigFilesystemConflict means config and the container
+// filesystem were selected together. Applying config recreates the container
+// from its image, which discards whatever the filesystem restore just wrote, so
+// the two must be run as separate restores.
+var ErrBackupRestoreConfigFilesystemConflict = errors.New("container configuration and filesystem cannot be restored together")
+
+// restoreConfigInspectMaxBytes caps the archived inspect payload read into
+// memory. A container config is kilobytes; this only stops a corrupt or hostile
+// archive from ballooning the process.
+const restoreConfigInspectMaxBytes = 8 << 20
+
+// ErrBackupRestoreConfigMissing means the archive has no container/inspect.json (includeConfig was disabled at backup time).
+var ErrBackupRestoreConfigMissing = errors.New("backup archive does not contain a container config")
+
 // ErrBackupMigrationStorageNotLocal means the destination cannot receive local backup migrations.
 var ErrBackupMigrationStorageNotLocal = errors.New("backup migration storage location is not local")
 
@@ -68,8 +109,12 @@ const (
 	backupRunProgressStaleAfter  = 2 * time.Minute
 	backupRunBackgroundTimeout   = 3 * time.Hour
 	restoreRunProgressStaleAfter = backupRunBackgroundTimeout + 10*time.Minute
-	defaultLocalStorageID        = "default-local-backup"
 	agentBackupMinVersion        = "1.5.2"
+	// Agents below this cannot filter an inner tar down to individual files,
+	// so a selective restore must not be handed to them — they would restore
+	// the whole mount instead. Such a restore falls back to the server-side
+	// path, which is correct everywhere, just slower.
+	agentSelectiveRestoreMinVersion = "2.1.0"
 )
 
 // Service handles container backup plans and archive execution.
@@ -81,11 +126,56 @@ type Service struct {
 	enc          *encryption.Service
 	logger       *slog.Logger
 
+	snapshotAdapter any
+
+	// builtinSnapshots owns the drivers McHarbor ships itself (zfs,
+	// btrfs, lvm, vss). A plugin registering the same driver name
+	// takes precedence; see resolveSnapshotAdapter.
+	builtinSnapshots *snapshotdrivers.Service
+
+	// pluginStorageAdapter is the loaded plugin runtime (or nil when
+	// no plugins are loaded), set by SetPluginStorageAdapter after
+	// bootPluginRuntime finishes wiring. Held as `any` to avoid an
+	// import cycle between modules/container_backups and the plugin
+	// runtime; storage_upload.go does the type assertion to
+	// plugin.StorageAdapterSource. The upload dispatcher consults
+	// the runtime first and falls through to the built-in switch
+	// when no plugin owns the location_type.
+	pluginStorageAdapter any
+
+	// containerRecreator performs the recreate a config restore needs. The
+	// containers module owns the implementation; main.go injects the bridge
+	// via SetContainerRecreator. Nil until then, in which case a config
+	// restore reports the operation as unsupported rather than half-applying.
+	containerRecreator ContainerRecreator
+
+	// restorePassHook replaces restoreFromRun in tests that only care about the
+	// order and target of the passes a combined restore makes. Nil in production.
+	restorePassHook func(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error)
+
 	// runStageCache tracks the last known progress stage per run so the
 	// backup_log writer only emits a row on actual transitions, not
 	// on every progress update. The cache is read-mostly; a stale
 	// entry is harmless because the next genuine change re-syncs.
 	runStageCache sync.Map
+}
+
+// SetContainerRecreator injects the container recreate collaborator used by
+// config restores. Called from main.go after the containers service exists.
+func (s *Service) SetContainerRecreator(r ContainerRecreator) { s.containerRecreator = r }
+
+// SetPluginStorageAdapter injects the loaded plugin runtime into
+// the service. The runtime is held as `any` to avoid the import
+// cycle; the dispatcher does the type assertion to
+// plugin.StorageAdapterSource. Safe to call multiple times —
+// later calls overwrite the prior handle. Called from main.go
+// after bootPluginRuntime.
+//
+// The same runtime answers for plugin snapshot drivers: their ConfigSchema is what
+// names the secret fields a snapshot config must encrypt.
+func (s *Service) SetPluginStorageAdapter(runtime any) {
+	s.pluginStorageAdapter = runtime
+	s.snapshotAdapter = runtime
 }
 
 var safeArchiveName = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
@@ -98,11 +188,22 @@ var runCancelers sync.Map
 
 // NewService creates a backup service.
 func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) *Service {
-	return &Service{db: database, pool: pool, dataDir: dataDir, backupCrypto: backupCrypto, enc: enc, logger: logger}
+	return &Service{
+		db:           database,
+		pool:         pool,
+		dataDir:      dataDir,
+		backupCrypto: backupCrypto,
+		enc:          enc,
+		logger:       logger,
+		// The builtin drivers are always available: they are core, not
+		// a plugin, so there is nothing to install before an operator
+		// can snapshot a ZFS or btrfs host.
+		builtinSnapshots: snapshotdrivers.New(pool),
+	}
 }
 
-func (s *Service) client(envID string) (*client.Client, error) {
-	cli, err := s.pool.Get(envID)
+func (s *Service) client(ctx context.Context, envID string) (*client.Client, error) {
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -111,17 +212,18 @@ func (s *Service) client(envID string) (*client.Client, error) {
 
 // Options returns the sensible backup choices for the inspected container.
 func (s *Service) Options(ctx context.Context, envID, containerID string) (*BackupOptions, error) {
-	cli, err := s.client(envID)
+	cli, err := s.client(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, coredocker.CallTimeout)
 	defer cancel()
 
-	info, err := cli.ContainerInspect(opCtx, containerID)
+	infoRes, err := cli.ContainerInspect(opCtx, containerID, client.ContainerInspectOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("inspecting container for backup options: %w", err)
 	}
+	info := infoRes.Container
 
 	name := strings.TrimPrefix(info.Name, "/")
 	if name == "" {
@@ -129,12 +231,16 @@ func (s *Service) Options(ctx context.Context, envID, containerID string) (*Back
 	}
 
 	options := []BackupOption{
-		{Key: "config", Type: "config", Label: "Container configuration", Description: "Inspect data, environment, labels, networks, ports, restart policy, and host config.", Default: true, Required: true},
+		// Required is deliberately false: configuration used to be
+		// unturnable-off, which meant a user who wanted only their volumes
+		// still shipped the container definition. It is a default, not a
+		// mandate.
+		{Key: "config", Type: "config", Label: "Container configuration", Description: "Inspect data, environment, labels, networks, ports, restart policy, and host config.", Default: true, Partial: true},
 	}
 	if info.Config != nil && info.Config.Image != "" {
 		options = append(options, BackupOption{Key: "image", Type: "image", Label: "Image archive", Description: "The Docker image used by this container.", Default: false})
 	}
-	options = append(options, BackupOption{Key: "filesystem", Type: "filesystem", Label: "Container filesystem", Description: "The writable container filesystem layer. Mounted volumes are backed up separately.", Default: false})
+	options = append(options, BackupOption{Key: "filesystem", Type: "filesystem", Label: "Container filesystem", Description: "The writable container filesystem layer. Mounted volumes are backed up separately.", Default: false, Partial: true})
 	options = append(options, BackupOption{Key: "logs", Type: "logs", Label: "Container logs", Description: "Available stdout and stderr logs from Docker.", Default: false})
 
 	for _, m := range info.Mounts {
@@ -159,34 +265,42 @@ func (s *Service) Options(ctx context.Context, envID, containerID string) (*Back
 			Label:       label,
 			Description: description,
 			Default:     m.Type == "volume",
+			Partial:     true,
 		})
 	}
 
-	return &BackupOptions{ContainerID: info.ID, ContainerName: name, Options: options}, nil
+	return &BackupOptions{
+		ContainerID:    info.ID,
+		ContainerName:  name,
+		Options:        options,
+		ConfigSections: configSectionCatalog(),
+	}, nil
 }
 
 // ListPlans returns backup plans for an environment and optional container.
 func (s *Service) ListPlans(ctx context.Context, envID, containerID string) ([]BackupPlan, error) {
 	query := `
-		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
-		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
-		       log_tail_lines,
-		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
-		       created_at, updated_at
-		FROM container_backup_plans
-		WHERE environment_id = ?`
+		SELECT p.id, p.name, p.environment_id, p.container_id, p.container_name, COALESCE(p.storage_location_id, ''),
+		       p.include_config, p.include_logs, p.include_filesystem, p.include_image, p.selected_mounts,
+		       COALESCE(p.selections, ''), p.log_tail_lines,
+		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
+		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
+		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		FROM container_backup_plans p
+		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
+		WHERE p.environment_id = ?`
 	args := []any{envID}
 	if containerID != "" {
-		query += " AND container_id = ?"
+		query += " AND p.container_id = ?"
 		args = append(args, containerID)
 	}
-	query += " ORDER BY name ASC LIMIT 1000"
+	query += " ORDER BY p.name ASC LIMIT 1000"
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("listing backup plans: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	plans := []BackupPlan{}
 	for rows.Next() {
@@ -210,6 +324,43 @@ func (s *Service) ListPlans(ctx context.Context, envID, containerID string) ([]B
 }
 
 // CreatePlan creates a backup plan.
+// Consistency modes a backup plan can run in.
+const (
+	// ConsistencyPause stops the container while the archive is
+	// written. Correct everywhere, at the cost of downtime.
+	ConsistencyPause = "pause"
+	// ConsistencySnapshot freezes the filesystem instead, so the
+	// container keeps serving traffic while the backup reads a frozen
+	// copy. Needs a snapshot config whose driver is reachable.
+	ConsistencySnapshot = "snapshot"
+	// ConsistencyLive reads the running container's files as they are.
+	// Fastest, and the only mode that can produce a torn archive.
+	ConsistencyLive = "live"
+)
+
+// normalizeConsistency validates a plan's consistency choice and
+// returns the pair to persist. Snapshot mode without a config is a
+// user error worth rejecting rather than silently downgrading: a plan
+// that says "snapshot" and quietly pauses is the kind of thing an
+// operator only discovers during an outage.
+func normalizeConsistency(mode, snapshotConfigID string) (string, string, error) {
+	mode = strings.TrimSpace(mode)
+	snapshotConfigID = strings.TrimSpace(snapshotConfigID)
+	switch mode {
+	case "":
+		return ConsistencyPause, "", nil
+	case ConsistencyPause, ConsistencyLive:
+		return mode, "", nil
+	case ConsistencySnapshot:
+		if snapshotConfigID == "" {
+			return "", "", ErrSnapshotConfigRequired
+		}
+		return mode, snapshotConfigID, nil
+	}
+	return "", "", fmt.Errorf("unknown consistency mode %q", mode)
+}
+
+// CreatePlan validates and stores a backup plan for one container, deriving the selection map from the legacy booleans when the caller sends none.
 func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBackupPlanInput) (*BackupPlan, error) {
 	if input.ContainerID == "" {
 		return nil, fmt.Errorf("container id is required")
@@ -225,7 +376,23 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 	if err != nil {
 		return nil, err
 	}
-	selected, err := json.Marshal(input.SelectedMounts)
+	// Selections are the source of truth when the caller sends them; a
+	// caller that only knows the old booleans still works, and gets the
+	// equivalent all-or-nothing selection map. The legacy columns are
+	// written either way so nothing that reads them regresses.
+	selections := normalizeSelections(input.Selections)
+	if selections == nil {
+		selections = selectionsFromLegacy(
+			input.IncludeConfig, input.IncludeLogs, input.IncludeFilesystem, input.IncludeImage,
+			input.SelectedMounts,
+		)
+	}
+	includeConfig, includeLogs, includeFilesystem, includeImage, selectedMounts := legacyFlagsFromSelections(selections)
+	encodedSelections, err := encodeSelections(selections)
+	if err != nil {
+		return nil, err
+	}
+	selected, err := json.Marshal(selectedMounts)
 	if err != nil {
 		return nil, fmt.Errorf("encoding selected mounts: %w", err)
 	}
@@ -235,7 +402,11 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 	if input.Enabled && strings.TrimSpace(input.Cron) != "" {
 		nextRun = nextCronRun(input.Cron, time.Now()).Format(time.RFC3339)
 	}
-	storageIDs, err := s.requiredBackupStorageLocationIDs(ctx, input.StorageLocationID, input.StorageLocationIDs)
+	storageIDs := backupStorageLocationIDs(input.StorageLocationID, input.StorageLocationIDs)
+	if len(storageIDs) == 0 {
+		return nil, ErrBackupDestinationRequired
+	}
+	consistencyMode, snapshotConfigID, err := normalizeConsistency(input.ConsistencyMode, input.SnapshotConfigID)
 	if err != nil {
 		return nil, err
 	}
@@ -244,13 +415,15 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 		INSERT INTO container_backup_plans (
 			id, name, environment_id, container_id, container_name, storage_location_id,
 			include_config, include_logs, include_filesystem, include_image, selected_mounts,
-			log_tail_lines,
-			cron, enabled, retention_count, retention_days, next_run_at, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			selections, log_tail_lines,
+			cron, enabled, retention_count, retention_days, next_run_at,
+			consistency_mode, snapshot_config_id, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, name, envID, input.ContainerID, containerName, nullString(firstStorageLocationID(storageIDs)),
-		input.IncludeConfig, input.IncludeLogs, input.IncludeFilesystem, input.IncludeImage, string(selected),
-		input.LogTailLines,
-		nullString(input.Cron), input.Enabled, input.RetentionCount, input.RetentionDays, nullString(nextRun), now, now,
+		includeConfig, includeLogs, includeFilesystem, includeImage, string(selected),
+		encodedSelections, input.LogTailLines,
+		nullString(input.Cron), input.Enabled, input.RetentionCount, input.RetentionDays, nullString(nextRun),
+		consistencyMode, nullString(snapshotConfigID), now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating backup plan: %w", err)
@@ -264,15 +437,17 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 // Plan returns one backup plan.
 func (s *Service) Plan(ctx context.Context, id string) (*BackupPlan, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
-		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
-		       log_tail_lines,
-		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
-		       created_at, updated_at
-		FROM container_backup_plans
-		WHERE id = ?`, id)
+		SELECT p.id, p.name, p.environment_id, p.container_id, p.container_name, COALESCE(p.storage_location_id, ''),
+		       p.include_config, p.include_logs, p.include_filesystem, p.include_image, p.selected_mounts,
+		       COALESCE(p.selections, ''), p.log_tail_lines,
+		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
+		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
+		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		FROM container_backup_plans p
+		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
+		WHERE p.id = ?`, id)
 	plan, err := scanPlan(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -298,9 +473,9 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 		}
 	}
 	if input.StorageLocationID != nil && input.StorageLocationIDs == nil {
-		ids, err := s.requiredBackupStorageLocationIDs(ctx, *input.StorageLocationID, nil)
-		if err != nil {
-			return nil, err
+		ids := backupStorageLocationIDs(*input.StorageLocationID, nil)
+		if len(ids) == 0 {
+			return nil, ErrBackupDestinationRequired
 		}
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET storage_location_id = ?, updated_at = ? WHERE id = ?", nullString(firstStorageLocationID(ids)), now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan storage location: %w", err)
@@ -310,9 +485,9 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 		}
 	}
 	if input.StorageLocationIDs != nil {
-		ids, err := s.requiredBackupStorageLocationIDs(ctx, "", *input.StorageLocationIDs)
-		if err != nil {
-			return nil, err
+		ids := backupStorageLocationIDs("", *input.StorageLocationIDs)
+		if len(ids) == 0 {
+			return nil, ErrBackupDestinationRequired
 		}
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET storage_location_id = ?, updated_at = ? WHERE id = ?", nullString(firstStorageLocationID(ids)), now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan primary storage location: %w", err)
@@ -346,7 +521,31 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 			return nil, fmt.Errorf("updating backup plan log tail lines: %w", err)
 		}
 	}
-	if input.SelectedMounts != nil {
+	// Selections supersede the individual include_* / selected_mounts
+	// fields when present: they carry the same information plus the
+	// per-option mode and paths. The legacy columns are rewritten from
+	// them so the two never disagree.
+	if input.Selections != nil {
+		selections := normalizeSelections(*input.Selections)
+		encoded, err := encodeSelections(selections)
+		if err != nil {
+			return nil, err
+		}
+		includeConfig, includeLogs, includeFilesystem, includeImage, mounts := legacyFlagsFromSelections(selections)
+		selected, err := json.Marshal(mounts)
+		if err != nil {
+			return nil, fmt.Errorf("encoding selected mounts: %w", err)
+		}
+		if _, err := s.db.ExecContext(ctx, `
+			UPDATE container_backup_plans
+			SET selections = ?, include_config = ?, include_logs = ?, include_filesystem = ?,
+			    include_image = ?, selected_mounts = ?, updated_at = ?
+			WHERE id = ?`,
+			encoded, includeConfig, includeLogs, includeFilesystem, includeImage, string(selected), now, id,
+		); err != nil {
+			return nil, fmt.Errorf("updating backup plan selections: %w", err)
+		}
+	} else if input.SelectedMounts != nil {
 		selected, err := json.Marshal(*input.SelectedMounts)
 		if err != nil {
 			return nil, fmt.Errorf("encoding selected mounts: %w", err)
@@ -369,6 +568,23 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 		}
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET retention_count = ?, retention_days = ?, updated_at = ? WHERE id = ?", retentionCount, retentionDays, now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan retention: %w", err)
+		}
+	}
+	if input.ConsistencyMode != nil || input.SnapshotConfigID != nil {
+		mode := plan.ConsistencyMode
+		if input.ConsistencyMode != nil {
+			mode = *input.ConsistencyMode
+		}
+		configID := plan.SnapshotConfigID
+		if input.SnapshotConfigID != nil {
+			configID = *input.SnapshotConfigID
+		}
+		normalizedMode, normalizedConfig, err := normalizeConsistency(mode, configID)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET consistency_mode = ?, snapshot_config_id = ?, updated_at = ? WHERE id = ?", normalizedMode, nullString(normalizedConfig), now, id); err != nil {
+			return nil, fmt.Errorf("updating backup plan consistency: %w", err)
 		}
 	}
 	if input.Cron != nil || input.Enabled != nil {
@@ -413,18 +629,18 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 	// runs side-by-side; the per-container Backups tab uses the
 	// container-scoped path; deep-links use the by-id path.
 	//
-	// LEFT JOIN container_backup_plans on plan_id so the response
-	// carries the human-readable container name without forcing the
-	// frontend to chase plan ids. Ad-hoc runs (plan_id IS NULL)
-	// get an empty container_name which the UI falls back to the
-	// short container id for.
+	// container_name comes off the run row itself; the LEFT JOIN on
+	// container_backup_plans is only the fallback for rows written
+	// before migration 134 added that column. Rows that satisfy
+	// neither are named from the live orchestrator further down.
 	query := `
 		SELECT r.id, COALESCE(r.plan_id, ''), COALESCE(r.operation, 'backup'), COALESCE(r.source_run_id, ''),
 		       r.environment_id, r.container_id, r.status, COALESCE(r.archive_path, ''),
 		       r.archive_size, COALESCE(r.archive_encryption, ''), COALESCE(r.archive_key_id, ''), COALESCE(r.error, ''),
 		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
 		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
-		       COALESCE(p.container_name, '') AS container_name
+		       COALESCE(NULLIF(r.container_name, ''), p.container_name, '') AS container_name,
+		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, '')
 		FROM container_backup_runs r
 		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
 		WHERE r.environment_id = ?`
@@ -433,42 +649,43 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 		query += " AND r.container_id = ?"
 		args = append(args, containerID)
 	}
-	query += " ORDER BY started_at DESC LIMIT 1000"
+	query += " ORDER BY r.started_at DESC LIMIT 1000"
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("listing backup runs: %w", err)
 	}
 
-	runs := []BackupRun{}
-	for rows.Next() {
-		run, err := scanRun(rows)
-		if err != nil {
-			rows.Close()
-			return nil, err
-		}
-		s.annotateRunKeyRequirement(&run)
-		// Auto-refresh stale container_id. For runs the lookup uses
-		// the plan's container_name (the run row itself doesn't
-		// carry the name). Failures are swallowed so a single
-		// broken env doesn't fail the whole list.
+	runs, err := scanRunRows(rows)
+	if err != nil {
+		return nil, err
+	}
+	for i := range runs {
+		run := &runs[i]
+		s.annotateRunKeyRequirement(run)
+		// Auto-refresh stale container_id. The lookup keys on the
+		// run's own container_name, falling back to the plan's when
+		// the run predates that column. Failures are swallowed so a
+		// single broken env doesn't fail the whole list.
 		runStale := false
-		if refreshed, _ := s.refreshPlanContainerIDForRun(ctx, &run); refreshed {
+		refreshed, planErr := s.refreshPlanContainerIDForRun(ctx, run)
+		s.logRefreshFailure(run.ID, planErr)
+		if refreshed {
 			runStale = true
 		}
-		if runRefreshed, _ := s.refreshRunContainerID(ctx, &run); runRefreshed {
+		runRefreshed, runErr := s.refreshRunContainerID(ctx, run)
+		s.logRefreshFailure(run.ID, runErr)
+		if runRefreshed {
 			runStale = true
 		}
 		run.ContainerIDStale = runStale
-		runs = append(runs, run)
 	}
-	if err := rows.Err(); err != nil {
-		rows.Close()
-		return nil, err
-	}
-	if err := rows.Close(); err != nil {
-		return nil, fmt.Errorf("closing backup run rows: %w", err)
-	}
+
+	// Rows written before the run table carried its own container_name
+	// (and rows whose plan was deleted) still have an empty name. Fill
+	// them from the live orchestrator once and persist, so the backup
+	// list stops showing a bare container id for historical runs.
+	s.backfillRunContainerNames(ctx, envID, runs)
 
 	for i := range runs {
 		if err := s.hydrateRunDestinations(ctx, &runs[i]); err != nil {
@@ -476,6 +693,22 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 		}
 	}
 	return runs, nil
+}
+
+// Run returns one run by id, or (nil, nil) when it does not exist, so the
+// handler can answer 404 without inspecting sql errors. Same convention as
+// Restore / StartRestore.
+func (s *Service) Run(ctx context.Context, id string) (*BackupRun, error) {
+	// refreshLinks=false: this is the endpoint the restore dialog polls, and
+	// re-linking the container on every tick is what wedged runs on "running".
+	run, err := s.runByIDLinked(ctx, strings.TrimSpace(id), false)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return run, nil
 }
 
 // RecoverAbandonedRuns finalizes old running rows left behind by request cancellation or shutdown.
@@ -503,27 +736,9 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 		return fmt.Errorf("listing abandoned backup runs: %w", err)
 	}
 
-	type abandonedRun struct {
-		id           string
-		started      string
-		environmentID string
-		containerID  string
-	}
-	runs := []abandonedRun{}
-	for rows.Next() {
-		var run abandonedRun
-		if err := rows.Scan(&run.id, &run.started, &run.environmentID, &run.containerID); err != nil {
-			rows.Close()
-			return fmt.Errorf("scanning abandoned backup run: %w", err)
-		}
-		runs = append(runs, run)
-	}
-	if err := rows.Err(); err != nil {
-		rows.Close()
+	runs, err := scanAbandonedRuns(rows)
+	if err != nil {
 		return err
-	}
-	if err := rows.Close(); err != nil {
-		return fmt.Errorf("closing abandoned backup run rows: %w", err)
 	}
 
 	for _, run := range runs {
@@ -532,10 +747,10 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 		}
 		// Best-effort unpause before finalising so a backup that crashed
 		// during the archive-write phase does not leave the container in a
-		// paused state on the Docker daemon. We use a fresh background
-		// context so a near-deadline parent does not cancel the release.
+		// paused state on the Docker daemon. The release runs on a
+		// cancellation-free copy of ctx so a near-deadline parent does not cancel it.
 		if run.environmentID != "" && run.containerID != "" {
-			s.releaseStuckContainerPause(run.environmentID, run.containerID)
+			s.releaseStuckContainerPause(ctx, run.environmentID, run.containerID)
 		}
 		if err := s.recoverAbandonedRun(ctx, run.id); err != nil && s.logger != nil {
 			s.logger.Warn("container backup abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
@@ -555,20 +770,20 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 // backup goroutine crashed. Errors are swallowed: a 404 / 304 / "not paused"
 // response means the container is already in a healthy state and the
 // orphaned pause is gone.
-func (s *Service) releaseStuckContainerPause(envID, containerID string) {
+func (s *Service) releaseStuckContainerPause(ctx context.Context, envID, containerID string) {
 	if s.pool == nil {
 		return
 	}
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		if s.logger != nil {
 			s.logger.Debug("abandoned backup: docker client unavailable for unpause", "env", envID, "container", containerID, "error", err)
 		}
 		return
 	}
-	unpauseCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	unpauseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), coredocker.CallTimeout)
 	defer cancel()
-	if err := cli.ContainerUnpause(unpauseCtx, containerID); err != nil {
+	if _, err := cli.ContainerUnpause(unpauseCtx, containerID, client.ContainerUnpauseOptions{}); err != nil {
 		if s.logger != nil {
 			s.logger.Info("abandoned backup: release paused container", "container", containerID, "result", err.Error())
 		}
@@ -588,7 +803,8 @@ func (s *Service) RunPlan(ctx context.Context, planID string) (*BackupRun, error
 	if err != nil || plan == nil {
 		return nil, err
 	}
-	run, err := s.createRun(ctx, plan.ID, plan.EnvironmentID, plan.ContainerID)
+	included, available := s.runItemsForPlan(ctx, plan)
+	run, err := s.createRun(ctx, plan.ID, plan.EnvironmentID, plan.ContainerID, plan.ContainerName, included, available)
 	if err != nil {
 		return nil, err
 	}
@@ -604,11 +820,12 @@ func (s *Service) StartPlan(ctx context.Context, planID string) (*BackupRun, err
 	if err != nil || plan == nil {
 		return nil, err
 	}
-	run, err := s.createRun(ctx, plan.ID, plan.EnvironmentID, plan.ContainerID)
+	included, available := s.runItemsForPlan(ctx, plan)
+	run, err := s.createRun(ctx, plan.ID, plan.EnvironmentID, plan.ContainerID, plan.ContainerName, included, available)
 	if err != nil {
 		return nil, err
 	}
-	s.startBackgroundRun(plan, run.ID)
+	s.startBackgroundRun(ctx, plan, run.ID)
 	return run, nil
 }
 
@@ -621,7 +838,8 @@ func (s *Service) RunAdhoc(ctx context.Context, envID, containerID string, input
 	if err != nil {
 		return nil, err
 	}
-	run, err := s.createRun(ctx, "", envID, containerID)
+	included, available := s.runItemsForPlan(ctx, plan)
+	run, err := s.createRun(ctx, "", envID, containerID, plan.ContainerName, included, available)
 	if err != nil {
 		return nil, err
 	}
@@ -637,11 +855,12 @@ func (s *Service) StartAdhoc(ctx context.Context, envID, containerID string, inp
 	if err != nil {
 		return nil, err
 	}
-	run, err := s.createRun(ctx, "", envID, containerID)
+	included, available := s.runItemsForPlan(ctx, plan)
+	run, err := s.createRun(ctx, "", envID, containerID, plan.ContainerName, included, available)
 	if err != nil {
 		return nil, err
 	}
-	s.startBackgroundRun(plan, run.ID)
+	s.startBackgroundRun(ctx, plan, run.ID)
 	return run, nil
 }
 
@@ -654,10 +873,21 @@ func (s *Service) adhocPlan(ctx context.Context, envID, containerID string, inpu
 	if err != nil {
 		return nil, err
 	}
-	storageIDs, err := s.requiredBackupStorageLocationIDs(ctx, input.StorageLocationID, input.StorageLocationIDs)
-	if err != nil {
-		return nil, err
+	storageIDs := backupStorageLocationIDs(input.StorageLocationID, input.StorageLocationIDs)
+	if len(storageIDs) == 0 {
+		return nil, ErrBackupDestinationRequired
 	}
+	// An ad-hoc run used to hard-code IncludeConfig: true, which is what
+	// made the config option unturnable-off in the UI. It now follows the
+	// caller's selection like every other option.
+	selections := normalizeSelections(input.Selections)
+	if selections == nil {
+		selections = selectionsFromLegacy(
+			input.IncludeConfig, input.IncludeLogs, input.IncludeFilesystem, input.IncludeImage,
+			input.SelectedMounts,
+		)
+	}
+	includeConfig, includeLogs, includeFilesystem, includeImage, selectedMounts := legacyFlagsFromSelections(selections)
 	return &BackupPlan{
 		ID:                 "",
 		Name:               name,
@@ -666,11 +896,12 @@ func (s *Service) adhocPlan(ctx context.Context, envID, containerID string, inpu
 		ContainerName:      containerName,
 		StorageLocationID:  firstStorageLocationID(storageIDs),
 		StorageLocationIDs: storageIDs,
-		IncludeConfig:      true,
-		IncludeLogs:        input.IncludeLogs,
-		IncludeFilesystem:  input.IncludeFilesystem,
-		IncludeImage:       input.IncludeImage,
-		SelectedMounts:     input.SelectedMounts,
+		IncludeConfig:      includeConfig,
+		IncludeLogs:        includeLogs,
+		IncludeFilesystem:  includeFilesystem,
+		IncludeImage:       includeImage,
+		SelectedMounts:     selectedMounts,
+		Selections:         selections,
 	}, nil
 }
 
@@ -697,7 +928,27 @@ func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string
 // because the agent only needs to talk to the McHarbor server, never to
 // the destination directly.
 func (s *Service) canRunAgentCentralizedBackup(ctx context.Context, plan *BackupPlan) bool {
-	if s.backupCrypto == nil || plan == nil || !s.pool.IsAgentEnv(plan.EnvironmentID) || !s.pool.AgentAtLeast(plan.EnvironmentID, agentBackupMinVersion) {
+	if s.backupCrypto == nil || plan == nil || !s.pool.IsAgentEnvContext(ctx, plan.EnvironmentID) || !s.pool.AgentAtLeastContext(ctx, plan.EnvironmentID, agentBackupMinVersion) {
+		return false
+	}
+	// The agent builds its archive from the include_* booleans alone and
+	// knows nothing about per-option path selections, so a partial plan
+	// routed through it would silently capture everything the user
+	// deselected. Fall back to host-side capture instead: the Docker
+	// streams still come over the agent transport, but the filtering
+	// happens here where the selection is understood.
+	//
+	// The cost is bandwidth — the whole export crosses the wire before
+	// being trimmed — which is the right trade against capturing data the
+	// user explicitly excluded. Teaching the agent to filter would remove
+	// that cost and is the natural follow-up.
+	if anySelectionPartial(plan.Selections) {
+		if s.logger != nil {
+			s.logger.Info(
+				"container backup: partial selection forces host-side capture on agent environment",
+				"env", plan.EnvironmentID, "plan", plan.ID,
+			)
+		}
 		return false
 	}
 	ids := backupStorageLocationIDs(plan.StorageLocationID, plan.StorageLocationIDs)
@@ -731,7 +982,7 @@ func (s *Service) canRunAgentCentralizedBackup(ctx context.Context, plan *Backup
 // retry logic that already powers local-env backups is now reused
 // verbatim for agent-env backups.
 func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
-	agentConn, ok := s.pool.AgentConnection(plan.EnvironmentID)
+	agentConn, ok := s.pool.AgentConnectionContext(ctx, plan.EnvironmentID)
 	if !ok || agentConn.Transport == nil {
 		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("agent not connected for environment %s", plan.EnvironmentID))
 	}
@@ -763,6 +1014,16 @@ func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *Backu
 		RemotePath:   tempArchivePath,
 	}
 
+	// Freeze the agent host's filesystem before it builds the archive.
+	// When the driver hands back readable paths the agent reads those
+	// instead of the live container, and never pauses it.
+	frozen := s.freezeForBackup(ctx, plan, runID)
+	defer func() {
+		releaseCtx, releaseCancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Minute)
+		defer releaseCancel()
+		s.releaseSnapshot(releaseCtx, plan, runID, frozen)
+	}()
+
 	payload := coreagent.BackupPayload{
 		TransferID:          runID,
 		ContainerID:         plan.ContainerID,
@@ -772,6 +1033,8 @@ func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *Backu
 		IncludeFilesystem:   plan.IncludeFilesystem,
 		IncludeImage:        plan.IncludeImage,
 		SelectedMounts:      plan.SelectedMounts,
+		SnapshotMounts:      frozen.mountPaths,
+		ConsistencyMode:     plan.ConsistencyMode,
 		EncryptionKey:       s.backupCrypto.KeyMaterialBase64(),
 		StorageDestinations: []coreagent.BackupStorageDestination{destination},
 	}
@@ -803,32 +1066,34 @@ func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *Backu
 	return s.finishRun(ctx, runID, archive, uploadErr)
 }
 
-func (s *Service) startBackgroundRun(plan *BackupPlan, runID string) {
+func (s *Service) startBackgroundRun(ctx context.Context, plan *BackupPlan, runID string) {
+	bgCtx := context.WithoutCancel(ctx)
 	planCopy := *plan
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
+		runCtx, cancel := context.WithTimeout(bgCtx, backupRunBackgroundTimeout)
 		runCancelers.Store(runID, cancel)
 		defer func() {
 			cancel()
 			runCancelers.Delete(runID)
 		}()
-		if _, err := s.executeRun(ctx, &planCopy, runID); err != nil && s.logger != nil {
+		if _, err := s.executeRun(runCtx, &planCopy, runID); err != nil && s.logger != nil {
 			s.logger.Error("background container backup failed", "run", runID, "env", planCopy.EnvironmentID, "container", planCopy.ContainerID, "error", err)
 		}
 	}()
 }
 
 func (s *Service) containerName(ctx context.Context, envID, containerID string) (string, error) {
-	cli, err := s.client(envID)
+	cli, err := s.client(ctx, envID)
 	if err != nil {
 		return "", err
 	}
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, coredocker.CallTimeout)
 	defer cancel()
-	info, err := cli.ContainerInspect(opCtx, containerID)
+	infoRes, err := cli.ContainerInspect(opCtx, containerID, client.ContainerInspectOptions{})
 	if err != nil {
 		return "", fmt.Errorf("inspecting container: %w", err)
 	}
+	info := infoRes.Container
 	name := strings.TrimPrefix(info.Name, "/")
 	if name == "" {
 		name = shortID(info.ID)
@@ -844,16 +1109,17 @@ func (s *Service) containerName(ctx context.Context, envID, containerID string) 
 // stores both id and name; on inspect failure we list containers filtered
 // by name and use the live id for this run. The plan row itself is not
 // rewritten — next run will retry the lookup.
-func (s *Service) resolveContainerForBackup(ctx context.Context, opCtx context.Context, cli *client.Client, plan *BackupPlan, logger *slog.Logger) (types.ContainerJSON, string, error) {
-	info, err := cli.ContainerInspect(opCtx, plan.ContainerID)
+func (s *Service) resolveContainerForBackup(ctx context.Context, opCtx context.Context, cli *client.Client, plan *BackupPlan, logger *slog.Logger) (container.InspectResponse, string, error) {
+	infoRes, err := cli.ContainerInspect(opCtx, plan.ContainerID, client.ContainerInspectOptions{})
+	info := infoRes.Container
 	if err == nil {
 		return info, plan.ContainerID, nil
 	}
 	if !isContainerNotFound(err) {
-		return types.ContainerJSON{}, plan.ContainerID, err
+		return container.InspectResponse{}, plan.ContainerID, err
 	}
 	if plan.ContainerName == "" {
-		return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("inspecting container for backup: %w", err)
+		return container.InspectResponse{}, plan.ContainerID, fmt.Errorf("inspecting container for backup: %w", err)
 	}
 	if logger != nil {
 		logger.Info(
@@ -861,22 +1127,24 @@ func (s *Service) resolveContainerForBackup(ctx context.Context, opCtx context.C
 			"container_id", plan.ContainerID, "container_name", plan.ContainerName,
 		)
 	}
-	f := filters.NewArgs()
+	f := make(client.Filters)
 	f.Add("name", plan.ContainerName)
-	list, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	listRes, listErr := cli.ContainerList(opCtx, client.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
-		return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("resolving container by name: %w", listErr)
+		return container.InspectResponse{}, plan.ContainerID, fmt.Errorf("resolving container by name: %w", listErr)
 	}
+	list := listRes.Items
 	for _, c := range list {
 		if strings.TrimPrefix(c.Names[0], "/") == plan.ContainerName {
-			info, inspectErr := cli.ContainerInspect(opCtx, c.ID)
+			infoRes, inspectErr := cli.ContainerInspect(opCtx, c.ID, client.ContainerInspectOptions{})
 			if inspectErr != nil {
-				return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("inspecting resolved container: %w", inspectErr)
+				return container.InspectResponse{}, plan.ContainerID, fmt.Errorf("inspecting resolved container: %w", inspectErr)
 			}
+			info := infoRes.Container
 			return info, c.ID, nil
 		}
 	}
-	return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("no container named %q found in environment", plan.ContainerName)
+	return container.InspectResponse{}, plan.ContainerID, fmt.Errorf("no container named %q found in environment", plan.ContainerName)
 }
 
 // isContainerNotFound returns true for Docker SDK errors that mean
@@ -892,19 +1160,36 @@ func isContainerNotFound(err error) bool {
 		strings.Contains(msg, "404")
 }
 
-func (s *Service) createRun(ctx context.Context, planID, envID, containerID string) (*BackupRun, error) {
+// createRun inserts the queued run row. containerName is stored on the
+// run itself rather than being recovered later through the plan join:
+// ad-hoc runs have no plan, and a plan can be deleted out from under a
+// run (ON DELETE SET NULL), which would otherwise leave the backup list
+// showing a bare container id.
+// included / available snapshot what this run will capture and what the
+// container had on offer, so the Backups overview can label the run full
+// or partial long after the plan (or the container) has changed. See
+// migration 140.
+func (s *Service) createRun(ctx context.Context, planID, envID, containerID, containerName string, included, available []string) (*BackupRun, error) {
+	return s.createRunWithOrigin(ctx, planID, envID, containerID, containerName, "", included, available)
+}
+
+// createRunWithOrigin is createRun with the run's origin stamped on insert; an empty origin
+// means McHarbor produced the archive itself, "upload" means an operator supplied it.
+func (s *Service) createRunWithOrigin(ctx context.Context, planID, envID, containerID, containerName, origin string, included, available []string) (*BackupRun, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
+	containerName = strings.TrimSpace(strings.TrimPrefix(containerName, "/"))
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO container_backup_runs (id, plan_id, operation, environment_id, container_id, status, started_at, created_at, updated_at)
-		VALUES (?, ?, 'backup', ?, ?, 'running', ?, ?, ?)`, id, nullString(planID), envID, containerID, now, now, now)
+		INSERT INTO container_backup_runs (id, plan_id, operation, environment_id, container_id, container_name, status, started_at, created_at, updated_at, included_items, available_items, origin)
+		VALUES (?, ?, 'backup', ?, ?, ?, 'running', ?, ?, ?, ?, ?, ?)`, id, nullString(planID), envID, containerID, containerName, now, now, now,
+		encodeRunItems(included), encodeRunItems(available), nullString(origin))
 	if err != nil {
 		return nil, fmt.Errorf("creating backup run: %w", err)
 	}
 	if err := s.setRunProgress(ctx, id, "queued", ""); err != nil && s.logger != nil {
 		s.logger.Warn("container backup progress update failed", "run", id, "stage", "queued", "error", err)
 	}
-	return &BackupRun{ID: id, PlanID: planID, EnvironmentID: envID, ContainerID: containerID, Status: "running", ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now}, nil
+	return &BackupRun{ID: id, PlanID: planID, EnvironmentID: envID, ContainerID: containerID, ContainerName: containerName, Status: "running", Origin: origin, ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now, IncludedItems: included, AvailableItems: available, Scope: runScope(included, available)}, nil
 }
 
 type archiveResult struct {
@@ -933,23 +1218,31 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 	if execErr != nil {
 		status = "failure"
 		finalProgressStage = backupRunFailureStage(operation, progressStage)
-		errorText = backupRunFailureText(operation, progressStage)
+		errorText = backupRunFailureText(operation, progressStage, execErr)
 		progressMessage = errorText
 	}
 	if execErr != nil && s.logger != nil {
 		s.logger.Error("container backup run failed", "run", runID, "env", envID, "container", containerID, "stage", progressStage, "error", execErr)
 	}
-	startedAt, _ := time.Parse(time.RFC3339, started)
+	startedAt := s.parseRunStart(runID, started)
 	duration := now.Sub(startedAt).Milliseconds()
-	result, err := s.db.ExecContext(finishCtx, `
+	// This is the write that moves a run off "running". Losing it to
+	// transient write contention strands the row forever and the UI spins on
+	// a run that is actually over, so it is the one place that must retry.
+	var result sql.Result
+	err := db.RetryOnBusy(finishCtx, 5, func() error {
+		var execErr error
+		result, execErr = s.db.ExecContext(finishCtx, `
 		UPDATE container_backup_runs
 		SET status = ?, archive_path = ?, archive_size = ?, archive_encryption = ?, archive_key_id = ?,
 		    error = ?, progress_stage = ?, progress_message = ?, progress_updated_at = ?,
 		    completed_at = ?, duration_ms = ?, updated_at = ?
 		WHERE id = ? AND status = 'running'`,
-		status, nullString(archive.path), archive.size, archive.encryption, archive.keyID,
-		nullString(errorText), finalProgressStage, progressMessage, now.Format(time.RFC3339),
-		now.Format(time.RFC3339), duration, now.Format(time.RFC3339), runID)
+			status, nullString(archive.path), archive.size, archive.encryption, archive.keyID,
+			nullString(errorText), finalProgressStage, progressMessage, now.Format(time.RFC3339),
+			now.Format(time.RFC3339), duration, now.Format(time.RFC3339), runID)
+		return execErr
+	})
 	if err != nil {
 		return nil, fmt.Errorf("finishing backup run: %w", err)
 	}
@@ -963,6 +1256,7 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 		}
 		return run, execErr
 	}
+	telemetry.BackupJobFinished(operation, status, time.Duration(duration)*time.Millisecond)
 	if execErr != nil {
 		return nil, execErr
 	}
@@ -1007,47 +1301,111 @@ func backupRunFailureStage(operation, stage string) string {
 	return stage
 }
 
-func backupRunFailureText(operation, stage string) string {
+func backupRunFailureText(operation, stage string, cause error) string {
+	return joinFailureDetail(backupRunFailureHeadline(operation, stage), cause)
+}
+
+// backupRunFailureHeadline names the stage that broke, in operator terms.
+// It is the first half of the stored error; sanitizeBackupError supplies
+// the second half, which is what the failure dialog is actually opened for.
+func backupRunFailureHeadline(operation, stage string) string {
 	if operation == "restore" {
 		switch backupRunFailureStage(operation, stage) {
 		case "restore_connecting":
-			return "Restore failed while connecting to the Docker environment. Check McHarbor logs."
+			return "Restore failed while connecting to the Docker environment."
 		case "restore_inspecting":
-			return "Restore failed while inspecting the target container. Check McHarbor logs."
+			return "Restore failed while inspecting the target container."
 		case "restore_scanning":
-			return "Restore failed while reading the backup archive. Check McHarbor logs."
+			return "Restore failed while reading the backup archive."
 		case "restore_image":
-			return "Restore failed while loading the container image. Check McHarbor logs."
+			return "Restore failed while loading the container image."
 		case "restore_filesystem":
-			return "Restore failed while restoring the container filesystem. Check McHarbor logs."
+			return "Restore failed while restoring the container filesystem."
 		case "restore_mounts":
-			return "Restore failed while restoring mounted data. Check McHarbor logs."
+			return "Restore failed while restoring mounted data."
+		case "restore_config":
+			return "Container configuration cannot be restored: applying it would require recreating the container. Restore files, mounts or the image instead."
 		default:
-			return "Restore failed. Check McHarbor logs."
+			return "Restore failed."
 		}
 	}
 	switch backupRunFailureStage(operation, stage) {
 	case "connecting":
-		return "Backup failed while connecting to the Docker environment. Check McHarbor logs."
+		return "Backup failed while connecting to the Docker environment."
 	case "inspecting":
-		return "Backup failed while inspecting the container. Check McHarbor logs."
+		return "Backup failed while inspecting the container."
 	case "preparing":
-		return "Backup failed while preparing the archive. Check McHarbor logs."
+		return "Backup failed while preparing the archive."
 	case "writing", "manifest", "config", "finalizing":
-		return "Backup failed while writing the archive. Check McHarbor logs."
+		return "Backup failed while writing the archive."
 	case "logs":
-		return "Backup failed while reading container logs. Check McHarbor logs."
+		return "Backup failed while reading container logs."
 	case "filesystem":
-		return "Backup failed while exporting the container filesystem. Check McHarbor logs."
+		return "Backup failed while exporting the container filesystem."
 	case "image":
-		return "Backup failed while saving the container image. Check McHarbor logs."
+		return "Backup failed while saving the container image."
 	case "mounts":
-		return "Backup failed while copying mounted data. Check McHarbor logs."
+		return "Backup failed while copying mounted data."
 	case "uploading":
-		return "Backup failed while uploading to selected storage. Check McHarbor logs."
+		return "Backup failed while uploading to selected storage."
 	default:
-		return "Backup failed. Check McHarbor logs."
+		return "Backup failed."
 	}
+}
+
+// joinFailureDetail appends the sanitized cause to a stage headline. A
+// headline on its own is what the old text had, and it sent the operator
+// to the container logs the failure dialog exists to replace.
+func joinFailureDetail(headline string, cause error) string {
+	detail := sanitizeBackupError(cause)
+	if detail == "" {
+		return headline
+	}
+	return headline + " " + detail
+}
+
+// backupErrorSecretPattern strips the parts of a storage error that carry
+// credentials: presigned-URL query strings (S3/Azure SAS hand back the whole
+// signed URL on failure) and userinfo in an embedded URL.
+var (
+	backupErrorQueryPattern    = regexp.MustCompile(`(?i)(https?://[^\s"']+)\?[^\s"']*`)
+	backupErrorUserinfoPattern = regexp.MustCompile(`(?i)([a-z0-9+.-]+://)[^\s/@"']*:[^\s/@"']*@`)
+)
+
+// backupErrorDetailLimit caps the stored detail. Docker and the storage
+// SDKs can hand back multi-kilobyte bodies; the run row is read on every
+// list query, so the tail is dropped rather than paged into the UI.
+const backupErrorDetailLimit = 800
+
+// sanitizeBackupError turns an internal error into text safe to store on
+// the run row and show in the failure dialog.
+//
+// The api-routes rule says never to hand a raw err.Error() to a client,
+// and for an ordinary endpoint that is right. A backup failure record is
+// the documented exception, for the same reason the database connection
+// tester carries its driver message: the operator opened the dialog to
+// find out what broke, and a stage name alone does not answer that. The
+// runs are readable only behind the backups permissions, and the two
+// things an error here plausibly leaks — signed storage URLs and
+// embedded credentials — are scrubbed before the text is stored.
+func sanitizeBackupError(err error) string {
+	if err == nil {
+		return ""
+	}
+	msg := strings.TrimSpace(err.Error())
+	if msg == "" {
+		return ""
+	}
+	msg = backupErrorQueryPattern.ReplaceAllString(msg, "$1?<redacted>")
+	msg = backupErrorUserinfoPattern.ReplaceAllString(msg, "$1<redacted>@")
+	// Collapse newlines: the value is rendered in a single dialog block
+	// and stored in one column, so a stack-trace-shaped body would push
+	// the useful first line out of view.
+	msg = strings.Join(strings.Fields(msg), " ")
+	if len(msg) > backupErrorDetailLimit {
+		msg = msg[:backupErrorDetailLimit] + "..."
+	}
+	return msg
 }
 
 func (s *Service) recoverAbandonedRun(ctx context.Context, runID string) error {
@@ -1095,25 +1453,9 @@ func (s *Service) recoverAbandonedRestoreRuns(ctx context.Context, envID, contai
 		return fmt.Errorf("listing abandoned restore runs: %w", err)
 	}
 
-	type abandonedRestoreRun struct {
-		id      string
-		started string
-	}
-	runs := []abandonedRestoreRun{}
-	for rows.Next() {
-		var run abandonedRestoreRun
-		if err := rows.Scan(&run.id, &run.started); err != nil {
-			rows.Close()
-			return fmt.Errorf("scanning abandoned restore run: %w", err)
-		}
-		runs = append(runs, run)
-	}
-	if err := rows.Err(); err != nil {
-		rows.Close()
+	runs, err := scanAbandonedRestoreRuns(rows)
+	if err != nil {
 		return err
-	}
-	if err := rows.Close(); err != nil {
-		return fmt.Errorf("closing abandoned restore run rows: %w", err)
 	}
 
 	for _, run := range runs {
@@ -1273,10 +1615,12 @@ func (s *Service) recordFinalRunLog(ctx context.Context, run *BackupRun) {
 	// in-flight rows emitted by recordStageLog.
 	var planName sql.NullString
 	if run.PlanID != "" {
-		_ = s.db.QueryRowContext(ctx,
+		if err := s.db.QueryRowContext(ctx,
 			`SELECT name FROM container_backup_plans WHERE id = ?`,
 			run.PlanID,
-		).Scan(&planName)
+		).Scan(&planName); err != nil && !errors.Is(err, sql.ErrNoRows) && s.logger != nil {
+			s.logger.Warn("container backups: reading plan name for run log failed", "run", run.ID, "error", err)
+		}
 	}
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO container_backup_log
@@ -1297,7 +1641,7 @@ func (s *Service) recordFinalRunLog(ctx context.Context, run *BackupRun) {
 
 // nullableStringFromNull returns nil for an invalid (NULL) string
 // and the value for a valid one, so the SQL driver writes NULL
-// instead of '' for unknown plan names.
+// instead of ” for unknown plan names.
 func nullableStringFromNull(value sql.NullString) interface{} {
 	if !value.Valid {
 		return nil
@@ -1346,7 +1690,7 @@ func actionForStage(stage, runStatus string) string {
 }
 
 // nullableString returns the string as a pointer or nil for empty
-// values so the SQL driver writes NULL instead of ''.
+// values so the SQL driver writes NULL instead of ”.
 func nullableString(value string) interface{} {
 	if value == "" {
 		return nil
@@ -1354,15 +1698,28 @@ func nullableString(value string) interface{} {
 	return value
 }
 
-
 func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
+	return s.runByIDLinked(ctx, id, true)
+}
+
+// runByIDLinked reads one run, optionally refreshing its container link.
+//
+// The refresh resolves the container against the live orchestrator under a 5s
+// timeout and persists the result, so it is both slow and a writer. That is
+// fine for the one-shot reads that surround a restore, and wrong for the
+// progress poll: at one request a second against an unreachable environment it
+// stacks five concurrent writers and starves finishRun into SQLITE_BUSY, which
+// strands the run on "running" forever. Pass false wherever the caller only
+// needs status and progress.
+func (s *Service) runByIDLinked(ctx context.Context, id string, refreshLinks bool) (*BackupRun, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT r.id, COALESCE(r.plan_id, ''), COALESCE(r.operation, 'backup'), COALESCE(r.source_run_id, ''),
 		       r.environment_id, r.container_id, r.status, COALESCE(r.archive_path, ''),
 		       r.archive_size, COALESCE(r.archive_encryption, ''), COALESCE(r.archive_key_id, ''), COALESCE(r.error, ''),
 		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
 		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
-		       COALESCE(p.container_name, '') AS container_name
+		       COALESCE(NULLIF(r.container_name, ''), p.container_name, '') AS container_name,
+		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, '')
 		FROM container_backup_runs r
 		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
 		WHERE r.id = ?`, id)
@@ -1374,11 +1731,17 @@ func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 	// Auto-refresh stale container_id (plan + run side). Same
 	// resilience contract as ListRuns: failures are swallowed so a
 	// single broken env doesn't fail the run lookup.
-	if planRefreshed, _ := s.refreshPlanContainerIDForRun(ctx, &run); planRefreshed {
-		run.ContainerIDStale = true
-	}
-	if runRefreshed, _ := s.refreshRunContainerID(ctx, &run); runRefreshed {
-		run.ContainerIDStale = true
+	if refreshLinks {
+		planRefreshed, planErr := s.refreshPlanContainerIDForRun(ctx, &run)
+		s.logRefreshFailure(run.ID, planErr)
+		if planRefreshed {
+			run.ContainerIDStale = true
+		}
+		runRefreshed, runErr := s.refreshRunContainerID(ctx, &run)
+		s.logRefreshFailure(run.ID, runErr)
+		if runRefreshed {
+			run.ContainerIDStale = true
+		}
 	}
 	if err := s.hydrateRunDestinations(ctx, &run); err != nil {
 		return nil, err
@@ -1438,7 +1801,7 @@ func (s *Service) WaitForRun(ctx context.Context, runID string) error {
 // which destinations failed to delete.
 func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 	run, err := s.runByID(ctx, id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {
@@ -1525,8 +1888,8 @@ func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 		// Re-enable FK on whichever connection lands this DELETE.
 		// Even on Postgres / non-SQLite drivers PRAGMA is a no-op,
 		// so this is safe to leave in unconditionally.
-		if _, err := s.db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err == nil {
-			// pragma ran; nothing else to do
+		if _, err := s.db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil && s.logger != nil {
+			s.logger.Debug("container backup: enabling foreign keys before delete failed", "error", err)
 		}
 		if _, err := s.db.ExecContext(ctx,
 			"DELETE FROM container_backup_run_destinations WHERE run_id = ?", id,
@@ -1555,7 +1918,7 @@ func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 // status = 'running'.
 func (s *Service) CancelRun(ctx context.Context, id string) (*BackupRun, error) {
 	run, err := s.runByID(ctx, id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1566,7 +1929,7 @@ func (s *Service) CancelRun(ctx context.Context, id string) (*BackupRun, error) 
 	}
 
 	now := time.Now().UTC()
-	startedAt, _ := time.Parse(time.RFC3339, run.StartedAt)
+	startedAt := s.parseRunStart(run.ID, run.StartedAt)
 	duration := now.Sub(startedAt).Milliseconds()
 	result, err := s.db.ExecContext(ctx, `
 		UPDATE container_backup_runs
@@ -1636,7 +1999,7 @@ func (s *Service) pruneBackupPlanRuns(ctx context.Context, current *BackupRun) e
 		FROM container_backup_plans
 		WHERE id = ?
 		LIMIT 1`, current.PlanID).Scan(&retentionCount, &retentionDays)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
 	if err != nil {
@@ -1655,7 +2018,7 @@ func (s *Service) pruneBackupPlanRuns(ctx context.Context, current *BackupRun) e
 	if err != nil {
 		return fmt.Errorf("listing backup runs for retention: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	runs := []backupRunRetentionRef{}
 	for rows.Next() {
@@ -1691,18 +2054,11 @@ func (s *Service) pruneBackupPlanRuns(ctx context.Context, current *BackupRun) e
 		return nil
 	}
 
+	// Through DeleteRun rather than a bare row delete: removing only the row
+	// and the staging directory left every destination copy behind, which
+	// is a retention policy that never frees any space.
 	for _, run := range prune {
-		if strings.TrimSpace(run.archivePath) != "" {
-			archivePath, err := s.validatedArchivePath(run.archivePath)
-			if err == nil {
-				if err := os.RemoveAll(filepath.Dir(archivePath)); err != nil {
-					return fmt.Errorf("removing backup archive directory: %w", err)
-				}
-			} else if !errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("validating backup archive before retention cleanup: %w", err)
-			}
-		}
-		if _, err := s.db.ExecContext(ctx, "DELETE FROM container_backup_runs WHERE id = ?", run.id); err != nil {
+		if _, err := s.DeleteRun(ctx, run.id); err != nil {
 			return fmt.Errorf("deleting retained backup run %s: %w", run.id, err)
 		}
 	}
@@ -1723,7 +2079,7 @@ func validatePlanRetention(count, days int) error {
 // Download returns a validated backup archive for a completed run.
 func (s *Service) Download(ctx context.Context, runID string) (*BackupDownload, error) {
 	run, err := s.runByID(ctx, strings.TrimSpace(runID))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1769,7 +2125,7 @@ func (s *Service) Download(ctx context.Context, runID string) (*BackupDownload, 
 // RestoreOptions returns restorable entries found in a completed encrypted backup run.
 func (s *Service) RestoreOptions(ctx context.Context, runID string, input RestoreBackupOptionsInput) (*RestoreBackupOptions, error) {
 	run, err := s.runByID(ctx, strings.TrimSpace(runID))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1783,8 +2139,8 @@ func (s *Service) RestoreOptions(ctx context.Context, runID string, input Restor
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	defer decrypted.Close()
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
 
 	options, err := restoreArchiveOptions(decrypted)
 	if err != nil {
@@ -1796,7 +2152,7 @@ func (s *Service) RestoreOptions(ctx context.Context, runID string, input Restor
 // StartRestore starts a background restore run and returns the tracked run.
 func (s *Service) StartRestore(ctx context.Context, runID string, input RestoreBackupInput) (*BackupRun, error) {
 	sourceRun, err := s.runByID(ctx, strings.TrimSpace(runID))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1805,21 +2161,26 @@ func (s *Service) StartRestore(ctx context.Context, runID string, input RestoreB
 	if sourceRun.Operation != "backup" || sourceRun.Status != "success" || strings.TrimSpace(sourceRun.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
 	}
+	// Configuration and the filesystem layer together are restored in that
+	// order (restoreConfigThenFilesystem), so there is nothing to refuse here.
 	if _, err := s.restoreCrypto(sourceRun, input.SecretKey); err != nil {
 		return nil, err
 	}
-	run, err := s.createRestoreRun(ctx, sourceRun)
+	if err := s.guardSelfRestoreFor(ctx, sourceRun.EnvironmentID, sourceRun.ContainerID, input.WorkflowSelfAuthorized); err != nil {
+		return nil, err
+	}
+	run, err := s.createRestoreRun(ctx, sourceRun, input.RestoreItems)
 	if err != nil {
 		return nil, err
 	}
-	s.startBackgroundRestore(run.ID, sourceRun.ID, input)
+	s.startBackgroundRestore(ctx, run.ID, sourceRun.ID, input)
 	return run, nil
 }
 
 // Restore applies restorable entries from a completed encrypted backup run to its original container.
 func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackupInput) (*RestoreBackupResult, error) {
 	run, err := s.runByID(ctx, strings.TrimSpace(runID))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1828,28 +2189,35 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	return s.restoreFromRun(ctx, "", run, input)
 }
 
-func (s *Service) createRestoreRun(ctx context.Context, sourceRun *BackupRun) (*BackupRun, error) {
+// requested is the caller's item selection; empty means "everything in
+// the archive". The row is seeded with that intent so a restore that is
+// still running already shows the right full/partial label — the actual
+// restored set overwrites included_items when the run finishes.
+func (s *Service) createRestoreRun(ctx context.Context, sourceRun *BackupRun, requested []string) (*BackupRun, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
+	included, available := restoreRunItems(sourceRun, requested)
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO container_backup_runs (id, plan_id, operation, source_run_id, environment_id, container_id, status, started_at, created_at, updated_at)
-		VALUES (?, NULL, 'restore', ?, ?, ?, 'running', ?, ?, ?)`,
-		id, sourceRun.ID, sourceRun.EnvironmentID, sourceRun.ContainerID, now, now, now)
+		INSERT INTO container_backup_runs (id, plan_id, operation, source_run_id, environment_id, container_id, container_name, status, started_at, created_at, updated_at, included_items, available_items)
+		VALUES (?, NULL, 'restore', ?, ?, ?, ?, 'running', ?, ?, ?, ?, ?)`,
+		id, sourceRun.ID, sourceRun.EnvironmentID, sourceRun.ContainerID, sourceRun.ContainerName, now, now, now,
+		encodeRunItems(included), encodeRunItems(available))
 	if err != nil {
 		return nil, fmt.Errorf("creating restore run: %w", err)
 	}
 	if err := s.setRunProgress(ctx, id, "queued", ""); err != nil && s.logger != nil {
 		s.logger.Warn("container restore progress update failed", "run", id, "stage", "queued", "error", err)
 	}
-	return &BackupRun{ID: id, Operation: "restore", SourceRunID: sourceRun.ID, EnvironmentID: sourceRun.EnvironmentID, ContainerID: sourceRun.ContainerID, Status: "running", ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now}, nil
+	return &BackupRun{ID: id, Operation: "restore", SourceRunID: sourceRun.ID, EnvironmentID: sourceRun.EnvironmentID, ContainerID: sourceRun.ContainerID, ContainerName: sourceRun.ContainerName, Status: "running", ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now, IncludedItems: included, AvailableItems: available, Scope: runScope(included, available)}, nil
 }
 
-func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input RestoreBackupInput) {
+func (s *Service) startBackgroundRestore(parent context.Context, restoreRunID, sourceRunID string, input RestoreBackupInput) {
+	bgCtx := context.WithoutCancel(parent)
 	go func() {
 		done := markBackupRunActive(restoreRunID)
 		defer done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
+		ctx, cancel := context.WithTimeout(bgCtx, backupRunBackgroundTimeout)
 		runCancelers.Store(restoreRunID, cancel)
 		defer func() {
 			cancel()
@@ -1858,7 +2226,17 @@ func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input
 
 		sourceRun, err := s.runByID(ctx, sourceRunID)
 		if err == nil && sourceRun != nil {
-			_, err = s.restoreFromRun(ctx, restoreRunID, sourceRun, input)
+			var result *RestoreBackupResult
+			result, err = s.restoreFromRun(ctx, restoreRunID, sourceRun, input)
+			// Record what the archive actually yielded rather than what
+			// was asked for: entries can be absent (a mount the source
+			// backup skipped) and the overview must not claim they were
+			// written back.
+			if result != nil && len(result.Restored) > 0 {
+				if itemErr := s.setRunItems(ctx, restoreRunID, result.Restored, result.Restorable); itemErr != nil && s.logger != nil {
+					s.logger.Warn("container restore item record failed", "run", restoreRunID, "error", itemErr)
+				}
+			}
 		}
 		archive := archiveResult{}
 		if _, finishErr := s.finishRun(ctx, restoreRunID, archive, err); finishErr != nil && s.logger != nil {
@@ -1867,11 +2245,28 @@ func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input
 	}()
 }
 
+// restorePass runs one restore pass; tests replace it to observe the order.
+func (s *Service) restorePass(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
+	if s.restorePassHook != nil {
+		return s.restorePassHook(ctx, progressRunID, run, input)
+	}
+	return s.restoreFromRun(ctx, progressRunID, run, input)
+}
+
 func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
 	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
 	}
-	if s.canRunAgentRestore(run) {
+	// Applying configuration recreates the container and drops its filesystem
+	// layer, so a restore that wants both does it in two passes, in that order.
+	if wanted := newRestorePlan(input.RestoreItems); !input.deferFilesystem &&
+		wanted.wantsUnit(runItemConfig) && wanted.wantsUnit(runItemFilesystem) {
+		return s.restoreConfigThenFilesystem(ctx, progressRunID, run, input, wanted)
+	}
+	if err := s.guardSelfRestoreFor(ctx, run.EnvironmentID, run.ContainerID, input.WorkflowSelfAuthorized); err != nil {
+		return nil, err
+	}
+	if s.canRunAgentRestore(ctx, run, newRestorePlan(input.RestoreItems)) {
 		return s.restoreFromRunViaAgentArchive(ctx, progressRunID, run, input)
 	}
 	if progressRunID != "" {
@@ -1881,13 +2276,13 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-	defer decrypted.Close()
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
 
 	if progressRunID != "" {
 		s.updateRunProgress(ctx, progressRunID, "restore_connecting", "")
 	}
-	cli, err := s.client(run.EnvironmentID)
+	cli, err := s.client(ctx, run.EnvironmentID)
 	if err != nil {
 		return nil, err
 	}
@@ -1897,14 +2292,25 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 	if progressRunID != "" {
 		s.updateRunProgress(opCtx, progressRunID, "restore_inspecting", "")
 	}
-	if _, err := cli.ContainerInspect(opCtx, run.ContainerID); err != nil {
+	if _, err := cli.ContainerInspect(opCtx, run.ContainerID, client.ContainerInspectOptions{}); err != nil {
 		return nil, fmt.Errorf("inspecting container before restore: %w", err)
 	}
 
 	tr := tar.NewReader(decrypted)
 	mountTargets := map[string]string{}
 	restored := []string{}
-	wanted := restoreSelection(input.RestoreItems)
+	// Every entry this pipeline could have restored, recorded before the
+	// selection filter. Without it a partial restore has no denominator and
+	// the Backups overview cannot honestly call it partial — the source
+	// backup run's own item list is not a substitute, since runs written
+	// before migration 140 have none.
+	restorable := []string{}
+	var savedInspect []byte
+	plan := newRestorePlan(input.RestoreItems)
+	if input.deferFilesystem {
+		plan = plan.without(runItemFilesystem)
+	}
+	recreatedID := ""
 	for {
 		header, err := tr.Next()
 		if errors.Is(err, io.EOF) {
@@ -1920,8 +2326,21 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 		switch {
 		case header.Name == "manifest.json":
 			mountTargets = restoreMountTargets(tr)
+		case header.Name == "container/inspect.json":
+			restorable = append(restorable, runItemConfig)
+			if !plan.wantsUnit(runItemConfig) {
+				continue
+			}
+			// Buffered, not applied here: recreating the container replaces it,
+			// so config goes last — after any mounts in this same restore have
+			// been written back.
+			savedInspect, err = io.ReadAll(io.LimitReader(tr, restoreConfigInspectMaxBytes))
+			if err != nil {
+				return nil, fmt.Errorf("reading archived container config: %w", err)
+			}
 		case header.Name == "image/image.tar":
-			if !wanted("image") {
+			restorable = append(restorable, "image")
+			if !plan.wantsUnit("image") {
 				continue
 			}
 			if progressRunID != "" {
@@ -1932,11 +2351,22 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 			}
 			restored = append(restored, "image")
 		case header.Name == "container/filesystem.tar":
-			if !wanted("filesystem") {
+			restorable = append(restorable, "filesystem")
+			if !plan.wantsUnit("filesystem") {
 				continue
 			}
 			if progressRunID != "" {
 				s.updateRunProgress(opCtx, progressRunID, "restore_filesystem", "")
+			}
+			if !plan.isWhole("filesystem") {
+				applied, err := s.restoreSubsetEntry(opCtx, cli, run, progressRunID, "restore_filesystem", "Restoring selected files", header.Name, "/", tr, header.Size, plan.subsetPaths("filesystem"), input.SecretKey)
+				if err != nil {
+					return nil, fmt.Errorf("restoring selected filesystem entries: %w", err)
+				}
+				if applied {
+					restored = append(restored, plan.subsetItems("filesystem")...)
+				}
+				continue
 			}
 			reader := s.restoreProgressReader(opCtx, progressRunID, "restore_filesystem", "Restoring container filesystem", tr, header.Size)
 			if err := s.copyRestoreEntryToContainer(opCtx, cli, run, progressRunID, "restore_filesystem", "Restoring container filesystem", header.Name, "/", reader, header.Size, input.SecretKey); err != nil {
@@ -1948,7 +2378,9 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 			if target == "" {
 				return nil, fmt.Errorf("backup mount target is missing")
 			}
-			if !wanted("mount:" + target) {
+			unit := "mount:" + target
+			restorable = append(restorable, unit)
+			if !plan.wantsUnit(unit) {
 				continue
 			}
 			if progressRunID != "" {
@@ -1958,22 +2390,81 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 			if restoreTarget == "." {
 				restoreTarget = "/"
 			}
+			if !plan.isWhole(unit) {
+				applied, err := s.restoreSubsetEntry(opCtx, cli, run, progressRunID, "restore_mounts", "Restoring selected files in "+target, header.Name, restoreTarget, tr, header.Size, plan.subsetPaths(unit), input.SecretKey)
+				if err != nil {
+					return nil, fmt.Errorf("restoring selected mount entries: %w", err)
+				}
+				if applied {
+					restored = append(restored, plan.subsetItems(unit)...)
+				}
+				continue
+			}
 			reader := s.restoreProgressReader(opCtx, progressRunID, "restore_mounts", "Restoring mounted data "+target, tr, header.Size)
 			if err := s.copyRestoreEntryToContainer(opCtx, cli, run, progressRunID, "restore_mounts", "Restoring mounted data "+target, header.Name, restoreTarget, reader, header.Size, input.SecretKey); err != nil {
 				return nil, fmt.Errorf("restoring mounted data: %w", err)
 			}
-			restored = append(restored, "mount:"+target)
+			restored = append(restored, unit)
 		}
 	}
+	// Config last: the recreate below replaces the container, so anything copied
+	// into the old one's filesystem layer would be lost. Mounts survive because
+	// they live outside that layer.
+	if plan.wantsUnit(runItemConfig) && len(savedInspect) > 0 {
+		applied, newID, err := s.restoreContainerConfig(opCtx, run, progressRunID, savedInspect, plan)
+		if err != nil {
+			return nil, err
+		}
+		restored = append(restored, applied...)
+		recreatedID = newID
+	}
+
 	if len(restored) == 0 {
 		return nil, ErrBackupRestoreNoRestorableEntries
 	}
 
-	return &RestoreBackupResult{RunID: run.ID, Restored: restored}, nil
+	return &RestoreBackupResult{RunID: run.ID, Restored: restored, Restorable: restorable, recreatedID: recreatedID}, nil
 }
 
-func (s *Service) canRunAgentRestore(run *BackupRun) bool {
-	if run == nil || !s.pool.IsAgentEnv(run.EnvironmentID) || !s.pool.AgentAtLeast(run.EnvironmentID, agentBackupMinVersion) {
+// restoreConfigThenFilesystem restores everything but the filesystem layer
+// first — configuration last, which recreates the container — and then writes
+// the filesystem layer into the recreated container. Done in one pass, the
+// recreate would discard the layer just restored.
+func (s *Service) restoreConfigThenFilesystem(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput, wanted *restorePlan) (*RestoreBackupResult, error) {
+	first := input
+	first.deferFilesystem = true
+	result, err := s.restorePass(ctx, progressRunID, run, first)
+	if err != nil {
+		return nil, err
+	}
+
+	target := *run
+	if result.recreatedID != "" {
+		target.ContainerID = result.recreatedID
+	}
+	second := input
+	second.RestoreItems = wanted.filesystemItems()
+	fsResult, err := s.restorePass(ctx, progressRunID, &target, second)
+	if err != nil {
+		return nil, fmt.Errorf("restoring the filesystem layer into the recreated container: %w", err)
+	}
+	result.Restored = append(result.Restored, fsResult.Restored...)
+	return result, nil
+}
+
+func (s *Service) canRunAgentRestore(ctx context.Context, run *BackupRun, plan *restorePlan) bool {
+	if run == nil || !s.pool.IsAgentEnvContext(ctx, run.EnvironmentID) || !s.pool.AgentAtLeastContext(ctx, run.EnvironmentID, agentBackupMinVersion) {
+		return false
+	}
+	// Applying container config means recreating the container, which only the
+	// server can orchestrate — the agent restore protocol has no such message.
+	if plan != nil && plan.wantsUnit(runItemConfig) {
+		return false
+	}
+	// A per-file selection needs an agent that knows how to filter. Older
+	// agents would apply the whole mount, which is exactly the bug this
+	// replaced, so route those restores through the server instead.
+	if plan != nil && plan.hasSubset() && !s.pool.AgentAtLeastContext(ctx, run.EnvironmentID, agentSelectiveRestoreMinVersion) {
 		return false
 	}
 	return strings.TrimSpace(run.ArchivePath) != ""
@@ -1988,7 +2479,7 @@ func (s *Service) restoreFromRunViaAgentArchive(ctx context.Context, progressRun
 	if err != nil {
 		return nil, err
 	}
-	agentConn, ok := s.pool.AgentConnection(run.EnvironmentID)
+	agentConn, ok := s.pool.AgentConnectionContext(ctx, run.EnvironmentID)
 	if !ok || agentConn.Transport == nil {
 		return nil, fmt.Errorf("agent not connected for environment %s", run.EnvironmentID)
 	}
@@ -2026,18 +2517,27 @@ func (s *Service) restoreFromRunViaAgentArchive(ctx context.Context, progressRun
 	if result == nil || len(result.Restored) == 0 {
 		return nil, ErrBackupRestoreNoRestorableEntries
 	}
-	return &RestoreBackupResult{RunID: run.ID, Restored: result.Restored}, nil
+	// The agent reports what it wrote back, not what the archive held. With
+	// no selection it restores everything, so the two sets coincide and the
+	// restored list doubles as the inventory. With a selection they do not,
+	// and guessing would mislabel the run — leave it unknown instead.
+	var restorable []string
+	if len(input.RestoreItems) == 0 {
+		restorable = result.Restored
+	}
+	return &RestoreBackupResult{RunID: run.ID, Restored: result.Restored, Restorable: restorable}, nil
 }
 
 func (s *Service) copyRestoreEntryToContainer(ctx context.Context, cli *client.Client, run *BackupRun, progressRunID, progressStage, label, entryName, targetPath string, reader io.Reader, size int64, secretKey string) error {
-	if !s.pool.IsAgentEnv(run.EnvironmentID) {
-		return cli.CopyToContainer(ctx, run.ContainerID, targetPath, reader, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false})
+	if !s.pool.IsAgentEnvContext(ctx, run.EnvironmentID) {
+		_, err := cli.CopyToContainer(ctx, run.ContainerID, client.CopyToContainerOptions{DestinationPath: targetPath, Content: reader, AllowOverwriteDirWithFile: false})
+		return err
 	}
 	return s.copyRestoreEntryToContainerViaAgent(ctx, run, progressRunID, progressStage, label, entryName, targetPath, size, secretKey)
 }
 
 func (s *Service) copyRestoreEntryToContainerViaAgent(ctx context.Context, run *BackupRun, progressRunID, progressStage, label, entryName, targetPath string, size int64, secretKey string) error {
-	agentConn, ok := s.pool.AgentConnection(run.EnvironmentID)
+	agentConn, ok := s.pool.AgentConnectionContext(ctx, run.EnvironmentID)
 	if !ok {
 		return fmt.Errorf("agent not connected for environment %s", run.EnvironmentID)
 	}
@@ -2099,10 +2599,43 @@ func (s *Service) openRestoreArchive(run *BackupRun, secretKey string) (*os.File
 	return file, decrypted, nil
 }
 
-// RestoreUploaded stores an uploaded encrypted archive and restores it to the selected container.
+// RestoreUploaded stores an uploaded encrypted archive and restores all of it to the
+// selected container, in one call, for clients that have no selection step.
 func (s *Service) RestoreUploaded(ctx context.Context, input RestoreUploadedBackupInput) (*RestoreBackupResult, error) {
 	if strings.TrimSpace(input.EnvironmentID) == "" || strings.TrimSpace(input.ContainerID) == "" || input.Reader == nil {
 		return nil, fmt.Errorf("uploaded backup restore input is invalid")
+	}
+	// Guarded before staging so a refused restore leaves no run and no archive behind.
+	if err := s.guardSelfRestore(ctx, input.EnvironmentID, input.ContainerID); err != nil {
+		return nil, err
+	}
+
+	run, err := s.StageUploaded(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.Restore(ctx, run.ID, RestoreBackupInput{SecretKey: strings.TrimSpace(input.SecretKey)})
+	if err != nil {
+		return nil, err
+	}
+	// No selection was passed, so everything the archive held was restored.
+	if result != nil && len(result.Restored) > 0 {
+		if itemErr := s.setRunItems(ctx, run.ID, result.Restored, result.Restorable); itemErr != nil && s.logger != nil {
+			s.logger.Warn("uploaded backup item record failed", "run", run.ID, "error", itemErr)
+		}
+	}
+	return result, nil
+}
+
+// StageUploaded stores an uploaded encrypted archive as a completed backup run without
+// restoring anything, so the operator can pick what to restore from it like any other run.
+//
+// The archive is opened with the supplied key before the run is marked successful: a wrong
+// key or an unreadable file fails the upload here, rather than surfacing later as an empty
+// selection list in the restore dialog.
+func (s *Service) StageUploaded(ctx context.Context, input RestoreUploadedBackupInput) (*BackupRun, error) {
+	if strings.TrimSpace(input.EnvironmentID) == "" || strings.TrimSpace(input.ContainerID) == "" || input.Reader == nil {
+		return nil, fmt.Errorf("uploaded backup input is invalid")
 	}
 
 	archive := archiveResult{}
@@ -2122,26 +2655,85 @@ func (s *Service) RestoreUploaded(ctx context.Context, input RestoreUploadedBack
 		return nil, ErrBackupRestoreSecretRequired
 	}
 
-	run, err := s.createRun(ctx, "", input.EnvironmentID, input.ContainerID)
+	// Best-effort name for the run row: an unreachable orchestrator
+	// must not block a restore, so an empty name is acceptable here —
+	// the list path resolves it later.
+	uploadedName, nameErr := s.containerName(ctx, input.EnvironmentID, input.ContainerID)
+	if nameErr != nil && s.logger != nil {
+		s.logger.Debug("uploaded restore: container name lookup failed",
+			"env", input.EnvironmentID, "container", input.ContainerID, "error", nameErr)
+	}
+
+	// An uploaded archive advertises nothing up front — its contents are
+	// only known once it has been unpacked, so the item lists are stamped
+	// on after the archive has been read below.
+	run, err := s.createRunWithOrigin(ctx, "", input.EnvironmentID, input.ContainerID, uploadedName, RunOriginUpload, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	archive.path, archive.size, err = s.storeUploadedArchive(run.ID, input.Reader)
+	if err == nil {
+		var available []string
+		available, err = s.uploadedArchiveItems(run.ID, archive, secretKey)
+		if err == nil {
+			run, err = s.finishRun(ctx, run.ID, archive, nil)
+			if err != nil {
+				return nil, err
+			}
+			if itemErr := s.setRunItems(ctx, run.ID, available, available); itemErr != nil && s.logger != nil {
+				s.logger.Warn("uploaded backup item record failed", "run", run.ID, "error", itemErr)
+			}
+			// Re-read so the response carries the items just stamped; the run is
+			// staged either way, so a failed re-read is logged, not returned.
+			staged, readErr := s.Run(ctx, run.ID)
+			if readErr != nil && s.logger != nil {
+				s.logger.Warn("uploaded backup re-read failed", "run", run.ID, "error", readErr)
+			}
+			if staged != nil {
+				return staged, nil
+			}
+			return run, nil
+		}
+	}
+
+	if cleanupErr := s.deleteRunArchive(ctx, run.ID, archive.path); cleanupErr != nil && s.logger != nil {
+		s.logger.Warn("uploaded backup cleanup failed", "run", run.ID, "error", cleanupErr)
+	}
+	if _, finishErr := s.finishRun(ctx, run.ID, archive, err); finishErr != nil && s.logger != nil {
+		s.logger.Warn("uploaded backup failure finalization failed", "run", run.ID, "error", finishErr)
+	}
+	return nil, err
+}
+
+// uploadedArchiveItems opens a just-stored upload with the key it will be restored with
+// and lists its item keys, which proves the key and the tar before the run is offered.
+func (s *Service) uploadedArchiveItems(runID string, archive archiveResult, secretKey string) ([]string, error) {
+	probe := &BackupRun{
+		ID:                runID,
+		ArchivePath:       archive.path,
+		ArchiveEncryption: archive.encryption,
+		ArchiveKeyID:      archive.keyID,
+	}
+	file, decrypted, err := s.openRestoreArchive(probe, secretKey)
 	if err != nil {
-		if cleanupErr := s.deleteRunArchive(ctx, run.ID, archive.path); cleanupErr != nil && s.logger != nil {
-			s.logger.Warn("uploaded backup cleanup failed", "run", run.ID, "error", cleanupErr)
-		}
-		if _, finishErr := s.finishRun(ctx, run.ID, archive, err); finishErr != nil && s.logger != nil {
-			s.logger.Warn("uploaded backup failure finalization failed", "run", run.ID, "error", finishErr)
-		}
 		return nil, err
 	}
-	run, err = s.finishRun(ctx, run.ID, archive, nil)
+	defer closeLogged(file, "uploaded backup archive")
+	defer closeLogged(decrypted, "decrypted uploaded backup stream")
+
+	options, err := restoreArchiveOptions(decrypted)
 	if err != nil {
 		return nil, err
 	}
-	return s.Restore(ctx, run.ID, RestoreBackupInput{SecretKey: secretKey})
+	if len(options) == 0 {
+		return nil, ErrBackupRestoreNoRestorableEntries
+	}
+	items := make([]string, 0, len(options))
+	for _, option := range options {
+		items = append(items, option.Key)
+	}
+	return items, nil
 }
 
 func (s *Service) restoreCrypto(run *BackupRun, secretKey string) (*backupcrypto.Service, error) {
@@ -2260,6 +2852,27 @@ func restoreArchiveOptions(reader io.Reader) ([]BackupOption, error) {
 				Description: "Restore the writable container filesystem layer.",
 				Default:     true,
 			})
+		case header.Name == "container/inspect.json":
+			raw, readErr := io.ReadAll(io.LimitReader(tr, header.Size))
+			if readErr != nil {
+				return nil, fmt.Errorf("reading inspect.json: %w", readErr)
+			}
+			rootItems, _, cerr := enumerateConfigChildrenAt(raw, "")
+			if cerr != nil {
+				return nil, cerr
+			}
+			// The synthetic `config` row holds ParentMount="config" so
+			// the picker can locate the subtree under it; subsequent
+			// folder rows keep ParentMount="config" too.
+			for i := range rootItems {
+				if rootItems[i].Key == "config:Config" {
+					rootItems[i].ParentMount = "config"
+					rootItems[i].EntryKind = "folder"
+				} else if rootItems[i].Type == "folder" || rootItems[i].Type == "file" {
+					rootItems[i].ParentMount = "config"
+				}
+			}
+			items = append(items, rootItems...)
 		case strings.HasPrefix(header.Name, "mounts/") && strings.HasSuffix(header.Name, ".tar"):
 			target := mountTargets[header.Name]
 			if target == "" {
@@ -2272,25 +2885,914 @@ func restoreArchiveOptions(reader io.Reader) ([]BackupOption, error) {
 				Description: "Restore mounted data saved for this container path.",
 				Default:     true,
 			})
+			// Inline-emit children of the mount so the picker has
+			// something to drill into without a second round-trip.
+			// Expand one level at the root so the operator sees nested
+			// entries (e.g. `data/sub/`) immediately.
+			innerBytes, readErr := io.ReadAll(io.LimitReader(tr, header.Size))
+			if readErr != nil {
+				return nil, fmt.Errorf("reading mount %s: %w", header.Name, readErr)
+			}
+			expanded, truncated, cerr := enumerateMountChildrenRecursive(tar.NewReader(bytes.NewReader(innerBytes)), target, "", restoreOptionsMaxMountEntries)
+			if cerr != nil {
+				return nil, cerr
+			}
+			// Attach truncated flag to the parent mount row.
+			for i := range items {
+				if items[i].Key == "mount:"+target {
+					items[i].Truncated = truncated
+					break
+				}
+			}
+			items = append(items, expanded...)
 		}
 	}
 	return items, nil
 }
 
-func restoreSelection(items []string) func(string) bool {
-	selected := map[string]struct{}{}
-	for _, item := range items {
-		item = strings.TrimSpace(item)
-		if item != "" {
-			selected[item] = struct{}{}
+// restoreChildrenCap is the maximum number of immediate children enumerated
+// from any one parent path in a tree-listing endpoint (filesystem/mounts/
+// config). Larger directories surface a `truncated` flag so the UI can show
+// a "more items not shown" hint instead of streaming the whole archive.
+const restoreChildrenCap = 200
+
+// restoreOptionsMaxMountEntries caps how many mount entries the
+// restore-options response will enumerate per mount tar. Anything
+// larger is truncated with Truncated=true and the operator must drill
+// into the mount subtree via the lazy-load endpoint to see the rest.
+const restoreOptionsMaxMountEntries = 1000
+
+// enumerateTarChildren walks an outer-tar reader until the entry named
+// `outerEntry` is found, then streams the nested tar inside that entry and
+// returns the first-level children of `innerPath` (slash-delimited, "" = root).
+// `wireTarget` is the canonical selection target stamped onto each row's Key
+// and ParentMount — the real mount path (e.g. "/data") for a mount tar, and
+// the literal "filesystem" for the container filesystem layer.
+// The returned slice contains one BackupOption per directory or regular file;
+// other tar types (symlinks, devices, fifos, hardlinks) are skipped. `truncated`
+// is true when more siblings would have followed `limit`.
+func enumerateTarChildren(decrypted io.Reader, outerEntry string, wireTarget string, innerPath string, limit int) (items []BackupOption, truncated bool, err error) {
+	if limit <= 0 {
+		limit = restoreChildrenCap
+	}
+	items = []BackupOption{}
+	outer := tar.NewReader(decrypted)
+	for {
+		h, err := outer.Next()
+		if errors.Is(err, io.EOF) {
+			return nil, false, fmt.Errorf("outer archive does not contain %s", outerEntry)
+		}
+		if err != nil {
+			return nil, false, err
+		}
+		if h == nil || h.Typeflag != tar.TypeReg || h.Name != outerEntry {
+			continue
+		}
+		inner := tar.NewReader(io.LimitReader(outer, h.Size))
+		prefix := strings.Trim(innerPath, "/")
+		if prefix != "" {
+			prefix += "/"
+		}
+		seen := map[string]struct{}{}
+		for {
+			innerHeader, innerErr := inner.Next()
+			if errors.Is(innerErr, io.EOF) {
+				break
+			}
+			if innerErr != nil {
+				return items, truncated, innerErr
+			}
+			if innerHeader == nil {
+				continue
+			}
+			// Only descend into entries under the requested prefix.
+			if prefix != "" && !strings.HasPrefix(innerHeader.Name, prefix) {
+				if err := skipTarEntry(innerHeader, inner); err != nil {
+					return items, truncated, err
+				}
+				continue
+			}
+			// Strip the prefix and take the first path segment.
+			rel := strings.TrimPrefix(innerHeader.Name, prefix)
+			if rel == "" || strings.HasPrefix(rel, "./") {
+				if err := skipTarEntry(innerHeader, inner); err != nil {
+					return items, truncated, err
+				}
+				continue
+			}
+			seg := rel
+			if idx := strings.Index(seg, "/"); idx >= 0 {
+				seg = seg[:idx]
+			}
+			if seg == "" {
+				if err := skipTarEntry(innerHeader, inner); err != nil {
+					return items, truncated, err
+				}
+				continue
+			}
+			if _, ok := seen[seg]; ok {
+				if err := skipTarEntry(innerHeader, inner); err != nil {
+					return items, truncated, err
+				}
+				continue
+			}
+			seen[seg] = struct{}{}
+			// A segment is a folder when its own header says so, or when
+			// the header path continues past the segment. A tar that omits
+			// directory headers still resolves correctly because the deeper
+			// entry carries `<seg>/...`. Do not read ahead here: every
+			// header consumed would be dropped without becoming a row.
+			isFolder := innerHeader.Typeflag == tar.TypeDir || strings.HasPrefix(rel, seg+"/")
+			childPath := strings.Trim(innerPath, "/")
+			if childPath != "" {
+				childPath += "/"
+			}
+			childPath += seg
+			optType := "file"
+			size := innerHeader.Size
+			if isFolder {
+				optType = "folder"
+				size = 0
+			}
+			// Path/EntryKind/ParentMount/Size are load-bearing: the picker
+			// feeds Path back as the next innerPath, so omitting it makes
+			// every drill-down re-request the root listing.
+			items = append(items, BackupOption{
+				Key:         buildTreeWireKey(wireTarget, childPath, optType),
+				Type:        optType,
+				EntryKind:   optType,
+				Label:       seg,
+				Path:        childPath,
+				ParentMount: wireTarget,
+				Size:        size,
+				Description: "",
+				Default:     false,
+				Required:    false,
+			})
+			if err := skipTarEntry(innerHeader, inner); err != nil {
+				return items, truncated, err
+			}
+			if len(items) >= limit {
+				truncated = true
+				return items, truncated, nil
+			}
+		}
+		return items, false, nil
+	}
+}
+
+// buildTreeWireKey returns the canonical restoreItems key for a tree leaf or
+// folder, mirroring the frontend convention in RestoreFileTree.tsx:
+//
+//	folder:<outerEntry>:<path>     for folders
+//	file:<outerEntry>:<path>       for files
+//
+// where `<outerEntry>` is "filesystem" for the container filesystem and the
+// mount target (e.g. "/data") for a per-mount tree.
+func buildTreeWireKey(outerEntry, innerPath, optType string) string {
+	cleanOuter := strings.TrimSuffix(outerEntry, ".tar")
+	// A mount is named by its target, "/data", in every key the restore reads
+	// (splitRestoreItem, splitMountPath, the agent's plan). The listings pass
+	// "mounts/data", with or without ".tar"; left as is, a folder ticked inside
+	// a mount named no mount at all and restored nothing from it.
+	if rest, ok := strings.CutPrefix(cleanOuter, "mounts/"); ok {
+		cleanOuter = "/" + strings.TrimPrefix(rest, "/")
+	}
+	if cleanOuter == "container/filesystem" || cleanOuter == "filesystem" {
+		cleanOuter = "filesystem"
+	}
+	prefix := "file:"
+	if optType == "folder" {
+		prefix = "folder:"
+	}
+	return prefix + cleanOuter + ":" + strings.TrimLeft(innerPath, "/")
+}
+
+// enumerateMountChildrenAt returns the immediate children of `innerPath`
+// inside the inner mount tar held by `mountReader`. The reader is
+// expected to be positioned at the start of the inner mount tar (i.e.,
+// the caller has already advanced the outer archive to the matching
+// `mounts/<safeTarget>.tar` entry). Each entry is rendered as a
+// `BackupOption` with `Path`/`ParentMount`/`Size` populated for the
+// tree view; folder rows carry `Type="folder"`, file rows carry
+// `Type="file"`.
+//
+// innerPath == "" yields top-level entries. Otherwise the function
+// returns the children whose tar name has `innerPath` as a parent
+// segment.
+func enumerateMountChildrenAt(mountReader *tar.Reader, mountTarget, innerPath string) ([]BackupOption, bool, error) {
+	items := []BackupOption{}
+	truncated := false
+	seen := map[string]bool{}
+	if mountReader == nil {
+		return items, false, nil
+	}
+	prefix := ""
+	if innerPath != "" {
+		prefix = strings.TrimRight(innerPath, "/") + "/"
+	}
+	for {
+		hdr, err := mountReader.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, false, err
+		}
+		if hdr == nil {
+			continue
+		}
+		name := strings.TrimRight(hdr.Name, "/")
+		if innerPath != "" {
+			if !strings.HasPrefix(name+"/", prefix) && name != innerPath {
+				continue
+			}
+			if name == innerPath {
+				continue
+			}
+		} else if strings.Contains(name, "/") {
+			// Top-level entry: extract first segment.
+			parts := strings.SplitN(name, "/", 2)
+			name = parts[0]
+		}
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+		isDir := hdr.Typeflag == tar.TypeDir
+		if len(items) >= restoreOptionsMaxMountEntries {
+			truncated = true
+			continue
+		}
+		if isDir {
+			items = append(items, BackupOption{
+				Key:         buildTreeWireKey("mounts/"+strings.TrimPrefix(mountTarget, "/"), name, "folder"),
+				Type:        "folder",
+				EntryKind:   "folder",
+				Label:       name,
+				Path:        name,
+				ParentMount: mountTarget,
+			})
+		} else {
+			items = append(items, BackupOption{
+				Key:         buildTreeWireKey("mounts/"+strings.TrimPrefix(mountTarget, "/"), name, "file"),
+				Type:        "file",
+				EntryKind:   "file",
+				Label:       name,
+				Path:        name,
+				ParentMount: mountTarget,
+				Size:        hdr.Size,
+			})
 		}
 	}
-	if len(selected) == 0 {
-		return func(string) bool { return true }
+	return items, truncated, nil
+}
+
+// enumerateMountChildrenRecursive walks a mount tar and emits every
+// entry whose path starts with `innerPath`. Unlike enumerateMountChildrenAt
+// (which only lists immediate children), this variant surfaces files
+// at any depth inside `innerPath` so the picker shows nested entries
+// inline. Folder keys end with `/`, file keys do not. `limit` bounds the
+// total row count; once hit the rest is dropped and `truncated` is set
+// true.
+func enumerateMountChildrenRecursive(mountReader *tar.Reader, mountTarget, innerPath string, limit int) ([]BackupOption, bool, error) {
+	items := []BackupOption{}
+	truncated := false
+	if mountReader == nil {
+		return items, false, nil
 	}
-	return func(item string) bool {
-		_, ok := selected[item]
-		return ok
+	prefix := ""
+	if innerPath != "" {
+		prefix = strings.TrimRight(innerPath, "/") + "/"
+	}
+	for {
+		hdr, err := mountReader.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, false, err
+		}
+		if hdr == nil {
+			continue
+		}
+		name := strings.TrimRight(hdr.Name, "/")
+		if name == "" {
+			continue
+		}
+		var rel string
+		switch {
+		case innerPath == "":
+			rel = name
+		case name == innerPath:
+			continue
+		case strings.HasPrefix(name+"/", prefix):
+			rel = strings.TrimPrefix(name, prefix)
+		default:
+			continue
+		}
+		if rel == "" {
+			continue
+		}
+		if len(items) >= limit {
+			truncated = true
+			continue
+		}
+		isDir := hdr.Typeflag == tar.TypeDir
+		if isDir {
+			items = append(items, BackupOption{
+				Key:         buildTreeWireKey("mounts/"+strings.TrimPrefix(mountTarget, "/"), rel+"/", "folder"),
+				Type:        "folder",
+				EntryKind:   "folder",
+				Label:       pathBase(rel),
+				Path:        rel,
+				ParentMount: mountTarget,
+			})
+		} else {
+			items = append(items, BackupOption{
+				Key:         buildTreeWireKey("mounts/"+strings.TrimPrefix(mountTarget, "/"), rel, "file"),
+				Type:        "file",
+				EntryKind:   "file",
+				Label:       pathBase(rel),
+				Path:        rel,
+				ParentMount: mountTarget,
+				Size:        hdr.Size,
+			})
+		}
+	}
+	return items, truncated, nil
+}
+
+// pathBase returns the final segment of a slash-delimited path.
+func pathBase(p string) string {
+	if i := strings.LastIndex(p, "/"); i >= 0 {
+		return p[i+1:]
+	}
+	return p
+}
+
+// decodeRestoreMountTarget reverses the URL encoding chi leaves in place
+// for path parameters. Without this, a multi-segment mount like
+// `/var/www/html/data` would arrive as `%2Fvar%2Fwww%2Fhtml%2Fdata`
+// and never match the manifest's selectedMounts list.
+func decodeRestoreMountTarget(s string) string {
+	if s == "" {
+		return s
+	}
+	decoded, err := url.PathUnescape(s)
+	if err != nil {
+		return s
+	}
+	return decoded
+}
+
+// precomputeWantedFilesByMount builds two per-mount maps from the
+// operator's selection list:
+//   - files:   mountTarget -> set of file paths the operator wants
+//   - folders: mountTarget -> set of folder paths the operator wants
+//
+// Both prefixes (`file:` and `folder:`) are honored so the picker
+// treats either as a positive selection. A `file:` key with a trailing
+// slash is treated as a folder selection (some pickers emit that shape).
+// `mount:<target>` keys contribute the whole mount (its full set, no
+// per-file filtering).
+func precomputeWantedFilesByMount(items []string) (files, folders map[string]map[string]bool) {
+	files = map[string]map[string]bool{}
+	folders = map[string]map[string]bool{}
+	for _, raw := range items {
+		key := strings.TrimSpace(raw)
+		if key == "" {
+			continue
+		}
+		asFolder := false
+		switch {
+		case strings.HasPrefix(key, "file:"):
+			rest := strings.TrimPrefix(key, "file:")
+			mount, path, ok := splitMountPath(rest)
+			if !ok {
+				continue
+			}
+			if strings.HasSuffix(path, "/") {
+				asFolder = true
+			}
+			path = strings.TrimRight(path, "/")
+			if path == "" {
+				continue
+			}
+			if asFolder {
+				if folders[mount] == nil {
+					folders[mount] = map[string]bool{}
+				}
+				folders[mount][path] = true
+			} else {
+				if files[mount] == nil {
+					files[mount] = map[string]bool{}
+				}
+				files[mount][path] = true
+			}
+		case strings.HasPrefix(key, "folder:"):
+			rest := strings.TrimPrefix(key, "folder:")
+			mount, path, ok := splitMountPath(rest)
+			if !ok {
+				continue
+			}
+			path = strings.TrimRight(path, "/")
+			if path == "" {
+				continue
+			}
+			if folders[mount] == nil {
+				folders[mount] = map[string]bool{}
+			}
+			folders[mount][path] = true
+		}
+	}
+	return files, folders
+}
+
+// splitMountPath accepts wire keys of the form `<target>:<path>` where
+// target starts with `/`. Returns mount target, inner path, ok.
+func splitMountPath(s string) (string, string, bool) {
+	idx := strings.IndexByte(s, ':')
+	if idx <= 0 {
+		return "", "", false
+	}
+	mount := s[:idx]
+	path := s[idx+1:]
+	if !strings.HasPrefix(mount, "/") {
+		return "", "", false
+	}
+	return mount, path, true
+}
+
+// innerPathMatchesWanted reports whether a tar entry at `path` should
+// be kept because it matches one of the operator's file selections
+// directly, or because it lives under one of the selected folders.
+func innerPathMatchesWanted(path string, files, folders map[string]bool) bool {
+	if files[path] {
+		return true
+	}
+	for folder := range folders {
+		if path == folder {
+			return true
+		}
+		if strings.HasPrefix(path, strings.TrimRight(folder, "/")+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+// hasWantedDescendant reports whether any selected file or folder is
+// nested under `path`. Used by filterMountTarEntries to keep ancestor
+// directories in the rebuilt tar so the resulting tree is structurally
+// valid for downstream extractors.
+func hasWantedDescendant(path string, files, folders map[string]bool) bool {
+	base := strings.TrimRight(path, "/") + "/"
+	for f := range files {
+		if strings.HasPrefix(f, base) {
+			return true
+		}
+	}
+	for f := range folders {
+		if strings.HasPrefix(f, base) {
+			return true
+		}
+	}
+	return false
+}
+
+// filterMountTarEntries reads `mountReader`, copies every entry whose
+// path matches the operator's wanted set into a fresh tar buffer, and
+// returns the rebuilt bytes plus the total payload size. Entries that
+// don't match are dropped — useful when the operator picks a subset
+// of files inside a mount tar (e.g. `data/config.php` only). Ancestor
+// directories of any kept entry are also kept so the resulting tar is
+// structurally valid for downstream extractors.
+func filterMountTarEntries(mountReader *tar.Reader, files, folders map[string]bool) (*bytes.Buffer, int64, error) {
+	out := &bytes.Buffer{}
+	tw := tar.NewWriter(out)
+	var total int64
+	// The caller passes an already-streaming *tar.Reader (the inner
+	// `mounts/<target>.tar` extracted from the outer archive). Wrapping
+	// it in tar.NewReader would feed it entry bodies as tar headers and
+	// silently produce an empty output — use the reader directly.
+	tr := mountReader
+	for {
+		hdr, err := tr.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, 0, err
+		}
+		if hdr == nil {
+			continue
+		}
+		cleanName := strings.TrimRight(hdr.Name, "/")
+		if cleanName == "" {
+			continue
+		}
+		matched := innerPathMatchesWanted(cleanName, files, folders)
+		if !matched {
+			if hasWantedDescendant(cleanName, files, folders) {
+				matched = true
+			}
+		}
+		if !matched {
+			if err := skipTarEntry(hdr, tr); err != nil {
+				return nil, 0, err
+			}
+			continue
+		}
+		newHdr := *hdr
+		newHdr.Name = cleanName
+		if err := tw.WriteHeader(&newHdr); err != nil {
+			return nil, 0, err
+		}
+		if hdr.Size > 0 {
+			n, err := io.Copy(tw, tr)
+			if err != nil {
+				return nil, 0, err
+			}
+			total += n
+		}
+	}
+	if err := tw.Close(); err != nil {
+		return nil, 0, err
+	}
+	return out, total, nil
+}
+
+// enumerateConfigChildrenAt walks a marshaled ContainerJSON (or just the
+// Config subtree) and returns synthetic BackupOption rows for the requested
+// parentKey. Signature and semantics are pinned by config_children_test.go.
+//
+//	parentKey == "" (or "config")
+//	  -> synthetic "config:Config" folder + one row per top-level field
+//	     (array/object = folder, scalar = file)
+//	parentKey == "config:Config.<Field>"
+//	  -> drill into that field:
+//	     * object: one file row per key
+//	     * array:  one file row per element (Env is special-cased to
+//	               split on "=" and emit a row per NAME, dropping
+//	               malformed entries like "EMPTY=", "=leadingeq", "BAD")
+//	     * scalar: error "unknown config parent key" (defensive; the
+//	               frontend should never ask for leaves under a scalar)
+//	parentKey == anything else
+//	  -> error "unknown config parent key" so the backend surfaces a
+//	     500 instead of returning []
+func enumerateConfigChildrenAt(inspect []byte, parentKey string) ([]BackupOption, bool, error) {
+	items := []BackupOption{}
+	truncated := false
+	if len(inspect) == 0 {
+		return nil, false, errors.New("empty inspect payload")
+	}
+	// Accept either a full ContainerJSON (`{"Config":{...}}`) or the bare
+	// Config subtree. Detect by checking for a top-level "Config" key.
+	var root map[string]json.RawMessage
+	if err := json.Unmarshal(inspect, &root); err != nil {
+		return nil, false, err
+	}
+	var config map[string]json.RawMessage
+	if raw, ok := root["Config"]; ok {
+		if err := json.Unmarshal(raw, &config); err != nil {
+			return nil, false, err
+		}
+	} else {
+		config = root
+	}
+	if parentKey == "" || parentKey == "config" {
+		items = append(items, BackupOption{
+			Key: "config", Type: "config", Label: "Config",
+			EntryKind:   "folder",
+			Description: "Container configuration saved in this backup.",
+		})
+		// Walk canonical keys first so the picker renders a stable
+		// shape even when the archive lacks data for some fields.
+		emitted := map[string]bool{}
+		for _, k := range canonicalConfigKeys() {
+			val := config[k]
+			item, err := configFieldItem(configRootKey(k), k, val)
+			if err != nil {
+				return nil, false, err
+			}
+			if len(items) >= restoreChildrenCap {
+				truncated = true
+				continue
+			}
+			items = append(items, item)
+			emitted[k] = true
+		}
+		for _, k := range sortedKeys(config) {
+			if emitted[k] {
+				continue
+			}
+			val := config[k]
+			item, err := configFieldItem(configRootKey(k), k, val)
+			if err != nil {
+				return nil, false, err
+			}
+			if len(items) >= restoreChildrenCap {
+				truncated = true
+				continue
+			}
+			items = append(items, item)
+		}
+		return items, truncated, nil
+	}
+	// Drill: parentKey is "config:Config.<Field>".
+	fieldName := strings.TrimPrefix(parentKey, "config:")
+	fieldName = strings.TrimPrefix(fieldName, "Config.")
+	if fieldName == "" {
+		return nil, false, fmt.Errorf("unknown config parent key %q", parentKey)
+	}
+	val, ok := config[fieldName]
+	if !ok {
+		// A canonical field the archive carries no value for (Volumes and Args
+		// are routinely absent or null). The picker renders every canonical
+		// field as a folder, so it will ask for these; an empty child list is
+		// the honest answer, not a 500.
+		if configFolderKeys[fieldName] || configScalarKeys[fieldName] {
+			return []BackupOption{}, false, nil
+		}
+		return nil, false, fmt.Errorf("unknown config parent key %q", parentKey)
+	}
+	if isNullOrEmptyJSON(val) {
+		return []BackupOption{}, false, nil
+	}
+	if err := configChildrenForField(&items, parentKey, fieldName, val, &truncated); err != nil {
+		return nil, false, err
+	}
+	return items, truncated, nil
+}
+
+// configRootKey returns the wire key for a top-level Config field
+// ("config:Config.<field>").
+// isNullOrEmptyJSON reports whether a raw config value carries nothing to
+// enumerate — absent, JSON null, or an empty object/array.
+func isNullOrEmptyJSON(raw json.RawMessage) bool {
+	trimmed := strings.TrimSpace(string(raw))
+	switch trimmed {
+	case "", "null", "{}", "[]":
+		return true
+	}
+	return false
+}
+
+func configRootKey(field string) string {
+	return "config:Config." + field
+}
+
+// configFolderKeys is the canonical set of Container Config keys that
+// always render as folders (object/array values) in the picker. When
+// the archive carries no value for a key, the picker still surfaces a
+// folder row so the operator sees a stable shape across backups made
+// with different IncludeConfig sub-options.
+var configFolderKeys = map[string]bool{
+	"Env":          true,
+	"Cmd":          true,
+	"Entrypoint":   true,
+	"Args":         true,
+	"Labels":       true,
+	"ExposedPorts": true,
+	"Volumes":      true,
+}
+
+// configScalarKeys is the canonical set of scalar keys. Mirrors
+// configFolderKeys.
+var configScalarKeys = map[string]bool{
+	"WorkingDir": true,
+	"User":       true,
+	"Image":      true,
+}
+
+// canonicalConfigKeys returns the canonical Container Config keys in
+// stable order so the picker renders identically across backups that
+// happened to omit some sub-fields.
+func canonicalConfigKeys() []string {
+	return []string{
+		"Env", "Cmd", "Entrypoint", "Args", "Labels", "ExposedPorts", "Volumes",
+		"WorkingDir", "User", "Image",
+	}
+}
+
+// configFieldItem returns the row for a single top-level Config field.
+// The type is decided by the canonical set when the key is known, or
+// by the JSON shape when the key is unknown.
+func configFieldItem(key, label string, raw json.RawMessage) (BackupOption, error) {
+	if configFolderKeys[label] {
+		return BackupOption{Key: key, Type: "folder", Label: label}, nil
+	}
+	if configScalarKeys[label] {
+		return BackupOption{Key: key, Type: "file", Label: label}, nil
+	}
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return BackupOption{Key: key, Type: "file", Label: label}, nil
+	}
+	switch trimmed[0] {
+	case '{', '[':
+		return BackupOption{Key: key, Type: "folder", Label: label}, nil
+	}
+	return BackupOption{Key: key, Type: "file", Label: label}, nil
+}
+
+// configChildrenForField appends rows for the children of `parentKey`
+// when parentKey refers to one specific Config field. The semantics
+// match the test expectations:
+//
+//   - object: one row per key (label = key name)
+//   - array:  one row per element; Env is special-cased to split on "="
+//     and emit a row per NAME, dropping malformed entries
+//   - scalar: error "unknown config parent key"
+func configChildrenForField(items *[]BackupOption, parentKey, label string, raw json.RawMessage, truncated *bool) error {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return fmt.Errorf("unknown config parent key %q", parentKey)
+	}
+	switch trimmed[0] {
+	case '{':
+		var obj map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &obj); err != nil {
+			return fmt.Errorf("unknown config parent key %q", parentKey)
+		}
+		for _, k := range sortedKeys(obj) {
+			if len(*items) >= restoreChildrenCap {
+				*truncated = true
+				continue
+			}
+			*items = append(*items, BackupOption{
+				Key:   parentKey + "." + k,
+				Type:  "file",
+				Label: k,
+			})
+		}
+		return nil
+	case '[':
+		if label == "Env" {
+			var strs []string
+			if err := json.Unmarshal(raw, &strs); err != nil {
+				return fmt.Errorf("unknown config parent key %q", parentKey)
+			}
+			for _, entry := range strs {
+				eq := strings.IndexByte(entry, '=')
+				if eq <= 0 {
+					// Malformed (e.g. "", "=leadingeq", "BAD") — drop.
+					continue
+				}
+				name := entry[:eq]
+				value := entry[eq+1:]
+				if name == "" || value == "" {
+					// Drop empty-name and empty-value entries.
+					continue
+				}
+				if len(*items) >= restoreChildrenCap {
+					*truncated = true
+					continue
+				}
+				*items = append(*items, BackupOption{
+					Key:   parentKey + "." + name,
+					Type:  "file",
+					Label: name,
+				})
+			}
+			return nil
+		}
+		// Generic array: one file leaf per element.
+		var arr []json.RawMessage
+		if err := json.Unmarshal(raw, &arr); err != nil {
+			return fmt.Errorf("unknown config parent key %q", parentKey)
+		}
+		for i := range arr {
+			if len(*items) >= restoreChildrenCap {
+				*truncated = true
+				continue
+			}
+			name := fmt.Sprintf("%s[%d]", label, i)
+			*items = append(*items, BackupOption{
+				Key:   parentKey + "." + name,
+				Type:  "file",
+				Label: name,
+			})
+		}
+		return nil
+	}
+	return fmt.Errorf("unknown config parent key %q", parentKey)
+}
+
+// sortedKeys returns the keys of m in sorted order, skipping empty strings.
+func sortedKeys(m map[string]json.RawMessage) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		if k == "" {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// FilesystemEntriesForRestore returns the first-level children of `innerPath`
+// inside `container/filesystem.tar` for the named backup run.
+func (s *Service) FilesystemEntriesForRestore(ctx context.Context, runID, innerPath, secretKey string) ([]BackupOption, bool, int, error) {
+	run, err := s.runByID(ctx, strings.TrimSpace(runID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, false, restoreChildrenCap, nil
+	}
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
+		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
+	}
+	file, decrypted, err := s.openRestoreArchive(run, secretKey)
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
+	items, truncated, err := enumerateTarChildren(decrypted, "container/filesystem.tar", "filesystem", innerPath, restoreChildrenCap)
+	return items, truncated, restoreChildrenCap, err
+}
+
+// MountEntriesForRestore returns the first-level children of `innerPath`
+// inside `mounts/<safeTarget>.tar` for the named backup run.
+func (s *Service) MountEntriesForRestore(ctx context.Context, runID, mountTarget, innerPath, secretKey string) ([]BackupOption, bool, int, error) {
+	run, err := s.runByID(ctx, strings.TrimSpace(runID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, false, restoreChildrenCap, nil
+	}
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
+		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
+	}
+	file, decrypted, err := s.openRestoreArchive(run, secretKey)
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
+	entry := backupMountEntryName(mountTarget)
+	items, truncated, err := enumerateTarChildren(decrypted, entry, mountTarget, innerPath, restoreChildrenCap)
+	if err != nil {
+		// Distinguish missing-entry inside the archive from other errors.
+		if strings.Contains(err.Error(), "outer archive does not contain") {
+			return nil, false, restoreChildrenCap, ErrBackupRestoreMountMissing
+		}
+		return nil, false, restoreChildrenCap, err
+	}
+	return items, truncated, restoreChildrenCap, nil
+}
+
+// ConfigEntriesForRestore returns the synthetic config tree rows under the
+// named parentKey for the named backup run.
+func (s *Service) ConfigEntriesForRestore(ctx context.Context, runID, parentKey, secretKey string) ([]BackupOption, bool, int, error) {
+	run, err := s.runByID(ctx, strings.TrimSpace(runID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, false, restoreChildrenCap, nil
+	}
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
+		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
+	}
+	file, decrypted, err := s.openRestoreArchive(run, secretKey)
+	if err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
+	tr := tar.NewReader(decrypted)
+	for {
+		h, err := tr.Next()
+		if errors.Is(err, io.EOF) {
+			return nil, false, restoreChildrenCap, ErrBackupRestoreConfigMissing
+		}
+		if err != nil {
+			return nil, false, restoreChildrenCap, err
+		}
+		if h == nil || h.Typeflag != tar.TypeReg {
+			continue
+		}
+		if h.Name != "container/inspect.json" {
+			if err := skipTarEntry(h, tr); err != nil {
+				return nil, false, restoreChildrenCap, err
+			}
+			continue
+		}
+		raw, err := io.ReadAll(io.LimitReader(tr, h.Size))
+		if err != nil {
+			return nil, false, restoreChildrenCap, err
+		}
+		items, truncated, err := enumerateConfigChildrenAt(raw, parentKey)
+		if err != nil {
+			return nil, false, restoreChildrenCap, err
+		}
+		return items, truncated, restoreChildrenCap, nil
 	}
 }
 
@@ -2351,8 +3853,8 @@ func restoreImageArchive(ctx context.Context, cli *client.Client, reader io.Read
 	if err != nil {
 		return fmt.Errorf("restoring backup image archive: %w", err)
 	}
-	defer resp.Body.Close()
-	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+	defer closeLogged(resp, "image load response")
+	if _, err := io.Copy(io.Discard, resp); err != nil {
 		return fmt.Errorf("reading backup image restore response: %w", err)
 	}
 	return nil
@@ -2375,6 +3877,9 @@ func (s *Service) downloadFileName(ctx context.Context, run *BackupRun) (string,
 }
 
 func (s *Service) downloadContainerName(ctx context.Context, run *BackupRun) string {
+	if strings.TrimSpace(run.ContainerName) != "" {
+		return run.ContainerName
+	}
 	if run.PlanID != "" {
 		var name string
 		err := s.db.QueryRowContext(ctx, "SELECT container_name FROM container_backup_plans WHERE id = ?", run.PlanID).Scan(&name)
@@ -2393,7 +3898,7 @@ func (s *Service) downloadContainerName(ctx context.Context, run *BackupRun) str
 func (s *Service) downloadEnvironmentName(ctx context.Context, envID string) (string, error) {
 	var name string
 	err := s.db.QueryRowContext(ctx, "SELECT name FROM environments WHERE id = ? LIMIT 1", envID).Scan(&name)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return envID, nil
 	}
 	if err != nil {
@@ -2423,14 +3928,7 @@ func (s *Service) resolveBackupEnvironmentSegment(ctx context.Context, envID str
 	if err != nil {
 		return envID, err
 	}
-	if strings.TrimSpace(name) == "" || name == envID {
-		return safeArchiveName.ReplaceAllString(envID, "-"), nil
-	}
-	slug := safeArchiveName.ReplaceAllString(strings.TrimSpace(name), "-")
-	if slug == "" {
-		return safeArchiveName.ReplaceAllString(envID, "-"), nil
-	}
-	return slug, nil
+	return services.SlugifyOr(name, envID), nil
 }
 
 func backupDownloadTimestamp(run *BackupRun) string {
@@ -2507,7 +4005,7 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 		return archiveResult{}, ErrBackupEncryptionKeyNotConfigured
 	}
 	s.updateRunProgress(ctx, runID, "connecting", "")
-	cli, err := s.client(plan.EnvironmentID)
+	cli, err := s.client(ctx, plan.EnvironmentID)
 	if err != nil {
 		return archiveResult{}, err
 	}
@@ -2527,16 +4025,43 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 		plan.ContainerID = resolvedID
 	}
 
+	// Freeze the filesystem first when the plan asks for it. A snapshot
+	// that yields readable paths is what makes the pause unnecessary:
+	// the archive reads a frozen copy while the container keeps
+	// serving. Anything less (no snapshot config, driver unreachable,
+	// a driver that cannot expose a path) falls back to pausing, which
+	// is always correct and never silent.
+	frozen := s.freezeForBackup(opCtx, plan, runID)
+	defer func() {
+		// A fresh context: the snapshot must be released even when the
+		// backup itself was cancelled.
+		releaseCtx, releaseCancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Minute)
+		defer releaseCancel()
+		s.releaseSnapshot(releaseCtx, plan, runID, frozen)
+	}()
+
 	// Pause the container for the duration of the archive so the writable
 	// layer, mount copies, and log read are point-in-time consistent.
 	// Pause is best-effort: some runtimes (Windows containers, certain
 	// custom runtimes) don't support it. If pause fails we log and
 	// proceed without it.
-	paused := pauseContainerForBackup(opCtx, cli, plan.ContainerID, s.logger)
+	// "live" is the operator saying they accept a torn copy rather than
+	// any downtime, so it never pauses even though no snapshot was taken.
+	paused := false
+	switch {
+	case frozen.pauseFree():
+	case plan.ConsistencyMode == ConsistencyLive:
+		if s.logger != nil {
+			s.logger.Info("container backup: live consistency mode, container left running",
+				"container", plan.ContainerID, "run", runID)
+		}
+	default:
+		paused = pauseContainerForBackup(opCtx, cli, plan.ContainerID, s.logger)
+	}
 	defer func() {
 		// Use a fresh background context for unpause so we still
 		// recover the container if the opCtx was cancelled.
-		unpauseCtx, unpauseCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		unpauseCtx, unpauseCancel := context.WithTimeout(context.WithoutCancel(ctx), coredocker.CallTimeout)
 		defer unpauseCancel()
 		unpauseContainerAfterBackup(unpauseCtx, cli, plan.ContainerID, paused, s.logger)
 	}()
@@ -2554,7 +4079,7 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	if err != nil {
 		return archiveResult{}, fmt.Errorf("creating backup archive: %w", err)
 	}
-	defer file.Close()
+	defer closeLogged(file, "backup archive")
 
 	encryptedWriter, metadata, err := s.backupCrypto.EncryptWriter(file)
 	if err != nil {
@@ -2563,15 +4088,15 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 
 	s.updateRunProgress(opCtx, runID, "writing", "")
 	tw := tar.NewWriter(encryptedWriter)
-	writeErr := s.writeArchiveEntries(opCtx, cli, tw, plan, info, runID)
+	writeErr := s.writeArchiveEntries(opCtx, cli, tw, plan, info, runID, frozen)
 	s.updateRunProgress(opCtx, runID, "finalizing", "")
 	closeErr := tw.Close()
 	if writeErr != nil {
-		_ = encryptedWriter.Close()
+		closeLogged(encryptedWriter, "encrypted backup stream")
 		return archiveResult{path: archivePath, encryption: metadata.Algorithm, keyID: metadata.KeyID}, writeErr
 	}
 	if closeErr != nil {
-		_ = encryptedWriter.Close()
+		closeLogged(encryptedWriter, "encrypted backup stream")
 		return archiveResult{path: archivePath, encryption: metadata.Algorithm, keyID: metadata.KeyID}, fmt.Errorf("closing backup archive: %w", closeErr)
 	}
 	if err := encryptedWriter.Close(); err != nil {
@@ -2588,7 +4113,7 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 // during the backup. Returns true if the container is paused (and therefore
 // needs to be unpaused), false if pause was skipped or failed.
 func pauseContainerForBackup(ctx context.Context, cli *client.Client, containerID string, logger *slog.Logger) bool {
-	if err := cli.ContainerPause(ctx, containerID); err != nil {
+	if _, err := cli.ContainerPause(ctx, containerID, client.ContainerPauseOptions{}); err != nil {
 		if logger != nil {
 			logger.Warn("container backup: pause failed, proceeding without snapshot consistency",
 				"container", containerID, "error", err)
@@ -2607,7 +4132,7 @@ func unpauseContainerAfterBackup(ctx context.Context, cli *client.Client, contai
 	if !wasPaused {
 		return
 	}
-	if err := cli.ContainerUnpause(ctx, containerID); err != nil {
+	if _, err := cli.ContainerUnpause(ctx, containerID, client.ContainerUnpauseOptions{}); err != nil {
 		if logger != nil {
 			logger.Error("container backup: unpause failed, container may remain paused",
 				"container", containerID, "error", err)
@@ -2619,7 +4144,8 @@ func unpauseContainerAfterBackup(ctx context.Context, cli *client.Client, contai
 	}
 }
 
-func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, tw *tar.Writer, plan *BackupPlan, info types.ContainerJSON, runID string) error {
+func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, tw *tar.Writer, plan *BackupPlan, info container.InspectResponse, runID string, frozen snapshotHold) error {
+	frozenMounts := frozen.mountPaths
 	s.updateRunProgress(ctx, runID, "manifest", "")
 	manifest, err := json.MarshalIndent(map[string]any{
 		"format":      "mcharbor.container.backup.v1",
@@ -2633,24 +4159,31 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 	if err := writeBytes(tw, "manifest.json", manifest); err != nil {
 		return err
 	}
-	if plan.IncludeConfig {
+	configSelection := selectionFor(plan.Selections, selectionKeyConfig)
+	if configSelection.captures() {
 		s.updateRunProgress(ctx, runID, "config", "")
 		inspect, err := json.MarshalIndent(info, "", "  ")
 		if err != nil {
 			return fmt.Errorf("encoding container inspect: %w", err)
 		}
+		if configSelection.partial() {
+			inspect, err = pruneConfigDocument(inspect, configSelection.Paths)
+			if err != nil {
+				return err
+			}
+		}
 		if err := writeBytes(tw, "container/inspect.json", inspect); err != nil {
 			return err
 		}
 	}
-	if plan.IncludeLogs {
+	if selectionFor(plan.Selections, selectionKeyLogs).captures() {
 		s.updateRunProgress(ctx, runID, "logs", "")
 		tail := plan.LogTailLines
 		tailArg := "all"
 		if tail > 0 {
 			tailArg = strconv.Itoa(tail)
 		}
-		reader, err := cli.ContainerLogs(ctx, plan.ContainerID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Timestamps: true, Tail: tailArg})
+		reader, err := cli.ContainerLogs(ctx, plan.ContainerID, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true, Timestamps: true, Tail: tailArg})
 		if err != nil {
 			return fmt.Errorf("reading container logs: %w", err)
 		}
@@ -2660,24 +4193,30 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 			return err
 		}
 	}
-	if plan.IncludeFilesystem {
+	filesystemSelection := selectionFor(plan.Selections, selectionKeyFilesystem)
+	if filesystemSelection.captures() {
 		s.updateRunProgress(ctx, runID, "filesystem", "")
-		reader, err := cli.ContainerExport(ctx, plan.ContainerID)
+		reader, err := cli.ContainerExport(ctx, plan.ContainerID, client.ContainerExportOptions{})
 		if err != nil {
 			return fmt.Errorf("exporting container filesystem: %w", err)
 		}
-		if err := writeStream(ctx, tw, "container/filesystem.tar", reader, s.backupTempDir(), func() {
+		source := reader
+		if filesystemSelection.partial() {
+			source = filteredTarReader(reader, captureFilesystemPaths(filesystemSelection.Paths), "container/filesystem.tar", s.logger)
+		}
+		if err := writeStream(ctx, tw, "container/filesystem.tar", source, s.backupTempDir(), func() {
 			s.updateRunProgress(ctx, runID, "filesystem", "")
 		}); err != nil {
 			return err
 		}
 	}
-	if plan.IncludeImage {
+	if selectionFor(plan.Selections, selectionKeyImage).captures() {
 		s.updateRunProgress(ctx, runID, "image", "")
-		inspect, err := cli.ContainerInspect(ctx, plan.ContainerID)
+		inspectRes, err := cli.ContainerInspect(ctx, plan.ContainerID, client.ContainerInspectOptions{})
 		if err != nil {
 			return fmt.Errorf("inspecting container image: %w", err)
 		}
+		inspect := inspectRes.Container
 		imageRef := ""
 		if inspect.Config != nil {
 			imageRef = inspect.Config.Image
@@ -2705,13 +4244,34 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		if cleanMount == "" || strings.Contains(cleanMount, "..") || !strings.HasPrefix(cleanMount, "/") || !allowedMounts[cleanMount] {
 			return fmt.Errorf("invalid backup mount path")
 		}
+		mountSelection := selectionFor(plan.Selections, selectionKeyMountPfx+cleanMount)
+		if !mountSelection.captures() {
+			continue
+		}
 		s.updateRunProgress(ctx, runID, "mounts", "")
-		reader, _, err := cli.CopyFromContainer(ctx, plan.ContainerID, cleanMount)
+		name := backupMountEntryName(cleanMount)
+		// A frozen path means this mount was snapshotted, so its data
+		// is read from the snapshot and the container was never
+		// paused. Partial selections still go through the live copy:
+		// the path filter runs over a tar stream, not a directory.
+		if frozenPath, frozen := frozenMountPath(frozenMounts, cleanMount); frozen && !mountSelection.partial() {
+			if err := s.writeFrozenMount(ctx, tw, name, frozenPath, cleanMount, s.backupTempDir(), func() {
+				s.updateRunProgress(ctx, runID, "mounts", "")
+			}); err != nil {
+				return err
+			}
+			continue
+		}
+		readerRes, err := cli.CopyFromContainer(ctx, plan.ContainerID, client.CopyFromContainerOptions{SourcePath: cleanMount})
 		if err != nil {
 			return fmt.Errorf("copying mounted data %s: %w", cleanMount, err)
 		}
-		name := backupMountEntryName(cleanMount)
-		if err := writeStream(ctx, tw, name, reader, s.backupTempDir(), func() {
+		reader := readerRes.Content
+		source := reader
+		if mountSelection.partial() {
+			source = filteredTarReader(reader, captureMountPaths(cleanMount, mountSelection.Paths), name, s.logger)
+		}
+		if err := writeStream(ctx, tw, name, source, s.backupTempDir(), func() {
 			s.updateRunProgress(ctx, runID, "mounts", "")
 		}); err != nil {
 			return err
@@ -2769,12 +4329,12 @@ func writeBytes(tw *tar.Writer, name string, data []byte) error {
 const backupMemorySpoolLimit = 64 * 1024 * 1024 // 64 MiB
 
 func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.ReadCloser, tempDir string, onProgress func()) error {
-	defer reader.Close()
+	defer closeLogged(reader, "backup entry stream")
 	done := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
-			_ = reader.Close()
+			closeLogged(reader, "backup entry stream")
 		case <-done:
 		}
 	}()
@@ -2816,9 +4376,9 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 		return fmt.Errorf("creating backup temp entry: %w", err)
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
+	defer removeLogged(tmpName)
 	if _, err := tmp.Write(buf.Bytes()); err != nil {
-		tmp.Close()
+		closeLogged(tmp, "backup temp entry")
 		return fmt.Errorf("spooling backup entry %s: %w", name, err)
 	}
 	if err := tmp.Close(); err != nil {
@@ -2828,7 +4388,7 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 	if err != nil {
 		return fmt.Errorf("opening backup temp entry %s: %w", name, err)
 	}
-	defer in.Close()
+	defer closeLogged(in, "backup temp entry")
 	if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0644, Size: size}); err != nil {
 		return fmt.Errorf("writing backup header %s: %w", name, err)
 	}
@@ -2836,32 +4396,6 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 		return fmt.Errorf("writing backup entry %s: %w", name, err)
 	}
 	return nil
-}
-
-type backupProgressWriter struct {
-	writer     io.Writer
-	bytes      int64
-	lastUpdate time.Time
-	onProgress func()
-}
-
-func (w *backupProgressWriter) Write(p []byte) (int, error) {
-	n, err := w.writer.Write(p)
-	if n > 0 {
-		w.bytes += int64(n)
-		if time.Since(w.lastUpdate) >= 5*time.Second {
-			w.flush()
-		}
-	}
-	return n, err
-}
-
-func (w *backupProgressWriter) flush() {
-	if w.onProgress == nil || w.bytes == 0 {
-		return
-	}
-	w.lastUpdate = time.Now()
-	w.onProgress()
 }
 
 func (s *Service) backupDir() string {
@@ -2894,7 +4428,7 @@ func (s *Service) hydratePlanStorageLocations(ctx context.Context, plan *BackupP
 	if err != nil {
 		return fmt.Errorf("listing backup plan storage locations: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	ids := []string{}
 	for rows.Next() {
@@ -2914,20 +4448,18 @@ func (s *Service) hydratePlanStorageLocations(ctx context.Context, plan *BackupP
 	if len(ids) == 0 && strings.TrimSpace(plan.StorageLocationID) != "" {
 		ids = []string{strings.TrimSpace(plan.StorageLocationID)}
 	}
-	requiredIDs, err := s.requiredBackupStorageLocationIDs(ctx, "", ids)
-	if err != nil {
-		return err
-	}
-	plan.StorageLocationIDs = requiredIDs
+	// Read path: report exactly what is stored. Local is no longer
+	// backfilled here — a cloud-only plan must not grow a local
+	// destination just by being read.
+	plan.StorageLocationIDs = backupStorageLocationIDs("", ids)
 	plan.StorageLocationID = firstStorageLocationID(plan.StorageLocationIDs)
 	return nil
 }
 
 func (s *Service) setPlanStorageLocations(ctx context.Context, planID string, ids []string) error {
-	ids, err := s.requiredBackupStorageLocationIDs(ctx, "", ids)
-	if err != nil {
-		return err
-	}
+	// Callers (CreatePlan / UpdatePlan) have already rejected an empty
+	// list, so this only normalises.
+	ids = backupStorageLocationIDs("", ids)
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting backup destination update: %w", err)
@@ -2962,54 +4494,22 @@ func (s *Service) setPlanStorageLocations(ctx context.Context, planID string, id
 	return nil
 }
 
-func (s *Service) requiredBackupStorageLocationIDs(ctx context.Context, legacy string, ids []string) ([]string, error) {
-	out := backupStorageLocationIDs(legacy, ids)
-	localID, err := s.defaultLocalStorageLocationID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if localID == "" {
-		return out, nil
-	}
-	return backupStorageLocationIDs(localID, out), nil
-}
-
-func (s *Service) defaultLocalStorageLocationID(ctx context.Context) (string, error) {
-	var id string
-	err := s.db.QueryRowContext(ctx, `
-		SELECT id
-		FROM storage_locations
-		WHERE location_type = 'local'
-		  AND enabled = 1
-		ORDER BY
-		  CASE
-		    WHEN id = ? THEN 0
-		    WHEN COALESCE(base_path, '') = '/mnt/backup' THEN 1
-		    ELSE 2
-		  END,
-		  created_at ASC,
-		  id ASC
-		LIMIT 1`, defaultLocalStorageID,
-	).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", nil
-	}
-	if err != nil {
-		return "", fmt.Errorf("reading default local backup storage location: %w", err)
-	}
-	return id, nil
-}
-
 func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) {
 	var plan BackupPlan
 	var selected string
+	var selections string
+	var snapshotConfigName string
 	if err := scanner.Scan(
 		&plan.ID, &plan.Name, &plan.EnvironmentID, &plan.ContainerID, &plan.ContainerName,
 		&plan.StorageLocationID, &plan.IncludeConfig, &plan.IncludeLogs, &plan.IncludeFilesystem,
-		&plan.IncludeImage, &selected, &plan.LogTailLines, &plan.Cron, &plan.Enabled, &plan.RetentionCount,
-		&plan.RetentionDays, &plan.LastRunAt, &plan.NextRunAt, &plan.CreatedAt, &plan.UpdatedAt,
+		&plan.IncludeImage, &selected, &selections, &plan.LogTailLines, &plan.Cron, &plan.Enabled, &plan.RetentionCount,
+		&plan.RetentionDays, &plan.LastRunAt, &plan.NextRunAt, &plan.ConsistencyMode, &plan.SnapshotConfigID,
+		&plan.CreatedAt, &plan.UpdatedAt, &snapshotConfigName,
 	); err != nil {
 		return BackupPlan{}, err
+	}
+	if snapshotConfigName != "" {
+		plan.SnapshotConfigName = snapshotConfigName
 	}
 	if selected != "" {
 		if err := json.Unmarshal([]byte(selected), &plan.SelectedMounts); err != nil {
@@ -3019,24 +4519,49 @@ func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) 
 	if plan.SelectedMounts == nil {
 		plan.SelectedMounts = []string{}
 	}
+	// A plan written before migration 142 has no selections. Deriving them
+	// from the legacy booleans is what keeps it capturing exactly what it
+	// captured yesterday, rather than silently capturing nothing.
+	plan.Selections = decodeSelections(selections)
+	if plan.Selections == nil {
+		plan.Selections = selectionsFromLegacy(
+			plan.IncludeConfig, plan.IncludeLogs, plan.IncludeFilesystem, plan.IncludeImage,
+			plan.SelectedMounts,
+		)
+	}
 	plan.StorageLocationIDs = backupStorageLocationIDs(plan.StorageLocationID, nil)
 	return plan, nil
 }
 
 func scanRun(scanner interface{ Scan(dest ...any) error }) (BackupRun, error) {
 	var run BackupRun
+	var includedItems, availableItems, planName string
 	if err := scanner.Scan(
 		&run.ID, &run.PlanID, &run.Operation, &run.SourceRunID, &run.EnvironmentID, &run.ContainerID, &run.Status,
 		&run.ArchivePath, &run.ArchiveSize, &run.ArchiveEncryption, &run.ArchiveKeyID,
 		&run.Error, &run.ProgressStage, &run.ProgressMessage, &run.ProgressUpdatedAt, &run.StartedAt,
 		&run.CompletedAt, &run.DurationMS, &run.CreatedAt, &run.UpdatedAt,
-		&run.ContainerName,
+		&run.ContainerName, &includedItems, &availableItems, &planName, &run.Origin,
 	); err != nil {
 		return BackupRun{}, err
 	}
 	if run.Operation == "" {
 		run.Operation = "backup"
 	}
+	if planName != "" {
+		run.PlanName = planName
+	}
+	included, err := decodeRunItems(includedItems)
+	if err != nil {
+		return BackupRun{}, err
+	}
+	available, err := decodeRunItems(availableItems)
+	if err != nil {
+		return BackupRun{}, err
+	}
+	run.IncludedItems = included
+	run.AvailableItems = available
+	run.Scope = runScope(included, available)
 	return run, nil
 }
 
@@ -3081,4 +4606,104 @@ func shortID(id string) string {
 		return id
 	}
 	return id[:12]
+}
+
+// skipTarEntry drains the body of a tar entry the caller does not want so
+// the reader is positioned at the next header. A read failure here means the
+// archive is truncated or corrupt, which callers must surface instead of
+// silently returning a partial listing.
+func skipTarEntry(hdr *tar.Header, r io.Reader) error {
+	if hdr == nil || hdr.Size <= 0 {
+		return nil
+	}
+	if _, err := io.Copy(io.Discard, r); err != nil {
+		return fmt.Errorf("skipping archive entry %q: %w", hdr.Name, err)
+	}
+	return nil
+}
+
+// The single-row environment lookups behind rbac.PinEnvToResource: a run, a plan
+// or a snapshot config is authorized against the environment it belongs to.
+const (
+	runEnvQuery            = `SELECT COALESCE(environment_id, '') FROM container_backup_runs WHERE id = ?`
+	planEnvQuery           = `SELECT COALESCE(environment_id, '') FROM container_backup_plans WHERE id = ?`
+	snapshotConfigEnvQuery = `SELECT COALESCE(environment_id, '') FROM container_backup_snapshot_configs WHERE id = ?`
+)
+
+// RunEnvironment reports the environment a backup run belongs to.
+func (s *Service) RunEnvironment(ctx context.Context, id string) (string, bool, error) {
+	return rbac.EnvOfRow(ctx, s.db, runEnvQuery, id)
+}
+
+// PlanEnvironment reports the environment a backup plan belongs to.
+func (s *Service) PlanEnvironment(ctx context.Context, id string) (string, bool, error) {
+	return rbac.EnvOfRow(ctx, s.db, planEnvQuery, id)
+}
+
+// SnapshotConfigEnvironment reports the environment a snapshot config belongs to.
+func (s *Service) SnapshotConfigEnvironment(ctx context.Context, id string) (string, bool, error) {
+	return rbac.EnvOfRow(ctx, s.db, snapshotConfigEnvQuery, id)
+}
+
+// scanRunRows drains rows into runs and closes them, so the caller can issue follow-up queries without holding a connection.
+func scanRunRows(rows *sql.Rows) ([]BackupRun, error) {
+	defer func() { db.CloseRows(rows) }()
+	runs := []BackupRun{}
+	for rows.Next() {
+		run, err := scanRun(rows)
+		if err != nil {
+			return nil, err
+		}
+		runs = append(runs, run)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return runs, nil
+}
+
+type abandonedRun struct {
+	id            string
+	started       string
+	environmentID string
+	containerID   string
+}
+
+type abandonedRestoreRun struct {
+	id      string
+	started string
+}
+
+// scanAbandonedRuns drains rows into abandoned backup runs and closes them before recovery starts writing.
+func scanAbandonedRuns(rows *sql.Rows) ([]abandonedRun, error) {
+	defer func() { db.CloseRows(rows) }()
+	runs := []abandonedRun{}
+	for rows.Next() {
+		var run abandonedRun
+		if err := rows.Scan(&run.id, &run.started, &run.environmentID, &run.containerID); err != nil {
+			return nil, fmt.Errorf("scanning abandoned backup run: %w", err)
+		}
+		runs = append(runs, run)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return runs, nil
+}
+
+// scanAbandonedRestoreRuns drains rows into abandoned restore runs and closes them before recovery starts writing.
+func scanAbandonedRestoreRuns(rows *sql.Rows) ([]abandonedRestoreRun, error) {
+	defer func() { db.CloseRows(rows) }()
+	runs := []abandonedRestoreRun{}
+	for rows.Next() {
+		var run abandonedRestoreRun
+		if err := rows.Scan(&run.id, &run.started); err != nil {
+			return nil, fmt.Errorf("scanning abandoned restore run: %w", err)
+		}
+		runs = append(runs, run)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return runs, nil
 }

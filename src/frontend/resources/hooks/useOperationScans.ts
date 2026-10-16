@@ -6,65 +6,24 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { assertSuccess } from '@resources/utils/api-mutation';
-import type { BatchProgressLogLevel } from '@resources/hooks/useBatchProgressOperation';
-import {
-  getAvailableScannersQueryOptions,
-  getScannerSettingsQueryOptions,
-} from '@resources/hooks/useScannerSettings';
+
+import { getAvailableScannersQueryOptions, getScannerSettingsQueryOptions } from '@resources/hooks/useScannerSettings';
 
 const scanPollIntervalMs = 2_000;
 const scanTimeoutMs = 10 * 60 * 1_000;
 
-type OperationScan = {
-  id: string;
-  imageRef: string;
-  scanner: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  totalVulns: number;
-  criticalCount: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-};
-
-type ScanLogger = (message: string, options?: { level?: BatchProgressLogLevel }) => void;
-
-type ScanSummary = {
-  image: string;
-  scanner: string;
-  status: 'completed' | 'failed';
-  totalVulns: number;
-  criticalCount: number;
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-};
-
-type ScanPlan =
-  | { status: 'ready'; scanners: string[] }
-  | { status: 'disabled' }
-  | { status: 'none' }
-  | { status: 'unavailable' };
-
-export type OperationScanBatchResult = {
-  attempted: number;
-  completed: number;
-  failed: number;
-  skipped: boolean;
-};
+import type { OperationScan, OperationScanBatchResult, ScanLogger, ScanPlan, ScanSummary } from './operationScansTypes';
+export type { OperationScanBatchResult } from './operationScansTypes';
 
 function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function summarizeScan(
-  scan: OperationScan,
-  status: 'completed' | 'failed',
-): ScanSummary {
+function summarizeScan(scan: OperationScan, currentStatus: 'completed' | 'failed'): ScanSummary {
   return {
     image: scan.imageRef,
     scanner: scan.scanner,
-    status,
+    status: currentStatus,
     totalVulns: scan.totalVulns,
     criticalCount: scan.criticalCount,
     highCount: scan.highCount,
@@ -146,10 +105,7 @@ export function useOperationScans() {
           log(t('operations.log.scanWaiting', { scanner, image }));
 
           const completedScan = await waitForScan(scan.id);
-          const summary = summarizeScan(
-            completedScan,
-            completedScan.status === 'completed' ? 'completed' : 'failed',
-          );
+          const summary = summarizeScan(completedScan, completedScan.status === 'completed' ? 'completed' : 'failed');
           summaries.push(summary);
 
           if (summary.status === 'completed') {
@@ -187,10 +143,7 @@ export function useOperationScans() {
       return summaries;
     }
 
-    async function runScansForImages(
-      images: string[],
-      log: ScanLogger,
-    ): Promise<OperationScanBatchResult> {
+    async function runScansForImages(images: string[], log: ScanLogger): Promise<OperationScanBatchResult> {
       const uniqueImages = [...new Set(images.filter(Boolean))];
       if (uniqueImages.length === 0) {
         return { attempted: 0, completed: 0, failed: 0, skipped: true };

@@ -1,0 +1,635 @@
+{
+  "title": "Systeemcontainers",
+  "description": "Een complete distributie met eigen init, gebruikers en services, in een fractie van het geheugen van een virtuele machine.",
+  "nav": {
+    "containers": "Systeemcontainers",
+    "templates": "Containertemplates",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Container aanmaken",
+    "start": "Starten",
+    "shutdown": "Afsluiten",
+    "stop": "Stoppen",
+    "restart": "Herstarten",
+    "freeze": "Bevriezen",
+    "unfreeze": "Ontdooien",
+    "console": "Console",
+    "delete": "Verwijderen",
+    "snapshot": "Snapshot maken",
+    "revert": "Terugzetten",
+    "clone": "Klonen",
+    "makeTemplate": "Template maken",
+    "unTemplate": "Geen template meer zijn",
+    "addNic": "Interface toevoegen",
+    "addMount": "Mount toevoegen",
+    "editLimits": "Limieten wijzigen",
+    "applyLimits": "Toepassen",
+    "diagnose": "Vraag wat er mis is",
+    "refresh": "Vernieuwen",
+    "cancel": "Annuleren",
+    "back": "Terug",
+    "next": "Volgende"
+  },
+  "list": {
+    "searchPlaceholder": "Containers zoeken",
+    "title": "Systeemcontainers",
+    "empty": {
+      "title": "Nog geen systeemcontainers",
+      "body": "Een systeemcontainer draait een complete distributie, met eigen init, gebruikers en services. Hij start in ongeveer een seconde en gebruikt een fractie van het geheugen van een virtuele machine.",
+      "action": "De eerste aanmaken"
+    },
+    "emptyTemplates": {
+      "title": "Nog geen containertemplates",
+      "body": "Markeer een gestopte container als template om er nieuwe containers van te klonen. Op een copy-on-write-pool is elke kloon vrijwel direct klaar en kost hij bijna geen ruimte."
+    },
+    "columns": {
+      "name": "Naam",
+      "state": "Status",
+      "host": "Host",
+      "os": "OS",
+      "init": "Init",
+      "memory": "Geheugen",
+      "processes": "Processen",
+      "address": "Adres",
+      "uptime": "Uptime",
+      "pool": "Pool",
+      "isolation": "Isolatie"
+    },
+    "filter": {
+      "all": "Alle",
+      "running": "Actief",
+      "stopped": "Gestopt",
+      "problem": "Heeft aandacht nodig"
+    }
+  },
+  "state": {
+    "defined": "Gedefinieerd",
+    "running": "Actief",
+    "frozen": "Bevroren",
+    "stopping": "Wordt gestopt",
+    "stopped": "Gestopt",
+    "crashed": "Gecrasht",
+    "unknown": "Onbekend",
+    "unknownHint": "De host van deze container is onbereikbaar, dus zijn status is echt onbekend. Hij wordt door systemd bewaakt en draait waarschijnlijk nog, maar niets kan dat bevestigen totdat de agent terugkeert.",
+    "frozenHint": "Elk proces is opgeschort. Geheugen, geopende bestanden en netwerkverbindingen zijn er nog allemaal en ontdooien hervat precies waar het stopte."
+  },
+  "isolation": {
+    "privileged": "Bevoorrecht",
+    "unprivileged": "Onbevoorrecht",
+    "privilegedHint": "Deze container heeft geen user namespace. Root erin is in alle opzichten die ertoe doen root op de host.",
+    "unprivilegedHint": "Root in deze container wordt op de host gekoppeld aan een onbevoorrechte gebruiker.",
+    "nesting": "Nesting",
+    "nestingHint": "Deze container mag eigen containers draaien, wat een versoepelde device-cgroup en een toegeeflijk mountprofiel vereist.",
+    "idMapping": "ID-mapping",
+    "idMappingHint": "Het bereik van host-uid's en -gid's waarop de eigen uid's van deze container worden gekoppeld. Geen twee containers delen een bereik."
+  },
+  "address": {
+    "observed": "Waargenomen adres",
+    "observedHint": "Door de agent gelezen uit de netwerknamespace van de container, niet gemeld vanuit de container zelf."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Overzicht",
+      "console": "Console",
+      "resources": "Bronnen",
+      "mounts": "Mounts",
+      "processes": "Processen",
+      "snapshots": "Snapshots",
+      "backups": "Back-ups"
+    },
+    "overview": {
+      "init": "Init-systeem",
+      "os": "Besturingssysteem",
+      "pool": "Opslagpool",
+      "isolation": "Isolatie",
+      "memory": "Geheugen",
+      "processes": "Processen",
+      "started": "Gestart",
+      "neverStarted": "Nooit gestart",
+      "exitReason": "Reden van afsluiten",
+      "lastError": "Laatste fout",
+      "unknown": "Onbekend"
+    }
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Verbinden…",
+    "connected": "Verbonden",
+    "disconnected": "Verbinding verbroken",
+    "reconnect": "Opnieuw verbinden",
+    "notRunning": "De container draait niet, dus er is niets om aan te koppelen.",
+    "permissionHint": "Een console koppelen is een root-shell in de container, daarom is er een eigen permissie voor nodig.",
+    "shell": "Shell",
+    "modeHint": "Console koppelt aan de eigen terminal van de container (PID 1) en speelt de recente uitvoer opnieuw af; bij verbreken blijft de container draaien. Shell start een nieuwe root-shell die eindigt als je de verbinding verbreekt.",
+    "rootShellWarning": "Alles wat je hier typt, wordt als root in de container uitgevoerd."
+  },
+  "resources": {
+    "title": "Resourcelimieten",
+    "liveNote": "Deze gelden direct voor een draaiende container. Er is geen herstart en geen downtime: de wijziging gaat in zodra hij is toegepast.",
+    "queuedNote": "Deze container draait niet, dus deze worden bewaard voor zijn volgende start.",
+    "memoryMax": "Geheugenlimiet",
+    "memoryMaxHint": "Het harde plafond. Daarboven pakt de OOM-killer van de kernel een proces in de container, meestal niet degene die de fout veroorzaakt.",
+    "memoryHigh": "Afremmen bij",
+    "memoryHighHint": "Een zachte limiet waartegen de kernel afremt voordat hij iets gaat doden, waardoor een container die sterft een container wordt die traag gaat. Standaard 90% van de harde limiet.",
+    "swapMax": "Swap",
+    "swapMaxHint": "Standaard uit. Swap in een container komt uit de swap van de host en maakt van het geheugentekort van één container de latentie van alle andere.",
+    "cpuMax": "CPU-limiet",
+    "cpuMaxHint": "Een quotum en een periode in microseconden: \"200000 100000\" is twee cores. Laat op \"max\" staan voor geen limiet.",
+    "cpuWeight": "CPU-aandeel",
+    "cpuWeightHint": "Relatief gewicht wanneer containers om dezelfde cores concurreren. Heeft geen effect zolang er cores over zijn.",
+    "cpuSet": "Vastgezet op cores",
+    "pidsMax": "Procesnlimiet",
+    "pidsMaxHint": "Het maximale aantal processen. Zonder limiet kan één container de procesruimte van de host uitputten en al het andere meenemen.",
+    "diskQuota": "Schijfquotum",
+    "diskQuotaHint": "Afgedwongen door de opslagpool. Een mappool kan geen quotum afdwingen.",
+    "usage": {
+      "cpu": "CPU",
+      "memory": "Geheugen",
+      "processes": "Processen",
+      "rootfs": "Rootfs",
+      "ofLimit": "van limiet",
+      "noLimit": "Geen limiet"
+    },
+    "applied": {
+      "title": "Nu van kracht",
+      "clampedOne": "De kernel heeft één waarde aangepast: {{fields}}.",
+      "clampedOther": "De kernel heeft {{count}} waarden aangepast: {{fields}}.",
+      "clampedHint": "De kernel rondt af en begrenst. Wat hier staat is wat daadwerkelijk van kracht is, niet wat is gevraagd.",
+      "never": "Deze limieten hebben nog nooit een draaiende kernel bereikt.",
+      "pidsBadge": "{{value}} pids"
+    },
+    "lxcfsNote": "Tools in de container (free, top, /proc/cpuinfo) melden de cijfers van de host in plaats van die van de container. De getallen hier lezen de eigen cgroup van de container en zijn correct."
+  },
+  "mounts": {
+    "title": "Mounts",
+    "empty": "Geen mounts. De container ziet alleen zijn eigen rootfs.",
+    "columns": {
+      "kind": "Soort",
+      "source": "Bron",
+      "destination": "Bestemming",
+      "options": "Opties"
+    },
+    "kind": {
+      "volume": "Volume",
+      "bind": "Host-bind",
+      "device": "Apparaat"
+    },
+    "kindHint": {
+      "volume": "Een map in de eigen opslagpool van deze container.",
+      "bind": "Een pad op de host. Alles erachter is vanuit de container volledig bereikbaar.",
+      "device": "Een apparaatknooppunt van de host."
+    },
+    "readonly": "Alleen lezen",
+    "shiftIds": "ID's verschoven",
+    "shiftIdsHint": "Zonder dit lijkt elk bestand in de mount vanuit een onbevoorrechte container van niemand te zijn.",
+    "hostBindWarning": "Een bind-mount van een hostpad geeft deze container alles achter dat pad. Een container die naar /etc van de host kan schrijven, kan de wachtwoorden van de host herschrijven.",
+    "mustBeStopped": "De container moet worden gestopt voordat zijn mounts kunnen worden gewijzigd."
+  },
+  "processes": {
+    "title": "Processen",
+    "empty": "Geen processen. De container draait niet.",
+    "columns": {
+      "pid": "PID",
+      "user": "Gebruiker",
+      "command": "Opdracht",
+      "cpu": "CPU",
+      "memory": "Geheugen"
+    },
+    "hostPidHint": "Hetzelfde proces gezien vanaf de host, waar zijn pid anders is.",
+    "note": "Door de host uit de cgroup van de container gelezen. Niets in de container hoeft mee te werken om dit te laten werken."
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": "Nog geen snapshots.",
+    "columns": {
+      "name": "Naam",
+      "taken": "Gemaakt",
+      "mechanism": "Mechanisme",
+      "consistency": "Consistentie",
+      "size": "Grootte",
+      "depth": "Ketendiepte"
+    },
+    "consistent": "Consistent",
+    "crashConsistent": "Crashconsistent",
+    "consistentHint": "De container was bevroren toen deze werd gemaakt, dus zijn bestandssysteem staat in een toestand waarin het had kunnen worden afgesloten.",
+    "crashConsistentHint": "De container draaide en was niet bevroren. Alles wat nog niet naar schijf is geschreven ontbreekt: dezelfde toestand als bij een stroomstoring.",
+    "mechanismHint": {
+      "zfs": "Een ZFS-snapshot. Direct en kost niets totdat de gegevens van de container ervan afwijken.",
+      "btrfs": "Een btrfs-snapshot. Direct en kost niets totdat de gegevens van de container ervan afwijken.",
+      "lvm": "Een LVM-snapshot.",
+      "rsync": "Een volledige kopie. Deze pool heeft geen eigen snapshotmechanisme, dus dit is een echte kopie van de rootfs: correct, maar veel langzamer en het gebruikt evenveel ruimte."
+    },
+    "chainWarning": "Diepe snapshotketens vertragen elke leesactie. Dit is de gebruikelijke reden dat een container mysterieus traag wordt.",
+    "revertWarning": "Terugzetten verwijdert elke wijziging sinds deze snapshot en elke snapshot die erna is gemaakt.",
+    "freezeOption": "De container bevriezen terwijl de snapshot wordt gemaakt",
+    "freezeHint": "Kost milliseconden op een copy-on-write-pool en maakt de snapshot herstelbaar."
+  },
+  "create": {
+    "title": "Een systeemcontainer aanmaken",
+    "steps": {
+      "source": "Bron",
+      "profile": "Profiel",
+      "resources": "Bronnen",
+      "network": "Netwerk",
+      "setup": "Installatie",
+      "summary": "Samenvatting"
+    },
+    "source": {
+      "title": "Wat moet deze container draaien?",
+      "image": "Een distributie-image",
+      "imageHint": "Een rootbestandssysteemarchief dat McHarbor al heeft gedownload en geverifieerd.",
+      "template": "Een van je templates",
+      "templateHint": "Een container die je als template hebt gemarkeerd. Op een copy-on-write-pool is dit vrijwel direct.",
+      "noImages": "Er zijn nog geen containerimages naar deze host gedownload.",
+      "downloadImages": "Images downloaden"
+    },
+    "profile": {
+      "title": "Hoe moet hij worden geïsoleerd?",
+      "init": "Init-systeem",
+      "initHint": "systemd heeft een gedelegeerde cgroup-substructuur en een eigen stopsignaal nodig. De verkeerde keuze levert een container op die start en meteen afsluit.",
+      "unprivileged": "Onbevoorrecht (aanbevolen)",
+      "unprivilegedHint": "Root in de container wordt op de host gekoppeld aan een onbevoorrechte gebruiker. Hierdoor is een container veilig aan iemand te geven.",
+      "privileged": "Bevoorrecht",
+      "privilegedHint": "Geen user namespace. Root in de container is in alle opzichten die ertoe doen root op de host; gebruik dit alleen voor iets wat je met de host zelf zou vertrouwen.",
+      "nesting": "Containers in deze container toestaan",
+      "nestingHint": "Nodig om Docker of een andere containerruntime erin te draaien. Het versoepelt de device-cgroup en het mountprofiel.",
+      "privilegeRequired": "Vereist de permissie ct.privileged."
+    },
+    "resources": {
+      "title": "Hoeveel mag hij krijgen?",
+      "preset": "Voorinstelling",
+      "presets": {
+        "small": "Klein — 512 MB, 1 core",
+        "medium": "Gemiddeld — 2 GB, 2 cores",
+        "large": "Groot — 8 GB, 4 cores",
+        "custom": "Aangepast"
+      },
+      "liveNote": "Dit alles kan later worden gewijzigd terwijl de container draait."
+    },
+    "network": {
+      "title": "Hoe moet hij het netwerk bereiken?",
+      "network": "Netwerk",
+      "noNetworks": "Er zijn nog geen netwerken ingesteld op deze host.",
+      "addressMode": "Adres",
+      "dhcp": "Via DHCP",
+      "static": "Statisch",
+      "staticIp": "IP-adres",
+      "staticGateway": "Gateway",
+      "staticIpv6": "Statisch IPv6 (CIDR)",
+      "staticGateway6": "IPv6-gateway",
+      "staticIpv6Hint": "Optioneel en los van de adresinstelling hierboven: een container met DHCP kan toch een vast IPv6-adres hebben.",
+      "staticDns": "DNS-servers",
+      "staticHint": "Een container heeft geen cloud-init. Een statisch adres wordt in de eigen netwerkconfiguratie van de distributie geschreven, dus als het fout is, is de container alleen bereikbaar via zijn console.",
+      "networkPlaceholder": "Kies een netwerk",
+      "attachment": "Koppelt via {{attachment}}"
+    },
+    "setup": {
+      "title": "Installatie bij eerste start",
+      "hostname": "Hostnaam",
+      "timezone": "Tijdzone",
+      "sshKeys": "SSH-sleutels",
+      "sshKeysHint": "Eén sleutel per regel. Geschreven naar de authorized_keys van root voordat de container voor het eerst start.",
+      "password": "Rootwachtwoord",
+      "passwordHint": "Gehasht voordat het wordt opgeslagen en voordat het deze server verlaat. Het wachtwoord zelf wordt nergens naar schijf geschreven.",
+      "noAccessWarning": "Zonder SSH-sleutel of wachtwoord is de console de enige weg naar binnen in deze container."
+    },
+    "summary": {
+      "title": "Klaar om aan te maken",
+      "startAfterCreate": "Starten zodra hij is aangemaakt",
+      "startHint": "Standaard uit, zodat je zijn netwerkconfiguratie kunt controleren voordat hij op het netwerk zit."
+    }
+  },
+  "clone": {
+    "title": "{{name}} klonen",
+    "body": "Maakt een nieuwe container van deze, op dezelfde pool. Standaard is het een volledige kopie: daarna wordt er niets gedeeld met de bron.",
+    "name": "Naam van de kloon",
+    "linked": "Opslag delen met de bron",
+    "linkedHint": "Vraagt de pool om een gekoppelde kloon die ongewijzigde data met de bron deelt. De bron kan niet worden verwijderd zolang de kloon bestaat. Kan de host geen koppeling maken, dan krijg je in plaats daarvan een volledige kopie en dat staat in het resultaat.",
+    "linkedUnavailable": "De pool van deze container kan geen data delen, dus de kloon wordt een volledige kopie.",
+    "start": "Start de kloon zodra hij klaar is",
+    "resultLinked": "{{name}} is gemaakt als gekoppelde kloon. Hij deelt data met de bron; die kan niet worden verwijderd zolang de kloon bestaat.",
+    "resultFull": "{{name}} is gemaakt als volledige kopie. Er wordt niets gedeeld met de bron."
+  },
+  "delete": {
+    "title": "{{name}} verwijderen?",
+    "body": "Dit verwijdert de container en alles erin.",
+    "keepRootfs": "Het bestandssysteem behouden",
+    "keepRootfsHint": "De container wordt uit McHarbor verwijderd, maar zijn bestanden blijven in de pool.",
+    "templateInUse": "Deze template ondersteunt nog andere containers. Verwijderen zou ze corrumperen.",
+    "confirm": "Typ de naam van de container om te bevestigen."
+  },
+  "diagnose": {
+    "title": "Wat er waarschijnlijk mis is",
+    "pending": "De definitie van de container en zijn afsluitreden worden gelezen…",
+    "unavailable": "Er is geen AI-provider ingesteld op deze installatie.",
+    "dismiss": "Negeren",
+    "disclaimer": "Een suggestie van een taalmodel dat de definitie, limieten en afsluitreden van deze container leest. Er is niets uit de container verzonden."
+  },
+  "widgets": {
+    "ctSummary": {
+      "label": "Systeemcontainers",
+      "description": "Hoeveel containers er zijn en hoeveel er draaien."
+    },
+    "ctDensity": {
+      "label": "Containerdichtheid",
+      "description": "Wat je containers daadwerkelijk gebruiken tegenover wat ze mogen."
+    },
+    "empty": "Nog geen systeemcontainers.",
+    "running": "Actief",
+    "stopped": "Gestopt",
+    "problem": "Heeft aandacht nodig",
+    "memoryInUse": "Geheugen in gebruik",
+    "nearLimit": "Bij een limiet",
+    "densityHint": "Containers delen een kernel en paginacache, dus het werkelijke gebruik ligt ruim onder de som van hun limieten."
+  },
+  "reports": {
+    "platform": "Systeemcontainers",
+    "isolation": {
+      "label": "Isolatie van systeemcontainers",
+      "description": "Welke containers een grens met de host hebben laten vallen: privileges, hostmounts, nesting en id-mapping."
+    },
+    "options": {
+      "aiSummary": "Een geschreven beoordeling toevoegen (gebruikt je geconfigureerde AI-provider)"
+    }
+  },
+  "backups": {
+    "title": "Back-upschema's",
+    "description": "Een back-up verlaat deze host. Het is een gecomprimeerd archief van het bestandssysteem van de container plus een manifest van zijn definitie, weggeschreven naar de opslagbestemmingen die je opgeeft. Zo laat een poolstoring die de snapshots meeneemt de back-ups intact.",
+    "history": "Back-upgeschiedenis",
+    "runNow": "Nu back-uppen",
+    "addPlan": "Een schema toevoegen",
+    "editPlan": "Schema bewerken",
+    "deletePlan": "Schema verwijderen",
+    "restore": "Herstellen",
+    "delete": "Back-up verwijderen",
+    "disabled": "Uit",
+    "noPlans": "Nog geen back-upschema. Zolang er geen is, wordt deze container alleen beschermd door zijn snapshots, die op dezelfde pool staan als hij.",
+    "noRuns": "Er is nog niets geback-upt.",
+    "noDestinations": "Er is geen opslagbestemming geconfigureerd. Voeg er een toe onder Instellingen voordat je een back-up schrijft.",
+    "fellBack": "Gemaakt als volledige kopie",
+    "fellBackHint": "Een incrementele back-up was aan de beurt en er is in plaats daarvan een volledige kopie gemaakt: {{reason}}",
+    "idShift": {
+      "none": "Eigenaren ongewijzigd",
+      "noneHint": "De back-up is gemaakt in het id-bereik van deze container, dus er hoefde geen bestandseigenaar te worden verplaatst.",
+      "shifted": "Eigenaren verplaatst",
+      "shiftedHint": "Eigendom is verplaatst naar het id-bereik van deze container: elke bestandseigenaar is verschoven ten opzichte van het bereik waarin de back-up is gemaakt.",
+      "skipped": "Eigenaren niet verplaatst",
+      "skippedHint": "De host heeft de bestanden hersteld zonder hun eigenaren te verplaatsen, dus ze behoren nog tot het id-bereik waarin de back-up is gemaakt."
+    },
+    "blocked": {
+      "template": "Een template kan niet worden geback-upt: zijn bestandssysteem is de backing store voor elke kloon ervan.",
+      "hostOffline": "De host van deze container is onbereikbaar, dus er kan geen back-up starten.",
+      "noDestination": "Voeg eerst een opslagbestemming toe onder Instellingen: een back-up die nergens naartoe gaat, is geen back-up.",
+      "noPlan": "Voeg eerst een schema toe, zodat de back-up weet waar hij moet schrijven."
+    },
+    "planColumns": {
+      "name": "Schema",
+      "schedule": "Draait",
+      "retention": "Bewaart",
+      "lastRun": "Laatste run",
+      "nextRun": "Volgende run"
+    },
+    "columns": {
+      "started": "Gestart",
+      "operation": "Wat",
+      "kind": "Soort",
+      "size": "Grootte",
+      "consistency": "Gemaakt",
+      "destinations": "Weggeschreven naar",
+      "status": "Status"
+    },
+    "operation": {
+      "backup": "Back-up",
+      "restore": "Herstel"
+    },
+    "kind": {
+      "full": "Volledig",
+      "incremental": "Incrementeel"
+    },
+    "consistency": {
+      "snapshot": "Vanuit een snapshot",
+      "snapshotHint": "Het archief is gelezen uit een point-in-time-snapshot in plaats van het live bestandssysteem. Op een btrfs-, ZFS- of LVM-pool is de snapshot direct en is de container nooit gestopt.",
+      "live-copy": "Live kopie",
+      "live-copyHint": "De rootfs is gekopieerd terwijl de container bleef draaien, zonder snapshot of bevriezing. Bestanden zijn op verschillende momenten gelezen, dus de kopie is niet point-in-time: een database of een lopende pakketupgrade kan half geschreven worden vastgelegd. Stop de container eerst, of gebruik een btrfs-, ZFS- of LVM-thin-pool, als dat ertoe doet.",
+      "frozen": "Bevroren",
+      "frozenHint": "De processen van de container waren bevroren voor de duur van de kopie. Consistent, en er is niets uitgevoerd terwijl het liep.",
+      "filesystem": "In rust",
+      "filesystemHint": "De container draaide niet, dus er schreef niets naar het bestandssysteem terwijl het werd gelezen."
+    },
+    "status": {
+      "running": "Bezig",
+      "success": "Geslaagd",
+      "failure": "Mislukt",
+      "cancelled": "Geannuleerd"
+    },
+    "errorHint": {
+      "backupKeyMissing": "Op deze McHarbor is geen back-upversleutelingssleutel geïnstalleerd, dus geen enkele bestemming zou de back-up accepteren. Installeer er een onder Settings → Storage → Backup encryption key en voer de back-up opnieuw uit."
+    },
+    "retention": {
+      "lastCount": "laatste {{count}}",
+      "forDays": "{{days}} dagen",
+      "forever": "Voor altijd"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Nachtelijke back-up",
+      "schedule": "Schema",
+      "scheduleHint": "Wanneer deze back-up draait. De leesbare builder dekt de gangbare gevallen; het geavanceerde veld accepteert elke cron-expressie met vijf velden.",
+      "enabled": "Volgens dit schema uitvoeren",
+      "destinations": "Bestemmingen",
+      "destinationsHint": "Elke bestemming die je kiest krijgt een eigen kopie. Eén kopie is geen back-up.",
+      "retentionCount": "Zoveel bewaren",
+      "retentionDays": "Zoveel dagen bewaren",
+      "retentionHint": "Nul betekent voor altijd. Een back-up waarop een latere incrementele back-up nog voortbouwt wordt nooit verwijderd, en de enige overgebleven back-up van een container die nog bestaat evenmin.",
+      "fullEvery": "Maak een volledige kopie elke",
+      "fullEveryUnit": "uitvoeringen",
+      "fullEveryHint": "Incrementele back-ups zijn snel en elke daarvan hangt af van de kopieën ervoor. Door de keten regelmatig opnieuw te beginnen blijft een herstel kort. Nul forceert er nooit een.",
+      "quiesceNotice": "Een draaiende container krijgt een snapshot waar de pool dat kan, en wordt waar dat niet kan bevroren zolang de kopie duurt. Een kopie die geen van beide toelaat wordt geweigerd in plaats van geschreven, omdat een half geschreven bestandssysteem niet van een goed te onderscheiden is.",
+      "save": "Schema opslaan"
+    },
+    "deletePlanConfirm": {
+      "title": "Dit schema verwijderen?",
+      "body": "De back-ups die al zijn geschreven blijven staan en blijven herstelbaar. Alleen het schema verdwijnt."
+    },
+    "deleteConfirm": {
+      "title": "Deze back-up verwijderen?",
+      "body": "De kopieën op elke bestemming worden ook verwijderd. Een back-up waarop een latere incrementele back-up voortbouwt kan niet worden verwijderd."
+    },
+    "restoreDialog": {
+      "title": "{{name}} herstellen?",
+      "description": "Bouwt het bestandssysteem van deze container opnieuw op vanuit de back-up van {{taken}}.",
+      "needsStop": "De container moet eerst worden gestopt. Het bestandssysteem vervangen onder een draaiende init gaat niet netjes mis.",
+      "spaceNotice": "Het bestandssysteem wordt naast het huidige opgebouwd en pas in de laatste stap op zijn plek gezet, dus de host heeft tijdens het herstel ruimte nodig voor een tweede kopie.",
+      "chainNote": "Dit is een incrementele back-up, dus de volledige kopie waarop hij voortbouwt en elke incrementele back-up daartussen worden gedownload en op volgorde toegepast.",
+      "irreversible": "Dit vervangt alles op het bestandssysteem van de container. Dit kan niet ongedaan worden gemaakt.",
+      "confirm": "Typ {{name}} om te bevestigen",
+      "submit": "Deze back-up herstellen"
+    }
+  },
+  "recreate": {
+    "action": "Opnieuw aanmaken als nieuwe container",
+    "orphaned": {
+      "button": "Back-ups van verwijderde containers",
+      "title": "Back-ups van verwijderde containers",
+      "description": "Deze back-ups horen bij containers die McHarbor niet meer heeft. Een back-up overleeft zijn container met opzet — kies er een om de container ermee opnieuw aan te maken.",
+      "empty": "Elke back-up hoort bij een container die nog bestaat.",
+      "container": "Container",
+      "unknownName": "Naamloze container"
+    },
+    "dialog": {
+      "title": "{{name}} opnieuw aanmaken vanuit een back-up",
+      "description": "Alles hieronder komt uit de definitie die is opgeslagen bij de back-up van {{taken}}. Pas alles aan wat niet meer past — een naam die al in gebruik is, een pool of netwerk die verdwenen is.",
+      "loading": "De definitie van de container wordt gelezen van de back-upbestemming…",
+      "pool": "Opslagpool",
+      "poolPlaceholder": "Kies een pool",
+      "poolMissing": "De pool waarop deze container stond ({{backend}} op {{target}}) staat niet op deze host. Kies een andere.",
+      "interfaces": "Interfaces",
+      "noInterfaces": "Geen interfaces. De container heeft alleen loopback.",
+      "networkPlaceholder": "Kies een netwerk",
+      "networkMissing": "Het netwerk waarop deze interface zat bestaat niet meer. Kies een ander netwerk of verwijder de interface.",
+      "removeInterface": "Interface {{name}} verwijderen",
+      "mounts": "Koppelpunten",
+      "noMounts": "Geen koppelpunten.",
+      "removeMount": "Koppelpunt {{destination}} verwijderen",
+      "startAfter": "Starten zodra het herstel klaar is",
+      "restoreNote": "De container wordt gestopt aangemaakt, waarna het bestandssysteem wordt opgebouwd vanuit deze back-up en elke back-up waarop hij voortbouwt. Interfaces krijgen nieuwe MAC-adressen, dus een DHCP-reservering op basis van het oude adres komt niet meer overeen.",
+      "submit": "Container opnieuw aanmaken"
+    },
+    "warnings": {
+      "name_invalid": "De opgeslagen naam is hier niet bruikbaar voor een container. Kies een nieuwe.",
+      "init_unknown": "Het opgeslagen init-systeem is er niet een dat McHarbor draait, dus systemd is gekozen. Controleer dit voordat je aanmaakt.",
+      "pool_target_unknown": "Het opgeslagen rootfs-pad geeft niet aan op welke pool het stond. Kies een pool.",
+      "nic_dropped": "Een interface zonder bridge of bovenliggende adapter is weggelaten.",
+      "mount_dropped": "Een koppelpunt met een onbekend type of zonder bron is weggelaten.",
+      "limits_adjusted": "Een negatieve limiet is teruggezet naar geen limiet."
+    }
+  },
+  "permissions": {
+    "ct.view": {
+      "label": "Systeemcontainers bekijken"
+    },
+    "ct.manage": {
+      "label": "Systeemcontainers beheren"
+    },
+    "ct.delete": {
+      "label": "Systeemcontainers verwijderen"
+    },
+    "ct.console": {
+      "label": "Een systeemcontainerconsole openen"
+    },
+    "ct.backup": {
+      "label": "Back-up maken van systeemcontainers"
+    },
+    "ct.restore": {
+      "label": "Een systeemcontainer herstellen vanuit een back-up"
+    },
+    "ct.privileged": {
+      "label": "Geprivilegieerde containers draaien en hostpaden koppelen"
+    }
+  },
+  "err": {
+    "ct": {
+      "unauthorized": "Je moet inloggen om dat te doen.",
+      "privilege_required": "Daarvoor is de machtiging nodig om geprivilegieerde containers te draaien en hostpaden te koppelen.",
+      "invalid_request": "Iets in dat verzoek was niet bruikbaar.",
+      "not_found": "Die container bestaat niet meer.",
+      "name_taken": "Een container op deze host heeft die naam al.",
+      "pool_mismatch": "Die pool is op deze host al vastgelegd met een andere backend of een ander pad. Kies de pool opnieuw uit de lijst.",
+      "pool_required": "Een opslagpool is vereist.",
+      "running": "De container moet eerst worden gestopt.",
+      "not_running": "De container draait niet.",
+      "host_offline": "De host van deze container is niet bereikbaar.",
+      "no_capability": "Deze host kan geen systeemcontainers draaien.",
+      "snapshot_chain_deep": "Deze container heeft te veel gestapelde snapshots. Verwijder er enkele voordat je een nieuwe maakt.",
+      "template_in_use": "Deze template wordt nog gebruikt door andere containers.",
+      "template_running": "Een template kan niet worden gestart.",
+      "bad_mount": "Dat koppelpunt is niet toegestaan.",
+      "id_range_exhausted": "Deze host heeft geen vrij id-bereik meer voor nog een niet-geprivilegieerde container.",
+      "command_failed": "De host kon dat niet uitvoeren.",
+      "agent_too_old": "De host van deze container draait een agent die te oud is om de rootfs van een container te bouwen of te verwijderen. Werk de agent op die host bij en probeer het opnieuw.",
+      "image_not_cached": "Die image is nog niet naar deze host gedownload. Download hem naar de host via Compute → Images en maak de container daarna opnieuw aan.",
+      "stats_unavailable": "De agent van de host gaf geen statistieken terug voor deze draaiende container. Werk de agent op deze host bij om live gebruik te zien.",
+      "nic_ipv6_invalid": "Voer een IPv6-adres in met prefixlengte, zoals 2001:db8::50/64, en een IPv6-gateway. IPv4-waarden zijn in deze velden niet toegestaan.",
+      "nic_ipv6_macvlan_only": "Een statisch IPv6-adres is alleen beschikbaar op directe (macvlan-)netwerken.",
+      "not_ready": "Dit onderdeel is nog aan het opstarten. Probeer het zo meteen opnieuw.",
+      "backup_name_required": "Een back-upschema heeft een naam nodig.",
+      "backup_name_too_long": "Die naam van het back-upschema is te lang.",
+      "backup_retention_invalid": "Die bewaarinstelling valt buiten het bereik.",
+      "backup_cron_invalid": "Dat is geen geldige cron-expressie met vijf velden.",
+      "backup_no_destination": "Deze back-up heeft geen bestemming. Kies minstens één opslagbestemming.",
+      "backup_chain_incomplete": "De keten van deze back-up is onvolledig, dus hij kan niet worden hersteld.",
+      "backup_chain_unrestorable": "Deze back-up kan niet worden hersteld: de incrementele back-ups zijn gelezen van een live kopie van een dir-pool-rootfs. Herstel in plaats daarvan de volledige back-up waarop hij voortbouwt.",
+      "backup_idmap_conflict": "Deze back-up kan niet worden hersteld: de back-ups in de keten hebben verschillende id-bereiken vastgelegd, dus de bestandseigenaren kunnen niet consistent naar de doelcontainer worden verplaatst.",
+      "backup_not_confirmed": "Typ de naam van de container om het herstel te bevestigen.",
+      "backup_template": "Van een template kan geen back-up worden gemaakt en er kan niet overheen worden hersteld.",
+      "backup_agent_too_old": "De host van deze container draait een agent die te oud is om een back-up van een container te maken.",
+      "backup_store_failed": "McHarbor kon de back-up niet opslaan op de bestemming.",
+      "backup_manifest_missing": "De containerdefinitie van deze back-up staat op geen enkele bestemming meer. Maak handmatig een container aan en herstel daarin.",
+      "backup_manifest_unreadable": "De containerdefinitie van deze back-up kon niet worden gelezen.",
+      "recreate_manage_required": "Een container opnieuw aanmaken vereist ct.manage op die host naast ct.restore.",
+      "recreate_restore_required": "Een container opnieuw aanmaken vanuit een back-up vereist ct.restore op die host."
+    }
+  },
+  "msg": {
+    "ct": {
+      "created": "Container aangemaakt.",
+      "updated": "Container bijgewerkt.",
+      "started": "Container gestart.",
+      "stopped": "Container gestopt.",
+      "shutdown_escalated": "De container stopte niet uit zichzelf en is beëindigd.",
+      "restarted": "Container herstart.",
+      "frozen": "Container bevroren.",
+      "unfrozen": "Container ontdooid.",
+      "deleted": "Container verwijderd.",
+      "limits_applied": "Limieten toegepast. Ze zijn nu van kracht.",
+      "limits_queued": "Limieten opgeslagen. Ze gelden de volgende keer dat de container start.",
+      "snapshot_created": "Snapshot gemaakt.",
+      "snapshot_reverted": "Container teruggezet.",
+      "snapshot_deleted": "Snapshot verwijderd.",
+      "cloned": "Container gekloond.",
+      "templated": "Template bijgewerkt.",
+      "nic_added": "Interface toegevoegd.",
+      "mount_added": "Koppelpunt toegevoegd.",
+      "backup_plan_saved": "Back-upschema opgeslagen.",
+      "backup_plan_deleted": "Back-upschema verwijderd.",
+      "backup_started": "Back-up gestart. Hij blijft draaien als je deze pagina verlaat.",
+      "backup_stored": "Back-up opgeslagen.",
+      "backup_deleted": "Back-up verwijderd.",
+      "restore_started": "Herstel gestart.",
+      "recreate_started": "Container gedefinieerd. Het bestandssysteem wordt hersteld vanuit de back-up en de container kan worden gestart zodra het herstel klaar is."
+    }
+  },
+  "runbook": {
+    "attach": {
+      "ct": "Systeemcontainer"
+    },
+    "targets": {
+      "ct": "Systeemcontainer"
+    },
+    "steps": {
+      "ct_start": "Start de systeemcontainer",
+      "ct_stop": "Stop de systeemcontainer",
+      "ct_restart": "Herstart de systeemcontainer",
+      "ct_freeze": "Bevries elk proces in de systeemcontainer",
+      "ct_unfreeze": "Ontdooi een bevroren systeemcontainer",
+      "ct_backup_run": "Maak nu een back-up van de systeemcontainer",
+      "ct_state": "De status, limieten en host van de systeemcontainer",
+      "ct_backups": "De 20 meest recente back-ups van de systeemcontainer"
+    }
+  },
+  "estate": {
+    "containers": "Systeemcontainers"
+  },
+  "search": {
+    "group": {
+      "containers": "Systeemcontainers"
+    },
+    "action": {
+      "createContainer": "Systeemcontainer maken",
+      "createContainerKeywords": "nieuwe lxc ct container"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "title": "Omgevingsvariabelen",
+  "description": "Elke omgevingsvariabele die McHarbor en zijn agent lezen, gegenereerd uit de broncode en de configuratiereferentie. Het wijzigen van een ervan betekent het opnieuw aanmaken van de container.",
+  "searchPlaceholder": "Zoeken op naam of beschrijving",
+  "searchLabel": "Omgevingsvariabelen zoeken",
+  "count_one": "{{count}} variabele",
+  "count_other": "{{count}} variabelen",
+  "empty": "Geen variabele komt overeen met het filter.",
+  "filters": {
+    "scope": "Bereik",
+    "allScopes": "Alle",
+    "sensitiveOnly": "Alleen gevoelige"
+  },
+  "scope": {
+    "server": "Server",
+    "agent": "Agent"
+  },
+  "columns": {
+    "name": "Variabele",
+    "default": "Standaard",
+    "description": "Wat het doet",
+    "flags": "Vlaggen"
+  },
+  "flags": {
+    "sensitive": "Gevoelig",
+    "sensitiveHint": "Bevat een geheim. Bewaar het in een geheimenopslag, nooit in een gecommit Compose-bestand.",
+    "restart": "Opnieuw aanmaken vereist",
+    "restartHint": "Wordt bij het opstarten gelezen; een wijziging geldt pas nadat de container opnieuw is aangemaakt.",
+    "undocumented": "Ongedocumenteerd",
+    "undocumentedHint": "Wordt door de code gelezen maar niet beschreven in de configuratiereferentie, meestal omdat McHarbor het zelf instelt voor een hulpcontainer.",
+    "notInCode": "Niet gelezen door de binary",
+    "notInCodeHint": "Gedocumenteerd, maar gelezen door het entrypoint of Compose-bestand in plaats van de Go-binary, of helemaal niet meer gelezen."
+  },
+  "copy": "{{name}} kopiëren",
+  "copied": "Gekopieerd",
+  "manualCopy": "Variabelenaam kopiëren",
+  "sources": "Gelezen in {{files}}",
+  "noDescription": "Geen beschrijving in de configuratiereferentie.",
+  "sections": {
+    "application": "Applicatie",
+    "secrets": "Geheimen",
+    "database": "Database",
+    "docker": "Docker",
+    "tls": "TLS- en HTTP-listeners",
+    "networkTrust": "Netwerkvertrouwen",
+    "agentTransport": "Agenttransport",
+    "plugins": "App Store en plugins",
+    "nativeInstall": "Native installatie",
+    "authentication": "Authenticatie",
+    "versionReporting": "Versie-rapportage",
+    "agent": "Agent",
+    "other": "Overig"
+  }
+}

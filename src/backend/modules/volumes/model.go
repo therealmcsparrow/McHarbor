@@ -25,6 +25,9 @@ type VolumeSummary struct {
 	UsageData  *UsageData        `json:"UsageData,omitempty"`
 	RefCount   int               `json:"RefCount"`
 	Protected  bool              `json:"Protected"`
+	// UsedBy names the containers (running or stopped) currently mounting
+	// this volume, leading "/" trimmed.
+	UsedBy []string `json:"UsedBy,omitempty"`
 }
 
 // UsageData represents volume usage statistics.

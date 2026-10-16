@@ -1,0 +1,295 @@
+{
+  "errorTitle": "Kon de databaseconfiguratie niet lezen",
+  "driver": {
+    "sqlite": {
+      "name": "SQLite",
+      "description": "Eén bestand in de McHarbor-datamap. Geen server om te draaien, geen inloggegevens om te bewaren. Alleen voor één node."
+    },
+    "postgres": {
+      "name": "PostgreSQL",
+      "description": "Een externe PostgreSQL 12 of nieuwer. De meest complete keuze voor een gedeelde database, ook voor actief/passief met meerdere nodes."
+    },
+    "mysql": {
+      "name": "MySQL / MariaDB",
+      "description": "Een externe MySQL 8 of MariaDB 10.6 of nieuwer. Dezelfde mogelijkheden als PostgreSQL; kies wat je al draait."
+    },
+    "mssql": {
+      "name": "Microsoft SQL Server",
+      "description": "Een externe Microsoft SQL Server 2022 of nieuwer. Gevalideerd voor multi-node active/passive, net als PostgreSQL, MySQL en MariaDB."
+    }
+  },
+  "picker": {
+    "label": "Database-backend",
+    "current": "In gebruik"
+  },
+  "current": {
+    "title": "Huidige database",
+    "target": "Verbinding",
+    "version": "Serverversie",
+    "tables": "Tabellen",
+    "rows": "Rijen",
+    "source": {
+      "env": "Uit omgeving",
+      "secret": "Uit opgeslagen geheim",
+      "default": "Ingebouwde standaard"
+    },
+    "envPinnedTitle": "Vastgezet door de omgeving",
+    "envPinnedBody": "MCHARBOR_DB_DRIVER is ingesteld op deze container en bepaalt dus welke database McHarbor opent. Wat hier gekozen wordt, wordt bij de volgende start genegeerd. Verwijder die variabele uit je Compose-bestand om de database vanaf dit scherm te beheren.",
+    "noRestart": "McHarbor kan zichzelf hier niet herstarten — er is geen lokale Docker-socket bereikbaar. Na een migratie moet je de container zelf herstarten voordat de nieuwe database het overneemt."
+  },
+  "choose": {
+    "title": "Naar een andere database verhuizen",
+    "description": "Kies een backend, test de verbinding en migreer. Elke rij wordt gekopieerd; McHarbor herstart in de nieuwe database zodra het klaar is.",
+    "inUse": "McHarbor draait nu op {{driver}}. Kies hierboven een ander backend om elke rij ernaartoe te kopiëren, of verplaats naar een andere {{driver}}-database.",
+    "moveSameKind": "Verplaatsen naar een andere {{driver}}-database",
+    "sameKindHint": "Voer het nieuwe bestand of de nieuwe server in. McHarbor weigert te kopiëren naar de database waarop het draait.",
+    "restartAfter": "Automatisch herstarten wanneer de migratie klaar is",
+    "restartAfterHelp": "McHarbor leest zijn verbinding één keer, bij het opstarten, dus de nieuwe database neemt het pas na een herstart over.",
+    "warningTitle": "Wat er gebeurt tijdens de migratie",
+    "warningBody": "McHarbor houdt zichzelf stil voor de kopie: muterende API-verzoeken worden met 503 beantwoord en elke achtergrondcollector en scheduler slaat zijn ronde over. Reeds lopende rondes worden afgewacht voordat de eerste rij wordt gelezen, en inhaalrondes kopiëren daarna alles wat alsnog op de oude database landde. De interface blijft ondertussen leesbaar.",
+    "warningOldDatabase": "De oude database wordt nooit aangeraakt. Er wordt niets uit verwijderd, en tot je anders aangeeft blijft hij precies zoals hij was — dus als er achteraf iets niet klopt, zet het verwijderen van de opgeslagen configuratie McHarbor er direct weer op terug."
+  },
+  "form": {
+    "host": "Host",
+    "port": "Poort",
+    "database": "Databasenaam",
+    "databasePlaceholder": "mcharbor",
+    "user": "Gebruiker",
+    "password": "Wachtwoord",
+    "sslMode": "SSL-modus",
+    "tls": "TLS",
+    "encrypt": "Versleuteling",
+    "sslHelp": "De verbinding draagt elke inloggegeven die McHarbor bewaart. Zet versleuteling alleen uit op een netwerk dat je van begin tot eind beheert.",
+    "trustServerCertificate": "Het servercertificaat vertrouwen",
+    "trustServerCertificateHelp": "Accepteer het certificaat van de server zonder het te verifiëren, zoals een standaard SQL Server-installatie met een zelfondertekend certificaat nodig heeft. De verbinding blijft versleuteld maar is niet meer beschermd tegen iemand die zich voor de server uitgeeft.",
+    "mssqlSnapshot": "McHarbor verwacht dat READ_COMMITTED_SNAPSHOT aan staat voor deze database, zodat lange reads schrijvers nooit blokkeren. De verbindingstest waarschuwt wanneer het uit staat en toont de instructie die het inschakelt.",
+    "path": "Bestandspad",
+    "pathHelp": "Waar het SQLite-bestand in de container staat. Laat leeg voor de ingestelde standaard.",
+    "rawMode": "Voer in plaats daarvan een connection string in",
+    "rawModeHelp": "Voor beheerde databases waarvan de connection string opties bevat die dit formulier niet kent.",
+    "dsn": "Verbindingsreeks",
+    "dsnHelp": "Wordt exact zo gebruikt. Elk veld hierboven wordt genegeerd zolang dit aanstaat.",
+    "credentialsStored": "Inloggegevens worden versleuteld met de McHarbor-sleutel en opgeslagen in de datamap — nooit in een omgevingsvariabele en nooit teruggestuurd naar deze pagina."
+  },
+  "test": {
+    "title": "Verbindingstest",
+    "run": "Verbinding testen",
+    "running": "Bezig met testen…",
+    "passed": "De verbindingstest is geslaagd",
+    "failed": "De verbindingstest is mislukt",
+    "status": {
+      "pass": "geslaagd",
+      "warn": "waarschuwing",
+      "fail": "mislukt",
+      "skip": "niet uitgevoerd"
+    },
+    "steps": {
+      "validate": {
+        "title": "Gegevens compleet",
+        "description": "De host, database en gebruiker zijn ingevuld en de connection string kan worden opgebouwd."
+      },
+      "resolve": {
+        "title": "Host bereikbaar",
+        "description": "Het adres wordt gevonden en accepteert een TCP-verbinding — dit onderscheidt een firewall van een verkeerd wachtwoord."
+      },
+      "connect": {
+        "title": "Verbinding geaccepteerd",
+        "description": "De database heeft de sessie geopend en de inloggegevens geaccepteerd."
+      },
+      "version": {
+        "title": "Versie ondersteund",
+        "description": "PostgreSQL 12+, MySQL 8+, MariaDB 10.6+ of SQL Server 2022+; oudere servers missen syntaxis die het McHarbor-schema gebruikt."
+      },
+      "privileges": {
+        "title": "Schrijftoegang",
+        "description": "De gebruiker kan een tabel maken, ernaar schrijven, hem teruglezen en weer verwijderen."
+      },
+      "schema": {
+        "title": "Inhoud van het doel",
+        "description": "Of de database leeg is, of al tabellen bevat die de migratie eerst zou wissen."
+      },
+      "encoding": {
+        "title": "UTF-8-tekenset",
+        "description": "Containernamen, stacknotities en berichten bevatten allemaal gebruikerstekst; een latin1-database zou die beschadigen."
+      }
+    }
+  },
+  "migration": {
+    "title": "Databasemigratie",
+    "start": "Gegevens migreren",
+    "starting": "Voorbereiden…",
+    "cancel": "Migratie annuleren",
+    "cancelling": "Annuleren…",
+    "close": "Sluiten",
+    "closeRestarting": "Sluiten — McHarbor herstart",
+    "rows": "{{copied}} van {{total}} rijen",
+    "currentTable": "{{table}} kopiëren ({{index}} van {{total}})",
+    "tables": "Tabellen",
+    "warnings": "Goed om te weten",
+    "done": "Migratie voltooid",
+    "failed": "Migratie mislukt",
+    "failedSafe": "Er is niets veranderd: McHarbor draait nog op zijn oorspronkelijke database en de opgeslagen configuratie is niet weggeschreven.",
+    "cancelled": "Migratie geannuleerd",
+    "restartScheduled": "McHarbor herstart in de nieuwe database. Deze pagina reageert even niet.",
+    "restartRequired": "Herstart de McHarbor-container om de nieuwe database in gebruik te nemen.",
+    "phase": {
+      "prepare": "Controleren",
+      "schema": "Schema aanmaken",
+      "inventory": "Rijen tellen",
+      "copy": "Gegevens kopiëren",
+      "verify": "Verifiëren",
+      "persist": "Configuratie opslaan",
+      "restart": "Herstarten",
+      "catchup": "Inhalen"
+    },
+    "caughtUp": "{{count}} rijen kwamen tijdens de kopie binnen en zijn ingehaald",
+    "deltaPass": "Inhaalronde {{pass}}"
+  },
+  "setup": {
+    "title": "Kies een database",
+    "description": "McHarbor bewaart alles wat het weet in een SQL-database. Kies er nu een, vóór het eerste account wordt aangemaakt — later wisselen betekent elke rij overkopiëren.",
+    "testRequired": "De verbinding moet slagen voordat je verder kunt.",
+    "continue": "Doorgaan",
+    "restartingTitle": "Je keuze wordt toegepast",
+    "restartingBody": "McHarbor herstart in de database die je hebt gekozen. Deze pagina laadt over enkele seconden vanzelf opnieuw.",
+    "restartManualBody": "Je keuze is opgeslagen. Herstart de McHarbor-container om hem in gebruik te nemen en laad deze pagina daarna opnieuw."
+  },
+  "errors": {
+    "err.database.config_invalid": "De verbindingsgegevens zijn onvolledig of ongeldig.",
+    "err.database.connect_failed": "Kon geen verbinding maken met de database.",
+    "err.database.auth_failed": "De database heeft de gebruikersnaam of het wachtwoord geweigerd.",
+    "err.database.unreachable": "De databasehost was niet bereikbaar.",
+    "err.database.version_unsupported": "Die serverversie is te oud voor McHarbor.",
+    "err.database.privileges": "De databasegebruiker mag geen tabellen aanmaken in deze database.",
+    "err.database.encoding": "De database gebruikt geen UTF-8-tekenset.",
+    "err.database.env_pinned": "De database is vastgezet door MCHARBOR_DB_DRIVER en kan hier niet worden gewijzigd.",
+    "err.database.migration_running": "Er loopt al een migratie.",
+    "err.database.migration_failed": "De migratie is mislukt.",
+    "err.database.schema_failed": "Het McHarbor-schema kon niet op de doeldatabase worden aangemaakt.",
+    "err.database.same_target": "Dat is de database waarop McHarbor al draait.",
+    "err.database.cleanup_unavailable": "Er is geen oude database die deze installatie mag verwijderen.",
+    "err.database.cleanup_failed": "De oude databasebestanden konden niet worden verwijderd."
+  },
+  "cleanup": {
+    "title": "Oude database",
+    "description": "McHarbor is naar een andere backend verhuisd. Het SQLite-bestand dat eerder werd gebruikt staat nog onaangeroerd op schijf.",
+    "delete": "De oude database verwijderen",
+    "reclaim": "Verwijderen maakt {{size}} vrij.",
+    "checkFirst": "Controleer eerst of de nieuwe database er goed uitziet. Dit kan niet ongedaan worden gemaakt, en het oude bestand is de enige kopie van alles wat de migratie niet heeft meegenomen.",
+    "confirmTitle": "De oude database definitief verwijderen?",
+    "confirmBody_one": "Dit verwijdert {{count}} bestand in {{path}} en maakt {{size}} vrij. Er is geen ongedaan maken en McHarbor bewaart geen kopie. Doe dit pas als je zeker weet dat de nieuwe database compleet is.",
+    "confirmBody_other": "Dit verwijdert {{count}} bestanden in {{path}} en maakt {{size}} vrij. Er is geen ongedaan maken en McHarbor bewaart geen kopie. Doe dit pas als je zeker weet dat de nieuwe database compleet is.",
+    "removed_one": "{{count}} bestand verwijderd",
+    "removed_other": "{{count}} bestanden verwijderd",
+    "failed": "De oude databasebestanden konden niet worden verwijderd",
+    "inUse": "Niets te verwijderen: McHarbor draait nog op zijn SQLite-database. Dit verschijnt na een migratie naar PostgreSQL of MySQL."
+  },
+  "check": {
+    "title": "Databasegezondheidscontrole",
+    "description": "Zoekt naar integriteitsproblemen, verweesde rijen, schemadrift en terug te winnen ruimte.",
+    "run": "Controle uitvoeren",
+    "running": "Bezig met uitvoeren…",
+    "never": "Nooit uitgevoerd",
+    "lastRun": "De laatste run vond {{failed}} mislukte en {{warned}} waarschuwingsbevindingen",
+    "repair": "Herstelacties toepassen ({{count}})",
+    "repairConfirm": "Herstelacties toepassen",
+    "confirmTitle": "De geselecteerde herstelacties toepassen?",
+    "confirmBody": "{{count}} herstelacties op de database toepassen?",
+    "confirmDestructive": "Dit verwijdert rijen en kan niet ongedaan worden gemaakt. {{count}} herstelacties toepassen, waaronder minstens één die verweesde rijen verwijdert?",
+    "dialog": {
+      "title": "Databasegezondheidscontrole wordt uitgevoerd",
+      "description": "Dit controleert de integriteit van de actieve database, verweesde rijen, het schema en terug te winnen ruimte.",
+      "cancel": "Annuleren",
+      "close": "Sluiten"
+    },
+    "toast": {
+      "startFailed": "De controle kon niet worden gestart",
+      "repaired": "{{count}} rijen hersteld",
+      "repairFailed": "Het herstel is mislukt"
+    },
+    "family": {
+      "integrity": "Integriteit",
+      "orphans": "Verweesde rijen",
+      "schema": "Schema",
+      "bloat": "Grootte en bewaring"
+    },
+    "severity": {
+      "ok": "OK",
+      "info": "Info",
+      "warn": "Waarschuwing",
+      "fail": "Mislukt",
+      "skip": "Overgeslagen"
+    },
+    "phase": {
+      "queued": "In wachtrij",
+      "inventory": "Tabellen tellen",
+      "integrity": "Integriteit controleren",
+      "orphans": "Controleren op verweesde rijen",
+      "schema": "Schema controleren",
+      "bloat": "Grootte en bewaring controleren",
+      "done": "Klaar",
+      "failed": "Mislukt",
+      "cancelled": "Geannuleerd"
+    },
+    "remedy": {
+      "vacuum": "VACUUM uitvoeren",
+      "apply_migrations": "Openstaande migraties toepassen",
+      "create_index": "De ontbrekende index aanmaken",
+      "delete_orphans": "De verweesde rijen verwijderen"
+    },
+    "reason": {
+      "driver_no_native_integrity": "Deze driver heeft geen ingebouwde integriteitscontrole; alleen ongeldige indexen worden gemeld.",
+      "unresolved_relation": "De kolomnaam leek op een foreign key, maar er kon geen bijbehorende tabel en kolom worden gevonden.",
+      "unparseable_statement": "De migratie-instructie kwam niet overeen met een herkende vorm van CREATE of DROP INDEX.",
+      "driver_server_managed": "Het terugwinnen van ruimte wordt beheerd door de databaseserver, niet door McHarbor.",
+      "pragma_failed": "De SQLite-pragma waarmee dit wordt gemeten gaf geen waarde terug.",
+      "table_absent": "De tabel waarop dit bewaarvenster van toepassing is bestaat niet in deze database.",
+      "retention_disabled": "Het bewaarvenster is ingesteld om rijen voor altijd te bewaren, dus er wordt niets afgedwongen.",
+      "size_stats_unavailable": "Deze driver of build biedt geen grootte-statistieken per tabel.",
+      "governed_table": "Dit is een beheerd auditrecord. De verwijzing wordt gemeld, maar McHarbor biedt niet aan om het te verwijderen."
+    },
+    "finding": {
+      "table_count": "{{count}} tabellen gecontroleerd",
+      "integrity_ok": "Geen integriteitsproblemen gevonden",
+      "integrity_corrupt": "{{count}} integriteitsproblemen gemeld door PRAGMA integrity_check",
+      "integrity_unavailable": "De integriteitscontrole kon niet worden uitgevoerd",
+      "integrity_partial": "Op deze driver is slechts een gedeeltelijke integriteitscontrole mogelijk",
+      "integrity_table_failed": "CHECK TABLE is mislukt op {{table}}",
+      "integrity_table_problem": "CHECK TABLE meldde een probleem op {{table}}",
+      "fk_check_ok": "Geen foreign key-schendingen gevonden",
+      "fk_check_unavailable": "De foreign key-controle kon niet worden uitgevoerd",
+      "fk_violation": "{{count}} rijen in {{table}} schenden een foreign key",
+      "invalid_index": "Index {{index}} op {{table}} is als ongeldig gemarkeerd",
+      "orphan_rows": "{{count}} rijen in {{table}}.{{column}} verwijzen naar een {{refTable}}-rij die niet meer bestaat",
+      "orphans_none": "Geen verweesde rijen in {{count}} relaties",
+      "orphan_unmapped": "{{count}} kolommen lijken op verwijzingen maar konden niet worden gekoppeld",
+      "orphan_excluded": "{{count}} kolommen zijn op naam uitgesloten van de controle op verweesde rijen",
+      "orphan_query_failed": "Kon verweesde rijen in {{table}}.{{column}} niet tellen ten opzichte van {{refTable}}.{{refColumn}}",
+      "orphan_discovery_failed": "Kon de te controleren foreign key-relaties niet ontdekken",
+      "migrations_ok": "Alle {{count}} migraties zijn toegepast",
+      "migrations_pending": "{{count}} migraties zijn niet toegepast",
+      "migrations_unknown": "{{count}} toegepaste migraties zitten niet in deze build",
+      "schema_read_failed": "Kon de migratiebestanden op schijf niet lezen",
+      "schema_ledger_failed": "Kon het migratiegrootboek niet lezen",
+      "indexes_ok": "Alle {{count}} gedeclareerde indexen bestaan",
+      "index_missing": "Index {{index}} is gedeclareerd op {{table}} maar ontbreekt",
+      "index_unparsed": "{{count}} indexinstructies in de migratieset konden niet worden geparseerd",
+      "index_read_failed": "Kon de gedeclareerde indexen niet uit de migratieset lezen",
+      "index_list_failed": "Kon de indexen in de database niet weergeven",
+      "table_rows": "{{table}} heeft {{count}} rijen",
+      "total_rows": "{{count}} rijen in alle tabellen",
+      "table_size": "{{table}} is {{size}}",
+      "total_size": "{{size}} in alle tabellen",
+      "table_size_unavailable": "Tabelgrootte-statistieken zijn niet beschikbaar op deze driver",
+      "wal_size": "Het write-ahead-log is {{size}}",
+      "reclaimable": "{{size}} kan worden teruggewonnen met een VACUUM",
+      "reclaim_none": "Niets terug te winnen",
+      "reclaim_unavailable": "Terug te winnen ruimte kon niet worden bepaald",
+      "row_count_failed": "Kon de rijen in {{table}} niet tellen",
+      "retention_overrun": "{{table}} bevat {{count}} rijen die ouder zijn dan het bewaarvenster",
+      "retention_disabled": "Het bewaarvenster van {{table}} is uitgeschakeld, dus er wordt niets afgedwongen",
+      "retention_table_missing": "{{table}} bestaat niet, dus het bewaarvenster is niet gecontroleerd",
+      "retention_query_failed": "Kon {{table}} niet controleren tegen het bewaarvenster"
+    }
+  }
+}

@@ -2,14 +2,29 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { IconCircleCheck, IconCircleX, IconLoader2, IconPlayerPlay } from '@tabler/icons-react';
 import { api } from '@core/api/client';
 import { timeAgo } from '@resources/utils/format';
-import { Badge } from '@resources/components/ui/Badge';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
+import {
+  IconTile,
+  ROW_HEIGHT,
+  WidgetBadge,
+  WidgetEmpty,
+  WidgetFooterLink,
+  WidgetFrame,
+  WidgetList,
+  WidgetLoading,
+  WidgetRow,
+  useFittedRows,
+  type Tone,
+} from '@modules/dashboard/components/widget-kit';
 
 type WorkflowRun = {
   id: string;
+  workflowId?: string;
   workflowName: string;
   status: string;
   trigger: string;
@@ -17,7 +32,7 @@ type WorkflowRun = {
   startedAt: string;
 };
 
-function useWorkflowRuns(limit = 8) {
+function useWorkflowRuns(limit = 25) {
   return useQuery({
     queryKey: ['workflow-runs', limit],
     queryFn: () =>
@@ -29,69 +44,89 @@ function useWorkflowRuns(limit = 8) {
   });
 }
 
-const STATUS_VARIANT: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
-  success: 'success',
-  completed: 'success',
-  failed: 'destructive',
-  error: 'destructive',
-  running: 'warning',
+const STATUS: Record<string, { tone: Tone; icon: typeof IconCircleCheck }> = {
+  success: { tone: 'success', icon: IconCircleCheck },
+  completed: { tone: 'success', icon: IconCircleCheck },
+  failed: { tone: 'danger', icon: IconCircleX },
+  error: { tone: 'danger', icon: IconCircleX },
+  running: { tone: 'info', icon: IconLoader2 },
 };
+
+const FALLBACK_STATUS: { tone: Tone; icon: typeof IconCircleCheck } = { tone: 'neutral', icon: IconPlayerPlay };
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`;
+}
 
 export default function WorkflowRunsWidget({ typeId: _typeId }: { colSpan: number; typeId: WidgetTypeId }) {
   const { t } = useTranslation('dashboard');
-  const { data: runs, isLoading, isError } = useWorkflowRuns();
+  const navigate = useNavigate();
+  const { data: runs = [], isLoading, isError } = useWorkflowRuns();
+  const { ref, capacity } = useFittedRows(ROW_HEIGHT);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('loading')}
-      </div>
-    );
-  }
-
-  if (isError || !runs || runs.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('workflowRunsWidget.noRuns')}
-      </div>
-    );
-  }
+  const finished = runs.filter((r) => r.status !== 'running');
+  const ok = finished.filter((r) => r.status === 'success' || r.status === 'completed').length;
+  const percent = finished.length > 0 ? Math.round((ok / finished.length) * 100) : null;
+  const shown = runs.slice(0, capacity);
+  const remaining = runs.length - shown.length;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h3 className="shrink-0 px-4 pt-3 pb-2 text-sm font-semibold text-foreground">
-        {t('workflowRunsWidget.title')}
-      </h3>
-      <div className="flex-1 overflow-y-auto px-4 pb-2">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="pb-1.5 font-medium">{t('workflowRunsWidget.workflow')}</th>
-              <th className="pb-1.5 font-medium">{t('workflowRunsWidget.status')}</th>
-              <th className="pb-1.5 font-medium">{t('workflowRunsWidget.duration')}</th>
-              <th className="pb-1.5 font-medium">{t('workflowRunsWidget.when')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map((run) => (
-              <tr key={run.id} className="border-b border-border/50 last:border-0">
-                <td className="max-w-[120px] truncate py-1.5 pr-2 text-foreground">
-                  {run.workflowName}
-                </td>
-                <td className="py-1.5 pr-2">
-                  <Badge variant={STATUS_VARIANT[run.status] ?? 'secondary'} className="text-[10px] px-1.5 py-0.5">
-                    {run.status}
-                  </Badge>
-                </td>
-                <td className="py-1.5 pr-2 text-muted-foreground">
-                  {run.durationMs < 1000 ? `${run.durationMs}ms` : `${(run.durationMs / 1000).toFixed(1)}s`}
-                </td>
-                <td className="py-1.5 text-muted-foreground">{timeAgo(run.startedAt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <WidgetFrame
+      title={t('workflowRunsWidget.title')}
+      badge={
+        percent !== null ? (
+          <WidgetBadge tone={percent === 100 ? 'success' : percent < 50 ? 'danger' : 'warning'}>
+            {t('workflowRunsWidget.successRate', { percent })}
+          </WidgetBadge>
+        ) : undefined
+      }
+      footer={
+        <>
+          <span>{remaining > 0 ? t('workflowRunsWidget.more', { count: remaining }) : null}</span>
+          <WidgetFooterLink label={t('workflowRunsWidget.viewAll')} onClick={() => navigate('/workflows')} />
+        </>
+      }
+    >
+      {isLoading ? (
+        <WidgetLoading label={t('loading')} />
+      ) : isError || runs.length === 0 ? (
+        <WidgetEmpty
+          icon={<IconPlayerPlay className="size-5" aria-hidden="true" />}
+          title={t('workflowRunsWidget.noRuns')}
+        />
+      ) : (
+        <WidgetList listRef={ref}>
+          {shown.map((run) => {
+            const s = STATUS[run.status] ?? FALLBACK_STATUS;
+            const Icon = s.icon;
+            return (
+              <li key={run.id}>
+                <WidgetRow
+                  leading={
+                    <IconTile tone={s.tone}>
+                      <Icon
+                        className={run.status === 'running' ? 'size-4 animate-spin' : 'size-4'}
+                        aria-hidden="true"
+                      />
+                    </IconTile>
+                  }
+                  title={run.workflowName}
+                  subtitle={`${run.trigger} · ${run.status}`}
+                  trailing={
+                    <>
+                      <span className="tabular-nums">{formatDuration(run.durationMs)}</span>
+                      <span className="w-12 text-right tabular-nums">{timeAgo(run.startedAt)}</span>
+                    </>
+                  }
+                  onClick={() => navigate(run.workflowId ? `/workflows/${run.workflowId}/runs` : '/workflows')}
+                />
+              </li>
+            );
+          })}
+        </WidgetList>
+      )}
+    </WidgetFrame>
   );
 }

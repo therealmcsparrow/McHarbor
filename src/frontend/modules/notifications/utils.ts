@@ -10,6 +10,8 @@ export function notificationLevelVariant(level: InAppNotification['level']) {
       return 'success';
     case 'warning':
       return 'warning';
+    case 'error':
+      return 'destructive';
     default:
       return 'secondary';
   }

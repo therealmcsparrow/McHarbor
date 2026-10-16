@@ -1,0 +1,37 @@
+{
+  "page": {
+    "title": "Add a Dropbox destination",
+    "subtitle": "Back up to Dropbox through the Dropbox API v2. Uses a long-lived access token from a Dropbox app.",
+    "registerHint": "Save the credentials, then click Test connection to verify the round-trip."
+  },
+  "fields": {
+    "accessToken": "Access Token",
+    "basePath": "Base Path"
+  },
+  "help": {
+    "accessToken": "Generated access token from your Dropbox app. From the Dropbox App Console, open your app, then under Settings → Generated access token, click Generate. Stored encrypted at rest.",
+    "basePath": "Optional folder inside Dropbox for backups, e.g. /Backups/2026. Leave blank to use the app root."
+  },
+  "toast": {
+    "registered": "Dropbox destination saved.",
+    "testPassed": "Connection test passed.",
+    "testFailed": "Connection test failed: {{error}}"
+  },
+  "error": {
+    "noAccessToken": "Access Token is required."
+  },
+  "form": {
+    "introTitle": "Dropbox access token",
+    "introBody": "Generate a long-lived access token in the Dropbox App Console (your app → Settings → Generated access token). Paste it here. McHarbor stores the token encrypted at rest.",
+    "basePathHelp": "Optional folder inside Dropbox for backups, e.g. /Backups/2026. Leave blank to use the app root. Not prefilled on purpose."
+  },
+  "setup": {
+    "title": "Dropbox setup guide",
+    "step1": "In the Dropbox App Console, click <b>Create app</b>. Choose <b>Scoped access</b> (app folder or full Dropbox), pick <b>Files and content read/write</b> permissions, and pick a unique app name. Submit.",
+    "step2": "On the <b>Permissions</b> tab, enable the <code>files.content.read</code> and <code>files.content.write</code> scopes (plus any others your use case requires — these two are the minimum for backups). Click <b>Submit</b> to save.",
+    "step3": "On the <b>Settings</b> tab, scroll to <b>Generated access token</b>. Click <b>Generate</b>. <warn>Dropbox will show the token once</warn> — copy it now and paste it into the <b>Access Token</b> field on the left. McHarbor stores the token encrypted at rest.",
+    "step4": "Optional: set <b>Base Path</b> to a folder inside Dropbox where backups should land (e.g. <code>/Backups/2026</code>). Leave blank to use the app root (for App-folder apps) or your Dropbox root (for Full Dropbox apps). The form does not prefill a default.",
+    "step5": "Click <b>Save</b>. Then click <b>Test connection</b> in the storage card — McHarbor will round-trip a probe object, change it, and delete it.",
+    "step6": "Connect failed with \"<code>invalid_access_token</code>\"? The token may have expired or been revoked. Generate a fresh token in the Dropbox App Console and paste it again."
+  }
+}

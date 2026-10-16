@@ -1,8 +1,8 @@
 {
-  "label": "Merge Objects",
-  "description": "Merge multiple source objects into one output",
+  "label": "Objekte zusammenführen",
+  "description": "Mehrere Quellobjekte zu einer Ausgabe zusammenführen",
   "config": {
-    "sources": "Sources",
+    "sources": "Quellen",
     "output_property": "Ausgabe-Eigenschaft"
   }
 }

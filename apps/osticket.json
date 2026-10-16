@@ -4,7 +4,7 @@
   "description": "Open-source support ticket system for managing customer service requests and workflows.",
   "category": "Productivity",
   "image": "osticket/osticket:latest",
-  "logo": "https://osticket.com/sites/default/files/favicon_0.ico",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/osticket.svg",
   "website": "https://osticket.com",
   "docsUrl": "https://docs.osticket.com",
   "ports": [
@@ -52,5 +52,9 @@
       "secret": true
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

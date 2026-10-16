@@ -1,0 +1,16 @@
+{
+  "slug": "logging-siem",
+  "name": "SIEM",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Forwards McHarbor audit events to an HTTP SIEM collector (Splunk HEC, Microsoft Sentinel, Elastic, Datadog). Each event is POSTed as a JSON document with an HMAC-SHA256 signature and a SHA-256 body checksum so the collector can verify integrity and origin. This is a log forwarder adapter owned by the plugin runtime; configure it in Settings > Integrations > Logging.",
+  "category": "Audit log forwarders",
+  "icon": "IconCloudLock",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/logging-siem-1.0.0.tar.gz"
+    }
+  ]
+}

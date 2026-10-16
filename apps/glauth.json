@@ -1,0 +1,40 @@
+{
+    "slug":  "glauth",
+    "name":  "GLAuth",
+    "description":  "Lightweight LDAP server backed by a simple config file or database for small-scale authentication.",
+    "category":  "Identity & SSO",
+    "image":  "glauth/glauth:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/png/glauth.png",
+    "website":  "https://github.com/glauth/glauth",
+    "docsUrl":  "https://glauth.github.io/docs/",
+    "ports":  [
+                  {
+                      "host":  3893,
+                      "container":  3893,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3894,
+                      "container":  3894,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/glauth/config",
+                        "container":  "/app/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

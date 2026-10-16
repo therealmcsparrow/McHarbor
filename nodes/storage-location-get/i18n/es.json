@@ -1,7 +1,7 @@
 {
-  "label": "Get Storage Location",
-  "description": "Read one configured storage location without secret values",
+  "label": "Obtener ubicación de almacenamiento",
+  "description": "Lee una ubicación de almacenamiento configurada sin los valores secretos",
   "config": {
-    "storage_location_id": "Storage Location"
+    "storage_location_id": "Ubicación de almacenamiento"
   }
 }

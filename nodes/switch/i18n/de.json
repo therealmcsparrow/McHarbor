@@ -1,14 +1,14 @@
 {
   "label": "Switch",
-  "description": "Route a message to dynamic case outputs",
+  "description": "Eine Nachricht an dynamische Fall-Ausgänge weiterleiten",
   "config": {
     "property": "Eigenschaft",
-    "check_type": "Check Type"
+    "check_type": "Prüftyp"
   },
   "options": {
     "check_type": {
       "value": "Wert",
-      "type": "Type",
+      "type": "Typ",
       "regex": "Regex"
     }
   }

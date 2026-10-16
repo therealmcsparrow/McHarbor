@@ -1,0 +1,164 @@
+{
+  "title": "Pacotes de conformidade",
+  "description": "Evidências de um framework de controles nomeado: as verificações que o McHarbor pode executar em um host ativo, as evidências que ele registra e os controles que ele não consegue ver.",
+  "disclaimer": "Um pack é evidência para um framework, não uma alegação de conformidade com ele. Uma verificação aprovada significa que a verificação passou — se o controle é atendido é um julgamento seu e do seu auditor.",
+  "framework": {
+    "label": "Framework",
+    "mappingOnly": "Apenas mapeamento de evidências — este framework não tem verificações mecânicas"
+  },
+  "run": {
+    "never": "Nunca executado",
+    "last": "Última execução {{time}}",
+    "startedBy": "Iniciado por",
+    "environment": "Ambiente",
+    "defaultEnvironment": "Ambiente padrão",
+    "trigger": {
+      "manual": "Iniciado manualmente",
+      "scheduled": "Agendado"
+    },
+    "status": {
+      "running": "Em execução",
+      "completed": "Concluído",
+      "failed": "Falhou"
+    }
+  },
+  "actions": {
+    "runChecks": "Executar verificações",
+    "showFacts": "Mostrar os fatos por trás deste veredito",
+    "hideFacts": "Ocultar os fatos"
+  },
+  "runDialog": {
+    "title": "Executar as verificações agora",
+    "body": "Isto lê o daemon do Docker e todos os contêineres do ambiente selecionado e registra uma nova execução. Nada é alterado no host.",
+    "confirm": "Executar verificações",
+    "environment": "Ambiente"
+  },
+  "attestation": {
+    "title": "Aprovação",
+    "description": "Quem revisou estas evidências e as aceitou, quando e em qual execução. Uma aprovação nunca é editada; uma mais nova a substitui e ambas permanecem registradas.",
+    "never": "Ninguém aprovou isto ainda.",
+    "last": "Aprovado {{time}} por {{user}}",
+    "run": "Execução {{id}}, iniciada {{time}}",
+    "noRun": "Sem execução: uma aprovação da revisão como um todo",
+    "action": "Aprovar",
+    "runOpen": "A execução ainda está em andamento. Aprove depois que ela terminar.",
+    "dialog": {
+      "title": "Registrar uma aprovação",
+      "body": "Isto registra, sob o seu nome e a hora atual, que você revisou as evidências abaixo e as aceita. Não pode ser editado nem excluído depois.",
+      "confirm": "Registrar aprovação",
+      "framework": "Framework",
+      "run": "Execução",
+      "note": "Nota",
+      "notePlaceholder": "O que você revisou, o que aceitou e onde a decisão está registrada",
+      "noteRequired": "Uma nota é obrigatória: uma aprovação sem uma palavra de justificativa não é evidência de uma revisão."
+    }
+  },
+  "toast": {
+    "started": "Execução das verificações iniciada",
+    "failed": "Não foi possível iniciar a execução das verificações"
+  },
+  "summary": {
+    "pass": "Aprovados",
+    "warn": "Requer atenção",
+    "fail": "Com falha",
+    "info": "Informativos",
+    "unknown": "Não avaliados"
+  },
+  "verdict": {
+    "pass": "Aprovado",
+    "warn": "Atenção",
+    "fail": "Falha",
+    "info": "Info",
+    "unknown": "Não avaliado"
+  },
+  "coverage": {
+    "mechanical": "Verificado mecanicamente",
+    "evidenced": "Evidenciado por dados registrados",
+    "notCovered": "Não coberto"
+  },
+  "group": {
+    "host": "Configuração do host",
+    "daemon": "Configuração do daemon",
+    "files": "Arquivos de configuração do daemon",
+    "images": "Imagens e arquivos de build",
+    "runtime": "Runtime de contêiner",
+    "operations": "Operações de segurança",
+    "swarm": "Configuração do Swarm"
+  },
+  "table": {
+    "control": "Controle",
+    "requirement": "O que exige",
+    "verdict": "Veredito",
+    "coverage": "Cobertura",
+    "evidence": "Evidência",
+    "empty": "Este pack nunca foi executado, então nenhum controle tem veredito ainda."
+  },
+  "notAssessed": {
+    "title": "Controles não avaliados",
+    "body": "{{count}} dos controles deste pack não têm veredito. Não avaliado não é aprovado: significa que as evidências não puderam ser coletadas ou que o McHarbor não consegue ver o controle."
+  },
+  "fact": {
+    "serverVersion": "Versão do Docker Engine",
+    "interContainerCommunication": "Comunicação entre contêineres na bridge padrão",
+    "debug": "Log de depuração",
+    "storageDriver": "Driver de armazenamento",
+    "connectionType": "Transporte configurado",
+    "usernsRemap": "Remapeamento de user namespace",
+    "authorizationPlugins": "Plugins de autorização",
+    "authorizationPluginNames": "Nomes dos plugins de autorização",
+    "loggingDriver": "Driver de log padrão",
+    "liveRestore": "Live restore",
+    "seccompProfile": "Perfil seccomp padrão",
+    "experimental": "Build experimental",
+    "swarmState": "Estado do Swarm",
+    "containersChecked": "Contêineres inspecionados",
+    "containersViolating": "Contêineres que violam este controle",
+    "violations": "Contêineres envolvidos",
+    "inspectFailures": "Inspeções que falharam"
+  },
+  "reason": {
+    "daemonUnavailable": "Não foi possível ler o daemon do Docker, então este controle não tem veredito.",
+    "containersUnavailable": "Não foi possível ler a lista de contêineres, então este controle não tem veredito.",
+    "inspectIncomplete": "Alguns contêineres não puderam ser inspecionados, então um resultado limpo descreveria apenas os que foram.",
+    "containerListCapped": "Existem mais contêineres do que uma execução inspeciona, então este resultado cobre um subconjunto.",
+    "noContainers": "Este ambiente não tem contêineres, então não havia nada a verificar.",
+    "notCoveredByMcHarbor": "O McHarbor não consegue ver este controle. Ele é listado para que a lacuna fique visível em vez de implícita.",
+    "evidencedNotChecked": "O McHarbor registra a evidência deste controle, mas não a julga.",
+    "versionRecorded": "A versão do engine em execução é registrada. Se ela está atualizada para este host, o McHarbor não tem como saber.",
+    "versionUnreported": "O daemon não informou sua versão.",
+    "iccEnabled": "Contêineres na bridge padrão podem se alcançar sem que uma rede seja declarada.",
+    "bridgeUnreadable": "Não foi possível inspecionar a rede bridge padrão.",
+    "debugLoggingEnabled": "O daemon é executado com log de depuração, que registra detalhes das requisições no journal do host.",
+    "legacyStorageDriver": "O daemon usa um driver de armazenamento ao qual o benchmark faz objeção.",
+    "storageDriverUnreported": "O daemon não informou seu driver de armazenamento.",
+    "daemonTCPNoTLS": "O daemon é acessado por TCP simples, então qualquer pessoa que alcance a porta pode comandá-lo.",
+    "connectionTypeUnknown": "Não foi possível ler o transporte configurado do ambiente.",
+    "usernsDisabled": "O remapeamento de user namespace está desativado, então o root de um contêiner é o root do host.",
+    "noAuthorizationPlugin": "Nenhum plugin de autorização decide as requisições do daemon.",
+    "loggingDriverLocal": "A saída do contêiner fica no host. Um sidecar que a envie para outro lugar cumpre a intenção e esta verificação não consegue vê-lo.",
+    "liveRestoreDisabled": "Os contêineres param quando o daemon para.",
+    "seccompDisabled": "O perfil seccomp padrão do daemon está desativado.",
+    "seccompUnreported": "O daemon não informou um perfil seccomp.",
+    "experimentalEnabled": "O daemon é um build experimental.",
+    "swarmActive": "O modo Swarm está ativo. Isso só é uma constatação em um host que não deveria orquestrar com ele.",
+    "containersRunAsRoot": "Contêineres executam como root.",
+    "containersWithoutHealthcheck": "Contêineres não declaram health check.",
+    "containersAddCapabilities": "Contêineres adicionam capabilities do kernel além do conjunto padrão.",
+    "containersPrivileged": "Contêineres executam em modo privilegiado, o que equivale a root no host.",
+    "containersOnPrivilegedPorts": "Contêineres publicam em uma porta do host abaixo de 1024.",
+    "containersShareHostNetwork": "Contêineres compartilham o network namespace do host.",
+    "containersWithoutMemoryLimit": "Contêineres não têm limite de memória, então um pode esgotar o host.",
+    "containersWithoutCPULimit": "Contêineres não têm CPU shares nem cota.",
+    "containersWritableRootfs": "Contêineres têm um sistema de arquivos raiz gravável.",
+    "containersRestartUnbounded": "Contêineres reiniciam sem um número limitado de tentativas.",
+    "containersShareHostPID": "Contêineres compartilham o namespace de processos do host.",
+    "containersShareHostIPC": "Contêineres compartilham o namespace IPC do host.",
+    "containersExposeHostDevices": "Contêineres recebem um dispositivo do host diretamente.",
+    "containersSharedMountPropagation": "Contêineres usam propagação de montagem compartilhada, o que lhes permite gravar na árvore de montagem do host.",
+    "containersShareHostUTS": "Contêineres compartilham o namespace UTS do host.",
+    "containersSeccompUnconfined": "Contêineres executam com seccomp desativado.",
+    "containersMayGainPrivileges": "Contêineres podem adquirir privilégios adicionais.",
+    "containersWithoutPIDsLimit": "Contêineres não têm limite de PIDs, então uma fork bomb pode esgotar o host.",
+    "containersMountDockerSocket": "Contêineres montam o socket do Docker, o que equivale a root no host."
+  }
+}

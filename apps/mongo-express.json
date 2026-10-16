@@ -1,0 +1,48 @@
+{
+    "slug":  "mongo-express",
+    "name":  "Mongo Express",
+    "description":  "Web-based admin interface for browsing collections, running queries and managing MongoDB databases.",
+    "category":  "Developer Tools",
+    "image":  "mongo-express:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mongo-express.png",
+    "website":  "https://github.com/mongo-express/mongo-express",
+    "docsUrl":  "https://github.com/mongo-express/mongo-express#readme",
+    "ports":  [
+                  {
+                      "host":  8091,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ME_CONFIG_MONGODB_SERVER",
+                        "default":  "mongo",
+                        "description":  "Hostname of the MongoDB server to connect to"
+                    },
+                    {
+                        "key":  "ME_CONFIG_BASICAUTH_USERNAME",
+                        "default":  "admin",
+                        "description":  "Username for the Mongo Express login prompt"
+                    },
+                    {
+                        "key":  "ME_CONFIG_BASICAUTH_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the Mongo Express login prompt",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

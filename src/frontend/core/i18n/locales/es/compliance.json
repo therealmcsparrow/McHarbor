@@ -1,0 +1,186 @@
+{
+  "title": "Cumplimiento",
+  "description": "Postura operativa para auditores: retención, claves, copias de seguridad, TLS, identidad, confianza en plugins y alta disponibilidad, medidos en esta instancia.",
+  "generatedAt": "Medido {{time}}",
+  "refresh": "Actualizar",
+  "openSettings": "Abrir",
+  "downloadReport": "Descargar informe",
+  "summary": {
+    "pass": "Correctos",
+    "warn": "Requieren atención",
+    "fail": "Con fallos",
+    "info": "Informativos",
+    "unknown": "Desconocidos"
+  },
+  "status": {
+    "pass": "Correcto",
+    "warn": "Atención",
+    "fail": "Fallo",
+    "info": "Información",
+    "unknown": "Desconocido"
+  },
+  "values": {
+    "yes": "Sí",
+    "no": "No",
+    "none": "—",
+    "noLimit": "Sin límite",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "percent": "{{value}}%",
+    "redacted": "Ocultado"
+  },
+  "sections": {
+    "audit": {
+      "title": "Retención y reenvío de auditoría",
+      "description": "Cuánto tiempo se conserva el registro de auditoría y si sale del equipo."
+    },
+    "keys": {
+      "title": "Claves de cifrado",
+      "description": "De dónde procede la clave de cifrado en reposo y si las copias de seguridad están cifradas."
+    },
+    "instanceBackup": {
+      "title": "Copia de la instancia",
+      "description": "Programaciones y última exportación correcta del propio McHarbor."
+    },
+    "tls": {
+      "title": "TLS",
+      "description": "El certificado que sirve este nodo y cuándo caduca."
+    },
+    "passwords": {
+      "title": "Política de contraseñas",
+      "description": "Reglas que debe cumplir toda contraseña local."
+    },
+    "mfa": {
+      "title": "Autenticación multifactor",
+      "description": "Proporción de cuentas locales activas con MFA inscrita. Las cuentas de un proveedor de identidad usan la MFA de ese proveedor."
+    },
+    "identitySync": {
+      "title": "Identidad y aprovisionamiento",
+      "description": "Proveedores de identidad habilitados y estado del aprovisionamiento SCIM."
+    },
+    "plugins": {
+      "title": "Firma de plugins",
+      "description": "Plugins instalados sin una firma válida de una clave de confianza."
+    },
+    "ha": {
+      "title": "Alta disponibilidad",
+      "description": "Modo de despliegue y disponibilidad de este nodo."
+    },
+    "selfEnvAccess": {
+      "title": "Acceso de contenedores al host de McHarbor",
+      "description": "Roles con containers.manage en el entorno donde se ejecuta McHarbor. Allí alcanza las claves y la base de datos de McHarbor mediante un contenedor que monta el socket de Docker o el host, por lo que equivale a administrador salvo que el rol tenga también host_self.manage."
+    },
+    "supplyChain": {
+      "title": "SBOM y firma de imágenes",
+      "description": "Las imágenes de las versiones incluyen un SBOM SPDX y se firman con la firma sin claves de cosign. Verifíquelas con los comandos de Primeros pasos → Verificación de versiones."
+    }
+  },
+  "facts": {
+    "retentionDays": "Retención de auditoría",
+    "retentionPreset": "Preajuste de retención",
+    "forwardersEnabled": "Reenviadores habilitados",
+    "encryptionKeySource": "Origen de la clave de cifrado",
+    "backupKeyConfigured": "Clave de copia configurada",
+    "backupKeyId": "ID de la clave de copia",
+    "schedulesEnabled": "Programaciones habilitadas",
+    "lastSuccessAt": "Última exportación correcta",
+    "lastRunStatus": "Estado de la última ejecución",
+    "lastRunAt": "Última ejecución",
+    "lastVerifyStatus": "Última verificación",
+    "enabled": "Habilitado",
+    "source": "Origen del certificado",
+    "minVersion": "Versión mínima de TLS",
+    "notAfter": "Caduca",
+    "subject": "Sujeto",
+    "daysRemaining": "Días restantes",
+    "minLength": "Longitud mínima",
+    "requireUpper": "Requiere mayúsculas",
+    "requireLower": "Requiere minúsculas",
+    "requireDigit": "Requiere un dígito",
+    "requireSymbol": "Requiere un símbolo",
+    "maxAgeDays": "Antigüedad máxima",
+    "historySize": "Historial de contraseñas",
+    "localUsers": "Cuentas locales activas",
+    "localUsersWithMfa": "Con MFA inscrita",
+    "mfaAdoption": "Adopción de MFA",
+    "externalUsers": "Cuentas de proveedores de identidad",
+    "providersEnabled": "Proveedores de identidad habilitados",
+    "scimEndpoints": "Endpoints SCIM habilitados",
+    "scimFailing": "Endpoints SCIM con fallos",
+    "scimLastSyncAt": "Última sincronización SCIM",
+    "installed": "Plugins instalados",
+    "unsigned": "Plugins sin firmar",
+    "mode": "Modo",
+    "databaseDriver": "Base de datos",
+    "pluginStore": "Almacén de paquetes de plugins",
+    "role": "Rol de este nodo",
+    "ready": "Listo para recibir tráfico",
+    "nodeId": "ID del nodo",
+    "sbomFormat": "Formato de SBOM",
+    "signing": "Firma",
+    "selfEnvironments": "Entornos donde se ejecuta McHarbor",
+    "containersManageRoles": "Roles con containers.manage allí",
+    "adminEquivalentRoles": "Roles equivalentes a administrador (sin host_self.manage)",
+    "containersManageUsers": "Usuarios con containers.manage concedido directamente allí",
+    "adminEquivalentUsers": "Usuarios equivalentes a administrador (concesión directa, sin host_self.manage)"
+  },
+  "reasons": {
+    "sourceUnavailable": "No se pudieron leer los datos de esta sección. El registro del servidor indica la causa.",
+    "retentionShort": "Las filas de auditoría se eliminan tras menos de un año.",
+    "noForwarding": "No hay ningún reenviador de registros de auditoría habilitado, por lo que el registro solo existe en esta instancia.",
+    "encryptionKeyGenerated": "ENCRYPTION_KEY no está definida; la clave se generó en el directorio de datos y se pierde con él.",
+    "encryptionKeyGeneratedShared": "ENCRYPTION_KEY no está definida en una base de datos compartida; todos los nodos deben usar la misma clave.",
+    "noBackupKey": "No hay configurada ninguna clave de cifrado de copias.",
+    "noBackupSchedule": "No hay habilitada ninguna programación de copia de la instancia.",
+    "noSuccessfulBackup": "Nunca se ha completado una copia de la instancia.",
+    "backupStale": "La última copia correcta de la instancia tiene más de siete días.",
+    "lastBackupFailed": "La copia de la instancia más reciente falló.",
+    "verifyFailed": "La verificación de la copia más reciente falló.",
+    "tlsDisabled": "TLS está desactivado en este listener. Solo es aceptable detrás de un proxy que termine TLS en una red privada.",
+    "certUnreadable": "No se pudo leer el certificado servido.",
+    "certExpired": "El certificado servido ha caducado.",
+    "certExpiringSoon": "El certificado servido caduca en menos de 30 días.",
+    "selfSigned": "El certificado servido es autofirmado.",
+    "minLengthTooShort": "La longitud mínima de la contraseña es inferior a 8 caracteres.",
+    "minLengthShort": "La longitud mínima de la contraseña es inferior a 12 caracteres.",
+    "noPasswordHistory": "No se impide la reutilización de contraseñas.",
+    "noLocalUsers": "No hay cuentas locales activas.",
+    "mfaNone": "Ninguna cuenta local activa tiene MFA inscrita.",
+    "mfaPartial": "Algunas cuentas locales activas no tienen MFA inscrita.",
+    "noIdentityProvider": "No hay ningún proveedor de identidad ni endpoint SCIM habilitado.",
+    "scimSyncFailing": "La última sincronización de al menos un endpoint SCIM falló.",
+    "unsignedPlugins": "Se aceptaron algunos plugins instalados sin una firma válida.",
+    "singleNode": "Este es un despliegue de un solo nodo.",
+    "pluginStoreLocal": "Activo/pasivo con un almacén de plugins local: un nodo promovido puede carecer de paquetes de plugins.",
+    "releaseArtifacts": "Se publica con cada versión; no se mide en esta instancia.",
+    "selfEnvironmentNotFound": "No se pudo asociar ningún entorno al daemon de Docker donde se ejecuta McHarbor, por lo que no se marca ningún rol.",
+    "containersManageIsAdmin": "Un rol tiene containers.manage en el entorno donde se ejecuta McHarbor sin host_self.manage. En ese entorno puede iniciar un contenedor que monte el socket de Docker o el host y leer las claves y la base de datos de McHarbor, lo que lo hace equivalente a administrador. Concédalo solo en otros entornos o trate el rol como un rol de administrador.",
+    "containersManageOverrideIsAdmin": "Un usuario tiene una concesión directa de containers.manage en el entorno donde se ejecuta McHarbor sin host_self.manage. Una revisión de roles no muestra esta concesión, pero alcanza las claves y la base de datos de McHarbor de la misma manera. Elimine la excepción, limítela a otro entorno o conceda host_self.manage de forma deliberada."
+  },
+  "report": {
+    "title": "Descargar informe de cumplimiento",
+    "description": "Elija las secciones, el formato y si desea ocultar los valores identificativos.",
+    "sections": "Secciones",
+    "selectAll": "Seleccionar todo",
+    "format": "Formato",
+    "formatJson": "JSON",
+    "formatDocx": "Documento de Word (.docx)",
+    "formatPdf": "Documento PDF (.pdf)",
+    "redact": "Ocultar valores identificativos",
+    "redactHint": "Sustituye los ID de clave, los ID de nodo y los sujetos de certificado por [redacted]. Los secretos nunca se incluyen en ningún caso.",
+    "preview": "Se ocultará",
+    "previewNone": "No se oculta nada de las secciones seleccionadas.",
+    "download": "Descargar",
+    "failed": "No se pudo generar el informe.",
+    "noSections": "Seleccione al menos una sección.",
+    "htmlTitle": "Informe de cumplimiento de McHarbor",
+    "htmlVersion": "Versión {{version}} (compilación {{build}})",
+    "htmlGenerated": "Generado {{time}}",
+    "htmlRedacted": "Los valores identificativos están ocultados.",
+    "htmlNotRedacted": "Este informe no está ocultado.",
+    "htmlFact": "Dato",
+    "htmlValue": "Valor",
+    "htmlFindings": "Hallazgos",
+    "htmlStatus": "Estado"
+  }
+}

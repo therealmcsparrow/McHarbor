@@ -1,0 +1,32 @@
+{
+    "slug":  "keeweb",
+    "name":  "KeeWeb",
+    "description":  "Cross-platform KeePass-compatible password manager with a self-hostable web client.",
+    "category":  "Security",
+    "image":  "antelle/keeweb:latest",
+    "logo":  "https://cdn.simpleicons.org/keeweb",
+    "website":  "https://keeweb.info",
+    "docsUrl":  "https://github.com/keeweb/keeweb#docker",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

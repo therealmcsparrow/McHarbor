@@ -1,6 +1,6 @@
 {
-  "label": "JSON Path",
-  "description": "Read a value from structured data with a simple JSONPath expression",
+  "label": "JSON-pad",
+  "description": "Lees een waarde uit gestructureerde gegevens met een eenvoudige JSONPath-expressie",
   "config": {
     "expression": "Expressie",
     "property": "Eigenschap",

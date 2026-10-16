@@ -1,22 +1,16 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@resources/components/ui/Dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
-import { Checkbox } from '@resources/components/ui/Checkbox';
-import { Input } from '@resources/components/ui/Input';
 import { useStacksForEnvironment } from '@resources/hooks/useStacksForEnvironment';
 import { Select } from '@resources/components/ui/Select';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import type { Role } from '../hooks/useRoles';
+import { RoleAssignmentStackPicker } from './RoleAssignmentStackPicker';
+import { PERM } from '@core/auth/permissionKeys';
 
 type ExistingRoleAssignment = {
   roleId: string;
@@ -33,20 +27,19 @@ type RoleAssignmentDialogProps = {
 };
 
 export function RoleAssignmentDialog({
-  open,
+  open: isOpen,
   onOpenChange,
   roles,
   existingAssignments = [],
   onAssign,
 }: RoleAssignmentDialogProps) {
   const { t } = useTranslation('security');
-  const { t: tc } = useTranslation('common');
   const environments = useEnvironmentStore((s) => s.environments);
   const [roleId, setRoleId] = useState('');
   const [envId, setEnvId] = useState('');
   const [stackFilter, setStackFilter] = useState('');
   const [selectedStackNames, setSelectedStackNames] = useState<string[]>([]);
-  const { data: stacks = [], isLoading: isStacksLoading } = useStacksForEnvironment(envId, open && !!envId);
+  const { data: stacks = [], isLoading: isStacksLoading } = useStacksForEnvironment(envId, isOpen && !!envId);
 
   const roleOptions = roles.map((role) => ({ value: role.id, label: role.name }));
   const envOptions = [
@@ -55,8 +48,7 @@ export function RoleAssignmentDialog({
   ];
 
   const stackNames = useMemo(
-    () =>
-      Array.from(new Set(stacks.map((stack) => stack.name))).sort((left, right) => left.localeCompare(right)),
+    () => Array.from(new Set(stacks.map((stack) => stack.name))).sort((left, right) => left.localeCompare(right)),
     [stacks],
   );
   const filteredStackNames = useMemo(() => {
@@ -76,9 +68,7 @@ export function RoleAssignmentDialog({
       existingAssignments
         .filter(
           (assignment) =>
-            assignment.roleId === roleId &&
-            assignment.environmentId === envId &&
-            assignment.stackName !== null,
+            assignment.roleId === roleId && assignment.environmentId === envId && assignment.stackName !== null,
         )
         .map((assignment) => assignment.stackName as string),
     );
@@ -88,28 +78,41 @@ export function RoleAssignmentDialog({
     [assignedStackNames, filteredStackNames],
   );
 
-  const hasGlobalAssignment = !!roleId && existingAssignments.some(
-    (assignment) => assignment.roleId === roleId && assignment.environmentId === null && assignment.stackName === null,
-  );
-  const hasEnvironmentAssignment = !!roleId && !!envId && existingAssignments.some(
-    (assignment) => assignment.roleId === roleId && assignment.environmentId === envId && assignment.stackName === null,
-  );
+  const hasGlobalAssignment =
+    !!roleId &&
+    existingAssignments.some(
+      (assignment) =>
+        assignment.roleId === roleId && assignment.environmentId === null && assignment.stackName === null,
+    );
+  const hasEnvironmentAssignment =
+    !!roleId &&
+    !!envId &&
+    existingAssignments.some(
+      (assignment) =>
+        assignment.roleId === roleId && assignment.environmentId === envId && assignment.stackName === null,
+    );
 
-  useEffect(() => {
-    setStackFilter('');
-    setSelectedStackNames([]);
-  }, [envId, roleId]);
-
-  useEffect(() => {
-    if (open) {
-      return;
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) {
+      setRoleId('');
+      setEnvId('');
+      setStackFilter('');
+      setSelectedStackNames([]);
     }
+  }
 
-    setRoleId('');
-    setEnvId('');
+  const pickRole = (next: string) => {
+    setRoleId(next);
     setStackFilter('');
     setSelectedStackNames([]);
-  }, [open]);
+  };
+  const pickEnv = (next: string) => {
+    setEnvId(next);
+    setStackFilter('');
+    setSelectedStackNames([]);
+  };
 
   const duplicateScopeMessage = useMemo(() => {
     if (!roleId) {
@@ -127,16 +130,12 @@ export function RoleAssignmentDialog({
 
   const handleToggleStack = (stackName: string) => {
     setSelectedStackNames((current) =>
-      current.includes(stackName)
-        ? current.filter((item) => item !== stackName)
-        : [...current, stackName],
+      current.includes(stackName) ? current.filter((item) => item !== stackName) : [...current, stackName],
     );
   };
 
   const handleSelectVisible = () => {
-    setSelectedStackNames((current) =>
-      Array.from(new Set([...current, ...availableFilteredStackNames])),
-    );
+    setSelectedStackNames((current) => Array.from(new Set([...current, ...availableFilteredStackNames])));
   };
 
   const handleSubmit = () => {
@@ -152,7 +151,7 @@ export function RoleAssignmentDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('users.assignRole')}</DialogTitle>
@@ -161,17 +160,12 @@ export function RoleAssignmentDialog({
         <div className="space-y-4 py-2">
           <div>
             <label className="mb-1 block text-sm font-medium">{t('users.selectRole')}</label>
-            <Select
-              value={roleId}
-              onChange={setRoleId}
-              options={roleOptions}
-              placeholder={t('users.selectRole')}
-            />
+            <Select value={roleId} onChange={pickRole} options={roleOptions} placeholder={t('users.selectRole')} />
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium">{t('users.environment')}</label>
-            <Select value={envId} onChange={setEnvId} options={envOptions} />
+            <Select value={envId} onChange={pickEnv} options={envOptions} />
           </div>
 
           {duplicateScopeMessage ? (
@@ -181,72 +175,29 @@ export function RoleAssignmentDialog({
           ) : null}
 
           {envId ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-medium">{tc('nav.stacks')}</label>
-                <span className="text-xs text-muted-foreground">
-                  {t('users.selectedStacksCount', { count: selectedStackNames.length })}
-                </span>
-              </div>
-
-              <Input
-                value={stackFilter}
-                onChange={(event) => setStackFilter(event.target.value)}
-                placeholder={tc('select.searchPlaceholder')}
-                variant="outline"
-              />
-
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectVisible}
-                  disabled={availableFilteredStackNames.length === 0}
-                >
-                  {t('users.selectVisibleStacks')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedStackNames([])}
-                  disabled={selectedStackNames.length === 0}
-                >
-                  {tc('actions.clear')}
-                </Button>
-              </div>
-
-              <div className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
-                {isStacksLoading ? (
-                  <p className="text-sm text-muted-foreground">{tc('dataGrid.loading')}</p>
-                ) : stackNames.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('users.noStacksInEnvironment')}</p>
-                ) : availableFilteredStackNames.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('users.noStacksMatch')}</p>
-                ) : (
-                  availableFilteredStackNames.map((stackName) => (
-                    <label key={stackName} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted/30">
-                      <Checkbox
-                        checked={selectedStackNames.includes(stackName)}
-                        onCheckedChange={() => handleToggleStack(stackName)}
-                      />
-                      <span className="text-sm text-foreground">{stackName}</span>
-                    </label>
-                  ))
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground">{t('users.stackScopeHint')}</p>
-            </div>
+            <RoleAssignmentStackPicker
+              selectedStackNames={selectedStackNames}
+              stackFilter={stackFilter}
+              onStackFilterChange={setStackFilter}
+              availableStackNames={availableFilteredStackNames}
+              hasStacks={stackNames.length > 0}
+              isLoading={isStacksLoading}
+              onToggle={handleToggleStack}
+              onSelectVisible={handleSelectVisible}
+              onClear={() => setSelectedStackNames([])}
+            />
           ) : null}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
-          <Button onClick={handleSubmit} disabled={!roleId || !!duplicateScopeMessage}>
+          <Button
+            permission={PERM.PERMISSIONS_ASSIGN}
+            onClick={handleSubmit}
+            disabled={!roleId || !!duplicateScopeMessage}
+          >
             {t('users.assignRole')}
           </Button>
         </DialogFooter>

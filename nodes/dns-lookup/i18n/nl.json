@@ -1,6 +1,6 @@
 {
-  "label": "DNS Lookup",
-  "description": "Resolve DNS records for a hostname",
+  "label": "DNS-lookup",
+  "description": "Los DNS-records voor een hostnaam op",
   "config": {
     "hostname": "Hostnaam",
     "record_type": "Recordtype"

@@ -12,6 +12,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/config"
 )
 
+// RequestScheme returns the scheme the client used, trusting forwarded-proto headers from a fronting proxy.
 func RequestScheme(r *http.Request) string {
 	if proto := forwardedProto(r); proto != "" {
 		return proto
@@ -22,6 +23,7 @@ func RequestScheme(r *http.Request) string {
 	return "http"
 }
 
+// WebSocketScheme maps the request scheme to its ws or wss equivalent.
 func WebSocketScheme(r *http.Request) string {
 	if RequestScheme(r) == "https" {
 		return "wss"
@@ -29,14 +31,17 @@ func WebSocketScheme(r *http.Request) string {
 	return "ws"
 }
 
+// BaseURL returns scheme://host for r, for building absolute links back to this server.
 func BaseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", RequestScheme(r), r.Host)
 }
 
+// WebSocketBaseURL returns the ws or wss counterpart of BaseURL.
 func WebSocketBaseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", WebSocketScheme(r), r.Host)
 }
 
+// ShouldSetSecureCookie reports whether cookies must carry Secure, either forced by config or because the client used HTTPS.
 func ShouldSetSecureCookie(r *http.Request, cfg *config.Config) bool {
 	if cfg != nil && cfg.ForceSecureCookies {
 		return true
@@ -44,6 +49,7 @@ func ShouldSetSecureCookie(r *http.Request, cfg *config.Config) bool {
 	return RequestScheme(r) == "https"
 }
 
+// IsAllowedWebSocketOrigin validates a WebSocket Origin against the request host and the configured allow-list, to block cross-site hijacking.
 func IsAllowedWebSocketOrigin(r *http.Request, cfg *config.Config, allowMissingOrigin bool) bool {
 	origin := strings.TrimSpace(r.Header.Get("Origin"))
 	if origin == "" {

@@ -1,0 +1,28 @@
+{
+  "label": "Gestionar copias de seguridad de contenedor",
+  "description": "Lista planes o ejecuciones de copia de seguridad, u obtiene, cancela y elimina una ejecución",
+  "config": {
+    "environment": "Entorno",
+    "action": "Acción",
+    "container": "Contenedor (filtro)",
+    "status": "Estado",
+    "limit": "Límite",
+    "run_id": "Ejecución de copia de seguridad"
+  },
+  "options": {
+    "action": {
+      "list_plans": "Listar planes",
+      "list_runs": "Listar ejecuciones",
+      "get_run": "Obtener ejecución",
+      "cancel_run": "Cancelar ejecución",
+      "delete_run": "Eliminar ejecución"
+    },
+    "status": {
+      "all": "Todos",
+      "completed": "Completada",
+      "running": "En ejecución",
+      "failed": "Fallida",
+      "cancelled": "Cancelada"
+    }
+  }
+}

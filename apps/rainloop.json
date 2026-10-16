@@ -1,0 +1,36 @@
+{
+    "slug":  "rainloop",
+    "name":  "Rainloop",
+    "description":  "Simple webmail client for reading and sending email through existing IMAP and SMTP accounts.",
+    "category":  "Communications",
+    "image":  "hardware/rainloop:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rainloop.png",
+    "website":  "https://www.rainloop.net",
+    "docsUrl":  "https://hub.docker.com/r/hardware/rainloop",
+    "ports":  [
+                  {
+                      "host":  8028,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rainloop/data",
+                        "container":  "/rainloop/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

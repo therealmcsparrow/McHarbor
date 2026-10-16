@@ -9,7 +9,7 @@ import { Switch } from '@resources/components/ui/Switch';
 import { formatBytes } from '@resources/utils/format';
 import type { ContainerInspect } from '@core/types/docker';
 import type { EditFormData } from '../../types/edit-form';
-import { ScanSection } from './ScanSection';
+import { EditInput } from './EditFieldControls';
 
 type SecurityTabProps = {
   container: ContainerInspect;
@@ -19,43 +19,28 @@ type SecurityTabProps = {
 };
 
 const COMMON_CAPABILITIES = [
-  'SYS_ADMIN', 'SYS_PTRACE', 'SYS_RAWIO', 'NET_ADMIN', 'NET_RAW',
-  'IPC_LOCK', 'SYS_TIME', 'SYS_RESOURCE', 'MKNOD', 'AUDIT_WRITE',
-  'SETFCAP', 'CHOWN', 'DAC_OVERRIDE', 'FOWNER', 'FSETID', 'KILL',
-  'SETGID', 'SETUID', 'SETPCAP', 'NET_BIND_SERVICE', 'SYS_CHROOT',
+  'SYS_ADMIN',
+  'SYS_PTRACE',
+  'SYS_RAWIO',
+  'NET_ADMIN',
+  'NET_RAW',
+  'IPC_LOCK',
+  'SYS_TIME',
+  'SYS_RESOURCE',
+  'MKNOD',
+  'AUDIT_WRITE',
+  'SETFCAP',
+  'CHOWN',
+  'DAC_OVERRIDE',
+  'FOWNER',
+  'FSETID',
+  'KILL',
+  'SETGID',
+  'SETUID',
+  'SETPCAP',
+  'NET_BIND_SERVICE',
+  'SYS_CHROOT',
 ];
-
-function EditInput({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  suffix,
-  placeholder,
-}: {
-  label: string;
-  value: string | number;
-  onChange: (val: string) => void;
-  type?: string;
-  suffix?: string;
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
-      <div className="mt-1 flex items-center gap-2">
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-        />
-        {suffix && <span className="shrink-0 text-xs text-muted-foreground">{suffix}</span>}
-      </div>
-    </div>
-  );
-}
 
 function ToggleField({
   label,
@@ -74,11 +59,7 @@ function ToggleField({
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         {description && <p className="text-[10px] text-muted-foreground/70">{description}</p>}
       </div>
-      <Switch
-        checked={checked}
-        aria-label={label}
-        onCheckedChange={onChange}
-      />
+      <Switch checked={checked} aria-label={label} onCheckedChange={onChange} />
     </div>
   );
 }
@@ -112,7 +93,7 @@ function CapabilitySelector({
                   onChange([...selected, cap]);
                 }
               }}
-              className="h-6 rounded-md px-2 text-[10px]"
+              className="rounded-md px-2 text-[10px]"
             >
               {cap}
             </Button>
@@ -127,12 +108,12 @@ export function SecurityTab({ container, editing, editData, onFieldChange }: Sec
   const { t } = useTranslation('containers');
   const hc = container.HostConfig;
 
-  const imageRef = container.Config?.Image ?? '';
-
   return (
     <div className="grid grid-cols-1 gap-6">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('resources.security')}</h3>
+      <div className="mc-glass rounded-lg p-6">
+        <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+          {t('resources.security')}
+        </h3>
         {editing ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -152,11 +133,11 @@ export function SecurityTab({ container, editing, editData, onFieldChange }: Sec
                 label={t('resources.pidMode')}
                 value={editData?.pidMode ?? ''}
                 onChange={(v) => onFieldChange('pidMode', v)}
-                placeholder="host"
+                placeholder={t('placeholders.ipcMode')}
               />
               <EditInput
                 label={t('resources.shmSize')}
-                type="number"
+                numeric
                 value={editData?.shmSize ?? 0}
                 onChange={(v) => onFieldChange('shmSize', parseInt(v) || 0)}
                 suffix="bytes"
@@ -176,17 +157,13 @@ export function SecurityTab({ container, editing, editData, onFieldChange }: Sec
               label={t('resources.securityOpt')}
               value={editData?.securityOpt?.join(', ') ?? ''}
               onChange={(v) => onFieldChange('securityOpt', v ? v.split(',').map((s) => s.trim()) : [])}
-              placeholder="no-new-privileges, apparmor=unconfined"
+              placeholder={t('placeholders.securityOpt')}
             />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
             <InfoRow label={t('resources.privileged')}>
-              {hc?.Privileged ? (
-                <Badge variant="destructive">{t('common:labels.yes')}</Badge>
-              ) : (
-                t('common:labels.no')
-              )}
+              {hc?.Privileged ? <Badge variant="destructive">{t('common:labels.yes')}</Badge> : t('common:labels.no')}
             </InfoRow>
             <InfoRow label={t('resources.readonlyRootfs')}>
               {hc?.ReadonlyRootfs ? t('common:labels.yes') : t('common:labels.no')}
@@ -195,42 +172,45 @@ export function SecurityTab({ container, editing, editData, onFieldChange }: Sec
               {hc?.CapAdd?.length ? (
                 <div className="flex flex-wrap gap-1">
                   {hc.CapAdd.map((c) => (
-                    <Badge key={c} variant="success" className="text-[10px]">{c}</Badge>
+                    <Badge key={c} variant="success" className="text-[10px]">
+                      {c}
+                    </Badge>
                   ))}
                 </div>
-              ) : '-'}
+              ) : (
+                '-'
+              )}
             </InfoRow>
             <InfoRow label={t('resources.capDrop')}>
               {hc?.CapDrop?.length ? (
                 <div className="flex flex-wrap gap-1">
                   {hc.CapDrop.map((c) => (
-                    <Badge key={c} variant="destructive" className="text-[10px]">{c}</Badge>
+                    <Badge key={c} variant="destructive" className="text-[10px]">
+                      {c}
+                    </Badge>
                   ))}
                 </div>
-              ) : '-'}
+              ) : (
+                '-'
+              )}
             </InfoRow>
             <InfoRow label={t('resources.pidMode')}>{hc?.PidMode || '-'}</InfoRow>
-            <InfoRow label={t('resources.shmSize')}>
-              {hc?.ShmSize ? formatBytes(hc.ShmSize) : '-'}
-            </InfoRow>
+            <InfoRow label={t('resources.shmSize')}>{hc?.ShmSize ? formatBytes(hc.ShmSize) : '-'}</InfoRow>
             {hc?.SecurityOpt && hc.SecurityOpt.length > 0 && (
               <InfoRow label={t('resources.securityOpt')}>
                 <div className="flex flex-wrap gap-1">
                   {hc.SecurityOpt.map((s) => (
-                    <Badge key={s} variant="secondary" className="text-[10px] font-mono">{s}</Badge>
+                    <Badge key={s} variant="secondary" className="font-mono text-[10px]">
+                      {s}
+                    </Badge>
                   ))}
                 </div>
               </InfoRow>
             )}
-            {hc?.UsernsMode && (
-              <InfoRow label={t('resources.usernsMode')}>{hc.UsernsMode}</InfoRow>
-            )}
+            {hc?.UsernsMode && <InfoRow label={t('resources.usernsMode')}>{hc.UsernsMode}</InfoRow>}
           </div>
         )}
       </div>
-
-      {/* Vulnerability scan section */}
-      {imageRef && <ScanSection imageRef={imageRef} />}
     </div>
   );
 }

@@ -32,5 +32,9 @@
       "description": "Bind address for dev server"
     }
   ],
-  "version": "22-alpine"
+  "version":  "22-alpine",
+  "latest":  {
+      "version":  "22-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

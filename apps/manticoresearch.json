@@ -1,0 +1,41 @@
+{
+    "slug":  "manticoresearch",
+    "name":  "Manticore Search",
+    "description":  "Open-source search engine for full-text, SQL, and vector search with SQL and JSON APIs.",
+    "category":  "Databases",
+    "image":  "manticoresearch/manticore:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=manticoresearch.com\u0026sz=128",
+    "website":  "https://manticoresearch.com",
+    "docsUrl":  "https://manual.manticoresearch.com/Installation/Docker",
+    "ports":  [
+                  {
+                      "host":  9308,
+                      "container":  9308,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9306,
+                      "container":  9306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/manticoresearch/data",
+                        "container":  "/var/lib/manticore"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

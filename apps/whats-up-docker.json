@@ -1,0 +1,40 @@
+{
+  "slug": "whats-up-docker",
+  "name": "What's Up Docker",
+  "description": "Notifies you when newer versions of your running container images are published.",
+  "category": "Monitoring",
+  "image": "getwud/wud:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/whats-up-docker.png",
+  "website": "https://getwud.github.io/wud/",
+  "docsUrl": "https://getwud.github.io/wud/#/quickstart/",
+  "ports": [
+    {
+      "host": 3022,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    },
+    {
+      "host": "/opt/appdata/whats-up-docker/store",
+      "container": "/store"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "label": "DNS Lookup",
-  "description": "Resolve DNS records for a hostname",
+  "label": "DNS-Abfrage",
+  "description": "DNS-Einträge für einen Hostnamen auflösen",
   "config": {
     "hostname": "Hostname",
     "record_type": "Record-Typ"

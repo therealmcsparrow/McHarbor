@@ -1,0 +1,35 @@
+{
+    "slug":  "spoolman",
+    "name":  "Spoolman",
+    "description":  "Self-hosted filament-spool inventory manager for 3D printing, tracking usage and remaining weight across printers.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/donkie/spoolman:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/spoolman.png",
+    "website":  "https://github.com/Donkie/Spoolman",
+    "docsUrl":  "https://github.com/Donkie/Spoolman#running",
+    "ports":  [
+                  {
+                      "host":  7912,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/spoolman/data",
+                        "container":  "/home/app/.local/share/spoolman"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

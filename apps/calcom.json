@@ -4,7 +4,7 @@
     "description":  "Open-source scheduling and appointment booking platform with team features.",
     "category":  "Productivity",
     "image":  "calcom/cal.com:latest",
-    "logo":  "https://icon.horse/icon/cal.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cal-com.svg",
     "website":  "https://cal.com",
     "docsUrl":  "https://cal.com/docs/self-hosting/installation",
     "ports":  [
@@ -61,5 +61,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

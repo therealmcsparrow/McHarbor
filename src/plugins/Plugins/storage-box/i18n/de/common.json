@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Box-Ziel",
+    "subtitle": "Backup-Snapshots werden in die von Ihnen angegebene Box-Ordner-ID geschrieben. Verwenden Sie folder_id „0“ für das Stammverzeichnis des Kontos.",
+    "registerHint": "Dieses Plugin besitzt einen LocationType: box. Um den Ordner später zu ändern, speichern Sie das Ziel und öffnen Sie es erneut."
+  },
+  "fields": {
+    "clientId": "Client-ID",
+    "clientSecret": "Client-Secret",
+    "folderId": "Ordner-ID",
+    "refreshToken": "Refresh-Token"
+  },
+  "form": {
+    "help": {
+      "clientId": "Client-ID aus der Box Developer Console für deine App (Custom App oder Server Authentication).",
+      "clientSecret": "Client Secret aus der Box Developer Console. Wird als Write-only-Geheimnis behandelt; das Plugin protokolliert es nie zurück.",
+      "folderId": "ID des Box-Ordners, in dem Backups abgelegt werden. Verwende \"0\" für das Stammverzeichnis des Kontos.",
+      "refreshToken": "Langlebiges Refresh-Token, das nach dem OAuth-Zustimmungsablauf ausgestellt wird. Leer lassen, bis du „Mit Box verbinden“ ausgeführt hast."
+    }
+  },
+  "help": {
+    "clientId": "Aus der Box Developer Console: App → Configuration → OAuth 2.0.",
+    "clientSecret": "Das Client-Secret wird beim Erstellen der App nur einmal angezeigt — kopieren Sie es jetzt.",
+    "folderId": "Numerische Box-Ordner-ID. „0“ = Stammverzeichnis des Kontos. Die ID eines Ordners finden Sie in der URL der Box-Weboberfläche.",
+    "refreshToken": "Wird vom Ablauf „Mit Box verbinden“ automatisch ausgefüllt. Nicht manuell bearbeiten.",
+    "oauthHint": "Klicken Sie nach dem Speichern auf „Mit Box verbinden“, um dem Plugin die Zustimmung zu erteilen und einen Refresh-Token zu speichern. Ohne Refresh-Token greift das Plugin auf den client_credentials-Grant zurück (erfordert konfigurierte Server Authentication in der Box-App)."
+  },
+  "setup": {
+    "title": "Box-Einrichtungsanleitung",
+    "subtitle": "Binden Sie in sechs kurzen Schritten eine Box-Entwickler-App an Ihre McHarbor-Instanz an. Etwa 5 Minuten.",
+    "step1": {
+      "title": "Box-App erstellen",
+      "body": "Öffnen Sie die Box Developer Console (developer.box.com) und erstellen Sie eine neue App. Wählen Sie „Custom App“ für delegierte Benutzerauthentifizierung oder „Server Authentication“, wenn Sie reine App-Token bevorzugen (keine Zustimmung pro Benutzer)."
+    },
+    "step2": {
+      "title": "OAuth 2.0 konfigurieren",
+      "body": "Wählen Sie in den App-Einstellungen OAuth 2.0. Fügen Sie die Redirect-URI hinzu, die Ihre McHarbor-Instanz bereitstellt (Einstellungen → Speicher → Mit Box verbinden zeigt sie an). Wählen Sie vorerst eine einzelne primäre Umgebung (Entwicklung oder Produktion)."
+    },
+    "step3": {
+      "title": "Scopes anfordern",
+      "body": "Aktivieren Sie unter „Application Scopes“ file_readwrite (vollständiger Lese-/Schreibzugriff auf alle Dateien und Ordner, auf die der Benutzer zugreifen kann). Ältere Apps verwenden möglicherweise noch root_readwrite — beide funktionieren mit diesem Plugin."
+    },
+    "step4": {
+      "title": "App zur Autorisierung einreichen",
+      "body": "Custom Apps erfordern, dass ein Box-Admin die App autorisiert, bevor Benutzer ihre Zustimmung erteilen können. Lassen Sie Ihren Box-Admin in der Developer Console auf „Authorize“ klicken und die angeforderten Scopes genehmigen."
+    },
+    "step5": {
+      "title": "client_id + client_secret kopieren",
+      "body": "Fügen Sie zurück in McHarbor die Client-ID und das Client-Secret aus der Box Developer Console in das Zielformular ein. Speichern Sie das Ziel, bevor Sie fortfahren."
+    },
+    "step6": {
+      "title": "Verbinden, um Zustimmung zu erteilen",
+      "body": "Öffnen Sie das gespeicherte Ziel und klicken Sie auf „Mit Box verbinden“. Das Plugin startet den OAuth-Zustimmungsablauf gegen Box; nach der Zustimmung leitet Box mit einem Autorisierungscode zurück, den der Host gegen einen langlebigen Refresh-Token eintauscht (verschlüsselt im Ziel gespeichert)."
+    },
+    "footer": "Benötigen Sie eine Beschränkung auf Ordnerebene statt kontoweit? Verwenden Sie ein auf einen Box-Ordner beschränktes Dienstkonto und fügen Sie dessen Zugangsdaten in das Zielformular ein. Das Plugin verwendet die zur Laufzeit vorhandenen Zugangsdaten."
+  },
+  "toast": {
+    "registered": "Box-Ziel registriert.",
+    "testPassed": "Box-Verbindung erfolgreich.",
+    "testFailed": "Box-Verbindung fehlgeschlagen.",
+    "oauthGranted": "Box-Konto verbunden. Refresh-Token gespeichert.",
+    "oauthDenied": "Box-Autorisierung verweigert. Verbinden Sie erneut, um es noch einmal zu versuchen."
+  },
+  "error": {
+    "noClientId": "Client-ID ist erforderlich.",
+    "noClientSecret": "Client-Secret ist erforderlich.",
+    "invalidFolderId": "Die Ordner-ID muss numerisch sein.",
+    "tokenFailed": "Die Zugangsdaten konnten nicht gegen einen Box-Zugriffstoken eingetauscht werden. Prüfen Sie client_id + client_secret und versuchen Sie es erneut."
+  }
+}

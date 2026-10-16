@@ -4,7 +4,7 @@
     "description":  "Cloudflare\u0027s PKI toolkit for signing, verifying, and bundling TLS certificates.",
     "category":  "Security",
     "image":  "cfssl/cfssl:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/cloudflare/cfssl",
     "docsUrl":  "https://github.com/cloudflare/cfssl/wiki",
     "ports":  [
@@ -28,5 +28,9 @@
                     }
                 ],
     "minMemory":  "128MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,41 @@
+{
+    "slug":  "silverbullet",
+    "name":  "SilverBullet",
+    "description":  "Markdown-based personal knowledge management and note-taking system that runs in the browser.",
+    "category":  "Documents",
+    "image":  "ghcr.io/silverbulletmd/silverbullet:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/silverbullet.png",
+    "website":  "https://silverbullet.md",
+    "docsUrl":  "https://silverbullet.md/Install",
+    "ports":  [
+                  {
+                      "host":  8100,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/silverbullet/space",
+                        "container":  "/space"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SB_USER",
+                        "default":  "admin:change-me",
+                        "description":  "HTTP basic auth user:password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

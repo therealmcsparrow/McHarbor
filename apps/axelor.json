@@ -1,0 +1,56 @@
+{
+    "slug":  "axelor",
+    "name":  "Axelor",
+    "description":  "All-in-one open source ERP and CRM suite covering sales, accounting, and business management.",
+    "category":  "Business & ERP",
+    "image":  "axelor/aio-erp:latest",
+    "logo":  "https://github.com/axelor.png",
+    "website":  "https://axelor.com",
+    "docsUrl":  "https://docs.axelor.com/abs/5.0/install/docker.html",
+    "ports":  [
+                  {
+                      "host":  8180,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/axelor/postgres",
+                        "container":  "/var/lib/postgresql/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/axelor/data",
+                        "container":  "/home/axelor/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Bundled PostgreSQL password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "axelor",
+                        "description":  "Bundled PostgreSQL database name"
+                    },
+                    {
+                        "key":  "NGINX_HOST",
+                        "default":  "localhost",
+                        "description":  "Public hostname"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

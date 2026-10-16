@@ -4,6 +4,55 @@
   "description_zero": "No containers",
   "description_one": "{{count}} container",
   "searchPlaceholder": "Search containers...",
+  "structuredSearch": {
+    "placeholder": "Search containers or use name:, image:, state:, stack:, network:, volume:, port:, label:, protected:"
+  },
+  "inlineEdit": {
+    "inputLabel": "Edit {{field}}",
+    "edit": "Edit {{field}}",
+    "save": "Save {{field}}",
+    "cancel": "Cancel editing {{field}}"
+  },
+  "insights": {
+    "title": "Insights",
+    "clear": "No actionable issues detected from current container data.",
+    "open": "Open details for {{title}}",
+    "severity": {
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Critical"
+    },
+    "unhealthyTitle": "Health checks are failing",
+    "unhealthyDescription": "The container has {{count}} consecutive failed health checks.",
+    "oomTitle": "Container was killed by the OOM killer",
+    "oomDescription": "Review and increase the memory limit or reduce the workload.",
+    "vulnerabilityTitle": "Critical image vulnerabilities detected",
+    "vulnerabilityDescription": "The latest scan reports {{count}} critical vulnerabilities.",
+    "cpuTitle": "Sustained high CPU usage",
+    "cpuDescription": "Recent samples average {{percent}}% CPU.",
+    "memoryTitle": "Sustained high memory usage",
+    "memoryDescription": "Recent samples average {{percent}}% of the memory limit.",
+    "restartTitle": "Container has restarted repeatedly",
+    "restartDescription": "Docker reports {{count}} restarts for this container.",
+    "privilegedTitle": "Container runs in privileged mode",
+    "privilegedDescription": "Privileged mode expands host access and should be reviewed.",
+    "backupTitle": "Backup coverage is stale or missing",
+    "backupDescription": "No successful backup is recorded in the last 7 days.",
+    "updateTitle": "A newer image is available",
+    "updateDescription": "Review the image update before applying it.",
+    "healthcheckTitle": "No health check is configured",
+    "healthcheckDescription": "Add a health check so failures can be detected automatically."
+  },
+  "timeTravel": {
+    "title": "Configuration at this time",
+    "changedWarning": "{{count}} recorded changes occurred after this log entry, so the current reference may differ from the configuration at that time.",
+    "noLaterChanges": "No later configuration changes are recorded for this container.",
+    "referenceDescription": "McHarbor does not store secret-bearing configuration snapshots. This is the current redacted reference, paired with audit history.",
+    "image": "Current image",
+    "mounts": "Current mounts",
+    "environmentKeys": "Environment keys",
+    "lastChange": "Last recorded change"
+  },
   "noContainersFound": "No containers found",
   "containerNotFound": "Container not found.",
   "createContainer": "Create Container",
@@ -12,6 +61,16 @@
   "tableView": "Table view",
   "cardView": "Card view",
   "columns": {
+    "imageId": "Image ID",
+    "command": "Command",
+    "labels": "Labels",
+    "volumes": "Volumes",
+    "stackService": "Stack service",
+    "protected": "Protected",
+    "groupContainer": "Container",
+    "groupNetwork": "Network",
+    "groupStorage": "Storage",
+    "groupStack": "Stack",
     "name": "Name",
     "image": "Image",
     "status": "Status",
@@ -31,7 +90,8 @@
     "uptime": "Uptime",
     "auto": "Auto",
     "stack": "Stack",
-    "update": "Update"
+    "update": "Update",
+    "autoOn": "On"
   },
   "actions": {
     "start": "Start",
@@ -43,6 +103,8 @@
     "remove": "Remove",
     "terminal": "Terminal",
     "logs": "Logs",
+    "files": "Files",
+    "backups": "Backups",
     "openWebsite": "Open Website",
     "backToContainers": "Back to containers",
     "connect": "Connect",
@@ -54,9 +116,11 @@
     "move": "Move",
     "rename": "Rename",
     "edit": "Edit",
+    "openConfigEditor": "Open config editor",
     "unlockEditing": "Unlock editing",
     "lockEditing": "Lock editing",
-    "editingUnlocked": "Editing unlocked"
+    "editingUnlocked": "Editing unlocked",
+    "recreate": "Recreate"
   },
   "detail": {
     "title": "Container Details",
@@ -66,6 +130,7 @@
     "network": "Network",
     "mounts": "Mounts",
     "resources": "Resources",
+    "activity": "Activity",
     "logs": "Logs",
     "inspect": "Inspect",
     "stats": "Stats",
@@ -75,14 +140,164 @@
     "labels": "Labels",
     "security": "Security",
     "volumes": "Volumes",
-    "backups": "Backups",
-    "searchInContainer": "Search in container..."
+    "backups": "Backup list",
+    "searchInContainer": "Search in container...",
+    "updates": "Updates",
+    "services": "Services",
+    "history": "History",
+    "changes": "Changes",
+    "diff": "Diff",
+    "exec": "Exec",
+    "loading": "Loading container details",
+    "notFoundTitle": "Container not found",
+    "notFoundDescription": "The container may have been removed, renamed, or loaded from a different environment.",
+    "group": {
+      "overview": "Overview",
+      "configuration": "Configuration",
+      "runtime": "Runtime",
+      "delivery": "Delivery",
+      "data": "Backup",
+      "security": "Security"
+    },
+    "backup-settings": "Backup",
+    "backup-schedules": "Schedules",
+    "scans": "Scans"
+  },
+  "activity": {
+    "sourceLabel": "Filter activity by source",
+    "severityLabel": "Filter activity by severity",
+    "timeLabel": "Filter activity by time range",
+    "customFrom": "Activity start date and time",
+    "customTo": "Activity end date and time",
+    "emptyTitle": "No activity in this range",
+    "emptyDescription": "Adjust the source, severity, or time filters to see more container activity.",
+    "source": {
+      "all": "All sources",
+      "logs": "Logs",
+      "history": "History",
+      "changes": "Changes",
+      "processes": "Processes"
+    },
+    "severity": {
+      "all": "All severities",
+      "debug": "Debug",
+      "info": "Info",
+      "warn": "Warning",
+      "error": "Error"
+    },
+    "time": {
+      "1h": "Last hour",
+      "6h": "Last 6 hours",
+      "24h": "Last 24 hours",
+      "7d": "Last 7 days",
+      "custom": "Custom range",
+      "all": "All time"
+    }
   },
   "create": {
     "title": "Create Container",
     "image": "Image",
     "name": "Name",
-    "command": "Command"
+    "command": "Command",
+    "description": "Define a container from a form, a Compose service, or a docker run command.",
+    "headsUp": "Heads up",
+    "hostnamePlaceholder": "my-container",
+    "tabForm": "Form",
+    "tabCompose": "Compose",
+    "tabRun": "docker run",
+    "compose": {
+      "label": "Compose service",
+      "help": "Paste a single service definition. Its keys map onto the same fields as the form.",
+      "placeholder": "image: nginx:latest\nports:\n  - \"8080:80\""
+    },
+    "run": {
+      "label": "docker run command",
+      "help": "Paste a docker run command and its flags are parsed into the form.",
+      "placeholder": "docker run -d -p 8080:80 nginx:latest"
+    },
+    "envEditor": {
+      "key": "Variable",
+      "value": "Value"
+    },
+    "errors": {
+      "imageRequired": "An image is required.",
+      "envInvalid": "Environment variables must be KEY=value pairs.",
+      "portHostInvalid": "Host port must be a number between 1 and 65535.",
+      "portContainerInvalid": "Container port must be a number between 1 and 65535.",
+      "volumeHostRequired": "A host path or volume name is required.",
+      "volumeContainerRequired": "A container path is required.",
+      "createFailed": "The container could not be created."
+    },
+    "progress": {
+      "title": "Creating container",
+      "description": "Creating {{name}}…",
+      "action": "Create"
+    },
+    "toast": {
+      "created": "{{name}} created"
+    },
+    "form": {
+      "image": "Image",
+      "imageHelp": "Repository and tag. Pulled first when it is not present locally.",
+      "imagePlaceholder": "nginx:latest",
+      "name": "Name",
+      "namePlaceholder": "Leave empty for a generated name",
+      "pullImage": "Pull the image before creating",
+      "autoStart": "Start the container after creating it",
+      "autoRemove": "Remove the container when it exits",
+      "restart": "Restart policy",
+      "ports": "Ports",
+      "portsHelp": "Publish a container port on the host.",
+      "portsHost": "Host",
+      "portsContainer": "Container",
+      "portsProtocol": "Protocol",
+      "addPort": "Add port",
+      "env": "Environment",
+      "envHelp": "Variables passed to the container at start.",
+      "addEnv": "Add variable",
+      "volumes": "Volumes",
+      "volumesHelp": "Mount a host path or a named volume into the container.",
+      "volumesHost": "Host path or volume",
+      "volumesContainer": "Container path",
+      "volumesMode": "Mode",
+      "addVolume": "Add volume",
+      "network": "Network",
+      "networkHelp": "Attach the container to an existing network, or create one for it.",
+      "networkMode": "Network",
+      "networkModeDriver": "Default bridge",
+      "networkModeExisting": "Existing network",
+      "networkModeCreate": "New network",
+      "networkModeHelp": "The default bridge needs no configuration.",
+      "networkSelectExisting": "Network",
+      "networkSelectExistingHelp": "Networks available on this environment.",
+      "networkSelectEmpty": "No networks found on this environment.",
+      "networkSelectDriver": "Driver",
+      "networkSelectDriverHelp": "bridge suits a single host; overlay spans a swarm.",
+      "networkNewName": "Name",
+      "networkNewNamePlaceholder": "my-network",
+      "networkNewDriver": "Driver",
+      "networkNewSubnet": "Subnet",
+      "networkNewSubnetPlaceholder": "172.20.0.0/16",
+      "networkNewGateway": "Gateway",
+      "networkNewGatewayPlaceholder": "172.20.0.1",
+      "networkNewInternal": "Internal — no outbound access",
+      "networkNewAttachable": "Attachable by other containers",
+      "networkNewHelp": "Subnet and gateway are optional; Docker assigns them when left empty.",
+      "networkSubmit": "Create network",
+      "advanced": "Advanced",
+      "advancedHelp": "Command, entrypoint, working directory, user, hostname.",
+      "command": "Command",
+      "commandHelp": "Overrides the image CMD.",
+      "commandPlaceholder": "nginx -g \"daemon off;\"",
+      "entrypoint": "Entrypoint",
+      "entrypointHelp": "Overrides the image ENTRYPOINT.",
+      "workingDir": "Working directory",
+      "user": "User",
+      "hostname": "Hostname",
+      "tty": "Allocate a TTY",
+      "stdin": "Keep stdin open",
+      "gpuHelp": "Expose host GPUs to the container. Requires a GPU device plugin on the host."
+    }
   },
   "toast": {
     "started": "Container started",
@@ -98,9 +313,9 @@
     "updated": "Container updated",
     "renamed": "Container renamed",
     "moved": "Container moved",
-    "reinstalled": "Container reinstalled",
     "resumed": "Container resumed",
-    "pruned": "Unused containers pruned"
+    "pruned": "Unused containers pruned",
+    "updateFailed": "Failed to update container"
   },
   "rename": {
     "title": "Rename Container",
@@ -121,25 +336,27 @@
     "recreateDescription": "The container will be stopped, recreated with the new configuration, and started again.",
     "recreateWarning": "This will restart the container. Any in-memory state will be lost.",
     "recreateConfirm": "Recreate",
-    "changedFields": "Changed fields:"
+    "changedFields": "Changed fields:",
+    "recreateNowDescription": "The container will be stopped, recreated with its current image and configuration, and started again."
   },
   "autoheal": {
     "title": "Auto-heal",
     "enable": "Auto-heal on healthcheck failure",
     "enableDesc": "Restart the container when its Docker healthcheck reports unhealthy. Cooldown between restarts: 30s, 1m, 2m, then 5m. The first heal only happens after the container has been healthy at least once.",
-    "restartCount": "{{count}} restart(s) by auto-heal",
+    "restartCount_one": "{{count}} restart by auto-heal",
+    "restartCount_other": "{{count}} restarts by auto-heal",
     "wasHealthy": "Has been healthy",
     "neverHealthy": "Never been healthy (heal will skip until first success)",
     "lastHeal": "Last heal",
     "footnote": "The container must define a Docker healthcheck. Preference is held in process memory; recreating the container resets it. Every heal is audit-logged and emits an in-app notification."
   },
   "badges": {
-    "standalone": "standalone"
+    "standalone": "Standalone"
   },
   "health": {
-    "healthy": "healthy",
-    "unhealthy": "unhealthy",
-    "starting": "starting",
+    "healthy": "Healthy",
+    "unhealthy": "Unhealthy",
+    "starting": "Starting",
     "noHealthcheck": "no healthcheck"
   },
   "terminal": {
@@ -148,7 +365,20 @@
     "connected": "Connected",
     "connectionClosed": "--- Connection closed ---",
     "connectionError": "--- Connection error ---",
-    "mustBeRunning": "Container must be running to use terminal"
+    "mustBeRunning": "Container must be running to use terminal",
+    "shellLabel": "Shell",
+    "userLabel": "User",
+    "userPlaceholder": "uid, username, or uid:gid",
+    "workDirPlaceholder": "/workdir",
+    "workDirLabel": "Working directory"
+  },
+  "debugShell": {
+    "button": "Debug shell",
+    "title": "Install a debug shell?",
+    "description": "For a distroless or scratch image with no shell. McHarbor uploads a static busybox to /.mcharbor-debug/busybox, opens a shell with it, and removes it when the session ends, at the latest after 15 minutes. The upload is recorded in the audit log with the binary's digest.",
+    "confirm": "Install and connect",
+    "installed": "Debug shell installed",
+    "active": "Debug shell {{path}} ({{arch}}) is removed when you disconnect"
   },
   "logs": {
     "title": "Logs — {{name}}",
@@ -162,9 +392,38 @@
     "noMatchingLines": "No matching log lines.",
     "noLogsAvailable": "No logs available.",
     "notRunningWarning": "Container is not running. Showing last available logs.",
-    "export": "Export"
+    "reconnecting": "Reconnecting in {{seconds}}s",
+    "connection": {
+      "idle": "Live stream paused",
+      "connecting": "Connecting",
+      "connected": "Live",
+      "reconnecting": "Reconnecting",
+      "ended": "Stream ended",
+      "error": "Stream error"
+    },
+    "viewLineDetails": "View details for log line {{number}}",
+    "lineDetailsTitle": "Log line details",
+    "lineDetailsDescription": "Inspect the complete record without leaving the live tail.",
+    "timestamp": "Timestamp",
+    "severity": "Severity",
+    "stream": "Stream",
+    "message": "Message",
+    "unknown": "Unknown",
+    "openInLogs": "Return to logs"
   },
   "overview": {
+    "interactiveSuffix": " + Interactive",
+    "suggested": {
+      "title": "What would you like to do?",
+      "description": "Jump straight to the next most likely container task.",
+      "start": "Start container",
+      "viewLogs": "View logs",
+      "openTerminal": "Open terminal",
+      "editConfig": "Edit configuration",
+      "viewBackups": "View backups",
+      "restart": "Restart container",
+      "inspect": "Inspect details"
+    },
     "general": "General",
     "mounts": "Mounts",
     "environment": "Environment",
@@ -187,7 +446,7 @@
     "finishedAt": "Finished At",
     "restartCount": "Restart Count",
     "runtime": "Runtime",
-    "stopSignal": "Stop Signal",
+    "stopSignal": "Stop signal",
     "runtimeEngine": "Runtime Engine",
     "logDriver": "Log Driver",
     "noMounts": "No mounts",
@@ -241,10 +500,13 @@
     "portMappings": "Port Mappings",
     "exposedPorts": "Exposed Ports",
     "noExposedPorts": "No exposed ports",
+    "removeExposedPort": "Remove exposed port {{port}}",
+    "exposedLockedImage": "Declared by the image",
+    "exposedLockedMapping": "Used by a port mapping",
+    "exposedLockedHint": "Locked ports stay exposed: the image declares them, or a port mapping above uses them.",
     "dns": "DNS",
     "dnsServers": "DNS Servers",
     "dnsSearch": "DNS Search",
-    "dnsConfig": "Network Config",
     "networks": "Networks",
     "hostname": "Hostname",
     "networkMode": "Network Mode",
@@ -270,7 +532,33 @@
     "editNetworkSettings": "Edit settings",
     "applyNetworkSettings": "Apply settings",
     "cancelNetworkEdit": "Cancel",
-    "reconnectNotice": "Applying network settings disconnects and reconnects this network attachment."
+    "reconnectNotice": "Applying network settings disconnects and reconnects this network attachment.",
+    "liveNetworkActionsNotice": "Network connect, disconnect, and endpoint edits apply immediately. Network mode, DNS, ports, and extra hosts are saved with the configuration changes.",
+    "readOnlyHint": "To connect, disconnect or change network settings, open the configuration editor.",
+    "portDetailsTitle": "Port mapping details",
+    "portDetailsDescription": "Inspect the published host and container binding.",
+    "testConnection": "Test connection",
+    "testConnectionRunning": "Testing...",
+    "testConnectionAgain": "Test again",
+    "testUrlLabel": "Test URL",
+    "testSummarySuccess": "The browser reached {{url}}. If the service still does not render in McHarbor, check the application protocol, redirects, and CORS headers.",
+    "testSummaryFailure": "The browser could not reach {{url}}. Check that the container is listening, the host port is published, and no firewall blocks the connection.",
+    "testFailureTimeout": "The request to {{url}} timed out. The host and port may be blocked, slow, or not serving HTTP.",
+    "testStep": {
+      "url": {
+        "title": "Build target URL",
+        "description": "Use host {{host}} and published port {{port}} to create {{url}}."
+      },
+      "mapping": {
+        "title": "Validate port mapping",
+        "description": "Confirm this is a TCP mapping with a published host port."
+      },
+      "request": {
+        "title": "Send browser request",
+        "description": "Request {{url}} from this browser without opening a new tab."
+      }
+    },
+    "mappingFieldLabel": "{{field}}, mapping {{number}}"
   },
   "environment": {
     "envVars": "Environment Variables",
@@ -282,7 +570,7 @@
     "entrypoint": "Entrypoint",
     "workingDir": "Working Dir",
     "domainname": "Domain Name",
-    "stopSignal": "Stop Signal",
+    "stopSignal": "Stop signal",
     "tty": "TTY (Pseudo-terminal)",
     "openStdin": "Interactive (stdin)",
     "logDriver": "Logging Driver",
@@ -295,7 +583,17 @@
     "healthInterval": "Interval (seconds)",
     "healthTimeout": "Timeout (seconds)",
     "healthRetries": "Retries",
-    "healthStartPeriod": "Start Period (seconds)"
+    "healthStartPeriod": "Start Period (seconds)",
+    "healthNotConfigured": "No health check is configured for this container.",
+    "healthTest": "Test",
+    "healthTesting": "Testing…",
+    "healthTestNotRunning": "Start the container to test its healthcheck.",
+    "healthTestHealthy": "Healthy: the command exited 0 in {{ms}} ms.",
+    "healthTestUnhealthy": "Unhealthy: the command exited {{code}}.",
+    "healthTestTooSlow": "It took {{ms}} ms, longer than the {{timeout}} s timeout, so Docker would count it as a failure.",
+    "revealValues": "Reveal values",
+    "hideValues": "Hide values",
+    "valuesWithheld": "Credential-looking values are hidden. Revealing them is recorded in the audit log."
   },
   "resources": {
     "restartPolicy": "Restart Policy",
@@ -338,16 +636,81 @@
     "deviceHostPath": "Host Path",
     "deviceContainerPath": "Container Path",
     "devicePermissions": "Permissions",
-    "devicesHelp": "Map Linux devices such as /dev/ttyUSB0 into the container. Permissions use Docker's r/w/m letters."
+    "devicesHelp": "Map Linux devices such as /dev/ttyUSB0 into the container. Permissions use Docker's r/w/m letters.",
+    "gpuDriverHelp": "The device plugin driver. nvidia covers the NVIDIA container toolkit.",
+    "gpuNoRuntime": "This host reports no GPU runtime. The container will fail to start unless a device plugin is installed.",
+    "gpuCountIgnored": "Ignored while specific device IDs are listed.",
+    "hostDevices": {
+      "placeholder": "Choose a device on this host",
+      "loading": "Loading host devices…",
+      "enterManually": "Enter manually…",
+      "enterManuallyHint": "For a device not listed, or one you will plug in later",
+      "chooseFromList": "Choose from list",
+      "loadFailed": "Could not list this host's devices. You can still enter a path manually.",
+      "empty": "No devices were found on this host. Enter a path manually, for example for a device you will plug in later.",
+      "truncated": "This host has more devices than the list shows. Use Enter manually for one that is missing.",
+      "resolvesTo": "Resolves to {{path}} on the host",
+      "pathTaken": "Another device in this container already uses this path.",
+      "useFreePath": "Use {{path}}",
+      "node": "{{type}} device {{major}}:{{minor}}",
+      "type": {
+        "char": "Character",
+        "block": "Block"
+      },
+      "blockBadge": "Block device",
+      "blockWarning": "Gives the container raw access to a disk. Writing to it can destroy the host's data.",
+      "category": {
+        "serial": "Serial",
+        "gpu": "GPU",
+        "audio": "Audio",
+        "video": "Video",
+        "input": "Input",
+        "network": "Network",
+        "usb": "USB",
+        "system": "System",
+        "block": "Block"
+      },
+      "permissions": {
+        "rwm": "Read, write and create the node",
+        "rw": "Read and write",
+        "r": "Read only",
+        "m": "Create the node only (mknod)",
+        "custom": "Custom value kept from the container"
+      },
+      "permissionsHelp": "r lets the container read the device, w write to it, and m create the device node with mknod.",
+      "sectionHelp": "Map host devices such as serial adapters, GPUs or /dev/net/tun into the container."
+    }
   },
   "mounts": {
+    "edit": {
+      "warningTitle": "Changing mounts recreates the container",
+      "warning": "Data is not moved. A mount you remove or change is detached from the new container, and a new host path or volume starts empty. Binding a host path on the environment McHarbor runs on needs host_self.manage.",
+      "add": "Add mount",
+      "remove": "Remove mount {{target}}",
+      "fieldLabel": "{{field}} of mount {{number}}",
+      "typeBind": "Host path",
+      "typeVolume": "Volume",
+      "typeTmpfs": "Memory (tmpfs)",
+      "volumePlaceholder": "volume-name"
+    },
+    "accessRw": "rw",
+    "accessRo": "ro",
     "noMounts": "No mounts configured",
     "type": "Type",
     "source": "Source",
     "destination": "Destination",
     "mode": "Mode",
     "driver": "Driver",
-    "propagation": "Propagation"
+    "propagation": "Propagation",
+    "actions": "Actions",
+    "detailsTitle": "Mount details",
+    "detailsDescription": "Inspect the mount at {{destination}}.",
+    "name": "Name",
+    "access": "Access",
+    "readWrite": "Read and write",
+    "readOnly": "Read only",
+    "viewDetails": "View details for mount {{destination}}",
+    "browseFiles": "Browse files"
   },
   "edit": {
     "saveChanges": "Save Changes",
@@ -373,15 +736,25 @@
     "loadingServices": "Detecting services...",
     "refreshServices": "Refresh",
     "serviceName": "Service",
-    "serviceStatus": "Status"
+    "serviceStatus": "Status",
+    "actions": "Actions",
+    "viewServiceDetails": "View details for service {{name}}",
+    "viewProcessDetails": "View process details",
+    "serviceDetailsTitle": "Service details",
+    "serviceDetailsDescription": "Inspect the detected service and init-system state.",
+    "processDetailsTitle": "Process details",
+    "processDetailsDescription": "Inspect every field reported by Docker for this process.",
+    "serviceSubStatus": "Sub-status",
+    "initSystemLabel": "Init system",
+    "column": "Column {{number}}"
   },
   "files": {
     "mustBeRunning": "Container must be running to browse files",
     "quickAccess": "Quick Access",
-    "filesystem": "filesystem",
+    "filesystem": "Filesystem",
     "fullFilesystem": "Full container filesystem",
-    "mount": "mount",
-    "socket": "socket",
+    "mount": "Mount",
+    "socket": "Socket",
     "name": "Name",
     "usage": "Usage",
     "size": "Size",
@@ -408,6 +781,8 @@
     "fileTooLarge": "File too large to preview (max 10MB)",
     "binaryFile": "Binary file — cannot be previewed",
     "unsavedChanges": "You have unsaved changes. Discard?",
+    "discardTitle": "Discard unsaved changes?",
+    "discardConfirm": "Discard",
     "confirmDelete": "Are you sure you want to delete {{name}}?",
     "confirmDeleteDir": "Are you sure you want to delete {{name}} and all its contents?",
     "invalidMode": "Enter a valid octal mode (e.g. 755)",
@@ -417,12 +792,15 @@
     "addFiles": "Add files",
     "addFolder": "Add folder",
     "clearSelection": "Clear selection",
-    "uploadSelection": "{{count}} file(s) selected",
-    "uploadFolders": "{{count}} folder(s)",
+    "uploadSelection_one": "{{count}} file selected",
+    "uploadSelection_other": "{{count}} files selected",
+    "uploadFolders_one": "{{count}} folder",
+    "uploadFolders_other": "{{count}} folders",
     "uploadProgress": "Uploading {{percent}}%",
     "moreSelected": "+{{count}} more",
     "toast": {
-      "uploaded": "Uploaded {{count}} item(s) successfully",
+      "uploaded_one": "Uploaded {{count}} item successfully",
+      "uploaded_other": "Uploaded {{count}} items successfully",
       "uploadFailed": "Upload failed",
       "saved": "File saved successfully",
       "created": "Created successfully",
@@ -430,7 +808,8 @@
       "permissionsChanged": "Permissions updated",
       "deleted": "Deleted successfully",
       "downloadStarted": "Download started"
-    }
+    },
+    "up": "Up one level"
   },
   "backups": {
     "localStorage": "Local storage",
@@ -441,7 +820,8 @@
     "destinationHint": "Local storage is always included. Select any extra destinations for this backup.",
     "localStorageHint": "Every backup is kept in the configured local storage path.",
     "noExternalDestinations": "No external storage destinations configured.",
-    "destinationsCount": "{{count}} external destination(s)",
+    "destinationsCount_one": "{{count}} external destination",
+    "destinationsCount_other": "{{count}} external destinations",
     "cron": "Schedule",
     "scheduleReadable": "Schedule",
     "cronHint": "Use the readable controls, or switch to advanced cron when needed.",
@@ -468,8 +848,10 @@
     "retentionDays": "Keep days",
     "retentionDaysHint": "0 keeps successful runs regardless of age.",
     "retentionForever": "Retention: keep all successful backups",
-    "retentionCountOnly": "Retention: keep {{count}} successful backup(s)",
-    "retentionDaysOnly": "Retention: keep backups for {{days}} day(s)",
+    "retentionCountOnly_one": "Retention: keep {{count}} successful backup",
+    "retentionCountOnly_other": "Retention: keep {{count}} successful backups",
+    "retentionDaysOnly_one": "Retention: keep backups for {{days}} day",
+    "retentionDaysOnly_other": "Retention: keep backups for {{days}} days",
     "retentionCountDays": "Retention: keep {{count}} backup(s) for {{days}} day(s)",
     "deleteSchedule": "Delete schedule",
     "deleteRun": "Delete backup",
@@ -494,11 +876,24 @@
     "restoreSecretPlaceholder": "Backup encryption key",
     "restoreFromFile": "Restore from file",
     "restoreUploadTitle": "Restore from backup file",
-    "restoreUploadDescription": "Upload a McHarbor backup archive and restore it to this container.",
+    "restoreUploadDescription": "Upload a McHarbor backup archive, then choose what to restore to this container.",
     "restoreUploadFile": "Backup file",
     "restoreUploadKey": "Backup security key",
     "restoreUploadKeyPlaceholder": "Leave empty to use the current key",
     "restoreUploadKeyHint": "Enter the original backup security key only when this archive was encrypted with a different key.",
+    "restoreUploadRead": "Read backup",
+    "restoreUploadReading": "Reading backup…",
+    "uploaded": {
+      "label": "Uploaded",
+      "tooltip": "This backup was uploaded from a file. It was not made by a backup plan."
+    },
+    "fileUpload": {
+      "label": "Backup upload progress",
+      "starting": "Starting upload…",
+      "uploading": "Uploading {{percent}}% ({{loaded}} of {{total}})",
+      "checking": "Checking the archive…"
+    },
+    "restoreIncludedByFolder": "Included with the folder above. Untick that folder to choose inside it.",
     "restoreWarning": "Restore writes archive contents back into the container and can overwrite existing files.",
     "restoreChoices": "What to restore",
     "restoreChoicesNeedKey": "Enter the backup security key to inspect this archive.",
@@ -537,7 +932,14 @@
       "restore_filesystem": "Restoring the container filesystem.",
       "restore_mounts": "Restoring mounted data.",
       "success": "Backup completed.",
-      "failure": "Backup failed."
+      "failure": "Backup failed.",
+      "agent_backup": "Backing up through the remote agent.",
+      "snapshot": "Creating the container snapshot.",
+      "restore_download": "Downloading the backup archive.",
+      "restore_config": "Restoring container configuration.",
+      "restore_complete": "Restore completed.",
+      "restore_failed": "Restore failed.",
+      "complete": "Completed."
     },
     "storage": {
       "local": "Local storage",
@@ -580,24 +982,38 @@
     "relinkAll": "Re-link stale containers",
     "staleIdRelinked": "Re-linked",
     "staleIdTooltip": "The stored container id was stale (the container was recreated). McHarbor resolved the live id and updated this row.",
+    "source": {
+      "container": "Container"
+    },
     "runs": {
       "emptyTitle": "No backup runs yet",
       "emptyHint": "Trigger a manual backup or wait for a scheduled plan to run.",
       "table": {
+        "source": "Source",
+        "subject": "Resource",
         "container": "Container",
         "environment": "Environment",
         "status": "Status",
         "destinations": "Destinations",
         "size": "Size",
         "startedAt": "Started",
+        "finishedAt": "Finished",
         "duration": "Duration",
         "open": "Open",
         "restore": "Restore backup",
         "download": "Download backup",
         "delete": "Delete backup",
         "runningHint": "uploading…",
-        "failedHint": "with failures"
+        "failedHint": "with failures",
+        "type": "Type",
+        "operation": "Operation",
+        "completedAt": "Completed At",
+        "createdAt": "Created At",
+        "progressStage": "Progress Stage",
+        "containerIdStale": "Stale ID",
+        "plan": "Plan"
       },
+      "columnsGroup": "Run",
       "table.container": "Container",
       "table.environment": "Environment",
       "table.status": "Status",
@@ -617,8 +1033,10 @@
     "bulkRunsSelected": "{{count}} selected",
     "bulkRunsDownload": "Download {{count}}",
     "bulkRunsDeleteTitle": "Delete backup runs?",
-    "bulkRunsDeleteDescription": "This permanently deletes {{count}} backup run(s) and removes the archive file from every storage destination (local and remote). This action cannot be undone.",
-    "bulkRunsDeleteConfirm": "Delete {{count}} backup(s)",
+    "bulkRunsDeleteDescription_one": "This permanently deletes {{count}} backup run and removes the archive file from every storage destination (local and remote). This action cannot be undone.",
+    "bulkRunsDeleteDescription_other": "This permanently deletes {{count}} backup runs and removes the archive file from every storage destination (local and remote). This action cannot be undone.",
+    "bulkRunsDeleteConfirm_one": "Delete {{count}} backup",
+    "bulkRunsDeleteConfirm_other": "Delete {{count}} backups",
     "plans": {
       "emptyTitle": "No scheduled backups",
       "emptyHint": "Open a container's Backups tab and create a scheduled plan.",
@@ -633,8 +1051,20 @@
         "enabled": "State",
         "open": "Open",
         "edit": "Edit schedule",
-        "delete": "Delete schedule"
+        "delete": "Delete schedule",
+        "includeConfig": "Include Config",
+        "includeLogs": "Include Logs",
+        "includeFilesystem": "Include Filesystem",
+        "includeImage": "Include Image",
+        "logTailLines": "Log Tail Lines",
+        "lastRunAt": "Last Run",
+        "consistencyMode": "Consistency Mode",
+        "snapshotConfig": "Snapshot Config",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At"
       },
+      "columnsGroupInclude": "Include",
+      "columnsGroup": "Plan",
       "table.name": "Name",
       "table.environment": "Environment",
       "table.container": "Container",
@@ -654,8 +1084,10 @@
     "bulkClear": "Clear selection",
     "bulkDelete": "Delete selected",
     "bulkDeleteTitle": "Delete scheduled backups?",
-    "bulkDeleteDescription": "This permanently deletes {{count}} scheduled backup plan(s). Existing backup archives are not deleted.",
-    "bulkDeleteConfirm": "Delete {{count}} plan(s)",
+    "bulkDeleteDescription_one": "This permanently deletes {{count}} scheduled backup plan. Existing backup archives are not deleted.",
+    "bulkDeleteDescription_other": "This permanently deletes {{count}} scheduled backup plans. Existing backup archives are not deleted.",
+    "bulkDeleteConfirm_one": "Delete {{count}} plan",
+    "bulkDeleteConfirm_other": "Delete {{count}} plans",
     "toast": {
       "started": "Backup started",
       "scheduleCreated": "Backup schedule saved",
@@ -666,7 +1098,8 @@
       "restoreStarted": "Restore started",
       "restored": "Backup restored",
       "retryUploadStarted": "Upload retry started",
-      "relinkAllSuccess": "Re-linked {{count}} backup(s) to live containers"
+      "relinkAllSuccess_one": "Re-linked {{count}} backup to live containers",
+      "relinkAllSuccess_other": "Re-linked {{count}} backups to live containers"
     },
     "bulkRunsDelete": "Delete",
     "runs.emptyTitle": "No backup runs yet",
@@ -768,13 +1201,161 @@
         "message": "Message",
         "severity": "Severity",
         "duration": "Duration",
-        "details": "Details"
+        "details": "Details",
+        "runId": "Run ID",
+        "logSource": "Log Source",
+        "planId": "Plan ID"
       },
+      "columnsGroup": "Log",
       "previousPage": "Previous page",
-      "nextPage": "Next page"
+      "nextPage": "Next page",
+      "tabTitle": "Backup logs"
     },
     "restoreConfirmTitle": "Restore container",
-    "restoreConfirmDescription": "The selected archives will be pulled from their storage locations and written back into the container."
+    "restoreConfirmDescription": "The selected archives will be pulled from their storage locations and written back into the container.",
+    "description": "Create an archive from this container now, or save it as a recurring schedule.",
+    "errorDialog": {
+      "open": "Show errors",
+      "title": "Run errors",
+      "description": "Everything that went wrong during this run.",
+      "runError": "Run failed",
+      "unknownDestination": "Unknown destination",
+      "empty": "No error details were recorded for this run."
+    },
+    "fullHint": "Backing up everything: configuration, image, filesystem, logs, and every mount. Turn off the toggle to pick individual items.",
+    "fullToggle": "Full backup",
+    "items": {
+      "config": "Container configuration",
+      "image": "Image archive",
+      "filesystem": "Container filesystem",
+      "logs": "Container logs",
+      "mount": "Mounted data {{path}}",
+      "file": "{{path}} — in {{mount}}",
+      "folder": "{{path}}/ — in {{mount}}"
+    },
+    "itemsDialog": {
+      "open": "Show contents",
+      "backupTitle": "Backup contents",
+      "restoreTitle": "Restored items",
+      "backupDescription": "What this backup captured, and what it left out.",
+      "restoreDescription": "What this restore wrote back into the container, and what it left out.",
+      "skipped": "Not included",
+      "empty": "Nothing was recorded for this run."
+    },
+    "restoreAllHint": "Restoring the full backup. Turn off a toggle above to pick individual items.",
+    "restoreBindDescription": "Restore every file under this bind mount.",
+    "restoreBindTitle": "Bind: {{target}}",
+    "restoreConfigDescription": "Restore the container configuration captured in the backup.",
+    "restoreConfigRecreateTitle": "This recreates the container",
+    "restoreConfigRecreate": "Restoring the configuration stops and removes this container, then creates and starts it again with the restored settings. Its own filesystem layer is not kept, unless the filesystem is part of this restore: it is then written into the new container afterwards. Data in volumes and bind mounts is kept.",
+    "restoreConfigTitle": "Container configuration",
+    "restoreFileLabel": "file",
+    "restoreFileTreeLoadError": "Could not read the backup tree. Check the backup key and try again.",
+    "restoreFileTreeTruncated": "Showing the first {{cap}} entries. Refine the path to see more.",
+    "restoreFilesystemDescription": "Restore the writable container filesystem layer.",
+    "restoreFilesystemTitle": "Container filesystem",
+    "restoreFolderLabel": "folder",
+    "restoreFullHint": "Restoring every {{layer}} entry. Turn off the toggle to pick individual items.",
+    "restoreFullToggle": "Full {{layer}}",
+    "restoreLayerBind": "bind",
+    "restoreLayerConfig": "config",
+    "restoreLayerFilesystem": "filesystem",
+    "restoreLayerMount": "mount",
+    "restoreMountDescription": "Restore every file under this mount path.",
+    "restoreMountTitle": "Mount: {{target}}",
+    "restoreTreeEmptyMount": "This folder is empty.",
+    "runType": {
+      "backup": "Backup",
+      "restore": "Restore",
+      "fullBackup": "Full backup",
+      "partialBackup": "Partial backup",
+      "fullRestore": "Full restore",
+      "partialRestore": "Partial restore"
+    },
+    "scheduleToggle": "Schedule",
+    "scheduleToggleHint": "This backup runs automatically on the schedule below. Turn the toggle off to keep it a one-off backup.",
+    "tabSettings": "Settings",
+    "title": "Backup",
+    "destinationRequired": "A backup needs at least one destination. Select one to run or schedule it.",
+    "mode": {
+      "off": "Off",
+      "choose": "Choose",
+      "full": "Full"
+    },
+    "chooseNothingPicked": "Nothing selected yet — this option will capture nothing until you pick something.",
+    "configSectionsUnavailable": "No configuration sections are available for this container.",
+    "treeExpand": "Expand folder",
+    "treeCollapse": "Collapse folder",
+    "treeLoading": "Loading…",
+    "treeLoadError": "Could not read this folder from the container.",
+    "treeEmpty": "This folder is empty.",
+    "treeNothingPicked": "Nothing selected. Pick a folder to capture it and everything under it.",
+    "treePickedCount_one": "{{count}} path selected.",
+    "treePickedCount_other": "{{count}} paths selected.",
+    "restoreOffHint": "This {{layer}} will not be restored.",
+    "sectionsAriaLabel": "Backup sections",
+    "tabOverview": "Overview",
+    "sections": {
+      "overview": "Overview",
+      "activity": "Activity",
+      "plans": "Plans",
+      "settings": "Settings"
+    },
+    "descriptions": {
+      "overview": "Backup and restore health across your environments.",
+      "runs": "Every backup and restore run, with download and restore actions.",
+      "logs": "What the backup engine reported, filtered by severity and time.",
+      "plans": "Scheduled backups, one per container.",
+      "settings": "The encryption key and log retention that apply to every backup."
+    },
+    "overview": {
+      "backupsTitle": "Backups ({{days}}d)",
+      "successRateTitle": "Success rate",
+      "successRateHint": "of {{finished}} finished runs",
+      "restoresTitle": "Restores ({{days}}d)",
+      "writtenTitle": "Written ({{days}}d)",
+      "writtenHint": "{{size}} average per backup",
+      "outcomeSummary": "{{succeeded}} succeeded, {{failed}} failed",
+      "activityTitle": "Backup activity",
+      "activityHint": "Runs per day over the last {{days}} days.",
+      "legendSucceeded": "Succeeded",
+      "legendFailed": "Failed",
+      "upcomingTitle": "Next scheduled",
+      "upcomingEmpty": "No enabled plan has a next run.",
+      "viewPlans": "All plans",
+      "failuresTitle": "Recent failures",
+      "failuresEmpty": "No failed runs in this window.",
+      "viewRuns": "All runs",
+      "encryptionTitle": "Backup encryption",
+      "encryptionActive": "Active",
+      "encryptionInactive": "Not configured",
+      "encryptionActiveHint": "Archives are encrypted before they leave McHarbor.",
+      "encryptionInactiveHint": "Archives are written unencrypted.",
+      "manageKey": "Manage key",
+      "emptyTitle": "No backups yet",
+      "emptyBody": "Create a schedule on the Plans tab, or run an ad-hoc backup from a container's Backups tab."
+    },
+    "consistency": {
+      "label": "Consistency",
+      "description": "How this backup keeps the data consistent while it is written.",
+      "modes": {
+        "pause": "Pause",
+        "snapshot": "Snapshot",
+        "live": "Live"
+      },
+      "descriptions": {
+        "pause": "Stops the container while the archive is written, then starts it again. Correct everywhere, at the cost of downtime.",
+        "snapshot": "Freezes the filesystem and reads the frozen copy, so the container keeps serving traffic.",
+        "live": "Reads the running container’s files as they are. Fastest, and the only mode that can produce a torn archive."
+      },
+      "configLabel": "Snapshot configuration",
+      "configPlaceholder": "Choose a configuration",
+      "noConfigs": "This environment has no enabled snapshot configuration, so Snapshot cannot be selected.",
+      "noConfigsLink": "Set one up in Settings",
+      "fallbackHint": "If the snapshot cannot be taken when the backup runs, the container is paused instead and the reason is recorded on the run."
+    },
+    "bulkDownload": "Download selected",
+    "restoreTreeEntryLabel": "{{label}} ({{kind}})"
   },
   "stats": {
     "cpu": "CPU",
@@ -791,7 +1372,9 @@
     "read": "Read",
     "write": "Write",
     "rx": "Rx",
-    "tx": "Tx"
+    "tx": "Tx",
+    "showHistory": "Show history",
+    "showHistoryFor": "Show {{metric}} history"
   },
   "removeDialog": {
     "title": "Remove Container",
@@ -828,18 +1411,16 @@
     "image": "Image",
     "imageSize": "Image size",
     "stack": "Stack",
-    "networkSettings": "Network settings",
     "volumes": "Volumes",
     "warnings": "Warnings",
-    "transfer": "transfer",
-    "available": "available",
-    "create": "create",
-    "keep": "keep",
-    "manual": "manual",
-    "copy": "copy",
+    "transfer": "Transfer",
+    "available": "Available",
+    "create": "Create",
+    "keep": "Keep",
+    "manual": "Manual",
+    "copy": "Copy",
     "stackPreserved": "Compose labels for {{name}} will be preserved.",
     "noStack": "No Compose stack labels detected.",
-    "noNetworks": "No attached networks.",
     "noVolumes": "No volumes or bind mounts.",
     "transferImage": "Transfer image",
     "transferImageDesc": "Export the source image and load it into the target environment when missing.",
@@ -861,7 +1442,6 @@
     "targetContainerPath": "Target container path",
     "editNetworkSettings": "Edit network settings",
     "networkMode": "Network mode",
-    "targetNetwork": "Target network",
     "driver": "Network type",
     "aliases": "Aliases",
     "subnet": "Subnet",
@@ -873,7 +1453,6 @@
     "attachable": "Attachable",
     "to": "to",
     "move": "Move",
-    "moving": "Moving...",
     "progress": {
       "starting": "Starting container move.",
       "connectFailed": "Could not connect to the move progress stream.",
@@ -892,9 +1471,9 @@
   "updates": {
     "searchForUpdates": "Search for Updates",
     "updateAll": "Update All ({{count}})",
-    "reinstallAll": "Reinstall All ({{count}})",
+    "recreateAll": "Recreate All ({{count}})",
     "bulkUpdated": "{{count}} containers updated",
-    "bulkReinstalled": "{{count}} containers reinstalled",
+    "bulkRecreated": "{{count}} containers recreated",
     "partialComplete": "{{success}} of {{total}} containers completed",
     "available": "Update available",
     "upToDate": "Up to date",
@@ -905,16 +1484,28 @@
       "updateTitle": "Update Containers",
       "updateDescription": "Pull the latest image and recreate the selected containers one by one.",
       "updateAction": "Update",
-      "reinstallTitle": "Reinstall Containers",
-      "reinstallDescription": "Recreate the selected containers with their current image one by one.",
-      "reinstallAction": "Reinstall"
+      "recreateTitle": "Recreate Containers",
+      "recreateDescription": "Recreate the selected containers with their current image one by one.",
+      "recreateAction": "Recreate"
     },
     "confirm": {
-      "reinstallAllTitle": "Reinstall All Containers",
-      "reinstallAllDescription": "Force recreate {{count}} container(s) with their current images. Running containers may be briefly interrupted."
-    }
+      "recreateAllTitle": "Recreate All Containers",
+      "recreateAllDescription_one": "Force recreate {{count}} container with its current image. The running container may be briefly interrupted.",
+      "recreateAllDescription_other": "Force recreate {{count}} containers with their current images. Running containers may be briefly interrupted."
+    },
+    "title": "Image updates",
+    "checkUpdates": "Re-check",
+    "currentDigest": "Current digest",
+    "remoteDigest": "Remote digest",
+    "empty": "No update check has been run yet."
   },
   "scan": {
+    "severityBadge": {
+      "critical": "C:{{count}}",
+      "high": "H:{{count}}",
+      "medium": "M:{{count}}",
+      "low": "L:{{count}}"
+    },
     "scanImage": "Scan Image",
     "scanning": "Scanning...",
     "scanHistory": "Scan History",
@@ -947,10 +1538,192 @@
     "toast": {
       "scanStarted": "Vulnerability scan started",
       "scanDeleted": "Scan deleted"
-    }
+    },
+    "noImageTitle": "No image to scan",
+    "noImageDescription": "This container has no resolvable image reference, so there is nothing for a scanner to look at."
   },
   "network": {
     "removeHost": "Remove host",
     "removePort": "Remove port"
+  },
+  "services": {
+    "title": "Running services",
+    "initSystem": "Init system: {{system}}",
+    "colName": "Service",
+    "colStatus": "Status",
+    "colSub": "Sub-state",
+    "empty": "No services detected.",
+    "error": "Failed to detect services.",
+    "containerStopped": "Container must be running to detect services."
+  },
+  "exec": {
+    "columns": {
+      "command": "cmd",
+      "exit": "Exit",
+      "duration": "dur"
+    },
+    "exitSummary": "exit {{code}} · {{ms}}ms",
+    "durationMs": "{{ms}}ms",
+    "title": "Run command",
+    "userDefault": "Container default",
+    "userOther": "Other…",
+    "commandRequired": "Command is required",
+    "commandPlaceholder": "e.g. ls -la /",
+    "commandLabel": "Command",
+    "workDirPlaceholder": "/workdir",
+    "workDirLabel": "Working directory",
+    "run": "Run",
+    "errorRunning": "Failed to run command",
+    "running": "Running…",
+    "lastResult": "Last result",
+    "history": "History",
+    "refreshHistory": "Refresh",
+    "emptyHistory": "No exec history yet",
+    "exitCodeZero": "Command completed"
+  },
+  "facets": {
+    "label": "Filter by state",
+    "all": "All",
+    "running": "Running",
+    "unhealthy": "Unhealthy",
+    "paused": "Paused",
+    "exited": "Exited",
+    "updateReady": "Update ready"
+  },
+  "healthCard": {
+    "title": "Health",
+    "tuneProbe": "Tune probe",
+    "summaryNoHealthcheck": "This image ships no healthcheck, so McHarbor cannot tell whether the process inside is actually serving. Add one to build a probe history here.",
+    "summaryNoProbes": "No probe results recorded yet. The first blocks appear once the healthcheck has run.",
+    "summaryAllPassed": "All {{total}} recorded probes passed. The probe runs every {{interval}} s and has to answer within {{timeout}} s.",
+    "summaryWithFailures": "{{failed}} of the last {{total}} probes failed. The most recent failure was at {{time}} with exit code {{code}} — the probe timeout of {{timeout}} s may be tight for this image.",
+    "probePassed": "{{time}} — passed in {{duration}} ms",
+    "probeFailed": "{{time}} — failed with exit code {{code}}",
+    "stripLabel": "Probe history: {{total}} probes, {{pass}} passed, {{fail}} failed",
+    "footer": "{{count}} probes",
+    "footerWithInterval": "{{count}} probes · {{interval}} s interval",
+    "counts": "{{pass}} pass · {{fail}} fail"
+  },
+  "uptimeCard": {
+    "title": "Uptime",
+    "percent": "{{percent}}% up",
+    "summaryNoSamples": "No samples recorded yet. The strip fills in as McHarbor observes the container.",
+    "summaryAllUp": "The container was running for all {{total}} recorded samples, across {{restarts}} restarts since it was created.",
+    "summaryWithDowntime": "The container was down for {{down}} of the last {{total}} samples — {{percent}}% up, across {{restarts}} restarts.",
+    "sample": "{{time}} — {{state}}",
+    "stripLabel": "Uptime history: {{total}} samples, {{up}} up, {{down}} down",
+    "footer": "{{count}} samples · {{interval}} s interval",
+    "counts": "{{up}} up · {{down}} down"
+  },
+  "history": {
+    "layerColumns": {
+      "layer": "Layer",
+      "created": "Created",
+      "size": "Size",
+      "instruction": "Instruction"
+    },
+    "title": "Resource history",
+    "description": "Stored CPU, memory, network and disk history for this container.",
+    "rangeLabel": "History range",
+    "range": {
+      "1h": "1 hour",
+      "6h": "6 hours",
+      "12h": "12 hours",
+      "24h": "24 hours",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days"
+    },
+    "loading": "Loading history…",
+    "empty": "No history recorded yet",
+    "emptyHint": "Samples are stored every 30 seconds. A new container has nothing to show until the collector next runs.",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "network": "Network throughput",
+    "networkRx": "Received",
+    "networkTx": "Sent",
+    "resolutionSeconds": "One point every {{seconds}} seconds",
+    "resolutionMinutes": "Averaged over {{minutes}}-minute intervals",
+    "disk": "Disk throughput",
+    "diskRead": "Read",
+    "diskWrite": "Written",
+    "metricLabel": "History metric",
+    "gpu": "GPU",
+    "image": "Image",
+    "imageNotFound": "Image not found in this environment"
+  },
+  "configEdit": {
+    "title": "Container config",
+    "description": "Edit container environment, network, security, and resources.",
+    "crumb": "Configuration",
+    "badge": "Configuration",
+    "backToDetails": "Back to container",
+    "notFound": "Failed to load container",
+    "validationWarning": "Some changes will recreate the container.",
+    "sections": {
+      "environment": "Environment",
+      "network": "Network",
+      "security": "Security",
+      "resources": "Resources"
+    },
+    "protected": {
+      "unlock": "Unlock protected editing",
+      "lock": "Lock editing",
+      "locked": "Locked",
+      "unlocked": "Unlocked",
+      "description": "This is a McHarbor-managed container. Editing is locked to prevent accidental changes."
+    },
+    "unlockConfirm": {
+      "title": "Unlock protected container?",
+      "body": "This container is managed by McHarbor. Unlocking allows editing environment, network, security, and resource settings. Changes that recreate the container will lose any runtime state.",
+      "confirm": "Unlock & edit"
+    }
+  },
+  "placeholders": {
+    "macAddress": "02:42:ac:14:00:0a",
+    "dnsServers": "8.8.8.8, 8.8.4.4",
+    "pidsLimit": "0 = unlimited",
+    "envKey": "KEY",
+    "envValue": "VALUE",
+    "gpuCapability": "gpu",
+    "gpuDriver": "nvidia",
+    "image": "nginx:latest",
+    "userGroup": "user:group",
+    "stopSignal": "SIGTERM",
+    "logDriver": "json-file",
+    "healthcheckCommand": "curl -f http://localhost/ || exit 1",
+    "networkAliases": "app, api",
+    "ipv6Address": "fd00::10",
+    "extraHost": "hostname:IP",
+    "ipcMode": "host",
+    "securityOpt": "no-new-privileges, apparmor=unconfined"
+  },
+  "changes": {
+    "columns": {
+      "time": "Time",
+      "action": "Action",
+      "user": "User",
+      "details": "Details"
+    },
+    "scope": "Recent audit events for this container.",
+    "empty": "No changes recorded yet"
+  },
+  "diff": {
+    "error": "Failed to load filesystem diff",
+    "empty": "No filesystem changes detected",
+    "added": "Added",
+    "modified": "Modified",
+    "deleted": "Deleted"
+  },
+  "inspect": {
+    "title": "Raw inspect JSON",
+    "copy": "Copy JSON",
+    "copied": "Copied"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Waiting for the McHarbor API to come back online...",
+      "apiRecoveryTimeout": "The McHarbor API did not come back online in time."
+    }
   }
 }

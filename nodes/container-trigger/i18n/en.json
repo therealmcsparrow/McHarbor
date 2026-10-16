@@ -1,0 +1,31 @@
+{
+  "label": "Container Trigger",
+  "description": "Start a workflow when a container changes state or health",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "watch": "Watch",
+    "status": "Status Event",
+    "health": "Health Status"
+  },
+  "options": {
+    "watch": {
+      "status": "State changes",
+      "health": "Health changes"
+    },
+    "status": {
+      "any": "Any",
+      "start": "Start",
+      "stop": "Stop",
+      "die": "Die",
+      "health_status": "Health Status"
+    },
+    "health": {
+      "any": "Any",
+      "healthy": "Healthy",
+      "unhealthy": "Unhealthy",
+      "starting": "Starting",
+      "none": "No Healthcheck"
+    }
+  }
+}

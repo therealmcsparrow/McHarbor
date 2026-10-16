@@ -1,0 +1,34 @@
+{
+  "slug": "kometa",
+  "name": "Kometa",
+  "description": "Builds collections, overlays and metadata for Plex libraries on a schedule (formerly Plex Meta Manager).",
+  "category": "Media",
+  "image": "kometateam/kometa:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kometa.png",
+  "website": "https://kometa.wiki",
+  "docsUrl": "https://kometa.wiki/en/latest/kometa/install/docker/",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kometa/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "KOMETA_TIMES",
+      "default": "05:00",
+      "description": "Comma-separated times of day to run"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

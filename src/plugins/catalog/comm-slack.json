@@ -1,0 +1,16 @@
+{
+  "slug": "comm-slack",
+  "name": "Slack",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Adds Slack incoming webhooks as a communication channel for workflow, alert, and backup notifications. This is a channel adapter owned by the plugin runtime.",
+  "category": "Communication channels",
+  "icon": "IconBrandSlack",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-slack-1.0.0.tar.gz"
+    }
+  ]
+}

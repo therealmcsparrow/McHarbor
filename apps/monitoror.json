@@ -4,7 +4,7 @@
     "description":  "Wallboard monitoring for the whole stack: HTTP, TCP, ping, DNS, Docker and more.",
     "category":  "Monitoring",
     "image":  "monitoror/monitoror:latest",
-    "logo":  "https://icon.horse/icon/monitoror.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=monitoror.com\u0026sz=128",
     "website":  "https://monitoror.com",
     "docsUrl":  "https://github.com/monitoror/monitoror",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Path to monitoror config"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

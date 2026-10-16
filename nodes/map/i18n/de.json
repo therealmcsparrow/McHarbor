@@ -1,8 +1,0 @@
-{
-  "label": "Map",
-  "description": "Map array object keys to a new shape",
-  "config": {
-    "property": "Eigenschaft",
-    "mapping": "Zuordnung"
-  }
-}

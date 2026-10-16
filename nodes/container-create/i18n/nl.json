@@ -1,21 +1,21 @@
 {
-  "label": "Container Create",
-  "description": "Create a new container from an image",
+  "label": "Container aanmaken",
+  "description": "Maak een nieuwe container aan vanuit een image",
   "config": {
     "environment": "Omgeving",
     "image": "Image",
     "name": "Naam",
     "ports": "Poorten",
     "env_vars": "Omgevingsvariabelen",
-    "restart_policy": "Restart Policy",
+    "restart_policy": "Herstartbeleid",
     "auto_start": "Automatisch starten"
   },
   "options": {
     "restart_policy": {
-      "no": "No",
-      "always": "Always",
-      "on-failure": "On Failure",
-      "unless-stopped": "Unless Stopped"
+      "no": "Nee",
+      "always": "Altijd",
+      "on-failure": "Bij fout",
+      "unless-stopped": "Tenzij gestopt"
     }
   }
 }

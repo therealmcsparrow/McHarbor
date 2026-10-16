@@ -11,18 +11,24 @@ import { useEnvironmentList, type EnvironmentListItem } from '@resources/hooks/u
 import type { EnvironmentInfo, EnvironmentTestResult } from './useEnvironments';
 
 export { useEnvironmentList, type EnvironmentListItem };
+export * from './useAgentDeploy';
 
 export type CreateEnvironmentData = {
   name: string;
-  orchestratorType: string;
   connectionType?: string;
   socketPath?: string;
   host?: string;
   port?: number;
-  kubeconfig?: string;
-  k8sNamespace?: string;
-  k8sServerUrl?: string;
-  k8sBearerToken?: string;
+  /**
+   * Existing agent token to import. When the operator has already
+   * deployed an McHarbor agent on another host (typical multi-host
+   * setups where one control plane points at several agents), they
+   * paste the existing plaintext here instead of receiving a fresh
+   * token. The backend validates the `agt_<64 hex>` shape, hashes +
+   * stores it, and does NOT echo it back in the response (the user
+   * already has it).
+   */
+  agentToken?: string;
 };
 
 export type CreateResponse = {
@@ -32,17 +38,12 @@ export type CreateResponse = {
 
 export type UpdateEnvironmentData = {
   name?: string;
-  orchestratorType?: string;
   connectionType?: string;
   socketPath?: string;
   host?: string;
   port?: number;
   isDefault?: boolean;
   isActive?: boolean;
-  kubeconfig?: string;
-  k8sNamespace?: string;
-  k8sServerUrl?: string;
-  k8sBearerToken?: string;
   scheduledUpdateCheckEnabled?: boolean;
   automaticImagePruningEnabled?: boolean;
   trackContainerEventsEnabled?: boolean;
@@ -51,17 +52,17 @@ export type UpdateEnvironmentData = {
   dockerDiskUsageNotificationsEnabled?: boolean;
   dockerDiskUsageThresholdPercent?: number;
   timezone?: string;
+  // Omitting a secret leaves the stored one in place — the backend COALESCEs.
 };
 
 export function useCreateEnvironment() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('environments');
   return useMutation({
-    mutationFn: (data: CreateEnvironmentData) =>
-      api.post<CreateResponse>('/environments', data).then(assertSuccess),
+    mutationFn: (data: CreateEnvironmentData) => api.post<CreateResponse>('/environments', data).then(assertSuccess),
     meta: { success: t('toast.created') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
+      void queryClient.invalidateQueries({ queryKey: ['environments'] });
     },
   });
 }
@@ -71,21 +72,19 @@ export function useTestEnvironment() {
   const { t } = useTranslation('environments');
   return useMutation<EnvironmentTestResult, Error, string>({
     mutationFn: (id: string) =>
-      api
-        .post<EnvironmentTestResult>(`/environments/${id}/test`)
-        .then((res) => {
-          if (!res.success) {
-            throw new Error(res.error ?? 'Test connection failed');
-          }
-          return assertSuccess(res);
-        }),
+      api.post<EnvironmentTestResult>(`/environments/${id}/test`).then((res) => {
+        if (!res.success) {
+          throw new Error(res.error ?? 'Test connection failed');
+        }
+        return assertSuccess(res);
+      }),
     onSuccess: (result) => {
       // Best-effort toast on top of the dialog the caller renders.
       if (result.overall === 'pass') {
         toast.success(t('toast.connectionSuccessful'));
       }
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
-      queryClient.invalidateQueries({ queryKey: ['environments', result.envId] });
+      void queryClient.invalidateQueries({ queryKey: ['environments'] });
+      void queryClient.invalidateQueries({ queryKey: ['environments', result.envId] });
     },
   });
 }
@@ -109,11 +108,14 @@ export function useUpdateEnvironment() {
       });
       useEnvironmentStore.getState().upsertEnvironment(environment);
       if (!environment.collectContainerMetricsEnabled) {
-        queryClient.removeQueries({ queryKey: ['containers-bulk-stats', environment.id], exact: true });
+        queryClient.removeQueries({
+          queryKey: ['containers-bulk-stats', environment.id],
+          exact: true,
+        });
         queryClient.removeQueries({ queryKey: ['dashboard-stats', environment.id], exact: true });
       }
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
-      queryClient.invalidateQueries({ queryKey: ['environments', id] });
+      void queryClient.invalidateQueries({ queryKey: ['environments'] });
+      void queryClient.invalidateQueries({ queryKey: ['environments', id] });
     },
   });
 }
@@ -125,48 +127,7 @@ export function useRemoveEnvironment() {
     mutationFn: (id: string) => api.del(`/environments/${id}`).then(assertSuccess),
     meta: { success: t('toast.removed') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
-    },
-  });
-}
-
-// --- Agent Deploy ---
-
-export type DeployRequest = {
-  sshHost: string;
-  sshPort: number;
-  sshUser: string;
-  sshAuthType: 'key' | 'password';
-  sshKey?: string;
-  sshPassword?: string;
-  hostKeyFingerprint: string;
-  method: 'docker' | 'binary';
-  agentImage?: string;
-};
-
-export type DeployResult = {
-  success: boolean;
-  output?: string;
-  error?: string;
-  code?: string;
-  os?: string;
-  arch?: string;
-};
-
-export function useDeployAgent() {
-  const queryClient = useQueryClient();
-  const { t } = useTranslation('environments');
-  return useMutation({
-    mutationFn: ({ envId, data }: { envId: string; data: DeployRequest }) =>
-      api.post<DeployResult>(`/agents/${envId}/deploy`, data).then(assertSuccess).then((result) => {
-        if (!result.success) {
-          throw new Error(result.error ?? t('toast.agentDeployFailed'));
-        }
-        return result;
-      }),
-    meta: { success: t('toast.agentDeployed') },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['environments'] });
+      void queryClient.invalidateQueries({ queryKey: ['environments'] });
     },
   });
 }
@@ -182,12 +143,16 @@ export type InstallTokenResponse = {
   agentImage?: string;
   transferListen?: string;
   transferAdvertiseUrl?: string;
+  // forceTls reflects whether the host is HTTPS-only. The install-token
+  // endpoint derives this from the request scheme so the agent dials
+  // wss:// instead of ws:// when the host is HTTPS.
+  forceTls?: boolean;
+  caFingerprint?: string;
 };
 
 export function useCreateInstallToken() {
   return useMutation({
-    mutationFn: (envId: string) =>
-      api.post<InstallTokenResponse>(`/agents/${envId}/install-token`).then(assertSuccess),
+    mutationFn: (envId: string) => api.post<InstallTokenResponse>(`/agents/${envId}/install-token`).then(assertSuccess),
   });
 }
 
@@ -197,19 +162,21 @@ export function useRegenerateToken() {
 
   return useMutation({
     mutationFn: (envId: string) =>
-      api.post<{ token: string }>(`/agents/${envId}/regenerate-token`).then(assertSuccess),
+      api.post<{ token: string; caFingerprint?: string }>(`/agents/${envId}/regenerate-token`).then(assertSuccess),
     meta: { success: t('toast.tokenRegenerated') },
     onSuccess: (_, envId) => {
-      queryClient.invalidateQueries({ queryKey: ['environments', envId] });
+      void queryClient.invalidateQueries({ queryKey: ['environments', envId] });
     },
   });
 }
 
-export function deriveEnvironmentStatus(env: EnvironmentListItem): string {
+export function deriveEnvironmentStatus(
+  env: Pick<EnvironmentListItem, 'connectionType' | 'agentStatus' | 'dockerVersion' | 'lastConnected'>,
+): string {
   if (env.connectionType === 'agent') {
     return env.agentStatus ?? 'disconnected';
   }
-  if (env.dockerVersion || env.k8sVersion) return 'connected';
+  if (env.dockerVersion) return 'connected';
   if (env.lastConnected) return 'disconnected';
   return 'disconnected';
 }

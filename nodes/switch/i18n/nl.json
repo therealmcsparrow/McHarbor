@@ -1,9 +1,9 @@
 {
   "label": "Switch",
-  "description": "Route a message to dynamic case outputs",
+  "description": "Stuur een bericht naar dynamische case-uitvoeren",
   "config": {
     "property": "Eigenschap",
-    "check_type": "Check Type"
+    "check_type": "Controletype"
   },
   "options": {
     "check_type": {

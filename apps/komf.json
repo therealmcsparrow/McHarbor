@@ -1,0 +1,46 @@
+{
+    "slug":  "komf",
+    "name":  "Komf",
+    "description":  "Metadata fetcher that enriches Komga and Kavita libraries from online comic and manga databases.",
+    "category":  "Media",
+    "image":  "sndxr/komf:latest",
+    "logo":  "https://opengraph.githubassets.com/1/Snd-R/komf",
+    "website":  "https://github.com/Snd-R/komf",
+    "docsUrl":  "https://github.com/Snd-R/komf/wiki",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  8085,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/komf/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KOMGA_BASE_URI",
+                        "default":  "http://komga:8080",
+                        "description":  "URL of the Komga server to update"
+                    },
+                    {
+                        "key":  "KOMGA_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the Komga account Komf uses",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

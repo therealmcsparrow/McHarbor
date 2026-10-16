@@ -1,0 +1,53 @@
+{
+    "slug":  "foundry-vtt",
+    "name":  "Foundry Virtual Tabletop",
+    "description":  "Self-hosted virtual tabletop for running tabletop role-playing game sessions online.",
+    "category":  "Gaming",
+    "image":  "felddy/foundryvtt:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/foundry-vtt.png",
+    "website":  "https://foundryvtt.com",
+    "docsUrl":  "https://foundryvtt.com/article/docker/",
+    "ports":  [
+                  {
+                      "host":  30000,
+                      "container":  30000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/foundry-vtt/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "FOUNDRY_USERNAME",
+                        "default":  "",
+                        "description":  "Foundry account username used to fetch the software"
+                    },
+                    {
+                        "key":  "FOUNDRY_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Foundry account password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "FOUNDRY_ADMIN_KEY",
+                        "default":  "change-me",
+                        "description":  "Admin access key for the world configuration screen",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

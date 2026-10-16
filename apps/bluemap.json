@@ -1,0 +1,49 @@
+{
+    "slug":  "bluemap",
+    "name":  "BlueMap",
+    "description":  "Renders an interactive 3D web map of a Minecraft world for players to browse in a browser.",
+    "category":  "Gaming",
+    "image":  "ghcr.io/bluemap-minecraft/bluemap:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bluemap.png",
+    "website":  "https://bluemap.bluecolored.de",
+    "docsUrl":  "https://bluemap.bluecolored.de/wiki/getting-started/Installation.html",
+    "ports":  [
+                  {
+                      "host":  8100,
+                      "container":  8100,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bluemap/config",
+                        "container":  "/app/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/bluemap/web",
+                        "container":  "/app/web"
+                    },
+                    {
+                        "host":  "/opt/appdata/bluemap/data",
+                        "container":  "/app/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/bluemap/world",
+                        "container":  "/app/world",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Kapazitätsreserve",
+      "description": "Wann jedem Dateisystem und Speicherziel der Platz ausgeht"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Kapazitätsreserve",
+    "fullOn": "Voll am {{date}} — {{days}} Tage",
+    "noProjection": "{{percent}}% belegt, noch keine Prognose",
+    "noData": "Noch kein Kapazitätsverlauf"
+  }
+}

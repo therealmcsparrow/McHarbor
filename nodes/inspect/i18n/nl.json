@@ -1,0 +1,23 @@
+{
+  "label": "Inspecteren",
+  "description": "Inspecteer een container, image, netwerk, volume of stack",
+  "config": {
+    "environment": "Omgeving",
+    "resource": "Resource",
+    "container": "Container",
+    "image": "Image",
+    "name": "Naam",
+    "stack_name": "Stacknaam",
+    "network": "Netwerk",
+    "volume": "Volume"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Netwerk",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

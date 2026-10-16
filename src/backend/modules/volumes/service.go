@@ -6,13 +6,14 @@ package volumes
 import (
 	"context"
 	"fmt"
-	"time"
+	"strings"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/volume"
+	"github.com/moby/moby/client"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/i18n"
+	"github.com/therealmcsparrow/mcharbor/core/selfguard"
 )
 
 // Service wraps Docker SDK volume operations.
@@ -26,8 +27,8 @@ func NewService(pool *docker.ClientPool) *Service {
 }
 
 // getClient returns a Docker client for the given environment.
-func (s *Service) getClient(envID string) (*client.Client, error) {
-	c, err := s.pool.Get(envID)
+func (s *Service) getClient(ctx context.Context, envID string) (*client.Client, error) {
+	c, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -36,34 +37,45 @@ func (s *Service) getClient(envID string) (*client.Client, error) {
 
 // List returns all volumes.
 func (s *Service) List(ctx context.Context, envID string) ([]VolumeSummary, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	resp, err := cli.VolumeList(ctx, volume.ListOptions{})
+	respRes, err := cli.VolumeList(ctx, client.VolumeListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("listing volumes: %w", err)
 	}
+	resp := respRes.Items
 
-	// Cross-reference containers to count volume usage
+	// Cross-reference containers to count volume usage and name the
+	// containers that use each one.
 	refCounts := make(map[string]int)
-	containers, cerr := cli.ContainerList(ctx, container.ListOptions{All: true})
+	usedBy := make(map[string][]string)
+	containersRes, cerr := cli.ContainerList(ctx, client.ContainerListOptions{All: true})
+	containers := containersRes.Items
 	if cerr == nil {
 		for _, c := range containers {
+			name := ""
+			if len(c.Names) > 0 {
+				name = strings.TrimPrefix(c.Names[0], "/")
+			}
 			for _, m := range c.Mounts {
 				if m.Type == "volume" {
 					refCounts[m.Name]++
+					if name != "" {
+						usedBy[m.Name] = append(usedBy[m.Name], name)
+					}
 				}
 			}
 		}
 	}
 
-	result := make([]VolumeSummary, 0, len(resp.Volumes))
-	for _, v := range resp.Volumes {
+	result := make([]VolumeSummary, 0, len(resp))
+	for _, v := range resp {
 		summary := VolumeSummary{
 			Name:       v.Name,
 			Driver:     v.Driver,
@@ -74,6 +86,7 @@ func (s *Service) List(ctx context.Context, envID string) ([]VolumeSummary, erro
 			Scope:      v.Scope,
 			Options:    v.Options,
 			RefCount:   refCounts[v.Name],
+			UsedBy:     usedBy[v.Name],
 		}
 		if v.UsageData != nil {
 			summary.UsageData = &UsageData{
@@ -89,15 +102,22 @@ func (s *Service) List(ctx context.Context, envID string) ([]VolumeSummary, erro
 
 // Create creates a new volume.
 func (s *Service) Create(ctx context.Context, envID string, req CreateRequest) (*volume.Volume, error) {
-	cli, err := s.getClient(envID)
+	// A local volume of type none / o=bind is a bind mount of its device, so on the environment
+	// McHarbor runs on it needs host_self.manage exactly as the bind itself would.
+	if reasons := s.pool.VolumeHostAccessOn(ctx, envID, req.Driver, req.DriverOpts); len(reasons) > 0 {
+		if err := selfguard.RequireAttended(ctx, i18n.ErrHostSelfHostAccessRequired, string(docker.SelfTargetHostAccess), reasons); err != nil {
+			return nil, err
+		}
+	}
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	vol, err := cli.VolumeCreate(ctx, volume.CreateOptions{
+	volRes, err := cli.VolumeCreate(ctx, client.VolumeCreateOptions{
 		Name:       req.Name,
 		Driver:     req.Driver,
 		DriverOpts: req.DriverOpts,
@@ -106,39 +126,41 @@ func (s *Service) Create(ctx context.Context, envID string, req CreateRequest) (
 	if err != nil {
 		return nil, fmt.Errorf("creating volume: %w", err)
 	}
+	vol := volRes.Volume
 
 	return &vol, nil
 }
 
 // Inspect returns detailed volume information.
 func (s *Service) Inspect(ctx context.Context, envID, name string) (volume.Volume, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return volume.Volume{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	vol, err := cli.VolumeInspect(ctx, name)
+	volRes, err := cli.VolumeInspect(ctx, name, client.VolumeInspectOptions{})
 	if err != nil {
 		return volume.Volume{}, fmt.Errorf("inspecting volume %s: %w", name, err)
 	}
+	vol := volRes.Volume
 
 	return vol, nil
 }
 
 // Remove removes a volume.
 func (s *Service) Remove(ctx context.Context, envID, name string, force bool) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	if err := cli.VolumeRemove(ctx, name, force); err != nil {
+	if _, err := cli.VolumeRemove(ctx, name, client.VolumeRemoveOptions{Force: force}); err != nil {
 		return fmt.Errorf("removing volume %s: %w", name, err)
 	}
 
@@ -147,21 +169,23 @@ func (s *Service) Remove(ctx context.Context, envID, name string, force bool) er
 
 // Prune removes unused volumes.
 func (s *Service) Prune(ctx context.Context, envID string) (volume.PruneReport, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return volume.PruneReport{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	resp, err := cli.VolumeList(ctx, volume.ListOptions{})
+	respRes, err := cli.VolumeList(ctx, client.VolumeListOptions{})
 	if err != nil {
 		return volume.PruneReport{}, fmt.Errorf("listing volumes for prune: %w", err)
 	}
+	resp := respRes.Items
 
 	refCounts := make(map[string]int)
-	containers, cerr := cli.ContainerList(ctx, container.ListOptions{All: true})
+	containersRes, cerr := cli.ContainerList(ctx, client.ContainerListOptions{All: true})
+	containers := containersRes.Items
 	if cerr != nil {
 		return volume.PruneReport{}, fmt.Errorf("listing containers for volume prune: %w", cerr)
 	}
@@ -174,11 +198,11 @@ func (s *Service) Prune(ctx context.Context, envID string) (volume.PruneReport, 
 	}
 
 	report := volume.PruneReport{}
-	for _, v := range resp.Volumes {
+	for _, v := range resp {
 		if refCounts[v.Name] > 0 {
 			continue
 		}
-		if err := cli.VolumeRemove(ctx, v.Name, false); err != nil {
+		if _, err := cli.VolumeRemove(ctx, v.Name, client.VolumeRemoveOptions{}); err != nil {
 			return volume.PruneReport{}, fmt.Errorf("pruning volume %s: %w", v.Name, err)
 		}
 		report.VolumesDeleted = append(report.VolumesDeleted, v.Name)

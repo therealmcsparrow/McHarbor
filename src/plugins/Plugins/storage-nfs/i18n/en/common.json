@@ -1,0 +1,141 @@
+{
+  "storage-nfs": {
+    "page": {
+      "title": "NFS Storage Destination",
+      "subtitle": "Backup to an NFS (RFC 7530) export. AUTH_SYS (UID-based) or Kerberos (krb5/krb5i/krb5p) via the Linux kernel nfs client.",
+      "registerHint": "Mount the export locally and operate on the mount path. Linux-only."
+    },
+    "menu": {
+      "root": "NFS destinations"
+    },
+    "config": {
+      "heading": "NFS Connection",
+      "description": "Configure the NFS server, export path, and security flavor. The Linux kernel mounts the export under mount_base; the plugin operates on the local mount path.",
+      "field": {
+        "server": {
+          "label": "Server",
+          "placeholder": "nfs.example.com or 10.0.0.5",
+          "help": "Hostname or IP of the NFS server. The host process must have network access to it (TCP/UDP port 2049).",
+          "option": {
+            "sys": "AUTH_SYS (UID-based, default)",
+            "krb5": "Kerberos 5 (authenticated)",
+            "krb5i": "Kerberos 5 + integrity",
+            "krb5p": "Kerberos 5 + privacy (encrypted)"
+          }
+        },
+        "export": {
+          "label": "Export Path",
+          "placeholder": "/srv/backups",
+          "help": "Absolute path on the NFS server as listed in /etc/exports. Example: /srv/backups."
+        },
+        "path": {
+          "label": "Subdirectory",
+          "placeholder": "mcharbor",
+          "help": "Optional subdirectory inside the export. Leave empty to write to the export root."
+        },
+        "sec": {
+          "label": "Security Flavor",
+          "help": "Authentication mode for the mount. AUTH_SYS trusts the client's UID/GID; krb5* require Kerberos principal + keytab.",
+          "option": {
+            "sys": "sys",
+            "krb5": "krb5",
+            "krb5i": "krb5i",
+            "krb5p": "krb5p"
+          }
+        },
+        "version": {
+          "label": "NFS Version",
+          "help": "NFS protocol version. auto lets the kernel negotiate (typically 4.2 on modern kernels).",
+          "option": {
+            "auto": "auto",
+            "3": "3",
+            "4": "4",
+            "4.1": "4.1",
+            "4.2": "4.2"
+          }
+        },
+        "principal": {
+          "label": "Kerberos Principal",
+          "placeholder": "nfs/host.nfs.example.com",
+          "help": "Service principal for the NFS client. Should match a principal registered in the server's keytab.",
+          "placeholder_detail": "nfs/host.nfs.example.com"
+        },
+        "realm": {
+          "label": "Kerberos Realm",
+          "placeholder": "EXAMPLE.COM",
+          "help": "Kerberos realm (usually uppercase DNS domain). Must match the server's realm."
+        },
+        "keytab_path": {
+          "label": "Keytab Path",
+          "placeholder": "/etc/krb5.keytab",
+          "help": "Filesystem path to the keytab containing the principal. The host process must be able to read it.",
+          "helpText": "The McHarbor container runs as root and sees the host filesystem. Bind-mount /etc/krb5.keytab if it lives outside the host's default mount namespace."
+        },
+        "mount_base": {
+          "label": "Mount Base",
+          "placeholder": "/var/lib/mcharbor/mounts/nfs",
+          "help": "Advanced: parent directory for per-destination mount points. Leave empty to use the default."
+        }
+      }
+    },
+    "guide": {
+      "title": "NFS Setup Guide",
+      "description": "Prepare an NFS export for use with this plugin. The plugin mounts the export locally and operates on the mount path.",
+      "section": {
+        "server": {
+          "title": "1. Confirm the NFS server is reachable",
+          "body": "The McHarbor host must have network access to the NFS server on TCP/UDP port 2049. Verify with: showmount -e <server> or rpcinfo -t <server> nfs 4. The server should advertise the export you plan to use."
+        },
+        "export": {
+          "title": "2. Verify the export",
+          "body": "On the NFS server, /etc/exports should list the export path. The McHarbor host's IP/CIDR must be in the allow-list (or the wildcard *). Anonymous squash policy must permit read-write for the user the host runs as (uid 0 by default)."
+        },
+        "sec": {
+          "title": "3. Choose a security flavor",
+          "body": "The sec flavor controls how the NFS server authenticates the client. AUTH_SYS is the legacy UID-based default; krb5* use Kerberos 5 via RPCSEC_GSS.",
+          "body_sys": "AUTH_SYS is suitable for trusted networks. The server trusts the UID/GID in the mount request. Make sure the host process (uid 0 inside the container) has read/write access on the server side, e.g. via no_root_squash in /etc/exports.",
+          "body_krb5": "Kerberos 5 authenticates the client by principal. The server knows the user behind the request, but the payload itself is not integrity-checked. Useful when you need to know who is writing but don't need to protect the wire traffic.",
+          "body_krb5i": "Kerberos 5 + integrity. Each message is authenticated against tampering. The payload is not hidden, but you can detect modification. Use this when crossing untrusted networks but the content isn't sensitive.",
+          "body_krb5p": "Kerberos 5 + privacy. Every message is encrypted. Strongest option, but highest CPU cost. Use this for sensitive data over untrusted networks."
+        },
+        "keytab": {
+          "title": "4. Provision the keytab (krb5* flavors only)",
+          "body": "The NFS client needs a keytab containing an nfs/<host>@<realm> principal. Place the keytab at the configured path (default /etc/krb5.keytab). The host process must be able to read it. On a typical server this is a one-time setup: kadmin: addprinc -randkey nfs/host.nfs.example.com && kadmin: ktadd -k /etc/krb5.keytab nfs/host.nfs.example.com."
+        },
+        "capabilities": {
+          "title": "5. Test the connection",
+          "body": "After saving the destination, use the Test button in the host's Storage Locations page. The plugin mounts the export, writes a small file, reads it back, and removes it. A successful Test confirms the mount, the auth flavor, and the path are all valid."
+        }
+      }
+    },
+    "form": {
+      "required": "required",
+      "field": {
+        "sec": {
+          "help": "Authentication mode for the mount. AUTH_SYS trusts the client’s UID/GID; krb5* require Kerberos principal + keytab."
+        },
+        "principal": {
+          "help": "Service principal for the NFS client. Should match a principal registered in the server’s keytab."
+        },
+        "realm": {
+          "help": "Kerberos realm (usually uppercase DNS domain). Must match the server’s realm."
+        },
+        "keytab_path": {
+          "helpText": "The McHarbor container runs as root and sees the host filesystem. Bind-mount /etc/krb5.keytab if it lives outside the host’s default mount namespace."
+        }
+      },
+      "guide": {
+        "exportBody": "On the NFS server, /etc/exports should list the export path. The McHarbor host’s IP/CIDR must be in the allow-list (or the wildcard *). Anonymous squash policy must permit read-write for the user the host runs as (uid 0 by default).",
+        "krb5Body": "Kerberos 5 authenticates the client by principal. The server knows the user behind the request, but the payload itself is not integrity-checked. Useful when you need to know who is writing but don’t need to protect the wire traffic.",
+        "krb5iBody": "Kerberos 5 + integrity. Each message is authenticated against tampering. The payload is not hidden, but you can detect modification. Use this when crossing untrusted networks but the content isn’t sensitive.",
+        "testBody": "After saving the destination, use the Test button in the host’s Storage Locations page. The plugin mounts the export, writes a small file, reads it back, and removes it. A successful Test confirms the mount, the auth flavor, and the path are all valid."
+      }
+    },
+    "toast": {
+      "saved": "NFS destination saved",
+      "saveFailed": "Could not save NFS destination: {{error}}",
+      "testPassed": "NFS connection succeeded",
+      "testFailed": "NFS connection failed: {{error}}"
+    }
+  }
+}

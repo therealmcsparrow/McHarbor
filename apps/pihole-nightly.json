@@ -1,0 +1,60 @@
+{
+    "slug":  "pihole-nightly",
+    "name":  "Pi-hole (Nightly)",
+    "description":  "Nightly channel build of Pi-hole. Network-wide ad blocking via your own DNS server.",
+    "category":  "Networking",
+    "image":  "pihole/pihole:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/pi-hole.svg",
+    "website":  "https://pi-hole.net",
+    "docsUrl":  "https://docs.pi-hole.net",
+    "ports":  [
+                  {
+                      "host":  1053,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1053,
+                      "container":  53,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  9880,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pihole-nightly/etc-pihole",
+                        "container":  "/etc/pihole"
+                    },
+                    {
+                        "host":  "/opt/appdata/pihole-nightly/etc-dnsmasq.d",
+                        "container":  "/etc/dnsmasq.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WEBPASSWORD",
+                        "default":  "",
+                        "description":  "Admin dashboard password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PIHOLE_DNS_",
+                        "default":  "8.8.8.8;8.8.4.4",
+                        "description":  "Upstream DNS servers"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "fluidd",
+    "name":  "Fluidd",
+    "description":  "Klipper web interface focused on a clean, mobile-friendly printer control and monitoring experience via Moonraker.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/fluidd-core/fluidd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/fluidd.png",
+    "website":  "https://docs.fluidd.xyz",
+    "docsUrl":  "https://docs.fluidd.xyz/getting-started/setup",
+    "ports":  [
+                  {
+                      "host":  8086,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fluidd/config",
+                        "container":  "/usr/share/nginx/html/config.json",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

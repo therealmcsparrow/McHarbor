@@ -1,0 +1,60 @@
+{
+    "slug":  "lancache-monolithic",
+    "name":  "LANCache Monolithic",
+    "description":  "Local caching proxy that stores game download traffic from Steam, Epic, Blizzard and other platforms to save bandwidth on a LAN.",
+    "category":  "Gaming",
+    "image":  "lancachenet/monolithic:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lancache.png",
+    "website":  "https://lancache.net",
+    "docsUrl":  "https://docs.lancache.net/steps/monolithic",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lancache-monolithic/data",
+                        "container":  "/data/cache"
+                    },
+                    {
+                        "host":  "/opt/appdata/lancache-monolithic/logs",
+                        "container":  "/data/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CACHE_MEM_SIZE",
+                        "default":  "4096m",
+                        "description":  "In-memory cache index size"
+                    },
+                    {
+                        "key":  "CACHE_DISK_SIZE",
+                        "default":  "1000000m",
+                        "description":  "Maximum cache size on disk"
+                    },
+                    {
+                        "key":  "UPSTREAM_DNS",
+                        "default":  "1.1.1.1",
+                        "description":  "Upstream DNS resolver used for cache misses"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

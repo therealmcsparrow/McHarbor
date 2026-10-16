@@ -1,0 +1,62 @@
+{
+    "slug":  "apache-james",
+    "name":  "Apache James",
+    "description":  "Enterprise mail server and JMAP/IMAP/SMTP platform built on JVM mail protocols by the Apache Foundation.",
+    "category":  "Communications",
+    "image":  "apache/james:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://james.apache.org",
+    "docsUrl":  "https://james.apache.org/server/install/guide-docker.html",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  587,
+                      "container":  587,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  993,
+                      "container":  993,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apache-james/data",
+                        "container":  "/root/james-server-app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JAMES_ROOT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the initial James administrator account",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

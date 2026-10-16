@@ -1,0 +1,30 @@
+{
+  "label": "Gerenciar rede",
+  "description": "Criar ou remover uma rede, ou conectar e desconectar contêineres",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Ação",
+    "name": "Nome",
+    "driver": "Motorista",
+    "internal": "Interno",
+    "subnet": "Sub-rede",
+    "network": "Rede",
+    "container": "Recipiente"
+  },
+  "options": {
+    "action": {
+      "create": "Criar",
+      "remove": "Remover",
+      "connect": "Conectar",
+      "disconnect": "Desconectar"
+    },
+    "driver": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "macvlan": "Macvlan",
+      "ipvlan": "IPvlan",
+      "host": "Host",
+      "none": "Nenhum"
+    }
+  }
+}

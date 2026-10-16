@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronRight, IconChevronLeft, IconRocket } from '@tabler/icons-react';
 import {
@@ -24,6 +24,13 @@ import { InstallStepVolumes } from './InstallStepVolumes';
 import { InstallStepNetwork } from './InstallStepNetwork';
 import { InstallStepEnvVars } from './InstallStepEnvVars';
 import { InstallStepReview } from './InstallStepReview';
+import {
+  createDefaultEnvEntries,
+  createDefaultNetworkSettings,
+  entriesToEnvVars,
+  type EnvEntry,
+} from './installDialogState';
+import { PERM } from '@core/auth/permissionKeys';
 
 interface InstallDialogProps {
   app: AppTemplate | null;
@@ -31,58 +38,30 @@ interface InstallDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type EnvEntry = {
-  key: string;
-  value: string;
-};
-
-function createDefaultNetworkSettings(): AppNetworkSettings {
-  return {
-    mode: 'default',
-    name: '',
-    aliases: [],
-    ipv4Address: '',
-    ipv6Address: '',
-    macAddress: '',
-  };
-}
-
-function entriesToEnvVars(entries: EnvEntry[]): Record<string, string> {
-  return entries.reduce<Record<string, string>>((acc, entry) => {
-    const key = entry.key.trim();
-    if (key) {
-      acc[key] = entry.value;
-    }
-    return acc;
-  }, {});
-}
-
-function createDefaultEnvEntries(app: AppTemplate, timezone?: string): EnvEntry[] {
-  const defaults = new Map<string, string>();
-  app.envVars.forEach((ev) => {
-    defaults.set(ev.key, ev.default);
-  });
-  defaults.set('TZ', timezone?.trim() || 'UTC');
-  return Array.from(defaults, ([key, value]) => ({ key, value }));
-}
-
-export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
+export function InstallDialog({ app, open: openState, onOpenChange }: InstallDialogProps) {
   const { t } = useTranslation('common');
   const [step, setStep] = useState(0);
-  const [name, setName] = useState('');
+  const [itemName, setName] = useState('');
   const [ports, setPorts] = useState<PortMapping[]>([]);
   const [volumes, setVolumes] = useState<VolumeMount[]>([]);
   const [network, setNetwork] = useState<AppNetworkSettings>(createDefaultNetworkSettings);
   const [envEntries, setEnvEntries] = useState<EnvEntry[]>([]);
-  const [selectedEnvId, setSelectedEnvId] = useState('');
+  // Off by default: file mode only works with images that honour the
+  // docker-library `_FILE` convention, and the store carries plenty that
+  // do not. The toggle on the environment step explains the trade-off.
+  const [secretFileMode, setSecretFileMode] = useState(false);
+  const [pickedEnvId, setSelectedEnvId] = useState('');
   const currentEnvId = useEnvironmentStore((s) => s.currentId);
   const storedEnvironments = useEnvironmentStore((s) => s.environments);
   const environmentsQuery = useEnvironmentList();
   const environments = environmentsQuery.data ?? storedEnvironments;
-  const dockerEnvs = useMemo(
-    () => environments.filter((e) => e.orchestratorType === 'docker'),
-    [environments],
-  );
+  const dockerEnvs = useMemo(() => environments, [environments]);
+  const selectedEnvId =
+    dockerEnvs.length === 0 || dockerEnvs.some((env) => env.id === pickedEnvId)
+      ? pickedEnvId
+      : dockerEnvs.some((env) => env.id === currentEnvId)
+        ? currentEnvId
+        : (dockerEnvs[0]?.id ?? '');
   const selectedEnvironment = useMemo(
     () => dockerEnvs.find((env) => env.id === selectedEnvId),
     [dockerEnvs, selectedEnvId],
@@ -90,26 +69,30 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
   const envVars = useMemo(() => entriesToEnvVars(envEntries), [envEntries]);
   const { installing, progress, logs, startInstall, abort, reset } = useStreamInstall();
 
+  // The environment list refetches every 30 s with a new array. Initialising on every change
+  // reset the dialog to its first step mid-install (a long image pull outlives a refetch) and
+  // threw away the operator's customisations, so it runs once per opening instead.
+  const initializedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (open && app) {
-      const nextSelectedEnvId = dockerEnvs.some((env) => env.id === currentEnvId) ? currentEnvId : dockerEnvs[0]?.id ?? '';
-      const nextSelectedEnv = dockerEnvs.find((env) => env.id === nextSelectedEnvId);
-      setStep(0);
-      setName(app.slug);
-      setSelectedEnvId(nextSelectedEnvId);
-      setPorts(app.ports.map((p) => ({ ...p })));
-      setVolumes(app.volumes.map((v) => ({ ...v })));
-      setNetwork(createDefaultNetworkSettings());
-      setEnvEntries(createDefaultEnvEntries(app, nextSelectedEnv?.timezone));
-      reset();
+    if (!openState || !app) {
+      initializedFor.current = null;
+      return;
     }
-  }, [open, app, currentEnvId, dockerEnvs, reset]);
-
-  useEffect(() => {
-    if (!open || !app || dockerEnvs.length === 0) return;
-    if (dockerEnvs.some((env) => env.id === selectedEnvId)) return;
-    setSelectedEnvId(dockerEnvs.some((env) => env.id === currentEnvId) ? currentEnvId : dockerEnvs[0]?.id ?? '');
-  }, [open, app, currentEnvId, dockerEnvs, selectedEnvId]);
+    if (initializedFor.current === app.slug) return;
+    initializedFor.current = app.slug;
+    const nextSelectedEnvId = dockerEnvs.some((env) => env.id === currentEnvId)
+      ? currentEnvId
+      : (dockerEnvs[0]?.id ?? '');
+    const nextSelectedEnv = dockerEnvs.find((env) => env.id === nextSelectedEnvId);
+    setStep(0);
+    setName(app.slug);
+    setSelectedEnvId(nextSelectedEnvId);
+    setPorts(app.ports.map((p) => ({ ...p })));
+    setVolumes(app.volumes.map((v) => ({ ...v })));
+    setNetwork(createDefaultNetworkSettings());
+    setEnvEntries(createDefaultEnvEntries(app, nextSelectedEnv?.timezone));
+    reset();
+  }, [openState, app, currentEnvId, dockerEnvs, reset]);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) abort();
@@ -120,8 +103,17 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
 
   const handleInstall = (customized: boolean) => {
     const payload = customized
-      ? { slug: app.slug, name, environmentId: selectedEnvId, ports, volumes, network, envVars }
-      : { slug: app.slug, name, environmentId: selectedEnvId, envVars };
+      ? {
+          slug: app.slug,
+          name: itemName,
+          environmentId: selectedEnvId,
+          ports,
+          volumes,
+          network,
+          envVars,
+          secretFileMode,
+        }
+      : { slug: app.slug, name: itemName, environmentId: selectedEnvId, envVars, secretFileMode };
     startInstall(payload);
   };
 
@@ -145,11 +137,18 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
     setVolumes((prev) => prev.map((v, i) => (i === index ? { ...v, [field]: value } : v)));
   };
 
-  const stepTitles = [t('appStore.stepQuickInstall'), t('appStore.stepPorts'), t('appStore.stepVolumes'), t('appStore.stepNetwork'), t('appStore.stepEnvironment'), t('appStore.stepReview')];
+  const stepTitles = [
+    t('appStore.stepQuickInstall'),
+    t('appStore.stepPorts'),
+    t('appStore.stepVolumes'),
+    t('appStore.stepNetwork'),
+    t('appStore.stepEnvironment'),
+    t('appStore.stepReview'),
+  ];
   const totalSteps = 6;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={openState} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('appStore.installTitle', { name: app.name })}</DialogTitle>
@@ -166,7 +165,7 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
           {installing && <InstallProgress progress={progress} logs={logs} onClose={() => onOpenChange(false)} />}
           {!installing && step === 0 && (
             <InstallStepQuick
-              name={name}
+              name={itemName}
               onNameChange={setName}
               slug={app.slug}
               selectedEnvId={selectedEnvId}
@@ -179,11 +178,7 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
           {!installing && step === 1 && <InstallStepPorts ports={ports} onPortChange={updatePort} />}
           {!installing && step === 2 && <InstallStepVolumes volumes={volumes} onVolumeChange={updateVolume} />}
           {!installing && step === 3 && (
-            <InstallStepNetwork
-              network={network}
-              selectedEnvId={selectedEnvId}
-              onNetworkChange={setNetwork}
-            />
+            <InstallStepNetwork network={network} selectedEnvId={selectedEnvId} onNetworkChange={setNetwork} />
           )}
           {!installing && step === 4 && (
             <InstallStepEnvVars
@@ -191,11 +186,13 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
               envEntries={envEntries}
               timezone={selectedEnvironment?.timezone}
               onEnvEntriesChange={setEnvEntries}
+              secretFileMode={secretFileMode}
+              onSecretFileModeChange={setSecretFileMode}
             />
           )}
           {!installing && step === 5 && (
             <InstallStepReview
-              name={name}
+              name={itemName}
               image={app.image}
               selectedEnvId={selectedEnvId}
               dockerEnvs={dockerEnvs}
@@ -219,7 +216,13 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
                 <IconChevronRight className="size-4" />
               </Button>
             ) : (
-              <Button size="sm" className="gap-1" onClick={() => handleInstall(true)} disabled={!name.trim()}>
+              <Button
+                permission={PERM.STORE_APPS_MANAGE}
+                size="sm"
+                className="gap-1"
+                onClick={() => handleInstall(true)}
+                disabled={!itemName.trim()}
+              >
                 <IconRocket className="size-4" />
                 {t('actions.deploy')}
               </Button>
@@ -230,4 +233,3 @@ export function InstallDialog({ app, open, onOpenChange }: InstallDialogProps) {
     </Dialog>
   );
 }
-

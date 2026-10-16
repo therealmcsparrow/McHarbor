@@ -9,9 +9,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	cerrdefs "github.com/containerd/errdefs"
 	"io"
 	"log/slog"
+	"net"
+	"net/netip"
 	"os"
 	"path"
 	"regexp"
@@ -20,23 +24,63 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/mount"
-	networkTypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/go-connections/nat"
+	"github.com/moby/moby/api/pkg/stdcopy"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	networkTypes "github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
+	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/envredact"
+	"github.com/therealmcsparrow/mcharbor/core/i18n"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
+	"github.com/therealmcsparrow/mcharbor/core/statshub"
 )
+
+// longDockerOpTimeout bounds the Docker operations that legitimately outrun
+// docker.CallTimeout: a create that pulls, a move that copies a layer set.
+const longDockerOpTimeout = 60 * time.Second
+
+const recreateOperationLabel = "com.mcharbor.recreate-operation"
+
+// SecretResolver substitutes ${secret:NAME} references in a container's
+// environment immediately before the Docker call. Held behind an interface so
+// this module does not depend on the vault to compile.
+type SecretResolver interface {
+	ResolveSlice(ctx context.Context, env []string, scope secrets.ResolveScope) ([]string, error)
+}
 
 // Service wraps Docker SDK container operations.
 type Service struct {
-	pool    *docker.ClientPool
-	db      *sql.DB
-	dataDir string
+	pool     *docker.ClientPool
+	db       *sql.DB
+	dataDir  string
+	resolver SecretResolver
+	// stats is the shared live stats cache. Nil (in tests) means BulkStats
+	// sweeps the daemon itself.
+	stats *statshub.Hub
+	// pinned are the root-of-trust values a recreate must not let an editor move.
+	pinned []string
+}
+
+// SetStatsHub makes BulkStats read the shared cache instead of sweeping every
+// container per request — per open tab, every five seconds.
+func (s *Service) SetStatsHub(hub *statshub.Hub) { s.stats = hub }
+
+// SetSecretResolver injects the vault resolver. Called once from main.go.
+func (s *Service) SetSecretResolver(r SecretResolver) { s.resolver = r }
+
+type cancelReadCloser struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (r *cancelReadCloser) Close() error {
+	err := r.ReadCloser.Close()
+	r.cancel()
+	return err
 }
 
 var containerNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
@@ -44,13 +88,17 @@ var containerNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
 const agentRecreateHelperImage = "docker:27-cli"
 
 // NewService creates a new container service.
-func NewService(pool *docker.ClientPool, db *sql.DB, dataDir string) *Service {
-	return &Service{pool: pool, db: db, dataDir: dataDir}
+func NewService(pool *docker.ClientPool, db *sql.DB, dataDir string, enc *encryption.Service) *Service {
+	svc := &Service{pool: pool, db: db, dataDir: dataDir}
+	if db != nil && enc != nil {
+		svc.resolver = secrets.NewService(db, enc, nil)
+	}
+	return svc
 }
 
 // getClient returns a Docker client for the given environment.
-func (s *Service) getClient(envID string) (*client.Client, error) {
-	c, err := s.pool.Get(envID)
+func (s *Service) getClient(ctx context.Context, envID string) (*client.Client, error) {
+	c, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -70,8 +118,8 @@ type containerStackLink struct {
 	StackService string
 }
 
-func (s *Service) stackLinksByContainer(envID string) (map[string]containerStackLink, error) {
-	rows, err := s.db.Query(`
+func (s *Service) stackLinksByContainer(ctx context.Context, envID string) (map[string]containerStackLink, error) {
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT container_id, stack_name, COALESCE(service_name, '')
 		FROM container_stack_links
 		WHERE environment_id = ?
@@ -80,7 +128,11 @@ func (s *Service) stackLinksByContainer(envID string) (map[string]containerStack
 	if err != nil {
 		return nil, fmt.Errorf("querying container stack links: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("closing rows failed", "error", err)
+		}
+	}()
 
 	links := make(map[string]containerStackLink)
 	for rows.Next() {
@@ -96,30 +148,37 @@ func (s *Service) stackLinksByContainer(envID string) (map[string]containerStack
 
 // List returns all containers, optionally including stopped ones.
 func (s *Service) List(ctx context.Context, envID string, all bool) ([]ContainerSummary, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	containers, err := cli.ContainerList(ctx, container.ListOptions{All: all})
+	containersRes, err := cli.ContainerList(ctx, client.ContainerListOptions{All: all})
+	containers := containersRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing containers: %w", err)
 	}
 
-	links, err := s.stackLinksByContainer(envID)
+	links, err := s.stackLinksByContainer(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]ContainerSummary, 0, len(containers))
+	// The row flags are advisory (the handlers re-check), so an undetectable daemon just
+	// leaves HostAccess empty instead of failing the list.
+	selfHost, selfHostErr := s.pool.SelfHost(ctx, envID)
+	if selfHostErr != nil {
+		slog.Debug("containers: self-host detection failed for list", "env", envID, "error", selfHostErr)
+	}
 	for _, c := range containers {
 		ports := make([]PortBinding, 0, len(c.Ports))
 		for _, p := range c.Ports {
 			ports = append(ports, PortBinding{
-				IP:          p.IP,
+				IP:          addrString(p.IP),
 				PrivatePort: p.PrivatePort,
 				PublicPort:  p.PublicPort,
 				Type:        p.Type,
@@ -132,9 +191,9 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 			networks := make(map[string]ContainerNetworkInfo, len(c.NetworkSettings.Networks))
 			for name, ep := range c.NetworkSettings.Networks {
 				networks[name] = ContainerNetworkInfo{
-					IPAddress:  ep.IPAddress,
-					Gateway:    ep.Gateway,
-					MacAddress: ep.MacAddress,
+					IPAddress:  addrString(ep.IPAddress),
+					Gateway:    addrString(ep.Gateway),
+					MacAddress: ep.MacAddress.String(),
 				}
 			}
 			netSettings = &ContainerNetworkSettings{Networks: networks}
@@ -159,13 +218,19 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 			ImageID:         c.ImageID,
 			Command:         c.Command,
 			Created:         c.Created,
-			State:           c.State,
+			State:           string(c.State),
 			Status:          c.Status,
 			Ports:           ports,
 			Labels:          c.Labels,
 			NetworkSettings: netSettings,
-			Mounts:          mounts,
+			Mounts:          stripSummarySecretMounts(mounts),
 			Protected:       docker.IsProtectedContainer(c.Names, c.Image, c.Labels),
+		}
+		summary.SelfTarget = string(docker.ClassifySummary(c.ID, c.Names, c.Image, c.Labels))
+		if summary.SelfTarget != "" {
+			summary.Protected = true
+		} else if selfHost.Hosted {
+			summary.HostAccess = summaryHostAccess(c.Mounts, selfHost)
 		}
 		if link, ok := links[c.ID]; ok {
 			summary.StackName = link.StackName
@@ -178,37 +243,68 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 }
 
 // Inspect returns detailed container information.
-func (s *Service) Inspect(ctx context.Context, envID, id string) (types.ContainerJSON, error) {
-	cli, err := s.getClient(envID)
+func (s *Service) Inspect(ctx context.Context, envID, id string) (container.InspectResponse, error) {
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
-		return types.ContainerJSON{}, err
+		return container.InspectResponse{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, err := cli.ContainerInspect(ctx, id)
+	infoRes, err := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
 	if err != nil {
-		return types.ContainerJSON{}, fmt.Errorf("inspecting container %s: %w", id, err)
+		return container.InspectResponse{}, fmt.Errorf("inspecting container %s: %w", id, err)
 	}
+	info := infoRes.Container
 
 	return info, nil
 }
 
 // Create creates a new container.
 func (s *Service) Create(ctx context.Context, envID string, req CreateRequest) (container.CreateResponse, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return container.CreateResponse{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
+
+	// The reference is what the caller stored; the plaintext exists only from
+	// here to the Docker call — or, in file mode, not even there.
+	secretRefs := captureSecretRefs(req.Env)
+	resolvedEnv, secretMount, err := s.prepareSecrets(ctx, cli, envID, req.Name, req.Image, req.Env, req.SecretFileMode)
+	if err != nil {
+		return container.CreateResponse{}, err
+	}
+	// Kept on the container because Config.Env only ever holds the resolved
+	// value: without this the reference is unrecoverable, and file mode could
+	// never be switched on or off again on an existing container.
+	if encoded := encodeSecretRefs(secretRefs); encoded != "" {
+		if req.Labels == nil {
+			req.Labels = map[string]string{}
+		}
+		req.Labels[secretRefsLabel] = encoded
+	}
+	if secretMount != nil {
+		if req.HostConfig == nil {
+			req.HostConfig = &container.HostConfig{}
+		}
+		req.HostConfig.Mounts = append(req.HostConfig.Mounts, *secretMount)
+		// Recorded on the container so Recreate keeps the choice: the request
+		// that made it is long gone by then, and the only durable record of
+		// how this container was built is its own config.
+		if req.Labels == nil {
+			req.Labels = map[string]string{}
+		}
+		req.Labels[secretFileModeLabel] = "true"
+	}
 
 	config := &container.Config{
 		Image:        req.Image,
 		Cmd:          req.Cmd,
-		Env:          req.Env,
+		Env:          resolvedEnv,
 		Labels:       req.Labels,
 		ExposedPorts: req.ExposedPorts,
 		Volumes:      req.Volumes,
@@ -225,38 +321,39 @@ func (s *Service) Create(ctx context.Context, envID string, req CreateRequest) (
 	if hostConfig == nil {
 		hostConfig = &container.HostConfig{}
 	}
+	if err := s.checkHostAccess(ctx, envID, hostConfig); err != nil {
+		return container.CreateResponse{}, err
+	}
 
-	resp, err := cli.ContainerCreate(ctx, config, hostConfig, req.NetworkConfig, nil, req.Name)
+	resp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{Config: config, HostConfig: hostConfig, NetworkingConfig: req.NetworkConfig, Name: req.Name})
 	if err != nil {
 		return container.CreateResponse{}, fmt.Errorf("creating container: %w", err)
 	}
 
-	return resp, nil
+	// The references were written against the name a moment ago, because the
+	// id did not exist yet. Move them now, so a later rename does not orphan
+	// them and the impact list can address this container directly.
+	s.bindSecretReferences(ctx, req.Name, resp.ID, "")
+
+	return container.CreateResponse{ID: resp.ID, Warnings: resp.Warnings}, nil
 }
 
 // Remove removes a container and optionally cleans up its bind mounts.
 func (s *Service) Remove(ctx context.Context, envID, id string, force, removeVolumes bool) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, longDockerOpTimeout)
 	defer cancel()
 
 	// Inspect first to collect bind mount paths before the container is gone.
 	var bindMounts []string
-	info, inspErr := cli.ContainerInspect(ctx, id)
-	if inspErr == nil {
-		imageName := ""
-		labels := map[string]string{}
-		if info.Config != nil {
-			imageName = info.Config.Image
-			labels = info.Config.Labels
-		}
-		if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
-			return docker.ErrProtectedResource
-		}
+	infoRes, inspErr := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
+	info := infoRes.Container
+	if inspErr == nil && docker.ClassifyContainer(info) != docker.SelfTargetNone {
+		return docker.ErrProtectedResource
 	}
 	if inspErr == nil && info.Mounts != nil {
 		for _, m := range info.Mounts {
@@ -266,7 +363,7 @@ func (s *Service) Remove(ctx context.Context, envID, id string, force, removeVol
 		}
 	}
 
-	err = cli.ContainerRemove(ctx, id, container.RemoveOptions{
+	_, err = cli.ContainerRemove(ctx, id, client.ContainerRemoveOptions{
 		Force:         force,
 		RemoveVolumes: removeVolumes,
 	})
@@ -279,20 +376,44 @@ func (s *Service) Remove(ctx context.Context, envID, id string, force, removeVol
 		docker.RemoveBindMounts(ctx, cli, bindMounts)
 	}
 
+	// A removed container is not stale, it is gone. Leaving its references
+	// behind would have the impact list asking to restart something that no
+	// longer exists, which is how a useful list becomes one people dismiss.
+	s.clearSecretReferences(ctx, id, strings.TrimPrefix(info.Name, "/"))
+
 	return nil
+}
+
+// clearSecretReferences drops a removed container's references under both the
+// identifiers it may have been recorded with: the id, and the name that rows
+// written before the rebind still carry.
+func (s *Service) clearSecretReferences(ctx context.Context, id, name string) {
+	binder, ok := s.resolver.(secretReferenceBinder)
+	if !ok {
+		return
+	}
+	for _, identifier := range []string{id, name} {
+		if identifier == "" {
+			continue
+		}
+		if err := binder.ClearReferences(ctx, "container", identifier); err != nil {
+			slog.Warn("containers: clearing secret references failed",
+				"container", identifier, "error", err)
+		}
+	}
 }
 
 // RemoveImage removes a Docker image by ID.
 func (s *Service) RemoveImage(ctx context.Context, envID, imageID string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	_, err = cli.ImageRemove(ctx, imageID, image.RemoveOptions{PruneChildren: true})
+	_, err = cli.ImageRemove(ctx, imageID, client.ImageRemoveOptions{PruneChildren: true})
 	if err != nil {
 		return fmt.Errorf("removing image %s: %w", imageID, err)
 	}
@@ -302,19 +423,19 @@ func (s *Service) RemoveImage(ctx context.Context, envID, imageID string) error 
 
 // Start starts a stopped container.
 func (s *Service) Start(ctx context.Context, envID, id string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(ctx, id, client.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("starting container %s: %w", id, err)
 	}
 
@@ -323,24 +444,24 @@ func (s *Service) Start(ctx context.Context, envID, id string) error {
 
 // Stop stops a running container with an optional timeout.
 func (s *Service) Stop(ctx context.Context, envID, id string, timeout int) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	stopOpts := container.StopOptions{}
+	stopOpts := client.ContainerStopOptions{}
 	if timeout > 0 {
 		stopOpts.Timeout = &timeout
 	}
 
-	if err := cli.ContainerStop(ctx, id, stopOpts); err != nil {
+	if _, err := cli.ContainerStop(ctx, id, stopOpts); err != nil {
 		return fmt.Errorf("stopping container %s: %w", id, err)
 	}
 
@@ -349,19 +470,19 @@ func (s *Service) Stop(ctx context.Context, envID, id string, timeout int) error
 
 // Restart restarts a container.
 func (s *Service) Restart(ctx context.Context, envID, id string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	if err := cli.ContainerRestart(ctx, id, container.StopOptions{}); err != nil {
+	if _, err := cli.ContainerRestart(ctx, id, client.ContainerRestartOptions{}); err != nil {
 		return fmt.Errorf("restarting container %s: %w", id, err)
 	}
 
@@ -370,19 +491,19 @@ func (s *Service) Restart(ctx context.Context, envID, id string) error {
 
 // Pause pauses a running container.
 func (s *Service) Pause(ctx context.Context, envID, id string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	if err := cli.ContainerPause(ctx, id); err != nil {
+	if _, err := cli.ContainerPause(ctx, id, client.ContainerPauseOptions{}); err != nil {
 		return fmt.Errorf("pausing container %s: %w", id, err)
 	}
 
@@ -391,19 +512,19 @@ func (s *Service) Pause(ctx context.Context, envID, id string) error {
 
 // Unpause unpauses a paused container.
 func (s *Service) Unpause(ctx context.Context, envID, id string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	if err := cli.ContainerUnpause(ctx, id); err != nil {
+	if _, err := cli.ContainerUnpause(ctx, id, client.ContainerUnpauseOptions{}); err != nil {
 		return fmt.Errorf("unpausing container %s: %w", id, err)
 	}
 
@@ -412,12 +533,12 @@ func (s *Service) Unpause(ctx context.Context, envID, id string) error {
 
 // Kill sends a signal to a container.
 func (s *Service) Kill(ctx context.Context, envID, id, signal string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
@@ -428,7 +549,7 @@ func (s *Service) Kill(ctx context.Context, envID, id, signal string) error {
 		signal = "SIGKILL"
 	}
 
-	if err := cli.ContainerKill(ctx, id, signal); err != nil {
+	if _, err := cli.ContainerKill(ctx, id, client.ContainerKillOptions{Signal: signal}); err != nil {
 		return fmt.Errorf("killing container %s: %w", id, err)
 	}
 
@@ -436,44 +557,66 @@ func (s *Service) Kill(ctx context.Context, envID, id, signal string) error {
 }
 
 // Update updates runtime resources for a container.
-func (s *Service) Update(ctx context.Context, envID, id string, req UpdateRequest) (container.ContainerUpdateOKBody, error) {
-	cli, err := s.getClient(envID)
+func (s *Service) Update(ctx context.Context, envID, id string, req UpdateRequest) (container.UpdateResponse, error) {
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
-		return container.ContainerUpdateOKBody{}, err
+		return container.UpdateResponse{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := ensureContainerMutableForRuntimeEdit(ctx, cli, id, req.UnlockProtected); err != nil {
-		return container.ContainerUpdateOKBody{}, err
+		return container.UpdateResponse{}, err
 	}
 
 	updateConfig := container.UpdateConfig{
-		Resources: container.Resources{
-			Memory:            req.Memory,
-			MemorySwap:        req.MemorySwap,
-			MemoryReservation: req.MemoryReservation,
-			NanoCPUs:          req.NanoCPUs,
-			CPUShares:         req.CPUShares,
-			CPUQuota:          req.CPUQuota,
-			CPUPeriod:         req.CPUPeriod,
-			CpusetCpus:        req.CpusetCpus,
-			CpusetMems:        req.CpusetMems,
-			BlkioWeight:       req.BlkioWeight,
-		},
+		Resources: container.Resources{},
+	}
+	if req.Memory != nil {
+		updateConfig.Memory = *req.Memory
+	}
+	if req.MemorySwap != nil {
+		updateConfig.MemorySwap = *req.MemorySwap
+	}
+	if req.MemoryReservation != nil {
+		updateConfig.MemoryReservation = *req.MemoryReservation
+	}
+	if req.NanoCPUs != nil {
+		updateConfig.NanoCPUs = *req.NanoCPUs
+	}
+	if req.CPUShares != nil {
+		updateConfig.CPUShares = *req.CPUShares
+	}
+	if req.CPUQuota != nil {
+		updateConfig.CPUQuota = *req.CPUQuota
+	}
+	if req.CPUPeriod != nil {
+		updateConfig.CPUPeriod = *req.CPUPeriod
+	}
+	if req.CpusetCpus != nil {
+		updateConfig.CpusetCpus = *req.CpusetCpus
+	}
+	if req.CpusetMems != nil {
+		updateConfig.CpusetMems = *req.CpusetMems
+	}
+	if req.BlkioWeight != nil {
+		updateConfig.BlkioWeight = *req.BlkioWeight
 	}
 
 	if req.RestartPolicy != nil {
 		updateConfig.RestartPolicy = *req.RestartPolicy
 	}
 
-	resp, err := cli.ContainerUpdate(ctx, id, updateConfig)
+	resp, err := cli.ContainerUpdate(ctx, id, client.ContainerUpdateOptions{
+		Resources:     &updateConfig.Resources,
+		RestartPolicy: &updateConfig.RestartPolicy,
+	})
 	if err != nil {
-		return container.ContainerUpdateOKBody{}, fmt.Errorf("updating container %s: %w", id, err)
+		return container.UpdateResponse{}, fmt.Errorf("updating container %s: %w", id, err)
 	}
 
-	return resp, nil
+	return container.UpdateResponse{Warnings: resp.Warnings}, nil
 }
 
 func ensureContainerMutableForRuntimeEdit(ctx context.Context, cli *client.Client, id string, unlockProtected bool) error {
@@ -481,41 +624,33 @@ func ensureContainerMutableForRuntimeEdit(ctx context.Context, cli *client.Clien
 		return docker.EnsureContainerMutable(ctx, cli, id)
 	}
 
-	info, err := cli.ContainerInspect(ctx, id)
+	infoRes, err := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
-
-	image := ""
-	labels := map[string]string{}
-	if info.Config != nil {
-		image = info.Config.Image
-		labels = info.Config.Labels
-	}
-	if docker.IsMcHarborContainer([]string{info.Name}, image, labels) {
+	switch docker.ClassifyContainer(infoRes.Container) {
+	case docker.SelfTargetNone, docker.SelfTargetApp:
 		return nil
-	}
-	if docker.IsProtectedContainer([]string{info.Name}, image, labels) {
+	default:
 		return docker.ErrProtectedResource
 	}
-	return nil
 }
 
 // Rename changes the Docker container name.
 func (s *Service) Rename(ctx context.Context, envID, id, name string, unlockProtected bool) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := ensureContainerMutableForRuntimeEdit(ctx, cli, id, unlockProtected); err != nil {
 		return err
 	}
 
-	if err := cli.ContainerRename(ctx, id, name); err != nil {
+	if _, err := cli.ContainerRename(ctx, id, client.ContainerRenameOptions{NewName: name}); err != nil {
 		return fmt.Errorf("renaming container %s: %w", id, err)
 	}
 
@@ -524,7 +659,22 @@ func (s *Service) Rename(ctx context.Context, envID, id, name string, unlockProt
 
 // Recreate stops, renames, creates a new container with the same config, starts it, and removes the old one.
 func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRequest) (container.CreateResponse, error) {
-	cli, err := s.getClient(envID)
+	return s.recreate(ctx, envID, id, req, nil)
+}
+
+// RecreateWithMounts is Recreate for the configuration editor, which may also replace the
+// container's mounts. The list is validated before anything is stopped.
+func (s *Service) RecreateWithMounts(ctx context.Context, envID, id string, req RecreateEditRequest) (container.CreateResponse, error) {
+	if req.Mounts != nil {
+		if err := validateMountEdits(*req.Mounts); err != nil {
+			return container.CreateResponse{}, err
+		}
+	}
+	return s.recreate(ctx, envID, id, req.RecreateRequest, req.Mounts)
+}
+
+func (s *Service) recreate(ctx context.Context, envID, id string, req RecreateRequest, mounts *[]MountEdit) (container.CreateResponse, error) {
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return container.CreateResponse{}, err
 	}
@@ -533,19 +683,77 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	defer cancel()
 
 	// Inspect current container
-	info, err := cli.ContainerInspect(ctx, id)
+	infoRes, err := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
 	if err != nil {
 		return container.CreateResponse{}, fmt.Errorf("inspecting container for recreate: %w", err)
 	}
+	info := infoRes.Container
 	imageName := ""
 	labels := map[string]string{}
 	if info.Config != nil {
 		imageName = info.Config.Image
 		labels = info.Config.Labels
+		if err := s.guardMovedWithheld(req, info); err != nil {
+			return container.CreateResponse{}, err
+		}
+		// The editor was given a redacted list; every value still carrying the marker is
+		// one the operator did not change, and must be written back as it was.
+		req.Env = envredact.Restore(req.Env, info.Config.Env)
 	}
-	if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
-		if docker.IsMcHarborContainer([]string{info.Name}, imageName, labels) {
-			if req.UnlockProtected {
+	// Every recreate of a McHarbor container rebuilds its keys and data volume onto
+	// whatever the request names, so it needs host_self.manage whatever UnlockProtected says.
+	if kind := docker.ClassifyContainer(info); kind != docker.SelfTargetNone {
+		if err := requireHostSelf(ctx, i18n.ErrHostSelfContainerRequired, string(kind), nil); err != nil {
+			return container.CreateResponse{}, err
+		}
+	}
+
+	// Resolve ${secret:NAME} once, here, before anything branches. Every path
+	// out of Recreate — the self-recreate helper, the agent path, the ordinary
+	// replacement — reads req.Env, so resolving in one place is what covers all
+	// three without duplication.
+	//
+	// File mode defaults to however the container being replaced was built: a
+	// recreate preserves that, and silently dropping back to environment
+	// injection would put credentials back somewhere the operator had
+	// deliberately taken them out of. An explicit flag in the request is the
+	// operator changing their mind, which is the one thing that overrides it.
+	secretOwner := strings.TrimPrefix(info.Name, "/")
+	fileMode := labels[secretFileModeLabel] == "true"
+	if req.SecretFileMode != nil {
+		fileMode = *req.SecretFileMode
+	}
+	// Config.Env holds resolved values, so the references have to come back
+	// from the label before anything can be re-planned from them.
+	secretRefs := decodeSecretRefs(labels[secretRefsLabel])
+	if refs := captureSecretRefs(req.Env); len(refs) > 0 {
+		secretRefs = refs
+	}
+	var secretMount *mount.Mount
+	secretEnv := req.Env
+	if secretEnv == nil && len(secretRefs) > 0 && info.Config != nil {
+		secretEnv = info.Config.Env
+	}
+	if secretEnv != nil {
+		secretEnv = restoreSecretRefs(secretEnv, secretRefs)
+		resolvedEnv, m, resolveErr := s.prepareSecrets(ctx, cli, envID, secretOwner, imageName, secretEnv, fileMode)
+		if resolveErr != nil {
+			return container.CreateResponse{}, resolveErr
+		}
+		req.Env = resolvedEnv
+		secretMount = m
+	}
+	if kind := docker.ClassifyContainer(info); kind != docker.SelfTargetNone {
+		// McHarbor's own mounts hold its keys and data volume; the editor does not rewrite them.
+		if mounts != nil {
+			return container.CreateResponse{}, docker.ErrProtectedResource
+		}
+		// The McHarbor container recreates itself through a detached helper, so
+		// it is editable — but only deliberately. The unlock flag is the
+		// operator confirming the unlock dialog; without it the protection
+		// stands, exactly as ensureContainerMutableForRuntimeEdit treats it.
+		if kind == docker.SelfTargetApp {
+			if !req.UnlockProtected {
 				return container.CreateResponse{}, docker.ErrProtectedResource
 			}
 			return s.recreateSelfContainer(ctx, envID, cli, info, req)
@@ -554,22 +762,66 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 
 	originalName := strings.TrimPrefix(info.Name, "/")
-	if s.pool.IsAgentEnv(envID) && docker.IsAgentContainer([]string{info.Name}, imageName, labels) {
+	if info.HostConfig != nil && info.HostConfig.AutoRemove {
+		return container.CreateResponse{}, fmt.Errorf("recreating auto-remove containers is not supported")
+	}
+	if s.pool.IsAgentEnvContext(ctx, envID) && docker.IsAgentContainer([]string{info.Name}, imageName, labels) {
+		// The connected agent's mounts are its link to the host; an edit could cut it off.
+		if mounts != nil {
+			return container.CreateResponse{}, docker.ErrProtectedResource
+		}
 		return s.recreateConnectedAgentContainer(ctx, cli, info, originalName, req)
 	}
 
-	// Stop the container if running
-	if info.State.Running {
+	// The preview is the full replacement spec, edited mounts included, so the host-access
+	// guard sees a newly bound host path exactly as it would on create.
+	if _, previewHC, _, specErr := replacementContainerSpec(info, req, imageName, mounts); specErr == nil {
+		if err := s.checkHostAccess(ctx, envID, previewHC); err != nil {
+			return container.CreateResponse{}, err
+		}
+	}
+
+	wasRunning := info.State.Running
+	wasPaused := info.State.Paused
+	if wasPaused {
+		if _, err := cli.ContainerUnpause(ctx, id, client.ContainerUnpauseOptions{}); err != nil {
+			if restoreErr := restoreContainerAfterRecreate(ctx, cli, info, originalName, "", "", ""); restoreErr != nil {
+				err = errors.Join(err, fmt.Errorf("restoring container after ambiguous unpause: %w", restoreErr))
+			}
+			return container.CreateResponse{}, fmt.Errorf("unpausing container for recreate: %w", err)
+		}
+	}
+	if wasRunning {
 		timeout := 10
-		if err := cli.ContainerStop(ctx, id, container.StopOptions{Timeout: &timeout}); err != nil {
+		if _, err := cli.ContainerStop(ctx, id, client.ContainerStopOptions{Timeout: &timeout}); err != nil {
+			if restoreErr := restoreContainerAfterRecreate(ctx, cli, info, originalName, "", "", ""); restoreErr != nil {
+				err = errors.Join(err, fmt.Errorf("restoring container after ambiguous stop: %w", restoreErr))
+			}
 			return container.CreateResponse{}, fmt.Errorf("stopping container for recreate: %w", err)
 		}
 	}
 
-	// Rename old container
+	operationID := xid.New().String()
+	shortID := info.ID
+	if len(shortID) > 12 {
+		shortID = shortID[:12]
+	}
+	replacementName := "mcharbor-recreate-" + shortID + "-" + operationID
 	oldName := originalName + "-old-" + fmt.Sprintf("%d", time.Now().Unix())
-	if err := cli.ContainerRename(ctx, id, oldName); err != nil {
+	if _, err := cli.ContainerRename(ctx, id, client.ContainerRenameOptions{NewName: oldName}); err != nil {
+		if restoreErr := restoreContainerAfterRecreate(ctx, cli, info, originalName, "", "", ""); restoreErr != nil {
+			err = errors.Join(err, fmt.Errorf("rolling back recreate: %w", restoreErr))
+		}
 		return container.CreateResponse{}, fmt.Errorf("renaming container for recreate: %w", err)
+	}
+	restoreOriginal := func(replacementID string) error {
+		return restoreContainerAfterRecreate(ctx, cli, info, originalName, replacementID, replacementName, operationID)
+	}
+	failRecreate := func(operation string, cause error, replacementID string) (container.CreateResponse, error) {
+		if restoreErr := restoreOriginal(replacementID); restoreErr != nil {
+			cause = errors.Join(cause, fmt.Errorf("rolling back recreate: %w", restoreErr))
+		}
+		return container.CreateResponse{}, fmt.Errorf("%s: %w", operation, cause)
 	}
 
 	// Optionally update image
@@ -580,11 +832,9 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 
 	// Pull image if requested
 	if req.PullImage {
-		pullResp, pullErr := cli.ImagePull(ctx, imgName, image.PullOptions{})
+		pullResp, pullErr := cli.ImagePull(ctx, imgName, client.ImagePullOptions{})
 		if pullErr != nil {
-			// Revert rename on failure
-			cli.ContainerRename(ctx, info.ID, originalName)
-			return container.CreateResponse{}, fmt.Errorf("pulling image for recreate: %w", pullErr)
+			return failRecreate("pulling image for recreate", pullErr, "")
 		}
 		if _, copyErr := io.Copy(io.Discard, pullResp); copyErr != nil {
 			slog.Warn("containers: image pull stream drain failed during recreate", "error", copyErr, "image", imgName, "container", info.ID)
@@ -594,41 +844,142 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 		}
 	}
 
-	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName)
+	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName, mounts)
 	if err != nil {
-		// Revert: rename old container back
-		cli.ContainerRename(ctx, info.ID, originalName)
-		return container.CreateResponse{}, err
+		return failRecreate("preparing replacement container", err, "")
+	}
+	labels = make(map[string]string, len(cfg.Labels)+1)
+	for key, value := range cfg.Labels {
+		labels[key] = value
+	}
+	labels[recreateOperationLabel] = operationID
+	// The replacement is built from the old container's spec, so the previous
+	// mount and the previous labels arrive with it. Both have to be rewritten
+	// rather than merged, or turning file mode off would leave the volume
+	// mounted and the label claiming it is still on.
+	hc.Mounts = withoutSecretMount(hc.Mounts)
+	delete(labels, secretFileModeLabel)
+	delete(labels, secretRefsLabel)
+	if secretMount != nil {
+		hc.Mounts = append(hc.Mounts, *secretMount)
+		labels[secretFileModeLabel] = "true"
+	}
+	if encoded := encodeSecretRefs(secretRefs); encoded != "" {
+		labels[secretRefsLabel] = encoded
+	}
+	cfg.Labels = labels
+
+	newResp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{Config: cfg, HostConfig: hc, NetworkingConfig: netConfig, Name: replacementName})
+	if err != nil {
+		return failRecreate("creating replacement container", err, "")
+	}
+	if _, err := cli.ContainerRename(ctx, newResp.ID, client.ContainerRenameOptions{NewName: originalName}); err != nil {
+		return failRecreate("naming replacement container", err, newResp.ID)
 	}
 
-	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
-	if err != nil {
-		// Revert: rename old container back
-		cli.ContainerRename(ctx, info.ID, originalName)
-		return container.CreateResponse{}, fmt.Errorf("creating replacement container: %w", err)
+	if _, err := cli.ContainerStart(ctx, newResp.ID, client.ContainerStartOptions{}); err != nil {
+		return failRecreate("starting replacement container", err, newResp.ID)
 	}
-
-	// Start new container
-	if err := cli.ContainerStart(ctx, newResp.ID, container.StartOptions{}); err != nil {
-		// Clean up: remove new container, rename old back (best-effort)
-		if rmErr := cli.ContainerRemove(ctx, newResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
-			slog.Warn("containers: failed to clean up new container after start failure", "error", rmErr, "container", newResp.ID)
+	if wasPaused {
+		if _, err := cli.ContainerPause(ctx, newResp.ID, client.ContainerPauseOptions{}); err != nil {
+			return failRecreate("pausing replacement container", err, newResp.ID)
 		}
-		if rnErr := cli.ContainerRename(ctx, info.ID, originalName); rnErr != nil {
-			slog.Warn("containers: failed to rename old container back after start failure", "error", rnErr, "container", info.ID)
-		}
-		return container.CreateResponse{}, fmt.Errorf("starting replacement container: %w", err)
 	}
 
 	// Remove old container
-	if err := cli.ContainerRemove(ctx, info.ID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+	if _, err := cli.ContainerRemove(ctx, info.ID, client.ContainerRemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
 		slog.Warn("containers: failed to remove old container after recreate", "error", err, "container", info.ID)
 	}
 
-	return newResp, nil
+	// Only once the old container is gone is the volume detached and actually
+	// removable. Leaving it would leave the credentials readable on the host
+	// after the operator asked for file mode to be turned off.
+	if !fileMode {
+		if err := docker.RemoveSecretVolume(ctx, cli, secretOwner); err != nil {
+			slog.Warn("containers: failed to remove secret volume after recreate", "error", err, "container", secretOwner)
+		}
+	}
+
+	s.bindSecretReferences(ctx, originalName, newResp.ID, info.ID)
+
+	return container.CreateResponse{ID: newResp.ID, Warnings: newResp.Warnings}, nil
 }
 
-func (s *Service) recreateSelfContainer(ctx context.Context, envID string, cli *client.Client, info types.ContainerJSON, req RecreateRequest) (container.CreateResponse, error) {
+// withoutSecretMount strips the /run/secrets mount from a spec inherited from
+// the container being replaced, identified by its target rather than its
+// source so a volume named under an older scheme is still recognised.
+func withoutSecretMount(mounts []mount.Mount) []mount.Mount {
+	out := mounts[:0]
+	for _, m := range mounts {
+		if m.Target == secrets.SecretMountPath {
+			continue
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
+func restoreContainerAfterRecreate(ctx context.Context, cli *client.Client, original container.InspectResponse, originalName, replacementID, replacementName, operationID string) error {
+	var restoreErrs []error
+	if replacementID == "" && replacementName != "" {
+		inspectCtx, inspectCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		candidateRes, err := cli.ContainerInspect(inspectCtx, replacementName, client.ContainerInspectOptions{})
+		candidate := candidateRes.Container
+		inspectCancel()
+		if err == nil && candidate.ID != original.ID {
+			if candidate.Config != nil && candidate.Config.Labels[recreateOperationLabel] == operationID {
+				replacementID = candidate.ID
+			} else {
+				restoreErrs = append(restoreErrs, fmt.Errorf("temporary replacement ownership could not be verified"))
+			}
+		} else if err != nil && !cerrdefs.IsNotFound(err) {
+			restoreErrs = append(restoreErrs, fmt.Errorf("inspecting ambiguous replacement: %w", err))
+		}
+	}
+	if replacementID != "" {
+		removeCtx, removeCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		_, err := cli.ContainerRemove(removeCtx, replacementID, client.ContainerRemoveOptions{Force: true})
+		removeCancel()
+		if err != nil && !cerrdefs.IsNotFound(err) {
+			restoreErrs = append(restoreErrs, fmt.Errorf("removing failed replacement: %w", err))
+		}
+	}
+
+	inspectCtx, inspectCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+	currentRes, inspectErr := cli.ContainerInspect(inspectCtx, original.ID, client.ContainerInspectOptions{})
+	current := currentRes.Container
+	inspectCancel()
+	if inspectErr != nil {
+		restoreErrs = append(restoreErrs, fmt.Errorf("inspecting original container during rollback: %w", inspectErr))
+	}
+	if inspectErr != nil || strings.TrimPrefix(current.Name, "/") != originalName {
+		renameCtx, renameCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		_, err := cli.ContainerRename(renameCtx, original.ID, client.ContainerRenameOptions{NewName: originalName})
+		renameCancel()
+		if err != nil {
+			restoreErrs = append(restoreErrs, fmt.Errorf("restoring original name: %w", err))
+		}
+	}
+	if original.State.Running && (inspectErr != nil || current.State == nil || !current.State.Running) {
+		startCtx, startCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		_, err := cli.ContainerStart(startCtx, original.ID, client.ContainerStartOptions{})
+		startCancel()
+		if err != nil {
+			restoreErrs = append(restoreErrs, fmt.Errorf("restoring original running state: %w", err))
+		}
+	}
+	if original.State.Paused && (inspectErr != nil || current.State == nil || !current.State.Paused) {
+		pauseCtx, pauseCancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		_, err := cli.ContainerPause(pauseCtx, original.ID, client.ContainerPauseOptions{})
+		pauseCancel()
+		if err != nil {
+			restoreErrs = append(restoreErrs, fmt.Errorf("restoring original paused state: %w", err))
+		}
+	}
+	return errors.Join(restoreErrs...)
+}
+
+func (s *Service) recreateSelfContainer(ctx context.Context, envID string, cli *client.Client, info container.InspectResponse, req RecreateRequest) (container.CreateResponse, error) {
 	if info.Config == nil {
 		return container.CreateResponse{}, fmt.Errorf("inspected container has no config")
 	}
@@ -640,16 +991,104 @@ func (s *Service) recreateSelfContainer(ctx context.Context, envID string, cli *
 
 	dockerHost := ""
 	if envID != "" {
-		if host, err := s.pool.DockerHost(envID); err == nil && host != "" {
+		if host, err := s.pool.DockerHostContext(ctx, envID); err == nil && host != "" {
 			dockerHost = host
 		}
 	}
 
-	if _, err := docker.ScheduleDetachedSelfUpdateHelperForImage(ctx, cli, info, s.dataDir, dockerHost, selfRecreateOperation(req), targetImage); err != nil {
+	// The helper rebuilds the container from a clone of the current config, so
+	// anything the editor changed has to be handed over explicitly. Env is
+	// carried; every other field of req is still dropped by
+	// cloneSelfContainerConfig.
+	replacementEnv, removeEnv := selfRecreateEnvChanges(info, req)
+
+	if _, err := docker.ScheduleDetachedSelfUpdateHelperForImageWithEnvChanges(ctx, cli, info, s.dataDir, dockerHost, selfRecreateOperation(req), targetImage, replacementEnv, removeEnv); err != nil {
 		return container.CreateResponse{}, fmt.Errorf("scheduling self container recreate: %w", err)
 	}
 
 	return container.CreateResponse{ID: info.ID}, nil
+}
+
+// selfRecreateEnvChanges diffs the requested environment against the running
+// container's. req.Env is authoritative when present — the config editor sends
+// the whole list, and only when the operator changed it — so a key that is
+// missing from it was deleted in the editor and has to be removed rather than
+// left behind by the helper's merge.
+//
+// A nil req.Env means the request did not touch the environment at all, which
+// is not the same as "clear it": both results are nil and the helper keeps what
+// the clone already carries.
+func selfRecreateEnvChanges(info container.InspectResponse, req RecreateRequest) (map[string]string, []string) {
+	if req.Env == nil {
+		return nil, nil
+	}
+
+	desired := make(map[string]string, len(req.Env))
+	order := make([]string, 0, len(req.Env))
+	for _, entry := range req.Env {
+		key, value, ok := strings.Cut(entry, "=")
+		if !ok || key == "" {
+			continue
+		}
+		if _, seen := desired[key]; !seen {
+			order = append(order, key)
+		}
+		desired[key] = value
+	}
+
+	current := map[string]string{}
+	if info.Config != nil {
+		for _, entry := range info.Config.Env {
+			key, value, ok := strings.Cut(entry, "=")
+			if !ok || key == "" {
+				continue
+			}
+			current[key] = value
+		}
+	}
+
+	replacement := map[string]string{}
+	for _, key := range order {
+		value := desired[key]
+		if existing, ok := current[key]; ok && existing == value {
+			continue
+		}
+		replacement[key] = value
+	}
+
+	var removals []string
+	for _, entry := range currentEnvOrder(info) {
+		if _, keep := desired[entry]; !keep {
+			removals = append(removals, entry)
+		}
+	}
+
+	if len(replacement) == 0 {
+		replacement = nil
+	}
+	return replacement, removals
+}
+
+// currentEnvOrder lists the keys of the running container's environment in the
+// order Docker reports them, so removals stay deterministic.
+func currentEnvOrder(info container.InspectResponse) []string {
+	if info.Config == nil {
+		return nil
+	}
+	keys := make([]string, 0, len(info.Config.Env))
+	seen := make(map[string]struct{}, len(info.Config.Env))
+	for _, entry := range info.Config.Env {
+		key, _, ok := strings.Cut(entry, "=")
+		if !ok || key == "" {
+			continue
+		}
+		if _, dup := seen[key]; dup {
+			continue
+		}
+		seen[key] = struct{}{}
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 func selfRecreateOperation(req RecreateRequest) string {
@@ -659,7 +1098,7 @@ func selfRecreateOperation(req RecreateRequest) string {
 	return "reinstall"
 }
 
-func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *client.Client, info types.ContainerJSON, originalName string, req RecreateRequest) (container.CreateResponse, error) {
+func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *client.Client, info container.InspectResponse, originalName string, req RecreateRequest) (container.CreateResponse, error) {
 	if info.Config == nil {
 		return container.CreateResponse{}, fmt.Errorf("inspected container has no config")
 	}
@@ -670,7 +1109,7 @@ func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *clie
 	}
 
 	if req.PullImage {
-		pullResp, pullErr := cli.ImagePull(ctx, imgName, image.PullOptions{})
+		pullResp, pullErr := cli.ImagePull(ctx, imgName, client.ImagePullOptions{})
 		if pullErr != nil {
 			return container.CreateResponse{}, fmt.Errorf("pulling image for agent recreate: %w", pullErr)
 		}
@@ -686,37 +1125,39 @@ func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *clie
 	if err := ensureAgentRecreateHelperImage(ctx, cli); err != nil {
 		return container.CreateResponse{}, err
 	}
-	if err := cli.ContainerRename(ctx, info.ID, oldName); err != nil {
+	if _, err := cli.ContainerRename(ctx, info.ID, client.ContainerRenameOptions{NewName: oldName}); err != nil {
 		return container.CreateResponse{}, fmt.Errorf("renaming running agent container for recreate: %w", err)
 	}
 
-	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName)
+	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName, nil)
 	if err != nil {
-		restoreRunningAgentContainer(cli, info.ID, originalName)
+		restoreRunningAgentContainer(ctx, cli, info.ID, originalName)
 		return container.CreateResponse{}, err
 	}
 
-	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
+	newResp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{Config: cfg, HostConfig: hc, NetworkingConfig: netConfig, Name: originalName})
 	if err != nil {
-		restoreRunningAgentContainer(cli, info.ID, originalName)
+		restoreRunningAgentContainer(ctx, cli, info.ID, originalName)
 		return container.CreateResponse{}, fmt.Errorf("creating replacement agent container: %w", err)
 	}
 
 	if err := scheduleAgentRecreateHelper(ctx, cli, info, newResp.ID, originalName); err != nil {
-		removeReplacementAgentContainer(cli, newResp.ID)
-		restoreRunningAgentContainer(cli, info.ID, originalName)
+		removeReplacementAgentContainer(ctx, cli, newResp.ID)
+		restoreRunningAgentContainer(ctx, cli, info.ID, originalName)
 		return container.CreateResponse{}, err
 	}
 
-	return newResp, nil
+	return container.CreateResponse{ID: newResp.ID, Warnings: newResp.Warnings}, nil
 }
 
 func ensureAgentRecreateHelperImage(ctx context.Context, cli *client.Client) error {
-	if _, _, err := cli.ImageInspectWithRaw(ctx, agentRecreateHelperImage); err == nil {
+	if _, err := cli.ImageInspect(ctx, agentRecreateHelperImage); err == nil {
 		return nil
+	} else if !cerrdefs.IsNotFound(err) {
+		return fmt.Errorf("inspecting agent recreate helper image: %w", err)
 	}
 
-	pullResp, err := cli.ImagePull(ctx, agentRecreateHelperImage, image.PullOptions{})
+	pullResp, err := cli.ImagePull(ctx, agentRecreateHelperImage, client.ImagePullOptions{})
 	if err != nil {
 		return fmt.Errorf("pulling agent recreate helper image: %w", err)
 	}
@@ -729,14 +1170,14 @@ func ensureAgentRecreateHelperImage(ctx context.Context, cli *client.Client) err
 	return nil
 }
 
-func scheduleAgentRecreateHelper(ctx context.Context, cli *client.Client, info types.ContainerJSON, newID, originalName string) error {
+func scheduleAgentRecreateHelper(ctx context.Context, cli *client.Client, info container.InspectResponse, newID, originalName string) error {
 	socketMount, err := agentDockerSocketMount(info)
 	if err != nil {
 		return err
 	}
 
 	helperName := "mcharbor-agent-recreate-helper-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-	helperResp, err := cli.ContainerCreate(ctx, &container.Config{
+	helperResp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{Config: &container.Config{
 		Image: agentRecreateHelperImage,
 		Cmd:   []string{"sh", "-lc", agentRecreateHelperScript()},
 		Env: []string{
@@ -747,16 +1188,16 @@ func scheduleAgentRecreateHelper(ctx context.Context, cli *client.Client, info t
 		Labels: map[string]string{
 			"com.mcharbor.helper": "agent-recreate",
 		},
-	}, &container.HostConfig{
+	}, HostConfig: &container.HostConfig{
 		AutoRemove: true,
 		Mounts:     []mount.Mount{socketMount},
-	}, nil, nil, helperName)
+	}, Name: helperName})
 	if err != nil {
 		return fmt.Errorf("creating agent recreate helper container: %w", err)
 	}
 
-	if err := cli.ContainerStart(ctx, helperResp.ID, container.StartOptions{}); err != nil {
-		if rmErr := cli.ContainerRemove(ctx, helperResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+	if _, err := cli.ContainerStart(ctx, helperResp.ID, client.ContainerStartOptions{}); err != nil {
+		if _, rmErr := cli.ContainerRemove(ctx, helperResp.ID, client.ContainerRemoveOptions{Force: true}); rmErr != nil {
 			slog.Warn("containers: failed to clean up agent recreate helper after start failure", "error", rmErr, "container", helperResp.ID)
 		}
 		return fmt.Errorf("starting agent recreate helper container: %w", err)
@@ -765,7 +1206,7 @@ func scheduleAgentRecreateHelper(ctx context.Context, cli *client.Client, info t
 	return nil
 }
 
-func agentDockerSocketMount(info types.ContainerJSON) (mount.Mount, error) {
+func agentDockerSocketMount(info container.InspectResponse) (mount.Mount, error) {
 	for _, mp := range info.Mounts {
 		if path.Clean(mp.Destination) != "/var/run/docker.sock" {
 			continue
@@ -821,23 +1262,23 @@ docker start "$OLD_ID"
 exit 1`
 }
 
-func removeReplacementAgentContainer(cli *client.Client, id string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func removeReplacementAgentContainer(parent context.Context, cli *client.Client, id string) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), docker.CallTimeout)
 	defer cancel()
-	if err := cli.ContainerRemove(ctx, id, container.RemoveOptions{Force: true}); err != nil {
+	if _, err := cli.ContainerRemove(ctx, id, client.ContainerRemoveOptions{Force: true}); err != nil {
 		slog.Warn("containers: failed to clean up new agent container after helper scheduling failure", "error", err, "container", id)
 	}
 }
 
-func restoreRunningAgentContainer(cli *client.Client, id, originalName string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func restoreRunningAgentContainer(parent context.Context, cli *client.Client, id, originalName string) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), docker.CallTimeout)
 	defer cancel()
-	if err := cli.ContainerRename(ctx, id, originalName); err != nil {
+	if _, err := cli.ContainerRename(ctx, id, client.ContainerRenameOptions{NewName: originalName}); err != nil {
 		slog.Warn("containers: failed to rename old agent container back", "error", err, "container", id)
 	}
 }
 
-func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, imgName string) (*container.Config, *container.HostConfig, *networkTypes.NetworkingConfig, error) {
+func replacementContainerSpec(info container.InspectResponse, req RecreateRequest, imgName string, mounts *[]MountEdit) (*container.Config, *container.HostConfig, *networkTypes.NetworkingConfig, error) {
 	if info.Config == nil {
 		return nil, nil, nil, fmt.Errorf("inspected container has no config")
 	}
@@ -845,7 +1286,9 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 	cfg := *info.Config
 	cfg.Image = imgName
 
-	// Apply Config overrides from request
+	// Apply Config overrides from request. req.Env has already been resolved
+	// by Recreate — this is a free function with no service to resolve with,
+	// and resolution belongs next to the Docker call anyway.
 	if req.Env != nil {
 		cfg.Env = req.Env
 	}
@@ -889,9 +1332,13 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 		}
 	}
 	if req.ExposedPorts != nil {
-		cfg.ExposedPorts = make(nat.PortSet)
+		cfg.ExposedPorts = make(networkTypes.PortSet)
 		for k, v := range req.ExposedPorts {
-			cfg.ExposedPorts[nat.Port(k)] = v
+			port, err := networkTypes.ParsePort(k)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("exposed port %q: %w", k, err)
+			}
+			cfg.ExposedPorts[port] = v
 		}
 	}
 
@@ -903,13 +1350,24 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 
 	// Apply HostConfig overrides from request
 	if req.PortBindings != nil {
-		portMap := make(nat.PortMap)
+		portMap := make(networkTypes.PortMap)
 		for port, bindings := range req.PortBindings {
-			pb := make([]nat.PortBinding, len(bindings))
-			for i, b := range bindings {
-				pb[i] = nat.PortBinding{HostIP: b.HostIP, HostPort: b.HostPort}
+			key, err := networkTypes.ParsePort(port)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("port binding %q: %w", port, err)
 			}
-			portMap[nat.Port(port)] = pb
+			pb := make([]networkTypes.PortBinding, len(bindings))
+			for i, b := range bindings {
+				var hostIP netip.Addr
+				if b.HostIP != "" {
+					hostIP, err = netip.ParseAddr(b.HostIP)
+					if err != nil {
+						return nil, nil, nil, fmt.Errorf("port binding %q host IP %q: %w", port, b.HostIP, err)
+					}
+				}
+				pb[i] = networkTypes.PortBinding{HostIP: hostIP, HostPort: b.HostPort}
+			}
+			portMap[key] = pb
 		}
 		hc.PortBindings = portMap
 	}
@@ -923,7 +1381,15 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 		hc.ReadonlyRootfs = *req.ReadonlyRootfs
 	}
 	if req.Dns != nil {
-		hc.DNS = req.Dns
+		dns := make([]netip.Addr, 0, len(req.Dns))
+		for _, server := range req.Dns {
+			addr, err := netip.ParseAddr(server)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("dns server %q: %w", server, err)
+			}
+			dns = append(dns, addr)
+		}
+		hc.DNS = dns
 	}
 	if req.DnsSearch != nil {
 		hc.DNSSearch = req.DnsSearch
@@ -976,17 +1442,44 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 	if req.Memory != nil {
 		hc.Memory = *req.Memory
 	}
+	if req.MemorySwap != nil {
+		hc.MemorySwap = *req.MemorySwap
+	}
+	if req.MemoryReservation != nil {
+		hc.MemoryReservation = *req.MemoryReservation
+	}
 	if req.NanoCPUs != nil {
 		hc.NanoCPUs = *req.NanoCPUs
 	}
+	if req.CPUShares != nil {
+		hc.CPUShares = *req.CPUShares
+	}
+	if req.CPUPeriod != nil {
+		hc.CPUPeriod = *req.CPUPeriod
+	}
+	if req.CPUQuota != nil {
+		hc.CPUQuota = *req.CPUQuota
+	}
+	if req.CpusetCpus != nil {
+		hc.CpusetCpus = *req.CpusetCpus
+	}
+	if req.CpusetMems != nil {
+		hc.CpusetMems = *req.CpusetMems
+	}
+	if req.BlkioWeight != nil {
+		hc.BlkioWeight = *req.BlkioWeight
+	}
 	if req.RestartPolicy != nil {
 		hc.RestartPolicy = *req.RestartPolicy
+	}
+	if mounts != nil {
+		applyMountEdits(hc, *mounts)
 	}
 
 	return &cfg, hc, replacementNetworkingConfig(info), nil
 }
 
-func replacementNetworkingConfig(info types.ContainerJSON) *networkTypes.NetworkingConfig {
+func replacementNetworkingConfig(info container.InspectResponse) *networkTypes.NetworkingConfig {
 	if info.NetworkSettings == nil || len(info.NetworkSettings.Networks) == 0 {
 		return nil
 	}
@@ -1015,28 +1508,31 @@ func replacementNetworkingConfig(info types.ContainerJSON) *networkTypes.Network
 
 // NetworkConnect connects or reconnects a container to a Docker network.
 func (s *Service) NetworkConnect(ctx context.Context, envID, id string, req NetworkConnectRequest) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	settings := endpointSettingsFromConnectRequest(req)
+	settings, err := endpointSettingsFromConnectRequest(req)
+	if err != nil {
+		return err
+	}
 	if req.Reconnect {
 		previous, hasPrevious, err := currentNetworkEndpointSettings(ctx, cli, id, req.Network)
 		if err != nil {
 			return err
 		}
-		if err := cli.NetworkDisconnect(ctx, req.Network, id, true); err != nil {
+		if _, err := cli.NetworkDisconnect(ctx, req.Network, client.NetworkDisconnectOptions{Container: id, Force: true}); err != nil {
 			return fmt.Errorf("disconnecting container %s from network %s: %w", id, req.Network, err)
 		}
-		if err := cli.NetworkConnect(ctx, req.Network, id, settings); err != nil {
+		if _, err := cli.NetworkConnect(ctx, req.Network, client.NetworkConnectOptions{Container: id, EndpointConfig: settings}); err != nil {
 			if hasPrevious {
-				if restoreErr := cli.NetworkConnect(ctx, req.Network, id, previous); restoreErr != nil {
+				if _, restoreErr := cli.NetworkConnect(ctx, req.Network, client.NetworkConnectOptions{Container: id, EndpointConfig: previous}); restoreErr != nil {
 					return fmt.Errorf("connecting container %s to network %s: %w; restoring previous endpoint settings: %w", id, req.Network, err, restoreErr)
 				}
 			}
@@ -1045,35 +1541,61 @@ func (s *Service) NetworkConnect(ctx context.Context, envID, id string, req Netw
 		return nil
 	}
 
-	if err := cli.NetworkConnect(ctx, req.Network, id, settings); err != nil {
+	if _, err := cli.NetworkConnect(ctx, req.Network, client.NetworkConnectOptions{Container: id, EndpointConfig: settings}); err != nil {
 		return fmt.Errorf("connecting container %s to network %s: %w", id, req.Network, err)
 	}
 	return nil
 }
 
-func endpointSettingsFromConnectRequest(req NetworkConnectRequest) *networkTypes.EndpointSettings {
+func endpointSettingsFromConnectRequest(req NetworkConnectRequest) (*networkTypes.EndpointSettings, error) {
 	settings := &networkTypes.EndpointSettings{
-		Aliases:    cleanStringSlice(req.Aliases),
-		MacAddress: strings.TrimSpace(req.MacAddress),
+		Aliases: cleanStringSlice(req.Aliases),
+	}
+	if mac := strings.TrimSpace(req.MacAddress); mac != "" {
+		hw, err := net.ParseMAC(mac)
+		if err != nil {
+			return nil, fmt.Errorf("mac address %q: %w", mac, err)
+		}
+		settings.MacAddress = networkTypes.HardwareAddr(hw)
 	}
 
-	ipv4 := strings.TrimSpace(req.IPv4Address)
-	ipv6 := strings.TrimSpace(req.IPv6Address)
-	if ipv4 != "" || ipv6 != "" {
+	ipv4, err := optionalAddr(req.IPv4Address)
+	if err != nil {
+		return nil, fmt.Errorf("ipv4 address: %w", err)
+	}
+	ipv6, err := optionalAddr(req.IPv6Address)
+	if err != nil {
+		return nil, fmt.Errorf("ipv6 address: %w", err)
+	}
+	if ipv4.IsValid() || ipv6.IsValid() {
 		settings.IPAMConfig = &networkTypes.EndpointIPAMConfig{
 			IPv4Address: ipv4,
 			IPv6Address: ipv6,
 		}
 	}
 
-	return settings
+	return settings, nil
+}
+
+// optionalAddr parses an operator-entered IP, where blank means "let the daemon pick".
+func optionalAddr(raw string) (netip.Addr, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return netip.Addr{}, nil
+	}
+	addr, err := netip.ParseAddr(raw)
+	if err != nil {
+		return netip.Addr{}, fmt.Errorf("%q: %w", raw, err)
+	}
+	return addr, nil
 }
 
 func currentNetworkEndpointSettings(ctx context.Context, cli *client.Client, id, networkName string) (*networkTypes.EndpointSettings, bool, error) {
-	info, err := cli.ContainerInspect(ctx, id)
+	infoRes, err := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
 	if err != nil {
 		return nil, false, fmt.Errorf("inspecting container network settings: %w", err)
 	}
+	info := infoRes.Container
 	if info.NetworkSettings == nil {
 		return nil, false, nil
 	}
@@ -1113,26 +1635,27 @@ func cleanStringSlice(values []string) []string {
 
 // NetworkDisconnect disconnects a container from a Docker network.
 func (s *Service) NetworkDisconnect(ctx context.Context, envID, id, network string, force bool) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
-	return cli.NetworkDisconnect(ctx, network, id, force)
+	_, err = cli.NetworkDisconnect(ctx, network, client.NetworkDisconnectOptions{Container: id, Force: force})
+	return err
 }
 
 // Logs returns container logs.
 func (s *Service) Logs(ctx context.Context, envID, id string, query LogsQuery) (string, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return "", err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	stdout := query.Stdout
@@ -1147,7 +1670,7 @@ func (s *Service) Logs(ctx context.Context, envID, id string, query LogsQuery) (
 		tail = "100"
 	}
 
-	opts := container.LogsOptions{
+	opts := client.ContainerLogsOptions{
 		ShowStdout: stdout,
 		ShowStderr: stderr,
 		Tail:       tail,
@@ -1162,15 +1685,24 @@ func (s *Service) Logs(ctx context.Context, envID, id string, query LogsQuery) (
 	if err != nil {
 		return "", fmt.Errorf("fetching logs for %s: %w", id, err)
 	}
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
+	const maxContainerLogsBytes = 16 * 1024 * 1024
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, reader); err != nil {
+	if _, err := io.Copy(&buf, io.LimitReader(reader, maxContainerLogsBytes+1)); err != nil {
 		return "", fmt.Errorf("reading logs: %w", err)
+	}
+	if buf.Len() > maxContainerLogsBytes {
+		buf.Truncate(maxContainerLogsBytes)
 	}
 
 	// Demux if container is not TTY
-	info, inspectErr := cli.ContainerInspect(ctx, id)
+	infoRes, inspectErr := cli.ContainerInspect(ctx, id, client.ContainerInspectOptions{})
+	info := infoRes.Container
 	if inspectErr == nil && !info.Config.Tty {
 		demuxed := docker.DemuxDockerStream(buf.Bytes())
 		return demuxed.Stdout + demuxed.Stderr, nil
@@ -1181,7 +1713,7 @@ func (s *Service) Logs(ctx context.Context, envID, id string, query LogsQuery) (
 
 // Stats returns container resource usage statistics.
 func (s *Service) Stats(ctx context.Context, envID, id string, stream bool) (io.ReadCloser, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
@@ -1189,46 +1721,51 @@ func (s *Service) Stats(ctx context.Context, envID, id string, stream bool) (io.
 	// For non-streaming (one-shot) stats, apply a deadline so the call
 	// doesn't hang indefinitely. Streaming callers manage their own
 	// context lifecycle.
+	var cancel context.CancelFunc
 	if !stream {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
+		ctx, cancel = context.WithTimeout(ctx, docker.CallTimeout)
 	}
 
-	resp, err := cli.ContainerStats(ctx, id, stream)
+	resp, err := cli.ContainerStats(ctx, id, client.ContainerStatsOptions{Stream: stream, IncludePreviousSample: true})
 	if err != nil {
+		if cancel != nil {
+			cancel()
+		}
 		return nil, fmt.Errorf("fetching stats for %s: %w", id, err)
+	}
+	if cancel != nil {
+		return &cancelReadCloser{ReadCloser: resp.Body, cancel: cancel}, nil
 	}
 
 	return resp.Body, nil
 }
 
 // Top returns running processes in a container.
-func (s *Service) Top(ctx context.Context, envID, id string) (container.ContainerTopOKBody, error) {
-	cli, err := s.getClient(envID)
+func (s *Service) Top(ctx context.Context, envID, id string) (container.TopResponse, error) {
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
-		return container.ContainerTopOKBody{}, err
+		return container.TopResponse{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	top, err := cli.ContainerTop(ctx, id, nil)
+	top, err := cli.ContainerTop(ctx, id, client.ContainerTopOptions{})
 	if err != nil {
-		return container.ContainerTopOKBody{}, fmt.Errorf("getting top for %s: %w", id, err)
+		return container.TopResponse{}, fmt.Errorf("getting top for %s: %w", id, err)
 	}
 
-	return top, nil
+	return container.TopResponse{Processes: top.Processes, Titles: top.Titles}, nil
 }
 
 // DetectShells probes a container for available shells.
 func (s *Service) DetectShells(ctx context.Context, envID, id string) ([]ShellResult, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	shells := []string{"/bin/bash", "/bin/sh", "/bin/zsh"}
@@ -1247,18 +1784,18 @@ func (s *Service) DetectShells(ctx context.Context, envID, id string) ([]ShellRe
 
 // probeShell tests if a shell is available in the container by running a quick exec.
 func (s *Service) probeShell(ctx context.Context, cli *client.Client, containerID, shell string) bool {
-	execConfig := container.ExecOptions{
+	execConfig := client.ExecCreateOptions{
 		Cmd:          []string{shell, "-c", "echo ok"},
 		AttachStdout: true,
 		AttachStderr: true,
 	}
 
-	execResp, err := cli.ContainerExecCreate(ctx, containerID, execConfig)
+	execResp, err := cli.ExecCreate(ctx, containerID, execConfig)
 	if err != nil {
 		return false
 	}
 
-	hijack, err := cli.ContainerExecAttach(ctx, execResp.ID, container.ExecStartOptions{})
+	hijack, err := cli.ExecAttach(ctx, execResp.ID, client.ExecAttachOptions{})
 	if err != nil {
 		return false
 	}
@@ -1271,7 +1808,9 @@ func (s *Service) probeShell(ctx context.Context, cli *client.Client, containerI
 	done := make(chan struct{})
 	var output bytes.Buffer
 	go func() {
-		io.Copy(&output, hijack.Reader)
+		if _, err := io.Copy(&output, hijack.Reader); err != nil {
+			slog.Debug("containers: exec output stream ended with error", "error", err)
+		}
 		close(done)
 	}()
 
@@ -1282,7 +1821,7 @@ func (s *Service) probeShell(ctx context.Context, cli *client.Client, containerI
 	}
 
 	// Check exec exit code
-	inspect, err := cli.ContainerExecInspect(ctx, execResp.ID)
+	inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
 	if err != nil {
 		return false
 	}
@@ -1295,12 +1834,12 @@ func (s *Service) probeShell(ctx context.Context, cli *client.Client, containerI
 // Agent environments use the agent exec protocol (ContainerExecAttach can't
 // work through agent transport, and CopyFromContainer is too slow for large dirs).
 func (s *Service) ListFiles(ctx context.Context, envID, id, dirPath string) ([]FileEntry, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	if s.pool.IsAgentEnv(envID) {
+	if s.pool.IsAgentEnvContext(ctx, envID) {
 		// Agent: use detached exec + CopyFromContainer for the output file.
 		// This works through standard HTTP (RoundTrip) without requiring
 		// the agent exec protocol.
@@ -1324,7 +1863,7 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
@@ -1332,7 +1871,7 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 	tmpFile := fmt.Sprintf("/tmp/.mcharbor-ls-%d", time.Now().UnixNano())
 
 	// Create exec that writes ls output to a temp file
-	execResp, err := cli.ContainerExecCreate(ctx, id, container.ExecOptions{
+	execResp, err := cli.ExecCreate(ctx, id, client.ExecCreateOptions{
 		Cmd: []string{"/bin/sh", "-c", fmt.Sprintf("ls -la %s > %s 2>&1", shellQuote(dirPath), tmpFile)},
 	})
 	if err != nil {
@@ -1340,13 +1879,13 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 	}
 
 	// Start exec detached — standard POST through RoundTrip
-	if err := cli.ContainerExecStart(ctx, execResp.ID, container.ExecStartOptions{Detach: true}); err != nil {
+	if _, err := cli.ExecStart(ctx, execResp.ID, client.ExecStartOptions{Detach: true}); err != nil {
 		return nil, fmt.Errorf("exec start: %w", err)
 	}
 
 	// Poll until exec finishes
 	for {
-		inspect, err := cli.ContainerExecInspect(ctx, execResp.ID)
+		inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("exec inspect: %w", err)
 		}
@@ -1361,11 +1900,16 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 	}
 
 	// Read the output file via CopyFromContainer (single small file)
-	reader, _, err := cli.CopyFromContainer(ctx, id, tmpFile)
+	readerRes, err := cli.CopyFromContainer(ctx, id, client.CopyFromContainerOptions{SourcePath: tmpFile})
 	if err != nil {
 		return nil, fmt.Errorf("copy output file: %w", err)
 	}
-	defer reader.Close()
+	reader := readerRes.Content
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	// Extract the file content from the tar
 	tr := tar.NewReader(reader)
@@ -1383,11 +1927,13 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 	go func() {
 		cleanCtx, cleanCancel := context.WithTimeout(cleanupCtxBase, 5*time.Second)
 		defer cleanCancel()
-		cleanExec, cerr := cli.ContainerExecCreate(cleanCtx, id, container.ExecOptions{
+		cleanExec, cerr := cli.ExecCreate(cleanCtx, id, client.ExecCreateOptions{
 			Cmd: []string{"/bin/sh", "-c", "rm -f " + tmpFile},
 		})
 		if cerr == nil {
-			cli.ContainerExecStart(cleanCtx, cleanExec.ID, container.ExecStartOptions{Detach: true})
+			if _, err := cli.ExecStart(cleanCtx, cleanExec.ID, client.ExecStartOptions{Detach: true}); err != nil {
+				slog.Warn("containers: temp file cleanup exec failed", "error", err, "container", id)
+			}
 		}
 	}()
 
@@ -1407,7 +1953,7 @@ func (s *Service) listFilesViaExec(ctx context.Context, cli *client.Client, id, 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	execResp, err := cli.ContainerExecCreate(ctx, id, container.ExecOptions{
+	execResp, err := cli.ExecCreate(ctx, id, client.ExecCreateOptions{
 		Cmd:          []string{"/bin/sh", "-c", "ls -la " + shellQuote(dirPath)},
 		AttachStdout: true,
 		AttachStderr: true,
@@ -1416,7 +1962,7 @@ func (s *Service) listFilesViaExec(ctx context.Context, cli *client.Client, id, 
 		return nil, err
 	}
 
-	hijack, err := cli.ContainerExecAttach(ctx, execResp.ID, container.ExecStartOptions{})
+	hijack, err := cli.ExecAttach(ctx, execResp.ID, client.ExecAttachOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1425,7 +1971,9 @@ func (s *Service) listFilesViaExec(ctx context.Context, cli *client.Client, id, 
 	var stdout, stderr bytes.Buffer
 	done := make(chan struct{})
 	go func() {
-		stdcopy.StdCopy(&stdout, &stderr, hijack.Reader)
+		if _, err := stdcopy.StdCopy(&stdout, &stderr, hijack.Reader); err != nil {
+			slog.Debug("containers: exec output stream ended with error", "error", err)
+		}
 		close(done)
 	}()
 
@@ -1436,7 +1984,7 @@ func (s *Service) listFilesViaExec(ctx context.Context, cli *client.Client, id, 
 	}
 
 	// Check exit code
-	inspect, err := cli.ContainerExecInspect(ctx, execResp.ID)
+	inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -1465,7 +2013,10 @@ func parseLsOutput(output, dirPath string) []FileEntry {
 		}
 
 		mode := fields[0]
-		size, _ := strconv.ParseInt(fields[4], 10, 64) // safe: defaults to 0 on parse failure
+		size, parseErr := strconv.ParseInt(fields[4], 10, 64)
+		if parseErr != nil {
+			size = 0
+		}
 
 		// Name starts at field 8 (after: mode, links, owner, group, size, month, day, time/year)
 		nameStr := strings.Join(fields[8:], " ")
@@ -1512,10 +2063,10 @@ func shellQuote(s string) string {
 
 // listFilesViaCopy uses CopyFromContainer as fallback for containers without sh.
 func (s *Service) listFilesViaCopy(ctx context.Context, cli *client.Client, id, dirPath string) ([]FileEntry, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	reader, _, err := cli.CopyFromContainer(ctx, id, dirPath)
+	readerRes, err := cli.CopyFromContainer(ctx, id, client.CopyFromContainerOptions{SourcePath: dirPath})
 	if err != nil {
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "no such file or directory") ||
@@ -1525,7 +2076,12 @@ func (s *Service) listFilesViaCopy(ctx context.Context, cli *client.Client, id, 
 		}
 		return nil, fmt.Errorf("listing files in %s for %s: %w", dirPath, id, err)
 	}
-	defer reader.Close()
+	reader := readerRes.Content
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	tr := tar.NewReader(reader)
 	entries := make([]FileEntry, 0, 64)
@@ -1591,10 +2147,10 @@ func (s *Service) DetectServices(ctx context.Context, envID, id string) (Contain
 	var output string
 	var err error
 
-	if s.pool.IsAgentEnv(envID) {
+	if s.pool.IsAgentEnvContext(ctx, envID) {
 		output, err = s.execViaDetached(ctx, envID, id, cmd)
 	} else {
-		cli, cErr := s.getClient(envID)
+		cli, cErr := s.getClient(ctx, envID)
 		if cErr != nil {
 			return empty, cErr
 		}
@@ -1612,7 +2168,7 @@ func (s *Service) execViaAttach(ctx context.Context, cli *client.Client, id, cmd
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	execResp, err := cli.ContainerExecCreate(ctx, id, container.ExecOptions{
+	execResp, err := cli.ExecCreate(ctx, id, client.ExecCreateOptions{
 		Cmd:          []string{"/bin/sh", "-c", cmd},
 		AttachStdout: true,
 		AttachStderr: true,
@@ -1621,7 +2177,7 @@ func (s *Service) execViaAttach(ctx context.Context, cli *client.Client, id, cmd
 		return "", fmt.Errorf("exec create: %w", err)
 	}
 
-	hijack, err := cli.ContainerExecAttach(ctx, execResp.ID, container.ExecStartOptions{})
+	hijack, err := cli.ExecAttach(ctx, execResp.ID, client.ExecAttachOptions{})
 	if err != nil {
 		return "", fmt.Errorf("exec attach: %w", err)
 	}
@@ -1630,7 +2186,9 @@ func (s *Service) execViaAttach(ctx context.Context, cli *client.Client, id, cmd
 	var stdout, stderr bytes.Buffer
 	done := make(chan struct{})
 	go func() {
-		stdcopy.StdCopy(&stdout, &stderr, hijack.Reader)
+		if _, err := stdcopy.StdCopy(&stdout, &stderr, hijack.Reader); err != nil {
+			slog.Debug("containers: exec output stream ended with error", "error", err)
+		}
 		close(done)
 	}()
 
@@ -1648,26 +2206,26 @@ func (s *Service) execViaDetached(ctx context.Context, envID, id, cmd string) (s
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return "", err
 	}
 
 	tmpFile := fmt.Sprintf("/tmp/.mcharbor-svc-%d", time.Now().UnixNano())
 
-	execResp, err := cli.ContainerExecCreate(ctx, id, container.ExecOptions{
+	execResp, err := cli.ExecCreate(ctx, id, client.ExecCreateOptions{
 		Cmd: []string{"/bin/sh", "-c", fmt.Sprintf("%s > %s 2>&1", cmd, tmpFile)},
 	})
 	if err != nil {
 		return "", fmt.Errorf("exec create: %w", err)
 	}
 
-	if err := cli.ContainerExecStart(ctx, execResp.ID, container.ExecStartOptions{Detach: true}); err != nil {
+	if _, err := cli.ExecStart(ctx, execResp.ID, client.ExecStartOptions{Detach: true}); err != nil {
 		return "", fmt.Errorf("exec start: %w", err)
 	}
 
 	for {
-		inspect, err := cli.ContainerExecInspect(ctx, execResp.ID)
+		inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
 		if err != nil {
 			return "", fmt.Errorf("exec inspect: %w", err)
 		}
@@ -1681,11 +2239,16 @@ func (s *Service) execViaDetached(ctx context.Context, envID, id, cmd string) (s
 		}
 	}
 
-	reader, _, err := cli.CopyFromContainer(ctx, id, tmpFile)
+	readerRes, err := cli.CopyFromContainer(ctx, id, client.CopyFromContainerOptions{SourcePath: tmpFile})
 	if err != nil {
 		return "", fmt.Errorf("copy output file: %w", err)
 	}
-	defer reader.Close()
+	reader := readerRes.Content
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	tr := tar.NewReader(reader)
 	if _, err = tr.Next(); err != nil {
@@ -1700,11 +2263,13 @@ func (s *Service) execViaDetached(ctx context.Context, envID, id, cmd string) (s
 	go func() {
 		cleanCtx, cleanCancel := context.WithTimeout(cleanupCtxBase, 5*time.Second)
 		defer cleanCancel()
-		cleanExec, cerr := cli.ContainerExecCreate(cleanCtx, id, container.ExecOptions{
+		cleanExec, cerr := cli.ExecCreate(cleanCtx, id, client.ExecCreateOptions{
 			Cmd: []string{"/bin/sh", "-c", "rm -f " + tmpFile},
 		})
 		if cerr == nil {
-			cli.ContainerExecStart(cleanCtx, cleanExec.ID, container.ExecStartOptions{Detach: true})
+			if _, err := cli.ExecStart(cleanCtx, cleanExec.ID, client.ExecStartOptions{Detach: true}); err != nil {
+				slog.Warn("containers: temp file cleanup exec failed", "error", err, "container", id)
+			}
 		}
 	}()
 
@@ -1887,11 +2452,12 @@ func parseSupervisordServices(output string) []ContainerService {
 		state := strings.ToLower(fields[1])
 
 		status := state
-		if state == "running" {
+		switch state {
+		case "running":
 			status = "running"
-		} else if state == "stopped" || state == "exited" {
+		case "stopped", "exited":
 			status = "stopped"
-		} else if state == "fatal" || state == "backoff" {
+		case "fatal", "backoff":
 			status = "failed"
 		}
 
@@ -1905,16 +2471,32 @@ func parseSupervisordServices(output string) []ContainerService {
 
 // BulkStats returns a snapshot of CPU/memory/network/block stats for all running containers.
 func (s *Service) BulkStats(ctx context.Context, envID string) ([]BulkContainerMetric, error) {
-	cli, err := s.getClient(envID)
+	if s.stats != nil {
+		snap, err := s.stats.Snapshot(ctx, envID)
+		if err != nil {
+			return nil, fmt.Errorf("reading live stats: %w", err)
+		}
+		out := make([]BulkContainerMetric, len(snap.Samples))
+		for i, m := range snap.Samples {
+			out[i] = BulkContainerMetric{
+				ID: m.ID, Name: m.Name, CPUPercent: m.CPUPercent,
+				MemUsage: m.MemUsage, MemLimit: m.MemLimit, MemPercent: m.MemPercent,
+				NetRx: m.NetRx, NetTx: m.NetTx, BlockRead: m.BlockRead, BlockWrite: m.BlockWrite, PIDs: m.PIDs,
+			}
+		}
+		return out, nil
+	}
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	// List running containers
-	running, err := cli.ContainerList(ctx, container.ListOptions{All: false})
+	runningRes, err := cli.ContainerList(ctx, client.ContainerListOptions{All: false})
+	running := runningRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing running containers: %w", err)
 	}
@@ -1931,12 +2513,16 @@ func (s *Service) BulkStats(ctx context.Context, envID string) ([]BulkContainerM
 	ch := make(chan statsResult, len(running))
 	for _, c := range running {
 		go func(id, name string) {
-			resp, sErr := cli.ContainerStats(ctx, id, false)
+			resp, sErr := cli.ContainerStats(ctx, id, client.ContainerStatsOptions{Stream: false, IncludePreviousSample: true})
 			if sErr != nil {
 				ch <- statsResult{err: sErr}
 				return
 			}
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					slog.Warn("closing resp failed", "error", err)
+				}
+			}()
 
 			data, rErr := io.ReadAll(resp.Body)
 			if rErr != nil {
@@ -2055,27 +2641,28 @@ func parseStatsJSON(data []byte, id, name string) BulkContainerMetric {
 	}
 }
 
-// PruneContainers removes stopped containers.
+// Prune removes every stopped container in envID and returns the daemon's report.
 func (s *Service) Prune(ctx context.Context, envID string) (container.PruneReport, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return container.PruneReport{}, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true, Size: true})
+	containersRes, err := cli.ContainerList(ctx, client.ContainerListOptions{All: true, Size: true})
+	containers := containersRes.Items
 	if err != nil {
 		return container.PruneReport{}, fmt.Errorf("listing containers for prune: %w", err)
 	}
 
 	report := container.PruneReport{}
 	for _, c := range containers {
-		if c.State == "running" || docker.IsProtectedContainer(c.Names, c.Image, c.Labels) {
+		if c.State == "running" || docker.ClassifySummary(c.ID, c.Names, c.Image, c.Labels) != docker.SelfTargetNone {
 			continue
 		}
-		if err := cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{}); err != nil {
+		if _, err := cli.ContainerRemove(ctx, c.ID, client.ContainerRemoveOptions{}); err != nil {
 			return container.PruneReport{}, fmt.Errorf("pruning container %s: %w", c.ID, err)
 		}
 		report.ContainersDeleted = append(report.ContainersDeleted, c.ID)
@@ -2090,10 +2677,10 @@ func (s *Service) Prune(ctx context.Context, envID string) (container.PruneRepor
 // Returns stdout output and any error.
 func (s *Service) execCommand(ctx context.Context, envID, id string, cmd []string) (string, error) {
 	shellCmd := strings.Join(cmd, " ")
-	if s.pool.IsAgentEnv(envID) {
+	if s.pool.IsAgentEnvContext(ctx, envID) {
 		return s.execViaDetached(ctx, envID, id, shellCmd)
 	}
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return "", err
 	}
@@ -2120,24 +2707,30 @@ func (s *Service) copyContentToContainer(ctx context.Context, cli *client.Client
 		return fmt.Errorf("closing tar: %w", err)
 	}
 
-	return cli.CopyToContainer(ctx, id, destDir, &buf, container.CopyToContainerOptions{})
+	_, err := cli.CopyToContainer(ctx, id, client.CopyToContainerOptions{DestinationPath: destDir, Content: &buf})
+	return err
 }
 
 // FileContent reads a file from a container and returns its content.
 func (s *Service) FileContent(ctx context.Context, envID, id, filePath string) ([]byte, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	reader, _, err := cli.CopyFromContainer(ctx, id, filePath)
+	readerRes, err := cli.CopyFromContainer(ctx, id, client.CopyFromContainerOptions{SourcePath: filePath})
 	if err != nil {
 		return nil, fmt.Errorf("copying file from container: %w", err)
 	}
-	defer reader.Close()
+	reader := readerRes.Content
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	tr := tar.NewReader(reader)
 	if _, err := tr.Next(); err != nil {
@@ -2159,12 +2752,12 @@ func (s *Service) FileContent(ctx context.Context, envID, id, filePath string) (
 
 // SaveFileContent writes content to a file inside a container.
 func (s *Service) SaveFileContent(ctx context.Context, envID, id, filePath string, content []byte) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
@@ -2195,7 +2788,7 @@ type UploadFileItem struct {
 
 // UploadFiles uploads a set of files and directories into a container directory.
 func (s *Service) UploadFiles(ctx context.Context, envID, id, destDir string, files []UploadFileItem, directories []string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
@@ -2214,7 +2807,7 @@ func (s *Service) UploadFiles(ctx context.Context, envID, id, destDir string, fi
 		writeDone <- writeUploadTar(writer, files, directories)
 	}()
 
-	copyErr := cli.CopyToContainer(ctx, id, destDir, reader, container.CopyToContainerOptions{})
+	_, copyErr := cli.CopyToContainer(ctx, id, client.CopyToContainerOptions{DestinationPath: destDir, Content: reader})
 	if copyErr != nil {
 		if err := reader.CloseWithError(copyErr); err != nil {
 			slog.Warn("containers: close upload pipe reader failed", "error", err)
@@ -2325,7 +2918,7 @@ func writeUploadDirectory(tw *tar.Writer, dir string, written map[string]bool) e
 
 // CreateDirectory creates a directory (including parents) inside a container.
 func (s *Service) CreateDirectory(ctx context.Context, envID, id, dirPath string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
@@ -2338,7 +2931,7 @@ func (s *Service) CreateDirectory(ctx context.Context, envID, id, dirPath string
 
 // RenameFile renames or moves a file/directory inside a container.
 func (s *Service) RenameFile(ctx context.Context, envID, id, oldPath, newPath string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
@@ -2351,7 +2944,7 @@ func (s *Service) RenameFile(ctx context.Context, envID, id, oldPath, newPath st
 
 // ChangePermissions changes the file mode of a path inside a container.
 func (s *Service) ChangePermissions(ctx context.Context, envID, id, filePath, mode string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
@@ -2364,7 +2957,7 @@ func (s *Service) ChangePermissions(ctx context.Context, envID, id, filePath, mo
 
 // DeleteFile removes a file or directory inside a container.
 func (s *Service) DeleteFile(ctx context.Context, envID, id, filePath string, recursive bool) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
@@ -2393,7 +2986,7 @@ type ImageUpdateResult struct {
 // CheckImageUpdates compares local image digests with remote registry digests
 // for each running container. Uses Docker's DistributionInspect under the hood.
 func (s *Service) CheckImageUpdates(ctx context.Context, envID string, containerIDs []string) ([]ImageUpdateResult, error) {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
@@ -2442,10 +3035,10 @@ func (s *Service) CheckImageUpdates(ctx context.Context, envID string, container
 			}
 
 			// Get local image digest
-			inspCtx, inspCancel := context.WithTimeout(ctx, 30*time.Second)
+			inspCtx, inspCancel := context.WithTimeout(ctx, docker.CallTimeout)
 			defer inspCancel()
 
-			imgInspect, _, err := cli.ImageInspectWithRaw(inspCtx, ctr.ImageID)
+			imgInspect, err := cli.ImageInspect(inspCtx, ctr.ImageID)
 			if err != nil {
 				result.Error = "inspect failed"
 				results[idx] = result
@@ -2464,12 +3057,12 @@ func (s *Service) CheckImageUpdates(ctx context.Context, envID string, container
 			}
 
 			// Query the remote registry for the image reference
-			distCtx, distCancel := context.WithTimeout(ctx, 30*time.Second)
+			distCtx, distCancel := context.WithTimeout(ctx, docker.CallTimeout)
 			defer distCancel()
 
 			// Use the image reference (e.g., "nginx:latest") for the registry query
 			ref := ctr.Image
-			distInspect, err := cli.DistributionInspect(distCtx, ref, "")
+			distInspect, err := cli.DistributionInspect(distCtx, ref, client.DistributionInspectOptions{})
 			if err != nil {
 				result.Error = "registry check failed"
 				results[idx] = result
@@ -2510,12 +3103,12 @@ type OrphanedNetwork struct {
 // A network is considered orphaned when it is user-defined (not in
 // builtInDockerNetworks) and currently has exactly one attached container,
 // and that container is the one being inspected.
-func (s *Service) FindOrphanedNetworks(ctx context.Context, envID, containerID string, info types.ContainerJSON) ([]OrphanedNetwork, error) {
+func (s *Service) FindOrphanedNetworks(ctx context.Context, envID, containerID string, info container.InspectResponse) ([]OrphanedNetwork, error) {
 	if info.NetworkSettings == nil || len(info.NetworkSettings.Networks) == 0 {
 		return nil, nil
 	}
 
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
@@ -2533,7 +3126,8 @@ func (s *Service) FindOrphanedNetworks(ctx context.Context, envID, containerID s
 		seen[netName] = struct{}{}
 
 		inspCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
-		net, err := cli.NetworkInspect(inspCtx, netName, networkTypes.InspectOptions{})
+		netRes, err := cli.NetworkInspect(inspCtx, netName, client.NetworkInspectOptions{})
+		net := netRes.Network
 		cancel()
 		if err != nil {
 			// Skip networks we cannot inspect — best effort.
@@ -2566,16 +3160,108 @@ func soleKey(m map[string]networkTypes.EndpointResource) (string, bool) {
 // RemoveNetwork removes a Docker network by ID or name. It returns an error
 // when the network is still in use or the daemon refuses removal.
 func (s *Service) RemoveNetwork(ctx context.Context, envID, networkID string) error {
-	cli, err := s.getClient(envID)
+	cli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return err
 	}
 
-	rmCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	rmCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	if err := cli.NetworkRemove(rmCtx, networkID); err != nil {
+	if _, err := cli.NetworkRemove(rmCtx, networkID, client.NetworkRemoveOptions{}); err != nil {
 		return fmt.Errorf("removing network %s: %w", networkID, err)
 	}
 	return nil
+}
+
+// AuditName resolves the human-readable name used in audit entries for a
+// container. It falls back to the short ID when the container cannot be
+// inspected (removed, daemon offline, agent unreachable), so callers never
+// have to handle an error just to label a log row.
+func (s *Service) AuditName(ctx context.Context, envID, id string) string {
+	info, err := s.Inspect(ctx, envID, id)
+	if err != nil {
+		return shortContainerID(id)
+	}
+	return normalizeContainerName(info.Name, id)
+}
+
+// secretFileModeLabel records on the container itself that it was built with
+// file-based secret injection, so a later Recreate rebuilds it the same way.
+// The request that asked for it does not survive; the container's own config
+// does.
+const secretFileModeLabel = "com.mcharbor.secret-files" //nolint:gosec // G101 false positive: a Docker label key, not a credential
+
+// prepareSecrets turns a container's environment into what Docker should
+// actually receive.
+//
+// Two modes. Ordinarily every `${secret:NAME}` is resolved inline and the
+// plaintext ends up in the container's environment — where `docker inspect`,
+// and therefore any other Docker manager on the host, reads it. In file mode
+// the value goes into a read-only volume at /run/secrets instead, and the
+// environment carries `<VAR>_FILE` pointing at it.
+//
+// Returns the environment to set and, in file mode, the mount to add.
+func (s *Service) prepareSecrets(
+	ctx context.Context,
+	cli *client.Client,
+	envID, owner, image string,
+	env []string,
+	fileMode bool,
+) ([]string, *mount.Mount, error) {
+	if s.resolver == nil || len(env) == 0 {
+		return env, nil, nil
+	}
+
+	scope := secrets.ResolveScope{
+		EnvironmentID: envID,
+		ResourceType:  "container",
+		ResourceID:    owner,
+		ResourceName:  owner,
+	}
+
+	if !fileMode {
+		resolved, err := s.resolver.ResolveSlice(ctx, env, scope)
+		if err != nil {
+			slog.Error("resolving container secrets failed", "env", envID, "container", owner, "error", err)
+			return nil, nil, err
+		}
+		return resolved, nil, nil
+	}
+
+	planner, ok := s.resolver.(secretFilePlanner)
+	if !ok {
+		// A resolver that cannot plan file mode is a build without the vault.
+		// Falling back to inline resolution would put the values exactly where
+		// the operator asked for them not to be.
+		return nil, nil, fmt.Errorf("file-based secret injection is unavailable")
+	}
+
+	plan, resolvedEnv, err := planner.PlanFileModeSlice(ctx, env, scope)
+	if err != nil {
+		slog.Error("planning container secret files failed", "env", envID, "container", owner, "error", err)
+		return nil, nil, err
+	}
+	if len(plan.Files) == 0 {
+		// Nothing referenced a secret, so there is no volume to create and
+		// nothing the mode would change.
+		return resolvedEnv, nil, nil
+	}
+
+	volumeName, err := docker.MaterialiseSecretVolume(ctx, cli, owner, image, plan.Files)
+	if err != nil {
+		return nil, nil, err
+	}
+	slog.Info("container secrets delivered as files",
+		"container", owner, "volume", volumeName, "variables", plan.Replaced)
+
+	m := docker.SecretVolumeMount(volumeName, secrets.SecretMountPath)
+	return resolvedEnv, &m, nil
+}
+
+// secretFilePlanner is the half of the vault that file mode needs, declared
+// separately from SecretResolver so the resolver interface stays the narrow
+// thing every other call site uses.
+type secretFilePlanner interface {
+	PlanFileModeSlice(ctx context.Context, env []string, scope secrets.ResolveScope) (*secrets.FileModePlan, []string, error)
 }

@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Google",
+    "subtitle": "Federe el inicio de sesión de McHarbor con cuentas de Google. Admite tanto cuentas personales de Google como Google Workspace (establezca el campo Dominio de Workspace para restringir a un tenant mediante la sugerencia hd= de OIDC). La obtención de grupos de administradores está disponible para tenants de Workspace mediante una cuenta de servicio con delegación de dominio.",
+    "registerHint": "Añada un proveedor desde la página Ajustes > Seguridad > Proveedores de identidad del host y elija \"Google\" como provider_type."
+  },
+  "fields": {
+    "client_id":                     "ID de cliente",
+    "client_secret":                 "Secreto de cliente",
+    "domain":                        "Dominio de Workspace",
+    "scopes":                        "Scopes",
+    "service_account_json":          "JSON de cuenta de servicio (grupos de administradores)",
+    "delegated_user_email":          "Correo del usuario delegado",
+    "delegated_user_access_token":   "Token de acceso del usuario delegado (sobrescritura)",
+    "user_email_for_lookup":         "Correo del usuario para la búsqueda de grupos"
+  },
+  "help": {
+    "client_id":                     "ID de cliente OAuth 2.0 de la consola de Google Cloud (APIs & Services > Credentials > su cliente OAuth de tipo aplicación web).",
+    "client_secret":                 "Secreto de cliente OAuth emitido por Google. Almacenado cifrado en reposo (AES-256-GCM).",
+    "domain":                        "Dominio alojado de Google Workspace opcional (p. ej. example.com). Si se establece, el plugin lo pasa como parámetro de consulta hd= para que solo puedan iniciar sesión las cuentas de ese Workspace. Déjelo vacío para permitir cuentas personales de Google.",
+    "scopes":                        "Scopes de OAuth separados por espacios. Por defecto es openid profile email. Añada https://www.googleapis.com/auth/admin.directory.group.readonly para habilitar la obtención de grupos de administradores mediante la Directory API.",
+    "service_account_json":          "Opcional: contenido de un archivo de clave JSON de cuenta de servicio de Google con delegación de dominio. Obligatorio para obtener grupos con la Admin SDK. Almacenado cifrado en reposo.",
+    "delegated_user_email":          "Opcional: el usuario administrador de Workspace al que suplanta la cuenta de servicio (p. ej. admin@example.com). Obligatorio cuando se establece service_account_json.",
+    "delegated_user_access_token":   "Opcional: token de acceso de la API de Google emitido manualmente para usar en las llamadas a la Admin SDK. Úselo hasta que la v1.1 incluya la firma JWT RS256 para las aserciones de cuenta de servicio.",
+    "user_email_for_lookup":         "Opcional: correo del usuario para el que se buscan los grupos. La mayoría de los operadores lo dejan en blanco y permiten que el host pase en tiempo de ejecución el correo del usuario autenticado."
+  },
+  "guide": {
+    "title":    "Configurar el inicio de sesión con Google en McHarbor",
+    "subtitle": "Cree un cliente OAuth 2.0 de tipo aplicación web en la consola de Google Cloud y, opcionalmente, configure una cuenta de servicio para obtener grupos con la Admin SDK.",
+    "step1": {
+      "title": "Cree o seleccione un proyecto de Google Cloud",
+      "body":  "Abra la consola de Google Cloud y elija un proyecto existente o cree uno nuevo dedicado a McHarbor. Anote el ID del proyecto: lo necesitará al configurar la pantalla de consentimiento de OAuth."
+    },
+    "step2": {
+      "title": "Configure la pantalla de consentimiento de OAuth",
+      "body":  "En APIs & Services > OAuth consent screen, establezca el tipo de usuario (Internal para Google Workspace, External en caso contrario), el correo de soporte y el nombre de la aplicación. Añada los scopes que necesite: openid, profile, email (siempre) y https://www.googleapis.com/auth/admin.directory.group.readonly (solo si desea obtener grupos)."
+    },
+    "step3": {
+      "title": "Cree un cliente web OAuth",
+      "body":  "En APIs & Services > Credentials > Create credentials > OAuth client ID, elija Application type: Web application. En Authorized redirect URIs, añada la URL de callback de McHarbor que aparece en la página de edición del proveedor; el host añade /api/identity-providers/callback a la URL base de su McHarbor. Copie el ID de cliente y el secreto de cliente que muestra Google en los campos correspondientes del formulario del proveedor."
+    },
+    "step4": {
+      "title": "(Solo Workspace) Establezca el dominio de Workspace",
+      "body":  "Si desea restringir el inicio de sesión a un único tenant de Google Workspace, pegue el dominio principal del tenant (p. ej. example.com) en el campo Dominio de Workspace. El plugin lo pasará como parámetro de consulta hd= a la página de inicio de sesión de Google. Deje el campo vacío para aceptar cuentas personales de Google."
+    },
+    "step5": {
+      "title": "Pruebe la conexión",
+      "body":  "De vuelta en McHarbor, haga clic en \"Probar la conexión\" en el formulario del proveedor. Un resultado verde significa que el documento de descubrimiento de OIDC se resolvió y que el cliente OAuth se autenticó correctamente en accounts.google.com: la configuración es válida."
+    },
+    "step6": {
+      "title": "(Solo Workspace) Cree una cuenta de servicio para la Admin SDK",
+      "body":  "En IAM & Admin > Service Accounts > Create service account, asígnele un nombre como \"mcharbor-admin-groups\" y concédale el rol Service Account User. En Keys > Add key > Create new key, elija JSON y guarde el archivo; pegue todo su contenido en el campo JSON de cuenta de servicio del formulario del proveedor."
+    },
+    "step7": {
+      "title": "(Solo Workspace) Habilite la delegación de dominio",
+      "body":  "En la consola de administración de Google Workspace (admin.google.com), en Security > API controls > Domain-wide delegation, añada el client_id de la cuenta de servicio y el scope https://www.googleapis.com/auth/admin.directory.group.readonly. Después establezca el campo Correo del usuario delegado del formulario del proveedor con el correo del administrador de Workspace al que suplantará la cuenta de servicio (p. ej. admin@example.com). Guarde el proveedor: McHarbor usará la identidad delegada para obtener la pertenencia a grupos bajo demanda."
+    }
+  }
+}

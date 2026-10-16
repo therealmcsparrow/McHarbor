@@ -50,15 +50,15 @@ export function useStreamUninstall() {
       })
         .then((res) => {
           if (!res.ok || !res.body) {
-            const event: InstallEvent = {
+            const entry: InstallEvent = {
               step: 0,
               total: 10,
               message: t('appStore.uninstallConnectFailed'),
               status: 'error',
             };
             setUninstalling(false);
-            setProgress(event);
-            setLogs((prev) => [...prev, createLogEntry(event.message)]);
+            setProgress(entry);
+            setLogs((prev) => [...prev, createLogEntry(entry.message)]);
             return;
           }
 
@@ -75,16 +75,16 @@ export function useStreamUninstall() {
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   try {
-                    const event = JSON.parse(line.slice(6)) as InstallEvent;
-                    setProgress(event);
-                    if (event.message) {
-                      setLogs((prev) => [...prev, createLogEntry(event.message, event.phase)]);
+                    const eventItem = JSON.parse(line.slice(6)) as InstallEvent;
+                    setProgress(eventItem);
+                    if (eventItem.message) {
+                      setLogs((prev) => [...prev, createLogEntry(eventItem.message, eventItem.phase)]);
                     }
-                    if (event.status === 'done' || event.status === 'error') {
+                    if (eventItem.status === 'done' || eventItem.status === 'error') {
                       setUninstalling(false);
-                      if (event.status === 'done') {
-                        queryClient.invalidateQueries({ queryKey: ['app-store'] });
-                        queryClient.invalidateQueries({ queryKey: ['stacks'] });
+                      if (eventItem.status === 'done') {
+                        void queryClient.invalidateQueries({ queryKey: ['app-store'] });
+                        void queryClient.invalidateQueries({ queryKey: ['stacks'] });
                       }
                       return;
                     }
@@ -99,18 +99,18 @@ export function useStreamUninstall() {
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === 'AbortError') return;
-          const event: InstallEvent = {
+          const evt: InstallEvent = {
             step: 0,
             total: 10,
             message: t('appStore.uninstallNetworkError'),
             status: 'error',
           };
           setUninstalling(false);
-          setProgress(event);
-          setLogs((prev) => [...prev, createLogEntry(event.message)]);
+          setProgress(evt);
+          setLogs((prev) => [...prev, createLogEntry(evt.message)]);
         });
     },
-    [queryClient, t]
+    [queryClient, t],
   );
 
   return { uninstalling, progress, logs, startUninstall, abort, reset };

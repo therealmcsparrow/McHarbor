@@ -1,0 +1,9 @@
+{
+  "label": "Opslaglocatie testen",
+  "description": "Voer de verbindingstest voor een opslaglocatie uit en lees optioneel de capaciteit",
+  "config": {
+    "storage_location_id": "Opslaglocatie",
+    "include_usage": "Gebruik meenemen",
+    "fail_on_warn": "Mislukken bij waarschuwing"
+  }
+}

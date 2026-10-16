@@ -4,7 +4,7 @@
     "description":  "Eclipse Temurin 17 JDK on Alpine, long-term support Java LTS with sealed classes and records.",
     "category":  "Developer Tools",
     "image":  "eclipse-temurin:17-jdk-alpine",
-    "logo":  "https://icon.horse/icon/adoptium.net",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/java.svg",
     "website":  "https://adoptium.net",
     "docsUrl":  "https://adoptium.net/docs",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Java installation directory"
                     }
                 ],
-    "version":  "17-jdk-alpine"
+    "version":  "17-jdk-alpine",
+    "latest":  {
+        "version":  "17-jdk-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

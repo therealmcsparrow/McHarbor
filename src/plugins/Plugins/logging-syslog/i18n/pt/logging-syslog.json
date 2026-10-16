@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "Syslog (RFC5424)",
+    "description": "RFC5424 via UDP, TCP ou TLS para rsyslog, syslog-ng, QRadar ou ArcSight."
+  },
+  "settings": {
+    "title": "Syslog (RFC5424)",
+    "subtitle": "RFC5424 via UDP, TCP ou TLS para rsyslog, syslog-ng, QRadar ou ArcSight."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Entrega do encaminhamento de Syslog",
+      "description": "Eventos de auditoria entregues e com falha por encaminhador syslog, taxa de sucesso, o maior período sem uma entrega bem-sucedida e os motivos de falha que continuam se repetindo."
+    }
+  },
+  "subject": {
+    "syslog-forwarder": "Encaminhador syslog"
+  },
+  "subjectAll": {
+    "syslog-forwarder": "Todos os encaminhadores syslog"
+  }
+}

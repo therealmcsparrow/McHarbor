@@ -1,0 +1,35 @@
+{
+  "slug": "privatebin",
+  "name": "PrivateBin",
+  "description": "Zero-knowledge pastebin where the server never sees the plaintext of what is shared.",
+  "category": "Security",
+  "image": "privatebin/nginx-fpm-alpine:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/privatebin.png",
+  "website": "https://privatebin.info",
+  "docsUrl": "https://github.com/PrivateBin/docker-nginx-fpm-alpine",
+  "ports": [
+    {
+      "host": 8102,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/privatebin/data",
+      "container": "/srv/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,9 +1,21 @@
 {
-  "label": "Date Format",
-  "description": "Parse and reformat a date or timestamp",
+  "label": "Datumsformat",
+  "description": "Ein Datum oder einen Zeitstempel parsen und neu formatieren",
   "config": {
     "property": "Eigenschaft",
-    "output_format": "Output Format",
+    "output_format": "Ausgabeformat",
     "timezone": "Zeitzone"
+  },
+  "options": {
+    "output_format": {
+      "rfc3339": "ISO 8601 / RFC 3339",
+      "rfc1123": "RFC 1123",
+      "date": "Datum (JJJJ-MM-TT)",
+      "datetime": "Datum und Zeit (JJJJ-MM-TT HH:MM:SS)",
+      "time": "Zeit (HH:MM:SS)",
+      "date_eu": "Datum (TT-MM-JJJJ)",
+      "date_us": "Datum (MM/TT/JJJJ)",
+      "unix": "Unix-Zeitstempel"
+    }
   }
 }

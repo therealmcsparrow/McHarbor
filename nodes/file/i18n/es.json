@@ -1,0 +1,26 @@
+{
+  "label": "Archivo",
+  "description": "Leer o escribir un archivo en el directorio de datos del flujo",
+  "config": {
+    "operation": "Operación",
+    "path": "Camino",
+    "encoding": "Codificación",
+    "output_property": "Propiedad de salida",
+    "property": "Propiedad",
+    "mode": "Modo"
+  },
+  "options": {
+    "operation": {
+      "read": "Leer",
+      "write": "Escribir"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Exagerar",
+      "append": "Añadir"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "label": "Netwerk beheren",
+  "description": "Maak of verwijder een netwerk, of verbind en ontkoppel containers",
+  "config": {
+    "environment": "Omgeving",
+    "action": "Actie",
+    "name": "Naam",
+    "driver": "Driver",
+    "internal": "Intern",
+    "subnet": "Subnet",
+    "network": "Netwerk",
+    "container": "Container"
+  },
+  "options": {
+    "action": {
+      "create": "Aanmaken",
+      "remove": "Verwijderen",
+      "connect": "Verbinden",
+      "disconnect": "Ontkoppelen"
+    },
+    "driver": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "macvlan": "Macvlan",
+      "ipvlan": "IPvlan",
+      "host": "Host",
+      "none": "Geen"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+    "slug":  "cloudwatch-exporter",
+    "name":  "CloudWatch Exporter",
+    "description":  "Prometheus exporter that surfaces AWS CloudWatch metrics for scraping.",
+    "category":  "Monitoring",
+    "image":  "prom/cloudwatch-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+    "website":  "https://github.com/prometheus/cloudwatch_exporter",
+    "docsUrl":  "https://github.com/prometheus/cloudwatch_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9106,
+                      "container":  9106,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cloudwatch-exporter/config.yml",
+                        "container":  "/config/config.yml",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "AWS_ACCESS_KEY_ID",
+                        "default":  "change-me",
+                        "description":  "AWS access key used to read CloudWatch metrics",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "AWS_SECRET_ACCESS_KEY",
+                        "default":  "change-me",
+                        "description":  "AWS secret key used to read CloudWatch metrics",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

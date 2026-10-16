@@ -1,6 +1,6 @@
 {
-  "label": "Container Stats",
-  "description": "Read one-shot runtime metrics for a container",
+  "label": "Containerstatistieken",
+  "description": "Lees eenmalige runtimemetrics voor een container",
   "config": {
     "environment": "Omgeving",
     "container": "Container"

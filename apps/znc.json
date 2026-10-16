@@ -1,0 +1,36 @@
+{
+    "slug":  "znc",
+    "name":  "ZNC",
+    "description":  "IRC bouncer that stays connected to IRC networks and replays history to clients when they reconnect.",
+    "category":  "Communications",
+    "image":  "znc:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/znc.png",
+    "website":  "https://znc.in",
+    "docsUrl":  "https://wiki.znc.in/Docker",
+    "ports":  [
+                  {
+                      "host":  6501,
+                      "container":  6501,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/znc/data",
+                        "container":  "/znc-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "128MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

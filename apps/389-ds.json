@@ -1,0 +1,51 @@
+{
+    "slug":  "389-ds",
+    "name":  "389 Directory Server",
+    "description":  "Enterprise LDAP directory server sponsored by Red Hat and used as the engine behind FreeIPA.",
+    "category":  "Identity & SSO",
+    "image":  "quay.io/389ds/dirsrv:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.port389.org\u0026sz=128",
+    "website":  "https://www.port389.org",
+    "docsUrl":  "https://directory.fedoraproject.org/docs/389ds/how-to/how-to-install-389-ds-using-docker.html",
+    "ports":  [
+                  {
+                      "host":  1389,
+                      "container":  3389,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1636,
+                      "container":  3636,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/389-ds/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DS_DM_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Directory Manager password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DS_SUFFIX",
+                        "default":  "dc=example,dc=com",
+                        "description":  "Base DN suffix created on first run"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

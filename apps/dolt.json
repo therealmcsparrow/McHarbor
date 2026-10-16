@@ -4,7 +4,7 @@
     "description":  "Git-for-data SQL database with branching, merging, and version control for your data.",
     "category":  "Databases",
     "image":  "dolthub/dolt-sql-server:latest",
-    "logo":  "https://icon.horse/icon/www.doltdb.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.doltdb.com\u0026sz=128",
     "website":  "https://www.doltdb.com",
     "docsUrl":  "https://docs.dolthub.com",
     "ports":  [
@@ -33,5 +33,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,45 @@
+{
+  "slug": "readeck",
+  "name": "Readeck",
+  "description": "Read-it-later service that saves articles, videos and pictures with full-text search.",
+  "category": "Productivity",
+  "image": "codeberg.org/readeck/readeck:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/readeck.png",
+  "website": "https://readeck.org",
+  "docsUrl": "https://readeck.org/en/docs/",
+  "ports": [
+    {
+      "host": 8105,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/readeck/data",
+      "container": "/readeck"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "READECK_LOG_LEVEL",
+      "default": "info",
+      "description": "Log verbosity"
+    },
+    {
+      "key": "READECK_SERVER_HOST",
+      "default": "0.0.0.0",
+      "description": "Listen address inside the container"
+    },
+    {
+      "key": "READECK_SERVER_PORT",
+      "default": "8000",
+      "description": "Listen port inside the container"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

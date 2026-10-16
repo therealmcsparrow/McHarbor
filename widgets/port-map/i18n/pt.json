@@ -10,6 +10,8 @@
     "container": "Recipiente",
     "mapping": "Hospedeiro → Contêiner",
     "protocol": "Protocolo",
-    "noPorts": "Nenhuma porta publicada encontrada"
+    "noPorts": "Nenhuma porta publicada encontrada",
+    "published": "{{count}} publicadas",
+    "more": "{{count}} mais"
   }
 }

@@ -1,0 +1,50 @@
+{
+    "slug":  "velociraptor",
+    "name":  "Velociraptor",
+    "description":  "Endpoint visibility and digital forensics platform for hunting and collecting evidence across a fleet of hosts.",
+    "category":  "Security",
+    "image":  "ghcr.io/velocidex/velociraptor-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/velociraptor.png",
+    "website":  "https://docs.velociraptor.app",
+    "docsUrl":  "https://docs.velociraptor.app/docs/deployment/server/",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8889,
+                      "container":  8889,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8001,
+                      "container":  8001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/velociraptor/config",
+                        "container":  "/etc/velociraptor"
+                    },
+                    {
+                        "host":  "/opt/appdata/velociraptor/data",
+                        "container":  "/var/lib/velociraptor"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

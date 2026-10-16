@@ -1,0 +1,20 @@
+{
+  "widgets": {
+    "snapshotStatus": {
+      "label": "État des sauvegardes",
+      "description": "Dernière sauvegarde réussie par cible, et ce qui est en retard"
+    }
+  },
+  "snapshotStatusWidget": {
+    "title": "État des sauvegardes",
+    "never": "jamais",
+    "noPlans": "Aucun plan de sauvegarde configuré",
+    "overdueCount": "{{count}} en retard",
+    "overdueCount_other": "{{count}} en retard",
+    "more": "{{count}} de plus",
+    "allCurrent": "Tout à jour",
+    "viewAll": "Toutes les sauvegardes",
+    "overdue": "En retard",
+    "current": "À jour"
+  }
+}

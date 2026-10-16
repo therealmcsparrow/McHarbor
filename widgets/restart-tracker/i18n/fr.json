@@ -10,6 +10,10 @@
     "container": "Récipient",
     "restarts": "Redémarre",
     "state": "État",
-    "noRestarts": "Aucun redémarrage de conteneur détecté"
+    "noRestarts": "Aucun redémarrage de conteneur détecté",
+    "restartCount": "{{count}} redémarrage",
+    "restartCount_other": "{{count}} redémarrages",
+    "more": "{{count}} de plus",
+    "allStable": "Chaque conteneur tourne sans interruption depuis son démarrage"
   }
 }

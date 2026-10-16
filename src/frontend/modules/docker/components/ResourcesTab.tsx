@@ -4,6 +4,8 @@
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { useHostMetrics } from '@resources/hooks/useHostMetrics';
+import type { HostMetrics } from '@core/types/docker';
+import { HostHistoryPanel } from './HostHistoryPanel';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -15,9 +17,9 @@ function formatBytes(bytes: number): string {
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+    <div className="flex items-center justify-between border-b border-border py-2 last:border-0">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm text-foreground font-medium">{value}</span>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }
@@ -25,14 +27,13 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-foreground mb-2">{title}</h3>
+      <h3 className="mb-2 text-sm font-semibold text-foreground">{title}</h3>
       <div className="rounded-lg border border-border bg-muted/30 px-4">{children}</div>
     </div>
   );
 }
 
 export function ResourcesTab() {
-  const { t } = useTranslation('docker');
   const { data: metrics, isLoading } = useHostMetrics();
 
   if (isLoading) {
@@ -43,12 +44,24 @@ export function ResourcesTab() {
     );
   }
 
-  if (!metrics) return null;
+  // The live sections need /metrics/host, which fails when the environment's
+  // Docker daemon or agent is unreachable. The history panel must not be gated
+  // behind that: it reads the stored metric tables and never touches Docker, so
+  // it is exactly what is still worth showing when the daemon is down.
+  return (
+    <div className="space-y-6">
+      {metrics && <LiveSections metrics={metrics} />}
+      <HostHistoryPanel />
+    </div>
+  );
+}
 
+function LiveSections({ metrics }: { metrics: HostMetrics }) {
+  const { t } = useTranslation('docker');
   const { host, disk } = metrics;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Section title={t('resources.host')}>
         <InfoRow label={t('resources.hostname')} value={host.hostname} />
         <InfoRow label={t('resources.os')} value={host.os} />

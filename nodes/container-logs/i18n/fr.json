@@ -6,5 +6,15 @@
     "container": "Récipient",
     "tail": "Lignes de queue",
     "since": "Depuis"
+  },
+  "options": {
+    "since": {
+      "5m": "5 dernières minutes",
+      "15m": "15 dernières minutes",
+      "1h": "Dernière heure",
+      "6h": "6 dernières heures",
+      "24h": "24 dernières heures",
+      "168h": "7 derniers jours"
+    }
   }
 }

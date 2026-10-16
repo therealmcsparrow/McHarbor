@@ -1,0 +1,41 @@
+{
+    "slug":  "percona-backup-mongodb",
+    "name":  "Percona Backup for MongoDB",
+    "description":  "Distributed backup and restore tool for MongoDB and Percona Server for MongoDB, including sharded clusters.",
+    "category":  "Backups",
+    "image":  "percona/percona-backup-mongodb:latest",
+    "logo":  "https://github.com/percona.png",
+    "website":  "https://www.percona.com/mongodb/software/percona-backup-mongodb",
+    "docsUrl":  "https://docs.percona.com/percona-backup-mongodb/installation.html",
+    "ports":  [
+                  {
+                      "host":  10999,
+                      "container":  10999,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/percona-backup-mongodb/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PBM_MONGODB_URI",
+                        "default":  "mongodb://mongo:27017",
+                        "description":  "Connection string for the MongoDB cluster to back up",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

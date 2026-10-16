@@ -4,7 +4,7 @@
   "description": "Open-source routing engine for directions, isochrones, matrix, and geospatial analysis over OpenStreetMap data.",
   "category": "Databases",
   "image": "giscience/openrouteservice:latest",
-  "logo": "https://openrouteservice.org/img/ors-logo.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=openrouteservice.org\u0026sz=128",
   "website": "https://openrouteservice.org",
   "docsUrl": "https://giscience.github.io/openrouteservice/installation/Running-with-Docker.html",
   "ports": [
@@ -46,5 +46,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

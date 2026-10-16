@@ -24,12 +24,10 @@ export function ErrorTab({ errors, onClear }: ErrorTabProps) {
 
   if (errors.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="flex flex-col items-center justify-center px-4 py-16">
         <IconAlertTriangle className="size-8 text-muted-foreground/20" />
         <p className="mt-3 text-xs text-muted-foreground">{t('workflows.noErrors')}</p>
-        <p className="mt-1 text-[10px] text-muted-foreground/60">
-          {t('workflows.noErrorsDescription')}
-        </p>
+        <p className="mt-1 text-[10px] text-muted-foreground/60">{t('workflows.noErrorsDescription')}</p>
       </div>
     );
   }
@@ -43,23 +41,22 @@ export function ErrorTab({ errors, onClear }: ErrorTabProps) {
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto">
-      {errors.map((err) => (
-        <div key={err.id} className="border-b border-border px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <IconAlertTriangle className="size-3 shrink-0 text-red-400" />
-            <span className="text-[10px] text-muted-foreground/60 font-mono">{err.timestamp}</span>
-            {err.nodeLabel && (
-              <span className="truncate text-[10px] text-foreground">{err.nodeLabel}</span>
+        {errors.map((err) => (
+          <div key={err.id} className="border-b border-border px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <IconAlertTriangle className="size-3 shrink-0 text-danger" />
+              <span className="font-mono text-[10px] text-muted-foreground/60">{err.timestamp}</span>
+              {err.nodeLabel && <span className="truncate text-[10px] text-foreground">{err.nodeLabel}</span>}
+            </div>
+            <p className="mt-1 text-[10px] text-danger">{err.message}</p>
+            {err.stack && (
+              <pre className="mt-1 overflow-x-auto font-mono text-[9px] whitespace-pre-wrap text-muted-foreground/60">
+                {err.stack}
+              </pre>
             )}
           </div>
-          <p className="mt-1 text-[10px] text-red-400">{err.message}</p>
-          {err.stack && (
-            <pre className="mt-1 overflow-x-auto whitespace-pre-wrap text-[9px] text-muted-foreground/60 font-mono">{err.stack}</pre>
-          )}
-        </div>
-      ))}
+        ))}
       </div>
     </div>
   );
 }
-

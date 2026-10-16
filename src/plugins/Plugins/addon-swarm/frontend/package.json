@@ -1,0 +1,29 @@
+{
+  "name": "mcharbor-plugin-swarm-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "UMD bundle for the McHarbor Docker Swarm plugin.",
+  "_versions": "Every range here is the host's own (src/frontend/package.json), and has to stay that way. The plugin resolves its own copy of each of these — that is what the aliases in vite-plugin.config.ts are for — but it compiles host source reached through @resources against them. React Table is the one that bites: the host's shared table-features.ts is written to the v9 API, so an ^8 pin here fails the build with a wall of MISSING_EXPORT rather than a version complaint.",
+  "scripts": {
+    "build": "vite build --config vite-plugin.config.ts",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "@tabler/icons-react": "^3.46.0",
+    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-table": "^9.2.4",
+    "vite": "^8.2.2",
+    "typescript": "^7.0.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-i18next": "^17.0.13",
+    "i18next": "^26.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7"
+  }
+}

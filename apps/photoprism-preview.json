@@ -1,0 +1,45 @@
+{
+    "slug":  "photoprism-preview",
+    "name":  "PhotoPrism (Preview)",
+    "description":  "Preview channel build of PhotoPrism. AI-powered photo management for private photo collections.",
+    "category":  "Photos & Files",
+    "image":  "photoprism/photoprism:preview",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/photoprism.png",
+    "website":  "https://www.photoprism.app",
+    "docsUrl":  "https://docs.photoprism.app",
+    "ports":  [
+                  {
+                      "host":  3342,
+                      "container":  2342,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/photoprism-preview/storage",
+                        "container":  "/photoprism/storage"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/photoprism/originals"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PHOTOPRISM_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "preview",
+    "latest":  {
+        "version":  "preview",
+        "release_date":  "2026-09-29"
+    }
+}

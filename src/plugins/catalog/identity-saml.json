@@ -1,0 +1,16 @@
+{
+  "slug": "identity-saml",
+  "name": "SAML 2.0",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "SAML 2.0 identity provider. Service-Provider-side flow against any SAML 2.0 IdP (Okta, Auth0, Keycloak, ADFS, Google Workspace, Azure AD). SP metadata is auto-generated; optional signed AuthnRequests via uploaded SP keypair. Install to add 'SAML 2.0' as a provider_type in Settings > Security > Identity Providers.",
+  "category": "Identity providers",
+  "icon": "IconKey",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/identity-saml-1.0.0.tar.gz"
+    }
+  ]
+}

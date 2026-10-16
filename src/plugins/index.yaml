@@ -1,0 +1,622 @@
+# McHarbor-AddOns catalog index.
+#
+# This file is the *signed* manifest the App Store fetches. The
+# signature block at the bottom is verified against the pinned
+# public key shipped in McHarbor's core/plugin/keys.go. Admins may
+# add their own keys for self-hosted catalogs.
+#
+# Schema is parsed by modules/appstore/catalog.go with two extra
+# top-level keys: `plugins:` and the bottom-of-file signature block.
+schema: "mcharbor.addons/v1"
+generated_at: "2026-08-01T00:00:00Z"
+generator: "make sign-index"
+
+apps:
+  - slug: "nginx"
+    name: "NGINX"
+    category: "Web servers"
+    description: "High-performance HTTP server and reverse proxy."
+    icon: "nginx.svg"
+    versions:
+      - version: "1.27.0"
+        compose: "Apps/nginx/1.27.0/compose.yaml"
+        env_defaults:
+          TZ: "UTC"
+        # Read by the appstore installer at deploy time.
+        ports:
+          - host: 80
+            container: 80
+            protocol: tcp
+  - slug: "postgres"
+    name: "PostgreSQL"
+    category: "Databases"
+    description: "PostgreSQL 16 with persistent volume."
+    icon: "postgres.svg"
+    versions:
+      - version: "16.3"
+        compose: "Apps/postgres/16.3/compose.yaml"
+        env_defaults:
+          POSTGRES_PASSWORD: ""   # admin must supply at install
+        volumes:
+          - name: "data"
+            path: "/var/lib/postgresql/data"
+
+plugins:
+  - slug: "hello-world"
+    name: "Hello World"
+    category: "Examples"
+    description: "Minimal plugin that proves the install → mount → render loop."
+    icon: "hello-world.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/hello-world/dist/mcharbor-plugin-hello-world-1.0.0.tar.gz"
+        signature: "Plugins/hello-world/dist/mcharbor-plugin-hello-world-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "menu.sidebar.add"
+          - "i18n.namespace.add:hello"
+          - "dashboard.widget.add"
+
+  # AI provider plugins (added 2026-08-04 as part of the "AI
+  # Providers as Plugins" refactor). Each plugin registers an
+  # AdapterContributor that mounts the matching provider type
+  # under /ai-assistant in the AI composer.
+  - slug: "ai-provider-openai"
+    name: "OpenAI"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through OpenAI /v1/chat/completions. GPT-4o, GPT-4o mini, o-series."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-openai/dist/mcharbor-plugin-ai-provider-openai-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-openai/dist/mcharbor-plugin-ai-provider-openai-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.0.8"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-anthropic"
+    name: "Anthropic Claude"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Anthropic /v1/messages. Claude Haiku 4.5, Sonnet 4.5, Opus 4.5."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-anthropic/dist/mcharbor-plugin-ai-provider-anthropic-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-anthropic/dist/mcharbor-plugin-ai-provider-anthropic-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.0.8"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-ollama"
+    name: "Ollama"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through a self-hosted Ollama instance over its OpenAI-compatible /v1 endpoint."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-ollama/dist/mcharbor-plugin-ai-provider-ollama-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-ollama/dist/mcharbor-plugin-ai-provider-ollama-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.0.8"
+        permissions:
+          - "ai.adapter.register"
+          - "audit.emit"
+
+  - slug: "ai-provider-minimax"
+    name: "MiniMax"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through MiniMax's OpenAI-compatible /v1/chat/completions endpoint. Models include MiniMax-Text-01 and MiniMax-VL."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-minimax/dist/mcharbor-plugin-ai-provider-minimax-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-minimax/dist/mcharbor-plugin-ai-provider-minimax-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.0.8"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-mistral"
+    name: "Mistral"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Mistral's OpenAI-compatible /v1/chat/completions endpoint. Models include Mistral Large, Mistral Medium, and Mixtral open-weights line."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-mistral/dist/mcharbor-plugin-ai-provider-mistral-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-mistral/dist/mcharbor-plugin-ai-provider-mistral-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.0.8"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-gemini"
+    name: "Google Gemini"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Google Gemini's OpenAI-compatible endpoint. Models include Gemini 2.5 Pro, Gemini 2.5 Flash, and Gemini 2.0 Flash."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-gemini/dist/mcharbor-plugin-ai-provider-gemini-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-gemini/dist/mcharbor-plugin-ai-provider-gemini-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-deepseek"
+    name: "DeepSeek"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through DeepSeek's OpenAI-compatible /v1/chat/completions endpoint. Models include deepseek-chat (V3) and deepseek-reasoner (R1)."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-deepseek/dist/mcharbor-plugin-ai-provider-deepseek-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-deepseek/dist/mcharbor-plugin-ai-provider-deepseek-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-xai"
+    name: "xAI Grok"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through xAI's OpenAI-compatible /v1/chat/completions endpoint. Models include Grok 4 and Grok 4 Fast."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-xai/dist/mcharbor-plugin-ai-provider-xai-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-xai/dist/mcharbor-plugin-ai-provider-xai-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-groq"
+    name: "Groq"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Groq's OpenAI-compatible LPU inference API. Serves Llama, Qwen, and Kimi open-weights models at very low latency."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-groq/dist/mcharbor-plugin-ai-provider-groq-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-groq/dist/mcharbor-plugin-ai-provider-groq-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-openrouter"
+    name: "OpenRouter"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through OpenRouter, a single OpenAI-compatible gateway in front of hundreds of hosted models from many vendors."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-openrouter/dist/mcharbor-plugin-ai-provider-openrouter-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-openrouter/dist/mcharbor-plugin-ai-provider-openrouter-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-perplexity"
+    name: "Perplexity"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Perplexity's OpenAI-compatible Sonar API, which answers with live web search grounding."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-perplexity/dist/mcharbor-plugin-ai-provider-perplexity-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-perplexity/dist/mcharbor-plugin-ai-provider-perplexity-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-cohere"
+    name: "Cohere"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Cohere's OpenAI compatibility API. Models include Command A, Command R+, and Command R."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-cohere/dist/mcharbor-plugin-ai-provider-cohere-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-cohere/dist/mcharbor-plugin-ai-provider-cohere-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-together"
+    name: "Together AI"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Together AI's OpenAI-compatible endpoint, which serves a large catalog of hosted open-weights models."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-together/dist/mcharbor-plugin-ai-provider-together-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-together/dist/mcharbor-plugin-ai-provider-together-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-fireworks"
+    name: "Fireworks AI"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through Fireworks AI's OpenAI-compatible inference API for hosted open-weights models."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-fireworks/dist/mcharbor-plugin-ai-provider-fireworks-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-fireworks/dist/mcharbor-plugin-ai-provider-fireworks-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-lmstudio"
+    name: "LM Studio"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through a local LM Studio server over its OpenAI-compatible /v1 endpoint. Runs fully offline on the operator's own hardware."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-lmstudio/dist/mcharbor-plugin-ai-provider-lmstudio-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-lmstudio/dist/mcharbor-plugin-ai-provider-lmstudio-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-llamacpp"
+    name: "llama.cpp"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through a self-hosted llama.cpp server (llama-server) over its OpenAI-compatible /v1 endpoint. Runs fully offline."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-llamacpp/dist/mcharbor-plugin-ai-provider-llamacpp-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-llamacpp/dist/mcharbor-plugin-ai-provider-llamacpp-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-vllm"
+    name: "vLLM"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through a self-hosted vLLM OpenAI-compatible server. Suited to GPU inference of open-weights models on the operator's own cluster."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-vllm/dist/mcharbor-plugin-ai-provider-vllm-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-vllm/dist/mcharbor-plugin-ai-provider-vllm-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "ai-provider-localai"
+    name: "LocalAI"
+    category: "AI providers"
+    description: "Routes McHarbor AI chat completions through a self-hosted LocalAI instance over its OpenAI-compatible /v1 endpoint. Runs GGUF and other local backends offline."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/ai-provider-localai/dist/mcharbor-plugin-ai-provider-localai-1.0.0.tar.gz"
+        signature: "Plugins/ai-provider-localai/dist/mcharbor-plugin-ai-provider-localai-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "ai.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  # Communication channel plugins (added 2026-08-10). Each plugin
+  # registers a NotificationAdapterSpec that owns one ChannelType
+  # (slack / discord / teams / gotify / ntfy / telegram / signal /
+  # whatsapp). Channels are managed from the host's Settings >
+  # Notifications > Channels page; events fan out via the host's
+  # notify.Dispatcher at workflow + alert + backup-completion time.
+  - slug: "comm-telegram"
+    name: "Telegram"
+    category: "Communication channels"
+    description: "Telegram Bot API notification channel. Delivers workflow and backup events to a chat via bot_token + chat_id. Supports Markdown/HTML parse_mode and silent sends."
+    icon: "telegram.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-telegram/dist/mcharbor-plugin-comm-telegram-1.0.0.tar.gz"
+        signature: "Plugins/comm-telegram/dist/mcharbor-plugin-comm-telegram-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  # comm-whatsapp: WhatsApp notification channel (added 2026-08-10).
+  # Single ChannelType "whatsapp" with four connection methods selected
+  # via the cfg["method"] discriminator at channel-config time:
+  #   cloud   Official Meta Cloud API (graph.facebook.com /v21.0/<phone_id>/messages)
+  #   gateway Self-hosted gateway (Baileys/wa-gateway/etc.)
+  #   bot     WhatsApp Business API platform (360dialog-style)
+  #   saas    Third-party SaaS (Twilio, MessageBird, Gupshup, ...)
+  # Encrypted credentials, no OAuth flow (long-lived tokens).
+  - slug: "comm-whatsapp"
+    name: "WhatsApp"
+    category: "Communication channels"
+    description: "WhatsApp notification channel. Delivers workflow and backup events to a phone number via one of four connection methods: Meta Cloud API, self-hosted gateway, WhatsApp Business API platform, or a third-party SaaS provider."
+    icon: "whatsapp.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-whatsapp/dist/mcharbor-plugin-comm-whatsapp-1.0.0.tar.gz"
+        signature: "Plugins/comm-whatsapp/dist/mcharbor-plugin-comm-whatsapp-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  # comm-signal: Signal notification channel (added 2026-08-10).
+  # Single ChannelType "signal" with four connection methods selected
+  # via the cfg["method"] discriminator at channel-config time:
+  #   rest    Official signal-cli-rest-api server
+  #           (POST <server_url>/v2/send, optional HTTP Basic auth)
+  #   bot     Token-based Signal bot server
+  #           (POST <server_url>/message with Bearer token)
+  #   signald signald daemon JSON-RPC 2.0 API
+  #           (POST <server_url>/v1/accounts/<account>/rpc)
+  #   simple  No-auth community relay / public test endpoint
+  #           (POST <server_url>/send, no credentials)
+  # Encrypted credentials, no OAuth flow (Signal gateways use
+  # pre-registered numbers + bearer tokens).
+  - slug: "comm-signal"
+    name: "Signal"
+    category: "Communication channels"
+    description: "Signal notification channel. Delivers workflow and backup events to phone numbers via one of four connection methods: official signal-cli-rest-api, token-based bot server, signald JSON-RPC daemon, or a no-auth community relay."
+    icon: "signal.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-signal/dist/mcharbor-plugin-comm-signal-1.0.0.tar.gz"
+        signature: "Plugins/comm-signal/dist/mcharbor-plugin-comm-signal-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-smtp"
+    name: "SMTP"
+    category: "Communication channels"
+    description: "SMTP communication channel. Delivers workflow, alert, and backup notifications as email through a configured SMTP relay. This is a communication channel adapter, not an email-server adapter."
+    icon: "smtp.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-smtp/dist/mcharbor-plugin-comm-smtp-1.0.0.tar.gz"
+        signature: "Plugins/comm-smtp/dist/mcharbor-plugin-comm-smtp-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-discord"
+    name: "Discord"
+    category: "Communication channels"
+    description: "Discord communication channel. Delivers workflow, alert, and backup notifications to a Discord channel through a webhook URL. This is a communication channel adapter owned by the plugin runtime."
+    icon: "discord.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-discord/dist/mcharbor-plugin-comm-discord-1.0.0.tar.gz"
+        signature: "Plugins/comm-discord/dist/mcharbor-plugin-comm-discord-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-slack"
+    name: "Slack"
+    category: "Communication channels"
+    description: "Slack communication channel. Delivers workflow, alert, and backup notifications to a Slack channel through an incoming webhook URL. This is a communication channel adapter owned by the plugin runtime."
+    icon: "slack.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-slack/dist/mcharbor-plugin-comm-slack-1.0.0.tar.gz"
+        signature: "Plugins/comm-slack/dist/mcharbor-plugin-comm-slack-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-gotify"
+    name: "Gotify"
+    category: "Communication channels"
+    description: "Gotify communication channel. Delivers workflow, alert, and backup notifications to a Gotify server through an application token. This is a communication channel adapter owned by the plugin runtime."
+    icon: "gotify.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-gotify/dist/mcharbor-plugin-comm-gotify-1.0.0.tar.gz"
+        signature: "Plugins/comm-gotify/dist/mcharbor-plugin-comm-gotify-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-exchange"
+    name: "Exchange"
+    category: "Communication channels"
+    description: "Exchange Online communication channel. Delivers workflow, alert, and backup notifications as email through Microsoft Graph. This is a communication channel adapter, not an email-server adapter."
+    icon: "exchange.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-exchange/dist/mcharbor-plugin-comm-exchange-1.0.0.tar.gz"
+        signature: "Plugins/comm-exchange/dist/mcharbor-plugin-comm-exchange-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  - slug: "comm-gmail"
+    name: "Gmail"
+    category: "Communication channels"
+    description: "Gmail communication channel. Delivers workflow, alert, and backup notifications as email through the Gmail API. This is a communication channel adapter, not an email-server adapter."
+    icon: "gmail.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/comm-gmail/dist/mcharbor-plugin-comm-gmail-1.0.0.tar.gz"
+        signature: "Plugins/comm-gmail/dist/mcharbor-plugin-comm-gmail-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "notification.adapter.register"
+          - "encryption.handle.read"
+          - "audit.emit"
+
+  # Snapshot driver plugins (added 2026-08-12). Each plugin
+  # registers a SnapshotAdapterSpec under a single driver key
+  # (synology / truenas). Filesystem-level drivers (zfs, btrfs, lvm,
+  # vss) are builtin instead — see core/snapshotdrivers, since only
+  # the agent can see which CLI a remote host has. The snapshot
+  # adapter is dispatched by writeArchive when a
+  # BackupPlan.consistency_mode="snapshot"
+  # points at one of these configurations. Snapshots freeze the
+  # filesystem / NAS-target while the host writes the backup
+  # archive, then unfreeze without ever pausing the container.
+  - slug: "snapshot-synology"
+    name: "Synology DSM"
+    category: "Snapshots"
+    description: "Synology DSM snapshot repository via the DSM 7.x REST API. Filesystem-level snapshots without `docker pause`. Supports Hyper Backup vault and shared folder snapshots."
+    icon: "synology.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/snapshot-synology/dist/mcharbor-plugin-snapshot-synology-1.0.0.tar.gz"
+        signature: "Plugins/snapshot-synology/dist/mcharbor-plugin-snapshot-synology-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.2.0"
+        permissions:
+          - "snapshot.adapter.register"
+          - "audit.emit"
+
+  - slug: "snapshot-truenas"
+    name: "TrueNAS"
+    category: "Snapshots"
+    description: "TrueNAS SCALE / CORE snapshot repository via the middleware REST API. Filesystem-level ZFS snapshots without `docker pause`. Recursive snapshots cover child datasets in one call."
+    icon: "truenas.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/snapshot-truenas/dist/mcharbor-plugin-snapshot-truenas-1.0.0.tar.gz"
+        signature: "Plugins/snapshot-truenas/dist/mcharbor-plugin-snapshot-truenas-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.2.0"
+        permissions:
+          - "snapshot.adapter.register"
+          - "audit.emit"
+
+  # Identity provider plugins (added 2026-08-15 as part of the
+  # "Identity Providers as Plugins" port). Each plugin owns one
+  # provider_type (entra_id, google, generic_oidc, saml_2_0, ldap)
+  # and replaces a slice of the host's hardcoded OIDC/SAML/LDAP
+  # machinery. The host's BeginAuth / HandleCallback / HandleSAMLACS
+  # / SAMLMetadata / TestConnection / FetchProviderGroups dispatch
+  # to the matching plugin via Runtime.IdentityAdapter(provider_type).
+  - slug: "identity-entra-id"
+    name: "Microsoft Entra ID"
+    category: "Identity providers"
+    description: "Microsoft Entra ID identity provider. OIDC authorization-code flow against the v2.0 endpoints at login.microsoftonline.com plus the Microsoft Graph API for group fetching. Tile shows up in Settings > Security > Identity Providers as 'Microsoft Entra ID'."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/identity-entra-id/dist/mcharbor-plugin-identity-entra-id-1.0.0.tar.gz"
+        signature: "Plugins/identity-entra-id/dist/mcharbor-plugin-identity-entra-id-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "identity.adapter.register"
+          - "audit.emit"
+          - "encryption.handle.read"
+
+  - slug: "identity-google"
+    name: "Google Workspace"
+    category: "Identity providers"
+    description: "Google Workspace identity provider. OIDC authorization-code flow against accounts.google.com plus the Google Admin SDK Directory API for group fetching when a hosted domain is configured. Tile shows up in Settings > Security > Identity Providers as 'Google'."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/identity-google/dist/mcharbor-plugin-identity-google-1.0.0.tar.gz"
+        signature: "Plugins/identity-google/dist/mcharbor-plugin-identity-google-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "identity.adapter.register"
+          - "audit.emit"
+          - "encryption.handle.read"
+
+  - slug: "identity-generic-oidc"
+    name: "Generic OIDC"
+    category: "Identity providers"
+    description: "Generic OIDC identity provider. Discover endpoints from any issuer's <issuer>/.well-known/openid-configuration. Works with Okta, Auth0, Keycloak, Authentik, Authelia, Azure AD, AWS Cognito. Tile shows up in Settings > Security > Identity Providers as 'Generic OIDC'."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/identity-generic-oidc/dist/mcharbor-plugin-identity-generic-oidc-1.0.0.tar.gz"
+        signature: "Plugins/identity-generic-oidc/dist/mcharbor-plugin-identity-generic-oidc-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "identity.adapter.register"
+          - "audit.emit"
+          - "encryption.handle.read"
+
+  - slug: "identity-saml"
+    name: "SAML 2.0"
+    category: "Identity providers"
+    description: "SAML 2.0 service provider. Hosts SP metadata at /api/identity-providers/{id}/metadata and accepts AuthnResponse POSTs at /api/identity-providers/acs. Compatible with Okta, Azure AD, OneLogin, Auth0, Google Workspace, AD FS. Tile shows up in Settings > Security > Identity Providers as 'SAML 2.0'."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/identity-saml/dist/mcharbor-plugin-identity-saml-1.0.0.tar.gz"
+        signature: "Plugins/identity-saml/dist/mcharbor-plugin-identity-saml-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "identity.adapter.register"
+          - "audit.emit"
+          - "encryption.handle.read"
+
+  - slug: "identity-ldap"
+    name: "LDAP"
+    category: "Identity providers"
+    description: "LDAP / Active Directory identity provider. Binds the user, searches the directory, optionally looks up group memberships, and provisions a session. Works with OpenLDAP, 389-DS, FreeIPA, Active Directory. Tile shows up in Settings > Security > Identity Providers as 'LDAP'."
+    icon: "plugin.svg"
+    versions:
+      - version: "1.0.0"
+        tarball: "Plugins/identity-ldap/dist/mcharbor-plugin-identity-ldap-1.0.0.tar.gz"
+        signature: "Plugins/identity-ldap/dist/mcharbor-plugin-identity-ldap-1.0.0.tar.gz.sig"
+        mcharbor_min: "2.1.0"
+        permissions:
+          - "identity.adapter.register"
+          - "audit.emit"
+          - "encryption.handle.read"
+
+# Ed25519 detached signature over the canonical-JSON form of this
+# file (everything above this line). See scripts/sign-index.py.
+plugin_index_signature:
+  algorithm: "ed25519"
+  public_key_id: "mcsparrow-2026-01"
+  value: "adfa66444fe53656d7e5c733da633403ba7d894c6f2c5dd3273c121325dd37dcaf788d9b67c94e904e6261595d583e28feaf5f3d773d24e4cf32a7805c63a207"
+  body_sha256: "6d83aa8a8d2cf7f30cbd966b886dad7f6f41c83fc544e5b4c3c3386a0f75041c"
+

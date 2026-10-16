@@ -1,0 +1,37 @@
+{
+  "widgets": {
+    "workloadHeatmap": {
+      "label": "Werklast-heatmap",
+      "description": "Eén vierkant per container, gekleurd op status"
+    }
+  },
+  "workloadHeatmapWidget": {
+    "title": "Werklaststatussen",
+    "count_one": "{{count}} container",
+    "count_other": "{{count}} containers",
+    "empty": "Geen containers gevonden",
+    "emptyHint": "Werklasten verschijnen hier zodra deze omgeving er heeft.",
+    "gridLabel_one": "{{count}} container, gegroepeerd op status",
+    "gridLabel_other": "{{count}} containers, gegroepeerd op status",
+    "cellLabel": "{{name}} — {{state}}",
+    "open": "Container openen",
+    "none": "Geen",
+    "state": {
+      "running": "Actief",
+      "created": "Aangemaakt",
+      "removing": "Wordt verwijderd",
+      "paused": "Gepauzeerd",
+      "restarting": "Herstart",
+      "exited": "Gestopt",
+      "dead": "Dood"
+    },
+    "field": {
+      "status": "Status",
+      "stack": "Stack",
+      "ports": "Poorten",
+      "ip": "IP-adres",
+      "created": "Aangemaakt",
+      "id": "ID"
+    }
+  }
+}

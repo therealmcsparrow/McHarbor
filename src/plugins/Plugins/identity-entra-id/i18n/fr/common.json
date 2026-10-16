@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Fédérez la connexion McHarbor vers un tenant Azure AD. Le plugin gère le flux OIDC authorization-code sur les points de terminaison v2.0 de login.microsoftonline.com ainsi que l'API Microsoft Graph pour la récupération des groupes d'administration.",
+    "registerHint": "Ajoutez un fournisseur depuis la page Paramètres > Sécurité > Fournisseurs d'identité de l'hôte et choisissez « Microsoft Entra ID » comme provider_type."
+  },
+  "fields": {
+    "tenant_id":     "ID du tenant",
+    "client_id":     "ID client",
+    "client_secret": "Secret client",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "tenant_id":     "ID du tenant Azure AD (UUID). Utilisez 'common' pour les applications multi-tenant, 'organizations' pour tout compte professionnel ou scolaire, ou laissez 'common' pour inclure aussi les comptes personnels.",
+    "client_id":     "ID de l'application (client) depuis la page de vue d'ensemble de l'App Registration.",
+    "client_secret": "Valeur du secret client depuis la page Certificates & secrets de l'App Registration. Stockée chiffrée au repos.",
+    "scopes":        "Scopes OAuth séparés par des espaces. Par défaut openid profile email. Utilisez 'https://graph.microsoft.com/.default' pour activer la récupération des groupes via l'API Graph."
+  },
+  "guide": {
+    "title":    "Configurer Microsoft Entra ID dans McHarbor",
+    "subtitle": "Enregistrez une application cliente confidentielle dans votre tenant Azure AD et accordez les permissions Microsoft Graph si vous souhaitez activer la récupération des groupes d'administration.",
+    "step1": {
+      "title": "Ouvrir le panneau App Registration",
+      "body":  "Dans le portail Azure, accédez à Microsoft Entra ID > App registrations > New registration. Choisissez un nom (p. ex. « McHarbor SSO ») et sélectionnez les types de comptes à prendre en charge (mono-tenant, multi-tenant ou personnel)."
+    },
+    "step2": {
+      "title": "Définir l'URI de redirection",
+      "body":  "Sous Redirect URI, choisissez Web et saisissez l'URL de rappel McHarbor affichée sur la page de modification du fournisseur. L'hôte ajoute /api/identity-providers/callback à l'URL de base de votre McHarbor — copiez-la exactement pour éviter des erreurs silencieuses de code d'authentification."
+    },
+    "step3": {
+      "title": "Créer un secret client",
+      "body":  "Ouvrez Certificates & secrets > New client secret. Choisissez une expiration raisonnable (90 ou 180 jours) et définissez un rappel dans votre calendrier. Copiez la VALEUR du secret (et non l'ID du secret) dans le champ Secret client du formulaire du fournisseur. McHarbor le stocke chiffré en AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copier l'ID de l'application (client)",
+      "body":  "De retour sur la page de vue d'ensemble de l'App Registration, copiez l'ID de l'application (client) dans le champ ID client du formulaire du fournisseur."
+    },
+    "step5": {
+      "title": "Copier l'ID du répertoire (tenant)",
+      "body":  "Toujours sur la page de vue d'ensemble, copiez l'ID du répertoire (tenant) dans le champ ID du tenant du formulaire du fournisseur. Utilisez « common » si vous avez enregistré l'application comme multi-tenant."
+    },
+    "step6": {
+      "title": "(Facultatif) Accorder Microsoft Graph Group.Read.All",
+      "body":  "Si vous voulez que l'assistant de correspondance des groupes du groupe d'administration remplisse les groupes Entra, ouvrez API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Cliquez sur Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Tester la connexion",
+      "body":  "De retour dans McHarbor, cliquez sur « Tester la connexion » dans le formulaire du fournisseur. Un résultat vert signifie que le document de découverte OIDC a été résolu et qu'un échange de jeton client-credentials a réussi auprès de login.microsoftonline.com — la configuration est valide. Vous pouvez maintenant activer le fournisseur et utiliser « Se connecter avec Microsoft » sur la page de connexion."
+    }
+  }
+}

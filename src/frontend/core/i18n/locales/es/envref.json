@@ -1,0 +1,54 @@
+{
+  "title": "Variables de entorno",
+  "description": "Todas las variables de entorno que leen McHarbor y su agente, generadas a partir del código fuente y de la referencia de configuración. Cambiar cualquiera de ellas implica recrear el contenedor.",
+  "searchPlaceholder": "Buscar por nombre o descripción",
+  "searchLabel": "Buscar variables de entorno",
+  "count_one": "{{count}} variable",
+  "count_other": "{{count}} variables",
+  "empty": "Ninguna variable coincide con el filtro.",
+  "filters": {
+    "scope": "Ámbito",
+    "allScopes": "Todos",
+    "sensitiveOnly": "Solo sensibles"
+  },
+  "scope": {
+    "server": "Servidor",
+    "agent": "Agente"
+  },
+  "columns": {
+    "name": "Variable",
+    "default": "Predeterminado",
+    "description": "Qué hace",
+    "flags": "Indicadores"
+  },
+  "flags": {
+    "sensitive": "Sensible",
+    "sensitiveHint": "Contiene un secreto. Guárdelo en un almacén de secretos, nunca en un archivo Compose confirmado en el repositorio.",
+    "restart": "Requiere recrear",
+    "restartHint": "Se lee al iniciar; un cambio solo se aplica tras recrear el contenedor.",
+    "undocumented": "Sin documentar",
+    "undocumentedHint": "La lee el código pero no está descrita en la referencia de configuración, normalmente porque McHarbor la establece por sí mismo para un contenedor auxiliar.",
+    "notInCode": "No la lee el binario",
+    "notInCodeHint": "Documentada, pero la lee el entrypoint o el archivo Compose en lugar del binario de Go, o ya no se lee en absoluto."
+  },
+  "copy": "Copiar {{name}}",
+  "copied": "Copiado",
+  "manualCopy": "Copiar nombre de la variable",
+  "sources": "Se lee en {{files}}",
+  "noDescription": "Sin descripción en la referencia de configuración.",
+  "sections": {
+    "application": "Aplicación",
+    "secrets": "Secretos",
+    "database": "Base de datos",
+    "docker": "Docker",
+    "tls": "TLS y listeners HTTP",
+    "networkTrust": "Confianza de red",
+    "agentTransport": "Transporte del agente",
+    "plugins": "Tienda de apps y plugins",
+    "nativeInstall": "Instalación nativa",
+    "authentication": "Autenticación",
+    "versionReporting": "Informe de versión",
+    "agent": "Agente",
+    "other": "Otras"
+  }
+}

@@ -1,0 +1,3 @@
+{"TicketID":"43","TicketNumber":"2026092510000018",
+ "Ticket":{"State":"closed successful","Owner":"jdoe",
+           "DynamicField":[{"Name":"McHarborDedupKey","Value":"a1:e1:c2"}]}}

@@ -4,7 +4,7 @@
     "description":  "Agent that runs CI/CD jobs and sends results back to GitLab.",
     "category":  "Developer Tools",
     "image":  "gitlab/gitlab-runner:latest",
-    "logo":  "https://icon.horse/icon/docs.gitlab.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gitlab.svg",
     "website":  "https://docs.gitlab.com/runner/",
     "docsUrl":  "https://docs.gitlab.com/runner/install/docker.html",
     "ports":  [
@@ -42,5 +42,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

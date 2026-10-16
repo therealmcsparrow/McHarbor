@@ -1,0 +1,44 @@
+{
+  "slug": "lubelogger",
+  "name": "LubeLogger",
+  "description": "Vehicle maintenance and fuel mileage tracker for service records, reminders and costs.",
+  "category": "Productivity",
+  "image": "ghcr.io/hargata/lubelogger:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lubelogger.png",
+  "website": "https://lubelogger.com",
+  "docsUrl": "https://docs.lubelogger.com/Installation/Docker",
+  "ports": [
+    {
+      "host": 8109,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/lubelogger/data",
+      "container": "/App/data"
+    },
+    {
+      "host": "/opt/appdata/lubelogger/keys",
+      "container": "/root/.aspnet/DataProtection-Keys"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "LC_ALL",
+      "default": "en_US.UTF-8",
+      "description": "Locale for number and date formatting"
+    },
+    {
+      "key": "LANG",
+      "default": "en_US.UTF-8",
+      "description": "Language locale"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

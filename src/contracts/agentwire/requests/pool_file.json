@@ -1,0 +1,32 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "id": "ID",
+      "name": "Name",
+      "backend": "Backend",
+      "target": "Target"
+    },
+    {
+      "operation": "write",
+      "path": "Path",
+      "newName": "NewName",
+      "mode": "Mode",
+      "content": "Q29udGVudA==",
+      "recursive": true
+    }
+  ],
+  "wire": {
+    "operation": "write",
+    "envId": "env-1",
+    "poolId": "ID",
+    "name": "Name",
+    "backend": "Backend",
+    "target": "Target",
+    "path": "Path",
+    "newName": "NewName",
+    "mode": "Mode",
+    "content": "Q29udGVudA==",
+    "recursive": true
+  }
+}

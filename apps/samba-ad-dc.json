@@ -1,0 +1,96 @@
+{
+    "slug":  "samba-ad-dc",
+    "name":  "Samba AD DC",
+    "description":  "Samba configured as an Active Directory domain controller providing directory, Kerberos, and DNS services.",
+    "category":  "Identity & SSO",
+    "image":  "nowsci/samba-domain:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.samba.org\u0026sz=128",
+    "website":  "https://www.samba.org",
+    "docsUrl":  "https://github.com/Fmstrat/samba-domain",
+    "ports":  [
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  88,
+                      "container":  88,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  135,
+                      "container":  135,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  389,
+                      "container":  389,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  445,
+                      "container":  445,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  464,
+                      "container":  464,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  636,
+                      "container":  636,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3268,
+                      "container":  3268,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/samba-ad-dc/data",
+                        "container":  "/var/lib/samba"
+                    },
+                    {
+                        "host":  "/opt/appdata/samba-ad-dc/config",
+                        "container":  "/etc/samba/external"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOMAIN",
+                        "default":  "EXAMPLE",
+                        "description":  "NetBIOS/Kerberos domain name"
+                    },
+                    {
+                        "key":  "DOMAINPASS",
+                        "default":  "change-me",
+                        "description":  "Domain administrator password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DNSFORWARDER",
+                        "default":  "1.1.1.1",
+                        "description":  "Upstream DNS forwarder for the domain"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

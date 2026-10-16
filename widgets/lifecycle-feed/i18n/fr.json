@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "lifecycleFeed": {
+      "label": "Flux du cycle de vie",
+      "description": "Événements récents de création, de mise à jour et de suppression sur toutes les ressources"
+    }
+  },
+  "lifecycleFeedWidget": {
+    "title": "Flux du cycle de vie",
+    "loading": "Chargement des événements du cycle de vie...",
+    "empty": "Aucun événement récent du cycle de vie",
+    "more": "{{count}} de plus",
+    "viewAll": "Tout afficher",
+    "justNow": "à l'instant"
+  }
+}

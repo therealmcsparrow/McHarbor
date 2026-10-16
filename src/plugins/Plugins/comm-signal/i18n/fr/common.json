@@ -1,0 +1,75 @@
+{
+  "config": {
+    "method": { "label": "Méthode de connexion", "help": "Quel transport Signal utiliser. REST = signal-cli-rest-api officielle. Bot = serveur de bot à jeton. signald = démon signald via JSON-RPC. Simple = relais communautaire sans authentification." },
+    "server_url": { "label": "URL du serveur", "help": "URL de base de la passerelle ou du démon Signal. Exemple : https://signal.example.com ou http://localhost:8080." },
+    "sender_number": { "label": "Numéro de l'expéditeur", "help": "Numéro du compte Signal enregistré au format E.164. L'identité sortante du bot. Utilisé par toutes les méthodes." },
+    "auth_username": { "label": "Nom d'utilisateur", "help": "Facultatif. Nom d'utilisateur de l'authentification HTTP Basic pour signal-cli-rest-api. Laissez vide si le démon n'exige pas d'authentification." },
+    "auth_password": { "label": "Mot de passe", "help": "Facultatif. Mot de passe de l'authentification HTTP Basic pour signal-cli-rest-api. Stocké chiffré au repos." },
+    "bot_token": { "label": "Jeton du bot", "help": "Uniquement pour le bot à jeton. Jeton Bearer du serveur de bot Signal. Délivré lors de l'enregistrement du bot sur la plateforme. Stocké chiffré au repos." },
+    "account_id": { "label": "ID du compte", "help": "Uniquement pour la méthode signald. Identifiant de compte signald : soit le numéro de téléphone E.164, soit l'UUID attribué par `signaldctl account register`. Le plugin l'utilise dans le chemin de compte JSON-RPC." }
+  },
+  "page": {
+    "title": "Signals",
+    "subtitle": "Achemine les événements de workflow, d'alerte et de sauvegarde vers un ou plusieurs numéros de téléphone Signal via l'une des quatre méthodes de connexion : signal-cli-rest-api, bot à jeton, démon JSON-RPC signald, ou relais communautaire sans authentification. Le plugin gère Test (aller-retour d'identifiants peu coûteux) et Send (vrai message au destinataire).",
+    "registerHint": "Ajoutez un canal depuis la page Notifications > Canaux de l'hôte et choisissez « Signal » comme channel_type."
+  },
+  "methods": {
+    "rest":       "API REST Signal",
+    "restSub":    "signal-cli-rest-api officiel",
+    "bot":        "Bot Signal",
+    "botSub":     "Serveur de bot à jeton",
+    "signald":    "signald",
+    "signaldSub": "API JSON-RPC du démon signald",
+    "simple":     "Configuration simple",
+    "simpleSub":  "Aucune authentification requise"
+  },
+  "fields": {
+    "server_url":    "URL du serveur",
+    "sender_number": "Numéro de l'expéditeur",
+    "recipients":    "Destinataires",
+    "auth_username": "Nom d'utilisateur",
+    "auth_password": "Mot de passe",
+    "bot_token":     "Jeton du bot",
+    "account_id":    "ID de compte"
+  },
+  "help": {
+    "rest":       "Utilise le démon Java officiel signal-cli-rest-api. L'option la plus flexible ; prend en charge l'authentification HTTP Basic. Les destinataires doivent être des numéros E.164.",
+    "bot":        "Utilise un serveur de bot Signal à jeton (passerelle communautaire / frameworks de bots compatibles Signal). Jeton Bearer requis ; le canal du destinataire est le numéro de téléphone au format E.164.",
+    "signald":    "Utilise l'API HTTP JSON-RPC 2.0 du démon natif signald. L'ID de compte est le numéro E.164 ou l'UUID issu de `signaldctl account register`.",
+    "simple":     "Utilise un relais communautaire sans authentification. Points de terminaison de test publics et relais simples auto-hébergés uniquement ; ne l'utilisez pas pour des workflows sensibles.",
+    "server_url":    "URL de base de la passerelle / du démon Signal. Exemple : https://signal.example.com ou http://localhost:8080.",
+    "sender_number": "Numéro du compte Signal enregistré au format E.164. L'identité sortante du bot. Utilisé par toutes les méthodes.",
+    "recipients":    "Liste de numéros de destinataires au format E.164 séparés par des virgules. Le plugin sépare sur les virgules et envoie un message Signal par destinataire.",
+    "auth_username": "Facultatif. Nom d'utilisateur de l'authentification HTTP Basic pour signal-cli-rest-api. Laissez vide si le démon n'est pas authentifié.",
+    "auth_password": "Facultatif. Mot de passe de l'authentification HTTP Basic pour signal-cli-rest-api. Chiffré au repos.",
+    "bot_token":     "Jeton Bearer du serveur de bot Signal. Émis lorsque vous enregistrez le bot auprès de la plateforme. Chiffré au repos.",
+    "account_id":    "Identifiant de compte signald. Soit la chaîne de téléphone E.164, soit l'UUID attribué lors de `signaldctl account register`. Le plugin l'utilise dans le chemin de compte JSON-RPC."
+  },
+  "toast": {
+    "registered": "Canal Signal enregistré.",
+    "testPassed": "Le test de connexion Signal a réussi.",
+    "testFailed": "Le test de connexion Signal a échoué : {{error}}"
+  },
+  "error": {
+    "noCommon":    "L'URL du serveur, le numéro de l'expéditeur et les destinataires sont obligatoires.",
+    "noRecipients": "La liste des destinataires est vide après suppression des espaces. Ajoutez au moins un numéro E.164.",
+    "noAccount":   "La méthode signald nécessite account_id.",
+    "sendFailed":  "L'envoi Signal a échoué : {{error}}"
+  },
+  "guide": {
+    "title":    "Configuration des notifications Signal",
+    "subtitle": "Choisissez une méthode de connexion qui correspond à la passerelle Signal que vous avez déployée. Les quatre méthodes ci-dessous sont classées selon leur fréquence dans les installations auto-hébergées.",
+    "step1":  { "title": "Choisir une méthode de connexion",          "body": "Choisissez l'une des quatre vignettes de méthode dans le formulaire du canal. L'option <b>API REST Signal</b> (signal-cli-rest-api) est le choix le plus courant pour un serveur domestique. Les serveurs de bot à jeton et le démon signald sont tous deux viables ; les relais communautaires sont faciles pour démarrer mais n'ont pas d'identifiants." },
+    "step2":  { "title": "Installer une passerelle Signal",          "body": "Les messages Signal ne peuvent pas être envoyés directement depuis McHarbor — il vous faut une passerelle qui parle le protocole Signal en votre nom. signal-cli-rest-api, signald et la plupart des frameworks de bots sont fournis sous forme d'images Docker ; signal-cli-rest-api est <code>bbernhard/signal-cli-rest-api</code> sur Docker Hub." },
+    "step3":  { "title": "Enregistrer un compte Signal",         "body": "Chaque méthode nécessite un compte Signal enregistré capable d'envoyer des messages. Avec signal-cli-rest-api : <code>signal-cli -u +1YOURNUMBER register</code> (la passerelle peut demander un code SMS ou vocal). Avec signald : <code>signaldctl account register +1YOURNUMBER</code>. Les serveurs de bot gèrent généralement l'enregistrement dans le framework du bot." },
+    "step4":  { "title": "Démarrer la passerelle",                 "body": "Le port par défaut de signal-cli-rest-api est 8080 ; signald expose 8080 par défaut. Exécutez la passerelle sur un hôte que McHarbor peut atteindre — même réseau Docker, LAN ou tunnel VPN." },
+    "step5":  { "title": "Vérifier l'accessibilité",               "body": "Depuis l'hôte McHarbor : <code>curl http://<gateway>:8080/v1/health</code>. signal-cli-rest-api renvoie <code>204</code> lorsqu'il est en bonne santé. signald répond par une description de service JSON-RPC 2.0 sur <code>GET /v1/accounts</code>." },
+    "step6":  { "title": "Remplir le formulaire du canal",          "body": "Ouvrez <b>Paramètres > Notifications > Canaux > Ajouter</b>, choisissez « Signal ». Le formulaire affiche les quatre vignettes de méthode ; cliquez sur celle qui correspond à votre passerelle. Les champs correspondants apparaissent en dessous." },
+    "step7":  { "title": "Saisir l'URL du serveur et l'expéditeur",       "body": "<b>URL du serveur</b> = l'URL de base de votre passerelle (sans barre oblique finale). <b>Numéro de l'expéditeur</b> = le compte Signal enregistré au format E.164 (p. ex. <code>+14155551234</code>). Ces deux champs sont requis pour toutes les méthodes." },
+    "step8":  { "title": "Saisir les destinataires",                  "body": "Liste de numéros E.164 séparés par des virgules qui doivent recevoir les alertes. McHarbor sépare sur les virgules et envoie un message Signal par destinataire ; un mauvais numéro ne fait donc pas échouer le lot — seul celui-ci échoue." },
+    "step9":  { "title": "Méthode : REST — authentification (facultative)",    "body": "Si votre signal-cli-rest-api se trouve derrière une authentification HTTP Basic, renseignez <b>Nom d'utilisateur</b> + <b>Mot de passe</b>. Sinon laissez les deux vides. Les deux sont chiffrés au repos." },
+    "step10": { "title": "Méthode : Bot — jeton",               "body": "Collez le jeton Bearer émis par la plateforme du bot. Chiffré au repos. Les appels de test vont vers GET /, le bot doit donc accepter les lectures anonymes sur le point de terminaison racine." },
+    "step11": { "title": "Méthode : signald — ID de compte",      "body": "Collez l'identifiant de compte signald : soit la chaîne de téléphone E.164, soit l'UUID attribué lors de <code>signaldctl account register</code>. Le plugin achemine les envois vers <code>/v1/accounts/<account>/rpc</code>." },
+    "step12": { "title": "Tester, enregistrer et acheminer les événements",      "body": "Cliquez sur « Test » pour confirmer l'aller-retour des identifiants. Enregistrez le canal. Ensuite, acheminez-y les événements de workflow, d'alerte ou de fin de sauvegarde comme avec n'importe quel autre canal McHarbor." }
+  }
+}

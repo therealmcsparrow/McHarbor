@@ -1,0 +1,15 @@
+{
+  "label": "Omgevingsinfo",
+  "description": "Lees Docker-daemon-, host- of bereikbaarheidsinformatie van een omgeving",
+  "config": {
+    "environment": "Omgeving",
+    "scope": "Informatie"
+  },
+  "options": {
+    "scope": {
+      "docker": "Docker-daemon",
+      "host": "Host",
+      "status": "Bereikbaarheid"
+    }
+  }
+}

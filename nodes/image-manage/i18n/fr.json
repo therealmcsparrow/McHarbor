@@ -1,0 +1,30 @@
+{
+  "label": "Gérer l'image",
+  "description": "Récupérer, pousser, étiqueter ou supprimer une image Docker",
+  "config": {
+    "environment": "Environnement",
+    "action": "Action",
+    "registry_mode": "Registre",
+    "registry_id": "Registre",
+    "registry_url": "URL du registre",
+    "registry_username": "Nom d'utilisateur du registre",
+    "registry_password": "Mot de passe du registre",
+    "image": "Image",
+    "source": "Image source",
+    "target": "Image cible",
+    "force": "Forcer",
+    "prune_children": "Tailler les enfants"
+  },
+  "options": {
+    "action": {
+      "pull": "Pull",
+      "push": "Push",
+      "tag": "Tag",
+      "remove": "Supprimer"
+    },
+    "registry_mode": {
+      "configured": "Registre configuré",
+      "custom": "Autre"
+    }
+  }
+}

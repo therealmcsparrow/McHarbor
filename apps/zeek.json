@@ -4,7 +4,7 @@
     "description":  "Powerful network analysis framework focused on security monitoring and traffic inspection.",
     "category":  "Security",
     "image":  "blacktop/zeek:latest",
-    "logo":  "https://icon.horse/icon/zeek.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=zeek.org\u0026sz=128",
     "website":  "https://zeek.org",
     "docsUrl":  "https://docs.zeek.org",
     "ports":  [
@@ -37,5 +37,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

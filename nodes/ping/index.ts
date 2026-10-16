@@ -4,31 +4,26 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const ping: NodeDefinition = {
-  "key": "ping",
-  "label": "Ping",
-  "category": "integration",
-  "description": "Check whether a host is reachable over TCP",
-  "icon": "IconWifi",
-  "configSchema": [
+  key: 'ping',
+  label: 'Ping',
+  category: 'integration',
+  description: 'Check whether a host is reachable over TCP',
+  icon: 'IconWifi',
+  configSchema: [
     {
-      "key": "host",
-      "label": "Host",
-      "type": "text",
-      "required": true
+      key: 'host',
+      label: 'Host',
+      type: 'text',
+      required: true,
     },
     {
-      "key": "timeout",
-      "label": "Timeout (seconds)",
-      "type": "number",
-      "required": false,
-      "default": 5
-    }
+      key: 'timeout',
+      label: 'Timeout (seconds)',
+      type: 'number',
+      required: false,
+      default: 5,
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

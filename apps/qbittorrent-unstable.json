@@ -1,0 +1,58 @@
+{
+    "slug":  "qbittorrent-unstable",
+    "name":  "qBittorrent (Unstable)",
+    "description":  "Unstable channel build of qBittorrent. Feature-rich BitTorrent client with a web interface.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/qbittorrent:unstable",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/qbittorrent.png",
+    "website":  "https://docs.linuxserver.io/images/docker-qbittorrent/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-qbittorrent/",
+    "ports":  [
+                  {
+                      "host":  9080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/qbittorrent-unstable/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "WEBUI_PORT",
+                        "default":  "8080",
+                        "description":  "Web UI port"
+                    }
+                ],
+    "version":  "unstable",
+    "latest":  {
+        "version":  "unstable",
+        "release_date":  "2026-09-29"
+    }
+}

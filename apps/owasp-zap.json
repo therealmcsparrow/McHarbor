@@ -1,0 +1,41 @@
+{
+    "slug":  "owasp-zap",
+    "name":  "OWASP ZAP",
+    "description":  "Web application security scanner and intercepting proxy for finding vulnerabilities during testing.",
+    "category":  "Security",
+    "image":  "zaproxy/zap-stable:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/owasp-zap.png",
+    "website":  "https://www.zaproxy.org",
+    "docsUrl":  "https://www.zaproxy.org/docs/docker/",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/owasp-zap/data",
+                        "container":  "/zap/wrk"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZAP_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key required to use ZAP's REST API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

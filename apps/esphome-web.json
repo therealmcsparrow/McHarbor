@@ -4,7 +4,7 @@
     "description":  "ESPHome device manager and dashboard with YAML configuration and OTA updates.",
     "category":  "Home Automation",
     "image":  "esphome/esphome:latest",
-    "logo":  "https://icon.horse/icon/esphome.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/esphome.svg",
     "website":  "https://esphome.io",
     "docsUrl":  "https://esphome.io/guides/getting_started_command_line.html",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

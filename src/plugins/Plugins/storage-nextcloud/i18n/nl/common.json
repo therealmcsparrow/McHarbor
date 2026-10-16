@@ -1,0 +1,67 @@
+{
+  "page": {
+    "title": "Nextcloud-back-upbestemmingen",
+    "subtitle": "Maak een back-up van containers naar een Nextcloud-instantie via WebDAV (RFC 4918). Twee authenticatiemodi: OAuth 2.0-refresh-tokenflow (waarbij de beheerder een OAuth2-client aanmaakt in /settings/admin/oauth2) of directe app-wachtwoordauthenticatie (de beheerder genereert een app-wachtwoord in Persoonlijke instellingen → Beveiliging). Uploads in delen gebruiken de WebDAV PUT-stream met Content-Length + Content-Range; grote uploads werken omdat de WebDAV-server van Nextcloud serverzijdig gedeeltelijke bereiken ondersteunt. Dezelfde testrondgang (schrijven / wijzigen / verwijderen) als de SharePoint- en Google Drive-plugins.",
+    "registerHint": "Klik op Verbinding testen om te controleren of het WebDAV-endpoint bereikbaar is en de inloggegevens geldig zijn. Nadat het dialoogvenster is opgeslagen, voert de test van de plugin schrijven / wijzigen / verwijderen uit in een uniek benoemde map onder het geconfigureerde basispad."
+  },
+  "fields": {
+    "clientId": "OAuth-client-ID",
+    "clientSecret": "OAuth-clientgeheim / app-wachtwoord",
+    "refreshToken": "Refresh-token (geleverd door de OAuth-toestemmingsflow)",
+    "folderId": "Map onder de hoofdmap van de gebruiker (leeg voor de hoofdmap van de gebruiker)"
+  },
+  "help": {
+    "clientId": "Optioneel. OAuth 2.0-client_id uit Nextcloud-beheer → Settings → Security → OAuth 2.0 clients. Laat leeg als je in plaats daarvan een app-wachtwoord gebruikt.",
+    "clientSecret": "Ofwel het OAuth 2.0-client_secret uit de configuratie van je Nextcloud-OAuth-client, ofwel een app-wachtwoord dat is gegenereerd in Nextcloud Persoonlijke instellingen → Beveiliging → App-wachtwoorden. Beide werken via HTTP Basic-authenticatie bij elke WebDAV-aanroep.",
+    "refreshToken": "Klik na het opslaan van de bestemming op Verbinden om accounttoestemming te geven en een langlevend refresh-token op te slaan.",
+    "folderId": "Schuine strepen worden behandeld als mapscheidingstekens. Tussenliggende mappen worden automatisch aangemaakt (MKCOL op elk segment)."
+  },
+  "toast": {
+    "registered": "Nextcloud-plugin geregistreerd.",
+    "testPassed": "Nextcloud-verbindingstest geslaagd.",
+    "testFailed": "Nextcloud-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noHost": "Nextcloud-basis-URL is vereist.",
+    "noUsername": "Nextcloud-gebruikersnaam is vereist.",
+    "noSecret": "OAuth-clientgeheim of app-wachtwoord is vereist."
+  },
+  "form": {
+    "introTitle": "Nextcloud-inloggegevens",
+    "introBody": "Genereer een app-wachtwoord via Personal settings → Security → App passwords, of registreer een OAuth 2.0-client onder de beheerdersinstellingen. Beide werken via HTTP Basic-authenticatie bij elke WebDAV-aanroep. McHarbor slaat het geheim versleuteld op.",
+    "host": {
+      "label": "Basis-URL van Nextcloud",
+      "help": "Basis-URL van de Nextcloud-instantie, bijv. https://cloud.example.com. Voeg geen afsluitende slash toe — de plugin leidt het WebDAV-eindpunt tijdens de aanroep zelf af."
+    },
+    "username": {
+      "label": "Gebruikersnaam",
+      "help": "Nextcloud-login (gebruikersnaam of e-mailadres). Wordt gebruikt om het WebDAV-pad af te bakenen onder /remote.php/dav/files/{username}/."
+    },
+    "clientId": {
+      "label": "OAuth-client-ID (optioneel)",
+      "help": "OAuth 2.0 client_id uit Nextcloud admin → Settings → Security → OAuth 2.0 clients. Laat leeg als je in plaats daarvan een app-wachtwoord gebruikt."
+    },
+    "clientSecret": {
+      "help": "Twee geldige opties: (1) het OAuth 2.0 client_secret uit de configuratie van je Nextcloud OAuth-client, of (2) een app-wachtwoord dat is gegenereerd in Nextcloud Personal settings → Security → App passwords. Beide werken via HTTP Basic-authenticatie bij elke WebDAV-aanroep. Versleuteld opgeslagen."
+    },
+    "basePath": {
+      "label": "Map onder de gebruikersroot",
+      "help": "Optionele submap onder de Nextcloud Files-hoofdmap van de gebruiker, bijv. Backups/2026. Laat leeg voor de gebruikersroot. Schuine strepen worden als mapscheidingstekens behandeld en tussenliggende mappen worden automatisch aangemaakt."
+    },
+    "apiPath": {
+      "label": "WebDAV-padvoorvoegsel (geavanceerd)",
+      "help": "Overschrijf het WebDAV-pad. Standaard /remote.php/dav/files/{username}/. Stel dit alleen in als je Nextcloud achter een reverse proxy staat die het WebDAV-pad herschrijft. Laat leeg tenzij je weet wat je doet."
+    }
+  },
+  "setup": {
+    "title": "Nextcloud-installatiegids",
+    "steps": {
+      "s1": "Open in Nextcloud <b>Personal settings → Security → App passwords</b>. (Beheerders kunnen dit voor de hele instantie inschakelen via <b>Settings → Security</b>.) Geef het app-wachtwoord een beschrijvende naam (bijv. <code>mcharbor-backups</code>) en klik op <b>Create app password</b>.",
+      "s2": "Kopieer de gebruikersnaam (het account waaronder je back-ups wilt opslaan) en het app-wachtwoord dat Nextcloud zojuist heeft gegenereerd. Beide zijn hoofdlettergevoelig.",
+      "s3": "Plak in McHarbor de basis-URL van Nextcloud (bijv. <code>https://cloud.example.com</code> — zonder afsluitende slash), de gebruikersnaam en het app-wachtwoord in het formulier links. Optioneel: stel een map onder de gebruikersroot in (bijv. <code>Backups/2026</code>) en laat McHarbor tussenliggende mappen automatisch aanmaken.",
+      "s4": "Klik op <b>Test connection</b> om een testbestand te schrijven en te lezen in de opgeloste map. De plugin voert een met HTTP Basic geauthenticeerde WebDAV-<code>PROPFIND</code> uit op <code>/remote.php/dav/files/{username}/</code> om te bevestigen dat de bestemming bereikbaar is en de inloggegevens geldig zijn.",
+      "s5": "Optioneel: wanneer je klaar bent om over te stappen op een gedelegeerde OAuth-flow (zodat de beheerder geen app-wachtwoorden hoeft te beheren), maak je een OAuth 2.0-client aan in <b>Nextcloud admin → Settings → Security → OAuth 2.0 clients</b>. Stel de redirect-URI in op <code>/api/storage-locations/oauth/callback</code> van je McHarbor-host. Genereer een client secret, plak beide in het formulier en klik op <b>Connect</b> om toestemming te geven. De plugin slaat het refresh token op en vernieuwt het bij elke back-uprun transparant.",
+      "s6": "Start een back-up. De plugin uploadt het archief via WebDAV met <code>Content-Range</code> chunked PUT, zodat zelfs back-ups van meer dan 10 GB worden gestreamd zonder de volledige payload in één keer in het geheugen te bufferen. De WebDAV-server van Nextcloud voegt de chunks server-side weer samen."
+    }
+  }
+}

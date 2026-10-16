@@ -1,8 +1,8 @@
 {
-  "label": "SQL Query",
-  "description": "Run a read-only SQL query against the workflow database",
+  "label": "SQL-Abfrage",
+  "description": "Eine schreibgeschützte SQL-Abfrage auf der Workflow-Datenbank ausführen",
   "config": {
-    "query": "Query",
+    "query": "Abfrage",
     "output_property": "Ausgabe-Eigenschaft"
   }
 }

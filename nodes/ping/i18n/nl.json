@@ -1,6 +1,6 @@
 {
   "label": "Ping",
-  "description": "Check whether a host is reachable over TCP",
+  "description": "Controleer of een host bereikbaar is via TCP",
   "config": {
     "host": "Host",
     "timeout": "Timeout (seconden)"

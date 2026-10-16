@@ -4,7 +4,7 @@
   "description": "Distributed in-memory data store with strong consistency for transactional workloads.",
   "category": "Databases",
   "image": "apachegeode/geode:latest",
-  "logo": "https://geode.apache.org/img/ApacheGeode_logo.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/apache.svg",
   "website": "https://geode.apache.org",
   "docsUrl": "https://geode.apache.org/docs/",
   "ports": [
@@ -42,5 +42,9 @@
       "description": "Locator port"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

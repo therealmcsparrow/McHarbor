@@ -1,0 +1,39 @@
+{
+    "slug":  "kerberos-io",
+    "name":  "Kerberos.io",
+    "description":  "Open-source video surveillance agent that turns any camera into a smart recording and motion-detection node.",
+    "category":  "Home Automation",
+    "image":  "kerberos/kerberos:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kerberos.svg",
+    "website":  "https://kerberos.io",
+    "docsUrl":  "https://doc.kerberos.io/community/install-community-edition",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kerberos-io/data",
+                        "container":  "/etc/kerberosio/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/kerberos-io/recordings",
+                        "container":  "/etc/kerberosio/data/recordings"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

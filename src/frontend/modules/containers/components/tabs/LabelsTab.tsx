@@ -31,8 +31,10 @@ export function LabelsTab({ container, editing, editData, onFieldChange }: Label
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('environment.labels')}</h3>
+      <div className="mc-glass rounded-lg p-6">
+        <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+          {t('environment.labels')}
+        </h3>
         {editing ? (
           <KeyValueEditor
             entries={labelEntries}

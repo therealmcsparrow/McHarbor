@@ -1,0 +1,75 @@
+{
+  "config": {
+    "bot_token": { "help": "Bot-API-Token, ausgestellt von @BotFather auf Telegram. Format: <bot_id>:<token>. Wird im Ruhezustand verschlüsselt gespeichert." },
+    "parse_mode": { "help": "Optional. Markdown oder HTML, um Formatierung in Titel + Nachricht zu aktivieren. Für reinen Text leer lassen. Der Host maskiert Sonderzeichen nicht vorab – wechseln Sie zu reinem Text, wenn Ihre Nachrichten von Telegram reservierte Zeichen enthalten." },
+    "disable_notification": { "help": "Optional. Wenn aktiviert, wird die Nachricht ohne Benachrichtigungston auf dem Gerät des Empfängers gesendet. Nützlich für Warnungen mit niedriger Priorität." }
+  },
+  "page": {
+    "title": "Telegrams",
+    "subtitle": "Leitet Workflow-, Alarm- und Backup-Ereignisse über die Bot API an einen Telegram-Chat weiter. Das Plugin unterstützt Test (getMe-Lebenszeichen) und Senden (sendMessage) — es gibt keinen OAuth-Ablauf, da Bots einen langlebigen Bearer-Token verwenden.",
+    "registerHint": "Fügen Sie auf der Seite Benachrichtigungen > Kanäle des Hosts einen Kanal hinzu und wählen Sie „Telegram“ als channel_type."
+  },
+  "fields": {
+    "name": "Kanalname",
+    "botToken": "Bot-Token",
+    "chatId": "Chat-ID",
+    "parseMode": "Parse-Modus",
+    "disableNotification": "Stilles Senden"
+  },
+  "help": {
+    "name": "Wie dieser Kanal in McHarbor-Listen und Alarmregeln erscheint.",
+    "botToken": "Bot-API-Token von @BotFather auf Telegram. Format: <bot_id>:<token>. Im Ruhezustand verschlüsselt.",
+    "chatId": "Kennung des Empfänger-Chats: numerische Benutzer-/Gruppen-ID oder @channelname. Verwenden Sie getUpdates, um eine chat_id für private Chats zu ermitteln.",
+    "parseMode": "Markdown oder HTML aktiviert Rich-Formatierung in Titel + Nachricht. Bei Klartext werden Zeichen unverändert durchgereicht.",
+    "disableNotification": "Wenn aktiviert, wird ohne Benachrichtigungston auf dem Empfängergerät gesendet. Nützlich für Alarme mit niedriger Priorität."
+  },
+  "toast": {
+    "registered": "Telegram-Kanal gespeichert.",
+    "testPassed": "Telegram-Verbindungstest bestanden.",
+    "testFailed": "Telegram-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "required": "Erforderlich",
+    "noBotToken": "Bot-Token ist erforderlich. Beziehen Sie einen von @BotFather auf Telegram.",
+    "noChatId": "Chat-ID ist erforderlich. Verwenden Sie getUpdates für private Chats oder @channelname für öffentliche Kanäle.",
+    "sendFailed": "Telegram-sendMessage fehlgeschlagen: {{error}}"
+  },
+  "title": "Telegram Bot API",
+  "subtitle": "Vom Plugin verwaltet",
+  "description": "Speichern Sie diesen Kanal und prüfen Sie dann mit Verbindung testen den Bot-Token und die Chat-ID. Der Host sendet während des Tests nie eine Nachricht; getMe bestätigt nur, dass der Token gültig ist.",
+  "placeholder": {
+    "name": "Betriebs-Telegram"
+  },
+  "parseMode": {
+    "plain": "Klartext",
+    "markdown": "Markdown",
+    "html": "HTML"
+  },
+  "silent": {
+    "off": "Nein (mit Ton)",
+    "on": "Ja (stilles Senden)",
+    "title": "Stilles Senden",
+    "help": "Benachrichtigung deaktivieren",
+    "description": "Wenn Stilles Senden aktiviert ist, stellt Telegram die Nachricht ohne Ton und ohne Aufwecken des Bildschirms zu. Nützlich für Routine-Alarme, bei denen der Operator nicht unterbrochen werden muss."
+  },
+  "tips": {
+    "title": "Tipps zum Parse-Modus",
+    "help": "Markdown vs. HTML",
+    "markdown": "Reservierte Zeichen maskieren",
+    "markdownSuffix": "mit einem vorangestellten Backslash.",
+    "html": "Maskieren",
+    "plain": "Titel + Nachricht werden unverändert gesendet. Kein Maskieren erforderlich."
+  },
+  "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+  "guide": {
+    "title": "Telegram-Einrichtungsanleitung",
+    "step1": "Öffnen Sie Telegram und starten Sie einen Chat mit <code>@BotFather</code>. Senden Sie <code>/newbot</code> und folgen Sie den Anweisungen (Anzeigename + eindeutiger Benutzername, der auf \"bot\" endet). BotFather antwortet mit dem Bot-Token im Format <code><bot_id>:<token></code>. Fügen Sie es links in das Feld <b>Bot-Token</b> ein.",
+    "step2": "Starten Sie einen Chat mit Ihrem Bot (suchen Sie nach dem soeben erstellten @Benutzernamen) und senden Sie eine beliebige Nachricht. Der Bot benötigt mindestens eine eingehende Nachricht, bevor er in diesem Chat schreiben kann – Telegram blockiert vom Bot initiierten Kontakt, bis der Benutzer zuerst schreibt.",
+    "step3": "Für einen privaten Chat ermitteln Sie die <code>chat_id</code>, indem Sie nach Schritt 2 <code>https://api.telegram.org/bot<your_token>/getUpdates</code> aufrufen – die Antwort enthält <code>\"chat\":{\"id\": <chat_id>}</code>. Für einen öffentlichen Kanal verwenden Sie <code>@channelname</code> (das @ gehört zur Kennung).",
+    "step4": "Für Gruppen: Fügen Sie den Bot als Mitglied hinzu und erteilen Sie ihm dann in den Gruppenberechtigungen das Recht <b>Post Messages</b>. Ohne dieses Recht gibt <code>sendMessage</code> <code>403 Forbidden</code> zurück.",
+    "step5": "Für Kanäle: Fügen Sie den Bot als Administrator mit der Berechtigung <b>Post Messages</b> hinzu. Normale Mitglieder können nicht posten; der Bot muss Administrator sein.",
+    "step6": "Fügen Sie die <code>chat_id</code> (oder <code>@channelname</code>) links in das Feld <b>Chat-ID</b> ein. Lassen Sie <b>Parse-Modus</b> leer, es sei denn, Ihre Nachrichten enthalten ausschließlich Telegram-sichere Formatierung. Aktivieren Sie <b>Stummes Senden</b> für Warnungen mit niedriger Priorität, etwa bei abgeschlossenen Backups.",
+    "step7": "Klicken Sie auf <b>Speichern und Verbindung testen</b>. Das Plugin führt ein <code>getMe</code> gegen die Bot API aus, um zu bestätigen, dass das Token aktiv ist. Der Host <warn>sendet KEINE Testnachricht</warn> – <code>getMe</code> gibt lediglich die Identität des Bots zurück. Liefert <code>getMe</code> <code>401</code>, prüfen Sie das Bot-Token erneut.",
+    "step8": "Sobald der Kanal gespeichert ist, leiten Sie Workflow- oder Alarmereignisse über <b>Einstellungen > Benachrichtigungen > Regeln</b> dorthin. Die Telegram-Zustellung ist Fire-and-Forget: Ein fehlgeschlagener Versand wird im Audit-Log protokolliert und im Host-Toast angezeigt, der Host wiederholt ihn jedoch nicht."
+  }
+}

@@ -1,0 +1,7 @@
+// Copyright (c) 2026 McSparrow. All rights reserved.
+// McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+package example
+
+// A console-subject such as "vm" is read from the registry, never named here.
+func consoles(declared map[string][]string, guestKind string) []string { return declared[guestKind] }

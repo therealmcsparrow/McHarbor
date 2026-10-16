@@ -1,0 +1,39 @@
+{
+    "slug":  "selenoid",
+    "name":  "Selenoid",
+    "description":  "Lightweight Selenium hub implementation that launches browsers as Docker containers.",
+    "category":  "Developer Tools",
+    "image":  "aerokube/selenoid:latest-release",
+    "logo":  "https://www.google.com/s2/favicons?domain=aerokube.com\u0026sz=128",
+    "website":  "https://aerokube.com/selenoid/",
+    "docsUrl":  "https://aerokube.com/selenoid/latest/",
+    "ports":  [
+                  {
+                      "host":  4444,
+                      "container":  4444,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/selenoid/config",
+                        "container":  "/etc/selenoid"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest-release",
+    "latest":  {
+        "version":  "latest-release",
+        "release_date":  "2026-09-29"
+    }
+}

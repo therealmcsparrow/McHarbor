@@ -1,0 +1,42 @@
+{
+    "slug":  "jupyterlab",
+    "name":  "JupyterLab",
+    "description":  "Web-based interactive development environment for notebooks, code, and data across many programming languages.",
+    "category":  "Developer Tools",
+    "image":  "quay.io/jupyter/base-notebook:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jupyter.png",
+    "website":  "https://jupyter.org",
+    "docsUrl":  "https://jupyter-docker-stacks.readthedocs.io",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jupyterlab/work",
+                        "container":  "/home/jovyan/work"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JUPYTER_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Token required to authenticate with JupyterLab",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

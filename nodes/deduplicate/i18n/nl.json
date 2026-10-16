@@ -1,8 +1,8 @@
 {
-  "label": "Deduplicate",
-  "description": "Remove duplicate items from an array",
+  "label": "Ontdubbelen",
+  "description": "Verwijder dubbele items uit een array",
   "config": {
     "property": "Eigenschap",
-    "unique_by": "Unique By"
+    "unique_by": "Uniek op"
   }
 }

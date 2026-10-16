@@ -1,0 +1,39 @@
+{
+    "slug":  "podgrab",
+    "name":  "Podgrab",
+    "description":  "Podcast manager that downloads and organizes episodes from subscribed feeds automatically.",
+    "category":  "Media",
+    "image":  "akhilrex/podgrab:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/podgrab.png",
+    "website":  "https://github.com/akhilrex/podgrab",
+    "docsUrl":  "https://github.com/akhilrex/podgrab#docker",
+    "ports":  [
+                  {
+                      "host":  4052,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/podgrab/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/podgrab/data",
+                        "container":  "/assets"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

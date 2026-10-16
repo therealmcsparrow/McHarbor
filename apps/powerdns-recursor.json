@@ -1,0 +1,46 @@
+{
+    "slug":  "powerdns-recursor",
+    "name":  "PowerDNS Recursor",
+    "description":  "Recursive DNS resolver that caches and forwards queries for PowerDNS deployments.",
+    "category":  "Networking",
+    "image":  "powerdns/pdns-recursor-49:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/powerdns.png",
+    "website":  "https://www.powerdns.com/recursor.html",
+    "docsUrl":  "https://doc.powerdns.com/recursor/running.html",
+    "ports":  [
+                  {
+                      "host":  5301,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5301,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/powerdns-recursor/config",
+                        "container":  "/etc/powerdns"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PDNS_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key for the built-in webserver/API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -29,6 +29,7 @@ export type Group = {
   memberCount: number;
   members?: GroupMember[];
   roles?: GroupRole[];
+  roleNames?: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -36,14 +37,14 @@ export type Group = {
 export function useGroups() {
   return useQuery({
     queryKey: ['groups'],
-    queryFn: () => api.get<Group[]>('/groups').then((r) => r.data ?? []),
+    queryFn: () => api.get<Group[]>('/groups').then((r) => assertSuccess(r) ?? []),
   });
 }
 
 export function useGroup(id: string) {
   return useQuery({
     queryKey: ['groups', id],
-    queryFn: () => api.get<Group>(`/groups/${id}`).then((r) => r.data),
+    queryFn: () => api.get<Group>(`/groups/${id}`).then(assertSuccess),
     enabled: !!id,
   });
 }
@@ -53,11 +54,10 @@ export function useCreateGroup() {
   const { t } = useTranslation('security');
 
   return useMutation({
-    mutationFn: (body: { name: string; description: string }) =>
-      api.post<Group>('/groups', body).then(assertSuccess),
+    mutationFn: (body: { name: string; description: string }) => api.post<Group>('/groups', body).then(assertSuccess),
     meta: { success: () => t('toast.groupCreated') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 }
@@ -71,7 +71,7 @@ export function useUpdateGroup() {
       api.put<Group>(`/groups/${id}`, body).then(assertSuccess),
     meta: { success: () => t('toast.groupUpdated') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 }
@@ -84,7 +84,7 @@ export function useDeleteGroup() {
     mutationFn: (id: string) => api.del(`/groups/${id}`).then(assertSuccess),
     meta: { success: () => t('toast.groupDeleted') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 }
@@ -98,8 +98,8 @@ export function useAddGroupMember() {
       api.post(`/groups/${groupId}/members`, { userId }).then(assertSuccess),
     meta: { success: () => t('toast.memberAdded') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     },
   });
 }
@@ -113,8 +113,8 @@ export function useRemoveGroupMember() {
       api.del(`/groups/${groupId}/members/${userId}`).then(assertSuccess),
     meta: { success: () => t('toast.memberRemoved') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     },
   });
 }
@@ -138,17 +138,19 @@ export function useAssignGroupRole() {
       const scopes = stackNames && stackNames.length > 0 ? stackNames : [null];
       return Promise.all(
         scopes.map((stackName) =>
-          api.post(`/groups/${groupId}/roles`, {
-            roleId,
-            environmentId: environmentId || null,
-            stackName,
-          }).then(assertSuccess),
+          api
+            .post(`/groups/${groupId}/roles`, {
+              roleId,
+              environmentId: environmentId || null,
+              stackName,
+            })
+            .then(assertSuccess),
         ),
       );
     },
     meta: { success: () => t('toast.roleAssigned') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 }
@@ -160,13 +162,11 @@ export function useUnassignGroupRole() {
   return useMutation({
     mutationFn: ({ groupId, assignmentIds }: { groupId: string; assignmentIds: string[] }) =>
       Promise.all(
-        assignmentIds.map((assignmentId) =>
-          api.del(`/groups/${groupId}/roles/${assignmentId}`).then(assertSuccess),
-        ),
+        assignmentIds.map((assignmentId) => api.del(`/groups/${groupId}/roles/${assignmentId}`).then(assertSuccess)),
       ),
     meta: { success: () => t('toast.roleUnassigned') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
   });
 }

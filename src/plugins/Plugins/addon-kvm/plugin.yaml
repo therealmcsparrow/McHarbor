@@ -1,0 +1,894 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-kvm"
+name:     "Virtual Machines"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  Run KVM virtual machines on your own hosts — create from a cloud image and
+  reach a login prompt in the browser in under two minutes, or install from an
+  ISO. Disks, network interfaces, snapshots, clones and templates, with a VNC
+  and serial console. McHarbor drives QEMU directly over QMP and supervises it
+  with systemd; there is no libvirt, no Proxmox and no third-party hypervisor UI.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.25"
+
+# Compute Foundation carries the pools, networks, images and capability probe
+# this plugin builds on. The host installs it alongside this one and removes it
+# again when neither guest plugin is left.
+requires:
+  - "addon-compute"
+
+permissions:
+  - menu.sidebar.add
+  - i18n.namespace.add:vm
+  - rbac.permission.register
+  - db.migrations.run
+  - audit.emit
+  # The agent-rpc bridge. A plugin cannot extend `src/agent/protocol.go` or the
+  # agent's dispatch, and the agent binary is a versioned core artifact, so the
+  # host carries across exactly the messages the agent-rpc capability below lists.
+  - agent.rpc
+  # Three VM report types for the Reporting plugin's Report Studio.
+  - reporting.adapter.register
+  # Six VM alert conditions for the host's alert engine. The engine owns the
+  # thresholds, the schedule, the firing state and the delivery.
+  - alerting.adapter.register
+  # AI-assisted diagnosis of a guest that will not start or that crashed. Opt-in
+  # per request, and only the VM's own definition and exit reason cross the
+  # boundary — never a console stream or a disk.
+  - ai.invoke
+  # The secret vault, read as the user creating a guest: a cloud-init password
+  # and SSH keys taken by name. The host checks that user's secrets.view.
+  - secrets.read
+
+adds_permissions:
+  - key:      "vm.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View virtual machines"
+    description: "Allows seeing virtual machines, their hardware, their snapshots and their resource usage."
+
+  - key:      "vm.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage virtual machines"
+    description: "Allows creating, editing, starting, stopping, resizing, snapshotting and cloning virtual machines. Destroying one needs vm.delete."
+
+  - key:      "vm.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete virtual machines"
+    description: "Allows destroying a virtual machine and its disks, and deleting its snapshots."
+
+  # Console is separate from manage on purpose. Reaching a guest's console is
+  # effectively root inside that guest, and plenty of operators want to grant
+  # start/stop control without it — the same reasoning that separates
+  # containers.manage from exec.
+  - key:      "vm.console"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Open a virtual machine console"
+    description: "Allows opening the VNC or serial console of a virtual machine. This is effectively root access inside the guest, which is why it is separate from vm.manage."
+
+  - key:      "vm.migrate"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Migrate virtual machines between hosts"
+    description: "Allows moving a virtual machine to another host, stopped or live. Needed on both the host it leaves and the host it moves to."
+
+  - key:      "vm.import"
+    presets:      []
+    scope:    "env"
+    category: "Plugins"
+    label:    "Import virtual machines from other hypervisors"
+    description: "Allows uploading a disk or an OVA from VMware, Hyper-V, VirtualBox or Parallels and converting it into a virtual machine. Creating a guest from the image catalog only needs vm.manage; this key exists because an import puts a disk of the operator's choosing on the host and boots it."
+
+  - key:      "vm.backup.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View virtual machine backups"
+    description: "Allows seeing backup plans, backup history and where each backup was written."
+
+  - key:      "vm.backup.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage virtual machine backups"
+    description: "Allows creating and editing backup schedules and starting a backup. Removing one needs vm.backup.delete, and restoring needs vm.restore.run."
+
+  - key:      "vm.backup.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete virtual machine backups"
+    description: "Allows removing a backup and the copies it wrote to its destinations."
+
+  # Separate from backup.manage on purpose, the same way restore.run is
+  # separate from backups.manage for containers: restoring replaces a
+  # machine's disks, which is destructive in a way taking a backup is not.
+  - key:      "vm.restore.run"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Restore a virtual machine from a backup"
+    description: "Allows rebuilding a machine's disks from a backup, replacing whatever is on them now. The machine has to be stopped."
+
+  # Never in a role preset. Every one of these can compromise the host itself
+  # rather than only the guest, so it is granted deliberately or not at all.
+  - key:      "vm.privileged"
+    presets:      []
+    scope:    "env"
+    category: "Plugins"
+    label:    "Attach host devices to virtual machines"
+    description: "Allows PCI and USB passthrough and attaching raw host block devices. These can compromise the host itself, not just the guest, so this is never granted by a role preset."
+
+consumes_permissions:
+  # The VM pages link to pools, networks and images, and the create dialog reads
+  # all three. A user without compute.view sees those affordances disabled with
+  # a tooltip naming the key, rather than a broken picker.
+  - "compute.view"
+  # A host reboot drains this plugin's guests through the two reboot-drain routes,
+  # gated on the host's own reboot keys: the reboot's requester already holds them.
+  - "host_updates.view"
+  - "host_updates.reboot"
+  # The create dialog lists vault secret names, and the host reads a named
+  # secret only for a user who holds this key where the guest is created.
+  - "secrets.view"
+
+contributes:
+  capabilities:
+    - kind: agent-rpc
+      send:
+        - compute_probe_request
+        - vm_define
+        - vm_start
+        - vm_shutdown
+        - vm_stop
+        - vm_reset
+        - vm_pause
+        - vm_resume
+        - vm_delete
+        - vm_query
+        - vm_stats
+        - host_device_list
+        - vm_log
+        - vm_disk_list
+        - vm_disk_create
+        - vm_disk_resize
+        - vm_disk_delete
+        - vm_snapshot_create
+        - vm_snapshot_revert
+        - vm_snapshot_delete
+        - vm_import_inspect
+        - vm_import_convert
+        - vm_import_stage
+        - vm_import_discard
+        - vm_clone_request
+        - vm_guest_query
+        - vm_guest_agent_disc
+        - vm_backup_run
+        - vm_backup_restore
+        - vm_migrate
+        - vm_spice_ticket
+        - vm_cancel
+        - vm_qemu_capability
+        - vm_memory_set
+        - vm_cpu_set
+        - vm_throttle_set
+        - vm_image_inspect
+        - vm_disk_hotplug
+        - vm_media_change
+        - vm_nic_hotplug
+      observe:
+        - vm_event
+        - vm_import_progress
+    - kind: runbook-provider
+      domain: vm
+      i18n_ns: vm
+      targets:
+        - kind: vm
+          label_key: runbook.targets.vm
+          path: "/api/vms"
+          query: {env: "$env"}
+          id: id
+          name: [name]
+          detail: [state]
+          attach: {kind: vm, label_key: runbook.attach.vm}
+      steps:
+        - key: vm.start
+          description_key: runbook.steps.vm_start
+          kind: action
+          target: vm
+          destructive: true
+          permissions: [vm.manage]
+          params:
+            - {name: vm, type: target, target: vm}
+          call:
+            method: POST
+            path: "/api/vms/{vm}/start"
+        - key: vm.shutdown
+          description_key: runbook.steps.vm_shutdown
+          kind: action
+          target: vm
+          destructive: true
+          permissions: [vm.manage]
+          params:
+            - {name: vm, type: target, target: vm}
+            - {name: graceSeconds, type: int, min: 0, max: 3600}
+          call:
+            method: POST
+            path: "/api/vms/{vm}/shutdown"
+            body: [{json: graceSeconds, param: graceSeconds, type: int}]
+        - key: vm.reset
+          description_key: runbook.steps.vm_reset
+          kind: action
+          target: vm
+          destructive: true
+          permissions: [vm.manage]
+          params:
+            - {name: vm, type: target, target: vm}
+          call:
+            method: POST
+            path: "/api/vms/{vm}/reset"
+        - key: vm.force_stop
+          description_key: runbook.steps.vm_force_stop
+          kind: action
+          target: vm
+          destructive: true
+          permissions: [vm.manage]
+          params:
+            - {name: vm, type: target, target: vm}
+          call:
+            method: POST
+            path: "/api/vms/{vm}/stop"
+        - key: vm.snapshot.create
+          description_key: runbook.steps.vm_snapshot_create
+          kind: action
+          target: vm
+          permissions: [vm.manage]
+          params:
+            - {name: vm, type: target, target: vm}
+            - {name: name, type: string, required: true}
+            - {name: withMemory, type: bool}
+          call:
+            method: POST
+            path: "/api/vms/{vm}/snapshots"
+            body: [{json: name, param: name, type: string}, {json: withMemory, param: withMemory, type: bool}]
+        - key: vm.state
+          description_key: runbook.steps.vm_state
+          kind: diagnostic
+          target: vm
+          permissions: [vm.view]
+          params:
+            - {name: vm, type: target, target: vm}
+          call:
+            method: GET
+            path: "/api/vms/{vm}"
+        - key: vm.snapshots
+          description_key: runbook.steps.vm_snapshots
+          kind: diagnostic
+          target: vm
+          permissions: [vm.view]
+          params:
+            - {name: vm, type: target, target: vm}
+          call:
+            method: GET
+            path: "/api/vms/{vm}/snapshots"
+    - kind: backup-row-actions
+      source_kind: vm
+      label_key: backups.sourceLabel
+      i18n_ns: vm
+      pages:
+        open: "/plugins/addon-kvm/{subject}/backups"
+        restore: "/plugins/addon-kvm/{subject}/backups/restore/{id}"
+        edit_plan: "/plugins/addon-kvm/{subject}/backups/plan/{id}"
+      routes:
+        delete_run: "/api/vms/backups/{id}"
+        delete_plan: "/api/vms/backup-plans/{id}"
+      permissions:
+        view: "vm.view"
+        manage: "vm.backup.manage"
+        delete: "vm.backup.delete"
+        restore: "vm.restore.run"
+    - kind: estate-source
+      metric: vms
+      path: "/api/vms"
+      environment_field: environmentId
+      label_key: estate.vms
+      i18n_ns: vm
+      icon: device-desktop
+      running_field: state
+      running_values: [running]
+      link: "/plugins/addon-kvm"
+    - kind: lifecycle-subject
+      subject_type: vm
+      page: "/plugins/addon-kvm"
+    - kind: picker-source
+      target: vm
+    - kind: workflow-node-alias
+      alias: vm-trigger
+      node: vm-trigger
+    - kind: console-subject
+      subject_type: vm
+      consoles: [vnc, serial, spice]
+      permission: vm.console
+    - kind: reboot-drain
+      subject_type: vm
+      routes:
+        running: "/api/vms/reboot-drain"
+        stop: "/api/vms/reboot-drain"
+    - kind: search-source
+      i18n_ns: vm
+      sources:
+        - key: vm
+          label_key: search.group.vms
+          path: "/api/vms"
+          env_scoped: true
+          id: id
+          name: [name]
+          detail: [state, description]
+          link: "/plugins/addon-kvm/{id}"
+          icon: device-desktop
+    - kind: search-action
+      i18n_ns: vm
+      actions:
+        - key: vm.create
+          label_key: search.action.createVm
+          keywords_key: search.action.createVmKeywords
+          icon: plus
+          link: "/plugins/addon-kvm?action=create"
+          permission: vm.manage
+        - key: vm.import
+          label_key: search.action.importVm
+          keywords_key: search.action.importVmKeywords
+          icon: download
+          link: "/plugins/addon-kvm?action=import"
+          permission: vm.import
+  routes:
+    - method: GET
+      path: "/api/vms/reboot-drain"
+      requires_permission: "host_updates.view"
+    - method: POST
+      path: "/api/vms/reboot-drain"
+      requires_permission: "host_updates.reboot"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.reboot_drain_stop"
+      audit_entity_type: "vm"
+    # SPICE display profiles. Reading them is part of looking at guests; changing
+    # one changes how guests boot, so it takes the key that edits a guest.
+    - method: GET
+      path: "/api/vms/display-profiles"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/display-profiles/{profileId}"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/display-profiles"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.display_profile.created"
+      audit_entity_type: "vm_display_profile"
+    - method: PUT
+      path: "/api/vms/display-profiles/{profileId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.display_profile.updated"
+      audit_entity_type: "vm_display_profile"
+    - method: POST
+      path: "/api/vms/display-profiles/{profileId}/duplicate"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.display_profile.duplicated"
+      audit_entity_type: "vm_display_profile"
+    - method: DELETE
+      path: "/api/vms/display-profiles/{profileId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.display_profile.deleted"
+      audit_entity_type: "vm_display_profile"
+    - method: GET
+      path: "/api/vms"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}/cloud-init"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.cloud_init_revealed"
+      audit_entity_type: "vm"
+      audit_severity: "warning"
+    # Describes the host's QEMU, not any one guest, because the create dialog
+    # needs it before a guest exists.
+    - method: GET
+      path: "/api/vms/capability"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}/stats"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}/stats/history"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}/block-jobs"
+      requires_permission: "vm.view"
+
+    - method: GET
+      path: "/api/vms/{id}/backup-plans"
+      requires_permission: "vm.backup.view"
+    - method: GET
+      path: "/api/vms/{id}/backups"
+      requires_permission: "vm.backup.view"
+    - method: GET
+      path: "/api/vms/backups/{runId}"
+      requires_permission: "vm.backup.view"
+
+    - method: POST
+      path: "/api/vms/{id}/backup-plans"
+      requires_permission: "vm.backup.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.plan_created"
+      audit_entity_type: "vm"
+    - method: PUT
+      path: "/api/vms/backup-plans/{planId}"
+      requires_permission: "vm.backup.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.plan_updated"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/backups"
+      requires_permission: "vm.backup.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.started"
+      audit_entity_type: "vm"
+
+    - method: DELETE
+      path: "/api/vms/backup-plans/{planId}"
+      requires_permission: "vm.backup.delete"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.plan_deleted"
+      audit_entity_type: "vm"
+    - method: DELETE
+      path: "/api/vms/backups/{runId}"
+      requires_permission: "vm.backup.delete"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.deleted"
+      audit_entity_type: "vm"
+
+    # Replaces the machine's disks with what the backup holds, which is why it
+    # is its own key rather than part of managing backups.
+    - method: POST
+      path: "/api/vms/backups/{runId}/restore"
+      requires_permission: "vm.restore.run"
+      audit_required: true
+      audit_action: "plugin.kvm.backup.restored"
+      audit_entity_type: "vm"
+    - method: GET
+      path: "/api/vms/{id}/shares"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/share-roots"
+      requires_permission: "vm.view"
+
+    # Live resizes. Both are requests the guest may decline, and both change
+    # what the machine has, so they are manage rather than view.
+    - method: POST
+      path: "/api/vms/{id}/memory"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.memory_resized"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/vcpus"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.vcpus_changed"
+      audit_entity_type: "vm"
+    - method: PUT
+      path: "/api/vms/{id}/disks/{diskId}/throttle"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.throttle_set"
+      audit_entity_type: "vm"
+    # Repair rewrites the image, which is why this is manage and not view even
+    # though every other operation behind it is read-only.
+    - method: POST
+      path: "/api/vms/{id}/disks/{diskId}/inspect"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.disk_inspected"
+      audit_entity_type: "vm"
+
+    # Sharing a host directory into a guest is a privilege boundary: virtiofsd
+    # runs as root and a badly chosen path hands the host to the guest. Gated
+    # with device passthrough rather than with ordinary management.
+    - method: POST
+      path: "/api/vms/{id}/shares"
+      requires_permission: "vm.privileged"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.share_added"
+      audit_entity_type: "vm"
+    - method: DELETE
+      path: "/api/vms/{id}/shares/{shareId}"
+      requires_permission: "vm.privileged"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.share_removed"
+      audit_entity_type: "vm"
+    - method: PUT
+      path: "/api/vms/share-roots"
+      requires_permission: "vm.privileged"
+      audit_required: true
+      audit_action: "plugin.kvm.host.share_roots_set"
+      audit_entity_type: "environment"
+    # A read that reaches into the guest, but only through the fixed query set
+    # the agent implements — never guest-exec — so it stays a view.
+    - method: POST
+      path: "/api/vms/{id}/guest-info"
+      requires_permission: "vm.view"
+      audit_required: false
+    - method: GET
+      path: "/api/vms/{id}/logs"
+      requires_permission: "vm.view"
+
+    - method: POST
+      path: "/api/vms"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.created"
+      audit_entity_type: "vm"
+    - method: PUT
+      path: "/api/vms/{id}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.updated"
+      audit_entity_type: "vm"
+
+    - method: POST
+      path: "/api/vms/{id}/start"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.started"
+      audit_entity_type: "vm"
+    # Shutdown records whether the ACPI grace period had to escalate to a hard
+    # stop, so a guest that ignores ACPI is visible in the trail rather than
+    # looking like a slow but clean shutdown.
+    - method: POST
+      path: "/api/vms/{id}/shutdown"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.shutdown"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/stop"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.stopped"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/reset"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.reset"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/pause"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.paused"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/resume"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.resumed"
+      audit_entity_type: "vm"
+
+    - method: DELETE
+      path: "/api/vms/{id}"
+      requires_permission: "vm.delete"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.deleted"
+      audit_entity_type: "vm"
+
+    - method: GET
+      path: "/api/vms/{id}/disks"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/{id}/disks"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.disk.added"
+      audit_entity_type: "vm_disk"
+    - method: PATCH
+      path: "/api/vms/{id}/disks/{diskId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.disk.resized"
+      audit_entity_type: "vm_disk"
+    - method: DELETE
+      path: "/api/vms/{id}/disks/{diskId}"
+      requires_permission: "vm.delete"
+      audit_required: true
+      audit_action: "plugin.kvm.disk.deleted"
+      audit_entity_type: "vm_disk"
+
+    - method: POST
+      path: "/api/vms/{id}/media"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.media.attached"
+      audit_entity_type: "vm_disk"
+    - method: POST
+      path: "/api/vms/{id}/guest-agent-disc"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.guest_agent_disc.attached"
+      audit_entity_type: "vm_disk"
+    - method: DELETE
+      path: "/api/vms/{id}/media/{diskId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.media.ejected"
+      audit_entity_type: "vm_disk"
+
+    - method: GET
+      path: "/api/vms/{id}/nics"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/{id}/nics"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.nic.added"
+      audit_entity_type: "vm_nic"
+    - method: PATCH
+      path: "/api/vms/{id}/nics/{nicId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.nic.updated"
+      audit_entity_type: "vm_nic"
+    - method: DELETE
+      path: "/api/vms/{id}/nics/{nicId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.nic.deleted"
+      audit_entity_type: "vm_nic"
+
+    # Declared before /{id}/snapshots so the literal path is not eaten by the id
+    # parameter, matching the registration order in backend/main.go.
+    - method: GET
+      path: "/api/vms/snapshots/summary"
+      requires_permission: "vm.view"
+    - method: GET
+      path: "/api/vms/{id}/snapshots"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/{id}/snapshots"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot.created"
+      audit_entity_type: "vm_snapshot"
+    # Revert is destructive to everything after the snapshot, which is why the
+    # audit row records the pre-state summary — the trail has to be useful once
+    # the discarded snapshots no longer exist.
+    - method: POST
+      path: "/api/vms/{id}/snapshots/{snapId}/revert"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot.reverted"
+      audit_entity_type: "vm_snapshot"
+    - method: DELETE
+      path: "/api/vms/{id}/snapshots/{snapId}"
+      requires_permission: "vm.delete"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot.deleted"
+      audit_entity_type: "vm_snapshot"
+
+    # Scheduled snapshots. A schedule is a policy on a guest, so it takes the
+    # same `vm.manage` as taking a snapshot by hand; removing one destroys no
+    # snapshots, which is why it is not `vm.delete`.
+    - method: GET
+      path: "/api/vms/{id}/snapshot-schedules"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/{id}/snapshot-schedules"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot_schedule.created"
+      audit_entity_type: "vm_snapshot_schedule"
+    - method: PUT
+      path: "/api/vms/{id}/snapshot-schedules/{scheduleId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot_schedule.updated"
+      audit_entity_type: "vm_snapshot_schedule"
+    - method: POST
+      path: "/api/vms/{id}/snapshot-schedules/{scheduleId}/run"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot_schedule.run"
+      audit_entity_type: "vm_snapshot_schedule"
+    - method: DELETE
+      path: "/api/vms/{id}/snapshot-schedules/{scheduleId}"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.snapshot_schedule.deleted"
+      audit_entity_type: "vm_snapshot_schedule"
+
+    # Importing a guest from another hypervisor. Every route takes `vm.import`
+    # rather than `vm.manage`: the upload puts operator-chosen bytes on a host
+    # and the conversion boots them.
+    - method: GET
+      path: "/api/vms/imports"
+      requires_permission: "vm.import"
+    - method: POST
+      path: "/api/vms/imports"
+      requires_permission: "vm.import"
+      audit_required: true
+      audit_action: "plugin.kvm.import.uploaded"
+      audit_entity_type: "vm_import"
+    # How an agent pulls a staged upload. Public because the caller is an agent
+    # and holds no session; the handler redeems a per-transfer grant whose token
+    # the server minted moments earlier, so it only ever serves the one file it
+    # was asked for.
+    - method: GET
+      path: "/api/vms/imports/internal/{grantId}"
+      public: true
+    - method: PUT
+      path: "/api/vms/backups/internal/{grantId}"
+      public: true
+      audit_required: false
+    - method: GET
+      path: "/api/vms/backups/internal/download/{grantId}"
+      public: true
+    - method: PUT
+      path: "/api/vms/migrations/internal/{grantId}"
+      public: true
+      audit_required: false
+    - method: GET
+      path: "/api/vms/migrations/internal/{grantId}"
+      public: true
+    - method: POST
+      path: "/api/vms/imports/{importId}/inspect"
+      requires_permission: "vm.import"
+      audit_required: false
+    - method: POST
+      path: "/api/vms/imports/{importId}/cancel"
+      requires_permission: "vm.import"
+      audit_required: true
+      audit_action: "plugin.kvm.import.cancelled"
+      audit_entity_type: "vm_import"
+    - method: POST
+      path: "/api/vms/imports/{importId}/convert"
+      requires_permission: "vm.import"
+      audit_required: true
+      audit_action: "plugin.kvm.import.converted"
+      audit_entity_type: "vm_import"
+    - method: DELETE
+      path: "/api/vms/imports/{importId}"
+      requires_permission: "vm.import"
+      audit_required: true
+      audit_action: "plugin.kvm.import.deleted"
+      audit_entity_type: "vm_import"
+
+    - method: POST
+      path: "/api/vms/{id}/clone"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.cloned"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/template"
+      requires_permission: "vm.manage"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.templated"
+      audit_entity_type: "vm"
+    - method: POST
+      path: "/api/vms/{id}/migrate"
+      requires_permission: "vm.migrate"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.migration_started"
+      audit_entity_type: "vm"
+    - method: GET
+      path: "/api/vms/{id}/migration"
+      requires_permission: "vm.view"
+    - method: POST
+      path: "/api/vms/{id}/migration/cancel"
+      requires_permission: "vm.migrate"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.migration_cancelled"
+      audit_entity_type: "vm"
+    - method: GET
+      path: "/api/vms/{id}/console.vv"
+      requires_permission: "vm.console"
+      audit_required: true
+      audit_action: "plugin.kvm.vm.spice_ticket_issued"
+      audit_entity_type: "vm"
+      audit_severity: "warning"
+
+    # Host device passthrough. Its own permission, because each of these can
+    # compromise the host rather than only the guest.
+    - method: GET
+      path: "/api/vms/pool-volumes"
+      requires_permission: "vm.manage"
+
+    # The passthrough candidate list. Gated on vm.privileged, not vm.view: it
+    # names every PCI and USB device on the host, and it is only of use to the
+    # permission that can attach them.
+    - method: GET
+      path: "/api/vms/host-devices"
+      requires_permission: "vm.privileged"
+
+    - method: POST
+      path: "/api/vms/{id}/devices"
+      requires_permission: "vm.privileged"
+      audit_required: true
+      audit_action: "plugin.kvm.device.attached"
+      audit_entity_type: "vm_device"
+    - method: DELETE
+      path: "/api/vms/{id}/devices/{devId}"
+      requires_permission: "vm.privileged"
+      audit_required: true
+      audit_action: "plugin.kvm.device.detached"
+      audit_entity_type: "vm_device"
+
+    # AI-assisted diagnosis of a guest that will not start. POST only because
+    # it submits the guest's state for analysis; it changes nothing.
+    - method: POST
+      path: "/api/vms/{id}/diagnose"
+      requires_permission: "vm.view"
+      audit_required: false
+
+  menu:
+    - parent: "compute"
+      label_ns: "vm"
+      label_key: "nav.machines"
+      path: "/plugins/addon-kvm"
+      icon: "IconDeviceDesktop"
+      required_permission: "vm.view"
+      priority: 90
+    - parent: "compute"
+      label_ns: "vm"
+      label_key: "nav.templates"
+      path: "/plugins/addon-kvm/templates"
+      icon: "IconTemplate"
+      required_permission: "vm.view"
+      priority: 50
+
+  widgets:
+    - "vm-summary"
+    - "vm-resources"
+
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host exposes
+  # them on the canvas as plugin:addon-kvm:<key>.
+  nodes:
+    - "vm-lifecycle"
+    - "vm-snapshot"
+    - "vm-clone"
+    - "vm-state"
+    - "vm-trigger"
+
+  migrations:
+    - "migrations/0001_init.sql"
+    - "migrations/0002_snapshot_schedules.sql"
+    - "migrations/0003_imports.sql"
+
+  i18n_namespaces:
+    - "vm"
+
+signature: ""
+checksum:  ""

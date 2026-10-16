@@ -1,0 +1,46 @@
+{
+    "slug":  "grafana-nightly",
+    "name":  "Grafana (Nightly)",
+    "description":  "Nightly channel build of Grafana. Open-source analytics and monitoring platform with beautiful dashboards.",
+    "category":  "Monitoring",
+    "image":  "grafana/grafana:nightly",
+    "logo":  "https://grafana.com/static/img/menu/grafana2.svg",
+    "website":  "https://grafana.com",
+    "docsUrl":  "https://grafana.com/docs/",
+    "ports":  [
+                  {
+                      "host":  4100,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/grafana-nightly/data",
+                        "container":  "/var/lib/grafana"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GF_SECURITY_ADMIN_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "GF_SECURITY_ADMIN_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

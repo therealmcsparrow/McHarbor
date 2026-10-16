@@ -2,34 +2,19 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import {
-  IconPlayerPlay,
-  IconPlayerStop,
-  IconRotate,
-  IconTrash,
-  IconExternalLink,
-  IconTerminal2,
-  IconFileText,
-  IconLock,
-  IconTag,
-  IconArrowsExchange,
-} from '@tabler/icons-react';
+import { IconLock } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
 import { isProtectedContainer } from '@core/utils/protection';
 import type { BulkContainerMetric } from '../hooks/useContainersBulkStats';
-import { Card, CardContent, CardFooter } from '@resources/components/ui/Card';
+import { Card, CardContent } from '@resources/components/ui/Card';
 import { Badge } from '@resources/components/ui/Badge';
 import { formatBytes } from '@resources/utils/format';
 import { ContainerIcon } from './ContainerIcon';
-import { ActionButton } from './ActionButton';
+import { ContainerCardActions } from './ContainerCardActions';
 import { MiniChart } from './MiniChart';
 import { useStatsHistory } from '../hooks/useStatsHistory';
-import {
-  STATE_VARIANTS,
-  getContainerWebUrl,
-  getContainerIP,
-  getPublicPorts,
-} from './container-utils';
+import { STATE_VARIANTS, getContainerWebUrl, getContainerIP, getPublicPorts } from './container-utils';
+import { CHART_COLORS } from '@resources/theme/chart-colors';
 
 type ContainerCardProps = {
   container: ContainerInfo;
@@ -40,6 +25,7 @@ type ContainerCardProps = {
   onLogs: (c: ContainerInfo) => void;
   onRename: (c: ContainerInfo) => void;
   onMove: (c: ContainerInfo) => void;
+  onRecreate: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onClick: (c: ContainerInfo) => void;
 };
@@ -53,27 +39,24 @@ export function ContainerCard({
   onLogs,
   onRename,
   onMove,
+  onRecreate,
   onRemove,
   onClick,
 }: ContainerCardProps) {
   const { t } = useTranslation('containers');
-  const { t: tc } = useTranslation('common');
-  const name = c.Names?.[0]?.replace(/^\//, '') ?? c.Id.slice(0, 12);
+  const itemName = c.Names?.[0]?.replace(/^\//, '') ?? c.Id.slice(0, 12);
   const isRunning = c.State === 'running';
-  const isPaused = c.State === 'paused';
   const locked = isProtectedContainer(c);
   const webUrl = isRunning ? getContainerWebUrl(c.Ports) : null;
   const ip = getContainerIP(c);
   const ports = getPublicPorts(c.Ports);
-  const history = useStatsHistory(stats);
+  const historyData = useStatsHistory(stats);
 
   return (
     <Card
       className={[
         'cursor-pointer transition-[background-color,border-color,box-shadow] duration-300 hover:border-primary/40',
-        highlighted
-          ? 'border-amber-400/60 bg-amber-500/5 shadow-[0_0_0_1px_rgba(251,191,36,0.55),0_0_24px_rgba(251,191,36,0.18)]'
-          : '',
+        highlighted ? 'border-warning/60 bg-warning/5 ring-1 ring-warning/55 shadow-lg shadow-warning/20' : '',
       ].join(' ')}
       onClick={() => onClick(c)}
     >
@@ -82,18 +65,15 @@ export function ContainerCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <ContainerIcon image={c.Image} className="size-5" />
-            <span className="truncate font-medium text-sm">{name}</span>
+            <span className="truncate text-sm font-medium">{itemName}</span>
             {locked && (
-              <Badge variant="secondary" className="shrink-0 gap-1 text-[9px] px-1.5 py-0">
+              <Badge variant="secondary" className="shrink-0 gap-1 px-1.5 py-0 text-[9px]">
                 <IconLock className="size-3" />
-                {tc('actions.locked')}
+                {t('actions.locked', { ns: 'common' })}
               </Badge>
             )}
           </div>
-          <Badge
-            variant={STATE_VARIANTS[c.State] ?? 'secondary'}
-            className="shrink-0 text-[10px] px-2 py-0.5"
-          >
+          <Badge variant={STATE_VARIANTS[c.State] ?? 'secondary'} className="shrink-0 px-2 py-0.5 text-[10px]">
             {c.State}
           </Badge>
         </div>
@@ -106,7 +86,7 @@ export function ContainerCard({
           <div className="space-y-1.5">
             {ip !== '-' && (
               <div>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 font-mono">
+                <Badge variant="outline" className="px-1.5 py-0.5 font-mono text-[10px]">
                   {ip}
                 </Badge>
               </div>
@@ -114,7 +94,7 @@ export function ContainerCard({
             {ports.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {ports.map((p) => (
-                  <Badge key={p} variant="secondary" className="text-[10px] px-1.5 py-0.5 font-mono">
+                  <Badge key={p} variant="secondary" className="px-1.5 py-0.5 font-mono text-[10px]">
                     {p}
                   </Badge>
                 ))}
@@ -129,101 +109,43 @@ export function ContainerCard({
             <MiniChart
               label={t('card.cpu')}
               value={`${stats.cpuPercent.toFixed(1)}%`}
-              data={history.cpu}
-              color="hsl(142 71% 45%)"
+              data={historyData.cpu}
+              color={CHART_COLORS.cpu}
             />
             <MiniChart
               label={t('card.memory')}
               value={formatBytes(stats.memUsage)}
-              data={history.mem}
-              color="hsl(217 91% 60%)"
+              data={historyData.mem}
+              color={CHART_COLORS.memory}
             />
             <MiniChart
               label={t('card.netRx')}
               value={formatBytes(stats.netRx)}
-              data={history.netRx}
-              color="hsl(280 68% 60%)"
+              data={historyData.netRx}
+              color={CHART_COLORS.networkRx}
             />
             <MiniChart
               label={t('card.netTx')}
               value={formatBytes(stats.netTx)}
-              data={history.netTx}
-              color="hsl(30 80% 55%)"
+              data={historyData.netTx}
+              color={CHART_COLORS.networkTx}
             />
           </div>
         )}
       </CardContent>
 
-      {/* Actions */}
-      <CardFooter className="gap-1 px-3 py-2" onClick={(e) => e.stopPropagation()}>
-        {isRunning ? (
-          <ActionButton
-            label={t('actions.stop')}
-            onClick={() => onAction(c.Id, 'stop')}
-            disabled={locked}
-            icon={<IconPlayerStop className="h-3.5 w-3.5 text-amber-500" />}
-          />
-        ) : isPaused ? (
-          <ActionButton
-            label={t('actions.resume')}
-            onClick={() => onAction(c.Id, 'unpause')}
-            disabled={locked}
-            icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
-          />
-        ) : (
-          <ActionButton
-            label={t('actions.start')}
-            onClick={() => onAction(c.Id, 'start')}
-            disabled={locked}
-            icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
-          />
-        )}
-        <ActionButton
-          label={t('actions.restart')}
-          onClick={() => onAction(c.Id, 'restart')}
-          disabled={locked}
-          icon={<IconRotate className="h-3.5 w-3.5 text-blue-400" />}
-        />
-        <ActionButton
-          label={t('actions.rename')}
-          onClick={() => onRename(c)}
-          disabled={locked}
-          icon={<IconTag className="h-3.5 w-3.5 text-lime-400" />}
-        />
-        <ActionButton
-          label={t('actions.move')}
-          onClick={() => onMove(c)}
-          disabled={locked}
-          icon={<IconArrowsExchange className="h-3.5 w-3.5 text-orange-400" />}
-        />
-        {isRunning && (
-          <ActionButton
-            label={t('actions.terminal')}
-            onClick={() => onTerminal(c)}
-            disabled={locked}
-            icon={<IconTerminal2 className="h-3.5 w-3.5 text-violet-400" />}
-          />
-        )}
-        <ActionButton
-          label={t('actions.logs')}
-          onClick={() => onLogs(c)}
-          icon={<IconFileText className="h-3.5 w-3.5 text-cyan-400" />}
-        />
-        {webUrl && (
-          <ActionButton
-            label={t('actions.openWebsite')}
-            onClick={() => window.open(webUrl, '_blank', 'noopener,noreferrer')}
-            icon={<IconExternalLink className="h-3.5 w-3.5 text-primary" />}
-          />
-        )}
-        <div className="flex-1" />
-        <ActionButton
-          label={t('actions.remove')}
-          onClick={() => onRemove(c)}
-          disabled={locked}
-          icon={<IconTrash className="h-3.5 w-3.5 text-destructive" />}
-        />
-      </CardFooter>
+      <ContainerCardActions
+        container={c}
+        locked={locked}
+        webUrl={webUrl}
+        onAction={onAction}
+        onTerminal={onTerminal}
+        onLogs={onLogs}
+        onRename={onRename}
+        onMove={onMove}
+        onRecreate={onRecreate}
+        onRemove={onRemove}
+      />
     </Card>
   );
 }

@@ -10,6 +10,10 @@
     "container": "Recipiente",
     "restarts": "Reinicia",
     "state": "Estado",
-    "noRestarts": "Nenhuma reinicialização de contêiner detectada"
+    "noRestarts": "Nenhuma reinicialização de contêiner detectada",
+    "restartCount": "{{count}} reinício",
+    "restartCount_other": "{{count}} reinícios",
+    "more": "{{count}} mais",
+    "allStable": "Todos os contentores continuam ativos desde o arranque"
   }
 }

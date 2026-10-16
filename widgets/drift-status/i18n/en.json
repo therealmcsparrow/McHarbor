@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Drift",
+      "description": "Watches whose containers, stacks or environment have drifted from what was declared"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Drift",
+    "empty": "Everything matches what was declared",
+    "unavailable": "Unable to read the drift report",
+    "noAccess": "Needs the reconciler.view permission",
+    "more": "{{count}} more",
+    "viewReport": "Drift report",
+    "detail": "{{classes}} · since {{since}}"
+  }
+}

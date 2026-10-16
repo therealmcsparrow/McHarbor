@@ -37,5 +37,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "3.2"
+    "version":  "3.2",
+    "latest":  {
+        "version":  "3.2",
+        "release_date":  "2026-09-10"
+    }
 }

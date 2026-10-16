@@ -1,0 +1,36 @@
+{
+    "slug":  "plone",
+    "name":  "Plone",
+    "description":  "Enterprise content management system built on Python with strong workflow and access control.",
+    "category":  "Web Apps",
+    "image":  "plone/plone-backend:6.0",
+    "logo":  "https://www.google.com/s2/favicons?domain=plone.org\u0026sz=128",
+    "website":  "https://plone.org",
+    "docsUrl":  "https://6.dev-docs.plone.org/install/create-project-cookieplone.html",
+    "ports":  [
+                  {
+                      "host":  8109,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/plone/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "6.0",
+    "latest":  {
+        "version":  "6.0",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Google",
+    "subtitle": "Federe o login do McHarbor a contas Google. Suporta contas Google pessoais e Google Workspace (defina o campo Domínio do Workspace para restringir a um tenant pela dica OIDC hd=). A busca de grupos de administrador está disponível para tenants do Workspace por meio de uma conta de serviço com delegação em todo o domínio.",
+    "registerHint": "Adicione um provedor na página Configurações > Segurança > Provedores de identidade do host e escolha \"Google\" como provider_type."
+  },
+  "fields": {
+    "client_id":                     "ID do cliente",
+    "client_secret":                 "Segredo do cliente",
+    "domain":                        "Domínio do Workspace",
+    "scopes":                        "Escopos",
+    "service_account_json":          "JSON da conta de serviço (grupos de administrador)",
+    "delegated_user_email":          "E-mail do usuário delegado",
+    "delegated_user_access_token":   "Token de acesso do usuário delegado (substituição)",
+    "user_email_for_lookup":         "E-mail do usuário para consulta de grupos"
+  },
+  "help": {
+    "client_id":                     "ID de cliente OAuth 2.0 do console do Google Cloud (APIs & Services > Credentials > seu cliente OAuth de aplicativo Web).",
+    "client_secret":                 "Segredo de cliente OAuth emitido pelo Google. Armazenado criptografado em repouso (AES-256-GCM).",
+    "domain":                        "Domínio hospedado opcional do Google Workspace (ex.: example.com). Quando definido, o plugin o envia como parâmetro de consulta hd= para que apenas contas desse Workspace possam entrar. Deixe vazio para permitir contas Google pessoais.",
+    "scopes":                        "Escopos OAuth separados por espaço. O padrão é openid profile email. Adicione https://www.googleapis.com/auth/admin.directory.group.readonly para ativar a busca de grupos de administrador pela Directory API.",
+    "service_account_json":          "Opcional: conteúdo de um arquivo de chave JSON de conta de serviço do Google com delegação em todo o domínio. Obrigatório para a busca de grupos pelo Admin SDK. Armazenado criptografado em repouso.",
+    "delegated_user_email":          "Opcional: o usuário administrador do Workspace que a conta de serviço representa (ex.: admin@example.com). Obrigatório quando service_account_json está definido.",
+    "delegated_user_access_token":   "Opcional: token de acesso da API do Google emitido manualmente para usar nas chamadas do Admin SDK. Use-o até que a v1.1 traga a assinatura JWT RS256 para asserções de conta de serviço.",
+    "user_email_for_lookup":         "Opcional: e-mail do usuário cujos grupos serão consultados. A maioria dos operadores deixa em branco e permite que o host passe o e-mail do usuário autenticado em tempo de execução."
+  },
+  "guide": {
+    "title":    "Configurar o login do Google no McHarbor",
+    "subtitle": "Crie um cliente OAuth 2.0 de aplicativo Web no console do Google Cloud e, opcionalmente, configure uma conta de serviço para a busca de grupos pelo Admin SDK.",
+    "step1": {
+      "title": "Crie ou selecione um projeto do Google Cloud",
+      "body":  "Abra o console do Google Cloud e escolha um projeto existente ou crie um novo dedicado ao McHarbor. Anote o ID do projeto — você o referenciará ao configurar a tela de consentimento OAuth."
+    },
+    "step2": {
+      "title": "Configure a tela de consentimento OAuth",
+      "body":  "Em APIs & Services > OAuth consent screen, defina o tipo de usuário (Internal para Google Workspace, External caso contrário), o e-mail de suporte e o nome do aplicativo. Adicione os escopos necessários: openid, profile, email (sempre) e https://www.googleapis.com/auth/admin.directory.group.readonly (somente se quiser a busca de grupos)."
+    },
+    "step3": {
+      "title": "Crie um cliente OAuth Web",
+      "body":  "Em APIs & Services > Credentials > Create credentials > OAuth client ID, escolha Application type: Web application. Em Authorized redirect URIs, adicione a URL de callback do McHarbor exibida na página de edição do provedor — o host acrescenta /api/identity-providers/callback à URL base do seu McHarbor. Copie o Client ID e o Client Secret que o Google mostra para os campos correspondentes no formulário do provedor."
+    },
+    "step4": {
+      "title": "(Somente Workspace) Defina o domínio do Workspace",
+      "body":  "Se quiser restringir o login a um único tenant do Google Workspace, cole o domínio principal do tenant (ex.: example.com) no campo Domínio do Workspace. O plugin o enviará como parâmetro de consulta hd= para a página de login do Google. Deixe o campo vazio para aceitar contas Google pessoais."
+    },
+    "step5": {
+      "title": "Teste a conexão",
+      "body":  "De volta ao McHarbor, clique em \"Testar conexão\" no formulário do provedor. Um resultado verde significa que o documento de descoberta OIDC foi resolvido e o cliente OAuth se autenticou com sucesso em accounts.google.com — a configuração é válida."
+    },
+    "step6": {
+      "title": "(Somente Workspace) Crie uma conta de serviço para o Admin SDK",
+      "body":  "Em IAM & Admin > Service Accounts > Create service account, dê a ela um nome como \"mcharbor-admin-groups\" e conceda o papel Service Account User. Em Keys > Add key > Create new key, escolha JSON e salve o arquivo — cole todo o seu conteúdo no campo JSON da conta de serviço no formulário do provedor."
+    },
+    "step7": {
+      "title": "(Somente Workspace) Ative a delegação em todo o domínio",
+      "body":  "No console de administração do Google Workspace (admin.google.com), em Security > API controls > Domain-wide delegation, adicione o client_id da conta de serviço e o escopo https://www.googleapis.com/auth/admin.directory.group.readonly. Depois defina o campo E-mail do usuário delegado no formulário do provedor com o e-mail de administrador do Workspace que a conta de serviço representará (ex.: admin@example.com). Salve o provedor — o McHarbor usará a identidade delegada para buscar a participação em grupos sob demanda."
+    }
+  }
+}

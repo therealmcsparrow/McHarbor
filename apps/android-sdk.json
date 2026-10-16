@@ -4,7 +4,7 @@
     "description":  "Prebuilt Android SDK image with build tools and platform tools for app development and CI.",
     "category":  "Developer Tools",
     "image":  "thyrlian/android-sdk:latest",
-    "logo":  "https://icon.horse/icon/developer.android.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/android.svg",
     "website":  "https://developer.android.com",
     "docsUrl":  "https://developer.android.com/docs",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Android SDK installation path"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

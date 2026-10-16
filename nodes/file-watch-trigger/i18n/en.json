@@ -5,5 +5,12 @@
     "storage_location_id": "Storage Location",
     "path": "Path",
     "event_types": "Event Types"
+  },
+  "options": {
+    "event_types": {
+      "create": "Created",
+      "write": "Written",
+      "remove": "Removed"
+    }
   }
 }

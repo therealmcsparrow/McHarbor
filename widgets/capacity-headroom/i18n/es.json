@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Margen de capacidad",
+      "description": "Cuándo se queda sin espacio cada sistema de archivos y destino de almacenamiento"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Margen de capacidad",
+    "fullOn": "Se llena el {{date}} — {{days}} días",
+    "noProjection": "{{percent}}% usado, sin proyección todavía",
+    "noData": "Aún no hay historial de capacidad"
+  }
+}

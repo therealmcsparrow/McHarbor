@@ -11,6 +11,8 @@
     "noStacksFound": "Nenhuma pilha encontrada",
     "service_one": "Serviço {{count}}",
     "service_other": "Serviços {{count}}",
-    "viewAll": "Ver tudo"
+    "viewAll": "Ver tudo",
+    "runningOf": "{{running}} de {{total}} em execução",
+    "more": "{{count}} mais"
   }
 }

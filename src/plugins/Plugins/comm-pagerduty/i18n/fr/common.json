@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Nom du canal" },
+    "region": { "label": "Région du service", "help": "us ou eu. Doit correspondre à la région où se trouve votre compte PagerDuty." },
+    "routing_key": { "label": "Clé d'intégration (routage)", "help": "Clé de 32 caractères issue de l'intégration Events API V2 du service." },
+    "rest_api_key": { "label": "Clé de l'API REST (lecture seule)", "help": "Facultatif. Active l'interrogation du statut et les liens vers les incidents." },
+    "webhook_signing_secret": { "label": "Secret de signature du webhook", "help": "Affiché une seule fois à la création de l'abonnement webhook v3." },
+    "update_on_repeat": { "label": "Redéclencher à chaque nouveau déclenchement" },
+    "poll_interval_minutes": { "label": "Intervalle d'interrogation (minutes)", "help": "0 désactive l'interrogation. Nécessite une clé REST." },
+    "severity_map": { "label": "Correspondance des sévérités (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Nom du canal",
+      "placeholder": "PagerDuty — Plateforme"
+    },
+    "region": {
+      "label": "Région du service",
+      "help": "Doit correspondre à la région de service dans laquelle se trouve votre compte PagerDuty.",
+      "us": "États-Unis (par défaut)",
+      "eu": "Union européenne"
+    },
+    "routing_key": {
+      "label": "Clé d'intégration (de routage)",
+      "placeholder": "Clé de 32 caractères",
+      "help": "Issue de l'intégration Events API V2 du service. Stockée chiffrée."
+    },
+    "rest_api_key": {
+      "label": "Clé d'API REST (lecture seule)",
+      "placeholder": "Facultatif",
+      "help": "Facultatif. Active l'interrogation du statut, les numéros d'incident et les liens."
+    },
+    "webhook_signing_secret": {
+      "label": "Secret de signature du webhook",
+      "placeholder": "Facultatif",
+      "help": "Affiché une seule fois par PagerDuty lors de la création de l'abonnement webhook v3."
+    },
+    "update_on_repeat": {
+      "label": "Redéclencher en cas de nouveau déclenchement",
+      "help": "Lorsqu'une alerte se déclenche à nouveau alors que son incident est ouvert, envoie un autre déclencheur sur la même clé."
+    },
+    "poll_interval_minutes": {
+      "label": "Intervalle d'interrogation (minutes)",
+      "help": "0 désactive l'interrogation. L'interrogation nécessite une clé d'API REST."
+    },
+    "severity_map": {
+      "label": "Correspondance des gravités (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Facultatif. Associe critical, warning et info aux valeurs critical, error, warning ou info de PagerDuty."
+    },
+    "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+    "errors": {
+      "required": "Obligatoire",
+      "routingKeyLength": "La clé de routage fait exactement 32 caractères.",
+      "pollRange": "Saisissez un nombre de 0 à 60."
+    }
+  },
+  "guide": {
+    "title": "Configuration du canal PagerDuty",
+    "steps": {
+      "service": "Dans PagerDuty, ouvrez <b>Services → Service Directory</b> et sélectionnez (ou créez) le service que les alertes McHarbor doivent appeler.",
+      "integration": "Sur le service, ouvrez l'onglet <b>Integrations</b>, choisissez <b>Add an integration</b>, sélectionnez <b>Events API V2</b> et enregistrez.",
+      "routingKey": "Copiez la <b>clé d'intégration</b> (32 caractères) dans <b>Clé d'intégration (de routage)</b> ici.",
+      "region": "Choisissez <b>Union européenne</b> si votre compte PagerDuty est sur la région de service UE ; sinon laissez <b>États-Unis</b>.",
+      "restKey": "Facultatif : sous <b>Integrations → API Access Keys</b>, créez une clé d'API en lecture seule et collez-la dans <b>Clé d'API REST</b> pour activer l'interrogation et les liens d'incident.",
+      "inbound": "Enregistrez ce canal, rouvrez-le depuis <b>Paramètres → Intégrations → Communications</b> et, sous <b>Statut des tickets depuis l'ITSM</b>, sélectionnez <b>Créer une URL entrante</b>. Copiez l'URL ; elle se termine par <code>/api/incident-webhooks/</code> suivi d'un jeton. Le secret de signature affiché à côté n'est pas utilisé par PagerDuty.",
+      "webhook": "Dans PagerDuty, ouvrez <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, collez l'URL entrante, limitez-la au même service, abonnez-vous à <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> et <code>incident.reopened</code>, puis copiez le secret de signature <warn>qu'il affiche une seule fois</warn> dans <b>Secret de signature du webhook</b> sur ce canal (ou dans <b>Secret de signature émis par l'ITSM</b>).",
+      "save": "Enregistrez le canal et sélectionnez <b>Tester la connexion</b>. Elle vérifie la configuration et la clé REST sans alerter personne.",
+      "testEvent": "Pour valider la clé de routage, utilisez <b>Send Test Event</b> sur la page d'intégration PagerDuty. Le test de McHarbor ne déclenche jamais d'incident."
+    },
+    "note": "Le regroupement d'alertes dans PagerDuty peut fusionner une alerte McHarbor dans l'incident d'une autre alerte. Cet incident porte la clé de l'autre alerte ; McHarbor ne peut donc pas relire son accusé de réception ni sa résolution ; l'alerte se résout tout de même dans PagerDuty lorsqu'elle s'efface dans McHarbor."
+  }
+}

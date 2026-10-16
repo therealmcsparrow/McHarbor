@@ -1,0 +1,30 @@
+{
+  "slug": "recyclarr",
+  "name": "Recyclarr",
+  "description": "Syncs TRaSH Guides quality profiles and custom formats into Sonarr and Radarr.",
+  "category": "Media",
+  "image": "ghcr.io/recyclarr/recyclarr:7",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/recyclarr.png",
+  "website": "https://recyclarr.dev",
+  "docsUrl": "https://recyclarr.dev/wiki/installation/docker/",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/opt/appdata/recyclarr/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "CRON_SCHEDULE",
+      "default": "@daily",
+      "description": "Cron schedule for the automatic sync"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "7"
+}

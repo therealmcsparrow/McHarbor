@@ -4,8 +4,10 @@
 package scans
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -14,24 +16,52 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
-	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
+
+// validScanStatus reports whether status is one of the four values the
+// `scans.status` column stores; an empty string means "no filter" and is
+// checked separately by the caller.
+func validScanStatus(status string) bool {
+	switch status {
+	case "pending", "running", "completed", "failed":
+		return true
+	default:
+		return false
+	}
+}
 
 // Handler holds dependencies for scan HTTP handlers.
 type Handler struct {
 	app     *router.AppDeps
 	service *Service
+	// configs backs the /scans/adapters and /scans/configs subtree —
+	// the admin surface that replaced the three hard-coded scanner
+	// toggles once the engines became plugins.
+	configs *ConfigService
 }
 
-// HandleList returns a paginated list of scans.
+// HandleList returns a paginated list of scans, optionally filtered by
+// status and a substring match against the image reference or scanner.
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	page, perPage := response.ParsePagination(r)
 	envID := response.ParseEnvID(r)
 
-	items, total, err := h.service.List(r.Context(), envID, page, perPage)
+	status := r.URL.Query().Get("status")
+	if status != "" && !validScanStatus(status) {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	search := strings.TrimSpace(r.URL.Query().Get("search"))
+	if len(search) > 200 {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	items, total, err := h.service.List(r.Context(), envID, page, perPage, status, search)
 	if err != nil {
 		h.app.Logger.Error("scans: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrScanListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanListFailed, err)
 		return
 	}
 
@@ -42,7 +72,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleStartScan(w http.ResponseWriter, r *http.Request) {
 	var input StartScanInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -50,9 +80,11 @@ func (h *Handler) HandleStartScan(w http.ResponseWriter, r *http.Request) {
 		response.BadRequestCode(w, r, i18n.ErrScanImageRequired)
 		return
 	}
-	if input.Scanner == "" {
-		input.Scanner = "trivy"
-	}
+	// An empty scanner is no longer defaulted to "trivy" here. The
+	// estate's default lives on a `scanner_configs` row, so hard-coding
+	// an engine at this layer would override an operator who chose
+	// Grype — and fail outright on an install where Trivy is not the
+	// plugin they installed. Service.Resolve reads the flag.
 	if input.EnvironmentID == "" {
 		input.EnvironmentID = response.ParseEnvID(r)
 	}
@@ -60,7 +92,19 @@ func (h *Handler) HandleStartScan(w http.ResponseWriter, r *http.Request) {
 	scan, err := h.service.StartScan(r.Context(), input)
 	if err != nil {
 		h.app.Logger.Error("scans: start scan error", "error", err, "image", input.ImageRef, "scanner", input.Scanner)
-		response.InternalErrorCode(w, r, i18n.ErrScanCreateFailed)
+		switch {
+		case errors.Is(err, ErrNoScannerConfigured):
+			// Nothing to scan with. A 400 naming the real cause sends
+			// the operator to the Scanners tab; a 500 would send them
+			// to the logs for a problem that is not a fault.
+			response.BadRequestCode(w, r, i18n.ErrNoScannerConfigured)
+		case errors.Is(err, ErrScannerUnavailable):
+			response.BadRequestCode(w, r, i18n.ErrScannerNotAvailable)
+		case errors.Is(err, ErrScannerAdapterUnknown), errors.Is(err, ErrScannerNotConfigured):
+			response.NotFoundCode(w, r, i18n.ErrScannerNotConfigured)
+		default:
+			response.InternalErrorCode(w, r, i18n.ErrScanCreateFailed)
+		}
 		return
 	}
 
@@ -68,7 +112,8 @@ func (h *Handler) HandleStartScan(w http.ResponseWriter, r *http.Request) {
 		Action:     "create",
 		EntityType: "scan",
 		EntityID:   scan.ID,
-		Details:    "started " + input.Scanner + " scan for " + input.ImageRef,
+		EntityName: scan.ImageRef,
+		Details:    "started " + scan.Scanner + " scan for " + input.ImageRef,
 	})
 
 	response.Created(w, scan)
@@ -81,7 +126,7 @@ func (h *Handler) HandleGetScan(w http.ResponseWriter, r *http.Request) {
 	scan, err := h.service.ByID(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("scans: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrScanFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanFailed, err)
 		return
 	}
 	if scan == nil {
@@ -100,7 +145,7 @@ func (h *Handler) HandleGetVulnerabilities(w http.ResponseWriter, r *http.Reques
 	items, total, err := h.service.ListVulnerabilities(r.Context(), scanID, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("scans: vuln list error", "error", err, "scanId", scanID)
-		response.InternalErrorCode(w, r, i18n.ErrScanFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanFailed, err)
 		return
 	}
 
@@ -114,7 +159,7 @@ func (h *Handler) HandleSummary(w http.ResponseWriter, r *http.Request) {
 	summary, err := h.service.Summary(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("scans: summary error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrScanSummaryFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanSummaryFailed, err)
 		return
 	}
 
@@ -125,9 +170,15 @@ func (h *Handler) HandleSummary(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
+	// Read before the delete: afterwards there is no scan left to name.
+	imageRef := ""
+	if scan, scanErr := h.service.ByID(r.Context(), id); scanErr == nil && scan != nil {
+		imageRef = scan.ImageRef
+	}
+
 	if err := h.service.Delete(r.Context(), id); err != nil {
 		h.app.Logger.Error("scans: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrScanDeleteFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanDeleteFailed, err)
 		return
 	}
 
@@ -135,6 +186,7 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		Action:     "delete",
 		EntityType: "scan",
 		EntityID:   id,
+		EntityName: imageRef,
 	})
 
 	response.OKMsg(w, r, i18n.MsgScanDeleted)
@@ -154,7 +206,7 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 	deleted, days, err := h.service.PurgeByRetention(r.Context())
 	if err != nil {
 		h.app.Logger.Error("scans: purge failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	h.app.AuditLog.Log(r, audit.Entry{
@@ -174,19 +226,21 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// HandleAvailableScanners returns a list of scanners that are enabled in settings and available.
+// HandleAvailableScanners returns the enabled scanner instances a scan
+// can be started with, plus which one is the estate default.
+//
+// The old version read three booleans out of the `scanners` settings
+// category and intersected them with a built-in registry. Both halves
+// are gone: a scanner is now a `scanner_configs` row, and its enabled
+// flag lives on the row.
 func (h *Handler) HandleAvailableScanners(w http.ResponseWriter, r *http.Request) {
-	settings := coreSettings.ReadScannerSettings(h.app.DB)
-	enabled := map[string]bool{
-		"trivy": settings.TrivyEnabled,
-		"grype": settings.GrypeEnabled,
-		"clair": settings.ClairEnabled,
+	resp, err := h.service.AvailableScanners(r.Context())
+	if err != nil {
+		h.app.Logger.Error("scans: listing available scanners failed", "error", err)
+		response.InternalErrorCause(w, r, i18n.ErrScannerListFailed, err)
+		return
 	}
-	scanners := h.service.AvailableScanners(enabled)
-	response.OK(w, ScannersResponse{
-		Scanners:       scanners,
-		DefaultScanner: settings.DefaultScanner,
-	})
+	response.OK(w, resp)
 }
 
 // HandleScanByImage returns scans for a specific image reference.
@@ -203,9 +257,18 @@ func (h *Handler) HandleScanByImage(w http.ResponseWriter, r *http.Request) {
 	items, total, err := h.service.ListByImage(r.Context(), imageRef, envID, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("scans: list by image error", "error", err, "image", imageRef)
-		response.InternalErrorCode(w, r, i18n.ErrScanListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScanListFailed, err)
 		return
 	}
 
 	response.Paginated(w, items, total, page, perPage)
+}
+
+// scanEnvironment is the rbac.PinEnvToResource resolver for /scans/{id}.
+func (h *Handler) scanEnvironment(r *http.Request) (string, bool, error) {
+	envID, found, err := h.service.ScanEnvironment(r.Context(), chi.URLParam(r, "id"))
+	if err != nil {
+		h.app.Logger.Error("scans: resolving the scan's environment", "error", err)
+	}
+	return envID, found, err
 }

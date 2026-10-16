@@ -1,0 +1,49 @@
+{
+    "slug":  "graphite",
+    "name":  "Graphite",
+    "description":  "Metrics storage and graphing platform combining Carbon, Whisper, and a bundled StatsD listener.",
+    "category":  "Monitoring",
+    "image":  "graphiteapp/graphite-statsd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/graphite.png",
+    "website":  "https://graphiteapp.org",
+    "docsUrl":  "https://graphite.readthedocs.io/en/latest/install.html",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2003,
+                      "container":  2003,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8125,
+                      "container":  8125,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/graphite/conf",
+                        "container":  "/opt/graphite/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/graphite/storage",
+                        "container":  "/opt/graphite/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

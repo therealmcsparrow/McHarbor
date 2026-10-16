@@ -1,0 +1,1453 @@
+{
+  "title": "Virtual Machines",
+  "description": "Run KVM virtual machines on your own hosts. Create one from a cloud image and reach a login prompt in the browser in under two minutes, or install from a disc.",
+  "nav": {
+    "machines": "Virtual Machines",
+    "templates": "Templates",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Create virtual machine",
+    "start": "Start",
+    "shutdown": "Shut down",
+    "stop": "Stop",
+    "reset": "Reset",
+    "pause": "Pause",
+    "resume": "Resume",
+    "console": "Console",
+    "delete": "Delete",
+    "snapshot": "Take snapshot",
+    "revert": "Revert to this snapshot",
+    "clone": "Clone",
+    "makeTemplate": "Make a template",
+    "unTemplate": "Turn back into a virtual machine",
+    "addDisk": "Add disk",
+    "resizeDisk": "Resize",
+    "addNic": "Add network interface",
+    "attachDevice": "Attach host device",
+    "diagnose": "Ask AI what is wrong",
+    "refresh": "Refresh",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "attachMedia": "Insert disc",
+    "ejectMedia": "Eject disc",
+    "stillStopping": "Still shutting down. It can be started once the host has released it.",
+    "import": "Import",
+    "migrate": "Move to another host"
+  },
+  "resources": {
+    "cpu": "{{count}} CPU",
+    "ram": "{{size}} RAM"
+  },
+  "list": {
+    "title": "Virtual machines",
+    "empty": {
+      "title": "No virtual machines yet",
+      "body": "A virtual machine runs a full operating system with its own kernel, on a host you have set up for compute. Create one from a cloud image to get a working login in a couple of minutes.",
+      "action": "Create the first one"
+    },
+    "emptyTemplates": {
+      "title": "No templates yet",
+      "body": "Turn a configured, stopped virtual machine into a template and every clone of it starts from that point — with its own identity, addresses and host keys."
+    },
+    "columns": {
+      "name": "Name",
+      "state": "State",
+      "host": "Host",
+      "os": "Operating system",
+      "resources": "Resources",
+      "address": "Address",
+      "uptime": "Started",
+      "pool": "Storage"
+    },
+    "filter": {
+      "all": "All states",
+      "running": "Running",
+      "stopped": "Stopped",
+      "problem": "Needs attention"
+    },
+    "bulk": {
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "start": "Start selected",
+      "shutdown": "Shut down selected",
+      "stop": "Stop selected"
+    },
+    "tableView": "Table view",
+    "cardView": "Card view",
+    "searchPlaceholder": "Search virtual machines…",
+    "noMatches": "No virtual machine matches that search."
+  },
+  "state": {
+    "defined": "Not started",
+    "running": "Running",
+    "paused": "Paused",
+    "stopping": "Shutting down",
+    "stopped": "Stopped",
+    "crashed": "Crashed",
+    "migrating": "Moving",
+    "unknown": "Unknown",
+    "unknownHint": "This virtual machine's host cannot be reached, so its state cannot be confirmed. It is probably still running — the host's own service manager keeps it going — but nothing can be started or stopped until the agent reconnects.",
+    "ioError": "Disk error",
+    "ioErrorHint": "QEMU stopped this guest because a write to one of its disks failed. The usual cause is a full storage pool. The guest resumes once there is space again.",
+    "guestPanicked": "Kernel panic",
+    "guestPanickedHint": "The guest's own operating system crashed. It is still loaded but is not running; a reset is the only way out.",
+    "deleting": "Removing"
+  },
+  "guestAgent": {
+    "connected": "Guest agent connected",
+    "absent": "No guest agent",
+    "unknown": "Guest agent unknown",
+    "absentHint": "Without the guest agent, snapshots of this machine are crash-consistent and its addresses are not reported. cloud-init installs it automatically on new machines created from an image.",
+    "disc": {
+      "attach": "Insert guest agent disc",
+      "hint": "Builds the guest agent installer disc on the host and inserts it. The machine must be stopped.",
+      "attached": "Guest agent disc inserted. Start the machine and run the installer on it."
+    },
+    "install": {
+      "action": "Install",
+      "title": "Install the guest agent",
+      "body": "The guest agent lets McHarbor freeze this machine's filesystems before a snapshot and report its addresses. It can be installed on any machine, however it was created.",
+      "alreadyConnected": "The guest agent is already answering on this machine.",
+      "channelReady": "McHarbor always wires the channel the agent talks over, so only the in-guest package is missing.",
+      "family": "Guest operating system",
+      "families": {
+        "linux": "Linux",
+        "windows": "Windows",
+        "bsd": "BSD"
+      },
+      "step1": "1. Attach the installer disc",
+      "step2": "2. Run this inside the machine",
+      "step3": "3. Start the machine again. The badge turns green within about a minute of the agent starting.",
+      "disc": "Installer disc",
+      "attach": "Attach disc",
+      "copy": "Copy command",
+      "noDiscs": "No disc images are available on this host. Add one on the Compute page first.",
+      "noVirtioDisc": "No virtio-win disc is available on this host. Add the virtio-win ISO on the Compute page first.",
+      "notes": {
+        "linux": "Most distributions ship the package. Use whichever of these your distribution has.",
+        "windows": "The virtio-win disc carries the guest tools installer. The drive letter depends on what else is attached.",
+        "bsd": "FreeBSD ships the agent as a package; other BSDs may need it from ports."
+      }
+    }
+  },
+  "address": {
+    "reported": "Reported by the guest",
+    "reportedHint": "This address is what the operating system inside the machine says it has. It is shown as plain text and is not used for anything else."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Overview",
+      "console": "Console",
+      "hardware": "Hardware",
+      "backups": "Backups",
+      "snapshots": "Snapshots",
+      "cloudInit": "First-boot setup",
+      "settings": "Settings",
+      "logs": "Logs"
+    },
+    "overview": {
+      "resources": "Resources",
+      "processors": "Processors",
+      "memory": "Memory",
+      "disk": "Disk",
+      "firmware": "Firmware",
+      "machineType": "Machine type",
+      "machineTypeHint": "Pinned when this machine was created and not changed by host updates, so its hardware stays the same across upgrades.",
+      "started": "Started",
+      "neverStarted": "Never started",
+      "lastError": "Last error",
+      "general": "General",
+      "name": "Name",
+      "host": "Host",
+      "state": "State",
+      "uuid": "Identifier",
+      "autostart": "Starts with the host",
+      "metrics": "Live metrics",
+      "metricsIdle": "Live metrics appear while the machine is running.",
+      "cpuUsage": "CPU usage",
+      "memoryUsage": "Memory usage",
+      "diskIo": "Disk I/O",
+      "networkIo": "Network",
+      "read": "Read",
+      "written": "Written",
+      "received": "Received",
+      "sent": "Sent",
+      "description": "Description",
+      "guestOs": "Guest OS",
+      "created": "Created",
+      "topology": "Topology",
+      "topologyValue": "{{sockets}} × {{cores}} cores × {{threads}} threads",
+      "memoryMax": "Maximum memory",
+      "platform": "Platform",
+      "secureBoot": "Secure boot",
+      "tpm": "TPM",
+      "display": "Display",
+      "unitName": "Service unit",
+      "guest": "Guest",
+      "template": "Template",
+      "noDescription": "No description",
+      "metricsUnavailable": "This host agent does not report guest metrics. Update the agent on this host to collect them."
+    },
+    "title": "Virtual machine"
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Connecting…",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect",
+    "notRunning": "This virtual machine is not running.",
+    "viewers_one": "{{count}} viewer",
+    "viewers_other": "{{count}} viewers",
+    "viewersHint": "Everyone connected sees the same screen and shares one keyboard and mouse.",
+    "external": {
+      "title": "External VNC client",
+      "run": "Run this with the McHarbor CLI on the computer that has the VNC client:",
+      "connect": "Then connect the VNC client to {{address}}. It asks for no password: the CLI signs in for it, and Ctrl-C closes it."
+    },
+    "sendCtrlAltDel": "Send Ctrl+Alt+Del",
+    "fullscreen": "Full screen",
+    "screenshot": "Take a screenshot",
+    "paste": "Paste from clipboard",
+    "idleWarning": "This console closes in {{seconds}} seconds unless you use it.",
+    "permissionHint": "Opening a console is the same as sitting at the machine, so it needs its own permission.",
+    "sendKeyHint": "Send {{key}} to the guest",
+    "moreActions": "More console actions",
+    "description": "The guest screen, as if you were sitting at the machine.",
+    "keys": {
+      "menu": "Send keys",
+      "windows": "Windows key",
+      "printScreen": "Print Screen",
+      "vtSwitch": "Switch virtual terminal",
+      "typeText": "Type text",
+      "typeTextHint": "Sent as key presses on a US keyboard layout.",
+      "typeTextSend": "Type into the guest",
+      "skipped_one": "{{count}} character has no key on a US keyboard and was skipped.",
+      "skipped_other": "{{count}} characters have no key on a US keyboard and were skipped."
+    },
+    "kind": {
+      "label": "Console type",
+      "vnc": "VNC",
+      "serial": "Serial",
+      "spice": "SPICE"
+    },
+    "serial": {
+      "resizeNeedsAgent": "Resizing this terminal needs the guest agent. Without it the guest keeps the size it started with."
+    },
+    "display": {
+      "label": "Display size",
+      "resize": "Resize guest to window",
+      "scale": "Scale to fit",
+      "adapter": "This VM's display adapter ({{adapter}}) cannot change resolution from the console, so the screen is scaled to fit instead. Set Display to virtio-gpu (or Auto) in Settings, then restart the VM.",
+      "adapterQxl": "QXL only follows the window over SPICE. Switch the console to SPICE with spice-vdagent running in the guest, or set Display to virtio-gpu in Settings and restart the VM.",
+      "host": "This host's QEMU is too old to resize a guest from the console (QEMU 6.0 or later is needed), so the screen is scaled to fit instead.",
+      "guestSpice": "Nothing in the guest answered the resize request. Install and start spice-vdagent in the guest: qemu-guest-agent is a different agent and does not resize the display.",
+      "guestVnc": "The guest did not change its resolution. It needs the virtio-gpu driver and a desktop that follows display changes, or spice-vdagent: qemu-guest-agent is a different agent and does not resize the display. A VM started before its display adapter changed needs a restart."
+    },
+    "spiceFile": {
+      "button": "Remote viewer file",
+      "hint": "Downloads a .vv file for remote-viewer. It holds a one-time password that works for two minutes, so open it straight away.",
+      "getClient": "Don't have remote-viewer yet? Download it from virt-manager.org",
+      "host": "Address to connect to",
+      "hostPlaceholder": "Leave empty to use the host's own address",
+      "download": "Download .vv file"
+    }
+  },
+  "create": {
+    "title": "Create a virtual machine",
+    "steps": {
+      "source": "What to install",
+      "resources": "Size",
+      "storage": "Storage",
+      "network": "Network",
+      "setup": "First-boot setup",
+      "summary": "Review"
+    },
+    "source": {
+      "title": "What should this machine run?",
+      "image": "From a ready-made image",
+      "imageHint": "Boots in seconds and configures itself on first start. This is the usual choice.",
+      "iso": "Install from a disc",
+      "isoHint": "For Windows, for distributions with no ready-made image, or when you want to run the installer yourself.",
+      "blank": "No image",
+      "blankHint": "Give it a blank disk and nothing to boot from. Use this with a disk that already holds a system, or to install over the network.",
+      "blankNote": "This machine will start at the firmware prompt. Attach an installer disc afterwards, or boot over the network.",
+      "noImages": "No images have been downloaded to this host yet.",
+      "downloadImages": "Go to Images",
+      "isoLabel": "Installer disc",
+      "noIsos": "No installer discs have been uploaded to this host yet.",
+      "template": "From a template",
+      "templateHint": "Clone one of your templates. It keeps the template's size, disks and network, and gets its own identity.",
+      "templateLabel": "Template",
+      "noTemplates": "There are no templates on this host yet. Make one from a stopped virtual machine first."
+    },
+    "resources": {
+      "title": "How big should it be?",
+      "preset": "Size",
+      "presets": {
+        "small": "Small — 1 processor, 2 GB",
+        "medium": "Medium — 2 processors, 4 GB",
+        "large": "Large — 4 processors, 8 GB",
+        "custom": "Custom"
+      },
+      "vcpus": "Processors",
+      "memory": "Memory (MB)",
+      "memoryMax": "Memory ceiling (MB)",
+      "memoryMaxHint": "Leave empty to fix the memory. Setting a ceiling lets the machine's memory be adjusted later without restarting it.",
+      "firmware": "Firmware",
+      "uefi": "UEFI",
+      "bios": "BIOS",
+      "uefiHint": "UEFI is the modern default and is required for Windows 11.",
+      "secureBoot": "Secure Boot",
+      "tpm": "TPM 2.0",
+      "tpmRequired": "Windows 11 requires a security chip.",
+      "tpmUnavailable": "This host has no swtpm installed, so a security chip is not available.",
+      "secureBootHint": "Required by Windows 11, alongside a TPM. Needs the secure-boot firmware build on the host.",
+      "tpmHint": "An emulated TPM for the guest. Windows 11 will not install without one.",
+      "tpmMissing": "This host has no swtpm, so no TPM can be given to a guest. Install it with: {{remediation}}",
+      "secureBootMissing": "This host has no secure-boot firmware with enrolled keys, so Secure Boot cannot be enforced. Install it with: {{remediation}}"
+    },
+    "storage": {
+      "title": "Where should its disk live?",
+      "pool": "Storage pool",
+      "mode": "Disk",
+      "modeNew": "Create a new disk",
+      "modeNewHint": "Allocate a new, empty disk in this pool.",
+      "modeExisting": "Use a disk that already exists",
+      "modeExistingHint": "Attach a disk in this pool that no machine is using. Nothing is written to it.",
+      "existing": "Existing disk",
+      "noExisting": "Every disk in this pool is already attached to a machine.",
+      "existingFailed": "The disks in this pool could not be read. The host may be offline, or running an agent that is too old to list them.",
+      "existingLabel": "{{name}} — {{size}}",
+      "size": "Disk size (GB)",
+      "instantNote": "This pool makes snapshots and clones instant.",
+      "capacityWarning": "This pool has {{free}} free. A pool that fills pauses every machine on it.",
+      "thinNote": "The disk is created thin: it takes up only what the machine actually writes.",
+      "dataLocation": "Data location",
+      "dataLocationHint": "This host has no storage pool yet. Guest disks are kept as qcow2 files in this directory, and a pool is created here the first time a machine is. Change where it lives on the Pools page once it exists.",
+      "bus": "Disk type",
+      "busHint": "virtio is the fastest and needs a driver in the guest. SATA works everywhere, including a Windows installer."
+    },
+    "network": {
+      "title": "How should it reach the network?",
+      "network": "Network",
+      "noNetworks": "No networks have been set up on this host yet."
+    },
+    "setup": {
+      "title": "First-boot setup",
+      "body": "The machine configures itself the first time it starts. Everything here is optional except a way to log in.",
+      "hostname": "Host name",
+      "username": "Username",
+      "sshKeys": "SSH public keys",
+      "sshKeysHint": "One per line. This is the recommended way in — it needs no password at all.",
+      "password": "Password",
+      "passwordHint": "Optional. It is turned into a one-way hash before it is stored, and the plain text is never written anywhere.",
+      "passwordWarning": "Anything on this host that can read the storage pool can read the machine's setup file. Never put an API token or a private key in the extra settings below.",
+      "passwordFromVault": "From the vault",
+      "passwordSecret": "Password secret",
+      "secretPlaceholder": "Choose a secret",
+      "sshKeySecrets": "SSH keys from the vault",
+      "secretsPlaceholder": "Choose secrets",
+      "vaultCopyNote": "Copied from the vault once, when the machine is created. Cloud-init applies it on the first boot only, so rotating the secret later does not change this machine.",
+      "networkMode": "Addressing",
+      "dhcp": "Automatic",
+      "static": "Fixed address",
+      "staticIp": "Address",
+      "staticGateway": "Gateway",
+      "staticDns": "DNS servers",
+      "installAgent": "Install the guest agent",
+      "installAgentHint": "Lets McHarbor see the machine's real addresses and take snapshots that are safe to restore from. Strongly recommended.",
+      "extra": "Extra setup (advanced)",
+      "extraHint": "Raw cloud-config, merged over everything above."
+    },
+    "summary": {
+      "title": "Review",
+      "createAndStart": "Create and start",
+      "createOnly": "Create without starting",
+      "noSource": "Nothing — it starts at the firmware prompt",
+      "existingDisk": "Existing disk"
+    },
+    "submit": "Create"
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": {
+      "title": "No snapshots",
+      "body": "A snapshot captures this machine's disk as it is now, so you can go back to it."
+    },
+    "notABackup": "A snapshot is not a backup. It lives on the same storage as the machine, so a storage failure takes both.",
+    "columns": {
+      "name": "Name",
+      "taken": "Taken",
+      "consistency": "Restores as",
+      "size": "Size",
+      "mechanism": "Type"
+    },
+    "consistency": {
+      "crash": "As if the power was cut",
+      "crashHint": "Taken without the guest agent, so the machine's filesystems were not paused first. Most systems recover from this, but a database may need to repair itself.",
+      "filesystem": "Cleanly",
+      "filesystemHint": "The guest agent paused the machine's filesystems, so the snapshot is a clean point to restore from.",
+      "application": "Cleanly, with application hooks",
+      "paused": "With the machine paused",
+      "pausedHint": "The machine's processors were stopped while the disk was frozen, so nothing was half-written. Its own filesystem cache was not flushed, because there is no guest agent to ask.",
+      "applicationHint": "The machine's memory was captured with its disk, so going back to it resumes exactly where it was."
+    },
+    "chainDepth": "Chain depth {{depth}}",
+    "chainWarning": "This machine has {{depth}} snapshots stacked up. On this storage type each one slows reads down. Consider removing older ones.",
+    "chainFull": "This machine has reached the snapshot limit. Remove one before taking another.",
+    "create": {
+      "title": "Take a snapshot",
+      "name": "Name",
+      "description": "Note",
+      "withMemory": "Include the machine's memory",
+      "withMemoryHint": "Going back to it then resumes exactly where the machine was, rather than starting it up. Uses as much space as the machine has memory.",
+      "crashWarning": "This machine has no guest agent, so the snapshot will be taken as if the power was cut.",
+      "submit": "Take snapshot",
+      "pauseGuest": "Pause the machine while the snapshot is taken",
+      "pauseGuestHint": "A few seconds with the processors stopped, so nothing is half-written to disk. Without a guest agent this is the best consistency available."
+    },
+    "revert": {
+      "title": "Go back to {{name}}?",
+      "body": "The machine's disk returns to how it was when this snapshot was taken.",
+      "discards_one": "{{count}} newer snapshot will be discarded: {{names}}",
+      "discards_other": "{{count}} newer snapshots will be discarded: {{names}}",
+      "confirmName": "Type {{name}} to confirm",
+      "mustBeStopped": "Stop the machine before going back to a snapshot.",
+      "submit": "Go back",
+      "branchKept": "The snapshots taken after this one are kept as their own branch. Only what the machine has written since this snapshot is discarded.",
+      "willStop": "This guest is running. It will be shut down before the disks are rolled back, because reverting under a live QEMU corrupts rather than reverts.",
+      "restartAfter": "Start it again afterwards",
+      "running": "Reverting"
+    },
+    "delete": {
+      "title": "Delete {{name}}?",
+      "body": "The snapshot is removed. The machine itself is not affected.",
+      "submit": "Delete snapshot"
+    },
+    "tree": {
+      "now": "Now",
+      "branches": "{{count}} branches",
+      "branchedHint": "This snapshot has more than one branch below it. Removing it would rewrite what the other branch reads, so delete one of the branches first.",
+      "revertCurrentHint": "The guest is already on this snapshot.",
+      "revertOfflineHint": "The host is not reachable.",
+      "expand": "Show what is below {{name}}",
+      "collapse": "Hide what is below {{name}}",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "hiddenCount_one": "{{count}} hidden",
+      "hiddenCount_other": "{{count}} hidden"
+    },
+    "progress": {
+      "starting": "Starting",
+      "quiescing": "Quiescing the filesystems",
+      "pausing": "Pausing the guest",
+      "memory": "Writing the memory",
+      "disks": "Freezing the disks",
+      "done": "Finishing",
+      "failed": "{{name}} could not be taken"
+    },
+    "revertStep": {
+      "starting": "Starting",
+      "stopping": "Stopping the guest",
+      "reverting": "Restoring the disks",
+      "starting_guest": "Starting the guest",
+      "done": "Finishing"
+    }
+  },
+  "hardware": {
+    "hotplugUnclaimed": "Added on the host, but the running guest has not picked it up: its kernel has no PCI hot-plug support. The guest sees it after its next restart.",
+    "disks": "Disks",
+    "nics": "Network interfaces",
+    "devices": "Host devices",
+    "diskColumns": {
+      "bootOrder": "Boot order",
+      "shared": "Shared",
+      "sharedHint": "Lets a second machine open this disk at the same time. Only safe when both guests run a cluster filesystem that coordinates writes — without one, they will corrupt each other's data.",
+      "limits": "I/O limits",
+      "slot": "Slot",
+      "bus": "Type",
+      "size": "Size",
+      "pool": "Pool",
+      "boot": "Boot"
+    },
+    "nicColumns": {
+      "slot": "Slot",
+      "model": "Type",
+      "mac": "Hardware address",
+      "bridge": "Network",
+      "link": "Link"
+    },
+    "deviceColumns": {
+      "kind": "Type",
+      "address": "Address",
+      "description": "Note"
+    },
+    "mustBeStopped": "Stop the machine to change its hardware.",
+    "liveChanges": "This machine is running. Disks, installer discs and network interfaces change on it straight away; the boot disk, disk types and the boot order need it stopped.",
+    "liveHint": "The change is made on the running machine.",
+    "bootDiskRunning": "The boot disk cannot be removed or changed while the machine is running.",
+    "emptyDrive": "Empty drive",
+    "linkToggle": "Network cable connected",
+    "deleteDisk": {
+      "title": "Remove this disk?",
+      "body": "The disk is detached from the machine and its volume is destroyed. This cannot be undone.",
+      "confirm": "Remove disk"
+    },
+    "addDisk": {
+      "title": "Add a disk",
+      "pool": "Storage pool",
+      "size": "Size (GB)",
+      "bus": "Type",
+      "submit": "Add disk",
+      "noPools": "This host has no storage pool yet. Create one on the Compute page first.",
+      "virtioWindows": "Windows Setup ships no virtio driver and will not see this disk. Use SATA unless you are loading drivers from a virtio-win disc."
+    },
+    "resizeDisk": {
+      "title": "Resize disk",
+      "current": "Currently {{size}}",
+      "newSize": "New size (GB)",
+      "growOnly": "A disk can only be made bigger. Making one smaller from outside destroys data, so it is not offered.",
+      "afterNote": "The machine's own operating system still needs to be told to use the extra space.",
+      "submit": "Resize"
+    },
+    "attachDevice": {
+      "title": "Attach a host device",
+      "warning": "A passed-through device gives this machine direct access to real hardware. If the machine is compromised, so is that hardware — and in some cases the host itself. Only do this for machines you trust.",
+      "kind": "Type",
+      "pci": "PCI device",
+      "usb": "USB device",
+      "block": "Disk device",
+      "address": "Address",
+      "pciHint": "The device's address, for example 0000:03:00.0.",
+      "usbHint": "Vendor and product, for example 1234:5678.",
+      "blockHint": "A path under /dev.",
+      "description": "Note",
+      "noIommu": "This host has no IOMMU enabled, so PCI devices cannot be passed through. Enable VT-d or AMD-Vi in the firmware and add intel_iommu=on to the boot options.",
+      "submit": "Attach",
+      "selectDevice": "Available devices",
+      "selectPlaceholder": "Choose a device on this host",
+      "manualEntry": "Enter an address manually",
+      "refresh": "Rescan host",
+      "none": "No devices found on this host.",
+      "loading": "Scanning host…",
+      "loadFailed": "Could not read the device list from this host.",
+      "u2f": "Virtual security key",
+      "u2fHint": "An emulated U2F token, for guests testing WebAuthn sign-in. Nothing is passed through from the host, so no physical key has to be plugged in.",
+      "unavailable": "In use by the host",
+      "reason_bound_to_host_driver": "Bound to host driver {{driver}}",
+      "reason_no_iommu_group": "No IOMMU group — passthrough needs IOMMU enabled in firmware",
+      "iommuGroup": "IOMMU group {{group}}",
+      "attachedBadge": "attached to a VM",
+      "attachedHere": "This VM already has this device.",
+      "attachedElsewhere": "Already attached to {{names}}. Only one running VM can use a passed-through device at a time."
+    },
+    "addNic": {
+      "title": "Add a network interface",
+      "network": "Network",
+      "model": "Type",
+      "noNetworks": "This host has no network yet. Create one on the Compute page first.",
+      "submit": "Add interface"
+    },
+    "deviceEmpty": "No host devices are passed through to this machine.",
+    "media": {
+      "title": "Installer discs",
+      "empty": "No disc is inserted.",
+      "columns": {
+        "slot": "Slot",
+        "source": "Disc"
+      },
+      "attach": {
+        "title": "Insert an installer disc",
+        "image": "Disc",
+        "noImages": "No installer discs have been uploaded to this host yet.",
+        "hint": "The machine boots from its disks first, so it only reaches the disc when they have nothing to boot.",
+        "submit": "Insert"
+      }
+    }
+  },
+  "clone": {
+    "title": "Clone {{name}}",
+    "name": "Name for the copy",
+    "linked": "Share data with the original",
+    "linkedHint": "Instant, and only stores what changes afterwards. The original cannot be deleted while a shared copy exists.",
+    "fullHint": "A complete, independent copy. Takes longer and uses the full space, but nothing depends on the original.",
+    "identityNote": "The copy gets its own machine identity, its own hardware addresses and a fresh first-boot setup — so it will not answer to the original's name or reuse its host keys.",
+    "mustBeStopped": "Stop the machine before cloning it.",
+    "submit": "Clone",
+    "mode": {
+      "label": "Kind of copy",
+      "full": "Full copy",
+      "linked": "Linked copy"
+    },
+    "running": "Copying disks…",
+    "runningPercent": "Copying disks… {{percent}}%"
+  },
+  "template": {
+    "title": "Make {{name}} a template?",
+    "body": "A template cannot be started, which keeps it exactly as it is. Clone it to create machines from it.",
+    "revert": "Turn {{name}} back into a virtual machine?",
+    "revertBody": "It becomes startable again. Existing copies are not affected.",
+    "inUse": "This template has copies sharing its data and cannot be removed: {{clones}}",
+    "submit": "Make it a template"
+  },
+  "delete": {
+    "title": "Delete {{name}}?",
+    "body": "The machine is removed from McHarbor and from its host.",
+    "deleteVolumes": "Also delete its disks",
+    "deleteVolumesWarning": "Everything on this machine's disks is destroyed permanently. There is no undo.",
+    "keepVolumesHint": "Leaving the disks lets you move this machine to another host later.",
+    "confirmName": "Type {{name}} to confirm",
+    "submit": "Delete",
+    "running": "Removing this virtual machine",
+    "runningHint": "This continues on the host if you close this window. The machine disappears from the list when it is done.",
+    "runningPercent": "Removing this virtual machine — {{percent}}%"
+  },
+  "diagnose": {
+    "title": "What is wrong with this machine?",
+    "asking": "Reading the machine's setup…",
+    "unavailable": "No AI provider is set up, so this is not available.",
+    "disclaimer": "This is an informed guess based on the machine's setup and its last error. Check it before acting on it.",
+    "sent": "Only this machine's hardware settings and its last error are sent. Nothing from inside the machine, and no keys or passwords."
+  },
+  "widgets": {
+    "vmSummary": {
+      "label": "Virtual machines",
+      "description": "How many machines are running, stopped or need attention."
+    },
+    "vmResources": {
+      "label": "Virtual machine resources",
+      "description": "Processors, memory and disk given out to running machines, per host."
+    },
+    "vmProtection": {
+      "label": "Snapshot coverage",
+      "description": "Guests with no snapshot, and how stale the newest snapshot is elsewhere.",
+      "unprotected_one": "of {{count}} guest unprotected",
+      "unprotected_other": "of {{count}} guests unprotected",
+      "none": "No snapshot",
+      "age_one": "{{count}} day old",
+      "age_other": "{{count}} days old"
+    },
+    "vmImports": {
+      "label": "Disk imports",
+      "description": "Third-party disks being imported, and the ones that stopped.",
+      "empty": "No disk imports",
+      "waiting_one": "{{count}} in progress",
+      "waiting_other": "{{count}} in progress",
+      "failed_one": "{{count}} failed",
+      "failed_other": "{{count}} failed"
+    }
+  },
+  "nodes": {
+    "lifecycle": {
+      "label": "Virtual machine: lifecycle",
+      "description": "Start, shut down, stop, reset, pause or resume a machine."
+    },
+    "snapshot": {
+      "label": "Virtual machine: snapshot",
+      "description": "Take a snapshot as part of a workflow."
+    },
+    "clone": {
+      "label": "Virtual machine: clone",
+      "description": "Clone a stopped machine or a template."
+    },
+    "state": {
+      "label": "Virtual machine: state",
+      "description": "Read a machine and branch on what state it is in."
+    }
+  },
+  "reports": {
+    "platform": "Virtual machines (KVM)",
+    "backupAssurance": {
+      "label": "Virtual machine backup assurance",
+      "description": "Which machines have a backup plan, how often runs succeeded, how old the last good backup is, and whether every destination received its copy."
+    },
+    "guestStability": {
+      "label": "Virtual machine guest stability",
+      "description": "Crashes, unexpected stops and resets, machines that keep going down, guest agent health and lifecycle actions that failed or never finished."
+    },
+    "snapshotSchedules": {
+      "label": "Virtual machine snapshot schedules",
+      "description": "Each snapshot schedule's due runs against the snapshots it took, with missed and failed runs and whether retention is holding."
+    }
+  },
+  "alerts": {
+    "crashed": "Virtual machine crashed",
+    "stoppedUnexpectedly": "Virtual machine stopped unexpectedly",
+    "unknownState": "Virtual machine state unknown",
+    "snapshotChain": "Snapshot chain too deep",
+    "guestAgentGone": "Guest agent not responding",
+    "autostartFailed": "Machine set to start automatically is not running"
+  },
+  "backups": {
+    "title": "Backups",
+    "sourceLabel": "Virtual machine",
+    "description": "Copies of this machine's disks, written to storage away from its host. Incremental after the first, so a nightly backup moves only what changed.",
+    "tabs": { "plans": "Schedules", "runs": "History" },
+    "disabled": "Paused",
+    "retention": {
+      "lastCount": "last {{count}}",
+      "forDays": "{{days}} days",
+      "forever": "Forever"
+    },
+    "blocked": {
+      "noKey": "Backups are always encrypted, and this McHarbor has no backup encryption key installed yet. Generate or install one under Operate → Backups → Settings; until then a backup would have nothing to encrypt with and is refused rather than written in the clear.",
+      "noDestination": "No storage destinations are configured. Add one under Settings → Storage first — a backup needs somewhere to go.",
+      "noPlan": "Add a schedule first. A schedule is what says where this machine's backups are written and how long they are kept, and a backup with no destination is not a backup."
+    },
+    "runNow": "Back up now",
+    "runFull": "Take a full copy",
+    "addPlan": "Add a schedule",
+    "editPlan": "Edit",
+    "deletePlan": "Delete this schedule",
+    "noPlans": "This machine has no backup schedule.",
+    "noRuns": "This machine has never been backed up.",
+    "noDestinations": "No storage destinations are configured yet. Add one under Settings before scheduling a backup.",
+    "restore": "Restore",
+    "delete": "Delete this backup",
+    "deleteConfirm": {
+      "title": "Delete this backup?",
+      "body": "This permanently removes the backup from every storage destination. Backups that build on it can no longer be restored. This cannot be undone."
+    },
+    "deletePlanConfirm": {
+      "title": "Delete this schedule?",
+      "body": "The schedule stops running. Backups it already made are kept."
+    },
+    "kind": { "full": "Full", "incremental": "Incremental" },
+    "status": {
+      "running": "Running",
+      "success": "Done",
+      "failure": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "consistency": {
+      "crash": "Crash-consistent",
+      "crashHint": "The guest was not quiesced, so the copy looks like the machine lost power. Recoverable for a journalling filesystem, not for a database mid-write.",
+      "filesystem": "Filesystem-consistent",
+      "filesystemHint": "The guest's filesystems were frozen for the copy through its guest agent."
+    },
+    "fellBack": "Taken as a full copy",
+    "fellBackHint": "An incremental was asked for, but the host could not use this disk's change log: {{reason}}",
+    "columns": {
+      "started": "Started",
+      "kind": "Type",
+      "size": "Size",
+      "consistency": "Consistency",
+      "destinations": "Destinations",
+      "status": "Status"
+    },
+    "planColumns": {
+      "name": "Name",
+      "schedule": "Schedule",
+      "retention": "Keep",
+      "destinations": "Destinations",
+      "nextRun": "Next run"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Nightly",
+      "schedule": "Schedule",
+      "scheduleHint": "When this backup runs. The machine keeps running throughout.",
+      "enabled": "Run on this schedule",
+      "destinations": "Destinations",
+      "destinationsHint": "Where the copies are written. More than one is a good idea — a single copy is not a backup.",
+      "retentionCount": "Keep this many backups",
+      "retentionDays": "Keep backups for this many days",
+      "retentionHint": "Zero means keep forever. A backup that a later incremental still builds on is never removed, whatever these say.",
+      "fullEvery": "Take a full copy every",
+      "fullEveryUnit": "runs",
+      "fullEveryHint": "Restarting the chain regularly keeps a restore short. Zero never forces one.",
+      "quiesce": "Freeze the guest's filesystems",
+      "quiesceHint": "Needs the guest agent. Without it the copy is crash-consistent, which the backup records honestly."
+    },
+    "restoreDialog": {
+      "title": "Restore {{name}}",
+      "description": "This replaces the machine's current disks with what this backup holds. It cannot be undone.",
+      "spaceNotice": "The host needs about {{size}} free while this runs. The machine's current disks are left untouched until the rebuilt ones are complete, and that safety is what costs the extra room. The restore is refused up front if there is not enough.",
+      "needsStop": "The machine has to be stopped before it can be restored.",
+      "chainNote": "This is an incremental backup, so the full copy it builds on and every backup between them are restored with it.",
+      "confirm": "I understand the current disks are replaced",
+      "submit": "Restore this backup"
+    },
+    "destinationStatus": {
+      "uploading": "Sending",
+      "success": "Stored",
+      "failure": "Failed"
+    }
+  },
+  "shares": {
+    "title": "Shared directories",
+    "description": "Directories on the host this machine can mount directly, without a network share.",
+    "add": "Share a directory",
+    "remove": "Remove this share",
+    "tag": "Mount tag",
+    "tagPlaceholder": "projects",
+    "root": "Allowed root",
+    "subPath": "Path inside that root",
+    "subPathPlaceholder": "optional",
+    "access": "Access",
+    "readOnly": "Read only",
+    "readWrite": "Read and write",
+    "empty": "This machine shares no directories.",
+    "noRoots": "No directories are allowed to be shared on this host yet. An administrator sets the allowed roots first.",
+    "restartHint": "Shares are attached when the machine starts. Adding or removing one takes effect at its next start.",
+    "columns": {
+      "tag": "Mount tag",
+      "hostPath": "Host path",
+      "access": "Access",
+      "mount": "Mount inside the guest"
+    }
+  },
+  "resize": {
+    "title": "Live size changes",
+    "description": "Memory and processors can change while the machine runs. Both are requests the guest can refuse, so what it ended up with is shown rather than what was asked.",
+    "memory": "Memory",
+    "vcpus": "Processors",
+    "mb": "MB",
+    "processors": "processors",
+    "apply": "Apply",
+    "declined": "The guest did not go that far.",
+    "notRunning": "The machine has to be running for this.",
+    "noVirtioMem": "This machine has no resizable memory device. Enable it and restart the machine.",
+    "noHeadroom": "This machine was started without room to add processors. Raising the ceiling needs a restart.",
+    "memoryBoot": "Boot size {{boot}} MB.",
+    "memoryNow": "Boot size {{boot}} MB, currently {{now}} MB.",
+    "memoryResult": "Asked for {{requested}} MB, the guest has {{actual}} MB.",
+    "vcpusCeiling": "Up to {{max}} processors without a restart.",
+    "vcpusResult": "Asked for {{requested}}, the guest has {{actual}}."
+  },
+  "limits": {
+    "title": "I/O limits for disk {{slot}}",
+    "description": "Caps how hard this machine can hit the host's storage. One guest running a restore can otherwise starve every other guest on the host.",
+    "open": "I/O limits",
+    "readIops": "Read operations per second",
+    "writeIops": "Write operations per second",
+    "readMbps": "Read MB/s",
+    "writeMbps": "Write MB/s",
+    "zeroHint": "Zero means no limit. A bandwidth limit under 1 MB/s leaves a guest unable to boot and is refused.",
+    "unlimited": "No limit",
+    "upToMbps": "up to {{value}} MB/s",
+    "upToIops": "up to {{value}} IOPS"
+  },
+  "inspect": {
+    "title": "Inspect disk {{slot}}",
+    "description": "Read-only checks on the disk image itself, run by the host.",
+    "open": "Inspect this disk",
+    "operation": "Check",
+    "run": "Run",
+    "repair": "Repair what was found",
+    "repairAvailable": "The machine is stopped, so repair is available.",
+    "repairNeedsStop": "Repairing an image a running machine has open would corrupt it. Stop the machine first.",
+    "operations": {
+      "info": "Image details and backing chain",
+      "check": "Consistency check",
+      "map": "Which parts come from where",
+      "measure": "What this image really takes"
+    }
+  },
+  "hostFeature": {
+    "unavailable": "This host's QEMU cannot do this: {{feature}} is not available.",
+    "unknown": "McHarbor could not read this host's QEMU capabilities.",
+    "qemuVersion": "QEMU {{version}}",
+    "machineTypeMissing": "This guest is pinned to machine type {{type}}, which this host's QEMU no longer offers. It will not start until the machine type is changed.",
+    "names": {
+      "virtio_mem": "virtio-mem memory hotplug",
+      "cpu_hotplug": "vCPU hotplug",
+      "hugepages": "hugepages",
+      "numa": "NUMA pinning",
+      "virtiofs": "virtiofs shared directories",
+      "vsock": "vhost-vsock",
+      "io_throttle": "I/O throttling",
+      "iothread": "dedicated I/O threads",
+      "dirty_bitmap": "dirty bitmaps",
+      "blockdev_backup": "incremental backup",
+      "virtio_gpu": "virtio-gpu displays",
+      "virtio_snd": "virtio sound",
+      "usb_u2f": "virtual U2F token",
+      "spice": "SPICE consoles",
+      "clone": "cloning",
+      "migrate_cold": "migration",
+      "migrate_live": "live migration",
+      "serial_resize": "serial console resize",
+      "hotplug": "hot-plug",
+      "display_resize": "console display resize"
+    }
+  },
+  "err": {
+    "vm": {
+      "display_profile_not_found": "That display profile no longer exists.",
+      "display_profile_builtin": "Built-in display profiles cannot be edited or deleted. Duplicate one to change it.",
+      "display_profile_in_use": "Virtual machines still use this display profile. Move them to Fast LAN and delete it, or give them another profile first.",
+      "display_profile_name_taken": "A display profile with that name already exists.",
+      "display_profile_name_required": "A display profile needs a name without control characters.",
+      "display_profile_name_too_long": "That name or description is too long.",
+      "display_profile_option_invalid": "One of the SPICE options has a value QEMU does not accept.",
+      "display_profile_unknown": "That display profile does not exist.",
+      "boot_disk_running": "The boot disk cannot be removed or changed while the machine is running. Stop the machine first.",
+      "hotplug_unavailable": "This host cannot change hardware on a running machine. Stop the machine first.",
+      "hotplug_restart_required": "This machine was started before hardware could change while it runs. Restart it once to enable hot-plug.",
+      "hotplug_bus_unsupported": "A SATA or IDE disk cannot be added to or removed from a running machine. Use virtio-blk or virtio-scsi, or stop the machine first.",
+      "hotplug_no_controller": "This machine has no SCSI controller yet. Add its first SCSI disk while it is stopped.",
+      "hotplug_no_free_port": "This machine has no free hot-plug slot for that device. Stop it to add more.",
+      "hotplug_fixed_device": "This device sits on a bus that cannot remove it while the machine runs. Stop the machine to remove it.",
+      "hotplug_guest_refused": "The machine's operating system did not release the device, so nothing was removed. Some guest kernels have no PCI hot-plug driver and never release one (Home Assistant OS is one of them); stop the machine and remove the device then.",
+      "media_no_drive": "This machine has no empty disc drive. Eject a disc first, or stop the machine to add a drive.",
+      "no_destination": "This backup has nowhere to go. Add at least one storage destination to the plan.",
+      "chain_incomplete": "This backup builds on an earlier one that is no longer available, so it cannot be restored on its own.",
+      "backup_too_many_destinations": "A backup plan can write to at most ten destinations. Remove some and try again.",
+      "backup_destination_gone": "One of this plan's storage destinations no longer exists. Edit the plan and choose a destination that does.",
+      "backup_storage_unavailable": "No storage destinations are configured. Add a storage destination before taking a backup.",
+      "backup_no_disks": "This machine has no disks a backup can cover. Installer discs and read-only disks are skipped.",
+      "backup_keep_range": "A retention or full-copy setting is out of range. Use 0 for forever or never, or a smaller number.",
+      "backup_plan_needs_schedule": "A plan cannot be switched on without a schedule. Set a cron schedule or leave the plan off.",
+      "backup_not_restorable": "Only a backup that finished successfully can be restored.",
+      "restore_not_confirmed": "A restore replaces the machine's current disks, so it has to be confirmed.",
+      "no_resizable_memory": "This machine has no resizable memory device. Enable it and restart the machine before its memory can change while it runs.",
+      "invalid_resize": "That size is outside what this machine was started with.",
+      "unsupported_image_op": "That disk operation is not available.",
+      "share_tag_taken": "This machine already shares a directory under that mount tag.",
+      "share_path_refused": "That path is not inside a directory this host allows sharing. An administrator sets the allowed roots per host.",
+      "vault_unavailable": "This McHarbor gives the Virtual Machines plugin no access to the secret vault. Update the plugin, or type the password and keys instead.",
+      "vault_denied": "You need secrets.view in this environment to use a vault secret here.",
+      "vault_secret_not_found": "No secret with that name is visible in this environment.",
+      "password_and_secret": "Type a password or choose a vault secret for it, not both.",
+      "unauthorized": "You are not signed in.",
+      "invalid_request": "Something in that form was not valid.",
+      "user_data_masked": "The cloud-init user-data still contains masked values (••••••••). Enter the real values before creating the machine.",
+      "not_found": "That virtual machine no longer exists.",
+      "name_taken": "A virtual machine on this host already has that name.",
+      "running": "Stop the machine first.",
+      "not_running": "The machine is not running.",
+      "host_offline": "This machine's host cannot be reached. Commands are never queued for later — reconnect the agent and try again.",
+      "no_capability": "This host cannot run virtual machines. Check what it is missing on the Compute page.",
+      "disk_shrink": "A disk cannot be made smaller.",
+      "snapshot_chain_deep": "This machine has too many snapshots stacked up. Remove one first.",
+      "template_in_use": "This template has copies sharing its data.",
+      "template_running": "A template cannot be started. Clone it instead.",
+      "command_failed": "The host could not complete that:",
+      "not_ready": "This section is still starting up. Try again in a moment.",
+      "media_path": "That is not a usable installer disc. It must be a disc image on the host.",
+      "guest_disc_pending": "The host is still preparing the guest agent disc. Try again in a moment.",
+      "not_media": "That disk is not an installer disc.",
+      "host_required": "Pick a host for this virtual machine.",
+      "name_required": "A name is required.",
+      "name_too_long": "That name is longer than 120 characters.",
+      "name_leading": "A name cannot start with a dash or an underscore.",
+      "name_invalid": "A name cannot contain control characters.",
+      "vcpus_invalid": "That is not a usable number of processors.",
+      "memory_too_small": "A virtual machine needs at least 128 MB of memory.",
+      "memory_ceiling": "The memory ceiling cannot be below the starting memory.",
+      "pool_required": "A storage pool is required.",
+      "pool_mismatch": "That pool is already recorded with a different backend or path on this host. Pick the pool again from the list.",
+      "disk_required": "A disk size is required.",
+      "network_required": "A network is required.",
+      "firmware_invalid": "That is not a firmware type.",
+      "secure_boot_needs_uefi": "Secure Boot needs UEFI firmware.",
+      "display_invalid": "That is not a display adapter.",
+      "display_resolution_invalid": "That is not a usable boot resolution. Use a width of 640 to 7680 and a height of 480 to 4320 pixels, or leave both at the QEMU default.",
+      "cpu_model_invalid": "That CPU model cannot be used.",
+      "machine_invalid": "That machine type cannot be used.",
+      "disk_bus_invalid": "That is not a disk bus.",
+      "invalid_cron": "That is not a valid five-field cron expression.",
+      "invalid_keep": "Keep between 1 and 100 snapshots.",
+      "import_empty": "No file was uploaded.",
+      "import_too_large": "That file is larger than the import limit.",
+      "import_extension": "That file is not a disk image McHarbor can import.",
+      "import_state": "That import is not ready for this step yet.",
+      "import_staging": "The import staging directory cannot be written to. The details are in the server log.",
+      "volume_path": "That disk is not inside the chosen storage pool.",
+      "volume_unavailable": "That disk is no longer free. Refresh and pick another one.",
+      "snapshot_branched": "This snapshot has more than one branch below it. Remove one of the branches first.",
+      "snapshot_too_many": "This machine has as many snapshots as it can hold. Remove one first.",
+      "snapshot_name_required": "A snapshot name is required.",
+      "snapshot_name_too_long": "That snapshot name is longer than 120 characters.",
+      "snapshot_name_invalid": "A snapshot name cannot contain line breaks.",
+      "migrate_same_host": "The machine is already on that host. Pick a different target.",
+      "migrate_in_flight": "This machine is already being moved.",
+      "migrate_unsupported": "A host involved cannot perform this move. Update its agent, or try a cold move.",
+      "migrate_snapshots": "Machines with snapshots cannot be moved. Delete or merge the snapshots first.",
+      "migrate_devices": "Machines with host devices passed through cannot be moved. Detach them first.",
+      "migrate_shares": "Machines with shared host directories cannot be moved. Remove the shares first.",
+      "migrate_tpm": "Machines with a virtual TPM cannot be moved yet.",
+      "migrate_media": "Eject the installer disc before moving this machine.",
+      "migrate_forbidden": "You need permission to move machines on both hosts.",
+      "migrate_address": "That target address cannot be used for a live move.",
+      "migration_none": "This machine is not being moved.",
+      "spice_unavailable": "This machine's host cannot serve a SPICE console. Its QEMU has no SPICE support, or its agent is too old."
+    }
+  },
+  "msg": {
+    "vm": {
+      "display_profile_created": "Display profile created.",
+      "display_profile_updated": "Display profile saved. Virtual machines using it pick it up at their next start.",
+      "display_profile_deleted": "Display profile deleted.",
+      "backup_started": "Backup started.",
+      "backup_stored": "Backup received.",
+      "backup_plan_saved": "Backup schedule saved.",
+      "backup_plan_deleted": "Backup schedule deleted.",
+      "restore_started": "Restore started.",
+      "throttle_saved": "Disk limits saved.",
+      "share_added": "Shared directory added.",
+      "share_removed": "Shared directory removed.",
+      "guest_refreshed": "Asked the guest for its details.",
+      "created": "Virtual machine created.",
+      "updated": "Changes saved.",
+      "started": "Starting.",
+      "stopped": "Stopped.",
+      "shutdown_escalated": "The machine did not shut down on its own and was stopped.",
+      "deleted": "Deleted.",
+      "snapshot_created": "Snapshot taken.",
+      "snapshot_reverted": "Went back to the snapshot.",
+      "cloned": "Copy created.",
+      "templated": "Template updated.",
+      "disk_added": "Disk added.",
+      "device_attached": "Device attached.",
+      "media_attached": "Disc inserted.",
+      "guest_agent_disc_attached": "Guest agent disc inserted.",
+      "media_ejected": "Disc ejected.",
+      "schedule_saved": "Snapshot schedule saved.",
+      "schedule_deleted": "Snapshot schedule removed.",
+      "schedule_ran": "Snapshot taken.",
+      "import_uploaded": "Upload complete.",
+      "import_converted": "The machine was imported.",
+      "import_deleted": "Import removed.",
+      "migration_started": "Move started.",
+      "migration_cancel_requested": "Asked the hosts to stop the move."
+    }
+  },
+  "permissions": {
+    "vm.view": {
+      "label": "View virtual machines"
+    },
+    "vm.manage": {
+      "label": "Manage virtual machines"
+    },
+    "vm.delete": {
+      "label": "Delete virtual machines"
+    },
+    "vm.console": {
+      "label": "Open a virtual machine console"
+    },
+    "vm.privileged": {
+      "label": "Attach host devices to virtual machines"
+    },
+    "vm.import": {
+      "label": "Import virtual machines from other hypervisors"
+    },
+    "vm.migrate": {
+      "label": "Move virtual machines between hosts"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "unknownNote": "This host cannot be reached, so only bookkeeping settings can be changed.",
+    "appliesAtBoot": "Applied the next time this machine starts.",
+    "firmwareWarning": "Switching firmware will stop an installed guest from booting.",
+    "save": "Save settings",
+    "saved": "Settings saved.",
+    "noChanges": "Nothing has changed yet.",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "vcpus": "Processors",
+      "memoryMb": "Memory (MB)",
+      "memoryMaxMb": "Memory ceiling (MB)",
+      "memoryMaxHint": "Leave at 0 for no ceiling.",
+      "cpuModel": "CPU model",
+      "machineType": "Machine type",
+      "firmware": "Firmware",
+      "secureBoot": "Secure Boot",
+      "tpmEnabled": "TPM 2.0",
+      "displayType": "Display adapter",
+      "autostart": "Start with the host",
+      "autostartOrder": "Start order",
+      "autostartDelaySeconds": "Start delay (seconds)",
+      "vcpusValue": "{{count}} processor",
+      "vcpusValue_other": "{{count}} processors",
+      "cpuModelHint": "Leave empty for host, which passes the host CPU through.",
+      "cpuModelHost": "host — fastest, but this machine cannot be moved to another host",
+      "vcpusMax": "Processor ceiling",
+      "vcpusMaxHint": "How many processors this machine can grow to while running. Fixed when it starts, so raising it needs a restart. Zero means no growth.",
+      "virtioMem": "Resizable memory",
+      "virtioMemHint": "Lets memory change while the machine runs, in both directions. Needs a memory ceiling above the boot size, and replaces the balloon.",
+      "hugePages": "Hugepages",
+      "hugePagesHint": "Backs this machine's memory with hugepages, which is typically 5-15% faster on memory-heavy workloads. Hugepage memory cannot be swapped, so an over-committed host runs out rather than slowing down.",
+      "numaPolicy": "NUMA placement",
+      "numaPolicyHint": "How this machine's memory and processors are placed across the host's memory domains. Only matters on a host with more than one.",
+      "numaNode": "Host memory domain",
+      "numaNodeHint": "Which of the host's memory domains this machine is kept on.",
+      "numaNodeLabel": "Domain {{id}}",
+      "numaNodeFree": "{{free}} GB free, {{cpus}} processors on this domain.",
+      "numaNone": "No placement",
+      "numaPin": "Keep on one domain",
+      "numaMirror": "Mirror the host's layout",
+      "ioThread": "Dedicated I/O thread",
+      "ioThreadHint": "Moves this machine's disk I/O onto its own thread, so heavy disk use does not stall the rest of the machine.",
+      "vsock": "Direct host channel",
+      "vsockHint": "A socket channel between host and guest that needs no network, no address and no firewall rule.",
+      "vsockAssigned": "Context id {{cid}}. Allocated by McHarbor and unique on this host.",
+      "displayAuto": "Automatic",
+      "bootResolution": "Boot resolution",
+      "bootResolutionHint": "The screen size the guest starts at. Resize guest to window still follows the console when the guest supports it. Applies at the next start.",
+      "bootResolutionDefault": "QEMU default",
+      "bootResolutionCustom": "Custom",
+      "bootResolutionWidth": "Width",
+      "bootResolutionHeight": "Height",
+      "bootResolutionUnsupported": "Only virtio-gpu and QXL take a boot resolution.",
+      "bootResolutionRange": "Use a width of {{minWidth}} to {{maxWidth}} and a height of {{minHeight}} to {{maxHeight}} pixels.",
+      "autostartOrderHint": "Lower numbers start first.",
+      "displayNone": "None"
+    },
+    "hostSummary": "Host has {{cpus}} processors and {{memory}}",
+    "hostUnknown": "This host could not be read, so no ceiling is applied.",
+    "cpuNote": "{{cores}} physical cores behind {{threads}} threads. Up to {{ideal}} vCPUs runs with no contention at all; the green band ends at {{safe}}.",
+    "cpuOverSafe": "This guest asks for {{value}}, past the {{safe}} this host can back while {{others}} vCPUs are already running. It will still start, but every guest on the host schedules slower.",
+    "memoryNote": "{{reserve}} is held back for the host itself and QEMU overhead.",
+    "sections": {
+      "features": "QEMU features",
+      "featuresDescription": "Capabilities the host's QEMU can give this machine. Each one changes how it is launched, so all of them apply at its next start.",
+      "identity": "Identity",
+      "identityDescription": "What this machine is called in McHarbor.",
+      "resources": "Processors and memory",
+      "platform": "Platform",
+      "platformDescription": "Firmware, chipset and the display adapter the guest sees.",
+      "startup": "Startup",
+      "startupDescription": "Whether this machine comes back with its host, and in what order."
+    },
+    "needsStop": "Needs a stop",
+    "memoryNoteShared": "{{reserve}} is held back for the host, and {{used}} is held by other running guests.",
+    "overBudget": "This guest asks for {{value}}, more than the {{max}} the host has left for it."
+  },
+  "schedules": {
+    "intro": "A schedule takes snapshots on its own and keeps the newest few, the way a backup plan does. Retention only ever removes snapshots that schedule created — anything you named yourself is left alone.",
+    "add": "Add schedule",
+    "addTitle": "New snapshot schedule",
+    "editTitle": "Edit snapshot schedule",
+    "dialogBody": "Snapshots are taken on the host's local time.",
+    "defaultName": "Daily snapshots",
+    "empty": "This machine has no snapshot schedule yet.",
+    "enabled": "Enabled",
+    "disabled": "Paused",
+    "withMemory": "With memory",
+    "keeps": "Keeps {{count}}",
+    "next": "next {{when}}",
+    "runNow": "Run now",
+    "remove": "Remove schedule",
+    "history": "Recent runs",
+    "pruned": "{{count}} pruned",
+    "status": {
+      "running": "Running",
+      "success": "Done",
+      "failure": "Failed"
+    },
+    "confirmRemove": {
+      "title": "Remove this schedule?",
+      "body": "The snapshots it already took are kept. Only the policy goes."
+    },
+    "field": {
+      "name": "Name",
+      "cron": "Schedule",
+      "cronHelp": "Five-field cron, in the server's own timezone. `0 2 * * *` is every night at 02:00.",
+      "keep": "Snapshots to keep",
+      "keepHelp": "Once there are more than this, the oldest ones this schedule made are deleted.",
+      "memory": "Include memory",
+      "memoryHelp": "Saves the machine's RAM as well as its disks, so a restore resumes rather than boots. The guest is paused while it is written, which on a large machine is seconds to minutes.",
+      "enabled": "Enabled",
+      "pause": "Pause the machine when it has no guest agent",
+      "pauseHelp": "A scheduled snapshot of a machine with no guest agent stops its processors for a few seconds, takes the snapshot, and starts it again. Without this the snapshot is the equivalent of pulling the power."
+    }
+  },
+  "import": {
+    "title": "Import a virtual machine",
+    "body": "Bring in a machine from VMware, Hyper-V, VirtualBox or Parallels. The disk is converted on the host you choose, so nothing large passes through McHarbor twice.",
+    "formats": "Accepts OVA and OVF appliances, and VMDK, VHDX, VHD, VDI, HDD, QCOW2 and raw disks.",
+    "choose": "Choose a file",
+    "uploading": "Uploading… {{percent}}%",
+    "inspect": "Read this file",
+    "convert": "Import",
+    "converting": "Converting. A large disk takes a while — you can close this and it keeps running.",
+    "failed": "The import did not complete",
+    "warnings": "Some settings will not carry over",
+    "disks": "Disks found",
+    "bootDisk": "boot disk",
+    "firmware": {
+      "bios": "BIOS",
+      "uefi": "UEFI"
+    },
+    "field": {
+      "host": "Host",
+      "hostHelp": "The machine that reads and converts the file, and that the guest will run on.",
+      "name": "Name",
+      "pool": "Storage pool",
+      "poolPlaceholder": "Choose a pool",
+      "network": "Network",
+      "networkPlaceholder": "Choose a network",
+      "vcpus": "Processors",
+      "memory": "Memory (MB)",
+      "firmware": "Firmware",
+      "firmwareHelp": "Match what the machine was installed with. A BIOS installation does not boot under UEFI, and shows nothing at all when it is wrong.",
+      "autostart": "Start with the host",
+      "secureBoot": "Secure Boot",
+      "secureBootHelp": "UEFI only. Windows 11 expects it; an older guest will not boot with it on.",
+      "tpm": "Virtual TPM",
+      "tpmHelp": "A software TPM 2.0, which Windows 11 requires.",
+      "guestOs": "Guest operating system",
+      "guestOsHelp": "Decides the display adapter and network card the guest gets. Windows has no driver for the virtio devices a Linux guest is given, and boots to a black screen with no network."
+    },
+    "background": "Run in the background",
+    "reopen": "Show",
+    "dismiss": "Dismiss this import",
+    "phase": {
+      "uploading": "Uploading",
+      "uploaded": "Uploaded, waiting to be read",
+      "inspecting": "Reading the file",
+      "inspected": "Read, waiting to be imported",
+      "converting": "Converting on the host",
+      "failed": "Import failed"
+    },
+    "pending": {
+      "title": "Uploaded, waiting to be imported",
+      "continue": "Continue",
+      "discard": "Discard this upload"
+    },
+    "state": {
+      "pending": "Waiting",
+      "uploaded": "Uploaded",
+      "inspecting": "Reading",
+      "inspected": "Read",
+      "converting": "Converting",
+      "converted": "Imported",
+      "failed": "Failed",
+      "ready": "Ready"
+    },
+    "tab": "Conversion",
+    "tabDescription": "Files that have been uploaded but not yet converted into a guest.",
+    "emptyTitle": "Nothing waiting to convert",
+    "emptyDescription": "Upload a VMDK, VHDX, QCOW2 or OVA from the Virtual machines tab and it will appear here until it becomes a guest.",
+    "columns": {
+      "file": "File",
+      "format": "Format",
+      "size": "Size",
+      "state": "State",
+      "uploaded": "Uploaded",
+      "actions": "Actions"
+    },
+    "actions": {
+      "convert": "Convert",
+      "cancel": "Cancel",
+      "delete": "Delete upload"
+    },
+    "staged": "This file is on {{host}}. The conversion runs there.",
+    "guestOs": {
+      "linux": "Linux",
+      "windows": "Windows",
+      "bsd": "BSD",
+      "other": "Other"
+    }
+  },
+  "logs": {
+    "source": "Log",
+    "sources": {
+      "vm": "Virtual machine (QEMU)",
+      "tpm": "Security chip (swtpm)"
+    },
+    "tail": "Lines",
+    "exportName": "{{name}}-{{source}}.log",
+    "liveHint": "Live tail: the journal is re-read every few seconds while this is on.",
+    "lines_one": "Last {{count}} line",
+    "lines_other": "Last {{count}} lines",
+    "loading": "Reading the log from the host…",
+    "empty": "This unit has written nothing yet.",
+    "failed": "The log could not be read",
+    "partial": "The log is incomplete",
+    "notices": {
+      "journalctl_failed": "The host could not read this unit journal. It may have no entries yet.",
+      "no_supported_log_source": "This host has no journalctl, so unit logs cannot be read.",
+      "permission_denied": "The agent is not allowed to read this journal."
+    }
+  },
+  "progress": {
+    "elapsed": "{{seconds}}s"
+  },
+  "runbook": {
+    "attach": {
+      "vm": "Virtual machine"
+    },
+    "targets": {
+      "vm": "Virtual machine"
+    },
+    "steps": {
+      "vm_start": "Start the virtual machine",
+      "vm_shutdown": "Shut the virtual machine down through ACPI, forcing it off after the grace period",
+      "vm_reset": "Hard-reset the virtual machine, like pressing its reset button",
+      "vm_force_stop": "Power the virtual machine off at once, without asking the guest",
+      "vm_snapshot_create": "Take a snapshot of the virtual machine",
+      "vm_state": "The virtual machine's state, hardware and host",
+      "vm_snapshots": "The virtual machine's snapshots"
+    }
+  },
+  "migrate": {
+    "title": "Move {{name}} to another host",
+    "description": "Copies the machine's disks and definition to another host and runs it there. The original is removed once the move succeeds.",
+    "target": "Target host",
+    "targetPlaceholder": "Pick a host",
+    "noTargets": "No other host can take this machine. A target needs compute turned on and its agent connected.",
+    "pool": "Storage pool",
+    "poolPlaceholder": "Pick a pool on the target",
+    "live": "Move while running",
+    "liveHint": "The machine keeps running while its memory and disks are copied, and pauses briefly at the end.",
+    "coldHint": "The machine is shut down, copied, and started again on the target if it was running.",
+    "liveNeedsRunning": "Only a running machine can be moved live.",
+    "address": "Target address",
+    "addressPlaceholder": "Leave empty to use the first address the target reports",
+    "bandwidth": "Bandwidth limit (MB/s)",
+    "downtime": "Longest pause (ms)",
+    "networks": "Networks on the target",
+    "networksHint": "An interface left on its current bridge needs a bridge of the same name on the target.",
+    "networkFor": "Network for {{mac}}",
+    "keepBridge": "Keep {{bridge}}",
+    "review": "Review",
+    "submit": "Move machine",
+    "summary": {
+      "from": "From",
+      "to": "To",
+      "mode": "How",
+      "live": "Live, while running",
+      "cold": "Shut down, then copy"
+    },
+    "confirmLive": "The machine stays up, but its memory and disks cross the network. It pauses for a moment before it resumes on the target.",
+    "confirmCold": "The machine is shut down and is unreachable until its disks have been copied and it starts on the target.",
+    "cancelMigration": "Stop the move",
+    "percent": "{{percent}}% done",
+    "runningHint": "The move continues on the hosts if you close this dialog.",
+    "failed": "The move failed",
+    "state": {
+      "running": "Moving to {{target}}.",
+      "completed": "The machine now runs on {{target}}.",
+      "failed": "The move to {{target}} did not complete. The machine is still on its original host.",
+      "cancelled": "The move to {{target}} was stopped. The machine is still on its original host."
+    }
+  },
+  "estate": {
+    "vms": "Virtual machines"
+  },
+  "search": {
+    "group": {
+      "vms": "Virtual machines"
+    },
+    "action": {
+      "createVm": "Create virtual machine",
+      "createVmKeywords": "new vm kvm guest machine",
+      "importVm": "Import virtual machine",
+      "importVmKeywords": "import ova vmdk vhdx vmware hyper-v virtualbox disk"
+    }
+  },
+  "displayProfiles": {
+    "tab": "Display profiles",
+    "title": "Display profiles",
+    "description": "The SPICE settings a virtual machine starts with. The browser console decodes in JavaScript, so these decide whether it spends its time decoding or drawing.",
+    "create": "New profile",
+    "builtinBadge": "Built-in",
+    "builtinReadOnly": "Built-in profiles are read-only. Duplicate one to change it.",
+    "appliesNextStart": "Applies at next start",
+    "empty": {
+      "title": "No display profiles",
+      "body": "The built-in profiles appear once the plugin has started."
+    },
+    "columns": {
+      "name": "Name",
+      "image": "Images",
+      "streaming": "Video streaming",
+      "jpeg": "JPEG on slow links",
+      "playback": "Audio compression",
+      "vms": "Virtual machines",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "builtin": {
+      "fastLan": {
+        "name": "Fast LAN",
+        "description": "Uncompressed images: the most bandwidth, the least work for the browser."
+      },
+      "balanced": {
+        "name": "Balanced",
+        "description": "LZ for desktop content, JPEG on a slow link."
+      },
+      "lowBandwidth": {
+        "name": "Low bandwidth",
+        "description": "Lossy JPEG and MJPEG streaming everywhere: the fewest bytes."
+      }
+    },
+    "values": {
+      "auto_glz": "Automatic (GLZ)",
+      "auto_lz": "Automatic (LZ)",
+      "quic": "QUIC",
+      "glz": "GLZ",
+      "lz": "LZ",
+      "off": "Off",
+      "auto": "Automatic",
+      "never": "Never",
+      "always": "Always",
+      "all": "All",
+      "filter": "Detected video only",
+      "on": "On"
+    },
+    "options": {
+      "imageCompression": {
+        "label": "Image compression",
+        "hint": "Off sends raw images: the most bandwidth and the fastest drawing in the browser. LZ is cheap to decode. QUIC suits photos but is slow to decode in JavaScript. The GLZ choices cannot be drawn by the browser console; use them only with remote-viewer."
+      },
+      "jpegWanCompression": {
+        "label": "JPEG on slow links",
+        "hint": "Lossy JPEG for photo-like areas, when the link is slow or always. The browser decodes JPEG natively, so it is cheap; it softens fine detail."
+      },
+      "zlibGlzWanCompression": {
+        "label": "Zlib over GLZ on slow links",
+        "hint": "Extra compression for GLZ images only. The browser console cannot decode it; leave it on Never unless you use remote-viewer."
+      },
+      "streamingVideo": {
+        "label": "Video streaming",
+        "hint": "Sends fast-changing areas as an MJPEG stream. Detected video only keeps text sharp; All streams every busy area, with fewer bytes and more blur; Off redraws everything as images."
+      },
+      "playbackCompression": {
+        "label": "Audio compression",
+        "hint": "Opus-compressed audio. The browser console plays only Opus, so Off silences sound there."
+      },
+      "agentMouse": {
+        "label": "Client mouse mode",
+        "hint": "With the guest agent running, the pointer follows your own mouse without lag. Off falls back to server mouse mode."
+      }
+    },
+    "dialog": {
+      "createTitle": "New display profile",
+      "editTitle": "Edit {{name}}",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "nameRequired": "A profile needs a name.",
+      "nextStartNote": "Virtual machines using this profile pick up a change at their next start.",
+      "save": "Save profile"
+    },
+    "delete": {
+      "title": "Delete {{name}}?",
+      "body": "No virtual machine uses this profile. It is removed for good.",
+      "bodyInUse_one": "{{count}} virtual machine uses this profile. It moves to Fast LAN, which applies at its next start, and the profile is removed.",
+      "bodyInUse_other": "{{count}} virtual machines use this profile. They move to Fast LAN, which applies at their next start, and the profile is removed.",
+      "confirm": "Delete profile",
+      "reassignConfirm": "Move to Fast LAN and delete"
+    },
+    "settings": {
+      "title": "Display profile",
+      "description": "The SPICE settings this machine starts with. Profiles are managed on the Display profiles tab.",
+      "label": "Profile"
+    }
+  }
+}

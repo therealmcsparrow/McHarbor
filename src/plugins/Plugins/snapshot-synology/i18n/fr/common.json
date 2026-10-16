@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "Connexion DSM",
+    "targetSection": "Cible de l'instantané",
+    "advancedSection": "Avancé",
+    "dsmUrl": {
+      "label": "URL DSM",
+      "help": "URL de base de l'interface web Synology DSM. Incluez le port s'il n'est pas standard (par défaut 5000 pour HTTP, 5001 pour HTTPS)."
+    },
+    "username": {
+      "label": "Nom d'utilisateur",
+      "help": "Compte DSM autorisé à gérer les instantanés. Utilisez un compte de service dédié."
+    },
+    "password": {
+      "label": "Mot de passe",
+      "help": "Mot de passe DSM ou mot de passe spécifique à l'application."
+    },
+    "shareName": {
+      "label": "Dossier partagé",
+      "help": "Nom du dossier partagé à capturer (sans barre oblique initiale)."
+    },
+    "ignoreCert": {
+      "label": "Ignorer les erreurs de certificat",
+      "help": "Requis lorsque le DSM utilise un certificat auto-signé."
+    },
+    "appPasswordHint": "Recommandation : créez un mot de passe spécifique à l'application depuis DSM Control Panel → User &amp; Team → User → App Passwords. Cela limite les identifiants aux opérations de sauvegarde et permet de les révoquer sans changer le mot de passe principal."
+  },
+  "setup": {
+    "title": "Avant de commencer",
+    "intro": "snapshot-synology communique avec l'API REST du Backup Service de DSM 7.x. Vérifiez que le côté DSM est configuré, puis remplissez le formulaire.",
+    "steps": [
+      {
+        "title": "Activer l'API du Backup Service",
+        "body": "Control Panel → External Access → Certificate → Add. Ouvrez Control Panel → Backup Service et confirmez que le service est en cours d'exécution. L'API REST écoute sur le port HTTPS de DSM (par défaut 5001)."
+      },
+      {
+        "title": "Créer un mot de passe spécifique à l'application",
+        "body": "Control Panel → User &amp; Team → User → Account → App Passwords → Add. Nommez-le 'McHarbor snapshots' et n'accordez que les permissions nécessaires (DSM et Backup Service). Le mot de passe généré est celui que vous collez dans le formulaire."
+      },
+      {
+        "title": "Choisir ou créer un dossier partagé",
+        "body": "Ouvrez Control Panel → Shared Folder. Capturez un dossier existant (recommandé : un dossier vide réservé aux sauvegardes McHarbor) ou créez-en un nouveau. Notez exactement le nom du dossier — il est sensible à la casse sur le DSM."
+      },
+      {
+        "title": "Vérifier l'accessibilité du DSM depuis l'hôte",
+        "body": "Depuis l'hôte où McHarbor s'exécute, confirmez la connectivité HTTPS. Remplacez nas.local par le nom d'hôte de votre DSM :",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Tester la connexion",
+        "body": "Après avoir enregistré la configuration, cliquez sur « Tester la connexion » dans l'onglet Instantanés. Un résultat de sonde vert confirme que le DSM a accepté les identifiants et que le dossier partagé est accessible."
+      }
+    ]
+  }
+}

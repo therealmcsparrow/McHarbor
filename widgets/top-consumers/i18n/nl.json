@@ -12,6 +12,7 @@
   "topConsumersWidget": {
     "cpuTitle": "Hoogste CPU-verbruikers",
     "memoryTitle": "Hoogste geheugenverbruikers",
-    "noData": "Geen containerstatistieken beschikbaar"
+    "noData": "Geen containerstatistieken beschikbaar",
+    "total": "{{value}} totaal"
   }
 }

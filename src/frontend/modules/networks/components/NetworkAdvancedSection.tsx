@@ -18,7 +18,7 @@ interface NetworkAdvancedSectionProps {
 }
 
 export function NetworkAdvancedSection({
-  open,
+  open: isOpen,
   onToggle,
   customOptions,
   onCustomOptionsChange,
@@ -34,24 +34,16 @@ export function NetworkAdvancedSection({
         variant="ghost"
         size="sm"
         onClick={onToggle}
-        className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
-        {open ? (
-          <IconChevronDown className="h-4 w-4" />
-        ) : (
-          <IconChevronRight className="h-4 w-4" />
-        )}
+        {isOpen ? <IconChevronDown className="h-4 w-4" /> : <IconChevronRight className="h-4 w-4" />}
         {t('create.advanced')}
       </Button>
-      {open && (
+      {isOpen && (
         <div className="mt-3 space-y-4">
           <div>
-            <Label className="mb-2">
-              {t('create.customOptions')}
-            </Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              {t('create.customOptionsHelp')}
-            </p>
+            <Label className="mb-2">{t('create.customOptions')}</Label>
+            <p className="mb-2 text-xs text-muted-foreground">{t('create.customOptionsHelp')}</p>
             <KeyValueRows
               items={customOptions}
               onChange={onCustomOptionsChange}

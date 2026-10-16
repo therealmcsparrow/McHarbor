@@ -1,0 +1,74 @@
+{
+  "config": {
+    "theme_color": { "help": "Optioneel. Hexkleur (zonder #) voor de accentstreep links op de Adaptive Card. Standaard het Teams-merkpaars. Handig om per omgeving of ernst te kleurcoderen." }
+  },
+  "page": {
+    "title": "Microsoft Teams",
+    "subtitle": "Stuur workflow-, alert- en back-upgebeurtenissen naar een Microsoft Teams-kanaal via een Adaptive Card die naar een Incoming Webhook-connector-URL wordt gepost. De plugin verzorgt Test (post een echte Adaptive Card met de geconfigureerde themeColor) en Verzenden (post Titel + Bericht als body van de Adaptive Card) — er is geen OAuth-flow omdat Incoming Webhook-connectors alleen URL-inloggegevens zijn.",
+    "registerHint": "Voeg een kanaal toe via de pagina Meldingen > Kanalen van de host en kies \"teams\" als channel_type."
+  },
+  "fields": {
+    "webhookUrl":  "Webhook-URL",
+    "themeColor":  "Themakleur"
+  },
+  "help": {
+    "webhookUrl":  "Incoming Webhook-connector-URL van Microsoft Teams. Kanaalmenu (...) → Connectors → Incoming Webhook → Configure → kopieer de URL. De UUID in de URL is de inloggegevens — behandel hem als een geheim.",
+    "themeColor":  "Hexkleur (zonder #) voor de linker accentstreep van de Adaptive Card. Standaard het Teams-merkpaars (5059C9)."
+  },
+  "toast": {
+    "registered": "Microsoft Teams-kanaal opgeslagen.",
+    "testPassed": "Microsoft Teams-verbindingstest geslaagd.",
+    "testFailed": "Microsoft Teams-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noWebhook":   "Webhook-URL is vereist. Plak de Incoming Webhook-connector-URL uit Teams.",
+    "sendFailed":  "Posten naar Microsoft Teams-webhook mislukt: {{error}}",
+    "testFailed":  "Microsoft Teams-webhook gaf {{status}}: {{body}}"
+  },
+  "form": {
+    "webhookTitle": "Inkomende webhook van Microsoft Teams",
+    "webhookHelp": "Adaptive Card",
+    "webhookBody": "De plugin post een **Adaptive Card** naar de ingestelde webhook-URL. De meldingstitel wordt een vette TextBlock-kop (grootte Medium), het bericht wordt een TextBlock-tekst met regelomloop en de kaart heeft optioneel een themeColor op de linker accentstreep. Teams toont de kaart direct in het kanaal — zonder installatie, zonder app-rechten en zonder toestemmingsflow.",
+    "themeTitle": "Themakleur",
+    "themeHelp": "Accentstreep van de Adaptive Card",
+    "themeIntro": "Teams toont de ingestelde `themeColor` als gekleurde streep langs de linkerrand van elke Adaptive Card. Gebruik dit om per omgeving of ernst te kleurcoderen:",
+    "themePurple": "`5059C9` — Teams-merkpaars (standaard).",
+    "themeRed": "`DC3545` — rood, voor productiemeldingen en pager-notificaties.",
+    "themeGreen": "`28A745` — groen, voor voltooide back-ups en succesmeldingen.",
+    "themeAmber": "`FFC107` — amber, voor waarschuwingen en verminderde dienstverlening.",
+    "themeOutro": "Gebruik de hexadecimale notatie van 6 tekens zonder de voorafgaande `#` — Adaptive Cards negeren de `#` en behandelen die als onderdeel van de kleurnaam.",
+    "securityTitle": "Beveiliging van de webhook-URL",
+    "securityHelp": "De UUID in de URL IS de inloggegevens",
+    "securityIntro": "Iedereen die de webhook-URL heeft, kan in het kanaal posten — er is geen apart token en geen ondertekeningssleutel. Behandel de URL als een geheim:",
+    "securityGit": "Commit hem niet in git (ook niet in privérepositories).",
+    "securityShare": "Plak hem niet in Slack, e-mail of ticketopmerkingen waar de ontvanger niet in je kanaal hoeft te posten.",
+    "securityRotate": "Vernieuw hem door de connector in Teams te verwijderen, een nieuwe aan te maken en de nieuwe URL hier te plakken. Oude URL's falen met een 410 Gone van Teams zodra de connector is verwijderd.",
+    "testTitle": "Verbinding testen",
+    "testHelp": "Wat je kunt verwachten",
+    "testBody": "De testaanroep post een echte Adaptive Card (`Title: McHarbor test notification`, body `This is a test message from McHarbor.`) in je kanaal. Teams geeft `200 OK` terug bij een werkende webhook; de plugin zet elke niet-2xx-respons om in een gestructureerde fout met de upstream-status en de eerste 256 bytes van de responsebody. De kaart verschijnt als zichtbaar bericht in het kanaal — laat abonnees het weten voordat je op Testen klikt, zodat er geen vals-positief alertticket ontstaat.",
+    "fields": {
+      "webhook_url": {
+        "label": "Webhook-URL",
+        "help": "URL van de Incoming Webhook-connector uit Microsoft Teams. Kanaalmenu (...) → Connectors → Incoming Webhook → Configure → kopieer de URL. De UUID in de URL is de authenticatiegegevens — behandel hem als een geheim."
+      },
+      "theme_color": {
+        "label": "Themakleur",
+        "help": "Optioneel. Hexkleur (zonder #) voor de accentstreep links op de Adaptive Card. Standaard het Teams-merkpaars. Handig om per omgeving of ernst te kleurcoderen."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Installatiehandleiding voor Microsoft Teams"
+  },
+  "guide": {
+    "step1": { "body": "Open Microsoft Teams en ga naar het kanaal waar je meldingen wilt ontvangen. Incoming Webhook-connectors zijn gekoppeld aan één kanaal — herhaal de onderstaande stappen voor elk kanaal waarin je meldingen wilt ontvangen." },
+    "step2": { "body": "Klik op het kanaalmenu (••• naast de kanaalnaam) → <b>Connectors</b>. Scrol in de lijst naar <b>Incoming Webhook</b> en klik op <b>Configure</b>. Geef de connector een naam (bijv. <code>McHarbor Alerts</code>) en upload eventueel een afbeelding die naast elke kaart van de connector wordt getoond." },
+    "step3": { "body": "Klik op <b>Create</b>. Teams toont de webhook-URL — kopieer hem nu. De URL bevat de UUID van de connector, die de authenticatiegegevens vormt; <warn>je ziet hem niet meer nadat je het dialoogvenster sluit</warn>. Plak hem in het veld <b>Webhook-URL</b> links." },
+    "step4": { "body": "Klik op <b>Done</b> om het configuratiedialoogvenster te sluiten. De connector is nu actief en het kanaal accepteert POST-verzoeken naar de URL. Er is geen aparte \"publiceer\"-stap — Teams activeert connectors direct." },
+    "step5": { "body": "Optioneel: stel <b>Themakleur</b> in op een hexwaarde van 6 tekens (zonder #) om de linker accentstreep van de Adaptive Card te kleuren. Standaard is dit het Teams-merkpaars (<code>5059C9</code>). Handig om snel te onderscheiden tussen meerdere omgevingen of ernstniveaus." },
+    "step6": { "body": "Sla het kanaal op. Klik op <b>Verbinding testen</b> — de plugin post een Adaptive Card met titel \"McHarbor test notification\" en body \"This is a test message from McHarbor.\" in je kanaal. De kaart zou binnen 1-2 seconden moeten verschijnen." },
+    "step7": { "body": "Als de test <code>400</code> geeft, is de payload onjuist — controleer of je de webhook-URL niet hebt gewijzigd (bijv. queryparameters toegevoegd). Bij <code>404</code> is de connector in Teams verwijderd nadat je de URL kopieerde — maak hem opnieuw aan en werk het veld bij. Zie je <code>200 OK</code> in de respons maar geen kaart in Teams, dan is de connector geconfigureerd voor een ander kanaal dan het kanaal waar je naar kijkt." },
+    "step8": { "body": "Om te beperken welke kanalen mogen posten: open het configuratiedialoogvenster van de connector in Teams en gebruik de optie <b>Restrict to channels</b>. Dit geldt per connector en is een instelling aan de kant van Teams; de plugin kan dit niet afdwingen." },
+    "step9": { "body": "Zodra het kanaal is opgeslagen, stuur je workflow- of alertgebeurtenissen ernaartoe via <b>Instellingen > Meldingen > Regels</b>. Bezorging via Teams is fire-and-forget: een mislukte POST wordt in het auditlogboek vastgelegd en getoond in de toast van de host, maar de host probeert het niet opnieuw." }
+  }
+}

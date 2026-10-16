@@ -1,0 +1,17 @@
+{
+  "label": "Ticketstatus",
+  "description": "Start wanneer een ITSM meldt dat een gekoppeld ticket van status is veranderd",
+  "config": {
+    "channel_id": "Ticketkanaal",
+    "states": "Statussen"
+  },
+  "options": {
+    "states": {
+      "open": "Open",
+      "acknowledged": "Bevestigd",
+      "resolved": "Opgelost",
+      "closed": "Gesloten",
+      "cancelled": "Geannuleerd"
+    }
+  }
+}

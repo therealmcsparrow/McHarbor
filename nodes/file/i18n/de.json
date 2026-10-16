@@ -1,0 +1,26 @@
+{
+  "label": "Datei",
+  "description": "Datei im Workflow-Datenverzeichnis lesen oder schreiben",
+  "config": {
+    "operation": "Vorgang",
+    "path": "Pfad",
+    "encoding": "Kodierung",
+    "output_property": "Ausgabe-Eigenschaft",
+    "property": "Eigenschaft",
+    "mode": "Modus"
+  },
+  "options": {
+    "operation": {
+      "read": "Lesen",
+      "write": "Schreiben"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Überschreiben",
+      "append": "Anhängen"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# plugin.yaml — manifest for the scanner-grype plugin.
+#
+# Image vulnerability scanner backed by Anchore's Grype CLI, which
+# ships in the McHarbor container image. Scans OS and language packages
+# and reports CVEs.
+#
+# Family: scanner-* (image vulnerability scanners). Siblings are
+# scanner-trivy, which wraps the other local CLI, and scanner-clair,
+# which calls an external Clair v4 server. Running Trivy and Grype side
+# by side is a reasonable arrangement — they draw on overlapping but
+# not identical advisory feeds, and a scanner is a named instance so
+# both can be enabled at once.
+#
+# Unlike scanner-trivy this plugin is not auto-installed on upgrade:
+# Grype was off by default before the engines became plugins, so an
+# install that never enabled it has nothing to preserve.
+#
+# Database: owns nothing. The host stores the scan rows and the
+# findings, so uninstalling this plugin takes no scan history with it.
+#
+# RBAC: declares no permissions. The Security > Scanners tab that
+# configures this plugin is gated by the host's settings.manage, and
+# running a scan is gated by scans.manage. Same reasoning as the
+# storage-adapter family.
+schema: "mcharbor.plugin/v1"
+
+slug:     "scanner-grype"
+name:     "Grype"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Scan container images for vulnerabilities with Anchore's Grype. Covers OS and language packages, runs entirely inside the McHarbor container, and needs no external service. Configure it in Security > Scanners."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   scanner.adapter.register  required — register ImageScannerAdapterSpec
+#   audit.emit                required — every plugin should audit
+#
+# No db.migrations.run: this plugin owns no tables.
+# No encryption.handle.read: Grype needs no stored credential.
+permissions:
+  - scanner.adapter.register
+  - audit.emit
+
+# No adds_permissions — see the RBAC note in the header.
+# No consumes_permissions — this plugin reads no host table.
+
+contributes:
+  routes: []
+  # No `menu:` and no `forms:` — the host's Scanners tab renders this
+  # adapter's declared ConfigSchema generically.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "scanner-grype"
+  migrations: []
+
+signature: ""
+checksum:  ""

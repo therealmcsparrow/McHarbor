@@ -4,7 +4,7 @@
     "description":  "Swagger Editor for designing, defining, and documenting REST APIs in OpenAPI.",
     "category":  "Developer Tools",
     "image":  "swaggerapi/swagger-editor:latest",
-    "logo":  "https://icon.horse/icon/editor.swagger.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/swagger.svg",
     "website":  "https://editor.swagger.io",
     "docsUrl":  "https://github.com/swagger-api/swagger-editor/blob/develop/README.md",
     "ports":  [
@@ -24,5 +24,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Name",
+    "path": "Path",
+    "isDir": true,
+    "isSymlink": true,
+    "linkTarget": "LinkTarget",
+    "sizeBytes": 9,
+    "mode": "Mode",
+    "modifiedAt": "2026-09-30T12:00:00Z",
+    "ownerUid": 8,
+    "ownerGid": 8
+  }
+]

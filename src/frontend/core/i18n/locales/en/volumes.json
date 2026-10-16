@@ -8,6 +8,18 @@
   "pruneUnused": "Prune Unused",
   "pruneDescription": "Remove volumes that are not attached to any container.",
   "columns": {
+    "scope": "Scope",
+    "labels": "Labels",
+    "options": "Options",
+    "status": "Status",
+    "size": "Size",
+    "refCount": "References",
+    "stack": "Stack",
+    "protected": "Protected",
+    "groupVolume": "Volume",
+    "usedBy": "Used by",
+    "groupRelations": "Relations",
+    "groupStack": "Stack",
     "name": "Name",
     "driver": "Driver",
     "usage": "Usage",
@@ -17,7 +29,8 @@
   },
   "badges": {
     "inUse": "in use",
-    "unused": "unused"
+    "unused": "Unused",
+    "inUseCount": "{{count}} in use"
   },
   "create": {
     "title": "Create Volume",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Remove Volume",
     "removeDescription": "This will permanently remove this volume and all its data."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Volume sections",
+      "overview": "Overview",
+      "containers": "Containers",
+      "configuration": "Configuration"
+    },
+    "notFound": "Volume not found",
+    "backToVolumes": "Back to volumes",
+    "general": "General",
+    "name": "Name",
+    "driver": "Driver",
+    "scope": "Scope",
+    "mountpoint": "Mountpoint",
+    "created": "Created",
+    "usage": "Usage",
+    "status": "Status",
+    "size": "Size",
+    "sizeUnknown": "Not reported",
+    "sizeDescription": "Size is reported by the Docker daemon only when it has collected usage data for this volume.",
+    "mountedBy": "Mounted by",
+    "mountedByContainers": "Containers using this volume",
+    "noContainers": "No container currently mounts this volume.",
+    "containerName": "Container",
+    "containerId": "Container ID",
+    "mountPath": "Mount path",
+    "access": "Access",
+    "readWrite": "read-write",
+    "readOnly": "read-only",
+    "options": "Options",
+    "labels": "Labels",
+    "noConfiguration": "This volume carries no custom options or labels.",
+    "protectedCannotRemove": "This volume is protected and cannot be removed.",
+    "inUseCannotRemove": "A container still mounts this volume. Remove or stop it first."
   }
 }

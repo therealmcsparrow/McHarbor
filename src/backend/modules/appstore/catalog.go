@@ -1,11 +1,14 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package appstore serves the app catalog and installs catalog apps as Compose stacks.
 package appstore
 
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,24 +16,51 @@ import (
 	"strings"
 )
 
-// loadBundledCatalog parses the root apps catalog directory.
+// loadBundledCatalog remains for catalog validation tests. Runtime catalog
+// loading is registry-driven and never calls this compatibility helper.
 func loadBundledCatalog() (*CatalogFile, error) {
-	appsDir, err := findBundledAppsDir()
+	appsDir, err := findProjectAppCatalogDir()
 	if err != nil {
 		return nil, err
 	}
+	return loadCatalogDirectory(appsDir)
+}
 
+func loadCatalogDirectory(appsDir string) (*CatalogFile, error) {
 	entries, err := os.ReadDir(appsDir)
 	if err != nil {
-		return nil, fmt.Errorf("reading bundled apps directory: %w", err)
+		return nil, fmt.Errorf("reading app catalog directory: %w", err)
 	}
 
 	files := make([]string, 0, len(entries))
+	var totalBytes int64
 	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+		// index.json is the published catalog's single-document form of these same files
+		// (scripts/apps/build-index.mjs); read as an app it would fail the slug check.
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" || entry.Name() == "index.json" {
 			continue
 		}
+		if entry.Type()&os.ModeSymlink != 0 {
+			return nil, fmt.Errorf("catalog app %s must not be a symlink", entry.Name())
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return nil, fmt.Errorf("inspecting catalog app %s: %w", entry.Name(), err)
+		}
+		if !info.Mode().IsRegular() {
+			return nil, fmt.Errorf("catalog app %s must be a regular file", entry.Name())
+		}
+		if info.Size() > maxCatalogFileBytes {
+			return nil, fmt.Errorf("catalog app %s exceeds %d bytes", entry.Name(), maxCatalogFileBytes)
+		}
+		totalBytes += info.Size()
+		if totalBytes > maxLocalCatalogBytes {
+			return nil, fmt.Errorf("app catalog exceeds %d bytes", maxLocalCatalogBytes)
+		}
 		files = append(files, filepath.Join(appsDir, entry.Name()))
+		if len(files) > maxCatalogFiles {
+			return nil, fmt.Errorf("app catalog exceeds %d files", maxCatalogFiles)
+		}
 	}
 	sort.Strings(files)
 
@@ -46,16 +76,16 @@ func loadBundledCatalog() (*CatalogFile, error) {
 	return catalog, nil
 }
 
-func findBundledAppsDir() (string, error) {
+func findProjectAppCatalogDir() (string, error) {
 	candidates := []string{
-		"apps",
-		"../../apps",
-		"../../../apps",
-		"../../../../apps",
+		"mnt/app-catalog",
+		"../../mnt/app-catalog",
+		"../../../mnt/app-catalog",
+		"../../../../mnt/app-catalog",
 	}
 
 	if exe, err := os.Executable(); err == nil {
-		candidates = append([]string{filepath.Join(filepath.Dir(exe), "apps")}, candidates...)
+		candidates = append(candidates, filepath.Join(filepath.Dir(exe), "mnt", "app-catalog"))
 	}
 
 	for _, candidate := range candidates {
@@ -65,24 +95,84 @@ func findBundledAppsDir() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("bundled apps directory not found")
+	return "", fmt.Errorf("project app catalog directory not found")
 }
 
 func loadAppTemplateFile(path string) (AppTemplate, error) {
-	data, err := os.ReadFile(path)
+	file, err := os.Open(path)
 	if err != nil {
-		return AppTemplate{}, fmt.Errorf("reading bundled app %s: %w", filepath.Base(path), err)
+		return AppTemplate{}, fmt.Errorf("reading catalog app %s: %w", filepath.Base(path), err)
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			slog.Warn("app catalog: closing catalog file failed", "file", filepath.Base(path), "error", err)
+		}
+	}()
+
+	data, err := io.ReadAll(io.LimitReader(file, maxCatalogFileBytes+1))
+	if err != nil {
+		return AppTemplate{}, fmt.Errorf("reading catalog app %s: %w", filepath.Base(path), err)
+	}
+	if len(data) > maxCatalogFileBytes {
+		return AppTemplate{}, fmt.Errorf("catalog app %s exceeds %d bytes", filepath.Base(path), maxCatalogFileBytes)
 	}
 
 	var app AppTemplate
 	if err := json.Unmarshal(data, &app); err != nil {
-		return AppTemplate{}, fmt.Errorf("parsing bundled app %s: %w", filepath.Base(path), err)
+		return AppTemplate{}, fmt.Errorf("parsing catalog app %s: %w", filepath.Base(path), err)
 	}
 	if app.Slug == "" {
-		return AppTemplate{}, fmt.Errorf("bundled app %s has empty slug", filepath.Base(path))
+		return AppTemplate{}, fmt.Errorf("catalog app %s has empty slug", filepath.Base(path))
+	}
+	expectedSlug := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	if app.Slug != expectedSlug {
+		return AppTemplate{}, fmt.Errorf("catalog app %s has mismatched slug %q", filepath.Base(path), app.Slug)
+	}
+	if !appSlugPattern.MatchString(app.Slug) {
+		return AppTemplate{}, fmt.Errorf("catalog app %s has invalid slug", filepath.Base(path))
 	}
 
 	return app, nil
+}
+
+// installImage is the image reference an install actually pulls. An app whose
+// catalog entry carries a "latest" block installs the release line, not the tag
+// the catalog happens to pin: the block exists because the catalog server tracks
+// what "newest" means for this app, so the install follows it. Only a release tag
+// is rewritten: a channel tag (stable, nightly, alpine) is the line the catalog
+// chose, and many images (frigate) publish no :latest at all. A digest is left
+// alone — it pins bytes on purpose, and rewriting it would discard the pin.
+func installImage(app AppTemplate) string {
+	image := strings.TrimSpace(app.Image)
+	if app.Latest == nil || image == "" || strings.Contains(image, "@") {
+		return app.Image
+	}
+
+	idx := strings.LastIndex(image, ":")
+	if idx <= 0 || strings.Contains(image[idx+1:], "/") {
+		return app.Image
+	}
+	if _, release := classifyTag(image[idx+1:]); !release {
+		return app.Image
+	}
+	return image[:idx] + ":latest"
+}
+
+// latestVersion and latestReleaseDate flatten the optional block for storage.
+// A catalog that emits no block stores two empty strings, which scanCatalogApp
+// reads back as a nil Latest.
+func latestVersion(app AppTemplate) string {
+	if app.Latest == nil {
+		return ""
+	}
+	return app.Latest.Version
+}
+
+func latestReleaseDate(app AppTemplate) string {
+	if app.Latest == nil {
+		return ""
+	}
+	return app.Latest.ReleaseDate
 }
 
 // generateCompose builds a docker-compose.yml string from an AppTemplate
@@ -96,9 +186,9 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 	var b strings.Builder
 	b.WriteString("# Generated by McHarbor App Store\n")
 	b.WriteString("services:\n")
-	b.WriteString(fmt.Sprintf("  %s:\n", serviceName))
-	b.WriteString(fmt.Sprintf("    image: %s\n", app.Image))
-	b.WriteString(fmt.Sprintf("    container_name: %s\n", serviceName))
+	fmt.Fprintf(&b, "  %s:\n", serviceName)
+	fmt.Fprintf(&b, "    image: %s\n", app.Image)
+	fmt.Fprintf(&b, "    container_name: %s\n", serviceName)
 	b.WriteString("    restart: unless-stopped\n")
 
 	// Ports
@@ -110,9 +200,9 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 				proto = "tcp"
 			}
 			if proto == "tcp" {
-				b.WriteString(fmt.Sprintf("      - \"%d:%d\"\n", p.Host, p.Container))
+				fmt.Fprintf(&b, "      - \"%d:%d\"\n", p.Host, p.Container)
 			} else {
-				b.WriteString(fmt.Sprintf("      - \"%d:%d/%s\"\n", p.Host, p.Container, proto))
+				fmt.Fprintf(&b, "      - \"%d:%d/%s\"\n", p.Host, p.Container, proto)
 			}
 		}
 	}
@@ -125,7 +215,7 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 			if v.ReadOnly {
 				suffix = ":ro"
 			}
-			b.WriteString(fmt.Sprintf("      - %s:%s%s\n", v.Host, v.Container, suffix))
+			fmt.Fprintf(&b, "      - %s:%s%s\n", v.Host, v.Container, suffix)
 		}
 	}
 
@@ -133,7 +223,7 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 	if len(envVars) > 0 {
 		b.WriteString("    environment:\n")
 		for k, v := range envVars {
-			b.WriteString(fmt.Sprintf("      - %s=%s\n", k, v))
+			fmt.Fprintf(&b, "      - %s\n", yamlEnvItem(k, v))
 		}
 	}
 
@@ -143,18 +233,22 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 }
 
 var composeEnvPlaceholder = regexp.MustCompile(`\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
+var composeQuotedEnvValue = regexp.MustCompile(`^\s*(?:-\s*)?[^\s:"]+:\s+"[^"]*\{\{env\.[A-Za-z_][A-Za-z0-9_]*\}\}.*"\s*$`)
 var composeEnvListItemPlaceholder = regexp.MustCompile(`^(\s*-\s*)\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}(.*)$`)
+var composeEnvListItemInline = regexp.MustCompile(`^(\s*-\s*)([^"'\s][^"']*)$`)
 var composeRawEnvPlaceholder = regexp.MustCompile(`\{\{envRaw\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
+var appSlugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string, netCfg *NetworkConfig) string {
 	compose := app.ComposeOverride
 	appDataPath := "/opt/appdata/" + serviceName
+	envVars = expandEnvIdentityTokens(envVars, serviceName, appDataPath)
 	replacements := map[string]string{
 		"{{serviceName}}":    serviceName,
 		"{{containerName}}":  serviceName,
 		"{{projectName}}":    serviceName,
 		"{{appDataPath}}":    appDataPath,
-		"{{image}}":          app.Image,
+		"{{image}}":          installImage(app),
 		"{{ports}}":          renderComposePorts(ports),
 		"{{volumes}}":        renderComposeVolumes(volumes),
 		"{{environment}}":    renderComposeEnvironment(envVars),
@@ -176,6 +270,26 @@ func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapp
 	return compose
 }
 
+// expandEnvIdentityTokens returns a copy of envVars with the identity placeholders expanded, so a catalog
+// default or an operator-typed value such as "{{serviceName}}-redis" reaches the compose file resolved.
+// It is a single non-rescanning pass, which keeps it bounded because the substituted values never hold "{{".
+func expandEnvIdentityTokens(envVars map[string]string, serviceName, appDataPath string) map[string]string {
+	if len(envVars) == 0 {
+		return envVars
+	}
+	replacer := strings.NewReplacer(
+		"{{serviceName}}", serviceName,
+		"{{containerName}}", serviceName,
+		"{{projectName}}", serviceName,
+		"{{appDataPath}}", appDataPath,
+	)
+	out := make(map[string]string, len(envVars))
+	for k, v := range envVars {
+		out[k] = replacer.Replace(v)
+	}
+	return out
+}
+
 func renderComposeEnvPlaceholders(compose string, envVars map[string]string) string {
 	lines := strings.Split(compose, "\n")
 	for i, line := range lines {
@@ -188,9 +302,26 @@ func renderComposeEnvPlaceholders(compose string, envVars map[string]string) str
 			continue
 		}
 
+		// An unquoted list item such as `- KEY={{env.X}}` is one scalar: splicing a
+		// quoted value into its middle would leak the quotes into the variable.
+		if match := composeEnvListItemInline.FindStringSubmatch(line); match != nil {
+			raw := composeEnvPlaceholder.ReplaceAllStringFunc(match[2], func(m string) string {
+				return envVars[composeEnvPlaceholder.FindStringSubmatch(m)[1]]
+			})
+			lines[i] = match[1] + quoteYAMLString(raw)
+			continue
+		}
+
+		// A placeholder inside an already double-quoted value must not add its own
+		// quotes, or the line becomes invalid YAML.
+		inQuoted := composeQuotedEnvValue.MatchString(line)
 		lines[i] = composeEnvPlaceholder.ReplaceAllStringFunc(line, func(match string) string {
 			key := composeEnvPlaceholder.FindStringSubmatch(match)[1]
-			return quoteYAMLString(envVars[key])
+			quoted := quoteYAMLString(envVars[key])
+			if inQuoted {
+				return quoted[1 : len(quoted)-1]
+			}
+			return quoted
 		})
 	}
 	return strings.Join(lines, "\n")
@@ -204,7 +335,7 @@ func renderGeneratedNetwork(b *strings.Builder, netCfg *NetworkConfig) {
 	mode := strings.TrimSpace(netCfg.Mode)
 	switch mode {
 	case "bridge", "host", "none":
-		b.WriteString(fmt.Sprintf("    network_mode: %s\n", quoteYAMLString(mode)))
+		fmt.Fprintf(b, "    network_mode: %s\n", quoteYAMLString(mode))
 	case "existing":
 		networkName := strings.TrimSpace(netCfg.Name)
 		if networkName == "" {
@@ -216,32 +347,32 @@ func renderGeneratedNetwork(b *strings.Builder, netCfg *NetworkConfig) {
 		}
 		b.WriteString("    networks:\n")
 		if len(netCfg.Aliases) == 0 && strings.TrimSpace(netCfg.IPv4Address) == "" && strings.TrimSpace(netCfg.IPv6Address) == "" && strings.TrimSpace(netCfg.MACAddress) == "" {
-			b.WriteString(fmt.Sprintf("      %s: {}\n", networkKey))
+			fmt.Fprintf(b, "      %s: {}\n", networkKey)
 		} else {
-			b.WriteString(fmt.Sprintf("      %s:\n", networkKey))
+			fmt.Fprintf(b, "      %s:\n", networkKey)
 			if len(netCfg.Aliases) > 0 {
 				b.WriteString("        aliases:\n")
 				for _, alias := range netCfg.Aliases {
 					alias = strings.TrimSpace(alias)
 					if alias != "" {
-						b.WriteString(fmt.Sprintf("          - %s\n", quoteYAMLString(alias)))
+						fmt.Fprintf(b, "          - %s\n", quoteYAMLString(alias))
 					}
 				}
 			}
 			if value := strings.TrimSpace(netCfg.IPv4Address); value != "" {
-				b.WriteString(fmt.Sprintf("        ipv4_address: %s\n", quoteYAMLString(value)))
+				fmt.Fprintf(b, "        ipv4_address: %s\n", quoteYAMLString(value))
 			}
 			if value := strings.TrimSpace(netCfg.IPv6Address); value != "" {
-				b.WriteString(fmt.Sprintf("        ipv6_address: %s\n", quoteYAMLString(value)))
+				fmt.Fprintf(b, "        ipv6_address: %s\n", quoteYAMLString(value))
 			}
 			if value := strings.TrimSpace(netCfg.MACAddress); value != "" {
-				b.WriteString(fmt.Sprintf("        mac_address: %s\n", quoteYAMLString(value)))
+				fmt.Fprintf(b, "        mac_address: %s\n", quoteYAMLString(value))
 			}
 		}
 		b.WriteString("networks:\n")
-		b.WriteString(fmt.Sprintf("  %s:\n", networkKey))
+		fmt.Fprintf(b, "  %s:\n", networkKey)
 		b.WriteString("    external: true\n")
-		b.WriteString(fmt.Sprintf("    name: %s\n", quoteYAMLString(networkName)))
+		fmt.Fprintf(b, "    name: %s\n", quoteYAMLString(networkName))
 	}
 }
 
@@ -278,7 +409,7 @@ func renderComposePorts(ports []PortMapping) string {
 		if proto != "tcp" {
 			value = fmt.Sprintf("%s/%s", value, proto)
 		}
-		b.WriteString(fmt.Sprintf("      - %s\n", quoteYAMLString(value)))
+		fmt.Fprintf(&b, "      - %s\n", quoteYAMLString(value))
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -295,7 +426,7 @@ func renderComposeVolumes(volumes []VolumeMount) string {
 		if v.ReadOnly {
 			value += ":ro"
 		}
-		b.WriteString(fmt.Sprintf("      - %s\n", quoteYAMLString(value)))
+		fmt.Fprintf(&b, "      - %s\n", quoteYAMLString(value))
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -309,7 +440,7 @@ func renderComposeEnvironment(envVars map[string]string) string {
 	b.WriteString("    environment:\n")
 	for _, k := range sortedEnvKeys(envVars) {
 		v := envVars[k]
-		b.WriteString(fmt.Sprintf("      - %s=%s\n", k, v))
+		fmt.Fprintf(&b, "      - %s\n", yamlEnvItem(k, v))
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -322,7 +453,7 @@ func renderComposeEnvironmentMap(envVars map[string]string) string {
 	var b strings.Builder
 	b.WriteString("    environment:\n")
 	for _, k := range sortedEnvKeys(envVars) {
-		b.WriteString(fmt.Sprintf("      %s: %s\n", k, quoteYAMLString(envVars[k])))
+		fmt.Fprintf(&b, "      %s: %s\n", k, quoteYAMLString(envVars[k]))
 	}
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -334,6 +465,36 @@ func sortedEnvKeys(envVars map[string]string) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// yamlEnvItem renders one KEY=value environment entry. The entry stays bare
+// unless YAML would read it as something other than a string: LiveKit ships
+// LIVEKIT_KEYS=devkey: secret, and a bare "key: value" inside a sequence is a
+// map, which is what made its generated compose unparseable. Quoting only the
+// entries that need it keeps the ordinary ones readable in the stack editor.
+func yamlEnvItem(key, value string) string {
+	entry := key + "=" + value
+	if envEntryNeedsQuoting(entry) {
+		return quoteYAMLString(entry)
+	}
+	return entry
+}
+
+// envEntryNeedsQuoting reports whether a sequence entry would parse as
+// something other than the string it reads as. A "key: value" pair or a
+// trailing colon makes it a map, " #" starts a comment, surrounding whitespace
+// is trimmed away, and the flow indicators open a collection.
+func envEntryNeedsQuoting(entry string) bool {
+	if entry == "" || strings.TrimSpace(entry) != entry {
+		return true
+	}
+	if strings.Contains(entry, ": ") || strings.HasSuffix(entry, ":") {
+		return true
+	}
+	if strings.Contains(entry, " #") {
+		return true
+	}
+	return strings.ContainsAny(entry, "\"'\n\r\t{}[],")
 }
 
 func quoteYAMLString(value string) string {

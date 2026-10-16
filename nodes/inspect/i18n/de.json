@@ -1,0 +1,23 @@
+{
+  "label": "Inspizieren",
+  "description": "Container, Image, Netzwerk, Volume oder Stack inspizieren",
+  "config": {
+    "environment": "Umgebung",
+    "resource": "Ressource",
+    "container": "Container",
+    "image": "Image",
+    "name": "Name",
+    "stack_name": "Stack-Name",
+    "network": "Netzwerk",
+    "volume": "Volume"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Netzwerk",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

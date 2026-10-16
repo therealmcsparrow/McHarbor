@@ -1,0 +1,36 @@
+{
+    "slug":  "promptfoo",
+    "name":  "Promptfoo",
+    "description":  "Self-hosted server for running and viewing LLM prompt evaluations, red-teaming, and regression tests.",
+    "category":  "Developer Tools",
+    "image":  "ghcr.io/promptfoo/promptfoo:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.promptfoo.dev\u0026sz=128",
+    "website":  "https://www.promptfoo.dev",
+    "docsUrl":  "https://www.promptfoo.dev/docs/usage/self-hosting/",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/promptfoo/data",
+                        "container":  "/home/promptfoo/.promptfoo"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

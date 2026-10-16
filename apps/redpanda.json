@@ -4,7 +4,7 @@
     "description":  "Kafka-compatible streaming platform written in C++ for low-latency, high-throughput workloads.",
     "category":  "Databases",
     "image":  "redpandadata/redpanda:latest",
-    "logo":  "https://icon.horse/icon/redpanda.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=redpanda.com\u0026sz=128",
     "website":  "https://redpanda.com",
     "docsUrl":  "https://docs.redpanda.com/current/get-started/quick-start/",
     "ports":  [
@@ -67,5 +67,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -4,7 +4,7 @@
     "description":  "Enterprise-grade MySQL-compatible database with enhanced performance and diagnostics.",
     "category":  "Databases",
     "image":  "percona/percona-server:8.0",
-    "logo":  "https://icon.horse/icon/www.percona.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.percona.com\u0026sz=128",
     "website":  "https://www.percona.com",
     "docsUrl":  "https://docs.percona.com/percona-server/8.0/",
     "ports":  [
@@ -33,5 +33,9 @@
                         "description":  "Default database name"
                     }
                 ],
-    "version":  "8.0"
+    "version":  "8.0",
+    "latest":  {
+        "version":  "8.0",
+        "release_date":  "2026-09-10"
+    }
 }

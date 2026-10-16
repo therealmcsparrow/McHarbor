@@ -1,0 +1,47 @@
+{
+    "slug":  "filebeat",
+    "name":  "Filebeat",
+    "description":  "Lightweight shipper that collects log files and forwards them to Elasticsearch or Logstash.",
+    "category":  "Monitoring",
+    "image":  "docker.elastic.co/beats/filebeat:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/elastic-beats.png",
+    "website":  "https://www.elastic.co/beats/filebeat",
+    "docsUrl":  "https://www.elastic.co/guide/en/beats/filebeat/current/running-on-docker.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/filebeat/filebeat.yml",
+                        "container":  "/usr/share/filebeat/filebeat.yml",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/lib/docker/containers",
+                        "container":  "/var/lib/docker/containers",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOSTS",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "URL of the Elasticsearch cluster to ship logs to"
+                    }
+                ],
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "slug":  "theengs-gateway",
+    "name":  "Theengs Gateway",
+    "description":  "Bluetooth Low Energy to MQTT gateway that decodes readings from hundreds of BLE sensors without vendor apps.",
+    "category":  "IoT & Industrial",
+    "image":  "theengs/gateway:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mqtt.png",
+    "website":  "https://gateway.theengs.io",
+    "docsUrl":  "https://gateway.theengs.io/quick-start/docker.html",
+    "ports":  [
+                  {
+                      "host":  8152,
+                      "container":  8152,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/theengs-gateway/config",
+                        "container":  "/gateway/config.json"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MQTT_HOST",
+                        "default":  "",
+                        "description":  "Hostname of an existing MQTT broker"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

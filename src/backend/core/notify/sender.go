@@ -9,31 +9,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 )
 
-// SlackConfig holds Slack webhook parameters.
-type SlackConfig struct {
-	WebhookURL string
-}
-
-// DiscordConfig holds Discord webhook parameters.
-type DiscordConfig struct {
-	WebhookURL string
+// closeBody closes a response body and logs a failure, since a deferred Close has no caller to return it to.
+func closeBody(c io.Closer) {
+	if err := c.Close(); err != nil {
+		slog.Warn("failed to close notification response body", "error", err)
+	}
 }
 
 // TeamsConfig holds Microsoft Teams webhook parameters.
 type TeamsConfig struct {
 	WebhookURL string
-}
-
-// GotifyConfig holds Gotify server parameters.
-type GotifyConfig struct {
-	ServerURL string
-	AppToken  string
-	Priority  string
 }
 
 // NtfyConfig holds ntfy server parameters.
@@ -68,22 +59,10 @@ type WhatsAppConfig struct {
 	RecipientPhone string
 }
 
-// SendSlack sends a message to a Slack webhook.
-func SendSlack(ctx context.Context, cfg SlackConfig, title, message string) error {
-	body := map[string]string{"text": fmt.Sprintf("*%s*\n%s", title, message)}
-	return doPost(ctx, cfg.WebhookURL, body, nil)
-}
-
-// SendDiscord sends a message to a Discord webhook.
-func SendDiscord(ctx context.Context, cfg DiscordConfig, title, message string) error {
-	body := map[string]string{"content": fmt.Sprintf("**%s**\n%s", title, message)}
-	return doPost(ctx, cfg.WebhookURL, body, nil)
-}
-
 // SendTeams sends an Adaptive Card message to a Microsoft Teams webhook.
 func SendTeams(ctx context.Context, cfg TeamsConfig, title, message string) error {
 	card := map[string]interface{}{
-		"type":    "message",
+		"type": "message",
 		"attachments": []map[string]interface{}{
 			{
 				"contentType": "application/vnd.microsoft.card.adaptive",
@@ -100,22 +79,6 @@ func SendTeams(ctx context.Context, cfg TeamsConfig, title, message string) erro
 		},
 	}
 	return doPost(ctx, cfg.WebhookURL, card, nil)
-}
-
-// SendGotify sends a message to a Gotify server.
-func SendGotify(ctx context.Context, cfg GotifyConfig, title, message string) error {
-	url := strings.TrimRight(cfg.ServerURL, "/") + "/message?token=" + cfg.AppToken
-	body := map[string]interface{}{
-		"title":   title,
-		"message": message,
-	}
-	if cfg.Priority != "" {
-		var p int
-		if _, err := fmt.Sscanf(cfg.Priority, "%d", &p); err == nil {
-			body["priority"] = p
-		}
-	}
-	return doPost(ctx, url, body, nil)
 }
 
 // SendNtfy sends a message to an ntfy server.
@@ -143,10 +106,13 @@ func SendNtfy(ctx context.Context, cfg NtfyConfig, title, message string) error 
 	if err != nil {
 		return fmt.Errorf("sending ntfy request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		b, readErr := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		if readErr != nil {
+			return fmt.Errorf("ntfy returned %d and its body was unreadable: %w", resp.StatusCode, readErr)
+		}
 		return fmt.Errorf("ntfy returned %d: %s", resp.StatusCode, string(b))
 	}
 	return nil
@@ -197,10 +163,13 @@ func SendSignal(ctx context.Context, cfg SignalConfig, title, message string) er
 	if err != nil {
 		return fmt.Errorf("sending signal request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		b, readErr := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		if readErr != nil {
+			return fmt.Errorf("signal returned %d and its body was unreadable: %w", resp.StatusCode, readErr)
+		}
 		return fmt.Errorf("signal returned %d: %s", resp.StatusCode, string(b))
 	}
 	return nil
@@ -335,10 +304,13 @@ func doPost(ctx context.Context, url string, body interface{}, headers map[strin
 	if err != nil {
 		return fmt.Errorf("sending request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	if resp.StatusCode >= 400 {
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		b, readErr := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		if readErr != nil {
+			return fmt.Errorf("request returned %d and its body was unreadable: %w", resp.StatusCode, readErr)
+		}
 		return fmt.Errorf("request returned %d: %s", resp.StatusCode, string(b))
 	}
 	return nil

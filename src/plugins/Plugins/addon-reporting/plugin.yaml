@@ -1,0 +1,254 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-reporting"
+# See addon-kubernetes: the tables kept their pre-rename `plugin_reporting_*`
+# names, so uninstall needs to be told.
+table_prefix: "plugin_reporting_"
+name:     "Reporting"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  Generate board-presentable reports on environments, workloads, incidents,
+  security, capacity, delivery and recovery. Each report is organised by
+  management altitude — strategic, tactical and operational — is readable
+  inside McHarbor, and exports to PDF and Word with the product's own
+  typography and marks.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - menu.sidebar.add
+  - i18n.namespace.add:reporting
+  - rbac.permission.register
+  - db.migrations.run
+  - audit.emit
+  # Contributes three alert conditions to the host's alert engine
+  # (backend/alerts.go): a schedule whose last run failed, a schedule that
+  # has stopped producing anything at all, and a failed generation. The
+  # engine owns the thresholds, the schedule, the firing state and the
+  # delivery.
+  - alerting.adapter.register
+
+# The plugin reads platform data through the host's own REST API over
+# loopback, forwarding the calling user's session. It therefore needs no
+# direct Docker socket access and can never surface data the requesting
+# user could not already see in the interface.
+adds_permissions:
+  - key:      "reporting.read"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View reports"
+    description: "Allows viewing the report catalog, the report library and generated reports."
+  - key:      "reporting.generate"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Generate reports"
+    description: "Allows generating new reports. Report content is limited to what the generating user may already see."
+  - key:      "reporting.manage"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage reporting"
+    description: "Allows deleting reports and changing reporting settings."
+  # A scheduled report is collected as the user who created the schedule,
+  # through a session the host issues for them, so this key grants the
+  # ability to automate a report — never the ability to see more in one.
+  - key:      "reporting.schedule"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Schedule reports"
+    description: "Allows viewing report schedules, creating them, and reading each schedule's most recent run. Editing and deleting a schedule need reporting.manage; running one on demand needs reporting.generate."
+
+consumes_permissions: []
+
+contributes:
+  capabilities:
+    - kind: document-export
+      formats: [pdf, docx]
+      permission: "reporting.generate"
+      generate_path: "/api/reporting/reports"
+      export_path: "/api/reporting/reports/{id}/export"
+  routes:
+    - method: GET
+      path: "/api/reporting/catalog"
+      requires_permission: "reporting.read"
+    - method: GET
+      path: "/api/reporting/reports"
+      requires_permission: "reporting.read"
+    - method: POST
+      path: "/api/reporting/reports"
+      requires_permission: "reporting.generate"
+      audit_required: true
+      audit_action: "plugin.reporting.report.generated"
+      audit_entity_type: "report"
+    # The scope picker and the generation job. `subjects` only lists what
+    # the calling user can already see, and `jobs` is generation moved off
+    # the request so the studio can show progress rather than a spinner.
+    - method: GET
+      path: "/api/reporting/subjects"
+      requires_permission: "reporting.generate"
+    - method: POST
+      path: "/api/reporting/jobs"
+      requires_permission: "reporting.generate"
+      audit_required: true
+      audit_action: "plugin.reporting.report.generated"
+      audit_entity_type: "report"
+    - method: GET
+      path: "/api/reporting/jobs/{id}"
+      requires_permission: "reporting.generate"
+    - method: GET
+      path: "/api/reporting/reports/{id}"
+      requires_permission: "reporting.read"
+    - method: DELETE
+      path: "/api/reporting/reports/{id}"
+      requires_permission: "reporting.manage"
+      audit_required: true
+      audit_action: "plugin.reporting.report.deleted"
+      audit_entity_type: "report"
+    - method: GET
+      path: "/api/reporting/reports/{id}/export"
+      requires_permission: "reporting.read"
+    - method: GET
+      path: "/api/reporting/preview"
+      requires_permission: "reporting.generate"
+    - method: GET
+      path: "/api/reporting/settings"
+      requires_permission: "reporting.read"
+    - method: PUT
+      path: "/api/reporting/settings"
+      requires_permission: "reporting.manage"
+      audit_required: true
+      audit_action: "plugin.reporting.settings.updated"
+      audit_entity_type: "settings"
+    # Read-only listing for the studio's AI-connection selector. Same
+    # permission as the other generation-time pickers (subjects, preview)
+    # since it feeds the same dialog and carries no secret.
+    - method: GET
+      path: "/api/reporting/ai/connections"
+      requires_permission: "reporting.generate"
+    # Schedules. Both reads are gated on `reporting.schedule` rather than
+    # `reporting.read`: a schedule's last run carries a whole report
+    # document, and the delivery-target listing names the channels and
+    # storage locations an installation has configured.
+    - method: GET
+      path: "/api/reporting/schedules"
+      requires_permission: "reporting.schedule"
+    - method: POST
+      path: "/api/reporting/schedules"
+      requires_permission: "reporting.schedule"
+      audit_required: true
+      audit_action: "plugin.reporting.schedule.created"
+      audit_entity_type: "report_schedule"
+    - method: GET
+      path: "/api/reporting/schedules/{id}"
+      requires_permission: "reporting.schedule"
+    # Editing and deleting a schedule are management operations, gated
+    # with the same key that already governs deleting a report and
+    # changing reporting settings.
+    - method: PUT
+      path: "/api/reporting/schedules/{id}"
+      requires_permission: "reporting.manage"
+      audit_required: true
+      audit_action: "plugin.reporting.schedule.updated"
+      audit_entity_type: "report_schedule"
+    - method: DELETE
+      path: "/api/reporting/schedules/{id}"
+      requires_permission: "reporting.manage"
+      audit_required: true
+      audit_action: "plugin.reporting.schedule.deleted"
+      audit_entity_type: "report_schedule"
+    # Running a schedule now produces a report, so it takes the same key
+    # as generating one from the studio rather than a scheduling-specific
+    # one: the capability being exercised is generation.
+    - method: POST
+      path: "/api/reporting/schedules/{id}/run"
+      requires_permission: "reporting.generate"
+      audit_required: true
+      audit_action: "plugin.reporting.schedule.run_requested"
+      audit_entity_type: "report_schedule"
+    - method: GET
+      path: "/api/reporting/schedules/{id}/run"
+      requires_permission: "reporting.schedule"
+    - method: GET
+      path: "/api/reporting/schedules/{id}/run/export"
+      requires_permission: "reporting.schedule"
+    - method: GET
+      path: "/api/reporting/delivery-targets"
+      requires_permission: "reporting.schedule"
+
+  # `parent` is the sidebar section id (migration 104). All three entries
+  # share it, so the sidebar renders a "Reporting" section of its own
+  # rather than three loose entries under Plugins. The section label
+  # resolves from this plugin's namespace as `nav.section.reporting`.
+  #
+  # `icon` is a Tabler *component name*, not an asset filename:
+  # `resolvePluginIcon` looks the string up in a registry of imported
+  # components and falls back to IconPuzzle for anything it does not
+  # know, which is why the `.svg` names these entries used to declare all
+  # rendered as puzzle pieces.
+  menu:
+    # The studio is a generation surface and nothing else: every route it
+    # calls — subjects, jobs, preview, ai/connections — is gated on
+    # `reporting.generate`. Gating the entry on `reporting.read` let a
+    # read-only user browse the catalogue and only meet the wall at the
+    # Generate button. Reading finished reports is the Library's job.
+    - parent: "reporting"
+      label_ns: "reporting"
+      label_key: "menu.studio"
+      path: "/plugins/addon-reporting"
+      icon: "IconChartLine"
+      required_permission: "reporting.generate"
+    - parent: "reporting"
+      label_ns: "reporting"
+      label_key: "menu.library"
+      path: "/plugins/addon-reporting/library"
+      icon: "IconArchive"
+      required_permission: "reporting.read"
+    - parent: "reporting"
+      label_ns: "reporting"
+      label_key: "menu.schedules"
+      path: "/plugins/addon-reporting/schedules"
+      icon: "IconClock"
+      required_permission: "reporting.schedule"
+    - parent: "reporting"
+      label_ns: "reporting"
+      label_key: "menu.settings"
+      path: "/plugins/addon-reporting/settings"
+      icon: "IconSettings"
+      required_permission: "reporting.manage"
+
+  # Dashboard widgets (backend/main.go RegisterWidgets; frontend/src/widgets).
+  widgets:
+    - "recent-reports"
+    - "report-schedules"
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host
+  # exposes them on the canvas as plugin:addon-reporting:<key>.
+  nodes:
+    - "report-generate"
+    - "report-export"
+    - "report-schedule-run"
+    - "report-generated"
+    - "report-schedule-ran"
+
+  migrations:
+    - "migrations/0001_init.sql"
+    - "migrations/0002_adhoc.sql"
+    - "migrations/0003_ai_connection.sql"
+    - "migrations/0004_schedules.sql"
+    - "migrations/0005_schedule_target_path.sql"
+
+  i18n_namespaces:
+    - "reporting"
+
+signature: ""
+checksum:  ""

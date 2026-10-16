@@ -4,8 +4,8 @@
 package schedules
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,14 +13,14 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/schedules", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Post("/", h.HandleCreate)
-			r.Get("/{id}", h.HandleGet)
-			r.Put("/{id}", h.HandleUpdate)
-			r.Delete("/{id}", h.HandleDelete)
-			r.Get("/{id}/executions", h.HandleListExecutions)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/schedules", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesView)).Get("/", h.HandleList, apispec.Paginated())
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesManage)).Post("/", h.HandleCreate, apispec.Request(CreateScheduleInput{}), apispec.Response(Schedule{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesView)).Get("/{id}", h.HandleGet, apispec.Response(Schedule{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesManage)).Put("/{id}", h.HandleUpdate, apispec.Request(UpdateScheduleInput{}), apispec.Response(Schedule{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesDelete)).Delete("/{id}", h.HandleDelete)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSchedulesView)).Get("/{id}/executions", h.HandleListExecutions, apispec.Paginated())
 		})
 	})
 }

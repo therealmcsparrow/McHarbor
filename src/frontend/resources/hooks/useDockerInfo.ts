@@ -7,15 +7,14 @@ import { useEnvironmentStore } from '@resources/stores/environment';
 import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 import type { DockerSystemInfo } from '@core/types/docker';
 
+import { assertSuccess } from '@resources/utils/api-mutation';
+
 export function useDockerInfo(enabled = true) {
   const envId = useEnvironmentStore((s) => s.currentId);
   const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['docker-info', envId],
-    queryFn: () =>
-      api
-        .get<DockerSystemInfo>('/docker/info', envId ? { env: envId } : {})
-        .then((r) => r.data),
+    queryFn: () => api.get<DockerSystemInfo>('/docker/info', envId ? { env: envId } : {}).then(assertSuccess),
     refetchInterval: uploadActive ? false : 60_000,
     enabled: enabled && !uploadActive,
   });

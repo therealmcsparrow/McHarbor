@@ -6,8 +6,9 @@ import { Input } from '@resources/components/ui/Input';
 import { NumberInput } from '@resources/components/ui/NumberInput';
 import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
+import { SshAuthFields } from './SshAuthFields';
 
-type DeployMethod = 'manual' | 'ssh' | 'script';
+type DeployMethod = 'manual' | 'ssh';
 
 interface DockerConnectionFieldsProps {
   connType: string;
@@ -69,21 +70,19 @@ export function DockerConnectionFields({
 }: DockerConnectionFieldsProps) {
   const { t } = useTranslation('environments');
 
+  const connectionTypeOptions = [
+    { value: 'socket', label: t('connectionTypes.socket') },
+    { value: 'agent', label: t('connectionTypes.agent') },
+  ];
+  if (connType !== 'socket' && connType !== 'agent') {
+    connectionTypeOptions.push({ value: connType, label: t(`connectionTypes.${connType}`) });
+  }
+
   return (
     <>
       <div>
         <Label className="mb-2">{t('create.connectionType')}</Label>
-        <Select
-          value={connType}
-          onChange={onConnTypeChange}
-          options={[
-            { value: 'socket', label: t('connectionTypes.socket') },
-            { value: 'tcp', label: t('connectionTypes.tcp') },
-            { value: 'tls', label: t('connectionTypes.tls') },
-            { value: 'ssh', label: t('connectionTypes.ssh') },
-            { value: 'agent', label: t('connectionTypes.agent') },
-          ]}
-        />
+        <Select value={connType} onChange={onConnTypeChange} options={connectionTypeOptions} />
       </div>
       {connType === 'agent' ? (
         <>
@@ -99,7 +98,6 @@ export function DockerConnectionFields({
               options={[
                 { value: 'manual', label: t('create.deployManual') },
                 { value: 'ssh', label: t('create.deploySSH') },
-                { value: 'script', label: t('create.deployScript') },
               ]}
             />
           </div>
@@ -131,7 +129,7 @@ export function DockerConnectionFields({
                     type="text"
                     value={sshUser}
                     onChange={(e) => onSSHUserChange?.(e.target.value)}
-                    placeholder="root"
+                    placeholder={t('placeholders.sshUser')}
                   />
                 </div>
               </div>
@@ -145,60 +143,17 @@ export function DockerConnectionFields({
                 />
                 <p className="mt-1 text-xs text-muted-foreground">{t('create.hostKeyFingerprintHelp')}</p>
               </div>
-              <div>
-                <Label className="mb-2">{t('create.sshAuthType')}</Label>
-                <Select
-                  value={sshAuthType}
-                  onChange={(v) => onSSHAuthTypeChange?.(v as 'key' | 'password')}
-                  options={[
-                    { value: 'key', label: t('create.sshAuthKey') },
-                    { value: 'password', label: t('create.sshAuthPassword') },
-                  ]}
-                />
-              </div>
-              {sshAuthType === 'key' ? (
-                <div>
-                  <Label className="mb-2">{t('create.sshKey')}</Label>
-                  <textarea
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={sshKey}
-                    onChange={(e) => onSSHKeyChange?.(e.target.value)}
-                    placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
-                    rows={4}
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Label className="mb-2">{t('create.sshPassword')}</Label>
-                  <Input
-                    type="password"
-                    value={sshPassword}
-                    onChange={(e) => onSSHPasswordChange?.(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                  <p className="mt-1 text-xs text-yellow-500">{t('create.sshPasswordWarning')}</p>
-                </div>
-              )}
-              <div>
-                <Label className="mb-2">{t('create.deployAs')}</Label>
-                <Select
-                  value={sshDeployAs}
-                  onChange={(v) => onSSHDeployAsChange?.(v as 'docker' | 'binary')}
-                  options={[
-                    { value: 'docker', label: t('create.deployAsDocker') },
-                    { value: 'binary', label: t('create.deployAsBinary') },
-                  ]}
-                />
-              </div>
+              <SshAuthFields
+                sshAuthType={sshAuthType}
+                onSSHAuthTypeChange={onSSHAuthTypeChange}
+                sshKey={sshKey}
+                onSSHKeyChange={onSSHKeyChange}
+                sshPassword={sshPassword}
+                onSSHPasswordChange={onSSHPasswordChange}
+                sshDeployAs={sshDeployAs}
+                onSSHDeployAsChange={onSSHDeployAsChange}
+              />
             </>
-          )}
-
-          {deployMethod === 'script' && (
-            <div className="rounded-md border border-dashed border-border bg-muted/30 p-3">
-              <p className="text-xs text-muted-foreground">
-                {t('create.scriptDescription')}
-              </p>
-            </div>
           )}
         </>
       ) : connType === 'socket' ? (
@@ -208,7 +163,7 @@ export function DockerConnectionFields({
             type="text"
             value={socketPath}
             onChange={(e) => onSocketPathChange(e.target.value)}
-            placeholder="/var/run/docker.sock"
+            placeholder={t('create.socketPathPlaceholder')}
           />
         </div>
       ) : (

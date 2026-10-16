@@ -1,6 +1,6 @@
 {
-  "label": "Health Check",
-  "description": "Check an HTTP endpoint and branch on health",
+  "label": "Gezondheidscontrole",
+  "description": "Controleer een HTTP-endpoint en vertak op de gezondheid",
   "config": {
     "url": "URL",
     "method": "Methode",

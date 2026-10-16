@@ -1,7 +1,7 @@
 {
-  "label": "List Storage Locations",
-  "description": "Return configured storage locations without secret values",
+  "label": "Listar ubicaciones de almacenamiento",
+  "description": "Devuelve las ubicaciones de almacenamiento configuradas sin los valores secretos",
   "config": {
-    "enabled_only": "Enabled Only"
+    "enabled_only": "Solo habilitadas"
   }
 }

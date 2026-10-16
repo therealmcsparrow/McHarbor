@@ -1,0 +1,51 @@
+{
+    "slug":  "paradedb",
+    "name":  "ParadeDB",
+    "description":  "Postgres distribution that adds fast full-text search and analytics extensions on top of standard Postgres.",
+    "category":  "Databases",
+    "image":  "paradedb/paradedb:latest",
+    "logo":  "https://github.com/paradedb.png",
+    "website":  "https://www.paradedb.com",
+    "docsUrl":  "https://docs.paradedb.com/deploy/self-hosted",
+    "ports":  [
+                  {
+                      "host":  5444,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/paradedb/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Postgres superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "paradedb",
+                        "description":  "Postgres username"
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "paradedb",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

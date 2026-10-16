@@ -1,0 +1,30 @@
+{
+  "label": "Image Manage",
+  "description": "Pull, push, tag or remove a Docker image",
+  "config": {
+    "environment": "Environment",
+    "action": "Action",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password",
+    "image": "Image",
+    "source": "Source Image",
+    "target": "Target Image",
+    "force": "Force",
+    "prune_children": "Prune Children"
+  },
+  "options": {
+    "action": {
+      "pull": "Pull",
+      "push": "Push",
+      "tag": "Tag",
+      "remove": "Remove"
+    },
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
+  }
+}

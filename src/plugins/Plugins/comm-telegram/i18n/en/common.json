@@ -1,0 +1,75 @@
+{
+  "config": {
+    "bot_token": { "help": "Bot API token issued by @BotFather on Telegram. Format: <bot_id>:<token>. Stored encrypted at rest." },
+    "parse_mode": { "help": "Optional. Markdown or HTML to enable rich formatting in Title + Message. Leave blank for plain text. The host does not pre-escape special characters — switch to plain text if your messages contain Telegram-reserved characters." },
+    "disable_notification": { "help": "Optional. When true, sends the message without a notification sound on the recipient device. Useful for low-priority alerts." }
+  },
+  "page": {
+    "title": "Telegrams",
+    "subtitle": "Route workflow, alert, and backup events to a Telegram chat via the Bot API. The plugin handles Test (getMe liveness) and Send (sendMessage) — there is no OAuth flow because bots use a long-lived bearer token.",
+    "registerHint": "Add a channel from the host's Notifications > Channels page and pick \"Telegram\" as the channel_type."
+  },
+  "fields": {
+    "name": "Channel name",
+    "botToken": "Bot Token",
+    "chatId": "Chat ID",
+    "parseMode": "Parse Mode",
+    "disableNotification": "Silent Send"
+  },
+  "help": {
+    "name": "How this channel appears in McHarbor lists and alert rules.",
+    "botToken": "Bot API token from @BotFather on Telegram. Format: <bot_id>:<token>. Encrypted at rest.",
+    "chatId": "Recipient chat identifier: numeric user/group ID or @channelname. Use getUpdates to discover a chat_id for private chats.",
+    "parseMode": "Markdown or HTML enables rich formatting in Title + Message. Plain text passes characters through verbatim.",
+    "disableNotification": "When on, sends without a notification sound on the recipient device. Useful for low-priority alerts."
+  },
+  "toast": {
+    "registered": "Telegram channel saved.",
+    "testPassed": "Telegram connection test passed.",
+    "testFailed": "Telegram connection test failed: {{error}}"
+  },
+  "error": {
+    "required": "Required",
+    "noBotToken": "Bot Token is required. Obtain one from @BotFather on Telegram.",
+    "noChatId": "Chat ID is required. Use getUpdates for private chats or @channelname for public channels.",
+    "sendFailed": "Telegram sendMessage failed: {{error}}"
+  },
+  "title": "Telegram Bot API",
+  "subtitle": "Plugin-owned",
+  "description": "Save this channel, then use Test connection to verify the bot token and chat ID. The host never sends a message during Test; getMe only confirms the token is live.",
+  "placeholder": {
+    "name": "Operations Telegram"
+  },
+  "parseMode": {
+    "plain": "Plain text",
+    "markdown": "Markdown",
+    "html": "HTML"
+  },
+  "silent": {
+    "off": "No (sound on)",
+    "on": "Yes (silent send)",
+    "title": "Silent send",
+    "help": "Disable notification",
+    "description": "When Silent Send is on, Telegram delivers the message without a sound and without waking the screen. Useful for routine alerts where the operator does not need to be interrupted."
+  },
+  "tips": {
+    "title": "Parse mode tips",
+    "help": "Markdown vs HTML",
+    "markdown": "Escape reserved characters",
+    "markdownSuffix": "with a leading backslash.",
+    "html": "Escape",
+    "plain": "Title + Message are sent as-is. No escaping required."
+  },
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "guide": {
+    "title": "Telegram setup guide",
+    "step1": "Open Telegram and start a chat with <code>@BotFather</code>. Send <code>/newbot</code> and follow the prompts (display name + unique username ending in \"bot\"). BotFather replies with the bot token in the format <code><bot_id>:<token></code>. Paste that into the <b>Bot Token</b> field on the left.",
+    "step2": "Start a chat with your bot (search for the @username you just created) and send any message. The bot needs at least one inbound message before it can post to that chat — Telegram blocks bot-initiated contact until the user speaks first.",
+    "step3": "For a private chat, get the <code>chat_id</code> by calling <code>https://api.telegram.org/bot<your_token>/getUpdates</code> after step 2 — the response includes <code>\"chat\":{\"id\": <chat_id>}</code>. For a public channel, use <code>@channelname</code> (the @ is part of the identifier).",
+    "step4": "For groups: add the bot as a member, then promote it to <b>Post Messages</b> in the group permissions. Without that right <code>sendMessage</code> returns <code>403 Forbidden</code>.",
+    "step5": "For channels: add the bot as an administrator with <b>Post Messages</b> permission. Plain members cannot post; the bot must be an admin.",
+    "step6": "Paste the <code>chat_id</code> (or <code>@channelname</code>) into the <b>Chat ID</b> field on the left. Leave <b>Parse Mode</b> blank unless your messages will only contain Telegram-safe formatting. Toggle <b>Silent Send</b> on for low-priority backup-completion alerts.",
+    "step7": "Click <b>Save and test connection</b>. The plugin issues a <code>getMe</code> against the Bot API to confirm the token is live. The host <warn>does NOT send a test message</warn> — <code>getMe</code> just echoes the bot identity. If <code>getMe</code> returns <code>401</code>, double-check the bot token.",
+    "step8": "Once the channel is saved, route workflow or alert events to it from <b>Settings > Notifications > Rules</b>. Telegram delivery is fire-and-forget: a failed send is logged in the audit log and surfaced in the host toast, but the host does not retry."
+  }
+}

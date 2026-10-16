@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Federe el inicio de sesión de McHarbor con un tenant de Azure AD. El plugin gestiona el flujo de código de autorización OIDC con los endpoints v2.0 de login.microsoftonline.com y la Microsoft Graph API para obtener los grupos de administradores.",
+    "registerHint": "Añada un proveedor desde la página Ajustes > Seguridad > Proveedores de identidad del host y elija \"Microsoft Entra ID\" como provider_type."
+  },
+  "fields": {
+    "tenant_id":     "ID de tenant",
+    "client_id":     "ID de cliente",
+    "client_secret": "Secreto de cliente",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "tenant_id":     "ID de tenant de Azure AD (UUID). Use 'common' para aplicaciones multitenant, 'organizations' para cualquier cuenta profesional o educativa, o deje 'common' para incluir también cuentas personales.",
+    "client_id":     "ID de aplicación (cliente) de la página de resumen del registro de la aplicación.",
+    "client_secret": "Valor del secreto de cliente de la página Certificates & secrets del registro de la aplicación. Almacenado cifrado en reposo.",
+    "scopes":        "Scopes de OAuth separados por espacios. Por defecto es openid profile email. Use 'https://graph.microsoft.com/.default' para habilitar la obtención de grupos mediante la Graph API."
+  },
+  "guide": {
+    "title":    "Configurar Microsoft Entra ID en McHarbor",
+    "subtitle": "Registre una aplicación cliente confidencial en su tenant de Azure AD y conceda permisos de Microsoft Graph si desea habilitar la obtención de grupos de administradores.",
+    "step1": {
+      "title": "Abra el panel App Registration",
+      "body":  "En el portal de Azure, vaya a Microsoft Entra ID > App registrations > New registration. Elija un nombre (p. ej. \"McHarbor SSO\") y seleccione los tipos de cuenta que desea admitir (un solo tenant, multitenant o personal)."
+    },
+    "step2": {
+      "title": "Establezca la URI de redirección",
+      "body":  "En Redirect URI, elija Web e introduzca la URL de callback de McHarbor que aparece en la página de edición del proveedor. El host añade /api/identity-providers/callback a la URL base de su McHarbor; cópiela exactamente para evitar discrepancias silenciosas del código de autorización."
+    },
+    "step3": {
+      "title": "Cree un secreto de cliente",
+      "body":  "Abra Certificates & secrets > New client secret. Elija una caducidad razonable (90 o 180 días) y configure un recordatorio en el calendario. Copie el VALOR del secreto (no el Secret ID) en el campo Secreto de cliente del formulario del proveedor. McHarbor lo almacena cifrado con AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copie el ID de aplicación (cliente)",
+      "body":  "De vuelta en la página de resumen del registro de la aplicación, copie el ID de aplicación (cliente) en el campo ID de cliente del formulario del proveedor."
+    },
+    "step5": {
+      "title": "Copie el ID de directorio (tenant)",
+      "body":  "Todavía en la página de resumen, copie el ID de directorio (tenant) en el campo ID de tenant del formulario del proveedor. Use \"common\" si registró la aplicación como multitenant."
+    },
+    "step6": {
+      "title": "(Opcional) Conceda Group.Read.All de Microsoft Graph",
+      "body":  "Si desea que el asistente de asignación de grupos del grupo de administradores rellene los grupos de Entra, abra API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Haga clic en Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Pruebe la conexión",
+      "body":  "De vuelta en McHarbor, haga clic en \"Probar la conexión\" en el formulario del proveedor. Un resultado verde significa que el documento de descubrimiento de OIDC se resolvió y que el intercambio de token con client credentials tuvo éxito en login.microsoftonline.com: la configuración es válida. Ahora puede habilitar el proveedor y usar \"Iniciar sesión con Microsoft\" en la página de inicio de sesión."
+    }
+  }
+}

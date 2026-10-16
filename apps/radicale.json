@@ -1,0 +1,40 @@
+{
+  "slug": "radicale",
+  "name": "Radicale",
+  "description": "Small CalDAV and CardDAV server for self-hosted calendars and contacts.",
+  "category": "Productivity",
+  "image": "tomsquest/docker-radicale:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radicale.png",
+  "website": "https://radicale.org",
+  "docsUrl": "https://github.com/tomsquest/docker-radicale",
+  "ports": [
+    {
+      "host": 5232,
+      "container": 5232,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/radicale/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/radicale/config",
+      "container": "/config",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TAKE_FILE_OWNERSHIP",
+      "default": "true",
+      "description": "Fix ownership of /data on start"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

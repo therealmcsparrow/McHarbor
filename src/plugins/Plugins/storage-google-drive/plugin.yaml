@@ -1,0 +1,64 @@
+# plugin.yaml — manifest for the storage-google-drive plugin.
+#
+# This plugin owns the `google_drive` location type end-to-end:
+# OAuth consent (drive.file scope, offline access), resumable upload
+# for any payload size, Download, Delete, and List via Google Drive
+# API v3 (`/drive/v3/files`).
+#
+# OAuth scope note: drive.file (the default in the host's pre-existing
+# scaffolding) restricts the plugin to files it creates. Operators
+# who want full-drive access can change the scope at the Google
+# Cloud console side, but the OAuth client is theirs to manage.
+#
+# RBAC: storage plugins bypass the per-plugin permission registry
+# (see mcharbor-storage-plugins-no-rbac, mirrored from the
+# SharePoint plugin). RegisterPermissions is a no-op so the host's
+# plugin loader does not complain about missing wiring.
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-google-drive"
+name:     "Google Drive"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Google Drive backup destination. OAuth refresh-token flow + Drive API v3 resumable upload so backups of any size are supported. List/Delete use the same API surface. Requires a Google Cloud project with the Drive API enabled and an OAuth client with the drive.file scope."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Bootstrap permissions only — they let the plugin register its
+# adapter and emit audit events. They are NOT user-facing RBAC
+# permissions; storage_plugins intentionally do not register
+# adds_permissions.
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+# No adds_permissions — see mcharbor-storage-plugins-no-rbac.
+
+# No consumes_permissions — see mcharbor-storage-plugins-no-rbac.
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-google-drive"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "storage_location"
+      kind:     "config_form"
+      key:      "google_drive"
+    - resource: "storage_location"
+      kind:     "setup_guide"
+      key:      "google_drive"
+
+signature: ""
+checksum:  ""

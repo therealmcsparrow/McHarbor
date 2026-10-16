@@ -3,14 +3,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { IconKeyboard } from '@tabler/icons-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from './ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/Dialog';
 import { Button } from './ui/Button';
 import { useShortcuts } from '../hooks/useShortcuts';
 import { getDefaultShortcuts, type ShortcutDefinition } from '../hooks/useShortcuts';
@@ -34,12 +27,12 @@ type ShortcutsCheatsheetProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetProps) {
+export function ShortcutsCheatsheet({ open: isOpen, onOpenChange }: ShortcutsCheatsheetProps) {
   const { t } = useTranslation('common');
   const shortcuts = getDefaultShortcuts();
 
   useShortcuts({
-    '?': () => onOpenChange(!open),
+    '?': () => onOpenChange(!isOpen),
   });
 
   const groups: Record<string, ShortcutDefinition[]> = {};
@@ -49,43 +42,35 @@ export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetP
   }
 
   const groupLabels: Record<string, string> = {
-    navigation: t('shortcut.group.navigation', { defaultValue: 'Navigation' }),
-    actions: t('shortcut.group.actions', { defaultValue: 'Actions' }),
-    view: t('shortcut.group.view', { defaultValue: 'View' }),
+    navigation: t('shortcut.group.navigation'),
+    actions: t('shortcut.group.actions'),
+    view: t('shortcut.group.view'),
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <IconKeyboard className="size-5 text-primary" />
-            <DialogTitle>
-              {t('shortcut.cheatsheetTitle', { defaultValue: 'Keyboard shortcuts' })}
-            </DialogTitle>
+            <DialogTitle>{t('shortcut.cheatsheetTitle')}</DialogTitle>
           </div>
-          <DialogDescription>
-            {t('shortcut.cheatsheetDescription', {
-              defaultValue: 'Quickly navigate and act using your keyboard.',
-            })}
-          </DialogDescription>
+          <DialogDescription>{t('shortcut.cheatsheetDescription')}</DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
           {Object.entries(groups).map(([group, items]) => (
             <div key={group}>
-              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h3 className="mb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 {groupLabels[group] ?? group}
               </h3>
               <ul className="space-y-1">
                 {items.map((sc) => (
                   <li
                     key={sc.key}
-                    className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-1.5 text-sm"
+                    className="mc-glass flex items-center justify-between rounded-md px-3 py-1.5 text-sm"
                   >
                     <span>{sc.description}</span>
-                    <kbd className="rounded border border-border bg-muted px-2 py-0.5 text-xs">
-                      {formatKey(sc.key)}
-                    </kbd>
+                    <kbd className="rounded border border-border bg-muted px-2 py-0.5 text-xs">{formatKey(sc.key)}</kbd>
                   </li>
                 ))}
               </ul>
@@ -94,11 +79,10 @@ export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetP
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('actions.close', { defaultValue: 'Close' })}
+            {t('actions.close')}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

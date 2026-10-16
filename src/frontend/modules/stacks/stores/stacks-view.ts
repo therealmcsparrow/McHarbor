@@ -15,6 +15,6 @@ export const useStacksViewStore = create<StacksViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-stacks-view' }
-  )
+    { name: 'mcharbor-stacks-view' },
+  ),
 );

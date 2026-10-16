@@ -1,6 +1,6 @@
 {
-  "label": "Rate Limit",
-  "description": "Throttle workflow throughput with a simple rate policy",
+  "label": "Snelheidslimiet",
+  "description": "Beperk de doorvoer van de workflow met een eenvoudig limietbeleid",
   "config": {
     "limit": "Limiet",
     "window_seconds": "Venster (seconden)"

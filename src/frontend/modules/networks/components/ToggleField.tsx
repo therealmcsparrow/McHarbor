@@ -13,11 +13,7 @@ export function ToggleField({ label, checked, onChange }: ToggleFieldProps) {
   return (
     <div className="flex items-center justify-between border-b border-border py-2 last:border-0">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <Switch
-        checked={checked}
-        aria-label={label}
-        onCheckedChange={onChange}
-      />
+      <Switch checked={checked} aria-label={label} onCheckedChange={onChange} />
     </div>
   );
 }

@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
+	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 )
@@ -25,7 +25,7 @@ func (h *Handler) HandleListNodeAvailability(w http.ResponseWriter, r *http.Requ
 	state, err := h.nodeCatalog.List()
 	if err != nil {
 		h.app.Logger.Error("workflows: list node availability failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrWorkflowNodeListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrWorkflowNodeListFailed, err)
 		return
 	}
 

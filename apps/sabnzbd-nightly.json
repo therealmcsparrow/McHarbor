@@ -1,0 +1,49 @@
+{
+    "slug":  "sabnzbd-nightly",
+    "name":  "SABnzbd (Nightly)",
+    "description":  "Nightly channel build of SABnzbd. Free and open-source binary newsreader for Usenet downloading.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/sabnzbd:nightly",
+    "logo":  "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/sabnzbd-icon.png",
+    "website":  "https://sabnzbd.org",
+    "docsUrl":  "https://sabnzbd.org/wiki/",
+    "ports":  [
+                  {
+                      "host":  9080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sabnzbd-nightly/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/sabnzbd-nightly/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

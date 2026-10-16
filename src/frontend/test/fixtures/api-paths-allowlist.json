@@ -1,0 +1,38 @@
+[
+  {
+    "call": "src/frontend/modules/containers/hooks/useContainers.ts: POST /containers/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is start/stop/restart/remove/rename/etc, each its own literal openapi route (/containers/{id}/start, .../remove, ...), so the shape check cannot statically verify which one a given call resolves to."
+  },
+  {
+    "call": "src/frontend/resources/hooks/stacks/core.ts: POST /stacks/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is a stack action (up/stop/restart/down/...), each its own literal openapi route (/stacks/{name}/up, .../restart, ...); not statically verifiable. Became visible to the scanner when oxfmt joined the `api\\n.post(` chain onto one line."
+  },
+  {
+    "call": "src/frontend/modules/stacks/hooks/useStackUpdates.ts: POST /stacks/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is the StackOperationMode (update or reinstall), matching /api/stacks/{name}/update or .../reinstall; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/modules/enterprise/hooks/useCluster.ts: POST /cluster/instances/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is drain or resume depending on a boolean, matching /api/cluster/instances/{id}/drain or .../resume; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/modules/gitops/hooks/useGitOps.ts: POST /gitops/approvals/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is a caller-supplied action name matching /api/gitops/approvals/{id}/approve or .../reject; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/resources/hooks/useIncidents.ts: POST /incidents/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is a caller-supplied path matching one of /api/incidents/{id}/{evidence,narrate,resolve,summarise}; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/modules/incidents/hooks/useNarrationSettings.ts: POST /incidents/findings/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is a caller-supplied path matching /api/incidents/findings/{fid}/dismiss or .../explain; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/resources/hooks/useDemoMode.ts: POST /demo/{param}",
+    "reason": "Runtime action dispatcher: the segment is enter/exit/reset, each its own literal openapi route under /api/demo/; not statically verifiable."
+  },
+  {
+    "call": "src/frontend/modules/settings/hooks/useItsm.ts: POST /itsm/links/{param}/{param}",
+    "reason": "Runtime action dispatcher: the second segment is a caller-supplied path matching /api/itsm/links/{id}/resync or .../retry; not statically verifiable."
+  }
+]

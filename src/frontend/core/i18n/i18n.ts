@@ -3,9 +3,21 @@
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import BrowserLanguageDetector from 'i18next-browser-languagedetector';
+import '@core/plugins/hostBridge';
 import { buildNodeTranslations } from '@nodes/i18n-loader';
 import { buildWidgetTranslations } from '../../modules/dashboard/widgets/i18n-loader';
+
+import {
+  detectInitialLanguage,
+  getCachedDefaultLanguage,
+  languageLabels,
+  supportedLanguages,
+  type SupportedLanguage,
+} from './languages';
+
+export { getCachedDefaultLanguage, languageLabels, supportedLanguages };
+export type { SupportedLanguage };
 
 const localeModules = import.meta.glob<Record<string, unknown>>('./locales/*/*.json', { import: 'default' });
 
@@ -17,31 +29,45 @@ const staticNamespaces = [
   'volumes',
   'networks',
   'stacks',
+  'secrets',
   'environments',
   'settings',
   'dashboard',
-  'kubernetes',
   'terminal',
   'security',
   'docker',
   'host',
   'gitops',
+  'abac',
+  'ai',
+  'plugins',
+  'enterprise',
+  'scim',
+  'license',
+  'database',
+  'oncall',
+  'reconciler',
+  'instancebackup',
+  'incidents',
+  'support',
+  'compliance',
+  'compliancepacks',
+  'envref',
+  'audit',
+  'access',
+  'runbooks',
+  'demo',
+  'workflows',
 ] as const;
 
 type StaticNamespace = (typeof staticNamespaces)[number];
 
 /** Deep-merge source into target, mutating target in place. */
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
   for (const key of Object.keys(source)) {
     const sv = source[key];
     const tv = target[key];
-    if (
-      sv && typeof sv === 'object' && !Array.isArray(sv) &&
-      tv && typeof tv === 'object' && !Array.isArray(tv)
-    ) {
+    if (sv && typeof sv === 'object' && !Array.isArray(sv) && tv && typeof tv === 'object' && !Array.isArray(tv)) {
       deepMerge(tv as Record<string, unknown>, sv as Record<string, unknown>);
     } else {
       target[key] = sv;
@@ -50,81 +76,26 @@ function deepMerge(
   return target;
 }
 
-export const supportedLanguages = ['en', 'nl', 'de', 'es', 'fr', 'pt'] as const;
-export type SupportedLanguage = (typeof supportedLanguages)[number];
-
-export const languageLabels: Record<SupportedLanguage, string> = {
-  en: 'English',
-  nl: 'Nederlands',
-  de: 'Deutsch',
-  es: 'Español',
-  fr: 'Français',
-  pt: 'Português',
-};
-
 const loadedLanguages = new Set<SupportedLanguage>();
 
-function normalizeLanguage(value: string | null | undefined): SupportedLanguage {
-  const short = value?.substring(0, 2).toLowerCase();
+/**
+ * Returns the language code currently active in i18next, normalized
+ * to the short BCP-47 form ('en', 'nl', 'de', …). Falls back to 'en'
+ * when the active language isn't in the supported set (e.g., browser
+ * served a locale we don't ship translations for). Useful for plugin
+ * runtime code that needs to know which locale to load from the
+ * host's i18n bundle.
+ */
+export function resolveCurrentLanguage(): SupportedLanguage {
+  const raw = (i18n.language ?? '').toLowerCase();
+  const short = raw.substring(0, 2);
   return supportedLanguages.includes(short as SupportedLanguage) ? (short as SupportedLanguage) : 'en';
 }
 
-let cachedDefaultLanguage: string | null = null;
-
-function setCachedDefaultLanguage(value: string | undefined): void {
-  if (value && value.length > 0) {
-    cachedDefaultLanguage = value;
-  }
-}
-
-export function getCachedDefaultLanguage(): string | null {
-  return cachedDefaultLanguage;
-}
-
-async function detectInitialLanguage(): Promise<SupportedLanguage> {
-  // 1. localStorage override set by the user previously.
-  try {
-    const stored = window.localStorage.getItem('mcharbor-i18next-lang');
-    if (stored) {
-      return normalizeLanguage(stored);
-    }
-  } catch {
-    // Ignore localStorage access failures.
-  }
-
-  // 2. App-wide default set by an admin in Settings → General.
-  //    The status endpoint is fetched once at boot and cached.
-  if (cachedDefaultLanguage === null) {
-    try {
-      const res = await fetch('/api/auth/status', { credentials: 'omit' });
-      if (res.ok) {
-        const data = (await res.json()) as { defaultLanguage?: string };
-        if (data?.defaultLanguage) {
-          setCachedDefaultLanguage(data.defaultLanguage);
-        }
-      }
-    } catch {
-      // Network failure falls through to the browser / hard-coded
-      // defaults. The auth-module's checkSession will refresh the
-      // value on the next login round-trip.
-    }
-    if (cachedDefaultLanguage === null) {
-      cachedDefaultLanguage = 'en';
-    }
-  }
-  if (cachedDefaultLanguage) {
-    return normalizeLanguage(cachedDefaultLanguage);
-  }
-
-  // 3. Browser language as a final fallback.
-  try {
-    return normalizeLanguage(window.navigator.language);
-  } catch {
-    return 'en';
-  }
-}
-
-async function loadStaticNamespace(lang: SupportedLanguage, namespace: StaticNamespace): Promise<Record<string, unknown>> {
+async function loadStaticNamespace(
+  lang: SupportedLanguage,
+  namespace: StaticNamespace,
+): Promise<Record<string, unknown>> {
   const loader = localeModules[`./locales/${lang}/${namespace}.json`];
   if (!loader) {
     return {};
@@ -180,7 +151,7 @@ export async function initializeI18n() {
   const initialLang = await detectInitialLanguage();
 
   await i18n
-    .use(LanguageDetector)
+    .use(BrowserLanguageDetector)
     .use(initReactI18next)
     .init({
       lng: initialLang,
@@ -204,6 +175,24 @@ export async function initializeI18n() {
 
   await i18n.changeLanguage(initialLang);
   document.documentElement.lang = initialLang;
+
+  publishHostI18n();
+}
+
+/**
+ * Publishes the initialized i18next instance on `window.McharborHost`.
+ *
+ * Plugin UMD bundles compile their own copy of `react-i18next` (the
+ * host ships an ES module, so it cannot hand them the library as a UMD
+ * global). That private copy never saw `initReactI18next`, so a plain
+ * `useTranslation(ns)` inside a plugin has no instance to resolve
+ * against and echoes the key back. Exposing the host instance lets a
+ * plugin wrap its tree in its own `<I18nextProvider i18n={…}>` and
+ * resolve against the same store the loader merges plugin namespaces
+ * into (see core/plugins/pluginI18n.ts).
+ */
+function publishHostI18n(): void {
+  window.McharborHost = { ...window.McharborHost, i18n };
 }
 
 export default i18n;

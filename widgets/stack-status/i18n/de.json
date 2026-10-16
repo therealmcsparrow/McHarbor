@@ -11,6 +11,8 @@
     "noStacksFound": "Keine Stacks gefunden",
     "service_one": "{{count}} Dienst",
     "service_other": "{{count}} Dienste",
-    "viewAll": "Alle anzeigen"
+    "viewAll": "Alle anzeigen",
+    "runningOf": "{{running}} von {{total}} laufen",
+    "more": "{{count}} weitere"
   }
 }

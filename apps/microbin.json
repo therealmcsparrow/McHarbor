@@ -1,0 +1,46 @@
+{
+    "slug":  "microbin",
+    "name":  "MicroBin",
+    "description":  "Lightweight self-hosted pastebin and file-sharing tool with expiring links.",
+    "category":  "Utilities",
+    "image":  "danielszabo99/microbin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/microbin.png",
+    "website":  "https://microbin.eu",
+    "docsUrl":  "https://github.com/szabodanika/microbin#running-with-docker",
+    "ports":  [
+                  {
+                      "host":  8580,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/microbin/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MICROBIN_ADMIN_USERNAME",
+                        "default":  "admin",
+                        "description":  "Administrator username"
+                    },
+                    {
+                        "key":  "MICROBIN_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Administrator password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

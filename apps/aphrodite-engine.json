@@ -1,0 +1,42 @@
+{
+    "slug":  "aphrodite-engine",
+    "name":  "Aphrodite Engine",
+    "description":  "OpenAI-compatible inference server for language models with continuous batching and LoRA hot-swap; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "alpindale/aphrodite-openai:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/aphrodite-engine.png",
+    "website":  "https://aphrodite.pygmalion.chat",
+    "docsUrl":  "https://aphrodite.pygmalion.chat/usage/1-getting-started/",
+    "ports":  [
+                  {
+                      "host":  2242,
+                      "container":  2242,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/aphrodite-engine/cache",
+                        "container":  "/root/.cache/huggingface"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APHRODITE_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key clients must present to call the server",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

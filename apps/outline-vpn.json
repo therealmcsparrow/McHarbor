@@ -1,0 +1,46 @@
+{
+    "slug":  "outline-vpn",
+    "name":  "Outline VPN Server",
+    "description":  "Self-hosted VPN server with a companion client for creating your own private access points.",
+    "category":  "Networking",
+    "image":  "quay.io/outline/shadowbox:stable",
+    "logo":  "https://www.google.com/s2/favicons?domain=getoutline.org\u0026sz=128",
+    "website":  "https://getoutline.org",
+    "docsUrl":  "https://getoutline.org",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8444,
+                      "container":  8444,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/outline-vpn/state",
+                        "container":  "/opt/outline/persisted-state"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SB_API_PREFIX",
+                        "default":  "change-me",
+                        "description":  "API prefix used to secure the management API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "stable",
+    "latest":  {
+        "version":  "stable",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "kubernetes-dashboard",
+    "name":  "Kubernetes Dashboard",
+    "description":  "Web UI for viewing and managing workloads, resources and cluster state on a Kubernetes cluster.",
+    "category":  "CI/CD",
+    "image":  "kubernetesui/dashboard:v2.7.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kubernetes.png",
+    "website":  "https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/",
+    "docsUrl":  "https://github.com/kubernetes/dashboard#installation",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kubernetes-dashboard/kubeconfig",
+                        "container":  "/kubeconfig",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KUBECONFIG",
+                        "default":  "/kubeconfig/config",
+                        "description":  "Path to the kubeconfig granting the dashboard access to a cluster"
+                    }
+                ],
+    "version":  "v2.7.0",
+    "latest":  {
+        "version":  "v2.7.0",
+        "release_date":  "2026-09-29"
+    }
+}

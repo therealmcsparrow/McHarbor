@@ -1,8 +1,0 @@
-{
-  "label": "Stack Status",
-  "description": "Inspect the status of a compose stack",
-  "config": {
-    "environment": "Umgebung",
-    "stack_name": "Stack-Name"
-  }
-}

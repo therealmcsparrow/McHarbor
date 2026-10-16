@@ -1,0 +1,35 @@
+{
+    "slug":  "timetagger",
+    "name":  "TimeTagger",
+    "description":  "Open source time tracking tool with a tag-based interface and interactive reporting.",
+    "category":  "Productivity",
+    "image":  "ghcr.io/almarklein/timetagger:latest",
+    "logo":  "https://timetagger.app/favicon.ico",
+    "website":  "https://timetagger.app",
+    "docsUrl":  "https://github.com/almarklein/timetagger/blob/main/docs/deploy_docker.md",
+    "ports":  [
+                  {
+                      "host":  8133,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/timetagger/data",
+                        "container":  "/root/_timetagger"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

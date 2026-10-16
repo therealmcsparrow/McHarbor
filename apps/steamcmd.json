@@ -1,0 +1,37 @@
+{
+    "slug":  "steamcmd",
+    "name":  "SteamCMD",
+    "description":  "Command-line tool for installing and updating Steam dedicated server files, used as a base for custom game server images.",
+    "category":  "Gaming",
+    "image":  "steamcmd/steamcmd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/steam.png",
+    "website":  "https://developer.valvesoftware.com/wiki/SteamCMD",
+    "docsUrl":  "https://hub.docker.com/r/steamcmd/steamcmd",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/steamcmd/data",
+                        "container":  "/home/steam/steamcmd"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "STEAM_APP_ID",
+                        "default":  "",
+                        "description":  "Steam application ID to install"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

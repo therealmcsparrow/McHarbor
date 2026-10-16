@@ -1,14 +1,14 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { IconCheck, IconLink, IconPencil, IconUnlink, IconX } from '@tabler/icons-react';
-import { Badge } from '@resources/components/ui/Badge';
+import { IconLink } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
-import { InfoRow } from '@resources/components/ui/InfoRow';
-import type { ContainerInspect, NetworkInfo } from '@core/types/docker';
+import { PERM } from '@core/auth/permissionKeys';
+import { Select } from '@resources/components/ui/Select';
+import type { NetworkInfo } from '@core/types/docker';
 import type { NetworkConnectPayload } from './NetworkTab';
 import {
   emptyNetworkEndpointSettingsDraft,
@@ -16,20 +16,20 @@ import {
   type NetworkEndpointSettingsDraft,
   splitNetworkAliases,
 } from './NetworkEndpointSettingsFields';
-
-type ContainerNetworkEntry = [
-  string,
-  NonNullable<ContainerInspect['NetworkSettings']>['Networks'][string],
-];
+import { NetworkTabNetworkCard, type ContainerNetworkEntry } from './NetworkTabNetworkCard';
 
 type NetworkTabNetworksSectionProps = {
   connectMutation: UseMutationResult<unknown, Error, NetworkConnectPayload, unknown>;
   disconnectMutation: UseMutationResult<unknown, Error, string, unknown>;
   editing: boolean;
+  readOnly?: boolean;
+  allowLiveActionsInEdit?: boolean;
   joinableNetworks: NetworkInfo[];
   networks: ContainerNetworkEntry[];
   selectedNetwork: string;
   setSelectedNetwork: (value: string) => void;
+  /** Network mode, edited or shown at the top of the card. */
+  modeContent?: ReactNode;
   t: TFunction<'containers'>;
 };
 
@@ -61,15 +61,19 @@ export function NetworkTabNetworksSection({
   connectMutation,
   disconnectMutation,
   editing,
+  readOnly = false,
+  allowLiveActionsInEdit = false,
   joinableNetworks,
   networks,
   selectedNetwork,
   setSelectedNetwork,
+  modeContent,
   t,
 }: NetworkTabNetworksSectionProps) {
   const [connectDraft, setConnectDraft] = useState(emptyNetworkEndpointSettingsDraft());
   const [editingNetwork, setEditingNetwork] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState(emptyNetworkEndpointSettingsDraft());
+  const liveActionsEnabled = !readOnly && (!editing || allowLiveActionsInEdit);
 
   const handleConnect = () => {
     if (!selectedNetwork) return;
@@ -90,23 +94,35 @@ export function NetworkTabNetworksSection({
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="mc-glass rounded-lg p-6 lg:col-span-2">
+      <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
         {t('networkTab.networks')}
       </h3>
 
-      {!editing && joinableNetworks.length > 0 && (
+      {modeContent}
+
+      {readOnly && <p className="mb-4 text-xs text-muted-foreground">{t('networkTab.readOnlyHint')}</p>}
+
+      {!readOnly && editing && allowLiveActionsInEdit && (
+        <p className="mb-4 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          {t('networkTab.liveNetworkActionsNotice')}
+        </p>
+      )}
+
+      {liveActionsEnabled && joinableNetworks.length > 0 && (
         <div className="mb-4 space-y-3 rounded-md border border-border bg-background/40 p-3">
-          <select
+          <Select
             value={selectedNetwork}
-            onChange={(event) => setSelectedNetwork(event.target.value)}
-            className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
-          >
-            <option value="">{t('networkTab.selectNetwork')}</option>
-            {joinableNetworks.map((network) => (
-              <option key={network.Id} value={network.Name}>{network.Name}</option>
-            ))}
-          </select>
+            onChange={setSelectedNetwork}
+            options={joinableNetworks.map((network) => ({
+              value: network.Name,
+              label: network.Name,
+            }))}
+            placeholder={t('networkTab.selectNetwork')}
+            ariaLabel={t('networkTab.selectNetwork')}
+            variant="outline"
+            className="text-xs"
+          />
           <NetworkEndpointSettingsFields
             draft={connectDraft}
             disabled={connectMutation.isPending}
@@ -116,6 +132,7 @@ export function NetworkTabNetworksSection({
           <Button
             variant="outline"
             size="sm"
+            permission={PERM.CONTAINERS_MANAGE}
             onClick={handleConnect}
             disabled={!selectedNetwork || connectMutation.isPending}
           >
@@ -127,69 +144,24 @@ export function NetworkTabNetworksSection({
 
       {networks.length > 0 ? (
         <div className="space-y-4">
-          {networks.map(([networkName, network]) => {
-            const isEditingNetwork = editingNetwork === networkName;
-            return (
-              <div key={networkName} className="rounded-md border border-border p-4">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <Badge variant="secondary">{networkName}</Badge>
-                  {!editing && (
-                    <div className="flex gap-2">
-                      {isEditingNetwork ? (
-                        <>
-                          <Button variant="outline" size="sm" onClick={() => handleApplyEdit(networkName)} disabled={connectMutation.isPending}>
-                            <IconCheck className="mr-1 size-3.5" />
-                            {t('networkTab.applyNetworkSettings')}
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setEditingNetwork(null)}>
-                            <IconX className="mr-1 size-3.5" />
-                            {t('networkTab.cancelNetworkEdit')}
-                          </Button>
-                        </>
-                      ) : (
-                        <Button variant="ghost" size="sm" onClick={() => handleStartEdit(networkName, network)}>
-                          <IconPencil className="mr-1 size-3.5" />
-                          {t('networkTab.editNetworkSettings')}
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm" onClick={() => disconnectMutation.mutate(networkName)} disabled={disconnectMutation.isPending} className="text-red-500 hover:text-red-600">
-                        <IconUnlink className="mr-1 size-3.5" />
-                        {t('actions.disconnect')}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {isEditingNetwork ? (
-                  <div className="space-y-3">
-                    <NetworkEndpointSettingsFields
-                      draft={editDraft}
-                      disabled={connectMutation.isPending}
-                      onChange={(patch) => setEditDraft((current) => ({ ...current, ...patch }))}
-                      t={t}
-                    />
-                    <p className="text-xs text-muted-foreground">{t('networkTab.reconnectNotice')}</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                    <InfoRow label={t('networkTab.ipAddress')}>{network?.IPAddress || '-'}</InfoRow>
-                    <InfoRow label={t('networkTab.gateway')}>{network?.Gateway || '-'}</InfoRow>
-                    <InfoRow label={t('networkTab.macAddress')}>{network?.MacAddress || '-'}</InfoRow>
-                    <InfoRow label={t('networkTab.prefixLength')}>{network?.IPPrefixLen ?? '-'}</InfoRow>
-                    {(network?.Aliases?.length ?? 0) > 0 && (
-                      <InfoRow label={t('networkTab.aliases')}>{network.Aliases?.join(', ')}</InfoRow>
-                    )}
-                    {network?.GlobalIPv6Address && (
-                      <>
-                        <InfoRow label={t('networkTab.ipv6Address')}>{network.GlobalIPv6Address}</InfoRow>
-                        <InfoRow label={t('networkTab.ipv6Gateway')}>{network.IPv6Gateway || '-'}</InfoRow>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {networks.map(([networkName, network]) => (
+            <NetworkTabNetworkCard
+              key={networkName}
+              networkName={networkName}
+              network={network}
+              liveActionsEnabled={liveActionsEnabled}
+              isEditing={editingNetwork === networkName}
+              editDraft={editDraft}
+              connectPending={connectMutation.isPending}
+              disconnectPending={disconnectMutation.isPending}
+              onStartEdit={() => handleStartEdit(networkName, network)}
+              onCancelEdit={() => setEditingNetwork(null)}
+              onApplyEdit={() => handleApplyEdit(networkName)}
+              onEditDraftChange={(patch) => setEditDraft((current) => ({ ...current, ...patch }))}
+              onDisconnect={() => disconnectMutation.mutate(networkName)}
+              t={t}
+            />
+          ))}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">{t('networkTab.noConnectedNetworks')}</p>

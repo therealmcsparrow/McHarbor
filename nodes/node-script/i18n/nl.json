@@ -1,6 +1,6 @@
 {
-  "label": "Node Script",
-  "description": "Run custom JavaScript against the current workflow message",
+  "label": "Node-script",
+  "description": "Voer aangepast JavaScript uit op het huidige workflowbericht",
   "config": {
     "code": "Code",
     "timeout": "Timeout (seconden)"

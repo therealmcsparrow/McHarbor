@@ -12,9 +12,37 @@
     "type": {
       "any": "Qualquer",
       "container": "Conteiner",
-      "image": "Image",
+      "image": "Imagem",
       "volume": "Volume",
       "network": "Rede"
+    },
+    "action": {
+      "create": "Criar",
+      "start": "Iniciar",
+      "stop": "Parar",
+      "restart": "Reiniciar",
+      "die": "Die",
+      "kill": "Kill",
+      "destroy": "Destruir",
+      "pause": "Pausar",
+      "unpause": "Retomar",
+      "oom": "Sem memória",
+      "health_status": "Status de integridade",
+      "rename": "Renomear",
+      "update": "Atualizar",
+      "exec_create": "Exec create",
+      "exec_start": "Exec start",
+      "exec_die": "Exec die",
+      "pull": "Pull",
+      "push": "Push",
+      "delete": "Excluir",
+      "tag": "Tag",
+      "untag": "Untag",
+      "prune": "Limpar",
+      "mount": "Montar",
+      "unmount": "Desmontar",
+      "connect": "Conectar",
+      "disconnect": "Desconectar"
     }
   }
 }

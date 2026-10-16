@@ -1,0 +1,51 @@
+{
+    "slug":  "weather411",
+    "name":  "Weather411",
+    "description":  "Lightweight weather-data API proxy used to feed local conditions into solar and energy-monitoring dashboards.",
+    "category":  "IoT & Industrial",
+    "image":  "jasonacox/weather411:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/jasonacox/weather411",
+    "docsUrl":  "https://github.com/jasonacox/weather411#docker-setup",
+    "ports":  [
+                  {
+                      "host":  8676,
+                      "container":  8676,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/weather411/config",
+                        "container":  "/var/lib/weather411"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WEATHER_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key for the upstream weather data provider",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "WEATHER_LAT",
+                        "default":  "0.0",
+                        "description":  "Latitude used for local weather lookups"
+                    },
+                    {
+                        "key":  "WEATHER_LON",
+                        "default":  "0.0",
+                        "description":  "Longitude used for local weather lookups"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

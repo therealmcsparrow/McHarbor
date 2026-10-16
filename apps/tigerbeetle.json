@@ -1,0 +1,41 @@
+{
+    "slug":  "tigerbeetle",
+    "name":  "TigerBeetle",
+    "description":  "Distributed financial transactions database purpose-built for high-throughput payments and ledger workloads.",
+    "category":  "Finance",
+    "image":  "ghcr.io/tigerbeetle/tigerbeetle:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=tigerbeetle.com\u0026sz=128",
+    "website":  "https://tigerbeetle.com",
+    "docsUrl":  "https://docs.tigerbeetle.com/operating/docker/",
+    "ports":  [
+                  {
+                      "host":  8300,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tigerbeetle/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TIGERBEETLE_REPLICA_COUNT",
+                        "default":  "1",
+                        "description":  "Number of replicas in the cluster"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

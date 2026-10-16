@@ -1,0 +1,1453 @@
+{
+  "title": "Máquinas virtuais",
+  "description": "Execute máquinas virtuais KVM nos seus próprios hosts. Crie uma a partir de uma imagem de nuvem e chegue a um prompt de login no navegador em menos de dois minutos, ou instale a partir de um disco.",
+  "nav": {
+    "machines": "Máquinas virtuais",
+    "templates": "Modelos",
+    "section": {
+      "compute": "Computação"
+    }
+  },
+  "actions": {
+    "create": "Criar máquina virtual",
+    "start": "Iniciar",
+    "shutdown": "Desligar",
+    "stop": "Parar",
+    "reset": "Reiniciar (reset)",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "console": "Console",
+    "delete": "Excluir",
+    "snapshot": "Criar snapshot",
+    "revert": "Reverter para este snapshot",
+    "clone": "Clonar",
+    "makeTemplate": "Transformar em template",
+    "unTemplate": "Transformar de volta em máquina virtual",
+    "addDisk": "Adicionar disco",
+    "resizeDisk": "Redimensionar",
+    "addNic": "Adicionar interface de rede",
+    "attachDevice": "Conectar dispositivo do host",
+    "diagnose": "Perguntar à IA o que há de errado",
+    "refresh": "Atualizar",
+    "cancel": "Cancelar",
+    "back": "Voltar",
+    "next": "Avançar",
+    "attachMedia": "Inserir disco",
+    "ejectMedia": "Ejetar disco",
+    "stillStopping": "Ainda desligando. Ela poderá ser iniciada quando o host a liberar.",
+    "import": "Importar",
+    "migrate": "Mover para outro host"
+  },
+  "resources": {
+    "cpu": "{{count}} CPU",
+    "ram": "{{size}} de RAM"
+  },
+  "list": {
+    "title": "Máquinas virtuais",
+    "empty": {
+      "title": "Nenhuma máquina virtual ainda",
+      "body": "Uma máquina virtual executa um sistema operacional completo com seu próprio kernel, em um host que você configurou para compute. Crie uma a partir de uma imagem de nuvem para ter um login funcionando em alguns minutos.",
+      "action": "Criar a primeira"
+    },
+    "emptyTemplates": {
+      "title": "Nenhum template ainda",
+      "body": "Transforme uma máquina virtual configurada e parada em um template e todo clone dela parte desse ponto, com identidade, endereços e chaves de host próprios."
+    },
+    "columns": {
+      "name": "Nome",
+      "state": "Estado",
+      "host": "Host",
+      "os": "Sistema operacional",
+      "resources": "Recursos",
+      "address": "Endereço",
+      "uptime": "Iniciada",
+      "pool": "Armazenamento"
+    },
+    "filter": {
+      "all": "Todos os estados",
+      "running": "Em execução",
+      "stopped": "Parada",
+      "problem": "Requer atenção"
+    },
+    "bulk": {
+      "selected_one": "{{count}} selecionada",
+      "selected_other": "{{count}} selecionadas",
+      "start": "Iniciar selecionadas",
+      "shutdown": "Desligar selecionadas",
+      "stop": "Parar selecionadas"
+    },
+    "tableView": "Visualização de tabela",
+    "cardView": "Visualização de cartões",
+    "searchPlaceholder": "Pesquisar máquinas virtuais…",
+    "noMatches": "Nenhuma máquina virtual corresponde a essa pesquisa."
+  },
+  "state": {
+    "defined": "Não iniciada",
+    "running": "Em execução",
+    "paused": "Pausada",
+    "stopping": "Desligando",
+    "stopped": "Parada",
+    "crashed": "Travou",
+    "migrating": "Em movimentação",
+    "unknown": "Desconhecido",
+    "unknownHint": "Não é possível alcançar o host desta máquina virtual, então seu estado não pode ser confirmado. Provavelmente ela ainda está em execução (o gerenciador de serviços do próprio host a mantém ativa), mas nada pode ser iniciado ou parado até que o agente se reconecte.",
+    "ioError": "Erro de disco",
+    "ioErrorHint": "O QEMU parou este convidado porque uma gravação em um de seus discos falhou. A causa habitual é um pool de armazenamento cheio. O convidado é retomado quando houver espaço novamente.",
+    "guestPanicked": "Kernel panic",
+    "guestPanickedHint": "O próprio sistema operacional do convidado travou. Ele ainda está carregado, mas não está em execução; o reset é a única saída.",
+    "deleting": "Removendo"
+  },
+  "guestAgent": {
+    "connected": "Agente do convidado conectado",
+    "absent": "Sem agente do convidado",
+    "unknown": "Agente do convidado desconhecido",
+    "absentHint": "Sem o agente do convidado, os snapshots desta máquina são consistentes apenas contra falhas (crash-consistent) e seus endereços não são informados. O cloud-init o instala automaticamente nas novas máquinas criadas a partir de uma imagem.",
+    "disc": {
+      "attach": "Inserir disco do agente do convidado",
+      "hint": "Cria o disco instalador do agente do convidado no host e o insere. A máquina precisa estar parada.",
+      "attached": "Disco do agente do convidado inserido. Inicie a máquina e execute o instalador nela."
+    },
+    "install": {
+      "action": "Instalar",
+      "title": "Instalar o agente do convidado",
+      "body": "O agente do convidado permite que o McHarbor congele os sistemas de arquivos desta máquina antes de um snapshot e informe seus endereços. Pode ser instalado em qualquer máquina, independentemente de como foi criada.",
+      "alreadyConnected": "O agente do convidado já está respondendo nesta máquina.",
+      "channelReady": "O McHarbor sempre conecta o canal pelo qual o agente se comunica, então só falta o pacote dentro do convidado.",
+      "family": "Sistema operacional do convidado",
+      "families": {
+        "linux": "Linux",
+        "windows": "Windows",
+        "bsd": "BSD"
+      },
+      "step1": "1. Conecte o disco instalador",
+      "step2": "2. Execute isto dentro da máquina",
+      "step3": "3. Inicie a máquina novamente. O selo fica verde cerca de um minuto depois que o agente inicia.",
+      "disc": "Disco instalador",
+      "attach": "Conectar disco",
+      "copy": "Copiar comando",
+      "noDiscs": "Nenhuma imagem de disco está disponível neste host. Adicione uma primeiro na página Compute.",
+      "noVirtioDisc": "Nenhum disco virtio-win está disponível neste host. Adicione primeiro o ISO do virtio-win na página Compute.",
+      "notes": {
+        "linux": "A maioria das distribuições fornece o pacote. Use o que a sua distribuição tiver.",
+        "windows": "O disco virtio-win contém o instalador das ferramentas do convidado. A letra da unidade depende do que mais estiver conectado.",
+        "bsd": "O FreeBSD fornece o agente como pacote; outros BSDs podem precisar obtê-lo pelos ports."
+      }
+    }
+  },
+  "address": {
+    "reported": "Informado pelo convidado",
+    "reportedHint": "Este endereço é o que o sistema operacional dentro da máquina diz ter. É exibido como texto simples e não é usado para mais nada."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Visão geral",
+      "console": "Console",
+      "hardware": "Hardware",
+      "backups": "Backups",
+      "snapshots": "Snapshots",
+      "cloudInit": "Configuração do primeiro boot",
+      "settings": "Configurações",
+      "logs": "Registros"
+    },
+    "overview": {
+      "resources": "Recursos",
+      "processors": "Processadores",
+      "memory": "Memória",
+      "disk": "Disco",
+      "firmware": "Firmware",
+      "machineType": "Tipo de máquina",
+      "machineTypeHint": "Fixado quando esta máquina foi criada e não alterado por atualizações do host, para que seu hardware permaneça o mesmo entre atualizações.",
+      "started": "Iniciada",
+      "neverStarted": "Nunca iniciada",
+      "lastError": "Último erro",
+      "general": "Geral",
+      "name": "Nome",
+      "host": "Host",
+      "state": "Estado",
+      "uuid": "Identificador",
+      "autostart": "Inicia com o host",
+      "metrics": "Métricas ao vivo",
+      "metricsIdle": "As métricas ao vivo aparecem enquanto a máquina está em execução.",
+      "cpuUsage": "Uso de CPU",
+      "memoryUsage": "Uso de memória",
+      "diskIo": "E/S de disco",
+      "networkIo": "Rede",
+      "read": "Leitura",
+      "written": "Gravação",
+      "received": "Recebido",
+      "sent": "Enviado",
+      "description": "Descrição",
+      "guestOs": "SO do convidado",
+      "created": "Criada",
+      "topology": "Topologia",
+      "topologyValue": "{{sockets}} × {{cores}} núcleos × {{threads}} threads",
+      "memoryMax": "Memória máxima",
+      "platform": "Plataforma",
+      "secureBoot": "Inicialização segura",
+      "tpm": "TPM",
+      "display": "Vídeo",
+      "unitName": "Unidade de serviço",
+      "guest": "Convidado",
+      "template": "Modelo",
+      "noDescription": "Sem descrição",
+      "metricsUnavailable": "O agente deste host não informa métricas de convidados. Atualize o agente neste host para coletá-las."
+    },
+    "title": "Máquina virtual"
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Conectando…",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "reconnect": "Reconectar",
+    "disconnect": "Desconectar",
+    "notRunning": "Esta máquina virtual não está em execução.",
+    "viewers_one": "{{count}} espectador",
+    "viewers_other": "{{count}} espectadores",
+    "viewersHint": "Todos os conectados veem a mesma tela e compartilham um único teclado e mouse.",
+    "external": {
+      "title": "Cliente VNC externo",
+      "run": "Execute isto com a CLI do McHarbor no computador que tem o cliente VNC:",
+      "connect": "Depois conecte o cliente VNC a {{address}}. Ele não pede senha: a CLI faz o login por ele, e Ctrl-C o encerra."
+    },
+    "sendCtrlAltDel": "Enviar Ctrl+Alt+Del",
+    "fullscreen": "Tela cheia",
+    "screenshot": "Capturar tela",
+    "paste": "Colar da área de transferência",
+    "idleWarning": "Este console será fechado em {{seconds}} segundos, a menos que você o use.",
+    "permissionHint": "Abrir um console equivale a estar sentado diante da máquina, então exige uma permissão própria.",
+    "sendKeyHint": "Enviar {{key}} ao convidado",
+    "moreActions": "Mais ações do console",
+    "description": "A tela do convidado, como se você estivesse diante da máquina.",
+    "keys": {
+      "menu": "Enviar teclas",
+      "windows": "Tecla Windows",
+      "printScreen": "Print Screen",
+      "vtSwitch": "Alternar terminal virtual",
+      "typeText": "Digitar texto",
+      "typeTextHint": "Enviado como teclas pressionadas em um layout de teclado dos EUA.",
+      "typeTextSend": "Digitar no convidado",
+      "skipped_one": "{{count}} caractere não tem tecla em um teclado dos EUA e foi ignorado.",
+      "skipped_other": "{{count}} caracteres não têm tecla em um teclado dos EUA e foram ignorados."
+    },
+    "kind": {
+      "label": "Tipo de console",
+      "vnc": "VNC",
+      "serial": "Serial",
+      "spice": "SPICE"
+    },
+    "serial": {
+      "resizeNeedsAgent": "Redimensionar este terminal exige o agente convidado. Sem ele, o convidado mantém o tamanho com que foi iniciado."
+    },
+    "display": {
+      "label": "Tamanho da tela",
+      "resize": "Ajustar o convidado à janela",
+      "scale": "Dimensionar para caber",
+      "adapter": "O adaptador de vídeo desta VM ({{adapter}}) não pode alterar a resolução pelo console, então a tela é dimensionada para caber. Defina Vídeo como virtio-gpu (ou Automático) em Configurações e reinicie a VM.",
+      "adapterQxl": "O QXL só acompanha a janela via SPICE. Mude o console para SPICE com spice-vdagent em execução no convidado, ou defina Vídeo como virtio-gpu em Configurações e reinicie a VM.",
+      "host": "O QEMU deste host é antigo demais para redimensionar um convidado pelo console (é necessário QEMU 6.0 ou posterior), então a tela é dimensionada para caber.",
+      "guestSpice": "Nada no convidado respondeu à solicitação de redimensionamento. Instale e inicie o spice-vdagent no convidado: o qemu-guest-agent é outro agente e não redimensiona a tela.",
+      "guestVnc": "O convidado não alterou sua resolução. Ele precisa do driver virtio-gpu e de um desktop que acompanhe mudanças de tela, ou do spice-vdagent: o qemu-guest-agent é outro agente e não redimensiona a tela. Uma VM iniciada antes da troca do adaptador de vídeo precisa ser reiniciada."
+    },
+    "spiceFile": {
+      "button": "Arquivo do remote-viewer",
+      "hint": "Baixa um arquivo .vv para o remote-viewer. Ele contém uma senha de uso único válida por dois minutos, então abra-o imediatamente.",
+      "getClient": "Ainda não tem o remote-viewer? Baixe-o em virt-manager.org",
+      "host": "Endereço para conexão",
+      "hostPlaceholder": "Deixe vazio para usar o endereço do próprio host",
+      "download": "Baixar arquivo .vv"
+    }
+  },
+  "create": {
+    "title": "Criar uma máquina virtual",
+    "steps": {
+      "source": "O que instalar",
+      "resources": "Tamanho",
+      "storage": "Armazenamento",
+      "network": "Rede",
+      "setup": "Configuração do primeiro boot",
+      "summary": "Revisão"
+    },
+    "source": {
+      "title": "O que esta máquina deve executar?",
+      "image": "A partir de uma imagem pronta",
+      "imageHint": "Inicia em segundos e se configura no primeiro boot. É a escolha habitual.",
+      "iso": "Instalar a partir de um disco",
+      "isoHint": "Para Windows, para distribuições sem imagem pronta ou quando você quer executar o instalador por conta própria.",
+      "blank": "Sem imagem",
+      "blankHint": "Dá a ela um disco em branco e nada de onde iniciar. Use com um disco que já contém um sistema ou para instalar pela rede.",
+      "blankNote": "Esta máquina iniciará no prompt do firmware. Conecte um disco instalador depois ou inicie pela rede.",
+      "noImages": "Nenhuma imagem foi baixada para este host ainda.",
+      "downloadImages": "Ir para Imagens",
+      "isoLabel": "Disco instalador",
+      "noIsos": "Nenhum disco instalador foi enviado para este host ainda.",
+      "template": "A partir de um template",
+      "templateHint": "Clone um dos seus templates. Ele mantém o tamanho, os discos e a rede do template, e recebe uma identidade própria.",
+      "templateLabel": "Modelo",
+      "noTemplates": "Ainda não há templates neste host. Crie um primeiro a partir de uma máquina virtual parada."
+    },
+    "resources": {
+      "title": "De que tamanho ela deve ser?",
+      "preset": "Tamanho",
+      "presets": {
+        "small": "Pequena — 1 processador, 2 GB",
+        "medium": "Média — 2 processadores, 4 GB",
+        "large": "Grande — 4 processadores, 8 GB",
+        "custom": "Personalizado"
+      },
+      "vcpus": "Processadores",
+      "memory": "Memória (MB)",
+      "memoryMax": "Limite de memória (MB)",
+      "memoryMaxHint": "Deixe vazio para fixar a memória. Definir um limite permite ajustar a memória da máquina depois, sem reiniciá-la.",
+      "firmware": "Firmware",
+      "uefi": "UEFI",
+      "bios": "BIOS",
+      "uefiHint": "UEFI é o padrão moderno e é obrigatório para o Windows 11.",
+      "secureBoot": "Inicialização segura",
+      "tpm": "TPM 2.0",
+      "tpmRequired": "O Windows 11 exige um chip de segurança.",
+      "tpmUnavailable": "Este host não tem swtpm instalado, então um chip de segurança não está disponível.",
+      "secureBootHint": "Exigido pelo Windows 11, junto com um TPM. Requer o build de firmware com secure boot no host.",
+      "tpmHint": "Um TPM emulado para o convidado. O Windows 11 não será instalado sem um.",
+      "tpmMissing": "Este host não tem swtpm, então não é possível fornecer um TPM a um convidado. Instale com: {{remediation}}",
+      "secureBootMissing": "Este host não tem firmware com secure boot e chaves registradas, então o Secure Boot não pode ser imposto. Instale com: {{remediation}}"
+    },
+    "storage": {
+      "title": "Onde o disco dela deve ficar?",
+      "pool": "Pool de armazenamento",
+      "mode": "Disco",
+      "modeNew": "Criar um novo disco",
+      "modeNewHint": "Aloca um novo disco vazio neste pool.",
+      "modeExisting": "Usar um disco que já existe",
+      "modeExistingHint": "Conecta um disco deste pool que nenhuma máquina esteja usando. Nada é gravado nele.",
+      "existing": "Disco existente",
+      "noExisting": "Todos os discos deste pool já estão conectados a uma máquina.",
+      "existingFailed": "Não foi possível ler os discos deste pool. O host pode estar offline ou executando um agente antigo demais para listá-los.",
+      "existingLabel": "{{name}} — {{size}}",
+      "size": "Tamanho do disco (GB)",
+      "instantNote": "Este pool torna snapshots e clones instantâneos.",
+      "capacityWarning": "Este pool tem {{free}} livres. Um pool que enche pausa todas as máquinas nele.",
+      "thinNote": "O disco é criado thin: ocupa apenas o que a máquina realmente grava.",
+      "dataLocation": "Local dos dados",
+      "dataLocationHint": "Este host ainda não tem pool de armazenamento. Os discos dos convidados são mantidos como arquivos qcow2 neste diretório, e um pool é criado aqui na primeira vez que uma máquina é criada. Altere onde ele fica na página Pools depois que existir.",
+      "bus": "Tipo de disco",
+      "busHint": "virtio é o mais rápido e exige um driver no convidado. SATA funciona em qualquer lugar, inclusive em um instalador do Windows."
+    },
+    "network": {
+      "title": "Como ela deve acessar a rede?",
+      "network": "Rede",
+      "noNetworks": "Nenhuma rede foi configurada neste host ainda."
+    },
+    "setup": {
+      "title": "Configuração do primeiro boot",
+      "body": "A máquina se configura na primeira vez que inicia. Tudo aqui é opcional, exceto uma forma de fazer login.",
+      "hostname": "Nome do host",
+      "username": "Usuário",
+      "sshKeys": "Chaves públicas SSH",
+      "sshKeysHint": "Uma por linha. É a forma recomendada de entrar: não exige senha alguma.",
+      "password": "Senha",
+      "passwordHint": "Opcional. Ela é transformada em um hash irreversível antes de ser armazenada, e o texto simples nunca é gravado em lugar algum.",
+      "passwordWarning": "Qualquer coisa neste host que consiga ler o pool de armazenamento consegue ler o arquivo de configuração da máquina. Nunca coloque um token de API ou uma chave privada nas configurações extras abaixo.",
+      "passwordFromVault": "Do cofre",
+      "passwordSecret": "Segredo da senha",
+      "secretPlaceholder": "Escolha um segredo",
+      "sshKeySecrets": "Chaves SSH do cofre",
+      "secretsPlaceholder": "Escolha segredos",
+      "vaultCopyNote": "Copiado do cofre uma única vez, quando a máquina é criada. O cloud-init só o aplica na primeira inicialização, então rotacionar o segredo depois não altera esta máquina.",
+      "networkMode": "Endereçamento",
+      "dhcp": "Automático",
+      "static": "Endereço fixo",
+      "staticIp": "Endereço",
+      "staticGateway": "Gateway",
+      "staticDns": "Servidores DNS",
+      "installAgent": "Instalar o agente do convidado",
+      "installAgentHint": "Permite que o McHarbor veja os endereços reais da máquina e crie snapshots seguros para restauração. Fortemente recomendado.",
+      "extra": "Configuração extra (avançado)",
+      "extraHint": "cloud-config bruto, mesclado sobre tudo o que está acima."
+    },
+    "summary": {
+      "title": "Revisão",
+      "createAndStart": "Criar e iniciar",
+      "createOnly": "Criar sem iniciar",
+      "noSource": "Nada — inicia no prompt do firmware",
+      "existingDisk": "Disco existente"
+    },
+    "submit": "Criar"
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": {
+      "title": "Nenhum snapshot",
+      "body": "Um snapshot captura o disco desta máquina como está agora, para que você possa voltar a ele."
+    },
+    "notABackup": "Um snapshot não é um backup. Ele fica no mesmo armazenamento da máquina, então uma falha de armazenamento leva os dois.",
+    "columns": {
+      "name": "Nome",
+      "taken": "Criado",
+      "consistency": "Restaura como",
+      "size": "Tamanho",
+      "mechanism": "Tipo"
+    },
+    "consistency": {
+      "crash": "Como se a energia tivesse sido cortada",
+      "crashHint": "Criado sem o agente do convidado, então os sistemas de arquivos da máquina não foram pausados antes. A maioria dos sistemas se recupera disso, mas um banco de dados pode precisar se reparar.",
+      "filesystem": "De forma limpa",
+      "filesystemHint": "O agente do convidado pausou os sistemas de arquivos da máquina, então o snapshot é um ponto limpo para restaurar.",
+      "application": "De forma limpa, com hooks de aplicação",
+      "paused": "Com a máquina pausada",
+      "pausedHint": "Os processadores da máquina foram parados enquanto o disco era congelado, então nada ficou pela metade. O cache do sistema de arquivos dela não foi descarregado, porque não há agente do convidado a quem pedir.",
+      "applicationHint": "A memória da máquina foi capturada junto com o disco, então voltar a ele retoma exatamente de onde ela estava."
+    },
+    "chainDepth": "Profundidade da cadeia {{depth}}",
+    "chainWarning": "Esta máquina tem {{depth}} snapshots empilhados. Neste tipo de armazenamento, cada um deixa as leituras mais lentas. Considere remover os mais antigos.",
+    "chainFull": "Esta máquina atingiu o limite de snapshots. Remova um antes de criar outro.",
+    "create": {
+      "title": "Criar um snapshot",
+      "name": "Nome",
+      "description": "Nota",
+      "withMemory": "Incluir a memória da máquina",
+      "withMemoryHint": "Voltar a ele então retoma exatamente de onde a máquina estava, em vez de iniciá-la. Usa tanto espaço quanto a memória da máquina.",
+      "crashWarning": "Esta máquina não tem agente do convidado, então o snapshot será criado como se a energia tivesse sido cortada.",
+      "submit": "Criar snapshot",
+      "pauseGuest": "Pausar a máquina enquanto o snapshot é criado",
+      "pauseGuestHint": "Alguns segundos com os processadores parados, para que nada seja gravado pela metade no disco. Sem um agente do convidado, esta é a melhor consistência disponível."
+    },
+    "revert": {
+      "title": "Voltar para {{name}}?",
+      "body": "O disco da máquina volta a como estava quando este snapshot foi criado.",
+      "discards_one": "{{count}} snapshot mais recente será descartado: {{names}}",
+      "discards_other": "{{count}} snapshots mais recentes serão descartados: {{names}}",
+      "confirmName": "Digite {{name}} para confirmar",
+      "mustBeStopped": "Pare a máquina antes de voltar a um snapshot.",
+      "submit": "Voltar",
+      "branchKept": "Os snapshots criados depois deste são mantidos como um ramo próprio. Apenas o que a máquina gravou desde este snapshot é descartado.",
+      "willStop": "Este convidado está em execução. Ele será desligado antes de os discos serem revertidos, porque reverter sob um QEMU ativo corrompe em vez de reverter.",
+      "restartAfter": "Iniciá-lo novamente depois",
+      "running": "Revertendo"
+    },
+    "delete": {
+      "title": "Excluir {{name}}?",
+      "body": "O snapshot é removido. A máquina em si não é afetada.",
+      "submit": "Excluir snapshot"
+    },
+    "tree": {
+      "now": "Agora",
+      "branches": "{{count}} ramos",
+      "branchedHint": "Este snapshot tem mais de um ramo abaixo dele. Removê-lo reescreveria o que o outro ramo lê, então exclua primeiro um dos ramos.",
+      "revertCurrentHint": "O convidado já está neste snapshot.",
+      "revertOfflineHint": "O host não está acessível.",
+      "expand": "Mostrar o que há abaixo de {{name}}",
+      "collapse": "Ocultar o que há abaixo de {{name}}",
+      "expandAll": "Expandir tudo",
+      "collapseAll": "Recolher tudo",
+      "hiddenCount_one": "{{count}} oculto",
+      "hiddenCount_other": "{{count}} ocultos"
+    },
+    "progress": {
+      "starting": "Iniciando",
+      "quiescing": "Quiescendo os sistemas de arquivos",
+      "pausing": "Pausando o convidado",
+      "memory": "Gravando a memória",
+      "disks": "Congelando os discos",
+      "done": "Finalizando",
+      "failed": "Não foi possível criar {{name}}"
+    },
+    "revertStep": {
+      "starting": "Iniciando",
+      "stopping": "Parando o convidado",
+      "reverting": "Restaurando os discos",
+      "starting_guest": "Iniciando o convidado",
+      "done": "Finalizando"
+    }
+  },
+  "hardware": {
+    "hotplugUnclaimed": "Adicionado no host, mas o convidado em execução não o detectou: o kernel dele não oferece suporte a hot-plug PCI. O convidado o verá após a próxima reinicialização.",
+    "disks": "Discos",
+    "nics": "Interfaces de rede",
+    "devices": "Dispositivos do host",
+    "diskColumns": {
+      "bootOrder": "Ordem de boot",
+      "shared": "Compartilhado",
+      "sharedHint": "Permite que uma segunda máquina abra este disco ao mesmo tempo. Só é seguro quando ambos os convidados executam um sistema de arquivos de cluster que coordena as gravações; sem um, eles corromperão os dados um do outro.",
+      "limits": "Limites de E/S",
+      "slot": "Slot",
+      "bus": "Tipo",
+      "size": "Tamanho",
+      "pool": "Pool",
+      "boot": "Inicialização"
+    },
+    "nicColumns": {
+      "slot": "Slot",
+      "model": "Tipo",
+      "mac": "Endereço de hardware",
+      "bridge": "Rede",
+      "link": "Link"
+    },
+    "deviceColumns": {
+      "kind": "Tipo",
+      "address": "Endereço",
+      "description": "Nota"
+    },
+    "mustBeStopped": "Pare a máquina para alterar seu hardware.",
+    "liveChanges": "Esta máquina está em execução. Discos, discos de instalação e interfaces de rede são alterados nela imediatamente; o disco de inicialização, os tipos de disco e a ordem de inicialização exigem que ela esteja parada.",
+    "liveHint": "A alteração é feita na máquina em execução.",
+    "bootDiskRunning": "O disco de inicialização não pode ser removido nem alterado enquanto a máquina está em execução.",
+    "emptyDrive": "Unidade vazia",
+    "linkToggle": "Cabo de rede conectado",
+    "deleteDisk": {
+      "title": "Remover este disco?",
+      "body": "O disco é desanexado da máquina e seu volume é destruído. Isso não pode ser desfeito.",
+      "confirm": "Remover disco"
+    },
+    "addDisk": {
+      "title": "Adicionar um disco",
+      "pool": "Pool de armazenamento",
+      "size": "Tamanho (GB)",
+      "bus": "Tipo",
+      "submit": "Adicionar disco",
+      "noPools": "Este host ainda não tem pool de armazenamento. Crie um primeiro na página Compute.",
+      "virtioWindows": "O instalador do Windows não inclui driver virtio e não enxergará este disco. Use SATA, a menos que esteja carregando drivers de um disco virtio-win."
+    },
+    "resizeDisk": {
+      "title": "Redimensionar disco",
+      "current": "Atualmente {{size}}",
+      "newSize": "Novo tamanho (GB)",
+      "growOnly": "Um disco só pode ser aumentado. Diminuí-lo por fora destrói dados, então isso não é oferecido.",
+      "afterNote": "O sistema operacional da própria máquina ainda precisa ser instruído a usar o espaço extra.",
+      "submit": "Redimensionar"
+    },
+    "attachDevice": {
+      "title": "Conectar um dispositivo do host",
+      "warning": "Um dispositivo com passthrough dá a esta máquina acesso direto ao hardware real. Se a máquina for comprometida, esse hardware também será, e em alguns casos o próprio host. Faça isso apenas para máquinas em que você confia.",
+      "kind": "Tipo",
+      "pci": "Dispositivo PCI",
+      "usb": "Dispositivo USB",
+      "block": "Dispositivo de disco",
+      "address": "Endereço",
+      "pciHint": "O endereço do dispositivo, por exemplo 0000:03:00.0.",
+      "usbHint": "Fornecedor e produto, por exemplo 1234:5678.",
+      "blockHint": "Um caminho em /dev.",
+      "description": "Nota",
+      "noIommu": "Este host não tem IOMMU habilitado, então dispositivos PCI não podem receber passthrough. Habilite VT-d ou AMD-Vi no firmware e adicione intel_iommu=on às opções de boot.",
+      "submit": "Conectar",
+      "selectDevice": "Dispositivos disponíveis",
+      "selectPlaceholder": "Escolha um dispositivo deste host",
+      "manualEntry": "Informar um endereço manualmente",
+      "refresh": "Reescanear host",
+      "none": "Nenhum dispositivo encontrado neste host.",
+      "loading": "Escaneando o host…",
+      "loadFailed": "Não foi possível ler a lista de dispositivos deste host.",
+      "u2f": "Chave de segurança virtual",
+      "u2fHint": "Um token U2F emulado, para convidados que testam o login com WebAuthn. Nada é passado do host, então não é preciso conectar nenhuma chave física.",
+      "unavailable": "Em uso pelo host",
+      "reason_bound_to_host_driver": "Vinculado ao driver do host {{driver}}",
+      "reason_no_iommu_group": "Sem grupo IOMMU: o passthrough exige IOMMU habilitado no firmware",
+      "iommuGroup": "Grupo IOMMU {{group}}",
+      "attachedBadge": "conectado a uma VM",
+      "attachedHere": "Esta VM já tem este dispositivo.",
+      "attachedElsewhere": "Já conectado a {{names}}. Apenas uma VM em execução por vez pode usar um dispositivo com passthrough."
+    },
+    "addNic": {
+      "title": "Adicionar uma interface de rede",
+      "network": "Rede",
+      "model": "Tipo",
+      "noNetworks": "Este host ainda não tem rede. Crie uma primeiro na página Compute.",
+      "submit": "Adicionar interface"
+    },
+    "deviceEmpty": "Nenhum dispositivo do host tem passthrough para esta máquina.",
+    "media": {
+      "title": "Discos instaladores",
+      "empty": "Nenhum disco inserido.",
+      "columns": {
+        "slot": "Slot",
+        "source": "Disco"
+      },
+      "attach": {
+        "title": "Inserir um disco instalador",
+        "image": "Disco",
+        "noImages": "Nenhum disco instalador foi enviado para este host ainda.",
+        "hint": "A máquina inicia primeiro pelos seus discos, então só chega ao disco instalador quando eles não têm nada para iniciar.",
+        "submit": "Inserir"
+      }
+    }
+  },
+  "clone": {
+    "title": "Clonar {{name}}",
+    "name": "Nome da cópia",
+    "linked": "Compartilhar dados com o original",
+    "linkedHint": "Instantâneo, e armazena apenas o que muda depois. O original não pode ser excluído enquanto existir uma cópia compartilhada.",
+    "fullHint": "Uma cópia completa e independente. Demora mais e usa o espaço total, mas nada depende do original.",
+    "identityNote": "A cópia recebe sua própria identidade de máquina, seus próprios endereços de hardware e uma nova configuração de primeiro boot, então não responderá pelo nome do original nem reutilizará suas chaves de host.",
+    "mustBeStopped": "Pare a máquina antes de cloná-la.",
+    "submit": "Clonar",
+    "mode": {
+      "label": "Tipo de cópia",
+      "full": "Cópia completa",
+      "linked": "Cópia vinculada"
+    },
+    "running": "Copiando discos…",
+    "runningPercent": "Copiando discos… {{percent}}%"
+  },
+  "template": {
+    "title": "Transformar {{name}} em template?",
+    "body": "Um template não pode ser iniciado, o que o mantém exatamente como está. Clone-o para criar máquinas a partir dele.",
+    "revert": "Transformar {{name}} de volta em máquina virtual?",
+    "revertBody": "Ele volta a poder ser iniciado. As cópias existentes não são afetadas.",
+    "inUse": "Este template tem cópias que compartilham seus dados e não pode ser removido: {{clones}}",
+    "submit": "Transformar em template"
+  },
+  "delete": {
+    "title": "Excluir {{name}}?",
+    "body": "A máquina é removida do McHarbor e do seu host.",
+    "deleteVolumes": "Excluir também seus discos",
+    "deleteVolumesWarning": "Tudo nos discos desta máquina é destruído permanentemente. Não há como desfazer.",
+    "keepVolumesHint": "Manter os discos permite mover esta máquina para outro host depois.",
+    "confirmName": "Digite {{name}} para confirmar",
+    "submit": "Excluir",
+    "running": "Removendo esta máquina virtual",
+    "runningHint": "Isto continua no host se você fechar esta janela. A máquina some da lista quando terminar.",
+    "runningPercent": "Removendo esta máquina virtual — {{percent}}%"
+  },
+  "diagnose": {
+    "title": "O que há de errado com esta máquina?",
+    "asking": "Lendo a configuração da máquina…",
+    "unavailable": "Nenhum provedor de IA está configurado, então isto não está disponível.",
+    "disclaimer": "Este é um palpite fundamentado na configuração da máquina e em seu último erro. Confira antes de agir com base nele.",
+    "sent": "Apenas as configurações de hardware desta máquina e seu último erro são enviados. Nada de dentro da máquina, e nenhuma chave ou senha."
+  },
+  "widgets": {
+    "vmSummary": {
+      "label": "Máquinas virtuais",
+      "description": "Quantas máquinas estão em execução, paradas ou precisam de atenção."
+    },
+    "vmResources": {
+      "label": "Recursos das máquinas virtuais",
+      "description": "Processadores, memória e disco atribuídos às máquinas em execução, por host."
+    },
+    "vmProtection": {
+      "label": "Cobertura de snapshots",
+      "description": "Convidados sem snapshot e o quão antigo é o snapshot mais recente nos demais.",
+      "unprotected_one": "de {{count}} convidado sem proteção",
+      "unprotected_other": "de {{count}} convidados sem proteção",
+      "none": "Sem snapshot",
+      "age_one": "{{count}} dia de idade",
+      "age_other": "{{count}} dias de idade"
+    },
+    "vmImports": {
+      "label": "Importações de disco",
+      "description": "Discos de terceiros sendo importados e os que pararam.",
+      "empty": "Nenhuma importação de disco",
+      "waiting_one": "{{count}} em andamento",
+      "waiting_other": "{{count}} em andamento",
+      "failed_one": "{{count}} falhou",
+      "failed_other": "{{count}} falharam"
+    }
+  },
+  "nodes": {
+    "lifecycle": {
+      "label": "Máquina virtual: ciclo de vida",
+      "description": "Inicie, desligue, pare, reinicie (reset), pause ou retome uma máquina."
+    },
+    "snapshot": {
+      "label": "Máquina virtual: snapshot",
+      "description": "Cria um snapshot como parte de um workflow."
+    },
+    "clone": {
+      "label": "Máquina virtual: clone",
+      "description": "Clona uma máquina parada ou um template."
+    },
+    "state": {
+      "label": "Máquina virtual: estado",
+      "description": "Lê uma máquina e ramifica conforme o estado em que ela está."
+    }
+  },
+  "reports": {
+    "platform": "Máquinas virtuais (KVM)",
+    "backupAssurance": {
+      "label": "Garantia de backup de máquinas virtuais",
+      "description": "Quais máquinas têm um plano de backup, com que frequência as execuções tiveram sucesso, quão antigo é o último backup válido e se cada destino recebeu sua cópia."
+    },
+    "guestStability": {
+      "label": "Estabilidade dos convidados de máquinas virtuais",
+      "description": "Falhas, paradas e resets inesperados, máquinas que continuam caindo, integridade do agente do convidado e ações de ciclo de vida que falharam ou nunca terminaram."
+    },
+    "snapshotSchedules": {
+      "label": "Agendamentos de snapshot de máquinas virtuais",
+      "description": "As execuções previstas de cada agendamento de snapshot em comparação com os snapshots criados, com execuções perdidas e com falha e se a retenção está sendo cumprida."
+    }
+  },
+  "alerts": {
+    "crashed": "Máquina virtual travou",
+    "stoppedUnexpectedly": "Máquina virtual parou inesperadamente",
+    "unknownState": "Estado da máquina virtual desconhecido",
+    "snapshotChain": "Cadeia de snapshots profunda demais",
+    "guestAgentGone": "Agente do convidado não responde",
+    "autostartFailed": "Máquina configurada para iniciar automaticamente não está em execução"
+  },
+  "backups": {
+    "title": "Backups",
+    "sourceLabel": "Máquina virtual",
+    "description": "Cópias dos discos desta máquina, gravadas em um armazenamento fora do seu host. Incrementais após a primeira, então um backup noturno move apenas o que mudou.",
+    "tabs": { "plans": "Agendamentos", "runs": "Histórico" },
+    "disabled": "Pausado",
+    "retention": {
+      "lastCount": "últimos {{count}}",
+      "forDays": "{{days}} dias",
+      "forever": "Para sempre"
+    },
+    "blocked": {
+      "noKey": "Os backups são sempre criptografados, e este McHarbor ainda não tem chave de criptografia de backup instalada. Gere ou instale uma em Operar → Backups → Configurações; até lá, um backup não teria com o que criptografar e é recusado em vez de ser gravado sem proteção.",
+      "noDestination": "Nenhum destino de armazenamento está configurado. Adicione um primeiro em Configurações → Armazenamento: um backup precisa de um lugar para ir.",
+      "noPlan": "Adicione um agendamento primeiro. É o agendamento que diz onde os backups desta máquina são gravados e por quanto tempo são mantidos, e um backup sem destino não é um backup."
+    },
+    "runNow": "Fazer backup agora",
+    "runFull": "Fazer uma cópia completa",
+    "addPlan": "Adicionar um agendamento",
+    "editPlan": "Editar",
+    "deletePlan": "Excluir este agendamento",
+    "noPlans": "Esta máquina não tem agendamento de backup.",
+    "noRuns": "Esta máquina nunca teve backup.",
+    "noDestinations": "Nenhum destino de armazenamento está configurado ainda. Adicione um em Configurações antes de agendar um backup.",
+    "restore": "Restaurar",
+    "delete": "Excluir este backup",
+    "deleteConfirm": {
+      "title": "Excluir este backup?",
+      "body": "Isto remove o backup permanentemente de todos os destinos de armazenamento. Os backups que dependem dele não poderão mais ser restaurados. Não é possível desfazer."
+    },
+    "deletePlanConfirm": {
+      "title": "Excluir este agendamento?",
+      "body": "O agendamento deixa de ser executado. Os backups que ele já fez são mantidos."
+    },
+    "kind": { "full": "Completo", "incremental": "Incremental" },
+    "status": {
+      "running": "Em execução",
+      "success": "Concluído",
+      "failure": "Falhou",
+      "cancelled": "Cancelado"
+    },
+    "consistency": {
+      "crash": "Consistente contra falhas",
+      "crashHint": "O convidado não foi quiescido, então a cópia parece de uma máquina que perdeu energia. Recuperável para um sistema de arquivos com journaling, mas não para um banco de dados no meio de uma gravação.",
+      "filesystem": "Consistente no sistema de arquivos",
+      "filesystemHint": "Os sistemas de arquivos do convidado foram congelados para a cópia por meio do agente do convidado."
+    },
+    "fellBack": "Feito como cópia completa",
+    "fellBackHint": "Um incremental foi solicitado, mas o host não pôde usar o log de alterações deste disco: {{reason}}",
+    "columns": {
+      "started": "Iniciado",
+      "kind": "Tipo",
+      "size": "Tamanho",
+      "consistency": "Consistência",
+      "destinations": "Destinos",
+      "status": "Status"
+    },
+    "planColumns": {
+      "name": "Nome",
+      "schedule": "Agendamento",
+      "retention": "Manter",
+      "destinations": "Destinos",
+      "nextRun": "Próxima execução"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Noturno",
+      "schedule": "Agendamento",
+      "scheduleHint": "Quando este backup é executado. A máquina continua em execução o tempo todo.",
+      "enabled": "Executar neste agendamento",
+      "destinations": "Destinos",
+      "destinationsHint": "Onde as cópias são gravadas. Mais de um é uma boa ideia: uma única cópia não é um backup.",
+      "retentionCount": "Manter esta quantidade de backups",
+      "retentionDays": "Manter os backups por esta quantidade de dias",
+      "retentionHint": "Zero significa manter para sempre. Um backup em que um incremental posterior ainda se baseia nunca é removido, seja qual for o valor definido aqui.",
+      "fullEvery": "Fazer uma cópia completa a cada",
+      "fullEveryUnit": "execuções",
+      "fullEveryHint": "Reiniciar a cadeia regularmente mantém uma restauração curta. Zero nunca força uma.",
+      "quiesce": "Congelar os sistemas de arquivos do convidado",
+      "quiesceHint": "Exige o agente do convidado. Sem ele, a cópia é consistente apenas contra falhas, e o backup registra isso com transparência."
+    },
+    "restoreDialog": {
+      "title": "Restaurar {{name}}",
+      "description": "Isto substitui os discos atuais da máquina pelo que este backup contém. Não é possível desfazer.",
+      "spaceNotice": "O host precisa de cerca de {{size}} livres enquanto isto é executado. Os discos atuais da máquina permanecem intocados até que os reconstruídos estejam completos, e essa segurança é o que custa o espaço extra. A restauração é recusada logo de início se não houver espaço suficiente.",
+      "needsStop": "A máquina precisa estar parada antes de ser restaurada.",
+      "chainNote": "Este é um backup incremental, então a cópia completa em que ele se baseia e todos os backups entre eles são restaurados junto.",
+      "confirm": "Entendo que os discos atuais serão substituídos",
+      "submit": "Restaurar este backup"
+    },
+    "destinationStatus": {
+      "uploading": "Enviando",
+      "success": "Armazenado",
+      "failure": "Falhou"
+    }
+  },
+  "shares": {
+    "title": "Diretórios compartilhados",
+    "description": "Diretórios no host que esta máquina pode montar diretamente, sem um compartilhamento de rede.",
+    "add": "Compartilhar um diretório",
+    "remove": "Remover este compartilhamento",
+    "tag": "Tag de montagem",
+    "tagPlaceholder": "projects",
+    "root": "Raiz permitida",
+    "subPath": "Caminho dentro dessa raiz",
+    "subPathPlaceholder": "opcional",
+    "access": "Acesso",
+    "readOnly": "Somente leitura",
+    "readWrite": "Leitura e gravação",
+    "empty": "Esta máquina não compartilha nenhum diretório.",
+    "noRoots": "Nenhum diretório tem permissão para ser compartilhado neste host ainda. Um administrador define primeiro as raízes permitidas.",
+    "restartHint": "Os compartilhamentos são conectados quando a máquina inicia. Adicionar ou remover um entra em vigor na próxima inicialização.",
+    "columns": {
+      "tag": "Tag de montagem",
+      "hostPath": "Caminho no host",
+      "access": "Acesso",
+      "mount": "Montar dentro do convidado"
+    }
+  },
+  "resize": {
+    "title": "Alterações de tamanho ao vivo",
+    "description": "A memória e os processadores podem mudar enquanto a máquina está em execução. Ambos são solicitações que o convidado pode recusar, então é exibido o que ele obteve, e não o que foi pedido.",
+    "memory": "Memória",
+    "vcpus": "Processadores",
+    "mb": "MB",
+    "processors": "processadores",
+    "apply": "Aplicar",
+    "declined": "O convidado não foi tão longe.",
+    "notRunning": "A máquina precisa estar em execução para isso.",
+    "noVirtioMem": "Esta máquina não tem dispositivo de memória redimensionável. Habilite-o e reinicie a máquina.",
+    "noHeadroom": "Esta máquina foi iniciada sem espaço para adicionar processadores. Aumentar o limite exige reinicialização.",
+    "memoryBoot": "Tamanho de boot: {{boot}} MB.",
+    "memoryNow": "Tamanho de boot: {{boot}} MB, atualmente {{now}} MB.",
+    "memoryResult": "Solicitado {{requested}} MB, o convidado tem {{actual}} MB.",
+    "vcpusCeiling": "Até {{max}} processadores sem reinicialização.",
+    "vcpusResult": "Solicitado {{requested}}, o convidado tem {{actual}}."
+  },
+  "limits": {
+    "title": "Limites de E/S do disco {{slot}}",
+    "description": "Limita o quanto esta máquina pode pressionar o armazenamento do host. Caso contrário, um convidado executando uma restauração pode sufocar todos os outros convidados do host.",
+    "open": "Limites de E/S",
+    "readIops": "Operações de leitura por segundo",
+    "writeIops": "Operações de gravação por segundo",
+    "readMbps": "Leitura em MB/s",
+    "writeMbps": "Gravação em MB/s",
+    "zeroHint": "Zero significa sem limite. Um limite de largura de banda abaixo de 1 MB/s deixa o convidado incapaz de iniciar e é recusado.",
+    "unlimited": "Sem limite",
+    "upToMbps": "até {{value}} MB/s",
+    "upToIops": "até {{value}} IOPS"
+  },
+  "inspect": {
+    "title": "Inspecionar o disco {{slot}}",
+    "description": "Verificações somente leitura na própria imagem de disco, executadas pelo host.",
+    "open": "Inspecionar este disco",
+    "operation": "Verificação",
+    "run": "Executar",
+    "repair": "Reparar o que foi encontrado",
+    "repairAvailable": "A máquina está parada, então o reparo está disponível.",
+    "repairNeedsStop": "Reparar uma imagem que uma máquina em execução mantém aberta a corromperia. Pare a máquina primeiro.",
+    "operations": {
+      "info": "Detalhes da imagem e cadeia de backing",
+      "check": "Verificação de consistência",
+      "map": "Quais partes vêm de onde",
+      "measure": "O que esta imagem realmente ocupa"
+    }
+  },
+  "hostFeature": {
+    "unavailable": "O QEMU deste host não consegue fazer isto: {{feature}} não está disponível.",
+    "unknown": "O McHarbor não conseguiu ler os recursos do QEMU deste host.",
+    "qemuVersion": "QEMU {{version}}",
+    "machineTypeMissing": "Este convidado está fixado no tipo de máquina {{type}}, que o QEMU deste host não oferece mais. Ele não iniciará até que o tipo de máquina seja alterado.",
+    "names": {
+      "virtio_mem": "hotplug de memória virtio-mem",
+      "cpu_hotplug": "hotplug de vCPU",
+      "hugepages": "hugepages",
+      "numa": "pinning de NUMA",
+      "virtiofs": "diretórios compartilhados virtiofs",
+      "vsock": "vhost-vsock",
+      "io_throttle": "limitação de E/S",
+      "iothread": "threads de E/S dedicadas",
+      "dirty_bitmap": "bitmaps sujos",
+      "blockdev_backup": "backup incremental",
+      "virtio_gpu": "vídeo virtio-gpu",
+      "virtio_snd": "som virtio",
+      "usb_u2f": "token U2F virtual",
+      "spice": "consoles SPICE",
+      "clone": "clonagem",
+      "migrate_cold": "migração",
+      "migrate_live": "migração ao vivo",
+      "serial_resize": "redimensionamento do console serial",
+      "hotplug": "hot-plug",
+      "display_resize": "redimensionamento da tela do console"
+    }
+  },
+  "err": {
+    "vm": {
+      "display_profile_not_found": "Esse perfil de exibição não existe mais.",
+      "display_profile_builtin": "Os perfis de exibição integrados não podem ser editados nem excluídos. Duplique um para alterá-lo.",
+      "display_profile_in_use": "Ainda há máquinas virtuais usando este perfil de exibição. Mova-as para Fast LAN e exclua-o, ou atribua-lhes outro perfil antes.",
+      "display_profile_name_taken": "Já existe um perfil de exibição com esse nome.",
+      "display_profile_name_required": "Um perfil de exibição precisa de um nome sem caracteres de controle.",
+      "display_profile_name_too_long": "Esse nome ou descrição é longo demais.",
+      "display_profile_option_invalid": "Uma das opções do SPICE tem um valor que o QEMU não aceita.",
+      "display_profile_unknown": "Esse perfil de exibição não existe.",
+      "boot_disk_running": "O disco de inicialização não pode ser removido nem alterado enquanto a máquina está em execução. Pare a máquina primeiro.",
+      "hotplug_unavailable": "Este host não pode alterar o hardware de uma máquina em execução. Pare a máquina primeiro.",
+      "hotplug_restart_required": "Esta máquina foi iniciada antes de o hardware poder ser alterado em execução. Reinicie-a uma vez para ativar o hot-plug.",
+      "hotplug_bus_unsupported": "Um disco SATA ou IDE não pode ser adicionado nem removido de uma máquina em execução. Use virtio-blk ou virtio-scsi, ou pare a máquina primeiro.",
+      "hotplug_no_controller": "Esta máquina ainda não tem controladora SCSI. Adicione o primeiro disco SCSI enquanto ela estiver parada.",
+      "hotplug_no_free_port": "Esta máquina não tem slot de hot-plug livre para esse dispositivo. Pare-a para adicionar mais.",
+      "hotplug_fixed_device": "Este dispositivo está em um barramento que não permite removê-lo enquanto a máquina está em execução. Pare a máquina para removê-lo.",
+      "hotplug_guest_refused": "O sistema operacional da máquina não liberou o dispositivo, então nada foi removido. Alguns kernels convidados não têm driver de hot-plug PCI e nunca liberam um dispositivo (o Home Assistant OS é um deles); pare a máquina e remova o dispositivo então.",
+      "media_no_drive": "Esta máquina não tem unidade de disco vazia. Ejete primeiro um disco, ou pare a máquina para adicionar uma unidade.",
+      "no_destination": "Este backup não tem para onde ir. Adicione pelo menos um destino de armazenamento ao plano.",
+      "chain_incomplete": "Este backup se baseia em um anterior que não está mais disponível, então não pode ser restaurado sozinho.",
+      "backup_too_many_destinations": "Um plano de backup pode gravar em no máximo dez destinos. Remova alguns e tente novamente.",
+      "backup_destination_gone": "Um dos destinos de armazenamento deste plano não existe mais. Edite o plano e escolha um destino que exista.",
+      "backup_storage_unavailable": "Nenhum destino de armazenamento está configurado. Adicione um destino de armazenamento antes de fazer um backup.",
+      "backup_no_disks": "Esta máquina não tem discos que um backup possa cobrir. Discos de instalação e discos somente leitura são ignorados.",
+      "backup_keep_range": "Uma configuração de retenção ou de cópia completa está fora do intervalo. Use 0 para sempre ou nunca, ou um número menor.",
+      "backup_plan_needs_schedule": "Um plano não pode ser ativado sem um agendamento. Defina um agendamento cron ou deixe o plano desativado.",
+      "backup_not_restorable": "Somente um backup concluído com sucesso pode ser restaurado.",
+      "restore_not_confirmed": "Uma restauração substitui os discos atuais da máquina, então precisa ser confirmada.",
+      "no_resizable_memory": "Esta máquina não tem dispositivo de memória redimensionável. Habilite-o e reinicie a máquina antes que sua memória possa mudar durante a execução.",
+      "invalid_resize": "Esse tamanho está fora do que esta máquina foi iniciada com.",
+      "unsupported_image_op": "Essa operação de disco não está disponível.",
+      "share_tag_taken": "Esta máquina já compartilha um diretório com essa tag de montagem.",
+      "share_path_refused": "Esse caminho não está dentro de um diretório que este host permite compartilhar. Um administrador define as raízes permitidas por host.",
+      "vault_unavailable": "Este McHarbor não dá ao plugin Máquinas virtuais acesso ao cofre de segredos. Atualize o plugin ou digite a senha e as chaves.",
+      "vault_denied": "Você precisa de secrets.view neste ambiente para usar aqui um segredo do cofre.",
+      "vault_secret_not_found": "Nenhum segredo com esse nome está visível neste ambiente.",
+      "password_and_secret": "Digite uma senha ou escolha um segredo para ela, não os dois.",
+      "unauthorized": "Você não está conectado.",
+      "invalid_request": "Algo nesse formulário não era válido.",
+      "user_data_masked": "Os user-data do cloud-init ainda contêm valores mascarados (••••••••). Informe os valores reais antes de criar a máquina.",
+      "not_found": "Essa máquina virtual não existe mais.",
+      "name_taken": "Uma máquina virtual neste host já tem esse nome.",
+      "running": "Pare a máquina primeiro.",
+      "not_running": "A máquina não está em execução.",
+      "host_offline": "Não é possível alcançar o host desta máquina. Os comandos nunca ficam na fila para depois: reconecte o agente e tente novamente.",
+      "no_capability": "Este host não pode executar máquinas virtuais. Veja o que falta na página Compute.",
+      "disk_shrink": "Um disco não pode ser reduzido.",
+      "snapshot_chain_deep": "Esta máquina tem snapshots empilhados demais. Remova um primeiro.",
+      "template_in_use": "Este template tem cópias que compartilham seus dados.",
+      "template_running": "Um template não pode ser iniciado. Clone-o em vez disso.",
+      "command_failed": "O host não conseguiu concluir isso:",
+      "not_ready": "Esta seção ainda está iniciando. Tente novamente em instantes.",
+      "media_path": "Esse não é um disco instalador utilizável. Deve ser uma imagem de disco no host.",
+      "guest_disc_pending": "O host ainda está preparando o disco do agente do convidado. Tente novamente em instantes.",
+      "not_media": "Esse disco não é um disco instalador.",
+      "host_required": "Escolha um host para esta máquina virtual.",
+      "name_required": "Um nome é obrigatório.",
+      "name_too_long": "Esse nome tem mais de 120 caracteres.",
+      "name_leading": "Um nome não pode começar com hífen ou sublinhado.",
+      "name_invalid": "Um nome não pode conter caracteres de controle.",
+      "vcpus_invalid": "Esse não é um número utilizável de processadores.",
+      "memory_too_small": "Uma máquina virtual precisa de pelo menos 128 MB de memória.",
+      "memory_ceiling": "O limite de memória não pode ser menor que a memória inicial.",
+      "pool_required": "Um pool de armazenamento é obrigatório.",
+      "pool_mismatch": "Esse pool já está registrado com outro backend ou caminho neste host. Escolha o pool novamente na lista.",
+      "disk_required": "Um tamanho de disco é obrigatório.",
+      "network_required": "Uma rede é obrigatória.",
+      "firmware_invalid": "Esse não é um tipo de firmware.",
+      "secure_boot_needs_uefi": "O Secure Boot exige firmware UEFI.",
+      "display_invalid": "Esse não é um adaptador de vídeo.",
+      "display_resolution_invalid": "Essa não é uma resolução de boot utilizável. Use uma largura de 640 a 7680 e uma altura de 480 a 4320 pixels, ou deixe os dois no padrão do QEMU.",
+      "cpu_model_invalid": "Esse modelo de CPU não pode ser usado.",
+      "machine_invalid": "Esse tipo de máquina não pode ser usado.",
+      "disk_bus_invalid": "Esse não é um barramento de disco.",
+      "invalid_cron": "Essa não é uma expressão cron válida de cinco campos.",
+      "invalid_keep": "Mantenha entre 1 e 100 snapshots.",
+      "import_empty": "Nenhum arquivo foi enviado.",
+      "import_too_large": "Esse arquivo é maior que o limite de importação.",
+      "import_extension": "Esse arquivo não é uma imagem de disco que o McHarbor possa importar.",
+      "import_state": "Essa importação ainda não está pronta para esta etapa.",
+      "import_staging": "Não é possível gravar no diretório de staging da importação. Os detalhes estão no log do servidor.",
+      "volume_path": "Esse disco não está dentro do pool de armazenamento escolhido.",
+      "volume_unavailable": "Esse disco não está mais livre. Atualize e escolha outro.",
+      "snapshot_branched": "Este snapshot tem mais de um ramo abaixo dele. Remova primeiro um dos ramos.",
+      "snapshot_too_many": "Esta máquina tem tantos snapshots quanto consegue comportar. Remova um primeiro.",
+      "snapshot_name_required": "Um nome de snapshot é obrigatório.",
+      "snapshot_name_too_long": "Esse nome de snapshot tem mais de 120 caracteres.",
+      "snapshot_name_invalid": "Um nome de snapshot não pode conter quebras de linha.",
+      "migrate_same_host": "A máquina já está nesse host. Escolha outro destino.",
+      "migrate_in_flight": "Esta máquina já está sendo movida.",
+      "migrate_unsupported": "Um host envolvido não pode realizar esta movimentação. Atualize o agente dele ou tente uma movimentação a frio.",
+      "migrate_snapshots": "Máquinas com snapshots não podem ser movidas. Exclua ou mescle os snapshots primeiro.",
+      "migrate_devices": "Máquinas com dispositivos do host em passthrough não podem ser movidas. Desanexe-os primeiro.",
+      "migrate_shares": "Máquinas com diretórios do host compartilhados não podem ser movidas. Remova os compartilhamentos primeiro.",
+      "migrate_tpm": "Máquinas com um TPM virtual ainda não podem ser movidas.",
+      "migrate_media": "Ejete o disco de instalação antes de mover esta máquina.",
+      "migrate_forbidden": "Você precisa de permissão para mover máquinas nos dois hosts.",
+      "migrate_address": "Esse endereço de destino não pode ser usado para uma movimentação ao vivo.",
+      "migration_none": "Esta máquina não está sendo movida.",
+      "spice_unavailable": "O host desta máquina não pode fornecer um console SPICE. O QEMU dele não tem suporte a SPICE ou o agente é antigo demais."
+    }
+  },
+  "msg": {
+    "vm": {
+      "display_profile_created": "Perfil de exibição criado.",
+      "display_profile_updated": "Perfil de exibição salvo. As máquinas virtuais que o usam o aplicarão na próxima inicialização.",
+      "display_profile_deleted": "Perfil de exibição excluído.",
+      "backup_started": "Backup iniciado.",
+      "backup_stored": "Backup recebido.",
+      "backup_plan_saved": "Agendamento de backup salvo.",
+      "backup_plan_deleted": "Agendamento de backup excluído.",
+      "restore_started": "Restauração iniciada.",
+      "throttle_saved": "Limites de disco salvos.",
+      "share_added": "Diretório compartilhado adicionado.",
+      "share_removed": "Diretório compartilhado removido.",
+      "guest_refreshed": "Detalhes solicitados ao convidado.",
+      "created": "Máquina virtual criada.",
+      "updated": "Alterações salvas.",
+      "started": "Iniciando.",
+      "stopped": "Parada.",
+      "shutdown_escalated": "A máquina não desligou por conta própria e foi parada.",
+      "deleted": "Excluída.",
+      "snapshot_created": "Snapshot criado.",
+      "snapshot_reverted": "Voltou ao snapshot.",
+      "cloned": "Cópia criada.",
+      "templated": "Template atualizado.",
+      "disk_added": "Disco adicionado.",
+      "device_attached": "Dispositivo conectado.",
+      "media_attached": "Disco inserido.",
+      "guest_agent_disc_attached": "Disco do agente do convidado inserido.",
+      "media_ejected": "Disco ejetado.",
+      "schedule_saved": "Agendamento de snapshot salvo.",
+      "schedule_deleted": "Agendamento de snapshot removido.",
+      "schedule_ran": "Snapshot criado.",
+      "import_uploaded": "Envio concluído.",
+      "import_converted": "A máquina foi importada.",
+      "import_deleted": "Importação removida.",
+      "migration_started": "Movimentação iniciada.",
+      "migration_cancel_requested": "Os hosts foram solicitados a interromper a movimentação."
+    }
+  },
+  "permissions": {
+    "vm.view": {
+      "label": "Ver máquinas virtuais"
+    },
+    "vm.manage": {
+      "label": "Gerenciar máquinas virtuais"
+    },
+    "vm.delete": {
+      "label": "Excluir máquinas virtuais"
+    },
+    "vm.console": {
+      "label": "Abrir o console de uma máquina virtual"
+    },
+    "vm.privileged": {
+      "label": "Conectar dispositivos do host a máquinas virtuais"
+    },
+    "vm.import": {
+      "label": "Importar máquinas virtuais de outros hipervisores"
+    },
+    "vm.migrate": {
+      "label": "Mover máquinas virtuais entre hosts"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "unknownNote": "Não é possível alcançar este host, então apenas configurações administrativas podem ser alteradas.",
+    "appliesAtBoot": "Aplicado na próxima vez que esta máquina iniciar.",
+    "firmwareWarning": "Trocar o firmware impedirá que um convidado instalado inicie.",
+    "save": "Salvar configurações",
+    "saved": "Configurações salvas.",
+    "noChanges": "Nada foi alterado ainda.",
+    "fields": {
+      "name": "Nome",
+      "description": "Descrição",
+      "vcpus": "Processadores",
+      "memoryMb": "Memória (MB)",
+      "memoryMaxMb": "Limite de memória (MB)",
+      "memoryMaxHint": "Deixe em 0 para não ter limite.",
+      "cpuModel": "Modelo de CPU",
+      "machineType": "Tipo de máquina",
+      "firmware": "Firmware",
+      "secureBoot": "Inicialização segura",
+      "tpmEnabled": "TPM 2.0",
+      "displayType": "Adaptador de vídeo",
+      "autostart": "Iniciar com o host",
+      "autostartOrder": "Ordem de inicialização",
+      "autostartDelaySeconds": "Atraso de inicialização (segundos)",
+      "vcpusValue": "{{count}} processador",
+      "vcpusValue_other": "{{count}} processadores",
+      "cpuModelHint": "Deixe vazio para host, que repassa a CPU do host.",
+      "cpuModelHost": "host — o mais rápido, mas esta máquina não pode ser movida para outro host",
+      "vcpusMax": "Limite de processadores",
+      "vcpusMaxHint": "Quantos processadores esta máquina pode ganhar durante a execução. É fixado quando ela inicia, então aumentá-lo exige reinicialização. Zero significa sem crescimento.",
+      "virtioMem": "Memória redimensionável",
+      "virtioMemHint": "Permite que a memória mude enquanto a máquina está em execução, nos dois sentidos. Exige um limite de memória acima do tamanho de boot e substitui o balloon.",
+      "hugePages": "Hugepages",
+      "hugePagesHint": "Sustenta a memória desta máquina com hugepages, o que costuma ser 5-15% mais rápido em cargas que usam muita memória. A memória de hugepages não pode sofrer swap, então um host com overcommit fica sem memória em vez de ficar lento.",
+      "numaPolicy": "Posicionamento NUMA",
+      "numaPolicyHint": "Como a memória e os processadores desta máquina são distribuídos entre os domínios de memória do host. Só importa em um host com mais de um.",
+      "numaNode": "Domínio de memória do host",
+      "numaNodeHint": "Em qual dos domínios de memória do host esta máquina é mantida.",
+      "numaNodeLabel": "Domínio {{id}}",
+      "numaNodeFree": "{{free}} GB livres, {{cpus}} processadores neste domínio.",
+      "numaNone": "Sem posicionamento",
+      "numaPin": "Manter em um domínio",
+      "numaMirror": "Espelhar o layout do host",
+      "ioThread": "Thread de E/S dedicada",
+      "ioThreadHint": "Move a E/S de disco desta máquina para uma thread própria, para que o uso intenso de disco não trave o resto da máquina.",
+      "vsock": "Canal direto com o host",
+      "vsockHint": "Um canal de socket entre host e convidado que não precisa de rede, de endereço nem de regra de firewall.",
+      "vsockAssigned": "ID de contexto {{cid}}. Alocado pelo McHarbor e único neste host.",
+      "displayAuto": "Automático",
+      "bootResolution": "Resolução de boot",
+      "bootResolutionHint": "O tamanho de tela com que o convidado inicia. Redimensionar convidado para a janela ainda acompanha o console quando o convidado oferece suporte. Vale a partir da próxima inicialização.",
+      "bootResolutionDefault": "Padrão do QEMU",
+      "bootResolutionCustom": "Personalizada",
+      "bootResolutionWidth": "Largura",
+      "bootResolutionHeight": "Altura",
+      "bootResolutionUnsupported": "Só virtio-gpu e QXL aceitam uma resolução de boot.",
+      "bootResolutionRange": "Use uma largura de {{minWidth}} a {{maxWidth}} e uma altura de {{minHeight}} a {{maxHeight}} pixels.",
+      "autostartOrderHint": "Números menores iniciam primeiro.",
+      "displayNone": "Nenhum"
+    },
+    "hostSummary": "O host tem {{cpus}} processadores e {{memory}}",
+    "hostUnknown": "Não foi possível ler este host, então nenhum limite é aplicado.",
+    "cpuNote": "{{cores}} núcleos físicos com {{threads}} threads. Até {{ideal}} vCPUs executam sem nenhuma contenção; a faixa verde termina em {{safe}}.",
+    "cpuOverSafe": "Este convidado pede {{value}}, acima dos {{safe}} que este host consegue sustentar enquanto {{others}} vCPUs já estão em execução. Ele ainda iniciará, mas todos os convidados do host serão escalonados mais lentamente.",
+    "memoryNote": "{{reserve}} ficam reservados para o próprio host e para o overhead do QEMU.",
+    "sections": {
+      "features": "Recursos do QEMU",
+      "featuresDescription": "Recursos que o QEMU do host pode oferecer a esta máquina. Cada um altera como ela é iniciada, então todos são aplicados na próxima inicialização.",
+      "identity": "Identidade",
+      "identityDescription": "Como esta máquina é chamada no McHarbor.",
+      "resources": "Processadores e memória",
+      "platform": "Plataforma",
+      "platformDescription": "Firmware, chipset e o adaptador de vídeo que o convidado enxerga.",
+      "startup": "Inicialização",
+      "startupDescription": "Se esta máquina volta junto com o host e em que ordem."
+    },
+    "needsStop": "Exige parada",
+    "memoryNoteShared": "{{reserve}} ficam reservados para o host, e {{used}} estão em uso por outros convidados em execução.",
+    "overBudget": "Este convidado pede {{value}}, mais que os {{max}} que o host tem sobrando para ele."
+  },
+  "schedules": {
+    "intro": "Um agendamento cria snapshots por conta própria e mantém os mais recentes, como um plano de backup. A retenção só remove snapshots que esse agendamento criou: qualquer coisa que você nomeou por conta própria é preservada.",
+    "add": "Adicionar agendamento",
+    "addTitle": "Novo agendamento de snapshot",
+    "editTitle": "Editar agendamento de snapshot",
+    "dialogBody": "Os snapshots são criados no horário local do host.",
+    "defaultName": "Snapshots diários",
+    "empty": "Esta máquina ainda não tem agendamento de snapshot.",
+    "enabled": "Habilitado",
+    "disabled": "Pausado",
+    "withMemory": "Com memória",
+    "keeps": "Mantém {{count}}",
+    "next": "próximo {{when}}",
+    "runNow": "Executar agora",
+    "remove": "Remover agendamento",
+    "history": "Execuções recentes",
+    "pruned": "{{count}} removidos",
+    "status": {
+      "running": "Em execução",
+      "success": "Concluído",
+      "failure": "Falhou"
+    },
+    "confirmRemove": {
+      "title": "Remover este agendamento?",
+      "body": "Os snapshots que ele já criou são mantidos. Apenas a política é removida."
+    },
+    "field": {
+      "name": "Nome",
+      "cron": "Agendamento",
+      "cronHelp": "Cron de cinco campos, no fuso horário do próprio servidor. `0 2 * * *` é toda noite às 02:00.",
+      "keep": "Snapshots a manter",
+      "keepHelp": "Quando houver mais do que isso, os mais antigos criados por este agendamento são excluídos.",
+      "memory": "Incluir memória",
+      "memoryHelp": "Salva a RAM da máquina além dos discos, para que uma restauração retome em vez de fazer boot. O convidado fica pausado enquanto ela é gravada, o que em uma máquina grande leva de segundos a minutos.",
+      "enabled": "Habilitado",
+      "pause": "Pausar a máquina quando ela não tem agente do convidado",
+      "pauseHelp": "Um snapshot agendado de uma máquina sem agente do convidado para os processadores dela por alguns segundos, cria o snapshot e a inicia de novo. Sem isso, o snapshot equivale a puxar a tomada."
+    }
+  },
+  "import": {
+    "title": "Importar uma máquina virtual",
+    "body": "Traga uma máquina do VMware, Hyper-V, VirtualBox ou Parallels. O disco é convertido no host que você escolher, então nada grande passa duas vezes pelo McHarbor.",
+    "formats": "Aceita appliances OVA e OVF, e discos VMDK, VHDX, VHD, VDI, HDD, QCOW2 e raw.",
+    "choose": "Escolher um arquivo",
+    "uploading": "Enviando… {{percent}}%",
+    "inspect": "Ler este arquivo",
+    "convert": "Importar",
+    "converting": "Convertendo. Um disco grande leva um tempo: você pode fechar isto e a conversão continua em execução.",
+    "failed": "A importação não foi concluída",
+    "warnings": "Algumas configurações não serão transferidas",
+    "disks": "Discos encontrados",
+    "bootDisk": "disco de boot",
+    "firmware": {
+      "bios": "BIOS",
+      "uefi": "UEFI"
+    },
+    "field": {
+      "host": "Host",
+      "hostHelp": "A máquina que lê e converte o arquivo e na qual o convidado será executado.",
+      "name": "Nome",
+      "pool": "Pool de armazenamento",
+      "poolPlaceholder": "Escolha um pool",
+      "network": "Rede",
+      "networkPlaceholder": "Escolha uma rede",
+      "vcpus": "Processadores",
+      "memory": "Memória (MB)",
+      "firmware": "Firmware",
+      "firmwareHelp": "Corresponda ao que a máquina usava na instalação. Uma instalação BIOS não inicia sob UEFI e não mostra nada na tela quando está errado.",
+      "autostart": "Iniciar com o host",
+      "secureBoot": "Inicialização segura",
+      "secureBootHelp": "Somente UEFI. O Windows 11 espera por ele; um convidado mais antigo não iniciará com ele ativado.",
+      "tpm": "TPM virtual",
+      "tpmHelp": "Um TPM 2.0 por software, exigido pelo Windows 11.",
+      "guestOs": "Sistema operacional do convidado",
+      "guestOsHelp": "Define o adaptador de vídeo e a placa de rede que o convidado recebe. O Windows não tem driver para os dispositivos virtio dados a um convidado Linux e inicia com tela preta e sem rede."
+    },
+    "background": "Executar em segundo plano",
+    "reopen": "Mostrar",
+    "dismiss": "Dispensar esta importação",
+    "phase": {
+      "uploading": "Enviando",
+      "uploaded": "Enviado, aguardando leitura",
+      "inspecting": "Lendo o arquivo",
+      "inspected": "Lido, aguardando importação",
+      "converting": "Convertendo no host",
+      "failed": "Falha na importação"
+    },
+    "pending": {
+      "title": "Enviado, aguardando importação",
+      "continue": "Continuar",
+      "discard": "Descartar este envio"
+    },
+    "state": {
+      "pending": "Aguardando",
+      "uploaded": "Enviado",
+      "inspecting": "Lendo",
+      "inspected": "Lido",
+      "converting": "Convertendo",
+      "converted": "Importado",
+      "failed": "Falhou",
+      "ready": "Pronto"
+    },
+    "tab": "Conversão",
+    "tabDescription": "Arquivos que foram enviados, mas ainda não convertidos em um convidado.",
+    "emptyTitle": "Nada aguardando conversão",
+    "emptyDescription": "Envie um VMDK, VHDX, QCOW2 ou OVA pela aba Máquinas virtuais e ele aparecerá aqui até se tornar um convidado.",
+    "columns": {
+      "file": "Arquivo",
+      "format": "Formato",
+      "size": "Tamanho",
+      "state": "Estado",
+      "uploaded": "Enviado",
+      "actions": "Ações"
+    },
+    "actions": {
+      "convert": "Converter",
+      "cancel": "Cancelar",
+      "delete": "Excluir envio"
+    },
+    "staged": "Este arquivo está em {{host}}. A conversão é executada lá.",
+    "guestOs": {
+      "linux": "Linux",
+      "windows": "Windows",
+      "bsd": "BSD",
+      "other": "Outro"
+    }
+  },
+  "logs": {
+    "source": "Registro",
+    "sources": {
+      "vm": "Máquina virtual (QEMU)",
+      "tpm": "Chip de segurança (swtpm)"
+    },
+    "tail": "Linhas",
+    "exportName": "{{name}}-{{source}}.log",
+    "liveHint": "Acompanhamento ao vivo: o journal é relido a cada poucos segundos enquanto isto estiver ativado.",
+    "lines_one": "Última {{count}} linha",
+    "lines_other": "Últimas {{count}} linhas",
+    "loading": "Lendo o log do host…",
+    "empty": "Esta unidade ainda não gravou nada.",
+    "failed": "Não foi possível ler o log",
+    "partial": "O log está incompleto",
+    "notices": {
+      "journalctl_failed": "O host não conseguiu ler o journal desta unidade. Talvez ainda não tenha entradas.",
+      "no_supported_log_source": "Este host não tem journalctl, então os logs de unidade não podem ser lidos.",
+      "permission_denied": "O agente não tem permissão para ler este journal."
+    }
+  },
+  "progress": {
+    "elapsed": "{{seconds}} s"
+  },
+  "runbook": {
+    "attach": {
+      "vm": "Máquina virtual"
+    },
+    "targets": {
+      "vm": "Máquina virtual"
+    },
+    "steps": {
+      "vm_start": "Iniciar a máquina virtual",
+      "vm_shutdown": "Desligar a máquina virtual via ACPI, forçando o desligamento após o período de tolerância",
+      "vm_reset": "Reiniciar a máquina virtual à força, como ao pressionar o botão de reset",
+      "vm_force_stop": "Desligar a máquina virtual imediatamente, sem consultar o convidado",
+      "vm_snapshot_create": "Criar um snapshot da máquina virtual",
+      "vm_state": "O estado, o hardware e o host da máquina virtual",
+      "vm_snapshots": "Os snapshots da máquina virtual"
+    }
+  },
+  "migrate": {
+    "title": "Mover {{name}} para outro host",
+    "description": "Copia os discos e a definição da máquina para outro host e a executa lá. O original é removido quando a movimentação é concluída com sucesso.",
+    "target": "Host de destino",
+    "targetPlaceholder": "Escolha um host",
+    "noTargets": "Nenhum outro host pode receber esta máquina. Um destino precisa ter a computação ativada e o agente conectado.",
+    "pool": "Pool de armazenamento",
+    "poolPlaceholder": "Escolha um pool no destino",
+    "live": "Mover em execução",
+    "liveHint": "A máquina continua em execução enquanto sua memória e seus discos são copiados e faz uma breve pausa no final.",
+    "coldHint": "A máquina é desligada, copiada e iniciada novamente no destino se estava em execução.",
+    "liveNeedsRunning": "Somente uma máquina em execução pode ser movida ao vivo.",
+    "address": "Endereço de destino",
+    "addressPlaceholder": "Deixe vazio para usar o primeiro endereço informado pelo destino",
+    "bandwidth": "Limite de largura de banda (MB/s)",
+    "downtime": "Pausa mais longa (ms)",
+    "networks": "Redes no destino",
+    "networksHint": "Uma interface mantida em sua bridge atual precisa de uma bridge com o mesmo nome no destino.",
+    "networkFor": "Rede para {{mac}}",
+    "keepBridge": "Manter {{bridge}}",
+    "review": "Revisar",
+    "submit": "Mover máquina",
+    "summary": {
+      "from": "De",
+      "to": "Para",
+      "mode": "Como",
+      "live": "Ao vivo, em execução",
+      "cold": "Desligar e depois copiar"
+    },
+    "confirmLive": "A máquina continua ativa, mas sua memória e seus discos trafegam pela rede. Ela faz uma breve pausa antes de continuar no destino.",
+    "confirmCold": "A máquina é desligada e fica inacessível até que seus discos sejam copiados e ela seja iniciada no destino.",
+    "cancelMigration": "Interromper a movimentação",
+    "percent": "{{percent}}% concluído",
+    "runningHint": "A movimentação continua nos hosts se você fechar esta caixa de diálogo.",
+    "failed": "A movimentação falhou",
+    "state": {
+      "running": "Movendo para {{target}}.",
+      "completed": "A máquina agora é executada em {{target}}.",
+      "failed": "A movimentação para {{target}} não foi concluída. A máquina ainda está no host original.",
+      "cancelled": "A movimentação para {{target}} foi interrompida. A máquina ainda está no host original."
+    }
+  },
+  "estate": {
+    "vms": "Máquinas virtuais"
+  },
+  "search": {
+    "group": {
+      "vms": "Máquinas virtuais"
+    },
+    "action": {
+      "createVm": "Criar máquina virtual",
+      "createVmKeywords": "nova vm kvm convidado máquina",
+      "importVm": "Importar máquina virtual",
+      "importVmKeywords": "importar ova vmdk vhdx vmware hyper-v virtualbox disco"
+    }
+  },
+  "displayProfiles": {
+    "tab": "Perfis de exibição",
+    "title": "Perfis de exibição",
+    "description": "As configurações do SPICE com as quais uma máquina virtual inicia. O console do navegador decodifica em JavaScript, então elas decidem se o tempo é gasto decodificando ou desenhando.",
+    "create": "Novo perfil",
+    "builtinBadge": "Integrado",
+    "builtinReadOnly": "Os perfis integrados são somente leitura. Duplique um para alterá-lo.",
+    "appliesNextStart": "Aplicado na próxima inicialização",
+    "empty": {
+      "title": "Nenhum perfil de exibição",
+      "body": "Os perfis integrados aparecem quando o plugin for iniciado."
+    },
+    "columns": {
+      "name": "Nome",
+      "image": "Imagens",
+      "streaming": "Streaming de vídeo",
+      "jpeg": "JPEG em links lentos",
+      "playback": "Compressão de áudio",
+      "vms": "Máquinas virtuais",
+      "actions": "Ações"
+    },
+    "actions": {
+      "edit": "Editar",
+      "duplicate": "Duplicar",
+      "delete": "Excluir"
+    },
+    "builtin": {
+      "fastLan": {
+        "name": "LAN rápida",
+        "description": "Imagens sem compressão: a maior largura de banda, o menor trabalho para o navegador."
+      },
+      "balanced": {
+        "name": "Equilibrado",
+        "description": "LZ para conteúdo da área de trabalho, JPEG em um link lento."
+      },
+      "lowBandwidth": {
+        "name": "Baixa largura de banda",
+        "description": "JPEG com perdas e streaming MJPEG em todo lugar: o menor número de bytes."
+      }
+    },
+    "values": {
+      "auto_glz": "Automático (GLZ)",
+      "auto_lz": "Automático (LZ)",
+      "quic": "QUIC",
+      "glz": "GLZ",
+      "lz": "LZ",
+      "off": "Desativado",
+      "auto": "Automático",
+      "never": "Nunca",
+      "always": "Sempre",
+      "all": "Tudo",
+      "filter": "Somente vídeo detectado",
+      "on": "Ativado"
+    },
+    "options": {
+      "imageCompression": {
+        "label": "Compressão de imagem",
+        "hint": "Desativado envia imagens brutas: a maior largura de banda e o desenho mais rápido no navegador. O LZ é barato de decodificar. O QUIC serve para fotos, mas é lento de decodificar em JavaScript. As opções GLZ não podem ser desenhadas pelo console do navegador; use-as apenas com o remote-viewer."
+      },
+      "jpegWanCompression": {
+        "label": "JPEG em links lentos",
+        "hint": "JPEG com perdas para áreas semelhantes a fotos, quando o link é lento ou sempre. O navegador decodifica JPEG nativamente, então é barato; suaviza detalhes finos."
+      },
+      "zlibGlzWanCompression": {
+        "label": "Zlib sobre GLZ em links lentos",
+        "hint": "Compressão extra somente para imagens GLZ. O console do navegador não consegue decodificá-la; deixe em Nunca, a menos que use o remote-viewer."
+      },
+      "streamingVideo": {
+        "label": "Streaming de vídeo",
+        "hint": "Envia as áreas que mudam rapidamente como um fluxo MJPEG. Somente vídeo detectado mantém o texto nítido; Tudo transmite cada área ativa, com menos bytes e mais desfoque; Desativado redesenha tudo como imagens."
+      },
+      "playbackCompression": {
+        "label": "Compressão de áudio",
+        "hint": "Áudio compactado com Opus. O console do navegador reproduz apenas Opus, então Desativado silencia o som ali."
+      },
+      "agentMouse": {
+        "label": "Modo de mouse do cliente",
+        "hint": "Com o agente convidado em execução, o ponteiro segue seu próprio mouse sem atraso. Desativado volta ao modo de mouse do servidor."
+      }
+    },
+    "dialog": {
+      "createTitle": "Novo perfil de exibição",
+      "editTitle": "Editar {{name}}",
+      "name": "Nome",
+      "descriptionLabel": "Descrição",
+      "nameRequired": "Um perfil precisa de um nome.",
+      "nextStartNote": "As máquinas virtuais que usam este perfil aplicam uma alteração na próxima inicialização.",
+      "save": "Salvar perfil"
+    },
+    "delete": {
+      "title": "Excluir {{name}}?",
+      "body": "Nenhuma máquina virtual usa este perfil. Ele é removido definitivamente.",
+      "bodyInUse_one": "{{count}} máquina virtual usa este perfil. Ela passa para Fast LAN, aplicado na próxima inicialização, e o perfil é removido.",
+      "bodyInUse_other": "{{count}} máquinas virtuais usam este perfil. Elas passam para Fast LAN, aplicado na próxima inicialização, e o perfil é removido.",
+      "confirm": "Excluir perfil",
+      "reassignConfirm": "Mover para Fast LAN e excluir"
+    },
+    "settings": {
+      "title": "Perfil de exibição",
+      "description": "As configurações do SPICE com as quais esta máquina inicia. Os perfis são gerenciados na aba Perfis de exibição.",
+      "label": "Perfil"
+    }
+  }
+}

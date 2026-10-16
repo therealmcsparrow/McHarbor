@@ -1,10 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon_McSparrow.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0f14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="McHarbor" />
+    <link rel="manifest" href="/api/pwa/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/api/pwa/icons/apple-touch-icon.png" />
     <title>McHarbor</title>
+
+    <!-- Tidal type system. Self-hosted under /fonts so the UI keeps its
+         typography in air-gapped installs; no third-party request. The two
+         latin cuts carry ~95% of what any of the six locales renders, so
+         they are preloaded and the latin-ext cuts load on demand. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-tight-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/bricolage-grotesque-latin.woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
   </head>
   <body class="min-h-screen bg-background text-foreground antialiased">
     <div id="root"></div>

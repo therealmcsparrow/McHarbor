@@ -1,0 +1,26 @@
+{
+  "label": "Bestand",
+  "description": "Lees of schrijf een bestand in de workflow-datamap",
+  "config": {
+    "operation": "Bewerking",
+    "path": "Pad",
+    "encoding": "Codering",
+    "output_property": "Uitvoerpad",
+    "property": "Eigenschap",
+    "mode": "Modus"
+  },
+  "options": {
+    "operation": {
+      "read": "Lezen",
+      "write": "Schrijven"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Overschrijven",
+      "append": "Toevoegen"
+    }
+  }
+}

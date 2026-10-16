@@ -29,12 +29,10 @@ export function useAdoptPreview() {
 
   return useMutation({
     mutationFn: (req: AdoptPreviewRequest) =>
-      api
-        .post<AdoptPreviewResponse>(`/stacks/adopt/preview${envId ? `?env=${envId}` : ''}`, req)
-        .then((response) => {
-          assertSuccess(response);
-          return response.data as AdoptPreviewResponse;
-        }),
+      api.post<AdoptPreviewResponse>(`/stacks/adopt/preview${envId ? `?env=${envId}` : ''}`, req).then((response) => {
+        assertSuccess(response);
+        return response.data as AdoptPreviewResponse;
+      }),
   });
 }
 
@@ -45,15 +43,13 @@ export function useAdoptStack() {
 
   return useMutation({
     mutationFn: (req: AdoptRequest) =>
-      api
-        .post(`/stacks/adopt${envId ? `?env=${envId}` : ''}`, req)
-        .then(assertSuccess),
+      api.post(`/stacks/adopt${envId ? `?env=${envId}` : ''}`, req).then(assertSuccess),
     meta: { success: t('takeOver.success') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['container-stack-link'] });
-      queryClient.invalidateQueries({ queryKey: ['stacks'] });
-      queryClient.invalidateQueries({ queryKey: ['containers'] });
-      queryClient.invalidateQueries({ queryKey: ['stack-containers'] });
+      void queryClient.invalidateQueries({ queryKey: ['container-stack-link'] });
+      void queryClient.invalidateQueries({ queryKey: ['stacks'] });
+      void queryClient.invalidateQueries({ queryKey: ['containers'] });
+      void queryClient.invalidateQueries({ queryKey: ['stack-containers'] });
     },
   });
 }

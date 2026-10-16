@@ -52,5 +52,9 @@
                     }
                 ],
     "minMemory":  "4GB",
-    "version":  "lts"
+    "version":  "lts",
+    "latest":  {
+        "version":  "lts",
+        "release_date":  "2026-09-10"
+    }
 }

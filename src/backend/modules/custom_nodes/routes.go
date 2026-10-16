@@ -4,8 +4,8 @@
 package customnodes
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -19,15 +19,15 @@ func Mount(app *router.AppDeps) {
 func MountWithExecutor(app *router.AppDeps, svc *Service, executor *Executor) {
 	h := NewHandler(app, svc, executor)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/custom-nodes", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Post("/", h.HandleCreate)
-			r.Post("/test", h.HandleTest)
-			r.Route("/{key}", func(r chi.Router) {
-				r.Get("/", h.HandleGet)
-				r.Put("/", h.HandleUpdate)
-				r.Delete("/", h.HandleDelete)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/custom-nodes", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesView)).Get("/", h.HandleList)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesManage)).Post("/", h.HandleCreate, apispec.Request(CreateCustomNodeInput{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesManage)).Post("/test", h.HandleTest, apispec.Request(TestCustomNodeInput{}))
+			r.Route("/{key}", func(r *apispec.Router) {
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesView)).Get("/", h.HandleGet)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesManage)).Put("/", h.HandleUpdate, apispec.Request(UpdateCustomNodeInput{}))
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermCustomNodesManage)).Delete("/", h.HandleDelete)
 			})
 		})
 	})

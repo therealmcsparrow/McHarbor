@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
+import { Select } from '@resources/components/ui/Select';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { usePromoteStage } from '../hooks/useGitOps';
 import type { GitOpsPipeline } from '../types';
+import { PERM } from '@core/auth/permissionKeys';
 
 type PromoteDialogProps = {
   open: boolean;
@@ -25,7 +27,7 @@ type PromoteDialogProps = {
 };
 
 export function PromoteDialog({
-  open,
+  open: isOpen,
   onOpenChange,
   pipeline,
   initialStageId,
@@ -34,9 +36,7 @@ export function PromoteDialog({
   const { t } = useTranslation('gitops');
   const promote = usePromoteStage(t);
 
-  const [stageId, setStageId] = useState(
-    initialStageId ?? pipeline.stages[0]?.id ?? '',
-  );
+  const [stageId, setStageId] = useState(initialStageId ?? pipeline.stages[0]?.id ?? '');
   const [commitSha, setCommitSha] = useState(initialCommitSha ?? '');
   const [note, setNote] = useState('');
 
@@ -51,7 +51,7 @@ export function PromoteDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('promoteTitle')}</DialogTitle>
@@ -59,50 +59,37 @@ export function PromoteDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('stageName')}
-            </label>
-            <select
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t('stageName')}</label>
+            <Select
               value={stageId}
-              onChange={(e) => setStageId(e.target.value)}
-              className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-            >
-              {pipeline.stages.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.stageName} (#{s.stageIndex})
-                </option>
-              ))}
-            </select>
+              onChange={setStageId}
+              options={pipeline.stages.map((s) => ({
+                value: s.id,
+                label: `${s.stageName} (#${s.stageIndex})`,
+              }))}
+              ariaLabel={t('stageName')}
+              variant="outline"
+            />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('promoteCommit')}
-            </label>
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t('promoteCommit')}</label>
             <Input
               value={commitSha}
               onChange={(e) => setCommitSha(e.target.value)}
-              placeholder="abc1234 or main"
+              placeholder={t('placeholders.commitOrBranch')}
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-              {t('promoteNote')}
-            </label>
-            <Input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t('promoteNote')}</label>
+            <Input value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            disabled={promote.isPending}
-          >
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={promote.isPending}>
             {t('formActions.cancel')}
           </Button>
           <Button
+            permission={PERM.GITOPS_MANAGE}
             onClick={handleSubmit}
             disabled={!stageId || !commitSha || promote.isPending}
           >

@@ -1,0 +1,30 @@
+{
+  "label": "Gérer le réseau",
+  "description": "Créer ou supprimer un réseau, ou connecter et déconnecter des conteneurs",
+  "config": {
+    "environment": "Environnement",
+    "action": "Action",
+    "name": "Nom",
+    "driver": "Conducteur",
+    "internal": "Interne",
+    "subnet": "Sous-réseau",
+    "network": "Réseau",
+    "container": "Récipient"
+  },
+  "options": {
+    "action": {
+      "create": "Créer",
+      "remove": "Supprimer",
+      "connect": "Connecter",
+      "disconnect": "Déconnecter"
+    },
+    "driver": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "macvlan": "Macvlan",
+      "ipvlan": "IPvlan",
+      "host": "Host",
+      "none": "Aucun"
+    }
+  }
+}

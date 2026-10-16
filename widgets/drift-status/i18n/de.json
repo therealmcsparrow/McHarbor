@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Drift",
+      "description": "Überwachungen, deren Container, Stacks oder Umgebung vom Deklarierten abgewichen sind"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Drift",
+    "empty": "Alles entspricht dem Deklarierten",
+    "unavailable": "Der Drift-Bericht kann nicht gelesen werden",
+    "noAccess": "Erfordert die Berechtigung reconciler.view",
+    "more": "{{count}} weitere",
+    "viewReport": "Drift-Bericht",
+    "detail": "{{classes}} · seit {{since}}"
+  }
+}

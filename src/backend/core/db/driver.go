@@ -3,11 +3,22 @@
 
 package db
 
+import "time"
+
+// connMaxLifetime recycles pooled connections on the network drivers so a
+// server-side idle cutoff or load balancer never hands out a dead connection.
+const connMaxLifetime = 30 * time.Minute
+
+// pingTimeout bounds the startup PingContext on the network drivers so an
+// unreachable database fails boot instead of hanging it.
+const pingTimeout = 10 * time.Second
+
 // Driver identifies which SQL backend Open() selected. The
 // rest of McHarbor code is database-agnostic (uses database/sql),
 // so this type is mostly informational: the coordinator uses it
 // to decide which named-lock primitive to call (pg_try_advisory_lock
-// on Postgres, GET_LOCK on MySQL, no-op on SQLite).
+// on Postgres, GET_LOCK on MySQL, sp_getapplock on SQL Server, no-op
+// on SQLite).
 type Driver string
 
 const (
@@ -29,6 +40,12 @@ const (
 	// Connection pool sizing mirrors Postgres; named locks use
 	// MySQL's GET_LOCK / RELEASE_LOCK per-connection primitives.
 	DriverMySQL Driver = "mysql"
+	// DriverMSSQL covers Microsoft SQL Server 2019+ and Azure SQL. The DSN is
+	// the go-mssqldb URL form, e.g.
+	// `sqlserver://user:pass@host:1433?database=mcharbor&encrypt=true`.
+	// Named locks use sp_getapplock / sp_releaseapplock, which are
+	// session-scoped like MySQL's, so the coordinator holds one *sql.Conn.
+	DriverMSSQL Driver = "mssql"
 )
 
 // String renders the driver name in logs and the /api/cluster/status

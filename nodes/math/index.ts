@@ -4,92 +4,87 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const math: NodeDefinition = {
-  "key": "math",
-  "label": "Math",
-  "category": "utility",
-  "description": "Apply a math operation to a numeric value",
-  "icon": "IconMathFunction",
-  "configSchema": [
+  key: 'math',
+  label: 'Math',
+  category: 'utility',
+  description: 'Apply a math operation to a numeric value',
+  icon: 'IconMathFunction',
+  configSchema: [
     {
-      "key": "property",
-      "label": "Property",
-      "type": "expression",
-      "required": false,
-      "default": "payload"
+      key: 'property',
+      label: 'Property',
+      type: 'expression',
+      required: false,
+      default: 'payload',
     },
     {
-      "key": "operation",
-      "label": "Operation",
-      "type": "select",
-      "required": false,
-      "default": "add",
-      "options": [
+      key: 'operation',
+      label: 'Operation',
+      type: 'select',
+      required: false,
+      default: 'add',
+      options: [
         {
-          "value": "add",
-          "label": "Add"
+          value: 'add',
+          label: 'Add',
         },
         {
-          "value": "subtract",
-          "label": "Subtract"
+          value: 'subtract',
+          label: 'Subtract',
         },
         {
-          "value": "multiply",
-          "label": "Multiply"
+          value: 'multiply',
+          label: 'Multiply',
         },
         {
-          "value": "divide",
-          "label": "Divide"
+          value: 'divide',
+          label: 'Divide',
         },
         {
-          "value": "round",
-          "label": "Round"
+          value: 'round',
+          label: 'Round',
         },
         {
-          "value": "floor",
-          "label": "Floor"
+          value: 'floor',
+          label: 'Floor',
         },
         {
-          "value": "ceil",
-          "label": "Ceil"
+          value: 'ceil',
+          label: 'Ceil',
         },
         {
-          "value": "abs",
-          "label": "Absolute"
+          value: 'abs',
+          label: 'Absolute',
         },
         {
-          "value": "min",
-          "label": "Min"
+          value: 'min',
+          label: 'Min',
         },
         {
-          "value": "max",
-          "label": "Max"
+          value: 'max',
+          label: 'Max',
         },
         {
-          "value": "modulo",
-          "label": "Modulo"
-        }
-      ]
+          value: 'modulo',
+          label: 'Modulo',
+        },
+      ],
     },
     {
-      "key": "operand",
-      "label": "Operand",
-      "type": "number",
-      "required": false,
-      "default": 0
+      key: 'operand',
+      label: 'Operand',
+      type: 'number',
+      required: false,
+      default: 0,
     },
     {
-      "key": "output_property",
-      "label": "Output Property",
-      "type": "expression",
-      "required": false,
-      "default": "payload"
-    }
+      key: 'output_property',
+      label: 'Output Property',
+      type: 'expression',
+      required: false,
+      default: 'payload',
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

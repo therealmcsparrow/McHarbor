@@ -1,0 +1,16 @@
+{
+  "slug": "storage-owncloud",
+  "name": "ownCloud",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Back up containers to an ownCloud (Classic) instance via WebDAV (RFC 4918). ownCloud uses the same WebDAV surface as Nextcloud (/remote.php/dav/files/{user}/) for compatibility, so the plugin uses the same path and Basic auth flow as the Nextcloud plugin. Two auth modes: OAuth 2.0 refresh-token flow or direct app-password authentication. Chunked uploads use Content-Range PUT, supported server-side by ownCloud's WebDAV. Same Test round-trip shape (write / change / delete) as the SharePoint, Google Drive, and Nextcloud plugins.",
+  "category": "Storage destinations",
+  "icon": "IconCloud",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-owncloud-1.0.1.tar.gz"
+    }
+  ]
+}

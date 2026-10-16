@@ -1,0 +1,266 @@
+{
+  "panel": {
+    "title": "Copia de seguridad de la instancia",
+    "intro": "Un único archivo cifrado con todo lo que hace de esta instancia lo que es: roles y políticas, entornos y sus tokens de agente, flujos de trabajo, programaciones, la bóveda de secretos, la configuración de plugins y la autoridad de certificación en la que confían sus agentes.",
+    "twoBackups": "Esto no es una copia de seguridad de contenedores. Los datos de los contenedores se respaldan por separado en Almacenamiento; necesita ambas.",
+    "keyWarning": "La clave nunca se almacena. Guárdela en un lugar distinto de este host: una exportación cuya única clave está en la máquina que respalda no se puede restaurar si se pierde esa máquina.",
+    "create": "Crear exportación"
+  },
+  "destinations": {
+    "uploading": "Copiando",
+    "success": "Copiado",
+    "failure": "No copiado",
+    "errorTitle": "Por qué falló la copia",
+    "hostOnly": "Solo este host"
+  },
+  "table": {
+    "copies": "Copias",
+    "created": "Creado",
+    "status": "Estado",
+    "size": "Tamaño",
+    "key": "Clave",
+    "createdBy": "Creado por",
+    "note": "Nota",
+    "actions": "Acciones",
+    "verified": "Verificado",
+    "trigger": "Desencadenante",
+    "fileName": "Nombre de archivo",
+    "search": "Buscar exportaciones..."
+  },
+  "trigger": {
+    "all": "Cualquier desencadenante",
+    "manual": "Manual",
+    "schedule": "Programación"
+  },
+  "status": {
+    "running": "En ejecución",
+    "completed": "Completado",
+    "failed": "Fallido",
+    "title": "Última restauración",
+    "by": "por {{actor}}, {{date}}",
+    "errorTitle": "Por qué se detuvo la restauración",
+    "restarting": "McHarbor se está reiniciando para cargar las claves y los datos restaurados. Esta página se reconecta sola.",
+    "reconciling": "Reinstalando los plugins de la exportación en las versiones registradas.",
+    "result": "{{rows}} filas restauradas en {{tables}} tablas.",
+    "anchor": "Se restauró el historial de auditoría; la cadena continúa a través de un ancla de restauración.",
+    "pluginErrorTitle": "Por qué no se reinstaló {{slug}}",
+    "pluginsFailed_one": "No se pudo reinstalar {{count}} plugin. Instálelo desde la tienda de plugins.",
+    "pluginsFailed_other": "No se pudieron reinstalar {{count}} plugins. Instálelos desde la tienda de plugins."
+  },
+  "keyKind": {
+    "passphrase": "Frase de contraseña",
+    "keyfile": "Archivo de clave"
+  },
+  "progress": "{{done}} de {{total}} filas",
+  "errorTitle": "Por qué falló la exportación",
+  "actions": {
+    "download": "Descargar",
+    "delete": "Eliminar",
+    "restore": "Restaurar",
+    "verify": "Verificar"
+  },
+  "empty": {
+    "title": "Aún no hay exportaciones",
+    "description": "Cree la primera exportación y guárdela, con su clave, lejos de este host."
+  },
+  "create": {
+    "title": "Crear una exportación de la instancia",
+    "description": "La exportación se cifra por completo. Elija cómo se bloquea; necesitará la misma frase de contraseña o el mismo archivo de clave para restaurarla.",
+    "keyKind": "Bloquear con",
+    "passphraseOption": "Una frase de contraseña",
+    "keyFileOption": "Un archivo de clave generado",
+    "passphrase": "Frase de contraseña",
+    "passphraseHint": "Al menos 12 caracteres. Se procesa con Argon2id y nunca se almacena.",
+    "confirm": "Repita la frase de contraseña",
+    "mismatch": "Las frases de contraseña no coinciden.",
+    "generate": "Generar un archivo de clave",
+    "saveKeyFile": "Guardar el archivo de clave",
+    "keyFileReady": "Se generó un archivo de clave. Guárdelo ahora: se muestra una sola vez y no se puede recuperar.",
+    "keyFileSaved": "He guardado el archivo de clave en un lugar distinto de este host",
+    "metrics": "Incluir el historial de métricas",
+    "metricsHelp": "Desactivado por defecto: las métricas se regeneran solas y suelen ocupar la mayor parte del tamaño de una exportación.",
+    "note": "Nota",
+    "notePlaceholder": "Por ejemplo: antes de actualizar a la próxima versión",
+    "submit": "Crear exportación"
+  },
+  "reasons": {
+    "key_required": "Introduzca una frase de contraseña o genere un archivo de clave.",
+    "key_both": "Use una frase de contraseña o un archivo de clave, no ambos.",
+    "passphrase_too_short": "La frase de contraseña debe tener al menos 12 caracteres.",
+    "key_file_invalid": "Ese no es un archivo de clave de instancia de McHarbor.",
+    "note_too_long": "La nota puede tener como máximo 500 caracteres.",
+    "busy": "Ya hay una exportación en ejecución. Espere a que termine."
+  },
+  "download": {
+    "title": "Descargar exportación de la instancia",
+    "description": "Este archivo contiene todos los secretos de la instancia. Confirme su identidad antes de descargarlo.",
+    "password": "Su contraseña",
+    "totp": "Código del autenticador",
+    "totpHint": "Use el código de su aplicación de autenticación si su cuenta tiene una.",
+    "submit": "Confirmar y descargar",
+    "warning": "Guarde el archivo cifrado y lejos de este host. Quien tenga el archivo y su clave es dueño de esta instancia."
+  },
+  "delete": {
+    "title": "¿Eliminar esta exportación?",
+    "description": "El archivo {{name}} se elimina de este host. Las copias que haya descargado no se ven afectadas.",
+    "confirm": "Eliminar exportación"
+  },
+  "restoreState": {
+    "running": "Restaurando",
+    "restarting": "Reiniciando",
+    "reconciling": "Reinstalando plugins",
+    "done": "Restaurado",
+    "failed": "Fallido"
+  },
+  "pluginAction": {
+    "kept": "Ya instalado",
+    "installed": "Instalado",
+    "updated": "Reinstalado en la versión registrada",
+    "failed": "Fallido"
+  },
+  "categories": {
+    "access": "Usuarios, roles y políticas",
+    "environments": "Entornos y registros",
+    "automation": "Flujos de trabajo, programaciones y alertas",
+    "stacks": "Stacks",
+    "secrets": "Bóveda de secretos",
+    "settings": "Ajustes e integraciones",
+    "plugins": "Ajustes y datos de plugins",
+    "audit": "Historial de auditoría",
+    "other": "Todo lo demás"
+  },
+  "restore": {
+    "open": "Restaurar",
+    "title": "Restaurar una exportación de la instancia",
+    "description": "Elija la exportación y su clave. Se comprueba el archivo completo antes de cambiar nada.",
+    "planDescription": "Esto es lo que cambia la restauración. Todavía no se ha escrito nada.",
+    "source": "Exportación",
+    "uploadOption": "Subir un archivo de exportación",
+    "file": "Archivo de exportación (.mchx)",
+    "keyKind": "Desbloquear con",
+    "keyFile": "Archivo de clave",
+    "mode": "Qué restaurar",
+    "modes": {
+      "full": {
+        "label": "Todo (recuperación ante desastres)",
+        "description": "Reemplaza esta instancia por la exportación: datos, claves, autoridad de certificación y archivos."
+      },
+      "migration": {
+        "label": "Todo, en un hardware nuevo u otra base de datos",
+        "description": "Igual que una restauración completa, para mover una instancia."
+      },
+      "selective": {
+        "label": "Solo algunas categorías",
+        "description": "Recupere, por ejemplo, flujos de trabajo eliminados o un conjunto de roles dañado, y deje el resto como está."
+      }
+    },
+    "conflict": "Filas que ya existen",
+    "conflicts": {
+      "replace": "Reemplazar toda la categoría por la de la exportación",
+      "keep": "Conservarlas y añadir solo lo que falta"
+    },
+    "includeAudit": "Restaurar también el historial de auditoría",
+    "includeAuditHelp": "Reemplaza el registro de auditoría por el de la exportación. La cadena continúa a través de un ancla de restauración que registra lo que se reemplazó.",
+    "auditApproval": "Restaurar el historial de auditoría requiere instance_backup.restore_audit mediante una solicitud de elevación aprobada, en el momento de restaurar.",
+    "check": "Comprobar exportación",
+    "submit": "Restaurar ahora",
+    "reasons": {
+      "key_required": "Introduzca la frase de contraseña o elija el archivo de clave.",
+      "key_both": "Use una frase de contraseña o un archivo de clave, no ambos.",
+      "wrong_key": "Esa frase de contraseña o archivo de clave no abre esta exportación.",
+      "unreadable": "No se puede leer la exportación.",
+      "not_export": "Este archivo no es una exportación de instancia de McHarbor.",
+      "format": "Esta exportación la hizo una versión más reciente de McHarbor y no se puede leer aquí. Actualice primero y luego restaure.",
+      "incomplete": "La exportación está incompleta: termina antes de todo lo que enumera. Cópiela de nuevo desde el origen.",
+      "damaged": "La exportación está dañada o se alteró después de crearse.",
+      "key_kind": "Esta exportación se selló con el otro tipo de secreto. Use en su lugar su frase de contraseña o su archivo de clave.",
+      "bad_key_file": "Ese archivo de clave no es un archivo de clave de instancia de McHarbor legible.",
+      "no_categories": "Elija al menos una categoría.",
+      "bad_category": "Esa categoría no existe.",
+      "bad_conflict": "Elija cómo tratar las filas que ya existen.",
+      "bad_mode": "Elija qué restaurar.",
+      "approval_required": "Restaurar el historial de auditoría requiere una elevación aprobada para instance_backup.restore_audit. Solicite una en Seguridad e inténtelo de nuevo.",
+      "busy": "Ya hay una restauración en ejecución."
+    }
+  },
+  "plan": {
+    "from": "Exportación de {{host}}, McHarbor {{version}} sobre {{backend}}, realizada el {{date}} por {{user}}.",
+    "category": "Categoría",
+    "restored": "Restaurado",
+    "now": "Filas actuales",
+    "fromExport": "Filas en la exportación",
+    "yes": "Restaurado",
+    "no": "Se deja como está",
+    "restoresKeys": "La clave de cifrado de la instancia se reemplaza por la de la exportación.",
+    "restoresSecret": "El secreto de firma de auditoría se reemplaza por el de la exportación.",
+    "restoresFiles": "Se reemplazan la autoridad de certificación, los archivos de stacks y los nodos personalizados; los agentes remotos siguen confiando en la autoridad restaurada.",
+    "plugins_one": "{{count}} plugin se reinstala en su versión registrada tras el reinicio.",
+    "plugins_other": "{{count}} plugins se reinstalan en sus versiones registradas tras el reinicio.",
+    "restart": "McHarbor se reinicia cuando se escribe la restauración.",
+    "confirm": "Escriba {{word}} para confirmar",
+    "refusals": {
+      "newer_schema": "Esta exportación proviene de un McHarbor más reciente. Actualice primero esta instancia.",
+      "key_pinned": "ENCRYPTION_KEY está definida en el entorno de este servidor, por lo que la clave de la exportación no puede sustituirla. Elimínela o defínala con la clave de la exportación y reinicie.",
+      "secret_pinned": "MCHARBOR_SECRET está definido en el entorno de este servidor, por lo que el secreto de auditoría de la exportación no puede sustituirlo.",
+      "nothing_selected": "No se restauraría nada. Elija al menos una categoría.",
+      "bad_mode": "Elija qué restaurar.",
+      "postgres_cascade": "En PostgreSQL sin derechos de superusuario, un reemplazo selectivo se propagaría en cascada a otras categorías. Elija conservar las filas existentes."
+    },
+    "warnings": {
+      "different_key": "Esta exportación se hizo en una instancia con una clave distinta. Los valores cifrados se convierten a la clave de esta instancia a medida que se restauran.",
+      "metrics_excluded": "El historial de métricas no está en esta exportación y comienza de nuevo desde cero.",
+      "sessions_end": "Se cierra la sesión de todos."
+    }
+  },
+  "verify": {
+    "title": "Verificar esta exportación",
+    "description": "La exportación se restaura en una base de datos desechable y se comprueba: cada tabla contra su manifiesto y la cadena de auditoría. Esta instancia no se toca.",
+    "submit": "Verificar",
+    "running": "Verificando",
+    "passed": "Superado",
+    "failed": "Fallido",
+    "errorTitle": "Por qué falló la verificación"
+  },
+  "schedules": {
+    "title": "Programaciones",
+    "add": "Añadir programación",
+    "empty": "No hay exportaciones programadas. Una exportación hecha solo a mano es una exportación hecha con muy poca frecuencia.",
+    "name": "Nombre",
+    "when": "Cuándo",
+    "next": "Próxima ejecución",
+    "last": "Última ejecución",
+    "disabled": "Desactivada",
+    "search": "Buscar programaciones...",
+    "facets": {
+      "failing": "La última ejecución falló"
+    },
+    "runNow": "Ejecutar ahora",
+    "edit": "Editar programación",
+    "errorTitle": "Por qué falló la última ejecución",
+    "deleteTitle": "¿Eliminar esta programación?",
+    "deleteDescription": "{{name}} deja de ejecutarse. Las exportaciones que ya hizo se conservan.",
+    "deleteConfirm": "Eliminar programación",
+    "createTitle": "Programar exportaciones de la instancia",
+    "editTitle": "Editar programación de exportación",
+    "dialogDescription": "Las exportaciones se ejecutan sin supervisión, por lo que su clave se almacena cifrada en esta instancia. Guarde la misma clave también en otro lugar, o las exportaciones no se podrán restaurar si se pierde este host.",
+    "key": "Bloquear las exportaciones con",
+    "replaceKey": "Reemplazar la clave (déjelo vacío para conservarla)",
+    "keyHint": "Una frase de contraseña de al menos 12 caracteres, o un archivo de clave que haya generado.",
+    "location": "Copiar también a",
+    "hostOnly": "Conservar solo en este host",
+    "keepCount": "Conservar esta cantidad",
+    "keepDays": "Conservar durante días (0 = sin límite)",
+    "verifyAfter": "Ensayar una restauración después de cada exportación",
+    "enabled": "Activada",
+    "reasons": {
+      "bad_name": "Dé a la programación un nombre de 100 caracteres como máximo.",
+      "bad_cron": "Esa programación no es válida.",
+      "bad_retention": "Conserve entre 0 y 1000 exportaciones, durante 3650 días como máximo.",
+      "no_retention": "Indique cuántas exportaciones conservar, o durante cuántos días.",
+      "key_required": "Introduzca una frase de contraseña o elija un archivo de clave.",
+      "key_both": "Use una frase de contraseña o un archivo de clave, no ambos.",
+      "passphrase_too_short": "La frase de contraseña debe tener al menos 12 caracteres.",
+      "key_file_invalid": "Ese no es un archivo de clave de instancia de McHarbor."
+    }
+  }
+}

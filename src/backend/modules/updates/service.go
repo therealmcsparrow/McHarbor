@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package updates checks for McHarbor releases and drives self-update and agent update sweeps.
 package updates
 
 import (
@@ -12,6 +13,8 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
 // Service handles update policy business logic and database operations.
@@ -41,7 +44,7 @@ func (s *Service) List(ctx context.Context, page, perPage int) ([]Policy, int64,
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing update policies: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var items []Policy
 	for rows.Next() {
@@ -192,7 +195,7 @@ func (s *Service) History(ctx context.Context, policyID string, page, perPage in
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing update history for policy %s: %w", policyID, err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var items []UpdateHistory
 	for rows.Next() {
@@ -257,4 +260,14 @@ func applyPolicyNullables(p *Policy, containerMatch, imageMatch, schedule, strat
 	p.Enabled = enabled.Bool
 	p.LastRunAt = lastRunAt.String
 	p.LastRunStatus = lastRunStatus.String
+}
+
+// policyExistsQuery backs rbac.PinEnvToResource on /updates/{id}. An update
+// policy is a global row that drives updates everywhere, so it resolves to no
+// environment and only a global grant may read or change it.
+const policyExistsQuery = `SELECT '' FROM update_policies WHERE id = ?`
+
+// PolicyEnvironment reports "" (global) for an existing policy.
+func (s *Service) PolicyEnvironment(ctx context.Context, id string) (string, bool, error) {
+	return rbac.EnvOfRow(ctx, s.db, policyExistsQuery, id)
 }

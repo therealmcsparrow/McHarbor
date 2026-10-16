@@ -9,6 +9,16 @@
   "pruneUnused": "Ongebruikte opschonen",
   "pruneDescription": "Verwijder ongebruikte images die niet door containers worden gebruikt.",
   "columns": {
+    "allTags": "Alle tags",
+    "digests": "Digests",
+    "parentId": "Bovenliggend ID",
+    "sharedSize": "Gedeelde grootte",
+    "labels": "Labels",
+    "containerCount": "Containers",
+    "protected": "Beschermd",
+    "usedBy": "Gebruikt door",
+    "groupRelations": "Relaties",
+    "groupImage": "Image",
     "repoTag": "Repository:Tag",
     "status": "Status",
     "repository": "Repository",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "in gebruik",
-    "unused": "ongebruikt"
+    "unused": "Ongebruikt"
   },
   "pull": {
     "title": "Image downloaden",
@@ -64,13 +74,17 @@
     "noLayerHistory": "Geen laaggeschiedenis",
     "noLabels": "Geen labels",
     "noEnvVars": "Geen omgevingsvariabelen",
+    "revealValues": "Waarden tonen",
+    "hideValues": "Waarden verbergen",
+    "envWithheld": "Waarden die op inloggegevens lijken zijn verborgen. Het tonen ervan wordt vastgelegd in het auditlogboek.",
+    "historyWithheld": "ENV- en build-argumentwaarden die op inloggegevens lijken zijn verborgen. Het tonen ervan wordt vastgelegd in het auditlogboek.",
     "fields": {
       "id": "ID",
       "tags": "Tags",
       "size": "Grootte",
       "created": "Aangemaakt",
       "architecture": "Architectuur",
-      "os": "OS",
+      "os": "Besturingssysteem",
       "dockerVersion": "Docker-versie",
       "author": "Auteur",
       "digests": "Digests",
@@ -87,6 +101,17 @@
       "instruction": "Instructie",
       "size": "Grootte",
       "created": "Aangemaakt"
+    },
+    "tabs": {
+      "ariaLabel": "Imagesecties",
+      "overview": "Overzicht",
+      "config": "Configuratie",
+      "labels": "Labels",
+      "history": "Geschiedenis"
+    },
+    "badges": {
+      "tagged": "Getagd",
+      "dangling": "Verweesd"
     }
   }
 }

@@ -6,6 +6,7 @@ package customnodes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -13,9 +14,6 @@ import (
 
 	"github.com/dop251/goja"
 )
-
-// maxScriptTimeout is the absolute maximum execution time for a custom node script.
-const maxScriptTimeout = 60 * time.Second
 
 // maxLogLines caps the number of log lines captured per execution.
 const maxLogLines = 100
@@ -78,41 +76,51 @@ func (e *Executor) RunScript(ctx context.Context, code string, config map[string
 		}
 	}
 
+	var bindErr error
+	bind := func(set func(string, interface{}) error, name string, v interface{}) {
+		if err := set(name, v); err != nil && bindErr == nil {
+			bindErr = fmt.Errorf("binding %s: %w", name, err)
+		}
+	}
+
 	// Set up the node helper object
 	nodeObj := vm.NewObject()
-	_ = nodeObj.Set("log", func(call goja.FunctionCall) goja.Value {
+	bind(nodeObj.Set, "log", func(call goja.FunctionCall) goja.Value {
 		addLog("info", formatArgs(call))
 		return goja.Undefined()
 	})
-	_ = nodeObj.Set("warn", func(call goja.FunctionCall) goja.Value {
+	bind(nodeObj.Set, "warn", func(call goja.FunctionCall) goja.Value {
 		addLog("warn", formatArgs(call))
 		return goja.Undefined()
 	})
-	_ = nodeObj.Set("error", func(call goja.FunctionCall) goja.Value {
+	bind(nodeObj.Set, "error", func(call goja.FunctionCall) goja.Value {
 		addLog("error", formatArgs(call))
 		return goja.Undefined()
 	})
 
 	// Set globals
-	vm.Set("node", nodeObj)
-	vm.Set("config", config)
-	vm.Set("msg", msg)
+	bind(vm.Set, "node", nodeObj)
+	bind(vm.Set, "config", config)
+	bind(vm.Set, "msg", msg)
 
 	// console.log support
 	consoleObj := vm.NewObject()
-	_ = consoleObj.Set("log", func(call goja.FunctionCall) goja.Value {
+	bind(consoleObj.Set, "log", func(call goja.FunctionCall) goja.Value {
 		addLog("info", formatArgs(call))
 		return goja.Undefined()
 	})
-	_ = consoleObj.Set("warn", func(call goja.FunctionCall) goja.Value {
+	bind(consoleObj.Set, "warn", func(call goja.FunctionCall) goja.Value {
 		addLog("warn", formatArgs(call))
 		return goja.Undefined()
 	})
-	_ = consoleObj.Set("error", func(call goja.FunctionCall) goja.Value {
+	bind(consoleObj.Set, "error", func(call goja.FunctionCall) goja.Value {
 		addLog("error", formatArgs(call))
 		return goja.Undefined()
 	})
-	vm.Set("console", consoleObj)
+	bind(vm.Set, "console", consoleObj)
+	if bindErr != nil {
+		return nil, bindErr
+	}
 
 	// Timeout via context + interrupt
 	execCtx, cancel := context.WithTimeout(ctx, timeout)
@@ -129,7 +137,8 @@ func (e *Executor) RunScript(ctx context.Context, code string, config map[string
 
 	val, err := vm.RunString(wrapped)
 	if err != nil {
-		if interrupted, ok := err.(*goja.InterruptedError); ok {
+		var interrupted *goja.InterruptedError
+		if errors.As(err, &interrupted) {
 			return &ExecResult{
 				Port: "error",
 				Msg: map[string]interface{}{
@@ -234,11 +243,12 @@ func exportValue(val goja.Value) interface{} {
 func formatArgs(call goja.FunctionCall) string {
 	parts := make([]string, 0, len(call.Arguments))
 	for _, arg := range call.Arguments {
-		if goja.IsUndefined(arg) {
+		switch {
+		case goja.IsUndefined(arg):
 			parts = append(parts, "undefined")
-		} else if goja.IsNull(arg) {
+		case goja.IsNull(arg):
 			parts = append(parts, "null")
-		} else {
+		default:
 			exported := arg.Export()
 			data, err := json.Marshal(exported)
 			if err != nil {

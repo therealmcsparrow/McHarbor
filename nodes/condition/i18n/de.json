@@ -1,6 +1,6 @@
 {
   "label": "Bedingung",
-  "description": "Route a message based on a condition",
+  "description": "Eine Nachricht anhand einer Bedingung weiterleiten",
   "config": {
     "field": "Feld",
     "operator": "Operator",
@@ -10,7 +10,7 @@
     "operator": {
       "==": "Gleich",
       "!=": "Ungleich",
-      "contains": "Contains",
+      "contains": "Enthält",
       "regex": "Entspricht Regex",
       "is_empty": "Ist leer",
       "is_not_empty": "Ist nicht leer"

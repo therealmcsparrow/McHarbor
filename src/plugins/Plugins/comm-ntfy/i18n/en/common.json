@@ -1,0 +1,103 @@
+{
+  "config": {
+    "server_url": { "help": "Base URL of your ntfy server. Defaults to https://ntfy.sh — change to your self-hosted instance (e.g. https://ntfy.example.com) for on-prem setups." },
+    "topic": { "help": "Topic name subscribers receive on the ntfy app. Use a unique name (e.g. mcharbor-alerts-prod). ntfy.sh allows up to 64 chars of [a-zA-Z0-9_-]." },
+    "access_token": { "help": "Topic-scoped token from ntfy. Click 'Get token' on the topic page in the ntfy web UI. Takes precedence over username/password when set. Encrypted at rest." },
+    "priority": { "help": "Optional. One of min, low, default, high, urgent. Maps to ntfy's integer priority 1/2/3/4/5. Leave blank for server default." },
+    "tags": { "help": "Optional. Comma-separated emoji shortcodes rendered as inline icons in the ntfy mobile app (e.g. 'warning,rocket'). See https://docs.ntfy.sh/emojis/ for the catalog." }
+  },
+  "page": {
+    "title": "ntfys",
+    "subtitle": "Route workflow, alert, and backup events to an ntfy topic via HTTP POST. The plugin handles Test (publishes a real test message) and Send (publishes Title + Message as the body) — there is no OAuth flow because ntfy uses static topic tokens or HTTP Basic auth.",
+    "registerHint": "Add a channel from the host's Notifications > Channels page and pick \"ntfy\" as the channel_type."
+  },
+  "fields": {
+    "serverUrl":    "Server URL",
+    "topic":        "Topic",
+    "accessToken":  "Access Token",
+    "username":     "Username",
+    "password":     "Password",
+    "priority":     "Priority",
+    "tags":         "Tags"
+  },
+  "help": {
+    "serverUrl":    "Base URL of your ntfy server. Defaults to https://ntfy.sh — change to your self-hosted instance for on-prem setups.",
+    "topic":        "Topic name subscribers receive on the ntfy app. Use a unique name per environment.",
+    "accessToken":  "Topic-scoped token from ntfy. Click 'Get token' on the topic page in the ntfy web UI. Encrypted at rest.",
+    "username":     "HTTP Basic auth username for self-hosted ntfy. Used only when access_token is blank.",
+    "password":     "HTTP Basic auth password for self-hosted ntfy. Used only when access_token is blank. Encrypted at rest.",
+    "priority":     "One of min, low, default, high, urgent. Maps to ntfy's integer priority 1/2/3/4/5. Leave blank for server default.",
+    "tags":         "Comma-separated emoji shortcodes rendered as inline icons in the ntfy mobile app."
+  },
+  "toast": {
+    "registered": "ntfy channel saved.",
+    "testPassed": "ntfy connection test passed.",
+    "testFailed": "ntfy connection test failed: {{error}}"
+  },
+  "error": {
+    "noTopic":     "Topic is required. Set the topic name subscribers will receive alerts on.",
+    "noServer":    "Server URL is required. Defaults to https://ntfy.sh when blank.",
+    "sendFailed":  "ntfy publish failed: {{error}}",
+    "testFailed":  "ntfy publish to {{topic}} returned {{status}}: {{body}}"
+  },
+  "form": {
+    "publishTitle": "ntfy publish API",
+    "publishHelp": "HTTP POST",
+    "publishBody": "ntfy is a pub/sub HTTP service. The plugin POSTs the notification Title as the `Title` header and the Message as the request body to `<server_url>/<topic>`. Subscribers receive it in the ntfy Android/iOS/web app immediately. Click **Save**, then **Test connection** to verify the topic + credentials round-trip a real publish.",
+    "authTitle": "Authentication",
+    "authHelp": "Token vs Basic",
+    "authToken": "**Access Token** — preferred. Topic-scoped token from the ntfy web UI under topic settings. Sent as `Authorization: Bearer <token>`. Each topic gets its own token so revoking one doesn't break the others.",
+    "authBasic": "**Username + Password** — for self-hosted ntfy with per-user auth. Sent as HTTP Basic. Only used when Access Token is blank.",
+    "authNone": "**Neither** — fine for public topics on ntfy.sh. Anyone with the topic name can publish, so pick a long unguessable name for production alerts.",
+    "priorityTitle": "Priority & tags",
+    "priorityHelp": "Mobile interruption",
+    "priorityBody": "Set Priority to **high** or **urgent** to bypass Do Not Disturb on iOS and Android. ntfy maps urgent (5) to the phone's alarm-stream volume on Android — use sparingly. Tags are inline icons in the mobile app; pick one or two shortcodes per channel type (e.g. `warning` for alerts, `rocket` for backup-complete) so subscribers can scan the topic visually.",
+    "testTitle": "Test connection",
+    "testHelp": "What to expect",
+    "testBody": "The Test call publishes a real message (`Title: McHarbor test notification`, body `McHarbor test notification`) to your topic. The ntfy server returns 200 OK on success; the plugin translates any non-2xx into a structured error showing the upstream status code + first 256 bytes of the server's JSON error body. Subscribers will see the test message — let them know before clicking Test so it doesn't generate a false-positive alert ticket.",
+    "fields": {
+      "server_url": {
+        "label": "Server URL",
+        "help": "Base URL of your ntfy server. Defaults to https://ntfy.sh — change to your self-hosted instance (e.g. https://ntfy.example.com) for on-prem setups."
+      },
+      "topic": {
+        "label": "Topic",
+        "help": "Topic name subscribers receive on the ntfy app. Use a unique name (e.g. mcharbor-alerts-prod). ntfy.sh allows up to 64 chars of [a-zA-Z0-9_-]."
+      },
+      "access_token": {
+        "label": "Access Token",
+        "help": "Topic-scoped token from ntfy. Click \"Get token\" on the topic page in the ntfy web UI. Takes precedence over username/password when set. Stored encrypted at rest."
+      },
+      "username": {
+        "label": "Username",
+        "help": "HTTP Basic auth username for self-hosted ntfy. Used only when access_token is blank."
+      },
+      "password": {
+        "label": "Password",
+        "help": "HTTP Basic auth password for self-hosted ntfy. Used only when access_token is blank. Stored encrypted at rest."
+      },
+      "priority": {
+        "label": "Priority",
+        "help": "Optional. Drives interruption behaviour in the ntfy mobile app. min=1, low=2, default=3, high=4, urgent=5. Leave blank for server default."
+      },
+      "tags": {
+        "label": "Tags",
+        "help": "Optional. Comma-separated emoji shortcodes rendered as inline icons in the ntfy mobile app (e.g. \"warning,rocket\"). See https://docs.ntfy.sh/emojis/ for the catalog."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "ntfy setup guide"
+  },
+  "guide": {
+    "step1": { "body": "Decide where your alerts go: ntfy.sh (cloud, free, public topics only by default) or self-hosted ntfy (Docker image, full control over auth and topic privacy). Set <b>Server URL</b> accordingly — leave it blank for ntfy.sh." },
+    "step2": { "body": "Pick a topic name. ntfy.sh allows up to 64 chars of <code>[a-zA-Z0-9_-]</code>. Use a unique name per environment (e.g. <code>mcharbor-alerts-prod</code>, <code>mcharbor-alerts-staging</code>) so subscribers can mute one without losing the other. The topic name itself is the publish endpoint, so <warn>don't put secrets in it</warn>." },
+    "step3": { "body": "Subscribe on the receiving device: install the ntfy Android or iOS app (or visit ntfy.sh in a browser) and tap + to add a topic. Type the exact same name you used in step 2. Without a subscriber on this device, your alerts go nowhere." },
+    "step4": { "body": "For ntfy.sh: open the topic in the web UI, click the lock icon, and generate a topic-scoped access token. Paste it into the <b>Access Token</b> field on the left. Cloud topics are publicly readable unless you check the \"authenticated users only\" box — token-protected publishes are still public-read by default, so the token stops random internet users from injecting messages, not from reading them." },
+    "step5": { "body": "For self-hosted ntfy: fill in <b>Username</b> + <b>Password</b> for HTTP Basic auth (set in the ntfy config under <code>auth-default-access</code>). The plugin uses Bearer token if <b>Access Token</b> is set, falls back to Basic when only username + password are present. Both is treated as \"token wins\"." },
+    "step6": { "body": "Optional: set <b>Priority</b> to <code>high</code> or <code>urgent</code> to bypass Do Not Disturb. urgent maps to ntfy's integer 5 — Android renders it on the alarm stream, iOS pre-empts silent mode. Use for downtime / backup-failure alerts only." },
+    "step7": { "body": "Optional: add <b>Tags</b> as a comma-separated list of emoji shortcodes (e.g. \"<code>warning,rocket</code>\") — the ntfy mobile app renders these as inline icons next to each message. Browse the catalog at <code>https://docs.ntfy.sh/emojis/</code>." },
+    "step8": { "body": "Save the channel. Click <b>Test connection</b> — the plugin publishes \"<code>McHarbor test notification</code>\" to your topic. Your subscriber device should receive it within 1-2 seconds. If Test returns <code>401</code>, the access token is wrong; if <code>404</code>, the topic name doesn't match what subscribers added; if <code>429</code>, ntfy.sh rate-limited the publish (5 messages per 10s per topic on the free tier)." },
+    "step9": { "body": "Once the channel is saved, route workflow or alert events to it from <b>Settings > Notifications > Rules</b>. ntfy delivery is fire-and-forget: a failed publish is logged in the audit log and surfaced in the host toast, but the host does not retry." }
+  }
+}

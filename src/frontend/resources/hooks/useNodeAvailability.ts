@@ -16,20 +16,15 @@ export function useNodeAvailability() {
   const { data } = useQuery({
     queryKey: ['workflow-nodes', 'capabilities'],
     queryFn: async () => {
+      // The legacy fallback to /notifications/configured-types is gone with
+      // the module that served it: migration 072 dropped its table, so the
+      // fallback could only ever have returned an error.
       const canonical = await api.get<string[]>('/communication-channels/capabilities');
 
-      const environments = await api.get<Array<{ id: string; orchestratorType: string }>>('/environments');
+      const environments = await api.get<Array<{ id: string }>>('/environments');
 
-      if (canonical.success) {
-        return {
-          channelTypes: canonical.data ?? [],
-          environments: environments.data ?? [],
-        };
-      }
-
-      const legacy = await api.get<string[]>('/notifications/configured-types');
       return {
-        channelTypes: legacy.data ?? [],
+        channelTypes: canonical.data ?? [],
         environments: environments.data ?? [],
       };
     },
@@ -55,11 +50,9 @@ export function useNodeAvailability() {
     if (data?.environments && data.environments.length > 0) {
       capabilities.add('environment:any');
 
-      for (const environment of data.environments) {
-        if (environment.orchestratorType) {
-          capabilities.add(`environment:${environment.orchestratorType}`);
-        }
-      }
+      // `environment:docker` was the only value this ever produced once
+      // Kubernetes moved out, and `environment:any` above already covers it.
+      capabilities.add('environment:docker');
     }
 
     return capabilities;

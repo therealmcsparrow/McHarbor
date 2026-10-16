@@ -1,0 +1,17 @@
+{
+  "label": "Object",
+  "description": "Kies of verwijder velden, of map een object naar een nieuwe vorm",
+  "config": {
+    "operation": "Bewerking",
+    "property": "Eigenschap",
+    "fields": "Velden",
+    "mapping": "Toewijzing"
+  },
+  "options": {
+    "operation": {
+      "pick": "Kiezen",
+      "omit": "Weglaten",
+      "map": "Mappen"
+    }
+  }
+}

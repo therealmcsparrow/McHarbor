@@ -1,0 +1,35 @@
+{
+    "slug":  "memos-canary",
+    "name":  "Memos (Canary)",
+    "description":  "Canary channel build of Memos. Lightweight note-taking and knowledge capture app.",
+    "category":  "Productivity",
+    "image":  "neosmemo/memos:canary",
+    "logo":  "https://usememos.com/logo-rounded.png",
+    "website":  "https://www.usememos.com",
+    "docsUrl":  "https://www.usememos.com/docs",
+    "ports":  [
+                  {
+                      "host":  6230,
+                      "container":  5230,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/memos-canary/data",
+                        "container":  "/var/opt/memos"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "canary",
+    "latest":  {
+        "version":  "canary",
+        "release_date":  "2026-09-29"
+    }
+}

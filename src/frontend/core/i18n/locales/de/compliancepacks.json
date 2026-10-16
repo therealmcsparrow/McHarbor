@@ -1,0 +1,164 @@
+{
+  "title": "Compliance-Pakete",
+  "description": "Nachweise für ein benanntes Kontroll-Framework: die Prüfungen, die McHarbor an einem laufenden Host ausführen kann, die Nachweise, die es erfasst, und die Kontrollen, die es nicht sehen kann.",
+  "disclaimer": "Ein Paket ist ein Nachweis für ein Framework, keine Behauptung der Konformität damit. Eine bestandene Prüfung bedeutet, dass die Prüfung bestanden wurde – ob die Kontrolle erfüllt ist, ist Ihre Beurteilung und die Ihres Prüfers.",
+  "framework": {
+    "label": "Framework",
+    "mappingOnly": "Nur Nachweiszuordnung – dieses Framework hat keine maschinellen Prüfungen"
+  },
+  "run": {
+    "never": "Nie ausgeführt",
+    "last": "Letzter Lauf {{time}}",
+    "startedBy": "Gestartet von",
+    "environment": "Umgebung",
+    "defaultEnvironment": "Standardumgebung",
+    "trigger": {
+      "manual": "Von Hand gestartet",
+      "scheduled": "Geplant"
+    },
+    "status": {
+      "running": "Läuft",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen"
+    }
+  },
+  "actions": {
+    "runChecks": "Prüfungen ausführen",
+    "showFacts": "Die Fakten hinter diesem Urteil anzeigen",
+    "hideFacts": "Die Fakten ausblenden"
+  },
+  "runDialog": {
+    "title": "Prüfungen jetzt ausführen",
+    "body": "Dies liest den Docker-Daemon und jeden Container der ausgewählten Umgebung und erfasst einen neuen Lauf. Am Host wird nichts verändert.",
+    "confirm": "Prüfungen ausführen",
+    "environment": "Umgebung"
+  },
+  "attestation": {
+    "title": "Freigabe",
+    "description": "Wer diese Nachweise geprüft und akzeptiert hat, wann und bei welchem Lauf. Eine Freigabe wird nie bearbeitet; eine neuere ersetzt sie, und beide bleiben aktenkundig.",
+    "never": "Bisher hat niemand dies freigegeben.",
+    "last": "Freigegeben {{time}} von {{user}}",
+    "run": "Lauf {{id}}, gestartet {{time}}",
+    "noRun": "Kein Lauf: eine Freigabe der Prüfung als Ganzes",
+    "action": "Freigeben",
+    "runOpen": "Der Lauf ist noch in Bearbeitung. Geben Sie ihn nach Abschluss frei.",
+    "dialog": {
+      "title": "Freigabe erfassen",
+      "body": "Dies erfasst unter Ihrem Namen und der aktuellen Zeit, dass Sie die untenstehenden Nachweise geprüft haben und akzeptieren. Es kann anschließend weder bearbeitet noch gelöscht werden.",
+      "confirm": "Freigabe erfassen",
+      "framework": "Framework",
+      "run": "Lauf",
+      "note": "Notiz",
+      "notePlaceholder": "Was Sie geprüft haben, was Sie akzeptiert haben und wo die Entscheidung dokumentiert ist",
+      "noteRequired": "Eine Notiz ist erforderlich: Eine Freigabe ohne ein Wort der Begründung ist kein Nachweis einer Prüfung."
+    }
+  },
+  "toast": {
+    "started": "Prüflauf gestartet",
+    "failed": "Der Prüflauf konnte nicht gestartet werden"
+  },
+  "summary": {
+    "pass": "Bestanden",
+    "warn": "Erfordert Aufmerksamkeit",
+    "fail": "Fehlgeschlagen",
+    "info": "Informativ",
+    "unknown": "Nicht bewertet"
+  },
+  "verdict": {
+    "pass": "Bestanden",
+    "warn": "Achtung",
+    "fail": "Fehlgeschlagen",
+    "info": "Info",
+    "unknown": "Nicht bewertet"
+  },
+  "coverage": {
+    "mechanical": "Maschinell geprüft",
+    "evidenced": "Aus erfassten Daten belegt",
+    "notCovered": "Nicht abgedeckt"
+  },
+  "group": {
+    "host": "Host-Konfiguration",
+    "daemon": "Daemon-Konfiguration",
+    "files": "Konfigurationsdateien des Daemons",
+    "images": "Images und Build-Dateien",
+    "runtime": "Container-Laufzeit",
+    "operations": "Sicherheitsbetrieb",
+    "swarm": "Swarm-Konfiguration"
+  },
+  "table": {
+    "control": "Kontrolle",
+    "requirement": "Was sie verlangt",
+    "verdict": "Urteil",
+    "coverage": "Abdeckung",
+    "evidence": "Nachweis",
+    "empty": "Dieses Paket wurde noch nie ausgeführt, daher hat noch keine Kontrolle ein Urteil."
+  },
+  "notAssessed": {
+    "title": "Nicht bewertete Kontrollen",
+    "body": "{{count}} Kontrollen dieses Pakets haben kein Urteil. „Nicht bewertet“ ist kein Bestehen: Es bedeutet, dass die Nachweise nicht erhoben werden konnten oder McHarbor die Kontrolle gar nicht sehen kann."
+  },
+  "fact": {
+    "serverVersion": "Docker-Engine-Version",
+    "interContainerCommunication": "Kommunikation zwischen Containern an der Standard-Bridge",
+    "debug": "Debug-Protokollierung",
+    "storageDriver": "Storage-Treiber",
+    "connectionType": "Konfigurierter Transport",
+    "usernsRemap": "Umleitung von Benutzer-Namespaces",
+    "authorizationPlugins": "Autorisierungs-Plugins",
+    "authorizationPluginNames": "Namen der Autorisierungs-Plugins",
+    "loggingDriver": "Standard-Logging-Treiber",
+    "liveRestore": "Live Restore",
+    "seccompProfile": "Standard-seccomp-Profil",
+    "experimental": "Experimenteller Build",
+    "swarmState": "Swarm-Zustand",
+    "containersChecked": "Geprüfte Container",
+    "containersViolating": "Container, die diese Kontrolle verletzen",
+    "violations": "Beteiligte Container",
+    "inspectFailures": "Fehlgeschlagene Prüfungen"
+  },
+  "reason": {
+    "daemonUnavailable": "Der Docker-Daemon konnte nicht gelesen werden, daher hat diese Kontrolle kein Urteil.",
+    "containersUnavailable": "Die Container-Liste konnte nicht gelesen werden, daher hat diese Kontrolle kein Urteil.",
+    "inspectIncomplete": "Einige Container konnten nicht geprüft werden, daher würde ein sauberes Ergebnis nur die geprüften beschreiben.",
+    "containerListCapped": "Es existieren mehr Container, als ein Lauf prüft, daher deckt dieses Ergebnis nur eine Teilmenge ab.",
+    "noContainers": "Diese Umgebung hat keine Container, daher gab es nichts zu prüfen.",
+    "notCoveredByMcHarbor": "McHarbor kann diese Kontrolle nicht sehen. Sie wird aufgeführt, damit die Lücke sichtbar ist, statt nur angedeutet zu werden.",
+    "evidencedNotChecked": "McHarbor erfasst die Nachweise für diese Kontrolle, beurteilt sie aber nicht.",
+    "versionRecorded": "Die Version der laufenden Engine wird erfasst. Ob sie für diesen Host aktuell ist, kann McHarbor nicht wissen.",
+    "versionUnreported": "Der Daemon hat seine Version nicht gemeldet.",
+    "iccEnabled": "Container an der Standard-Bridge können einander erreichen, ohne dass ein Netzwerk deklariert wurde.",
+    "bridgeUnreadable": "Das Standard-Bridge-Netzwerk konnte nicht geprüft werden.",
+    "debugLoggingEnabled": "Der Daemon läuft mit Debug-Protokollierung, die Anfragedetails ins Host-Journal schreibt.",
+    "legacyStorageDriver": "Der Daemon nutzt einen Storage-Treiber, den der Benchmark beanstandet.",
+    "storageDriverUnreported": "Der Daemon hat seinen Storage-Treiber nicht gemeldet.",
+    "daemonTCPNoTLS": "Der Daemon wird über unverschlüsseltes TCP erreicht, sodass jeder, der den Port erreichen kann, ihn steuern kann.",
+    "connectionTypeUnknown": "Der konfigurierte Transport der Umgebung konnte nicht gelesen werden.",
+    "usernsDisabled": "Die Umleitung von Benutzer-Namespaces ist aus, sodass ein Container-Root dem Host-Root entspricht.",
+    "noAuthorizationPlugin": "Kein Autorisierungs-Plugin entscheidet über Daemon-Anfragen.",
+    "loggingDriverLocal": "Die Container-Ausgabe bleibt auf dem Host. Ein Sidecar, der sie anderswohin liefert, erfüllt den Zweck, und diese Prüfung kann ihn nicht sehen.",
+    "liveRestoreDisabled": "Container stoppen, wenn der Daemon stoppt.",
+    "seccompDisabled": "Das Standard-seccomp-Profil des Daemons ist deaktiviert.",
+    "seccompUnreported": "Der Daemon hat kein seccomp-Profil gemeldet.",
+    "experimentalEnabled": "Der Daemon ist ein experimenteller Build.",
+    "swarmActive": "Der Swarm-Modus ist aktiv. Das ist nur auf einem Host eine Feststellung, der damit nicht orchestrieren soll.",
+    "containersRunAsRoot": "Container laufen als root.",
+    "containersWithoutHealthcheck": "Container deklarieren keinen Health-Check.",
+    "containersAddCapabilities": "Container fügen Kernel-Capabilities über den Standardsatz hinaus hinzu.",
+    "containersPrivileged": "Container laufen privilegiert, was Host-Root entspricht.",
+    "containersOnPrivilegedPorts": "Container veröffentlichen auf einen Host-Port unter 1024.",
+    "containersShareHostNetwork": "Container teilen den Netzwerk-Namespace des Hosts.",
+    "containersWithoutMemoryLimit": "Container haben kein Speicherlimit, sodass einer den Host erschöpfen kann.",
+    "containersWithoutCPULimit": "Container haben keine CPU-Shares oder -Quote.",
+    "containersWritableRootfs": "Container haben ein beschreibbares Root-Dateisystem.",
+    "containersRestartUnbounded": "Container werden ohne begrenzte Anzahl von Versuchen neu gestartet.",
+    "containersShareHostPID": "Container teilen den Prozess-Namespace des Hosts.",
+    "containersShareHostIPC": "Container teilen den IPC-Namespace des Hosts.",
+    "containersExposeHostDevices": "Containern wird direkt ein Host-Gerät zugewiesen.",
+    "containersSharedMountPropagation": "Container nutzen Shared Mount Propagation, wodurch sie in den Mount-Baum des Hosts schreiben können.",
+    "containersShareHostUTS": "Container teilen den UTS-Namespace des Hosts.",
+    "containersSeccompUnconfined": "Container laufen mit deaktiviertem seccomp.",
+    "containersMayGainPrivileges": "Container können zusätzliche Berechtigungen erlangen.",
+    "containersWithoutPIDsLimit": "Container haben kein PID-Limit, sodass eine Fork-Bombe den Host erschöpfen kann.",
+    "containersMountDockerSocket": "Container binden den Docker-Socket ein, was Host-Root entspricht."
+  }
+}

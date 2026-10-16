@@ -1,0 +1,167 @@
+{
+  "title": "SCIM provisioning",
+  "description": "Configure SCIM 2.0 endpoints for identity provider provisioning and sync history.",
+  "actions": {
+    "new": "New endpoint",
+    "syncNow": "Sync now",
+    "history": "View history",
+    "edit": "Edit endpoint",
+    "delete": "Delete endpoint",
+    "preview": "Preview and sync",
+    "rotate": "Rotate token"
+  },
+  "table": {
+    "name": "Name",
+    "baseUrl": "Base URL",
+    "schedule": "Schedule",
+    "lastSync": "Last sync",
+    "counts": "Objects",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "counts": {
+    "users": "{{count}} user",
+    "users_other": "{{count}} users",
+    "groups": "{{count}} group",
+    "groups_other": "{{count}} groups"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "syncStatus": {
+    "pending": "Pending",
+    "success": "Success",
+    "failed": "Failed",
+    "running": "Running"
+  },
+  "empty": {
+    "title": "No SCIM endpoints",
+    "description": "Create a SCIM endpoint to issue a bearer token and expose McHarbor users and groups to compatible identity providers."
+  },
+  "delete": {
+    "title": "Delete SCIM endpoint?",
+    "description": "Delete {{name}} and its sync history?",
+    "warning": "Provisioning clients using this endpoint token will stop working immediately.",
+    "cancel": "Cancel",
+    "confirm": "Delete endpoint"
+  },
+  "history": {
+    "title": "Sync history for {{name}}",
+    "description": "Recent SCIM sync attempts and object counts.",
+    "empty": "No sync history yet.",
+    "close": "Close",
+    "errorTitle": "Sync error",
+    "dryRun": "Dry run",
+    "counts": "{{seen}} seen, {{linked}} linked, {{unmatched}} unmatched, {{updated}} updated, {{disabled}} disabled, {{skipped}} skipped, {{groups}} groups",
+    "notes": "Notes",
+    "trigger": {
+      "schedule": "Scheduled",
+      "manual": "Manual",
+      "preview": "Preview"
+    }
+  },
+  "editor": {
+    "titleCreate": "Create SCIM endpoint",
+    "titleEdit": "Edit SCIM endpoint",
+    "name": "Name",
+    "namePlaceholder": "Corporate IdP",
+    "authType": "Authentication",
+    "authBearer": "Bearer token",
+    "authBasic": "Basic auth",
+    "authNone": "No auth",
+    "baseUrl": "Base URL",
+    "baseUrlPlaceholder": "https://idp.example.com/scim/v2",
+    "token": "Token or password",
+    "tokenStored": "Token stored",
+    "tokenMissing": "No token stored",
+    "tokenKeep": "Leave blank to keep the existing secret",
+    "tokenAutoGenerate": "Leave blank to auto-generate a bearer token",
+    "tokenHint": "Secrets are encrypted at rest and never returned after creation.",
+    "username": "Username",
+    "usernamePlaceholder": "scim-service-account",
+    "pollSchedule": "Poll schedule",
+    "pollScheduleHint": "Five-field cron expression, for example */15 * * * *.",
+    "enabled": "Enabled",
+    "cancel": "Cancel",
+    "save": "Save endpoint",
+    "saving": "Saving..."
+  },
+  "token": {
+    "title": "Copy SCIM bearer token",
+    "description": "This token for {{name}} is shown once.",
+    "warning": "Copy this token now. McHarbor stores only an encrypted secret and cannot show it again.",
+    "reveal": "Reveal token",
+    "hide": "Hide token",
+    "copy": "Copy token",
+    "copied": "Token copied",
+    "copyFailed": "Could not copy token",
+    "copiedHint": "Copied to clipboard.",
+    "acknowledge": "I copied the token"
+  },
+  "toast": {
+    "created": "SCIM endpoint created",
+    "updated": "SCIM endpoint updated",
+    "deleted": "SCIM endpoint deleted",
+    "syncQueued": "SCIM sync queued",
+    "tokenRotated": "Token rotated"
+  },
+  "preview": {
+    "title": "Preview sync for {{name}}",
+    "description": "A dry run reads the directory and compares it with McHarbor. Nothing changes until you run the sync.",
+    "loading": "Reading the directory...",
+    "failed": "The directory could not be read",
+    "blockedTitle": "This sync is blocked",
+    "refresh": "Run the preview again",
+    "confirm": "Run sync now",
+    "queuedNote": "The sync runs on the next poller tick, within a minute, and reads the directory again, so it applies what the directory says at that moment.",
+    "noChanges": "Nothing would change.",
+    "more": "...and {{count}} more",
+    "groups": "{{count}} groups read, {{matched}} match a McHarbor group by name. Groups are reported only; a sync does not change group membership.",
+    "changes": "Changes"
+  },
+  "blocked": {
+    "empty_directory": "The directory returned no users while accounts are still linked. The sync is blocked so it cannot disable every account at once.",
+    "directory_too_large": "There are more accounts than a sync can safely compare, so the sync is blocked."
+  },
+  "summary": {
+    "usersSeen": "Seen",
+    "linked": "Link",
+    "unmatched": "New, unmatched",
+    "updated": "Update",
+    "disabled": "Disable",
+    "skipped": "Skipped",
+    "unchanged": "Unchanged",
+    "pendingLink": "Awaiting an account"
+  },
+  "action": {
+    "link": "Link",
+    "unmatched": "Unmatched",
+    "update": "Update",
+    "disable": "Disable",
+    "skip": "Skip"
+  },
+  "reason": {
+    "inactive": "inactive in the directory",
+    "removed": "no longer in the directory",
+    "protected_admin": "holds a wildcard role, so a sync never disables it",
+    "already_linked": "the account is already linked to another directory user",
+    "empty_directory": "the directory returned no users"
+  },
+  "field": {
+    "email": "email",
+    "displayName": "display name",
+    "scimUserName": "directory user name",
+    "scimEmail": "directory email"
+  },
+  "change": {
+    "account": "account {{username}}",
+    "noAccount": "no McHarbor account, recorded for review",
+    "fields": "changes {{fields}}"
+  },
+  "rotate": {
+    "title": "Rotate the bearer token for {{name}}?",
+    "description": "A new token is generated and shown once. The current token stops working immediately, so update every client that uses it.",
+    "confirm": "Rotate token"
+  }
+}

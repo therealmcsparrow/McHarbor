@@ -1,13 +1,13 @@
 {
-  "label": "Container Backup",
-  "description": "Run an encrypted backup for a container",
+  "label": "Sauvegarde de conteneur",
+  "description": "Exécuter une sauvegarde chiffrée pour un conteneur",
   "config": {
-    "environment": "Environment",
-    "container": "Container",
-    "storage_location_id": "Storage Location",
-    "include_logs": "Include Logs",
-    "include_filesystem": "Include Filesystem",
-    "include_image": "Include Image",
-    "selected_mounts": "Selected Mounts"
+    "environment": "Environnement",
+    "container": "Conteneur",
+    "storage_location_id": "Emplacement de stockage",
+    "include_logs": "Inclure les journaux",
+    "include_filesystem": "Inclure le système de fichiers",
+    "include_image": "Inclure l'image",
+    "selected_mounts": "Montages sélectionnés"
   }
 }

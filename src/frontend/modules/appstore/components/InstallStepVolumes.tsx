@@ -32,16 +32,18 @@ export function InstallStepVolumes({ volumes, onVolumeChange }: InstallStepVolum
                 <input
                   type="text"
                   value={v.host}
+                  aria-label={t('appStore.hostPath')}
                   onChange={(e) => onVolumeChange(i, 'host', e.target.value)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none"
+                  className="mc-control w-full rounded border border-border bg-background px-2 text-sm text-foreground focus:border-primary focus:outline-none"
                 />
               </td>
               <td className="py-2">
                 <input
                   type="text"
                   value={v.container}
+                  aria-label={t('appStore.containerPath')}
                   onChange={(e) => onVolumeChange(i, 'container', e.target.value)}
-                  className="w-full rounded border border-border bg-background px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none"
+                  className="mc-control w-full rounded border border-border bg-background px-2 text-sm text-foreground focus:border-primary focus:outline-none"
                 />
               </td>
             </tr>
@@ -51,4 +53,3 @@ export function InstallStepVolumes({ volumes, onVolumeChange }: InstallStepVolum
     </div>
   );
 }
-

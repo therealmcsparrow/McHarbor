@@ -4,7 +4,7 @@
   "description": "High-performance reverse proxy to expose NAT'd local servers to the public internet.",
   "category": "Networking",
   "image": "snowdreamtech/frps:latest",
-  "logo": "https://github.com/fatedier/frp/raw/master/doc/pic/modal.png",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/frp.svg",
   "website": "https://github.com/fatedier/frp",
   "docsUrl": "https://github.com/fatedier/frp/blob/master/README.md",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

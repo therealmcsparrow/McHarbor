@@ -1,7 +1,0 @@
-{
-  "label": "Stack List",
-  "description": "List compose stacks by project label",
-  "config": {
-    "environment": "Environment"
-  }
-}

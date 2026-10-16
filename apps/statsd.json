@@ -1,0 +1,41 @@
+{
+    "slug":  "statsd",
+    "name":  "StatsD",
+    "description":  "Simple network daemon that aggregates and forwards application metrics to a backend such as Graphite.",
+    "category":  "Monitoring",
+    "image":  "statsd/statsd:latest",
+    "logo":  "https://github.com/statsd.png",
+    "website":  "https://github.com/statsd/statsd",
+    "docsUrl":  "https://github.com/statsd/statsd#installation",
+    "ports":  [
+                  {
+                      "host":  8126,
+                      "container":  8125,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  8127,
+                      "container":  8126,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/statsd/config.js",
+                        "container":  "/usr/src/app/config.js",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

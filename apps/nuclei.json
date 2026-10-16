@@ -1,0 +1,35 @@
+{
+    "slug":  "nuclei",
+    "name":  "Nuclei",
+    "description":  "Fast template-based vulnerability scanner for web applications, APIs, and network services.",
+    "category":  "Security",
+    "image":  "projectdiscovery/nuclei:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=projectdiscovery.io\u0026sz=128",
+    "website":  "https://nuclei.projectdiscovery.io",
+    "docsUrl":  "https://docs.projectdiscovery.io/tools/nuclei/running",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nuclei/templates",
+                        "container":  "/root/nuclei-templates"
+                    },
+                    {
+                        "host":  "/opt/appdata/nuclei/output",
+                        "container":  "/output"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

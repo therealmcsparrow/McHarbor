@@ -1,7 +1,7 @@
 {
-  "label": "Loop",
-  "description": "Iterate over an array from the current message",
+  "label": "Schleife",
+  "description": "Über ein Array der aktuellen Nachricht iterieren",
   "config": {
-    "items_field": "Items Field"
+    "items_field": "Elementfeld"
   }
 }

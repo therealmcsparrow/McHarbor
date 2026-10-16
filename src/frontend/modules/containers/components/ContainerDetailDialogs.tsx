@@ -1,11 +1,10 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useTranslation } from 'react-i18next';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { LinkContainerDialog } from '@resources/components/LinkContainerDialog';
 import { TakeOverDialog } from '@resources/components/TakeOverDialog';
 import type { ContainerInspect } from '@core/types/docker';
+import { ContainerActionDialog } from './ContainerActionDialog';
 import { MoveContainerDialog } from './MoveContainerDialog';
 import { RecreateConfirmDialog } from './RecreateConfirmDialog';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
@@ -14,8 +13,11 @@ import { RenameContainerDialog } from './RenameContainerDialog';
 type ContainerDetailDialogsProps = {
   container: ContainerInspect;
   containerName: string;
+  confirmStop: boolean;
   confirmKill: boolean;
   recreateConfirmOpen: boolean;
+  secretFileModeOffered: boolean;
+  secretFileMode: boolean;
   removeDialogOpen: boolean;
   moveDialogOpen: boolean;
   renameDialogOpen: boolean;
@@ -23,17 +25,19 @@ type ContainerDetailDialogsProps = {
   relinkOpen: boolean;
   linkedStackName: string | null;
   unlockProtectedRename?: boolean;
-  actionPending: boolean;
+  stopKillBlocked: boolean;
   editSaving: boolean;
+  recreateError: string | null;
   changedFields: string[];
+  onConfirmStopChange: (open: boolean) => void;
   onConfirmKillChange: (open: boolean) => void;
   onRecreateConfirmChange: (open: boolean) => void;
+  onSecretFileModeChange: (value: boolean) => void;
   onRemoveDialogChange: (open: boolean) => void;
   onMoveDialogChange: (open: boolean) => void;
   onRenameDialogChange: (open: boolean) => void;
   onTakeOverChange: (open: boolean) => void;
   onRelinkChange: (open: boolean) => void;
-  onKill: () => void;
   onConfirmRecreate: () => void;
   onRemoveSuccess: () => void;
 };
@@ -41,8 +45,11 @@ type ContainerDetailDialogsProps = {
 export function ContainerDetailDialogs({
   container,
   containerName,
+  confirmStop,
   confirmKill,
   recreateConfirmOpen,
+  secretFileModeOffered,
+  secretFileMode,
   removeDialogOpen,
   moveDialogOpen,
   renameDialogOpen,
@@ -50,32 +57,38 @@ export function ContainerDetailDialogs({
   relinkOpen,
   linkedStackName,
   unlockProtectedRename = false,
-  actionPending,
+  stopKillBlocked,
   editSaving,
+  recreateError,
   changedFields,
+  onConfirmStopChange,
   onConfirmKillChange,
   onRecreateConfirmChange,
+  onSecretFileModeChange,
   onRemoveDialogChange,
   onMoveDialogChange,
   onRenameDialogChange,
   onTakeOverChange,
   onRelinkChange,
-  onKill,
   onConfirmRecreate,
   onRemoveSuccess,
 }: ContainerDetailDialogsProps) {
-  const { t } = useTranslation('containers');
-
   return (
     <>
-      <ConfirmDialog
+      <ContainerActionDialog
+        containerId={container.Id}
+        action="stop"
+        open={confirmStop}
+        blocked={stopKillBlocked}
+        onOpenChange={onConfirmStopChange}
+      />
+
+      <ContainerActionDialog
+        containerId={container.Id}
+        action="kill"
         open={confirmKill}
+        blocked={stopKillBlocked}
         onOpenChange={onConfirmKillChange}
-        title={t('confirm.killTitle')}
-        description={t('confirm.killDescription')}
-        confirmLabel={t('actions.kill')}
-        onConfirm={onKill}
-        loading={actionPending}
       />
 
       <RecreateConfirmDialog
@@ -83,6 +96,10 @@ export function ContainerDetailDialogs({
         onOpenChange={onRecreateConfirmChange}
         changedFields={changedFields}
         loading={editSaving}
+        error={recreateError}
+        secretFileModeOffered={secretFileModeOffered}
+        secretFileMode={secretFileMode}
+        onSecretFileModeChange={onSecretFileModeChange}
         onConfirm={onConfirmRecreate}
       />
 

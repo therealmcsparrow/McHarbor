@@ -16,6 +16,8 @@ type StackInstallInput struct {
 	Description   *string
 	EnvironmentID *string
 	AutoStart     bool
+	// SecretFileMode is the stack-level flag, set from the install form.
+	SecretFileMode bool
 }
 
 // StackInstallOutput describes the created stack.

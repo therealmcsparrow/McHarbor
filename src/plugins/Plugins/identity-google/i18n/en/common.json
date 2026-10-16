@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Google",
+    "subtitle": "Federate McHarbor login to Google accounts. Supports both personal Google accounts and Google Workspace (set the Workspace Domain field to restrict to one tenant via the OIDC hd= hint). Admin group fetching is available for Workspace tenants via a service account with domain-wide delegation.",
+    "registerHint": "Add a provider from the host's Settings > Security > Identity Providers page and pick \"Google\" as the provider_type."
+  },
+  "fields": {
+    "client_id":                     "Client ID",
+    "client_secret":                 "Client Secret",
+    "domain":                        "Workspace Domain",
+    "scopes":                        "Scopes",
+    "service_account_json":          "Service Account JSON (admin groups)",
+    "delegated_user_email":          "Delegated User Email",
+    "delegated_user_access_token":   "Delegated User Access Token (override)",
+    "user_email_for_lookup":         "User Email for Group Lookup"
+  },
+  "help": {
+    "client_id":                     "OAuth 2.0 client ID from the Google Cloud console (APIs & Services > Credentials > your Web application OAuth client).",
+    "client_secret":                 "OAuth client secret issued by Google. Stored encrypted at rest (AES-256-GCM).",
+    "domain":                        "Optional Google Workspace hosted domain (e.g. example.com). When set, the plugin passes it as the hd= query parameter so only accounts from that Workspace can sign in. Leave empty to allow personal Google accounts.",
+    "scopes":                        "Space-separated OAuth scopes. Defaults to openid profile email. Add https://www.googleapis.com/auth/admin.directory.group.readonly to enable admin group fetching via the Directory API.",
+    "service_account_json":          "Optional: contents of a Google service-account JSON key file with domain-wide delegation. Required for Admin SDK group fetching. Stored encrypted at rest.",
+    "delegated_user_email":          "Optional: the Workspace admin user the service account impersonates (e.g. admin@example.com). Required when service_account_json is set.",
+    "delegated_user_access_token":   "Optional: manually-issued Google API access token to use for Admin SDK calls. Use this until v1.1 ships RS256 JWT signing for service-account assertions.",
+    "user_email_for_lookup":         "Optional: email of the user to look up groups for. Most operators leave this blank and let the host pass the authenticated user's email at runtime."
+  },
+  "guide": {
+    "title":    "Set up Google sign-in in McHarbor",
+    "subtitle": "Create an OAuth 2.0 Web application client in the Google Cloud console, then optionally configure a service account for Admin SDK group fetching.",
+    "step1": {
+      "title": "Create or select a Google Cloud project",
+      "body":  "Open the Google Cloud console and either pick an existing project or create a new one dedicated to McHarbor. Note the project ID — you'll reference it when configuring the OAuth consent screen."
+    },
+    "step2": {
+      "title": "Configure the OAuth consent screen",
+      "body":  "Under APIs & Services > OAuth consent screen, set the user type (Internal for Google Workspace, External otherwise), the support email, and the app name. Add the scopes you need: openid, profile, email (always), and https://www.googleapis.com/auth/admin.directory.group.readonly (only if you want group fetching)."
+    },
+    "step3": {
+      "title": "Create an OAuth Web client",
+      "body":  "Under APIs & Services > Credentials > Create credentials > OAuth client ID, pick Application type: Web application. Under Authorized redirect URIs, add the McHarbor callback URL shown on the provider edit page — the host appends /api/identity-providers/callback to your McHarbor base URL. Copy the Client ID and Client Secret that Google shows into the matching fields on the provider form."
+    },
+    "step4": {
+      "title": "(Workspace only) Set the Workspace Domain",
+      "body":  "If you want to restrict sign-in to a single Google Workspace tenant, paste the tenant's primary domain (e.g. example.com) into the Workspace Domain field. The plugin will pass it as the hd= query parameter to Google's login page. Leave the field empty to accept personal Google accounts."
+    },
+    "step5": {
+      "title": "Test the connection",
+      "body":  "Back in McHarbor, click \"Test connection\" on the provider form. A green result means the OIDC discovery document resolved and the OAuth client authenticated successfully against accounts.google.com — the configuration is valid."
+    },
+    "step6": {
+      "title": "(Workspace only) Create a service account for Admin SDK",
+      "body":  "Under IAM & Admin > Service Accounts > Create service account, give it a name like \"mcharbor-admin-groups\" and grant it the role Service Account User. Under Keys > Add key > Create new key, pick JSON and save the file — paste its entire contents into the Service Account JSON field on the provider form."
+    },
+    "step7": {
+      "title": "(Workspace only) Enable domain-wide delegation",
+      "body":  "In the Google Workspace admin console (admin.google.com) under Security > API controls > Domain-wide delegation, add the service account's client_id and the scope https://www.googleapis.com/auth/admin.directory.group.readonly. Then set the Delegated User Email field on the provider form to the Workspace admin email the service account will impersonate (e.g. admin@example.com). Save the provider — McHarbor will use the delegated identity to fetch group membership on demand."
+    }
+  }
+}

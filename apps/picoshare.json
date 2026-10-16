@@ -1,0 +1,41 @@
+{
+    "slug":  "picoshare",
+    "name":  "PicoShare",
+    "description":  "Minimal self-hosted file sharing tool for sending files with expiring links.",
+    "category":  "Photos & Files",
+    "image":  "mtlynch/picoshare:latest",
+    "logo":  "https://opengraph.githubassets.com/1/mtlynch/picoshare",
+    "website":  "https://github.com/mtlynch/picoshare",
+    "docsUrl":  "https://github.com/mtlynch/picoshare#running",
+    "ports":  [
+                  {
+                      "host":  4046,
+                      "container":  4001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/picoshare/data",
+                        "container":  "/home/picoshare/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PS_SHARED_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret used to log into the admin UI",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

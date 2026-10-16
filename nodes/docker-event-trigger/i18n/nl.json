@@ -1,5 +1,5 @@
 {
-  "label": "Docker Event Trigger",
+  "label": "Docker-gebeurtenistrigger",
   "description": "Start een workflow vanuit Docker-events gefilterd op type, actie, naam of label",
   "config": {
     "environment": "Omgeving",
@@ -15,6 +15,34 @@
       "image": "Image",
       "volume": "Volume",
       "network": "Netwerk"
+    },
+    "action": {
+      "create": "Aanmaken",
+      "start": "Starten",
+      "stop": "Stoppen",
+      "restart": "Herstarten",
+      "die": "Gestopt (die)",
+      "kill": "Kill",
+      "destroy": "Vernietigen",
+      "pause": "Pauzeren",
+      "unpause": "Hervatten",
+      "oom": "Geheugen op (OOM)",
+      "health_status": "Gezondheidsstatus",
+      "rename": "Hernoemen",
+      "update": "Bijwerken",
+      "exec_create": "Exec aanmaken",
+      "exec_start": "Exec starten",
+      "exec_die": "Exec beëindigd",
+      "pull": "Pull",
+      "push": "Push",
+      "delete": "Verwijderen",
+      "tag": "Taggen",
+      "untag": "Tag verwijderen",
+      "prune": "Opschonen",
+      "mount": "Mounten",
+      "unmount": "Unmounten",
+      "connect": "Verbinden",
+      "disconnect": "Verbinding verbreken"
     }
   }
 }

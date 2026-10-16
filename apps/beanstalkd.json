@@ -1,0 +1,32 @@
+{
+    "slug":  "beanstalkd",
+    "name":  "Beanstalkd",
+    "description":  "Simple, fast work queue service used to distribute jobs between application workers.",
+    "category":  "Message Queues",
+    "image":  "schickling/beanstalkd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/beanstalkd.png",
+    "website":  "https://beanstalkd.github.io",
+    "docsUrl":  "https://github.com/beanstalkd/beanstalkd",
+    "ports":  [
+                  {
+                      "host":  11300,
+                      "container":  11300,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

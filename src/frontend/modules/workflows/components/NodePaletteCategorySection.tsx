@@ -1,22 +1,25 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import type { DragEvent } from 'react';
+import type { DragEvent as ReactDragEvent } from 'react';
 import type { TFunction } from 'i18next';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
 import { Button } from '@resources/components/ui/Button';
 import { CATEGORY_TAG_COLORS, isNodeDefinitionAvailable } from '../nodes';
+import { hasPermission, useCurrentUserPermissions } from '@core/auth/usePermission';
 import { ICON_MAP } from './node-palette-icons';
 import type { NodeDefinition } from '../types';
 
 type NodePaletteCategorySectionProps = {
   capabilities: ReturnType<typeof import('@resources/hooks/useNodeAvailability').useNodeAvailability>;
+  /** Current user's permissions; gates plugin nodes that declare one. */
+  permissions: ReturnType<typeof useCurrentUserPermissions>['data'];
   category: string;
   collapsed: boolean;
   definitions: NodeDefinition[];
   label: string;
-  onDragStart: (event: DragEvent, definition: NodeDefinition) => void;
+  onDragStart: (event: ReactDragEvent, definition: NodeDefinition) => void;
   onToggle: (category: string) => void;
   t: TFunction<'common'>;
   tn: TFunction<'nodes'>;
@@ -24,6 +27,7 @@ type NodePaletteCategorySectionProps = {
 
 export function NodePaletteCategorySection({
   capabilities,
+  permissions,
   category,
   collapsed,
   definitions,
@@ -38,7 +42,7 @@ export function NodePaletteCategorySection({
       <Button
         variant="ghost"
         onClick={() => onToggle(category)}
-        className="h-auto w-full justify-start gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+        className="h-auto w-full justify-start gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
       >
         {collapsed ? <IconChevronRight className="size-3" /> : <IconChevronDown className="size-3" />}
         {label}
@@ -50,14 +54,20 @@ export function NodePaletteCategorySection({
           {definitions.map((definition) => {
             const Icon = ICON_MAP[definition.icon];
             const tagColor = CATEGORY_TAG_COLORS[definition.category] ?? '';
-            const available = isNodeDefinitionAvailable(definition, capabilities);
+            const capable = isNodeDefinitionAvailable(definition, capabilities);
+            const permitted = !definition.permission || hasPermission(permissions, definition.permission);
+            const available = capable && permitted;
+            const unavailableTitle = !capable
+              ? t('workflows.nodeUnavailable')
+              : t('permission.requires', { permission: definition.permission });
 
             return (
               <div
                 key={definition.key}
+                role="presentation"
                 draggable={available}
-                onDragStart={(event) => onDragStart(event, definition)}
-                title={available ? undefined : t('workflows.nodeUnavailable')}
+                onDragStart={(dragEvent) => onDragStart(dragEvent, definition)}
+                title={available ? undefined : unavailableTitle}
                 className={cn(
                   'group flex items-start gap-2.5 rounded-lg px-2.5 py-2 transition-colors',
                   available ? 'cursor-grab hover:bg-muted/50 active:cursor-grabbing' : 'cursor-not-allowed opacity-40',

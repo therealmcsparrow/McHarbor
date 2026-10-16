@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Display name for this Discord communication channel." },
+    "webhook_url": { "help": "Discord channel webhook URL. Stored encrypted at rest." }
+  },
+  "title": "Discord notification delivery",
+  "subtitle": "Plugin-owned communication channel",
+  "description": "This plugin owns the Discord. It stores the Discord webhook URL on the channel itself and dispatches notifications through the plugin runtime.",
+  "nameLabel": "Channel name",
+  "namePlaceholder": "Operations Discord",
+  "webhookUrlLabel": "Webhook URL",
+  "securityTitle": "Security",
+  "securityHelp": "Encrypted webhook URL",
+  "securityDescription": "The webhook URL is stored encrypted at rest. Create a dedicated webhook for McHarbor so it can be rotated independently.",
+  "testTitle": "Test connection",
+  "testHelp": "Sends message",
+  "testDescription": "The host test action posts a real message to the configured Discord channel. Use a private test channel first if the webhook targets an on-call room.",
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "requiredField": "Required",
+  "setupGuideTitle": "Discord communication channel setup guide",
+  "guide": {
+    "step1": { "body": "Open the target Discord server and create a dedicated text channel for McHarbor alerts, or choose an existing operations channel." },
+    "step2": { "body": "Open channel settings, go to <b>Integrations</b>, create a webhook, and copy the webhook URL." },
+    "step3": { "body": "Paste the webhook URL into this channel configuration. McHarbor stores it encrypted at rest and redacts it from API responses." },
+    "step4": { "body": "Save the channel and click <b>Test connection</b>. The plugin posts a real test message to Discord through the same path used for live workflow, alert, and backup events." },
+    "step5": { "body": "If Test fails, verify the webhook was not deleted, the channel still exists, and server permissions allow webhook posts." }
+  }
+}

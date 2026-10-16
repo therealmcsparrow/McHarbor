@@ -1,0 +1,46 @@
+{
+    "slug":  "freeradius",
+    "name":  "FreeRADIUS",
+    "description":  "RADIUS server used for network authentication, authorization, and accounting.",
+    "category":  "Security",
+    "image":  "freeradius/freeradius-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/freeradius.svg",
+    "website":  "https://freeradius.org/",
+    "docsUrl":  "https://freeradius.org/",
+    "ports":  [
+                  {
+                      "host":  1812,
+                      "container":  1812,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  1813,
+                      "container":  1813,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/freeradius/config",
+                        "container":  "/etc/raddb"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RADIUS_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret for RADIUS clients",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

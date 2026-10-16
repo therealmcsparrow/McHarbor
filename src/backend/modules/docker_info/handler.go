@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package dockerinfo reports extended Docker daemon details for an environment.
 package dockerinfo
 
 import (
@@ -36,7 +37,7 @@ func (h *Handler) HandleSystemInfo(w http.ResponseWriter, r *http.Request) {
 	info, err := h.service.SystemInfo(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("failed to get Docker system info", "error", err, "env", envID)
-		response.InternalErrorCode(w, r, i18n.ErrDockerInfoFailed)
+		response.InternalErrorCause(w, r, i18n.ErrDockerInfoFailed, err)
 		return
 	}
 

@@ -1,0 +1,42 @@
+{
+    "slug":  "rstudio-server",
+    "name":  "RStudio Server",
+    "description":  "Browser-based integrated development environment for the R programming language and statistical computing.",
+    "category":  "Developer Tools",
+    "image":  "rocker/rstudio:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rstudio.png",
+    "website":  "https://posit.co/products/open-source/rstudio-server/",
+    "docsUrl":  "https://rocker-project.org/images/versioned/rstudio.html",
+    "ports":  [
+                  {
+                      "host":  8787,
+                      "container":  8787,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rstudio-server/home",
+                        "container":  "/home/rstudio"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the default rstudio user",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

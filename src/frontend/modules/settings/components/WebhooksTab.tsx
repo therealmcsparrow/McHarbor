@@ -10,21 +10,29 @@ import { assertSuccess } from '@resources/utils/api-mutation';
 import { Button } from '@resources/components/ui/Button';
 import { Badge } from '@resources/components/ui/Badge';
 import { ListItem } from '@resources/components/ui/ListItem';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import type { WebhookItem } from '../types';
 import { CreateWebhookDialog } from './CreateWebhookDialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 export function WebhooksTab() {
   const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
 
-  const { data: webhooks = [], isLoading } = useQuery({
+  const {
+    data: webhooks = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['webhooks'],
     queryFn: () =>
       api
         .get<PaginatedData<WebhookItem>>('/webhooks', { per_page: '100' })
-        .then((r) => r.data?.items ?? []),
+        .then(assertSuccess)
+        .then((page) => page?.items ?? []),
   });
 
   const deleteWebhook = useMutation({
@@ -49,13 +57,15 @@ export function WebhooksTab() {
     );
   }
 
+  if (error) {
+    return <ErrorState variant="card" error={error} onRetry={() => void refetch()} />;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t('webhooks.description')}
-        </p>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
+        <p className="text-sm text-muted-foreground">{t('webhooks.description')}</p>
+        <Button permission={PERM.WEBHOOKS_MANAGE} size="sm" onClick={() => setCreateOpen(true)}>
           <IconPlus className="h-4 w-4" /> {t('webhooks.addWebhook')}
         </Button>
       </div>
@@ -77,6 +87,7 @@ export function WebhooksTab() {
               actions={
                 <>
                   <Button
+                    permission={PERM.WEBHOOKS_MANAGE}
                     variant="ghost"
                     size="icon"
                     aria-label={t('webhooks.testWebhook')}
@@ -85,6 +96,7 @@ export function WebhooksTab() {
                     <IconSend className="h-4 w-4" />
                   </Button>
                   <Button
+                    permission={PERM.WEBHOOKS_DELETE}
                     variant="ghost"
                     size="icon"
                     aria-label={t('webhooks.deleteWebhook')}
@@ -103,7 +115,7 @@ export function WebhooksTab() {
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onOpenChange={(isOpen) => !isOpen && setConfirmTarget(null)}
         title={t('webhooks.confirmDeleteTitle')}
         description={t('webhooks.confirmDeleteDescription')}
         confirmLabel={t('webhooks.confirmDeleteLabel')}

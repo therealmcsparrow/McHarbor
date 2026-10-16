@@ -1,0 +1,31 @@
+{
+    "slug":  "syft",
+    "name":  "Syft",
+    "description":  "Generates a software bill of materials (SBOM) from container images and filesystems for supply-chain auditing.",
+    "category":  "Security",
+    "image":  "anchore/syft:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/syft.png",
+    "website":  "https://github.com/anchore/syft",
+    "docsUrl":  "https://github.com/anchore/syft#getting-started",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/syft/cache",
+                        "container":  "/root/.cache/syft"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

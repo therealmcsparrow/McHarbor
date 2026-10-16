@@ -1,0 +1,16 @@
+{
+  "slug": "addon-compute",
+  "name": "Compute Foundation",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Storage pools, networks, guest images and per-host capability checks for running virtual machines and system containers on your own hosts. Install it on its own to see what each host can run and to prepare its storage and networking; the Virtual Machines and System Containers plugins build on it and install it automatically.",
+  "category": "Orchestration",
+  "icon": "IconServer2",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/addon-compute-1.0.0.tar.gz"
+    }
+  ]
+}

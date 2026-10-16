@@ -1,0 +1,94 @@
+{
+  "title": "Demo mode",
+  "intro": "Demo mode switches this McHarbor onto a separate database filled with a simulated estate, so every page can be explored with realistic data. Everything in it is fake, and nothing real is touched.",
+  "errorTitle": "Could not load the demo mode status",
+  "state": {
+    "label": "Status",
+    "active": "Active",
+    "inactive": "Not active",
+    "activeSince": "Active since {{date}}",
+    "data": "Demo data",
+    "dataPresent": "Present, kept for the next visit",
+    "dataAbsent": "None yet",
+    "clusteredTitle": "Unavailable on a clustered instance",
+    "clusteredBody": "Demo mode restarts McHarbor onto a different database, which would split the cluster."
+  },
+  "estate": {
+    "title": "What the demo estate contains",
+    "liveTitle": "What the demo estate contains right now",
+    "environments": "Environments",
+    "containers": "Containers",
+    "stacks": "Stacks",
+    "virtualMachines": "Virtual machines",
+    "systemContainers": "LXC system containers",
+    "clusters": "Kubernetes clusters",
+    "pods": "Pods",
+    "deployments": "Kubernetes deployments",
+    "swarmClusters": "Swarm clusters",
+    "swarmNodes": "Swarm nodes",
+    "swarmServices": "Swarm services",
+    "historyDays": "History period",
+    "days_one": "{{value}} day",
+    "days_other": "{{value}} days"
+  },
+  "config": {
+    "intro": "Sizes of the simulated estate. Changing them rebuilds the demo data.",
+    "restoreDefaults": "Restore defaults",
+    "defaultHint": "Default: {{value}}.",
+    "historyHelp": "Days of history the demo contains: audit log, workflow runs, schedule runs, alerts and incidents.",
+    "refused": "McHarbor refused these sizes. Correct the highlighted field and try again.",
+    "groups": {
+      "estate": "Environments & containers",
+      "compute": "Virtual machines & LXC",
+      "kubernetes": "Kubernetes",
+      "swarm": "Swarm",
+      "history": "History"
+    },
+    "error": {
+      "range": "Enter a whole number from {{min}} to {{max}}.",
+      "swarmNodes": "Swarm needs at least one node per cluster: enter {{min}} or more."
+    }
+  },
+  "notes": {
+    "realData": "Your real data is never modified. Leaving demo mode restarts McHarbor back onto it exactly as it was.",
+    "restart": "Entering, leaving and resetting demo mode restart McHarbor, so everyone signed in is briefly disconnected.",
+    "disabled": "Actions that would touch real systems are disabled in demo mode: McHarbor's own host services and host updates, self-update, instance backups, database migration, licence, storage locations, TLS, time zone and backup key settings, and plugin install and uninstall."
+  },
+  "actions": {
+    "enter": "Enter demo mode",
+    "exit": "Exit demo mode",
+    "reset": "Reset demo data",
+    "applySizes": "Apply new sizes",
+    "resetShort": "Reset"
+  },
+  "confirm": {
+    "enterTitle": "Enter demo mode?",
+    "enterDescription": "McHarbor restarts onto a separate database filled with a simulated estate of the sizes below. Demo data kept from an earlier visit is reused when the sizes are unchanged; changing them rebuilds the demo data. Your real data is not touched. Everyone signed in is briefly disconnected.",
+    "exitTitle": "Exit demo mode?",
+    "exitDescription": "McHarbor restarts back onto your real data. The demo data is kept, so the next visit continues where this one ended. Everyone signed in is briefly disconnected.",
+    "resetTitle": "Reset demo data?",
+    "resetDescription": "The demo database is deleted, and the next visit starts from a freshly generated estate. Your real data is not affected.",
+    "resetActiveDescription": "Everything changed in demo mode is thrown away and McHarbor restarts onto a freshly generated estate. Your real data is not affected. Everyone signed in is briefly disconnected.",
+    "applySizesTitle": "Apply new demo sizes?",
+    "applySizesDescription": "The demo is rebuilt with the sizes below: everything changed in demo mode is thrown away and McHarbor restarts onto the new estate. Your real data is not affected. Everyone signed in is briefly disconnected."
+  },
+  "toast": {
+    "enterSuccess": "Entering demo mode. McHarbor is restarting.",
+    "exitSuccess": "Leaving demo mode. McHarbor is restarting.",
+    "resetSuccess": "Demo data deleted.",
+    "resetRestart": "Demo data reset. McHarbor is restarting onto a fresh estate.",
+    "restartRequired": "McHarbor could not restart itself. Restart it manually to apply the change."
+  },
+  "reason": {
+    "already_active": "Demo mode is already active.",
+    "not_active": "Demo mode is not active.",
+    "clustered": "Demo mode is unavailable on a clustered instance.",
+    "busy": "Another demo mode change is already in progress. Try again in a moment."
+  },
+  "banner": {
+    "title": "Demo mode",
+    "description": "Everything you see is simulated. Actions that would touch real systems are disabled.",
+    "dismiss": "Dismiss",
+    "show": "Show the demo mode banner"
+  }
+}

@@ -9,6 +9,16 @@
   "pruneUnused": "Podar não utilizado",
   "pruneDescription": "Remova imagens não utilizadas que não são referenciadas por contêineres.",
   "columns": {
+    "allTags": "Todas as tags",
+    "digests": "Digests",
+    "parentId": "ID do pai",
+    "sharedSize": "Tamanho compartilhado",
+    "labels": "Rótulos",
+    "containerCount": "Contêineres",
+    "protected": "Protegido",
+    "usedBy": "Usado por",
+    "groupRelations": "Relações",
+    "groupImage": "Imagem",
     "repoTag": "Repositório:Etiqueta",
     "status": "Status",
     "repository": "Repositório",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "em uso",
-    "unused": "não utilizado"
+    "unused": "Não utilizado"
   },
   "pull": {
     "title": "Puxar imagem",
@@ -64,13 +74,17 @@
     "noLayerHistory": "Sem histórico de camadas",
     "noLabels": "Sem rótulos",
     "noEnvVars": "Nenhuma variável de ambiente",
+    "revealValues": "Mostrar valores",
+    "hideValues": "Ocultar valores",
+    "envWithheld": "Valores que parecem credenciais estão ocultos. Revelá-los fica registrado no log de auditoria.",
+    "historyWithheld": "Valores de ENV e de argumentos de build que parecem credenciais estão ocultos. Revelá-los fica registrado no log de auditoria.",
     "fields": {
       "id": "ID",
       "tags": "Etiquetas",
       "size": "Tamanho",
       "created": "Criado",
       "architecture": "Arquitetura",
-      "os": "OS",
+      "os": "SO",
       "dockerVersion": "Versão Docker",
       "author": "Autor",
       "digests": "Resumos",
@@ -78,7 +92,7 @@
       "entrypoint": "Ponto de entrada",
       "workingDir": "Diretório de trabalho",
       "user": "Usuário",
-      "stopSignal": "Pare Signal",
+      "stopSignal": "Sinal de paragem",
       "exposedPorts": "Portas expostas",
       "volumes": "Volumes",
       "environment": "Ambiente"
@@ -87,6 +101,17 @@
       "instruction": "Instrução",
       "size": "Tamanho",
       "created": "Criado"
+    },
+    "tabs": {
+      "ariaLabel": "Seções da imagem",
+      "overview": "Visão geral",
+      "config": "Configuração",
+      "labels": "Rótulos",
+      "history": "Histórico"
+    },
+    "badges": {
+      "tagged": "Com tag",
+      "dangling": "Órfã"
     }
   }
 }

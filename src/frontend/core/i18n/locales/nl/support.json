@@ -1,0 +1,290 @@
+{
+  "overview": {
+    "section": "Ondersteunbaarheid",
+    "bundle": {
+      "title": "Supportbundel",
+      "description": "Genereer een geschoond diagnosepakket voor McHarbor-support."
+    },
+    "diagnostics": {
+      "title": "Diagnostiek",
+      "description": "Voer gezondheidscontroles uit met uitkomsten geslaagd, waarschuwing en mislukt."
+    },
+    "inventory": {
+      "title": "Statusinventaris",
+      "description": "Wat er in de datamap staat, hoe groot het is en of het is geback-upt."
+    }
+  },
+  "status": {
+    "pass": "Geslaagd",
+    "warn": "Waarschuwing",
+    "fail": "Mislukt",
+    "skip": "Overgeslagen"
+  },
+  "check": {
+    "database": "Database",
+    "migrations": "Databasemigraties",
+    "data_dir": "Datamap",
+    "docker": "Bereikbaarheid van Docker",
+    "agents": "Externe agents",
+    "plugins": "Plugins",
+    "identity": "Identiteitsproviders",
+    "outbound": "Uitgaand netwerk",
+    "tls": "TLS-certificaat",
+    "backup_key": "Back-upversleutelingssleutel",
+    "encryption_key": "Gegevensversleutelingssleutel",
+    "readiness": "Gereedheid",
+    "target_migrations": "Migraties voor de doelversie",
+    "plugin_compat": "Plugincompatibiliteit",
+    "busy": "Lopende back-ups en exports"
+  },
+  "reason": {
+    "database": {
+      "ok": "De database reageert.",
+      "unreachable": "De database reageert niet. Controleer of hij draait en of MCHARBOR_DB_DSN of DATABASE_PATH ernaar wijst."
+    },
+    "migrations": {
+      "ok": "Elke migratie die deze versie meelevert, is toegepast.",
+      "pending": "Sommige migraties zijn niet toegepast. Herstart McHarbor zodat hij ze kan toepassen en controleer het log als ze blijven mislukken.",
+      "ahead": "De database heeft migraties die deze versie niet kent. Hij is gebruikt door een nieuwere McHarbor; draai geen oudere versie ertegen.",
+      "unreadable": "Het migratieregister kon niet worden gelezen. Controleer eerst de databaseverbinding."
+    },
+    "data_dir": {
+      "ok": "De datamap bestaat, is beschrijfbaar en heeft ruimte.",
+      "missing": "De datamap bestaat niet. Controleer DATA_DIR en de volume-koppeling.",
+      "not_writable": "McHarbor kan niet naar de datamap schrijven. Controleer of de koppeling niet alleen-lezen is en of het proces eigenaar is.",
+      "low_space": "Er is minder dan 2 GB vrij. Maak ruimte vrij voordat je back-ups, exports of een upgrade uitvoert."
+    },
+    "docker": {
+      "ok": "Elke rechtstreeks verbonden Docker-host antwoordde binnen 5 seconden.",
+      "some_unreachable": "Sommige Docker-hosts antwoordden niet binnen 5 seconden. Controleer de socketkoppeling of het TCP-adres van die omgevingen.",
+      "unreachable": "Geen enkele rechtstreeks verbonden Docker-host antwoordde. Controleer de Docker-socketkoppeling en of de daemon draait.",
+      "none": "Er zijn geen rechtstreeks verbonden Docker-omgevingen.",
+      "unreadable": "De omgevingslijst kon niet worden gelezen."
+    },
+    "agents": {
+      "ok": "Elke agentomgeving heeft een verbonden agent.",
+      "disconnected": "Sommige agents zijn niet verbonden met deze node. Controleer de agentservice op die hosts en hun route naar McHarbor.",
+      "none": "Er zijn geen agentomgevingen.",
+      "unreadable": "De omgevingslijst kon niet worden gelezen."
+    },
+    "plugins": {
+      "ok": "Elke ingeschakelde plugin is geladen.",
+      "load_failed": "Sommige plugins zijn niet geladen. Een plugin die voor een andere McHarbor-build is gebouwd, moet worden bijgewerkt of hersteld via de Plugin Store.",
+      "runtime_off": "De pluginruntime is niet actief op dit platform of nog niet gestart."
+    },
+    "identity": {
+      "configured": "Externe identity providers zijn ingeschakeld.",
+      "local_only": "Alleen lokale accounts kunnen inloggen. Voeg een identity provider toe onder Beveiliging als je single sign-on gebruikt.",
+      "unreadable": "De lijst met identity providers kon niet worden gelezen."
+    },
+    "outbound": {
+      "ok": "De catalogus-URL antwoordde.",
+      "unreachable": "De catalogus-URL antwoordde niet binnen 5 seconden. Controleer DNS, de proxy en de firewall voor uitgaand HTTPS.",
+      "server_error": "De catalogus-URL antwoordde met een serverfout. De catalogus is mogelijk uit de lucht; probeer het later opnieuw.",
+      "not_configured": "Er is geen catalogus-URL geconfigureerd, dus uitgaande toegang is niet getest."
+    },
+    "tls": {
+      "ok": "Het certificaat is nog meer dan 30 dagen geldig.",
+      "expiring": "Het certificaat verloopt binnen 30 dagen. Upload een vernieuwd certificaat of genereer het zelfondertekende opnieuw.",
+      "expired": "Het certificaat is verlopen. Browsers en agents weigeren het totdat het is vervangen.",
+      "missing": "Er is geen certificaatbestand gevonden.",
+      "unreadable": "Het certificaatbestand kon niet worden verwerkt.",
+      "disabled": "TLS is uitgeschakeld (TLS_ENABLED=false). Beëindig TLS bij een reverse proxy."
+    },
+    "backup_key": {
+      "present": "Er is een back-upversleutelingssleutel geladen.",
+      "missing": "Er is geen back-upversleutelingssleutel geladen, dus back-ups kunnen niet worden versleuteld. Koppel er een op BACKUP_ENCRYPTION_KEY_FILE."
+    },
+    "encryption_key": {
+      "env": "De gegevensversleutelingssleutel komt uit ENCRYPTION_KEY.",
+      "auto_generated": "De gegevensversleutelingssleutel is gegenereerd in DATA_DIR/.encryption_key. Als dat bestand verloren gaat, gaat elk opgeslagen geheim verloren, en elke HA-node zou zijn eigen sleutel genereren. Kopieer hem naar ENCRYPTION_KEY."
+    },
+    "readiness": {
+      "ok": "Deze node is klaar om verkeer te verwerken.",
+      "not_ready": "Deze node is niet gereed: kijk welke gereedheidsvoorwaarde onwaar is.",
+      "not_ready_yet": "De clusterservice is nog niet gestart."
+    },
+    "target_migrations": {
+      "target_unknown": "De migraties van de doelversie zijn pas bekend nadat de image is opgehaald. De huidige database is volledig gemigreerd.",
+      "pending": "Deze versie heeft nog niet-toegepaste migraties. Los ze op voordat je upgradet.",
+      "ahead": "De database bevat al migraties die deze versie niet kent.",
+      "unreadable": "Het migratieregister kon niet worden gelezen."
+    },
+    "plugin_compat": {
+      "ok": "Elke geïnstalleerde plugin verklaart de doelversie te ondersteunen.",
+      "incompatible": "Sommige plugins verklaren de doelversie niet te ondersteunen. Ze worden pas geladen nadat ze zijn bijgewerkt.",
+      "unknown": "Sommige plugins geven geen leesbaar versiebereik op. Controleer ze na de upgrade.",
+      "unreadable": "De lijst met geïnstalleerde plugins kon niet worden gelezen.",
+      "none": "Er zijn geen plugins geïnstalleerd."
+    },
+    "busy": {
+      "idle": "Er draait geen back-up, export of supportbundel.",
+      "running": "Er draait een back-up, export of supportbundel. Een upgrade herstart McHarbor en zou die onderbreken."
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostiek",
+    "description": "Gezondheidscontroles voor deze McHarbor-node, elk met wat te doen als hij niet slaagt. Resultaten zijn geschoond en veilig te delen met support.",
+    "runAll": "Alle controles uitvoeren",
+    "runCheck": "{{check}} uitvoeren",
+    "copyJson": "JSON kopiëren",
+    "notRun": "Nog niet uitgevoerd",
+    "duration": "{{ms}} ms",
+    "generatedAt": "Laatst uitgevoerd {{time}}",
+    "summary": "{{pass}} geslaagd, {{warn}} waarschuwingen, {{fail}} mislukt"
+  },
+  "bundle": {
+    "title": "Supportbundel",
+    "description": "Verpak geschoonde diagnostiek voor McHarbor-support. Er verlaat niets deze server totdat je het bestand downloadt.",
+    "categoriesTitle": "Opnemen in de bundel",
+    "categoriesHint": "Sleutels, tokens, wachtwoorden, kubeconfigs, agent-tokens en API-sleutels worden nooit verzameld, en elk bestand wordt op inloggegevens gecontroleerd en opgeschoond voordat het wordt geschreven.",
+    "noneSelected": "Kies minimaal één categorie.",
+    "preview": "Voorbeeld van opschoning",
+    "generate": "Bundel genereren",
+    "estimate": "Geschatte grootte: {{size}}",
+    "running": "Genereren: {{progress}}%",
+    "category": {
+      "system": {
+        "title": "Versie en configuratie",
+        "description": "Versie, build, platform en omgevingsvariabelen, met waarden alleen voor variabelen waarvan bekend is dat ze veilig zijn."
+      },
+      "logs": {
+        "title": "Recente serverlogs",
+        "description": "De laatste 500 logrecords die dit proces in het geheugen bewaarde."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Ingeschakelde plugins en wat de loader voor elk meldde."
+      },
+      "cluster": {
+        "title": "Cluster",
+        "description": "Gereedheid en de hoogbeschikbaarheidstopologie."
+      },
+      "database": {
+        "title": "Database",
+        "description": "Driver, serverversie en de migratielijst."
+      },
+      "environments": {
+        "title": "Omgevingen",
+        "description": "Namen, verbindingstypen en agentversies. Geen adressen, sockets of inloggegevens."
+      },
+      "audit": {
+        "title": "Geweigerde machtigingen",
+        "description": "Hoeveel verzoeken er de afgelopen dag en week zijn geweigerd."
+      },
+      "diagnostics": {
+        "title": "Diagnostiek",
+        "description": "Het resultaat van elke diagnostische controle."
+      }
+    },
+    "previewTitle": "Voorbeeld van opschoning",
+    "previewDescription": "Dit is precies wat de bundel bevat: {{count}} bestanden, {{size}}.",
+    "previewTruncated": "Alleen de eerste 64 KB worden getoond; de bundel bevat het hele bestand.",
+    "historyTitle": "Gegenereerde bundels",
+    "historyDescription": "De nieuwste {{count}} bundels worden bewaard; oudere worden automatisch verwijderd.",
+    "empty": "Er zijn nog geen bundels gegenereerd.",
+    "columns": {
+      "created": "Aangemaakt",
+      "createdBy": "Door",
+      "categories": "Inhoud",
+      "size": "Grootte",
+      "status": "Status",
+      "actions": "Acties"
+    },
+    "state": {
+      "running": "Wordt gegenereerd",
+      "ready": "Gereed",
+      "failed": "Mislukt"
+    },
+    "failed": "Genereren mislukt. Het serverlog bevat de details.",
+    "download": "Downloaden",
+    "delete": "Verwijderen",
+    "deleteTitle": "Deze supportbundel verwijderen?",
+    "deleteDescription": "Het bundelbestand wordt van deze server verwijderd. Kopieën die al zijn gedownload blijven ongemoeid."
+  },
+  "inventory": {
+    "title": "Statusinventaris",
+    "description": "Alles wat McHarbor in zijn datamap bewaart: hoe groot het is, of McHarbor erin kan schrijven, of een instantieback-up het meeneemt en of het kan worden opgeruimd. Alleen-lezen.",
+    "dataDir": "Datamap",
+    "used": "Gebruikt door McHarbor",
+    "free": "Vrij op het volume",
+    "driver": "Database",
+    "columns": {
+      "category": "Categorie",
+      "path": "Pad",
+      "size": "Grootte",
+      "writable": "Beschrijfbaar",
+      "backup": "Instantieback-up",
+      "cleanup": "Opruimen"
+    },
+    "missing": "Niet aanwezig",
+    "files_one": "{{count}} bestand",
+    "files_other": "{{count}} bestanden",
+    "truncated": "De grootte is een ondergrens; de doorloop stopte voortijdig.",
+    "yes": "Ja",
+    "no": "Nee",
+    "category": {
+      "database": "Database",
+      "encryption_key": "Gegevensversleutelingssleutel",
+      "server_secret": "Servergeheim",
+      "tls": "TLS-certificaten",
+      "plugins": "Geïnstalleerde plugins",
+      "plugin_catalog": "Cache van plugincatalogus",
+      "stacks": "Stacks",
+      "files": "Geüploade bestanden",
+      "custom_nodes": "Aangepaste workflownodes",
+      "widgets": "Dashboardwidgets",
+      "widgets_state": "Widgetstatus",
+      "workflow_nodes": "Status van workflownodes",
+      "git": "Git-werkkopieën",
+      "container_backups": "Containerback-ups",
+      "backup_staging": "Back-upstaging",
+      "instance_backups": "Instantieback-ups",
+      "restore_staging": "Herstelstaging",
+      "restore_ledger": "Herstelregister",
+      "restore_status": "Herstelstatus",
+      "support_bundles": "Supportbundels",
+      "other": "Overig"
+    },
+    "backup": {
+      "included": "Opgenomen",
+      "partial": "Gedeeltelijk",
+      "excluded": "Niet opgenomen",
+      "database": "Als tabellen"
+    },
+    "cleanup": {
+      "no": "Behouden",
+      "safe": "Veilig te verwijderen",
+      "managed": "Opgeruimd via retentie",
+      "regenerable": "Op verzoek opnieuw aangemaakt",
+      "unknown": "Onbekend, niet door McHarbor aangemaakt"
+    }
+  },
+  "preUpgrade": {
+    "open": "Controle vóór upgrade",
+    "title": "Controle vóór upgrade",
+    "description": "Wat je moet weten voordat je upgradet van {{current}} naar {{target}}. Deze controle wijzigt niets en blokkeert de update niet.",
+    "rerun": "Opnieuw uitvoeren",
+    "pluginsTitle": "Geïnstalleerde plugins",
+    "pluginRange": "Verklaart {{range}}",
+    "noRange": "Geen versiebereik",
+    "compat": {
+      "yes": "Compatibel",
+      "no": "Niet compatibel",
+      "unknown": "Onbekend"
+    },
+    "rollbackTitle": "Als de upgrade misgaat",
+    "rollbackSqlite": "Maak eerst een instantieback-up (Instellingen → Systeem → Instantieback-up). SQLite-migraties gaan alleen vooruit: om terug te draaien, stop je McHarbor, herstel je de back-up of een kopie van het datavolume en start je de vorige image-tag.",
+    "rollbackExternal": "Maak eerst een dump van de externe database. Migraties gaan alleen vooruit: om terug te draaien, stop je elke node, herstel je de dump en start je de vorige image-tag op alle nodes tegelijk.",
+    "rollbackImage": "De vorige image blijft in de lokale imagecache, dus hij kan zonder download opnieuw worden gestart.",
+    "rollbackKey": "Laat ENCRYPTION_KEY, MCHARBOR_SECRET en de back-upsleutel ongewijzigd tijdens de upgrade en elke terugdraaiing.",
+    "compatTitle": "Voordat je upgradet",
+    "compatLink": "Compatibiliteitsmatrix: ondersteunde databases, minimale agentversies, HA-modi en geteste Docker- en Kubernetes-versies"
+  },
+  "keyBanner": {
+    "title": "De gegevensversleutelingssleutel bestaat alleen in de datamap",
+    "description": "ENCRYPTION_KEY is niet ingesteld, dus McHarbor heeft DATA_DIR/.encryption_key gegenereerd. Als dat bestand verloren gaat, is elk opgeslagen geheim onleesbaar, en een tweede node zou een andere sleutel genereren. Kopieer de sleutel naar ENCRYPTION_KEY.",
+    "open": "Diagnostiek openen",
+    "dismiss": "Negeren"
+  }
+}

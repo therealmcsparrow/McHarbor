@@ -1,6 +1,6 @@
 {
   "label": "Sjabloon",
-  "description": "Render a text template using values from the workflow message",
+  "description": "Render een teksttemplate met waarden uit het workflowbericht",
   "config": {
     "template": "Sjabloon",
     "output_property": "Uitvoerpad"

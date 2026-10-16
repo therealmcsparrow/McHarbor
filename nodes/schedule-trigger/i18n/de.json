@@ -1,7 +1,8 @@
 {
-  "label": "Schedule Trigger",
-  "description": "Run a workflow on a cron-based schedule",
+  "label": "Zeitplan-Auslöser",
+  "description": "Einen Workflow nach einem Cron-Zeitplan ausführen",
   "config": {
-    "cron": "Cron-Ausdruck"
+    "cron": "Cron-Ausdruck",
+    "timezone": "Zeitzone"
   }
 }

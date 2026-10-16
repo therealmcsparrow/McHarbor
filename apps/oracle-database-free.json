@@ -1,0 +1,42 @@
+{
+    "slug":  "oracle-database-free",
+    "name":  "Oracle Database Free",
+    "description":  "Free edition of Oracle's relational database, packaged as an official container image for development use.",
+    "category":  "Databases",
+    "image":  "container-registry.oracle.com/database/free:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/oracle.png",
+    "website":  "https://www.oracle.com/database/free/",
+    "docsUrl":  "https://www.oracle.com/database/free/",
+    "ports":  [
+                  {
+                      "host":  1521,
+                      "container":  1521,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/oracle-database-free/data",
+                        "container":  "/opt/oracle/oradata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ORACLE_PWD",
+                        "default":  "change-me",
+                        "description":  "Password for the SYS, SYSTEM and PDBADMIN accounts",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

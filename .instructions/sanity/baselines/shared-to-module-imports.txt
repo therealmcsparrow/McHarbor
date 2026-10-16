@@ -1,0 +1,34 @@
+# Legacy @resources / @core -> @modules import baseline (check 2b).
+#
+# Shared code must not depend on a feature module: it inverts the
+# dependency and makes the shared file unusable without dragging the
+# module in. These entries pre-date the check (added 2026-09-11) and are
+# frozen so a NEW violation fails while the existing debt stays visible.
+#
+# One path per line, repo-relative. When a file is finally untangled,
+# delete its line - do not add new files here without a written reason.
+#
+# Concentration at the time of freezing: settings 16, dashboard 7,
+# scim 3, ai_assistant 3, abac 3, workflows 2, appstore 1.
+
+src/frontend/core/auth/RootPage.tsx
+src/frontend/core/auth/SetupPage.tsx
+src/frontend/core/plugins/PluginBridges.tsx
+src/frontend/core/plugins/PluginWidgetMount.tsx
+src/frontend/core/plugins/bridge-widgets.ts
+src/frontend/resources/components/AIActionApprovalDialog.tsx
+src/frontend/resources/components/AIAssistantDialog.tsx
+src/frontend/resources/components/UpdateCheckBanner.tsx
+src/frontend/resources/components/security/EndpointsSection.tsx
+src/frontend/resources/components/security/PoliciesSection.tsx
+src/frontend/resources/components/settings/AppearanceKnobFields.tsx
+src/frontend/resources/components/settings/BackupEncryptionKeyCard.tsx
+src/frontend/resources/components/settings/BackupLogRetentionCard.tsx
+src/frontend/resources/components/settings/NotificationsCard.tsx
+src/frontend/resources/hooks/useResolvedAppearance.ts
+src/frontend/resources/hooks/useResolvedToastSettings.ts
+src/frontend/resources/layout/AppLayout.tsx
+src/frontend/resources/layout/Footer.tsx
+src/frontend/resources/layout/useSidebarStatusBadges.ts
+src/frontend/resources/nodes/registry.ts
+src/frontend/resources/widgets/registry.ts

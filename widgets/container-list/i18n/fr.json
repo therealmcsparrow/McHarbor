@@ -13,6 +13,8 @@
     "image": "Image",
     "state": "État",
     "viewAll": "Tout afficher ({{count}})",
-    "viewAllArrow": "Tout afficher"
+    "viewAllArrow": "Tout afficher",
+    "running": "{{running}} sur {{total}} en cours",
+    "more": "{{count}} de plus"
   }
 }

@@ -1,0 +1,31 @@
+{
+    "slug":  "osv-scanner",
+    "name":  "OSV-Scanner",
+    "description":  "Scans project dependency manifests and lockfiles against the OSV open-source vulnerability database.",
+    "category":  "Security",
+    "image":  "ghcr.io/google/osv-scanner:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=osv.dev\u0026sz=128",
+    "website":  "https://osv.dev",
+    "docsUrl":  "https://google.github.io/osv-scanner/installation/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/osv-scanner/src",
+                        "container":  "/src"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

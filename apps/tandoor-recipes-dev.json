@@ -1,0 +1,45 @@
+{
+    "slug":  "tandoor-recipes-dev",
+    "name":  "Tandoor Recipes (Dev)",
+    "description":  "Dev channel build of Tandoor Recipes. Recipe manager, meal planner, and shopping list app.",
+    "category":  "Productivity",
+    "image":  "vabene1111/recipes:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tandoor-recipes.png",
+    "website":  "https://tandoor.dev",
+    "docsUrl":  "https://docs.tandoor.dev",
+    "ports":  [
+                  {
+                      "host":  9088,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tandoor-recipes-dev/staticfiles",
+                        "container":  "/opt/recipes/staticfiles"
+                    },
+                    {
+                        "host":  "/opt/appdata/tandoor-recipes-dev/mediafiles",
+                        "container":  "/opt/recipes/mediafiles"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "change-me",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

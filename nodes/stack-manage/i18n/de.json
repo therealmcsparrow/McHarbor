@@ -1,0 +1,26 @@
+{
+  "label": "Stack verwalten",
+  "description": "Compose-Stack bereitstellen, starten, stoppen oder entfernen",
+  "config": {
+    "environment": "Umgebung",
+    "action": "Aktion",
+    "stack_name": "Stack-Name",
+    "compose_source": "Compose-Quelle",
+    "compose_content": "Compose-Inhalt",
+    "compose_path": "Compose-Pfad",
+    "remove_volumes": "Volumes entfernen"
+  },
+  "options": {
+    "action": {
+      "deploy": "Bereitstellen",
+      "up": "Starten (compose up)",
+      "down": "Stoppen (compose down)",
+      "remove": "Entfernen"
+    },
+    "compose_source": {
+      "message": "Nachricht",
+      "inline": "Inline-YAML",
+      "file": "Dateipfad"
+    }
+  }
+}

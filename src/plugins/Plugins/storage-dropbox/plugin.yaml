@@ -1,0 +1,26 @@
+schema: "mcharbor.plugin/v1"
+slug: "storage-dropbox"
+name: "Dropbox"
+version: "2026.10.01"
+description: "Backup destination backed by Dropbox (Dropbox API v2). Long-lived access token from a Dropbox app."
+author: "Maintainer Name <maintainer@example.com>"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+
+mcharbor: ">=2026.10.01"
+go: ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+i18n_namespaces:
+  - "storage-dropbox"
+
+contributes:
+  forms:
+    - resource: storage_location
+      kind: config_form
+      key: dropbox
+    - resource: storage_location
+      kind: setup_guide
+      key: dropbox

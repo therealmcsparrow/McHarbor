@@ -1,0 +1,42 @@
+{
+    "slug":  "metricbeat",
+    "name":  "Metricbeat",
+    "description":  "Lightweight shipper that collects system and service metrics and forwards them to Elasticsearch.",
+    "category":  "Monitoring",
+    "image":  "docker.elastic.co/beats/metricbeat:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/elastic-beats.png",
+    "website":  "https://www.elastic.co/beats/metricbeat",
+    "docsUrl":  "https://www.elastic.co/guide/en/beats/metricbeat/current/running-on-docker.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/metricbeat/metricbeat.yml",
+                        "container":  "/usr/share/metricbeat/metricbeat.yml",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOSTS",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "URL of the Elasticsearch cluster to ship metrics to"
+                    }
+                ],
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

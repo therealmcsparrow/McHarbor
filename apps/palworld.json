@@ -1,0 +1,68 @@
+{
+    "slug":  "palworld",
+    "name":  "Palworld",
+    "description":  "Dedicated server for the open-world creature-collecting survival game Palworld.",
+    "category":  "Gaming",
+    "image":  "thijsvanloef/palworld-server-docker:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/palworld.png",
+    "website":  "https://www.pocketpair.jp/palworld",
+    "docsUrl":  "https://github.com/thijsvanloef/palworld-server-docker",
+    "ports":  [
+                  {
+                      "host":  8211,
+                      "container":  8211,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/palworld/data",
+                        "container":  "/palworld/Pal/Saved"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "My Palworld Server",
+                        "description":  "Server name shown in the server list"
+                    },
+                    {
+                        "key":  "SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Admin password for RCON",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PLAYERS",
+                        "default":  "32",
+                        "description":  "Maximum player slots"
+                    },
+                    {
+                        "key":  "COMMUNITY",
+                        "default":  "false",
+                        "description":  "List the server in the public community list"
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

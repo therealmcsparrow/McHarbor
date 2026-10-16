@@ -32,5 +32,9 @@
       "description": "Bundle install path"
     }
   ],
-  "version": "3.3-alpine"
+  "version":  "3.3-alpine",
+  "latest":  {
+      "version":  "3.3-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

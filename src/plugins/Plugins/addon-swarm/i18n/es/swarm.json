@@ -1,0 +1,512 @@
+{
+  "title": "Swarm",
+  "overview": {
+    "title": "Swarm",
+    "description": "Estado del clúster, cargas de trabajo y pertenencia.",
+    "identity": {
+      "role": "Este nodo",
+      "clusterId": "Clúster",
+      "nodeId": "Nodo",
+      "managers": "Gestores",
+      "manageNodes": "Gestionar nodos"
+    },
+    "stats": {
+      "nodes": "Nodos",
+      "nodesDetail": "{{managers}} gestores, {{workers}} workers",
+      "services": "Servicios",
+      "servicesDetail": "{{converged}} completos, {{degraded}} incompletos",
+      "tasks": "Tareas",
+      "tasksDetail": "{{failed}} fallidas",
+      "networks": "Redes overlay",
+      "networksDetail": "{{stacks}} stacks",
+      "stacks": "Stacks",
+      "secrets": "Secretos",
+      "configs": "Configuraciones"
+    },
+    "alerts": {
+      "nodesDown": {
+        "title": "Hay nodos inalcanzables",
+        "description": "{{count}} nodo(s) están caídos o desconectados. Sus tareas se reprogramarán."
+      }
+    }
+  },
+  "services": {
+    "title": "Servicios",
+    "description": "{{count}} servicio(s) en este Swarm.",
+    "searchPlaceholder": "Buscar servicios",
+    "empty": "No hay servicios en ejecución en este Swarm.",
+    "stackFilter": "Stack: {{name}}"
+  },
+  "tasks": {
+    "title": "Tareas",
+    "description": "Cada instancia programada de cada servicio.",
+    "searchPlaceholder": "Buscar tareas",
+    "empty": "Sin tareas."
+  },
+  "nodes": {
+    "title": "Nodos",
+    "description": "{{count}} nodo(s) en este Swarm.",
+    "searchPlaceholder": "Buscar nodos",
+    "empty": "Sin nodos.",
+    "leader": "Líder de Raft",
+    "thisHost": "Este host",
+    "cannotRemoveSelf": "Este host no puede eliminarse a sí mismo del clúster. Utilice «Abandonar clúster» en el resumen de Swarm."
+  },
+  "secrets": {
+    "title": "Secretos",
+    "description": "{{count}} secreto(s). Los valores son de solo escritura y nunca se muestran.",
+    "searchPlaceholder": "Buscar secretos",
+    "empty": "Sin secretos.",
+    "create": "Crear secreto",
+    "unused": "Sin uso"
+  },
+  "configs": {
+    "title": "Configuraciones",
+    "description": "{{count}} configuración(es).",
+    "searchPlaceholder": "Buscar configuraciones",
+    "empty": "Sin configuraciones.",
+    "create": "Crear configuración",
+    "unused": "Sin uso"
+  },
+  "stacks": {
+    "title": "Stacks de Swarm",
+    "description": "{{count}} stack(s) desplegados en este Swarm.",
+    "searchPlaceholder": "Buscar stacks",
+    "empty": "No hay stacks desplegados.",
+    "deploy": "Desplegar stack"
+  },
+  "networks": {
+    "title": "Redes overlay",
+    "description": "{{count}} red(es) con ámbito swarm.",
+    "searchPlaceholder": "Buscar redes",
+    "empty": "Sin redes overlay.",
+    "ingress": "Ingress",
+    "attachable": "Adjuntable",
+    "internal": "Interna"
+  },
+  "columns": {
+    "name": "Nombre",
+    "id": "ID",
+    "mode": "Modo",
+    "replicas": "Réplicas",
+    "image": "Imagen",
+    "ports": "Puertos",
+    "rollout": "Despliegue",
+    "task": "Tarea",
+    "service": "Servicio",
+    "node": "Nodo",
+    "desiredState": "Deseado",
+    "currentState": "Estado",
+    "message": "Mensaje",
+    "hostname": "Nombre de host",
+    "role": "Rol",
+    "state": "Estado",
+    "availability": "Disponibilidad",
+    "tasks": "Tareas",
+    "resources": "Recursos",
+    "engine": "Motor",
+    "stack": "Stack",
+    "inUseBy": "Usado por",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "size": "Tamaño",
+    "services": "Servicios",
+    "networks": "Redes",
+    "subnets": "Subredes",
+    "driver": "Controlador",
+    "flags": "Indicadores",
+    "labels": "Etiquetas"
+  },
+  "filters": {
+    "all": "Todos",
+    "converged": "Completos",
+    "degraded": "Incompletos"
+  },
+  "serviceMode": {
+    "replicated": "Replicado",
+    "global": "Global",
+    "replicated-job": "Trabajo replicado",
+    "global-job": "Trabajo global",
+    "unknown": "Desconocido"
+  },
+  "nodeRole": {
+    "manager": "Gestor",
+    "worker": "Worker",
+    "unknown": "No pertenece a un Swarm"
+  },
+  "nodeState": {
+    "ready": "Listo",
+    "down": "Caído",
+    "disconnected": "Desconectado",
+    "unknown": "Desconocido"
+  },
+  "nodeAvailability": {
+    "active": "Activo",
+    "pause": "Pausado",
+    "drain": "Vaciándose"
+  },
+  "taskState": {
+    "new": "Nueva",
+    "allocated": "Asignada",
+    "pending": "Pendiente",
+    "assigned": "Adjudicada",
+    "accepted": "Aceptada",
+    "preparing": "Preparando",
+    "ready": "Lista",
+    "starting": "Iniciando",
+    "running": "En ejecución",
+    "complete": "Completada",
+    "shutdown": "Detenida",
+    "failed": "Fallida",
+    "rejected": "Rechazada",
+    "remove": "Eliminando",
+    "orphaned": "Huérfana"
+  },
+  "updateState": {
+    "updating": "Actualizando",
+    "paused": "Pausado",
+    "completed": "Completado",
+    "rollback_started": "Revirtiendo",
+    "rollback_paused": "Reversión pausada",
+    "rollback_completed": "Revertido"
+  },
+  "actions": {
+    "initCluster": "Inicializar un clúster",
+    "joinCluster": "Unirse a un clúster",
+    "leaveCluster": "Abandonar el Swarm",
+    "joinTokens": "Tokens de unión",
+    "unlockKey": "Clave de desbloqueo",
+    "rotate": "Rotar",
+    "copy": "Copiar",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "create": "Crear",
+    "deploy": "Desplegar",
+    "scale": "Escalar",
+    "restart": "Reiniciar",
+    "rollback": "Revertir",
+    "remove": "Eliminar",
+    "view": "Ver",
+    "drain": "Vaciar",
+    "activate": "Activar",
+    "pause": "Pausar",
+    "promote": "Promover",
+    "demote": "Degradar",
+    "editLabels": "Editar etiquetas",
+    "addLabel": "Añadir etiqueta",
+    "removeLabel": "Eliminar etiqueta",
+    "uploadFile": "Subir un archivo"
+  },
+  "fields": {
+    "name": "Nombre",
+    "value": "Valor",
+    "replicas": "Réplicas",
+    "advertiseAddr": "Dirección de anuncio",
+    "advertiseAddrHint": "La dirección por la que otros nodos alcanzan a este. Déjelo vacío para que Docker elija.",
+    "listenAddr": "Dirección de escucha",
+    "listenAddrHint": "Por defecto 0.0.0.0:2377.",
+    "autoLock": "Bloquear managers en reposo",
+    "autoLockHint": "Cifra el almacén raft. Un manager bloqueado necesita su clave de desbloqueo en cada reinicio.",
+    "remoteAddrs": "Direcciones de managers",
+    "remoteAddrsHint": "host:puerto de uno o más managers, separados por comas.",
+    "joinToken": "Token de unión",
+    "joinTokenHint": "Tómelo de los tokens de unión del clúster de destino.",
+    "workerToken": "Token de worker",
+    "managerToken": "Token de manager",
+    "unlockKey": "Clave de desbloqueo",
+    "force": "Forzar",
+    "labelKey": "Clave",
+    "labelValue": "Valor",
+    "stackName": "Nombre del stack",
+    "compose": "Archivo Compose",
+    "prune": "Eliminar servicios que ya no están en el archivo",
+    "pruneHint": "Se eliminan los servicios con la etiqueta de este stack que el archivo no define."
+  },
+  "dialogs": {
+    "init": {
+      "title": "Inicializar un Swarm",
+      "description": "Convierte este host Docker en un manager de Swarm de un solo nodo."
+    },
+    "join": {
+      "title": "Unirse a un Swarm",
+      "description": "Conecta este host Docker a un clúster existente."
+    },
+    "leave": {
+      "title": "¿Abandonar el Swarm?",
+      "description": "Este host dejará de participar en el clúster. Los servicios programados en él se reprogramarán en otro lugar.",
+      "lastManagerWarning": "Este es el último manager accesible. Abandonarlo destruye el estado raft del clúster y todos sus servicios. Se requiere forzar y no se puede deshacer."
+    },
+    "tokens": {
+      "title": "Tokens de unión",
+      "description": "Cualquiera con el token de manager puede tomar el control de este clúster. Rotar un token invalida el anterior de inmediato."
+    },
+    "unlockKey": {
+      "title": "Clave de desbloqueo",
+      "description": "Necesaria para arrancar un manager bloqueado. Guárdela fuera de este clúster.",
+      "notLocked": "El autobloqueo de managers no está activado en este clúster."
+    },
+    "scale": {
+      "title": "Escalar servicio",
+      "description": "Cambiar el número de réplicas de {{name}}.",
+      "zeroHint": "Escalar a cero detiene todas las tareas pero conserva la definición del servicio."
+    },
+    "removeService": {
+      "title": "¿Eliminar el servicio?",
+      "description": "Se eliminarán {{name}} y todas sus tareas."
+    },
+    "removeNode": {
+      "title": "¿Eliminar el nodo?",
+      "description": "{{name}} se eliminará del clúster."
+    },
+    "nodeLabels": {
+      "title": "Etiquetas del nodo",
+      "description": "Etiquetas de {{name}}. Las restricciones de ubicación se basan en ellas."
+    },
+    "createSecret": {
+      "title": "Crear secreto",
+      "description": "El valor se escribe en el clúster y nunca podrá volver a leerse."
+    },
+    "removeSecret": {
+      "title": "¿Eliminar el secreto?",
+      "description": "Se eliminará {{name}}.",
+      "inUse": "{{name}} todavía lo usan {{services}}. Eliminarlo romperá esos servicios."
+    },
+    "createConfig": {
+      "title": "Crear configuración",
+      "description": "Las configuraciones son legibles. No ponga credenciales en una: use un secreto."
+    },
+    "configViewer": {
+      "description": "{{size}}"
+    },
+    "removeConfig": {
+      "title": "¿Eliminar la configuración?",
+      "description": "Se eliminará {{name}}.",
+      "inUse": "{{name}} todavía la usan {{services}}. Eliminarla romperá esos servicios."
+    },
+    "deployStack": {
+      "title": "Desplegar un stack",
+      "description": "El archivo Compose se convierte en servicios de Swarm. Las claves exclusivas de Compose se rechazan en lugar de ignorarse.",
+      "rejectedTitle": "Swarm no puede aplicar estas claves",
+      "reasons": {
+        "build": "build — un nodo del clúster no tiene contexto de compilación; publique una imagen en su lugar",
+        "restart": "restart: use deploy.restart_policy",
+        "depends_on.condition": "condiciones de depends_on — Swarm programa cada tarea de forma independiente",
+        "image": "image es obligatorio"
+      }
+    },
+    "removeStack": {
+      "title": "¿Eliminar el stack?",
+      "description": "Se eliminarán {{name}} y sus {{services}} servicio(s), junto con las redes, secretos y configuraciones del stack."
+    },
+    "taskLogs": {
+      "description": "{{service}} en {{node}}",
+      "empty": "Esta tarea no produjo ninguna salida."
+    }
+  },
+  "detail": {
+    "tabsLabel": "Secciones",
+    "tabs": {
+      "overview": "Resumen",
+      "tasks": "Tareas",
+      "logs": "Registros",
+      "config": "Configuración",
+      "labels": "Etiquetas"
+    },
+    "panels": {
+      "identity": "Identidad",
+      "networking": "Red",
+      "resources": "Recursos",
+      "rollout": "Despliegue",
+      "command": "Comando",
+      "mounts": "Montajes",
+      "secrets": "Secretos y configuraciones",
+      "serviceLabels": "Etiquetas del servicio",
+      "containerLabels": "Etiquetas del contenedor",
+      "nodeLabels": "Etiquetas del nodo",
+      "engineLabels": "Etiquetas del motor",
+      "host": "Host"
+    },
+    "fields": {
+      "endpointMode": "Modo de endpoint",
+      "cpuLimit": "Límite de CPU",
+      "memoryLimit": "Límite de memoria",
+      "cpuReservation": "Reserva de CPU",
+      "memoryReservation": "Reserva de memoria",
+      "constraints": "Restricciones",
+      "parallelism": "Paralelismo",
+      "updateDelay": "Retardo",
+      "failureAction": "Ante fallo",
+      "order": "Orden",
+      "restartCondition": "Condición de reinicio",
+      "command": "Comando",
+      "args": "Argumentos",
+      "env": "Entorno",
+      "mounts": "Montajes",
+      "secrets": "Secretos",
+      "configs": "Configuraciones",
+      "address": "Dirección",
+      "reachability": "Accesibilidad",
+      "statusMessage": "Mensaje de estado",
+      "platform": "Plataforma",
+      "cpus": "CPU",
+      "memory": "Memoria"
+    },
+    "serviceNotFound": "Este servicio ya no existe.",
+    "backToServices": "Volver a servicios",
+    "nodeNotFound": "Este nodo ya no existe.",
+    "backToNodes": "Volver a nodos",
+    "logsEmpty": "Este servicio no produjo ninguna salida.",
+    "env": {
+      "reveal": "Mostrar valores",
+      "hide": "Ocultar valores",
+      "withheld": "Los valores que parecen credenciales están ocultos. Mostrarlos requiere swarm_services.manage y queda registrado en el registro de auditoría."
+    }
+  },
+  "empty": {
+    "notSwarm": {
+      "title": "Este entorno no es un Swarm",
+      "description": "Inicialice un clúster en este host Docker, o únalo a uno existente, para gestionar aquí servicios, nodos y stacks."
+    },
+    "worker": {
+      "title": "Este nodo es un worker de Swarm",
+      "description": "Solo un manager puede responder por el clúster. Conéctese a un entorno manager para ver servicios, nodos y stacks."
+    }
+  },
+  "errors": {
+    "overviewFailed": "No se pudo cargar el resumen de Swarm.",
+    "logsFailed": "No se pudieron leer los registros.",
+    "configReadFailed": "No se pudo leer la configuración.",
+    "deployFailed": "No se pudo desplegar el stack."
+  },
+  "toast": {
+    "initialised": "Swarm inicializado",
+    "joined": "Se unió al Swarm",
+    "left": "Abandonó el Swarm",
+    "unlocked": "Manager desbloqueado",
+    "clusterUpdated": "Clúster actualizado",
+    "tokenRotated": "Token de unión rotado",
+    "unlockKeyRotated": "Clave de desbloqueo rotada",
+    "scaled": "Servicio escalado",
+    "restarted": "Servicio reiniciándose",
+    "rolledBack": "Servicio revertido",
+    "serviceCreated": "Servicio creado",
+    "serviceUpdated": "Servicio actualizado",
+    "serviceRemoved": "Servicio eliminado",
+    "nodeUpdated": "Nodo actualizado",
+    "nodeLabelsUpdated": "Etiquetas del nodo actualizadas",
+    "nodeRemoved": "Nodo eliminado",
+    "secretCreated": "Secreto creado",
+    "secretRemoved": "Secreto eliminado",
+    "configCreated": "Configuración creada",
+    "configRemoved": "Configuración eliminada",
+    "stackDeployed": "Stack desplegado",
+    "stackRemoved": "Stack eliminado"
+  },
+  "nav": {
+    "section": {
+      "swarm": "Swarm"
+    },
+    "swarm": {
+      "overview": "Resumen",
+      "workloads": "Cargas de trabajo",
+      "cluster": "Clúster",
+      "config": "Configuración"
+    }
+  },
+  "reporting": {
+    "category": {
+      "label": "Swarm",
+      "description": "El clúster y no el host: nodos, servicios, ubicación y quórum."
+    },
+    "platform": {
+      "label": "Docker Swarm"
+    },
+    "type": {
+      "capacity-placement": {
+        "name": "Capacidad y ubicación en Swarm",
+        "description": "Capacidad programable, dónde terminó realmente el trabajo y lo que costaría perder un nodo."
+      }
+    }
+  },
+  "widgets": {
+    "swarmOverview": {
+      "label": "Resumen de Swarm",
+      "description": "Nodos, servicios, tareas y stacks con un veredicto del clúster",
+      "title": "Swarm",
+      "allConverged": "Clúster convergido",
+      "nodesDown": "{{count}} nodo caído",
+      "nodesDown_other": "{{count}} nodos caídos",
+      "servicesDegraded": "{{count}} servicio degradado",
+      "servicesDegraded_other": "{{count}} servicios degradados",
+      "tasksFailed": "{{count}} tarea fallida",
+      "tasksFailed_other": "{{count}} tareas fallidas",
+      "nodes": "Nodos",
+      "services": "Servicios",
+      "tasks": "Tareas",
+      "stacks": "Stacks",
+      "managersWorkers": "{{managers}} gestores, {{workers}} workers",
+      "degraded": "{{count}} degradados",
+      "failed": "{{count}} fallidas",
+      "secretsConfigs": "{{secrets}} secretos, {{configs}} configs"
+    },
+    "swarmServices": {
+      "label": "Servicios de Swarm",
+      "description": "Convergencia de tareas por servicio, degradados primero",
+      "title": "Servicios",
+      "degraded": "{{count}} degradados",
+      "allConverged": "Todos convergidos",
+      "none": "Sin servicios",
+      "viewAll": "Todos los servicios"
+    },
+    "swarmNodes": {
+      "label": "Nodos de Swarm",
+      "description": "Membresía: rol, disponibilidad y estado por nodo",
+      "title": "Nodos",
+      "readyOf": "{{ready}} de {{total}} listos",
+      "none": "Sin nodos",
+      "viewAll": "Todos los nodos",
+      "tasks": "{{count}} tareas",
+      "role": {
+        "manager": "Gestor",
+        "worker": "Worker"
+      }
+    },
+    "common": {
+      "loading": "Leyendo swarm…",
+      "notSwarm": "No es un entorno Swarm",
+      "notManager": "Este nodo no es manager",
+      "openHint": "Abre Docker Swarm para inicializar o unirte a un clúster",
+      "more": "{{count}} más"
+    }
+  },
+  "runbook": {
+    "attach": {
+      "swarm_service": "Servicio Swarm"
+    },
+    "targets": {
+      "swarm_service": "Servicio Swarm",
+      "swarm_node": "Nodo Swarm"
+    },
+    "steps": {
+      "swarm_service_scale": "Establece el número de réplicas del servicio de Swarm",
+      "swarm_service_restart": "Fuerza la actualización del servicio de Swarm para que se reemplace cada tarea",
+      "swarm_service_state": "La especificación, las réplicas y el estado de actualización del servicio de Swarm",
+      "swarm_service_tasks": "Las tareas del servicio de Swarm, dónde se ejecutan y por qué se detuvieron",
+      "swarm_service_logs": "Las últimas 150 líneas del registro del servicio de Swarm",
+      "swarm_node_state": "El rol, la disponibilidad y el estado del nodo de Swarm"
+    }
+  },
+  "estate": {
+    "services": "Servicios de Swarm"
+  },
+  "search": {
+    "group": {
+      "services": "Servicios de Swarm"
+    },
+    "action": {
+      "deployStack": "Desplegar stack de Swarm",
+      "deployStackKeywords": "swarm stack compose desplegar"
+    }
+  }
+}

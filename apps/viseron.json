@@ -1,0 +1,40 @@
+{
+    "slug":  "viseron",
+    "name":  "Viseron",
+    "description":  "Self-hosted NVR with AI object and motion detection built for local processing without a cloud dependency.",
+    "category":  "Home Automation",
+    "image":  "roflcoopter/viseron:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/viseron.png",
+    "website":  "https://viseron.netlify.app",
+    "docsUrl":  "https://viseron.netlify.app/docs/getting-started/installation",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/viseron/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/viseron/recordings",
+                        "container":  "/recordings"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

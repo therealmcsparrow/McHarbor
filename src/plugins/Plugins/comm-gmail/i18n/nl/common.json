@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": { "help": "Weergavenaam voor dit Gmail-communicatiekanaal." },
+    "client_id": { "help": "Google OAuth-client-ID met verzendrechten voor de Gmail API." },
+    "client_secret": { "help": "Google OAuth-clientgeheim. Versleuteld opgeslagen." },
+    "from_address": { "help": "Gmail-adres van de gebruiker dat als afzender via de API wordt gebruikt." },
+    "from_name": { "help": "Optionele weergavenaam voor de Van-header." },
+    "to": { "help": "E-mailadressen van de ontvangers, gescheiden door komma's." },
+    "subject_prefix": { "help": "Optioneel voorvoegsel dat aan elk meldingsonderwerp wordt toegevoegd." }
+  },
+  "title": "Gmail-meldingsbezorging",
+  "subtitle": "Beheerd door de plugin",
+  "description": "Deze plugin beheert Gmail. Hij slaat Gmail-API-instellingen op in het kanaal zelf en gebruikt de verwijderde e-mailserveroptie van de host niet.",
+  "nameLabel": "Kanaalnaam",
+  "namePlaceholder": "Operations-Gmail",
+  "clientIdLabel": "Client-ID",
+  "clientSecretLabel": "Clientgeheim",
+  "fromAddressLabel": "Afzenderadres",
+  "fromNameLabel": "Afzendernaam",
+  "toLabel": "Ontvangers",
+  "subjectPrefixLabel": "Onderwerpvoorvoegsel",
+  "securityTitle": "Beveiliging",
+  "securityHelp": "OAuth-clientgegevens",
+  "securityDescription": "Het clientgeheim wordt versleuteld opgeslagen. Gebruik een aparte Google Cloud OAuth-client en beperk de toegang tot de verzendmachtigingen van de Gmail-API.",
+  "testTitle": "Verbinding testen",
+  "testHelp": "Verstuurt een e-mail",
+  "testDescription": "De testactie van de host verstuurt een echte e-mail via dit Gmail-kanaal. Gebruik eerst een testontvanger als je mailbox een on-calllijst bereikt.",
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "requiredField": "Verplicht",
+  "setupGuideTitle": "Installatiehandleiding voor het Gmail-communicatiekanaal",
+  "guide": {
+    "step1": { "body": "Maak een Google Cloud-project dat specifiek voor McHarbor-meldingen is bedoeld, of kies een bestaand project." },
+    "step2": { "body": "Schakel de <b>Gmail API</b> in voor dat project en maak OAuth-clientreferenties aan voor de afzenderintegratie." },
+    "step3": { "body": "Geef de client verzendrechten voor Gmail en <warn>houd het clientgeheim beperkt tot McHarbor-beheerders</warn>." },
+    "step4": { "body": "Stel <b>Van-adres</b> in op de Gmail-gebruiker die de meldingen verstuurt. Sommige Google Workspace-beleidsregels vereisen dat dit adres een geverifieerde of gedelegeerde afzender is." },
+    "step5": { "body": "Voeg een of meer ontvangers toe, gescheiden door komma's. Begin met een testmailbox en schakel over naar je operations- of on-calldistributielijst zodra de bezorging is bevestigd." },
+    "step6": { "body": "Stel optioneel een <b>Onderwerpvoorvoegsel</b> in, bijvoorbeeld <code>[McHarbor Prod]</code>, zodat meldingen eenvoudig te filteren zijn in mailclients en ticketsystemen." },
+    "step7": { "body": "Sla het kanaal op en klik op <b>Verbinding testen</b>. De plugin verstuurt een echte testmail via hetzelfde Gmail API-pad dat voor live workflow-, alarm- en back-upgebeurtenissen wordt gebruikt." },
+    "step8": { "body": "Als de test mislukt met een OAuth-fout, controleer dan de client-ID, het clientgeheim, of de Gmail API is ingeschakeld, de afzendermailbox en het Workspace-beleid voor het verzenden van e-mail via de API." }
+  }
+}

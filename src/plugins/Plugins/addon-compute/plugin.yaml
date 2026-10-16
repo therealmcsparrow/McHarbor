@@ -1,0 +1,559 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-compute"
+name:     "Compute Foundation"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  The shared foundation for running virtual machines and system containers on
+  your own hosts: node capability probing, storage pools, guest networks and the
+  image catalog. It manages nothing on its own — install Virtual Machines
+  (addon-kvm) or System Containers (addon-lxc) and this is installed with them,
+  and removed again when the last one goes.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.25"
+
+# This plugin is a dependency rather than a destination.
+#
+# addon-kvm and addon-lxc both need the same pools, the same bridges, the same
+# image cache and the same capability picture. Duplicating that in each would
+# give an operator with both installed two pool lists over one set of disks,
+# which is worse than a shared foundation in every way.
+#
+# The host installs this automatically alongside either dependant and uninstalls
+# it when the last one is removed, so it never has to be found in the store.
+installed_as: "dependency"
+required_by:
+  - "addon-kvm"
+  - "addon-lxc"
+
+permissions:
+  - menu.sidebar.add
+  - i18n.namespace.add:compute
+  - rbac.permission.register
+  - db.migrations.run
+  - audit.emit
+  # The agent-rpc bridge. A plugin cannot extend `src/agent/protocol.go` or the
+  # agent's dispatch, and the agent binary is a versioned core artifact, so the
+  # host carries across exactly the messages the agent-rpc capability below lists.
+  - agent.rpc
+  # Three compute report types for the Reporting plugin's Report Studio
+  # (backend/reports.go). It costs the host nothing on its own: the provider
+  # registers whether or not Reporting is installed, and the types only become
+  # reachable once it is.
+  - reporting.adapter.register
+  # Five compute alert conditions for the host's alert engine
+  # (backend/alerts.go). The engine owns the thresholds, the schedule, the
+  # firing state and the delivery; this plugin only answers "is it true, and
+  # for which pools and hosts?" when asked.
+  - alerting.adapter.register
+  # The readiness report can ask the host's AI router to write its assessment
+  # paragraph. Opt-in per report run, and skipped silently when no provider is
+  # configured — a report is complete without it.
+  - ai.invoke
+  # The guest image catalog. The plugin brings the official source with it
+  # (contributes.catalogs below) and reads back whichever vm_image sources the
+  # operator has enabled, so image sources are managed in Settings -> Catalogs
+  # alongside apps and plugins rather than in a registry only this plugin knows
+  # about. It mints no category: vm_image is a kind the host already defines.
+  - catalog.source.register
+
+adds_permissions:
+  - key:      "compute.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View compute infrastructure"
+    description: "Allows seeing a host's compute capability, its storage pools, its guest networks and the image catalog."
+
+  - key:      "compute.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage compute infrastructure"
+    description: "Allows enabling compute on a host, creating and editing storage pools and guest networks, and downloading images. Removing them needs compute.delete."
+
+  - key:      "compute.images.upload"
+    presets:      []
+    scope:    "env"
+    category: "Plugins"
+    label:    "Upload compute images"
+    description: "Allows uploading an image file from the browser onto a host. Downloading from the curated catalog only needs compute.manage; this key exists because an upload puts arbitrary bytes on the host, which a catalog download cannot."
+
+  - key:      "compute.pools.browse"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Browse storage pool files"
+    description: "Allows listing and reading the files inside a storage pool. A pool's row shows how full it is; this key shows what is in it. Writing needs compute.manage and removing needs compute.delete."
+
+  - key:      "compute.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete compute infrastructure"
+    description: "Allows removing storage pools and guest networks and evicting cached images. A pool that still holds guest volumes is refused unless this permission is used to force it."
+
+consumes_permissions: []
+
+contributes:
+  capabilities:
+    - kind: agent-rpc
+      send:
+        - compute_probe_request
+        - compute_install_request
+        - compute_config_request
+        - compute_migrate_request
+        - pool_detect_request
+        - pool_create_request
+        - pool_stats_request
+        - pool_remove_request
+        - pool_browse_request
+        - pool_file_request
+        - net_detect_request
+        - net_ensure_request
+        - net_remove_request
+        - compute_image_fetch
+        - compute_image_list
+        - compute_image_remove
+        - vm_query
+        - vm_shutdown
+      observe:
+        - net_lease_event
+        - compute_migrate_progress
+    - kind: runbook-provider
+      domain: compute
+      i18n_ns: compute
+      targets:
+        - kind: compute_pool
+          label_key: runbook.targets.compute_pool
+          path: "/api/compute/pools"
+          query: {env: "$env"}
+          id: id
+          name: [name]
+          detail: [backend]
+      steps:
+        - key: compute.capability.probe
+          description_key: runbook.steps.compute_capability_probe
+          kind: action
+          target: environment
+          permissions: [compute.view]
+          call:
+            method: POST
+            path: "/api/compute/environments/{$env}/probe"
+        - key: compute.pool.state
+          description_key: runbook.steps.compute_pool_state
+          kind: diagnostic
+          target: compute_pool
+          permissions: [compute.view]
+          params:
+            - {name: pool, type: target, target: compute_pool}
+          call:
+            method: GET
+            path: "/api/compute/pools"
+            query: {env: "$env"}
+            pick_id: pool
+        - key: compute.capability
+          description_key: runbook.steps.compute_capability
+          kind: diagnostic
+          target: environment
+          permissions: [compute.view]
+          call:
+            method: GET
+            path: "/api/compute/environments/{$env}/capability"
+    - kind: lifecycle-subject
+      subject_type: pool
+      page: "/plugins/addon-compute/pools"
+    - kind: search-source
+      i18n_ns: compute
+      sources:
+        - key: host
+          label_key: search.group.hosts
+          path: "/api/compute/environments"
+          id: environmentId
+          name: [name]
+          detail: [connectionType]
+          link: "/plugins/addon-compute/hosts/{environmentId}"
+          icon: server-bolt
+        - key: pool
+          label_key: search.group.pools
+          path: "/api/compute/pools"
+          env_scoped: true
+          id: id
+          name: [name]
+          detail: [backend, target]
+          link: "/plugins/addon-compute/pools/{id}"
+          icon: database
+        - key: image
+          label_key: search.group.images
+          path: "/api/compute/images"
+          id: id
+          name: [displayName]
+          detail: [distro, release, arch]
+          link: "/plugins/addon-compute/images"
+          icon: photo
+    - kind: search-action
+      i18n_ns: compute
+      actions:
+        - key: compute.host.setup
+          label_key: search.action.setupHost
+          keywords_key: search.action.setupHostKeywords
+          icon: server-bolt
+          link: "/plugins/addon-compute?action=setup"
+          permission: compute.manage
+        - key: compute.pool.create
+          label_key: search.action.createPool
+          keywords_key: search.action.createPoolKeywords
+          icon: database
+          link: "/plugins/addon-compute/pools?action=create"
+          permission: compute.manage
+        - key: compute.image.upload
+          label_key: search.action.uploadImage
+          keywords_key: search.action.uploadImageKeywords
+          icon: file-upload
+          link: "/plugins/addon-compute/images?action=upload"
+          permission: compute.images.upload
+  routes:
+    # Capability. The node panel is the first screen an operator sees, and it
+    # is a read of the host's own hardware and packages — nothing sensitive
+    # beyond what `compute.view` already covers.
+    - method: GET
+      path: "/api/compute/environments"
+      requires_permission: "compute.view"
+    - method: GET
+      path: "/api/compute/environments/{envId}/capability"
+      requires_permission: "compute.view"
+    # POST only because probing dials the host; it changes nothing, so there
+    # is no state transition to audit.
+    - method: POST
+      path: "/api/compute/environments/{envId}/probe"
+      requires_permission: "compute.view"
+      audit_required: false
+    # Installs packages on the host as root through its agent, so it takes
+    # `manage` and is audited at warning. The agent alone picks the packages.
+    - method: POST
+      path: "/api/compute/environments/{envId}/capability/install"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.capability.installed"
+      audit_entity_type: "compute_environment"
+      audit_severity: "warning"
+    # Turning compute on for a host is a configuration change to that host's
+    # role, so it takes `manage` rather than `view`.
+    - method: PUT
+      path: "/api/compute/environments/{envId}"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.environment.updated"
+      audit_entity_type: "compute_environment"
+
+    - method: GET
+      path: "/api/compute/pools"
+      requires_permission: "compute.view"
+    - method: GET
+      path: "/api/compute/pools/detect"
+      requires_permission: "compute.view"
+    - method: POST
+      path: "/api/compute/pools"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.created"
+      audit_entity_type: "compute_pool"
+    # Idempotent: it returns the host's pool, and only creates one — a
+    # directory pool at the location the caller named — when there is none. It
+    # is how a guest can be created against a plain data location without the
+    # operator visiting the pools page first.
+    - method: POST
+      path: "/api/compute/pools/default"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.created"
+      audit_entity_type: "compute_pool"
+    - method: PUT
+      path: "/api/compute/pools/{id}"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.updated"
+      audit_entity_type: "compute_pool"
+    - method: DELETE
+      path: "/api/compute/pools/{id}"
+      requires_permission: "compute.delete"
+      audit_required: true
+      audit_action: "plugin.compute.pool.deleted"
+      audit_entity_type: "compute_pool"
+
+    # Pool file browser. Reading a pool's tree is its own key: compute.view
+    # shows how full a pool is, not what is in it. Writing stays on
+    # compute.manage and removal on compute.delete, so no grant gets wider
+    # than it already was.
+    - method: GET
+      path: "/api/compute/pools/{id}/files"
+      requires_permission: "compute.pools.browse"
+    - method: GET
+      path: "/api/compute/pools/{id}/files/content"
+      requires_permission: "compute.pools.browse"
+    - method: PUT
+      path: "/api/compute/pools/{id}/files/content"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.file.written"
+      audit_entity_type: "compute_pool"
+    - method: POST
+      path: "/api/compute/pools/{id}/files/mkdir"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.file.created"
+      audit_entity_type: "compute_pool"
+    - method: POST
+      path: "/api/compute/pools/{id}/files/rename"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.file.renamed"
+      audit_entity_type: "compute_pool"
+    - method: DELETE
+      path: "/api/compute/pools/{id}/files"
+      requires_permission: "compute.delete"
+      audit_required: true
+      audit_action: "plugin.compute.pool.file.deleted"
+      audit_entity_type: "compute_pool"
+
+    - method: GET
+      path: "/api/compute/networks"
+      requires_permission: "compute.view"
+    - method: GET
+      path: "/api/compute/networks/detect"
+      requires_permission: "compute.view"
+    - method: POST
+      path: "/api/compute/networks"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.network.created"
+      audit_entity_type: "compute_network"
+    - method: PUT
+      path: "/api/compute/networks/{id}"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.network.updated"
+      audit_entity_type: "compute_network"
+    - method: DELETE
+      path: "/api/compute/networks/{id}"
+      requires_permission: "compute.delete"
+      audit_required: true
+      audit_action: "plugin.compute.network.deleted"
+      audit_entity_type: "compute_network"
+    - method: GET
+      path: "/api/compute/networks/{id}/leases"
+      requires_permission: "compute.view"
+
+    - method: GET
+      path: "/api/compute/images"
+      requires_permission: "compute.view"
+    # Where uploads are stored and whether the directory is writable. A read of
+    # McHarbor's own configuration, so it sits with the other `view` routes.
+    - method: GET
+      path: "/api/compute/images/library"
+      requires_permission: "compute.view"
+    # The only route that takes bytes of the operator's choosing, which is the
+    # whole reason `compute.images.upload` exists apart from `compute.manage`.
+    - method: POST
+      path: "/api/compute/images/upload"
+      requires_permission: "compute.images.upload"
+      audit_required: true
+      audit_action: "plugin.compute.image.uploaded"
+      audit_entity_type: "compute_image"
+
+    # How an agent pulls an uploaded image when its host does not mount the
+    # library. Public because the caller is an agent and holds no session; the
+    # handler redeems a per-transfer grant whose token the server minted moments
+    # earlier, so the route only ever serves the one file it was asked for.
+    - method: GET
+      path: "/api/compute/internal/library/{grantId}"
+      public: true
+    - method: POST
+      path: "/api/compute/images"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.image.added"
+      audit_entity_type: "compute_image"
+    # Re-reads the catalog directory the operator edits. Changes what every
+    # user can download, so it takes manage rather than view.
+    # Fans a download out to every host that needs it, so it changes more than
+    # one machine and takes manage like the single-host fetch.
+    - method: POST
+      path: "/api/compute/images/{id}/fetch-all"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.image.fetched_all"
+      audit_entity_type: "compute_image"
+    - method: POST
+      path: "/api/compute/images/catalog/reload"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.catalog.reloaded"
+      audit_entity_type: "compute_image"
+    # Fetching records whether the operator accepted an unverified source, so
+    # the acknowledgement is in the audit trail rather than only in the UI.
+    - method: POST
+      path: "/api/compute/images/{id}/fetch"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.image.fetched"
+      audit_entity_type: "compute_image"
+    - method: DELETE
+      path: "/api/compute/images/{id}/cache"
+      requires_permission: "compute.delete"
+      audit_required: true
+      audit_action: "plugin.compute.image.evicted"
+      audit_entity_type: "compute_image"
+    - method: DELETE
+      path: "/api/compute/images/{id}"
+      requires_permission: "compute.delete"
+      audit_required: true
+      audit_action: "plugin.compute.image.deleted"
+      audit_entity_type: "compute_image"
+
+    # Compute locations: where guests, their disks and their images live.
+    # The McHarbor-wide defaults and each environment's override are the same
+    # shape at two scopes, so they are one set of routes rather than two.
+    - method: GET
+      path: "/api/compute/locations"
+      requires_permission: "compute.view"
+    - method: PUT
+      path: "/api/compute/locations"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.locations.updated"
+      audit_entity_type: "compute_locations"
+    - method: GET
+      path: "/api/compute/locations/{envId}"
+      requires_permission: "compute.view"
+    - method: PUT
+      path: "/api/compute/locations/{envId}"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.locations.updated"
+      audit_entity_type: "compute_locations"
+    # Removing an override puts the host back on the global defaults. It
+    # destroys no data — the paths stay where they are until the host takes the
+    # new ones — so it takes manage rather than delete.
+    - method: DELETE
+      path: "/api/compute/locations/{envId}"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.locations.removed"
+      audit_entity_type: "compute_locations"
+    # The retry button: re-push locations a host was offline for, or refused
+    # because a guest was running. Changes the host, so it takes manage.
+    - method: POST
+      path: "/api/compute/locations/{envId}/apply"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.locations.applied"
+      audit_entity_type: "compute_locations"
+
+    # The overview aggregates capability, pools, networks and guest counts for
+    # every compute-enabled environment in one call, so the landing page is one
+    # request rather than four per host.
+    - method: GET
+      path: "/api/compute/overview"
+      requires_permission: "compute.view"
+
+    # Moving a pool's data, and repairing what an earlier move left pointing at
+    # the old path. The plan is a dry run and still takes `compute.manage`: it
+    # reads the host's filesystem layout, which a viewer may not.
+    - method: POST
+      path: "/api/compute/pools/{poolId}/move/plan"
+      requires_permission: "compute.manage"
+      audit_required: false
+    - method: POST
+      path: "/api/compute/pools/{poolId}/move"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.moved"
+      audit_entity_type: "compute_pool"
+    - method: GET
+      path: "/api/compute/pools/{poolId}/move"
+      requires_permission: "compute.view"
+    - method: POST
+      path: "/api/compute/pools/{poolId}/repair"
+      requires_permission: "compute.manage"
+      audit_required: true
+      audit_action: "plugin.compute.pool.repaired"
+      audit_entity_type: "compute_pool"
+
+  # The Compute section appears only once a host has compute enabled. The
+  # host hides a nav entry whose permission the user lacks — navigation is the
+  # documented exception to disabled-not-hidden, because a dead-end page is not
+  # informative.
+  menu:
+    - parent: "compute"
+      label_ns: "compute"
+      label_key: "nav.overview"
+      path: "/plugins/addon-compute"
+      icon: "IconServerBolt"
+      required_permission: "compute.view"
+      priority: 100
+    - parent: "compute"
+      label_ns: "compute"
+      label_key: "nav.images"
+      path: "/plugins/addon-compute/images"
+      icon: "IconPhoto"
+      required_permission: "compute.view"
+      priority: 80
+    - parent: "compute"
+      label_ns: "compute"
+      label_key: "nav.pools"
+      path: "/plugins/addon-compute/pools"
+      icon: "IconDatabase"
+      required_permission: "compute.view"
+      priority: 70
+    - parent: "compute"
+      label_ns: "compute"
+      label_key: "nav.networks"
+      path: "/plugins/addon-compute/networks"
+      icon: "IconNetwork"
+      required_permission: "compute.view"
+      priority: 60
+
+  widgets:
+    - "compute-capacity"
+    - "compute-hosts"
+
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host exposes
+  # them on the canvas as plugin:addon-compute:<key>.
+  #
+  # Infrastructure nodes only. Starting and stopping guests belongs to
+  # addon-kvm and addon-lxc, which own those objects — what lives here is what
+  # a compute workflow needs to decide with.
+  nodes:
+    - "compute-host-capability"
+    - "compute-pool-capacity"
+    - "compute-ensure-image"
+
+  migrations:
+    - "migrations/0001_init.sql"
+    - "migrations/0002_image_library.sql"
+    - "migrations/0003_locations.sql"
+
+  # The guest image sources. Installing this plugin is what makes the VM images
+  # category appear in Settings -> Catalogs; uninstalling it takes the category
+  # away again. Seeded disabled like every other source that carries executable
+  # content — a bootable disk image is the operator's decision to turn on.
+  catalogs:
+    - id:   "vm-images"
+      kind: "vm_image"
+      name: "McHarbor VM Images"
+      url:  "https://www.mcharbor.eu/catalog/images/index.json"
+
+  i18n_namespaces:
+    - "compute"
+
+signature: ""
+checksum:  ""

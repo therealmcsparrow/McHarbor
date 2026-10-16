@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "Update queue",
+      "description": "Containers with an image update ready, and the action to review them"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "Update queue",
+    "checkNow": "Check for updates",
+    "checkAgain": "Check again",
+    "notChecked": "No update check has run yet",
+    "upToDate": "Everything is up to date",
+    "reviewAll": "Review {{count}} update",
+    "reviewAll_other": "Review {{count}} updates",
+    "more": "{{count}} more"
+  }
+}

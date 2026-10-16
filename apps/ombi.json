@@ -1,0 +1,45 @@
+{
+  "slug": "ombi",
+  "name": "Ombi",
+  "description": "Media request portal that lets Plex, Jellyfin and Emby users request movies and shows.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/ombi:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ombi.png",
+  "website": "https://ombi.io",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-ombi/",
+  "ports": [
+    {
+      "host": 3579,
+      "container": 3579,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ombi/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { IconX } from '@tabler/icons-react';
 import { NumberInput } from '@resources/components/ui/NumberInput';
 import { Label } from '@resources/components/ui/Label';
+import { Select } from '@resources/components/ui/Select';
 import { Button } from '@resources/components/ui/Button';
 import { useStableListKeys } from '@resources/hooks/useStableListKeys';
 
@@ -64,7 +65,7 @@ export function MetricConditionsField({ value, onChange }: MetricConditionsField
     <div>
       <div className="mb-1.5 flex items-center justify-between">
         <Label className="text-xs">{t('workflows.metricConditions')}</Label>
-        <Button size="sm" variant="ghost" onClick={addCondition} className="h-6 px-2 text-[10px]">
+        <Button size="sm" variant="ghost" onClick={addCondition} className="px-2 text-[10px]">
           {t('workflows.addMetricCondition')}
         </Button>
       </div>
@@ -74,24 +75,24 @@ export function MetricConditionsField({ value, onChange }: MetricConditionsField
       <div className="space-y-2">
         {conditions.map((cond, i) => (
           <div key={conditionKeys[i]} className="flex items-center gap-2">
-            <select
+            <Select
               value={cond.metric}
-              onChange={(e) => updateCondition(i, { metric: e.target.value })}
-              className="h-8 flex-1 min-w-0 rounded-md border border-input bg-card px-2 text-xs"
-            >
-              {METRIC_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <select
+              onChange={(next) => updateCondition(i, { metric: next })}
+              options={METRIC_OPTIONS}
+              searchable={false}
+              ariaLabel={t('workflows.metric')}
+              variant="outline"
+              className="min-w-0 flex-1 text-xs"
+            />
+            <Select
               value={cond.operator}
-              onChange={(e) => updateCondition(i, { operator: e.target.value })}
-              className="h-8 w-14 shrink-0 rounded-md border border-input bg-card px-1 text-xs"
-            >
-              {METRIC_OPERATORS.map((op) => (
-                <option key={op.value} value={op.value}>{op.label}</option>
-              ))}
-            </select>
+              onChange={(next) => updateCondition(i, { operator: next })}
+              options={METRIC_OPERATORS}
+              searchable={false}
+              ariaLabel={t('workflows.operator')}
+              variant="outline"
+              className="w-16 shrink-0 px-1 text-xs"
+            />
             <NumberInput
               value={cond.threshold}
               onChange={(v) => updateCondition(i, { threshold: v })}
@@ -103,7 +104,7 @@ export function MetricConditionsField({ value, onChange }: MetricConditionsField
               variant="ghost"
               size="icon-sm"
               onClick={() => removeCondition(i)}
-              aria-label={t("removeCondition")}
+              aria-label={t('workflows.removeCondition')}
               className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               <IconX className="size-3.5" />
@@ -114,4 +115,3 @@ export function MetricConditionsField({ value, onChange }: MetricConditionsField
     </div>
   );
 }
-

@@ -1,0 +1,31 @@
+{
+    "slug":  "metasploit",
+    "name":  "Metasploit Framework",
+    "description":  "Penetration testing framework for developing, validating, and running exploit code against target systems.",
+    "category":  "Security",
+    "image":  "metasploitframework/metasploit-framework:latest",
+    "logo":  "https://cdn.simpleicons.org/metasploit",
+    "website":  "https://www.metasploit.com",
+    "docsUrl":  "https://github.com/rapid7/metasploit-framework/blob/master/docker/README.md",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/metasploit/data",
+                        "container":  "/home/msf/.msf4"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

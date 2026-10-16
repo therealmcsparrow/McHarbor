@@ -4,7 +4,7 @@
     "description":  "Microsoft .NET 9 SDK, latest build tools for C#, F#, and Visual Basic with new runtime features.",
     "category":  "Developer Tools",
     "image":  "mcr.microsoft.com/dotnet/sdk:9.0",
-    "logo":  "https://icon.horse/icon/dotnet.microsoft.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/dotnet.svg",
     "website":  "https://dotnet.microsoft.com",
     "docsUrl":  "https://learn.microsoft.com/dotnet/",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Suppress .NET banner messages"
                     }
                 ],
-    "version":  "9.0"
+    "version":  "9.0",
+    "latest":  {
+        "version":  "9.0",
+        "release_date":  "2026-09-10"
+    }
 }

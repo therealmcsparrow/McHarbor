@@ -1,0 +1,44 @@
+{{- /*
+Copyright (c) 2026 McSparrow. All rights reserved.
+McHarbor is licensed under the McHarbor License. See LICENSE for details.
+*/ -}}
+McHarbor {{ .Chart.AppVersion }} is installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Mode: {{ .Values.mode }}
+{{- if eq .Values.mode "active-passive" }}
+  {{ .Values.replicaCount }} pods share the database in Secret "{{ .Values.externalDatabase.existingSecret }}".
+  Exactly one pod is active and Ready; the others are standbys and stay NotReady on purpose,
+  so Service "{{ include "mcharbor.fullname" . }}" only ever sends traffic to the active pod.
+  Update strategy is {{ .Values.ha.updateStrategy }}: after "helm upgrade", delete the standby pods first,
+  then make a standby active under Enterprise -> High availability and delete the old active pod.
+{{- else }}
+  One pod, database {{ if .Values.externalDatabase.existingSecret }}{{ .Values.externalDatabase.driver }} from Secret "{{ .Values.externalDatabase.existingSecret }}"{{ else }}SQLite on the "data" volume{{ end }}.
+{{- end }}
+
+Reach the UI:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  https://{{ .host }}
+{{- end }}
+{{- else }}
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "mcharbor.fullname" . }} 8705:{{ .Values.service.port }}
+  {{ include "mcharbor.scheme" . }}://localhost:8705
+{{- end }}
+
+Probes: GET /api/livez (liveness), GET /api/readyz (readiness).
+{{- if not (include "mcharbor.secretsConfigured" .) }}
+
+No secrets were supplied. MCHARBOR_SECRET and the encryption key are generated into the
+data volume on first start; back that volume up, or the encrypted values cannot be read again.
+No backup key is mounted, so container backups are unavailable until one is.
+{{- end }}
+{{- if not (include "mcharbor.allowedOrigins" .) }}
+
+ALLOWED_ORIGINS is empty: only localhost origins are accepted. Set config.allowedOrigins to the
+URL users open McHarbor from, or the sign-in form will not reach the server.
+{{- end }}
+{{- if .Values.docker.socket.enabled }}
+
+The Docker socket of the node matching {{ toJson .Values.nodeSelector }} is mounted. Anyone who is
+an administrator in McHarbor is root on that node.
+{{- end }}

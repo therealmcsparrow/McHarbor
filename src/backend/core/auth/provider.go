@@ -3,8 +3,11 @@
 
 package auth
 
-// AuthProvider is the pluggable interface for authentication backends.
+// AuthProvider is the pluggable interface for authentication backends; the name is kept because plugins import it.
+//
 // Local auth is the default; OIDC, LDAP, MFA can be added later.
+//
+//nolint:revive // renaming an exported plugin-linked type would break every plugin build
 type AuthProvider interface {
 	// Name returns the provider identifier (e.g., "local", "oidc", "ldap").
 	Name() string
@@ -26,12 +29,15 @@ func NewLocalProvider(svc *Service) *LocalProvider {
 	return &LocalProvider{svc: svc}
 }
 
+// Name returns "local", the identifier stored against sessions created by this provider.
 func (p *LocalProvider) Name() string { return "local" }
 
+// Authenticate delegates to Service.Login so provider and direct logins share lockout handling.
 func (p *LocalProvider) Authenticate(credentials map[string]string) (*AuthResult, error) {
 	username := credentials["username"]
 	password := credentials["password"]
 	return p.svc.Login(username, password)
 }
 
+// SupportsRegistration is always true because local accounts are created in this database.
 func (p *LocalProvider) SupportsRegistration() bool { return true }

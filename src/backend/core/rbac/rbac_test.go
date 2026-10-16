@@ -4,6 +4,7 @@
 package rbac
 
 import (
+	"context"
 	"database/sql"
 	"path/filepath"
 	"reflect"
@@ -20,7 +21,7 @@ func TestHasPermissionIgnoresStackScopedAssignments(t *testing.T) {
 
 	svc := NewService(db)
 
-	allowed, err := svc.HasPermission("user-1", "env-1", PermStacksView)
+	allowed, err := svc.HasPermission(context.Background(), "user-1", "env-1", PermStacksView)
 	if err != nil {
 		t.Fatalf("HasPermission returned error: %v", err)
 	}
@@ -39,7 +40,7 @@ func TestHasStackPermissionIncludesEnvironmentAndStackAssignments(t *testing.T) 
 
 	svc := NewService(db)
 
-	viewAllowed, err := svc.HasStackPermission("user-1", "env-1", "whoami", PermStacksView)
+	viewAllowed, err := svc.HasStackPermission(context.Background(), "user-1", "env-1", "whoami", PermStacksView)
 	if err != nil {
 		t.Fatalf("HasStackPermission(view) returned error: %v", err)
 	}
@@ -47,7 +48,7 @@ func TestHasStackPermissionIncludesEnvironmentAndStackAssignments(t *testing.T) 
 		t.Fatal("expected environment-scoped stacks.view to apply to stack route")
 	}
 
-	manageAllowed, err := svc.HasStackPermission("user-1", "env-1", "whoami", PermStacksManage)
+	manageAllowed, err := svc.HasStackPermission(context.Background(), "user-1", "env-1", "whoami", PermStacksManage)
 	if err != nil {
 		t.Fatalf("HasStackPermission(manage) returned error: %v", err)
 	}
@@ -55,7 +56,7 @@ func TestHasStackPermissionIncludesEnvironmentAndStackAssignments(t *testing.T) 
 		t.Fatal("expected matching stack-scoped stacks.manage to apply")
 	}
 
-	otherManageAllowed, err := svc.HasStackPermission("user-1", "env-1", "uptime-kuma", PermStacksManage)
+	otherManageAllowed, err := svc.HasStackPermission(context.Background(), "user-1", "env-1", "uptime-kuma", PermStacksManage)
 	if err != nil {
 		t.Fatalf("HasStackPermission(other manage) returned error: %v", err)
 	}
@@ -74,7 +75,7 @@ func TestAllowedStackNamesIncludesDirectAndGroupAssignments(t *testing.T) {
 
 	svc := NewService(db)
 
-	stackNames, err := svc.AllowedStackNames("user-1", "env-1", PermStacksView)
+	stackNames, err := svc.AllowedStackNames(context.Background(), "user-1", "env-1", PermStacksView)
 	if err != nil {
 		t.Fatalf("AllowedStackNames returned error: %v", err)
 	}
@@ -84,7 +85,7 @@ func TestAllowedStackNamesIncludesDirectAndGroupAssignments(t *testing.T) {
 		t.Fatalf("expected stack names %#v, got %#v", expected, stackNames)
 	}
 
-	anyAllowed, err := svc.HasAnyStackPermission("user-1", "env-1", PermStacksView)
+	anyAllowed, err := svc.HasAnyStackPermission(context.Background(), "user-1", "env-1", PermStacksView)
 	if err != nil {
 		t.Fatalf("HasAnyStackPermission returned error: %v", err)
 	}
@@ -101,7 +102,11 @@ func openRBACTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("sql.Open returned error: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Logf("closing db: %v", err)
+		}
+	})
 
 	return db
 }
@@ -150,6 +155,20 @@ CREATE TABLE group_roles (
 	stack_name TEXT,
 	created_at TEXT NOT NULL DEFAULT (datetime('now')),
 	updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- effectivePermissionsFor folds active elevations into every interactive
+-- permission check, so this table is on the path of every test in the
+-- package, not only the elevation ones. Without it each check fails with
+-- "no such table: elevation_requests" before it reaches what it meant to
+-- assert.
+CREATE TABLE elevation_requests (
+	id              TEXT PRIMARY KEY,
+	requester_id    TEXT NOT NULL,
+	permission_key  TEXT NOT NULL,
+	status          TEXT NOT NULL,
+	environment_id  TEXT,
+	approved_until  TEXT
 );
 `); err != nil {
 		t.Fatalf("creating rbac test tables: %v", err)

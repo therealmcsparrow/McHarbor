@@ -1,9 +1,0 @@
-{
-  "label": "Container List",
-  "description": "List containers in an environment",
-  "config": {
-    "environment": "Environment",
-    "show_all": "Show All",
-    "name_filter": "Name Filter"
-  }
-}

@@ -32,6 +32,11 @@ func NewNodeCatalogService(dataDir string) *NodeCatalogService {
 
 var validNodeCatalogKey = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 
+// Plugin-contributed nodes reach the canvas as `plugin:<slug>:<key>`
+// (see usePluginNodes.ts), so the Store toggles them under that composite
+// key. Both halves keep the plain node-key alphabet.
+var validPluginNodeCatalogKey = regexp.MustCompile(`^plugin:[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$`)
+
 func validateNodeCatalogKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("node key is required")
@@ -39,7 +44,7 @@ func validateNodeCatalogKey(key string) error {
 	if strings.Contains(key, "/") || strings.Contains(key, "\\") || strings.Contains(key, "..") {
 		return fmt.Errorf("invalid node key: path traversal not allowed")
 	}
-	if !validNodeCatalogKey.MatchString(key) {
+	if !validNodeCatalogKey.MatchString(key) && !validPluginNodeCatalogKey.MatchString(key) {
 		return fmt.Errorf("invalid node key: must be lowercase alphanumeric with hyphens")
 	}
 	return nil

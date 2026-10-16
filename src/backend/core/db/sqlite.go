@@ -30,7 +30,17 @@ import (
 // connections come up without the busy_timeout set, which has
 // caused lock-wait failures in production. We iterate MaxOpenConns
 // and re-apply the pragmas on every connection to keep them stable.
+// connMaxIdleTime is how long a pooled connection may sit unused before it is
+// closed. One policy for all three drivers: it is about the network and the
+// server's own idle timeout, not about which SQL dialect is on the far end.
+const connMaxIdleTime = 5 * time.Minute
+
 func openSQLite(dbPath string) (*sql.DB, error) {
+	return openSQLiteContext(context.Background(), dbPath)
+}
+
+// openSQLiteContext is openSQLite with the caller's context bounding the ping, pragma warm-up and planner refresh.
+func openSQLiteContext(ctx context.Context, dbPath string) (*sql.DB, error) {
 	dir := filepath.Dir(dbPath)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, fmt.Errorf("creating database directory: %w", err)
@@ -40,16 +50,16 @@ func openSQLite(dbPath string) (*sql.DB, error) {
 		"file:%s?_journal_mode=WAL&_busy_timeout=60000&_foreign_keys=ON&_synchronous=NORMAL",
 		dbPath,
 	)
-	database, err := sql.Open("sqlite", dsn)
+	database, err := openDriver("sqlite", dsn, DriverSQLite)
 	if err != nil {
 		return nil, fmt.Errorf("opening sqlite database: %w", err)
 	}
 
 	database.SetMaxOpenConns(16)
 	database.SetMaxIdleConns(8)
-	database.SetConnMaxIdleTime(5 * time.Minute)
+	database.SetConnMaxIdleTime(connMaxIdleTime)
 
-	if err := database.Ping(); err != nil {
+	if err := database.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("pinging sqlite database: %w", err)
 	}
 
@@ -62,8 +72,14 @@ func openSQLite(dbPath string) (*sql.DB, error) {
 		"PRAGMA temp_store=MEMORY",
 		"PRAGMA wal_autocheckpoint=1000",
 	}
-	if err := warmConnectionPool(database, pragmas); err != nil {
+	if err := warmConnectionPool(ctx, database, pragmas); err != nil {
 		return nil, fmt.Errorf("warming sqlite connections: %w", err)
+	}
+	// Before the first request, and once rather than per pooled connection: the
+	// statistics live in the file, so every connection plans with them. A
+	// failure only costs plan quality, so it is logged and the open goes on.
+	if err := Optimize(ctx, database, DriverSQLite); err != nil {
+		slog.Warn("sqlite planner statistics not refreshed at open", "path", dbPath, "error", err)
 	}
 
 	slog.Info("database opened", "driver", DriverSQLite, "path", dbPath)
@@ -74,7 +90,7 @@ func openSQLite(dbPath string) (*sql.DB, error) {
 // each statement (a PRAGMA in our case) on every connection, and
 // closes them back to the pool. After this call every connection
 // database/sql hands out has the statements applied.
-func warmConnectionPool(database *sql.DB, pragmas []string) error {
+func warmConnectionPool(ctx context.Context, database *sql.DB, pragmas []string) error {
 	maxOpen := database.Stats().MaxOpenConnections
 	if maxOpen <= 0 {
 		maxOpen = 16
@@ -82,17 +98,19 @@ func warmConnectionPool(database *sql.DB, pragmas []string) error {
 	conns := make([]*sql.Conn, 0, maxOpen)
 	defer func() {
 		for _, c := range conns {
-			_ = c.Close()
+			if err := c.Close(); err != nil {
+				slog.Warn("releasing warmed sqlite connection failed", "error", err)
+			}
 		}
 	}()
 	for i := 0; i < maxOpen; i++ {
-		c, err := database.Conn(context.Background())
+		c, err := database.Conn(ctx)
 		if err != nil {
 			return err
 		}
 		conns = append(conns, c)
 		for _, p := range pragmas {
-			if _, err := c.ExecContext(context.Background(), p); err != nil {
+			if _, err := c.ExecContext(ctx, p); err != nil {
 				return fmt.Errorf("applying statement %q: %w", p, err)
 			}
 		}

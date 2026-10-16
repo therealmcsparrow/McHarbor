@@ -1,0 +1,20 @@
+{
+  "label": "Listar",
+  "description": "Listar contenedores, imágenes, redes, volúmenes o stacks de un entorno",
+  "config": {
+    "environment": "Ambiente",
+    "resource": "Recurso",
+    "show_all": "Mostrar todo",
+    "name_filter": "Filtro de nombre",
+    "filter_dangling": "Sólo colgando"
+  },
+  "options": {
+    "resource": {
+      "container": "Contenedor",
+      "image": "Imagen",
+      "network": "Red",
+      "volume": "Volumen",
+      "stack": "Stack"
+    }
+  }
+}

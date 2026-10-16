@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "File de mises à jour",
+      "description": "Conteneurs avec une mise à jour d’image prête, et l’action pour les examiner"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "File de mises à jour",
+    "checkNow": "Rechercher des mises à jour",
+    "checkAgain": "Rechercher à nouveau",
+    "notChecked": "Aucune recherche de mise à jour n’a encore été lancée",
+    "upToDate": "Tout est à jour",
+    "reviewAll": "Examiner {{count}} mise à jour",
+    "reviewAll_other": "Examiner {{count}} mises à jour",
+    "more": "{{count}} de plus"
+  }
+}

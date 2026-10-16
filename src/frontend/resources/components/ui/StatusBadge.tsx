@@ -42,10 +42,10 @@ export const RECONCILER_STATUS: Record<string, BadgeVariant> = {
   error: 'destructive',
 };
 
-export function StatusBadge({ status, map = {}, className }: StatusBadgeProps) {
+export function StatusBadge({ status: currentStatus, map = {}, className }: StatusBadgeProps) {
   return (
-    <Badge variant={map[status] ?? 'secondary'} className={cn(className)}>
-      {status}
+    <Badge variant={map[currentStatus] ?? 'secondary'} className={cn(className)}>
+      {currentStatus}
     </Badge>
   );
 }

@@ -9,28 +9,36 @@ import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { Switch } from '@resources/components/ui/Switch';
 import { cn } from '@resources/utils/cn';
-import { useDeleteAlert, useUpdateAlert, type AlertRule } from '../hooks/useAlerts';
-import {
-  ALERT_SEVERITY_BADGE_VARIANTS,
-  ALERT_SEVERITY_LABEL_KEYS,
-  ALERT_TYPE_LABEL_KEYS,
-} from './alert-options';
+import { useDeleteAlert, useUpdateAlert, type AlertRule } from '@resources/hooks/useAlerts';
+import { findCondition, type AlertConditionCatalog } from '@resources/hooks/useAlertConditions';
+import { ALERT_SEVERITY_BADGE_VARIANTS, ALERT_SEVERITY_LABEL_KEYS } from './alert-options';
+import { PERM } from '@core/auth/permissionKeys';
+import { formatCondition } from './alertRuleFormat';
 
 type AlertRuleCardProps = {
   rule: AlertRule;
-  channelName?: string;
+  catalog: AlertConditionCatalog | undefined;
   onEdit: (rule: AlertRule) => void;
 };
 
-export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps) {
+export function AlertRuleCard({ rule, catalog, onEdit }: AlertRuleCardProps) {
   const { t } = useTranslation('settings');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const updateAlert = useUpdateAlert();
   const deleteAlert = useDeleteAlert();
+
+  const selected = findCondition(catalog, rule.sourceType, rule.conditionKey);
+  const conditionName = selected
+    ? selected.condition.i18nKey
+      ? // eslint-disable-next-line mcharbor/no-restricted-syntax -- i18n-open-set: alert conditions are contributed by sources, which may ship no bundle
+        t(`${selected.condition.i18nKey}.label`, { defaultValue: selected.condition.displayName })
+      : selected.condition.displayName
+    : rule.conditionKey;
+
   const destinations = [
-    channelName,
-    rule.sendInApp ? t('alerts.inAppLabel') : undefined,
-  ].filter((value): value is string => Boolean(value));
+    ...rule.destinations.map((destination) => destination.channelName || t('alerts.unassignedChannel')),
+    ...(rule.sendInApp ? [t('alerts.inAppLabel')] : []),
+  ];
 
   function handleToggle(enabled: boolean) {
     updateAlert.mutate({ id: rule.id, enabled });
@@ -44,7 +52,7 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
 
   return (
     <>
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="mc-glass rounded-lg p-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -55,18 +63,22 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
               <Badge variant={rule.enabled ? 'success' : 'secondary'}>
                 {rule.enabled ? t('alerts.enabled') : t('alerts.disabled')}
               </Badge>
+              {/*
+                A rule whose plugin was uninstalled is kept, not deleted,
+                so the operator has to be able to see why it stopped
+                evaluating.
+              */}
+              {!rule.sourceAvailable ? <Badge variant="destructive">{t('alerts.sourceUnavailable')}</Badge> : null}
             </div>
 
             <div className="grid gap-3 text-xs sm:grid-cols-2 xl:grid-cols-4">
               <div>
                 <p className="text-muted-foreground">{t('alerts.typeLabel')}</p>
-                <p className="mt-1 text-sm text-foreground">{t(ALERT_TYPE_LABEL_KEYS[rule.type])}</p>
+                <p className="mt-1 truncate text-sm text-foreground">{conditionName}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">{t('alerts.targetLabel')}</p>
-                <p className="mt-1 truncate text-sm text-foreground">
-                  {rule.target || t('alerts.allTargets')}
-                </p>
+                <p className="mt-1 truncate text-sm text-foreground">{rule.target || t('alerts.allTargets')}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">{t('alerts.destinationsLabel')}</p>
@@ -76,12 +88,7 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
               </div>
               <div>
                 <p className="text-muted-foreground">{t('alerts.statusLabel')}</p>
-                <p
-                  className={cn(
-                    'mt-1 text-sm',
-                    rule.enabled ? 'text-foreground' : 'text-muted-foreground'
-                  )}
-                >
+                <p className={cn('mt-1 text-sm', rule.enabled ? 'text-foreground' : 'text-muted-foreground')}>
                   {rule.enabled ? t('alerts.enabledDescription') : t('alerts.disabledDescription')}
                 </p>
               </div>
@@ -90,7 +97,7 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
             <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
               <p className="text-xs text-muted-foreground">{t('alerts.conditionLabel')}</p>
               <p className="mt-1 font-mono text-xs text-foreground">
-                {rule.condition || t('alerts.anyCondition')}
+                {formatCondition(rule) || t('alerts.anyCondition')}
               </p>
             </div>
           </div>
@@ -110,6 +117,7 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
 
             <div className="flex items-center gap-1">
               <Button
+                permission={PERM.ALERTS_MANAGE}
                 variant="ghost"
                 size="icon-sm"
                 aria-label={t('alerts.editRule')}
@@ -118,6 +126,7 @@ export function AlertRuleCard({ rule, channelName, onEdit }: AlertRuleCardProps)
                 <IconPencil className="size-4" />
               </Button>
               <Button
+                permission={PERM.ALERTS_DELETE}
                 variant="ghost"
                 size="icon-sm"
                 aria-label={t('alerts.deleteRule')}

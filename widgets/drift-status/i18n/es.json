@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Deriva",
+      "description": "Vigilancias cuyos contenedores, stacks o entorno han derivado de lo declarado"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Deriva",
+    "empty": "Todo coincide con lo declarado",
+    "unavailable": "No se puede leer el informe de deriva",
+    "noAccess": "Requiere el permiso reconciler.view",
+    "more": "{{count}} más",
+    "viewReport": "Informe de deriva",
+    "detail": "{{classes}} · desde {{since}}"
+  }
+}

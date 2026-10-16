@@ -1,0 +1,75 @@
+{
+  "config": {
+    "bot_token": { "help": "Bot API-token uitgegeven door @BotFather op Telegram. Formaat: <bot_id>:<token>. Versleuteld opgeslagen." },
+    "parse_mode": { "help": "Optioneel. Markdown of HTML om opmaak in Titel + Bericht in te schakelen. Laat leeg voor platte tekst. De host escapet speciale tekens niet vooraf: schakel over op platte tekst als je berichten door Telegram gereserveerde tekens bevatten." },
+    "disable_notification": { "help": "Optioneel. Indien ingeschakeld wordt het bericht zonder meldingsgeluid op het apparaat van de ontvanger verzonden. Handig voor meldingen met lage prioriteit." }
+  },
+  "page": {
+    "title": "Telegram",
+    "subtitle": "Stuur workflow-, alert- en back-upgebeurtenissen via de Bot API naar een Telegram-chat. De plugin verzorgt Test (getMe-levensteken) en Verzenden (sendMessage) — er is geen OAuth-flow omdat bots een langlevend bearer-token gebruiken.",
+    "registerHint": "Voeg een kanaal toe via de pagina Meldingen > Kanalen van de host en kies \"Telegram\" als channel_type."
+  },
+  "fields": {
+    "name": "Kanaalnaam",
+    "botToken": "Bottoken",
+    "chatId": "Chat-ID",
+    "parseMode": "Parseermodus",
+    "disableNotification": "Stil verzenden"
+  },
+  "help": {
+    "name": "Hoe dit kanaal verschijnt in McHarbor-lijsten en alertregels.",
+    "botToken": "Bot-API-token van @BotFather op Telegram. Formaat: <bot_id>:<token>. Versleuteld opgeslagen.",
+    "chatId": "Chat-identificatie van de ontvanger: numerieke gebruikers-/groeps-ID of @kanaalnaam. Gebruik getUpdates om een chat_id voor privéchats te vinden.",
+    "parseMode": "Markdown of HTML schakelt rijke opmaak in Titel + Bericht in. Platte tekst geeft tekens ongewijzigd door.",
+    "disableNotification": "Indien aan, wordt verzonden zonder meldingsgeluid op het apparaat van de ontvanger. Handig voor alerts met lage prioriteit."
+  },
+  "toast": {
+    "registered": "Telegram-kanaal opgeslagen.",
+    "testPassed": "Telegram-verbindingstest geslaagd.",
+    "testFailed": "Telegram-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "required": "Vereist",
+    "noBotToken": "Bottoken is vereist. Vraag er een aan bij @BotFather op Telegram.",
+    "noChatId": "Chat-ID is vereist. Gebruik getUpdates voor privéchats of @kanaalnaam voor openbare kanalen.",
+    "sendFailed": "Telegram sendMessage mislukt: {{error}}"
+  },
+  "title": "Telegram Bot API",
+  "subtitle": "Beheerd door de plugin",
+  "description": "Sla dit kanaal op en gebruik daarna Verbinding testen om het bottoken en de chat-ID te controleren. De host verstuurt tijdens Test nooit een bericht; getMe bevestigt alleen dat het token actief is.",
+  "placeholder": {
+    "name": "Operations-Telegram"
+  },
+  "parseMode": {
+    "plain": "Platte tekst",
+    "markdown": "Markdown",
+    "html": "HTML"
+  },
+  "silent": {
+    "off": "Nee (geluid aan)",
+    "on": "Ja (stil verzenden)",
+    "title": "Stil verzenden",
+    "help": "Melding uitschakelen",
+    "description": "Als Stil verzenden aan staat, bezorgt Telegram het bericht zonder geluid en zonder het scherm te wekken. Handig voor routinealerts waarbij de beheerder niet onderbroken hoeft te worden."
+  },
+  "tips": {
+    "title": "Tips voor parseermodus",
+    "help": "Markdown versus HTML",
+    "markdown": "Escape gereserveerde tekens",
+    "markdownSuffix": "met een voorafgaande backslash.",
+    "html": "Escapen",
+    "plain": "Titel + Bericht worden ongewijzigd verzonden. Escapen is niet nodig."
+  },
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "guide": {
+    "title": "Installatiehandleiding voor Telegram",
+    "step1": "Open Telegram en start een chat met <code>@BotFather</code>. Stuur <code>/newbot</code> en volg de aanwijzingen (weergavenaam + unieke gebruikersnaam die eindigt op \"bot\"). BotFather antwoordt met het bottoken in het formaat <code><bot_id>:<token></code>. Plak dat in het veld <b>Bot-token</b> aan de linkerkant.",
+    "step2": "Start een chat met je bot (zoek op de zojuist aangemaakte @gebruikersnaam) en stuur een willekeurig bericht. De bot heeft minstens één inkomend bericht nodig voordat hij in die chat kan posten: Telegram blokkeert door bots gestart contact totdat de gebruiker eerst iets zegt.",
+    "step3": "Voor een privéchat haal je de <code>chat_id</code> op door na stap 2 <code>https://api.telegram.org/bot<your_token>/getUpdates</code> aan te roepen. Het antwoord bevat <code>\"chat\":{\"id\": <chat_id>}</code>. Gebruik voor een openbaar kanaal <code>@channelname</code> (de @ is onderdeel van de identifier).",
+    "step4": "Voor groepen: voeg de bot toe als lid en geef hem daarna in de groepsrechten het recht <b>Post Messages</b>. Zonder dat recht geeft <code>sendMessage</code> <code>403 Forbidden</code> terug.",
+    "step5": "Voor kanalen: voeg de bot toe als beheerder met de machtiging <b>Post Messages</b>. Gewone leden kunnen niet posten; de bot moet beheerder zijn.",
+    "step6": "Plak de <code>chat_id</code> (of <code>@channelname</code>) in het veld <b>Chat-ID</b> aan de linkerkant. Laat <b>Parseermodus</b> leeg, tenzij je berichten uitsluitend Telegram-veilige opmaak bevatten. Schakel <b>Stil verzenden</b> in voor meldingen met lage prioriteit, zoals voltooide back-ups.",
+    "step7": "Klik op <b>Opslaan en verbinding testen</b>. De plugin voert een <code>getMe</code> uit op de Bot API om te bevestigen dat het token actief is. De host <warn>verstuurt GEEN testbericht</warn>: <code>getMe</code> geeft alleen de identiteit van de bot terug. Als <code>getMe</code> <code>401</code> teruggeeft, controleer dan het bottoken nogmaals.",
+    "step8": "Zodra het kanaal is opgeslagen, routeer je workflow- of alarmgebeurtenissen ernaartoe via <b>Instellingen > Meldingen > Regels</b>. Telegram-bezorging is fire-and-forget: een mislukte verzending wordt in het auditlog vastgelegd en getoond in de host-toast, maar de host probeert het niet opnieuw."
+  }
+}

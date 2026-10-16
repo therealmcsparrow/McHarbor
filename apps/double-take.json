@@ -1,0 +1,35 @@
+{
+    "slug":  "double-take",
+    "name":  "Double Take",
+    "description":  "Unified UI for facial recognition results from Frigate, and other NVRs, using CompreFace or DeepStack as a backend.",
+    "category":  "Home Automation",
+    "image":  "jakowenko/double-take:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/double-take.png",
+    "website":  "https://github.com/skrashevich/double-take",
+    "docsUrl":  "https://github.com/skrashevich/double-take/wiki/Installation",
+    "ports":  [
+                  {
+                      "host":  3200,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/double-take/config",
+                        "container":  "/.storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

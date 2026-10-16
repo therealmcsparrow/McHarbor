@@ -1,0 +1,103 @@
+{
+  "config": {
+    "server_url": { "help": "Basis-URL van je ntfy-server. Standaard https://ntfy.sh — wijzig dit naar je eigen gehoste instantie (bijv. https://ntfy.example.com) voor on-premises opstellingen." },
+    "topic": { "help": "Naam van het topic dat abonnees in de ntfy-app ontvangen. Gebruik een unieke naam (bijv. mcharbor-alerts-prod). ntfy.sh staat maximaal 64 tekens uit [a-zA-Z0-9_-] toe." },
+    "access_token": { "help": "Topic-token van ntfy. Klik op 'Get token' op de topicpagina in de ntfy-webinterface. Heeft voorrang op gebruikersnaam/wachtwoord als het is ingesteld. Versleuteld opgeslagen." },
+    "priority": { "help": "Optioneel. Een van min, low, default, high, urgent. Komt overeen met de gehele ntfy-prioriteit 1/2/3/4/5. Laat leeg voor de standaard van de server." },
+    "tags": { "help": "Optioneel. Kommagescheiden emoji-shortcodes die als inline pictogrammen in de ntfy-mobiele app worden getoond (bijv. \"warning,rocket\"). Zie https://docs.ntfy.sh/emojis/ voor de catalogus." }
+  },
+  "page": {
+    "title": "ntfys",
+    "subtitle": "Stuur workflow-, alert- en back-upgebeurtenissen via HTTP POST naar een ntfy-topic. De plugin verzorgt Test (publiceert een echt testbericht) en Verzenden (publiceert Titel + Bericht als body) — er is geen OAuth-flow omdat ntfy statische topictokens of HTTP Basic-authenticatie gebruikt.",
+    "registerHint": "Voeg een kanaal toe via de pagina Meldingen > Kanalen van de host en kies \"ntfy\" als channel_type."
+  },
+  "fields": {
+    "serverUrl":    "Server-URL",
+    "topic":        "Topic",
+    "accessToken":  "Toegangstoken",
+    "username":     "Gebruikersnaam",
+    "password":     "Wachtwoord",
+    "priority":     "Prioriteit",
+    "tags":         "Tags"
+  },
+  "help": {
+    "serverUrl":    "Basis-URL van je ntfy-server. Standaard https://ntfy.sh — wijzig dit naar je eigen zelfgehoste instantie voor on-premise opstellingen.",
+    "topic":        "Topicnaam waarop abonnees in de ntfy-app ontvangen. Gebruik per omgeving een unieke naam.",
+    "accessToken":  "Aan een topic gebonden token van ntfy. Klik op 'Get token' op de topicpagina in de ntfy-webinterface. Versleuteld opgeslagen.",
+    "username":     "HTTP Basic-gebruikersnaam voor zelfgehoste ntfy. Wordt alleen gebruikt als access_token leeg is.",
+    "password":     "HTTP Basic-wachtwoord voor zelfgehoste ntfy. Wordt alleen gebruikt als access_token leeg is. Versleuteld opgeslagen.",
+    "priority":     "Een van min, low, default, high, urgent. Komt overeen met de gehele ntfy-prioriteit 1/2/3/4/5. Laat leeg voor de serverstandaard.",
+    "tags":         "Door komma's gescheiden emoji-shortcodes die in de ntfy-mobiele app als inline pictogrammen worden weergegeven."
+  },
+  "toast": {
+    "registered": "ntfy-kanaal opgeslagen.",
+    "testPassed": "ntfy-verbindingstest geslaagd.",
+    "testFailed": "ntfy-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noTopic":     "Topic is vereist. Stel de topicnaam in waarop abonnees alerts ontvangen.",
+    "noServer":    "Server-URL is vereist. Standaard https://ntfy.sh als het leeg is.",
+    "sendFailed":  "Publiceren naar ntfy mislukt: {{error}}",
+    "testFailed":  "Publiceren naar ntfy op {{topic}} gaf {{status}}: {{body}}"
+  },
+  "form": {
+    "publishTitle": "ntfy-publicatie-API",
+    "publishHelp": "HTTP POST",
+    "publishBody": "ntfy is een pub/sub-HTTP-service. De plugin POST de meldingstitel als `Title`-header en het bericht als request body naar `<server_url>/<topic>`. Abonnees ontvangen het meteen in de ntfy-app voor Android/iOS of in de webapp. Klik op **Opslaan** en daarna op **Verbinding testen** om te controleren dat het topic en de inloggegevens een echte publicatie doorstaan.",
+    "authTitle": "Authenticatie",
+    "authHelp": "Token of Basic",
+    "authToken": "**Toegangstoken** — de voorkeursoptie. Topic-token uit de ntfy-webinterface onder de topicinstellingen. Wordt verzonden als `Authorization: Bearer <token>`. Elk topic krijgt een eigen token, zodat het intrekken van één token de andere niet breekt.",
+    "authBasic": "**Gebruikersnaam + wachtwoord** — voor zelf gehost ntfy met authenticatie per gebruiker. Wordt verzonden als HTTP Basic. Wordt alleen gebruikt als het toegangstoken leeg is.",
+    "authNone": "**Geen van beide** — prima voor openbare topics op ntfy.sh. Iedereen die de topicnaam kent kan publiceren, dus kies voor productiemeldingen een lange, onraadbare naam.",
+    "priorityTitle": "Prioriteit en tags",
+    "priorityHelp": "Onderbreking op mobiel",
+    "priorityBody": "Stel Prioriteit in op **high** of **urgent** om Niet storen op iOS en Android te omzeilen. ntfy koppelt urgent (5) op Android aan het volume van de alarmstream — gebruik dit spaarzaam. Tags zijn inline pictogrammen in de mobiele app; kies een of twee shortcodes per kanaaltype (bijv. `warning` voor meldingen, `rocket` voor voltooide back-ups) zodat abonnees het topic visueel kunnen scannen.",
+    "testTitle": "Verbinding testen",
+    "testHelp": "Wat je kunt verwachten",
+    "testBody": "De testaanroep publiceert een echt bericht (`Title: McHarbor test notification`, body `McHarbor test notification`) op je topic. De ntfy-server geeft bij succes 200 OK terug; de plugin zet elke niet-2xx-respons om in een gestructureerde fout met de upstream-statuscode en de eerste 256 bytes van de JSON-foutbody van de server. Abonnees zien het testbericht — laat het ze weten voordat je op Testen klikt, zodat er geen vals-positief alertticket ontstaat.",
+    "fields": {
+      "server_url": {
+        "label": "Server-URL",
+        "help": "Basis-URL van je ntfy-server. Standaard https://ntfy.sh — wijzig dit naar je eigen gehoste instantie (bijv. https://ntfy.example.com) voor on-premises opstellingen."
+      },
+      "topic": {
+        "label": "Topic",
+        "help": "Naam van het topic dat abonnees in de ntfy-app ontvangen. Gebruik een unieke naam (bijv. mcharbor-alerts-prod). ntfy.sh staat maximaal 64 tekens uit [a-zA-Z0-9_-] toe."
+      },
+      "access_token": {
+        "label": "Toegangstoken",
+        "help": "Topic-token van ntfy. Klik op \"Get token\" op de topicpagina in de ntfy-webinterface. Heeft voorrang op gebruikersnaam/wachtwoord als het is ingesteld. Versleuteld opgeslagen."
+      },
+      "username": {
+        "label": "Gebruikersnaam",
+        "help": "Gebruikersnaam voor HTTP Basic-authenticatie bij zelf gehost ntfy. Wordt alleen gebruikt als access_token leeg is."
+      },
+      "password": {
+        "label": "Wachtwoord",
+        "help": "Wachtwoord voor HTTP Basic-authenticatie bij zelf gehost ntfy. Wordt alleen gebruikt als access_token leeg is. Versleuteld opgeslagen."
+      },
+      "priority": {
+        "label": "Prioriteit",
+        "help": "Optioneel. Bepaalt het onderbrekingsgedrag in de ntfy-mobiele app. min=1, low=2, default=3, high=4, urgent=5. Laat leeg voor de standaard van de server."
+      },
+      "tags": {
+        "label": "Tags",
+        "help": "Optioneel. Kommagescheiden emoji-shortcodes die als inline pictogrammen in de ntfy-mobiele app worden getoond (bijv. \"warning,rocket\"). Zie https://docs.ntfy.sh/emojis/ voor de catalogus."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "ntfy-installatiehandleiding"
+  },
+  "guide": {
+    "step1": { "body": "Bepaal waar je meldingen naartoe gaan: ntfy.sh (cloud, gratis, standaard alleen openbare topics) of zelf gehost ntfy (Docker-image, volledige controle over authenticatie en privacy van topics). Stel <b>Server-URL</b> dienovereenkomstig in — laat het leeg voor ntfy.sh." },
+    "step2": { "body": "Kies een topicnaam. ntfy.sh staat maximaal 64 tekens uit <code>[a-zA-Z0-9_-]</code> toe. Gebruik per omgeving een unieke naam (bijv. <code>mcharbor-alerts-prod</code>, <code>mcharbor-alerts-staging</code>) zodat abonnees er één kunnen dempen zonder de andere te missen. De topicnaam is zelf het publicatie-eindpunt, dus <warn>zet er geen geheimen in</warn>." },
+    "step3": { "body": "Abonneer op het ontvangende apparaat: installeer de ntfy-app voor Android of iOS (of ga in een browser naar ntfy.sh) en tik op + om een topic toe te voegen. Typ exact dezelfde naam als in stap 2. Zonder abonnee op dit apparaat komen je meldingen nergens aan." },
+    "step4": { "body": "Voor ntfy.sh: open het topic in de webinterface, klik op het slotpictogram en genereer een topic-toegangstoken. Plak het in het veld <b>Toegangstoken</b> links. Cloudtopics zijn openbaar leesbaar, tenzij je het vakje \"authenticated users only\" aanvinkt — publicaties met een token blijven standaard openbaar leesbaar, dus het token weerhoudt willekeurige internetgebruikers ervan berichten in te sturen, niet van het lezen ervan." },
+    "step5": { "body": "Voor zelf gehost ntfy: vul <b>Gebruikersnaam</b> + <b>Wachtwoord</b> in voor HTTP Basic-authenticatie (ingesteld in de ntfy-configuratie onder <code>auth-default-access</code>). De plugin gebruikt een Bearer-token als <b>Toegangstoken</b> is ingesteld en valt terug op Basic als alleen gebruikersnaam + wachtwoord aanwezig zijn. Bij beide geldt \"token wint\"." },
+    "step6": { "body": "Optioneel: stel <b>Prioriteit</b> in op <code>high</code> of <code>urgent</code> om Niet storen te omzeilen. urgent komt overeen met het gehele getal 5 van ntfy — Android speelt het af via de alarmstream, iOS gaat voor de stille modus. Gebruik dit alleen voor storings- en back-upfoutmeldingen." },
+    "step7": { "body": "Optioneel: voeg <b>Tags</b> toe als kommagescheiden lijst van emoji-shortcodes (bijv. \"<code>warning,rocket</code>\") — de ntfy-mobiele app toont deze als inline pictogrammen naast elk bericht. Bekijk de catalogus op <code>https://docs.ntfy.sh/emojis/</code>." },
+    "step8": { "body": "Sla het kanaal op. Klik op <b>Verbinding testen</b> — de plugin publiceert \"<code>McHarbor test notification</code>\" op je topic. Je abonneeapparaat zou het binnen 1-2 seconden moeten ontvangen. Als de test <code>401</code> geeft, is het toegangstoken onjuist; bij <code>404</code> komt de topicnaam niet overeen met wat abonnees hebben toegevoegd; bij <code>429</code> heeft ntfy.sh de publicatie beperkt (5 berichten per 10 s per topic in het gratis abonnement)." },
+    "step9": { "body": "Zodra het kanaal is opgeslagen, stuur je workflow- of alertgebeurtenissen ernaartoe via <b>Instellingen > Meldingen > Regels</b>. Bezorging via ntfy is fire-and-forget: een mislukte publicatie wordt in het auditlogboek vastgelegd en getoond in de toast van de host, maar de host probeert het niet opnieuw." }
+  }
+}

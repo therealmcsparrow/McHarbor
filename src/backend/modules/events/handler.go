@@ -13,8 +13,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/api/types/filters"
+	"github.com/moby/moby/api/types/events"
 
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
@@ -23,12 +22,21 @@ import (
 
 // Handler holds dependencies for events HTTP handlers.
 type Handler struct {
-	app *router.AppDeps
+	app    *router.AppDeps
+	broker *Broker
 }
 
-// NewHandler creates a new events handler.
+// NewHandler creates a new events handler whose tabs share one Docker events
+// subscription per environment.
 func NewHandler(app *router.AppDeps) *Handler {
-	return &Handler{app: app}
+	source := func(envID string) (EventSource, error) {
+		cli, err := app.DockerPool.Get(envID)
+		if err != nil {
+			return nil, err
+		}
+		return cli, nil
+	}
+	return &Handler{app: app, broker: NewBroker(app.ContextOrBackground(), source)}
 }
 
 // eventData is the JSON shape sent to clients via SSE.
@@ -50,23 +58,15 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 	q := r.URL.Query()
 
-	cli, err := h.app.DockerPool.Get(envID)
+	sub, leave, err := h.broker.Subscribe(envID, q.Get("type")) //nolint:contextcheck // the shared upstream stream outlives any one request and runs on the broker lifetime context
 	if err != nil {
 		h.app.Logger.Error("events: docker client error", "error", err, "env", envID)
-		response.InternalErrorCode(w, r, i18n.ErrEventsFailed)
+		response.InternalErrorCause(w, r, i18n.ErrEventsFailed, err)
 		return
 	}
+	defer leave()
 
 	ctx := r.Context()
-
-	filterArgs := filters.NewArgs()
-	if eventType := q.Get("type"); eventType != "" {
-		filterArgs.Add("type", eventType)
-	}
-
-	eventsCh, errCh := cli.Events(ctx, events.ListOptions{
-		Filters: filterArgs,
-	})
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -76,7 +76,9 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 
 	// Disable the server write deadline for this long-lived SSE stream.
 	rc := http.NewResponseController(w)
-	_ = rc.SetWriteDeadline(time.Time{})
+	if err := rc.SetWriteDeadline(time.Time{}); err != nil && !errors.Is(err, http.ErrNotSupported) {
+		h.app.Logger.Warn("events: disabling write deadline failed", "error", err, "env", envID)
+	}
 
 	// Set SSE headers
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -95,24 +97,16 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-ctx.Done():
 			return
-		case err, ok := <-errCh:
+		case event, ok := <-sub.Events:
 			if !ok {
-				return
-			}
-			if err != nil {
-				if expectedDockerEventStreamClose(ctx, err) {
-					h.app.Logger.Debug("events: docker events stream closed", "error", err, "env", envID)
-				} else {
+				err := sub.Err()
+				if err != nil && !expectedDockerEventStreamClose(ctx, err) {
 					slog.Error("events: docker events stream error", "error", err, "env", envID)
 					if _, writeErr := fmt.Fprintf(w, "event: error\ndata: {\"error\":\"event stream error\"}\n\n"); writeErr != nil {
 						return
 					}
 					flusher.Flush()
 				}
-			}
-			return
-		case event, ok := <-eventsCh:
-			if !ok {
 				return
 			}
 			data := eventData{
@@ -123,7 +117,7 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 					Attributes: event.Actor.Attributes,
 				},
 				Time:   event.Time,
-				Status: string(event.Status),
+				Status: legacyStatus(event),
 			}
 
 			payload, jsonErr := json.Marshal(data)
@@ -147,4 +141,14 @@ func expectedDockerEventStreamClose(ctx context.Context, err error) bool {
 		errors.Is(err, context.DeadlineExceeded) ||
 		errors.Is(err, io.EOF) ||
 		errors.Is(err, io.ErrUnexpectedEOF)
+}
+
+// legacyStatus rebuilds the deprecated "status" field the SSE payload has always
+// carried: the daemon set it to the action for container and image events only,
+// and the Moby API types no longer decode it.
+func legacyStatus(event events.Message) string {
+	if event.Type == events.ContainerEventType || event.Type == events.ImageEventType {
+		return string(event.Action)
+	}
+	return ""
 }

@@ -1,0 +1,38 @@
+{
+    "slug":  "pghero",
+    "name":  "PgHero",
+    "description":  "Performance dashboard for Postgres that surfaces slow queries, index bloat and vacuum health at a glance.",
+    "category":  "Developer Tools",
+    "image":  "ankane/pghero:latest",
+    "logo":  "https://github.com/ankane.png",
+    "website":  "https://github.com/ankane/pghero",
+    "docsUrl":  "https://github.com/ankane/pghero#installation",
+    "ports":  [
+                  {
+                      "host":  8094,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "postgres://postgres:change-me@postgres:5432/postgres",
+                        "description":  "Connection string for the Postgres instance to monitor",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

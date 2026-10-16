@@ -1,0 +1,167 @@
+{
+  "title": "SCIM-Bereitstellung",
+  "description": "SCIM-2.0-Endpunkte für die Bereitstellung durch den Identitätsanbieter konfigurieren und den Synchronisationsverlauf einsehen.",
+  "actions": {
+    "new": "Neuer Endpunkt",
+    "syncNow": "Jetzt synchronisieren",
+    "history": "Verlauf anzeigen",
+    "edit": "Endpunkt bearbeiten",
+    "delete": "Endpunkt löschen",
+    "preview": "Vorschau und Synchronisierung",
+    "rotate": "Token rotieren"
+  },
+  "table": {
+    "name": "Name",
+    "baseUrl": "Basis-URL",
+    "schedule": "Zeitplan",
+    "lastSync": "Letzte Synchronisation",
+    "counts": "Objekte",
+    "status": "Status",
+    "actions": "Aktionen"
+  },
+  "counts": {
+    "users": "{{count}} Benutzer",
+    "users_other": "{{count}} Benutzer",
+    "groups": "{{count}} Gruppe",
+    "groups_other": "{{count}} Gruppen"
+  },
+  "status": {
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "syncStatus": {
+    "pending": "Ausstehend",
+    "success": "Erfolgreich",
+    "failed": "Fehlgeschlagen",
+    "running": "Läuft"
+  },
+  "empty": {
+    "title": "Keine SCIM-Endpunkte",
+    "description": "Erstellen Sie einen SCIM-Endpunkt, um ein Bearer-Token auszugeben und McHarbor-Benutzer und -Gruppen kompatiblen Identitätsanbietern bereitzustellen."
+  },
+  "delete": {
+    "title": "SCIM-Endpunkt löschen?",
+    "description": "{{name}} und den zugehörigen Synchronisationsverlauf löschen?",
+    "warning": "Bereitstellungsclients, die dieses Endpunkt-Token verwenden, funktionieren sofort nicht mehr.",
+    "cancel": "Abbrechen",
+    "confirm": "Endpunkt löschen"
+  },
+  "history": {
+    "title": "Synchronisationsverlauf für {{name}}",
+    "description": "Letzte SCIM-Synchronisationsversuche und Objektanzahlen.",
+    "empty": "Noch kein Synchronisationsverlauf.",
+    "close": "Schließen",
+    "errorTitle": "Synchronisierungsfehler",
+    "dryRun": "Testlauf",
+    "counts": "{{seen}} gesehen, {{linked}} verknüpft, {{unmatched}} nicht zugeordnet, {{updated}} aktualisiert, {{disabled}} deaktiviert, {{skipped}} übersprungen, {{groups}} Gruppen",
+    "notes": "Hinweise",
+    "trigger": {
+      "schedule": "Geplant",
+      "manual": "Manuell",
+      "preview": "Vorschau"
+    }
+  },
+  "editor": {
+    "titleCreate": "SCIM-Endpunkt erstellen",
+    "titleEdit": "SCIM-Endpunkt bearbeiten",
+    "name": "Name",
+    "namePlaceholder": "Unternehmens-IdP",
+    "authType": "Authentifizierung",
+    "authBearer": "Bearer-Token",
+    "authBasic": "Basic-Authentifizierung",
+    "authNone": "Keine Authentifizierung",
+    "baseUrl": "Basis-URL",
+    "baseUrlPlaceholder": "https://idp.example.com/scim/v2",
+    "token": "Token oder Passwort",
+    "tokenStored": "Token gespeichert",
+    "tokenMissing": "Kein Token gespeichert",
+    "tokenKeep": "Leer lassen, um das vorhandene Geheimnis zu behalten",
+    "tokenAutoGenerate": "Leer lassen, um ein Bearer-Token automatisch zu erzeugen",
+    "tokenHint": "Geheimnisse werden verschlüsselt gespeichert und nach der Erstellung nie wieder zurückgegeben.",
+    "username": "Benutzername",
+    "usernamePlaceholder": "scim-service-account",
+    "pollSchedule": "Abfragezeitplan",
+    "pollScheduleHint": "Cron-Ausdruck mit fünf Feldern, zum Beispiel */15 * * * *.",
+    "enabled": "Aktiviert",
+    "cancel": "Abbrechen",
+    "save": "Endpunkt speichern",
+    "saving": "Wird gespeichert..."
+  },
+  "token": {
+    "title": "SCIM-Bearer-Token kopieren",
+    "description": "Dieses Token für {{name}} wird nur einmal angezeigt.",
+    "warning": "Kopieren Sie dieses Token jetzt. McHarbor speichert nur ein verschlüsseltes Geheimnis und kann es nicht erneut anzeigen.",
+    "reveal": "Token anzeigen",
+    "hide": "Token ausblenden",
+    "copy": "Token kopieren",
+    "copied": "Token kopiert",
+    "copyFailed": "Token konnte nicht kopiert werden",
+    "copiedHint": "In die Zwischenablage kopiert.",
+    "acknowledge": "Ich habe das Token kopiert"
+  },
+  "toast": {
+    "created": "SCIM-Endpunkt erstellt",
+    "updated": "SCIM-Endpunkt aktualisiert",
+    "deleted": "SCIM-Endpunkt gelöscht",
+    "syncQueued": "SCIM-Synchronisation eingereiht",
+    "tokenRotated": "Token rotiert"
+  },
+  "preview": {
+    "title": "Synchronisierung für {{name}} in der Vorschau",
+    "description": "Ein Testlauf liest das Verzeichnis und vergleicht es mit McHarbor. Es ändert sich nichts, bis Sie die Synchronisierung ausführen.",
+    "loading": "Das Verzeichnis wird gelesen...",
+    "failed": "Das Verzeichnis konnte nicht gelesen werden",
+    "blockedTitle": "Diese Synchronisierung ist blockiert",
+    "refresh": "Vorschau erneut ausführen",
+    "confirm": "Synchronisierung jetzt ausführen",
+    "queuedNote": "Die Synchronisierung läuft beim nächsten Poller-Takt innerhalb einer Minute und liest das Verzeichnis erneut, wendet also an, was das Verzeichnis zu diesem Zeitpunkt aussagt.",
+    "noChanges": "Es würde sich nichts ändern.",
+    "more": "...und {{count}} weitere",
+    "groups": "{{count}} Gruppen gelesen, {{matched}} stimmen namentlich mit einer McHarbor-Gruppe überein. Gruppen werden nur gemeldet; eine Synchronisierung ändert keine Gruppenmitgliedschaften.",
+    "changes": "Änderungen"
+  },
+  "blocked": {
+    "empty_directory": "Das Verzeichnis hat keine Benutzer zurückgegeben, obwohl noch Konten verknüpft sind. Die Synchronisierung ist blockiert, damit sie nicht alle Konten auf einmal deaktivieren kann.",
+    "directory_too_large": "Es gibt mehr Konten, als eine Synchronisierung sicher vergleichen kann, daher ist sie blockiert."
+  },
+  "summary": {
+    "usersSeen": "Gesehen",
+    "linked": "Verknüpfen",
+    "unmatched": "Neu, nicht zugeordnet",
+    "updated": "Aktualisieren",
+    "disabled": "Deaktivieren",
+    "skipped": "Übersprungen",
+    "unchanged": "Unverändert",
+    "pendingLink": "Wartet auf ein Konto"
+  },
+  "action": {
+    "link": "Verknüpfen",
+    "unmatched": "Nicht zugeordnet",
+    "update": "Aktualisieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen"
+  },
+  "reason": {
+    "inactive": "im Verzeichnis inaktiv",
+    "removed": "nicht mehr im Verzeichnis",
+    "protected_admin": "besitzt eine Wildcard-Rolle, daher wird es von einer Synchronisierung nie deaktiviert",
+    "already_linked": "das Konto ist bereits mit einem anderen Verzeichnisbenutzer verknüpft",
+    "empty_directory": "das Verzeichnis hat keine Benutzer zurückgegeben"
+  },
+  "field": {
+    "email": "E-Mail",
+    "displayName": "Anzeigename",
+    "scimUserName": "Verzeichnis-Benutzername",
+    "scimEmail": "Verzeichnis-E-Mail"
+  },
+  "change": {
+    "account": "Konto {{username}}",
+    "noAccount": "kein McHarbor-Konto, zur Prüfung aufgezeichnet",
+    "fields": "ändert {{fields}}"
+  },
+  "rotate": {
+    "title": "Bearer-Token für {{name}} rotieren?",
+    "description": "Ein neues Token wird generiert und einmalig angezeigt. Das aktuelle Token funktioniert sofort nicht mehr, aktualisieren Sie daher jeden Client, der es verwendet.",
+    "confirm": "Token rotieren"
+  }
+}

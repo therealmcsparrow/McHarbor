@@ -1,21 +1,21 @@
 {
-  "label": "Container Create",
-  "description": "Create a new container from an image",
+  "label": "Container erstellen",
+  "description": "Einen neuen Container aus einem Image erstellen",
   "config": {
     "environment": "Umgebung",
     "image": "Image",
     "name": "Name",
     "ports": "Ports",
     "env_vars": "Umgebungsvariablen",
-    "restart_policy": "Restart Policy",
+    "restart_policy": "Neustart-Richtlinie",
     "auto_start": "Automatisch starten"
   },
   "options": {
     "restart_policy": {
-      "no": "No",
-      "always": "Always",
-      "on-failure": "On Failure",
-      "unless-stopped": "Unless Stopped"
+      "no": "Nein",
+      "always": "Immer",
+      "on-failure": "Bei Fehler",
+      "unless-stopped": "Außer wenn gestoppt"
     }
   }
 }

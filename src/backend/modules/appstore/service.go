@@ -10,7 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rs/xid"
@@ -19,6 +21,7 @@ import (
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
 
+// ErrInstallationNotFound reports that no installation record matches the requested ID.
 var ErrInstallationNotFound = errors.New("installation not found")
 
 // Service handles app store operations.
@@ -27,6 +30,18 @@ type Service struct {
 	stackSvc StackInstaller
 	scanSvc  InstallScanner
 	logger   *slog.Logger
+	resolver CatalogResolver
+	// registryMeta keeps the image-metadata cache warm in the background; nil
+	// in tests and anywhere the refresher was never started.
+	registryMeta *registryMetaRefresher
+	// presence answers which stacks still exist per environment, so the
+	// installed flag can be reconciled against reality; nil in tests and
+	// anywhere the stacks service was not wired in.
+	presence StackPresenceChecker
+	// reconcileMu guards the throttle timestamp below, and serialises the
+	// probe so two concurrent store listings do not both go out to Docker.
+	reconcileMu   sync.Mutex
+	lastReconcile time.Time
 }
 
 // NewService creates a new app store service.
@@ -34,107 +49,191 @@ func NewService(db *sql.DB, stackSvc StackInstaller, scanSvc InstallScanner, log
 	return &Service{db: db, stackSvc: stackSvc, scanSvc: scanSvc, logger: logger}
 }
 
-// SeedBundledCatalog loads the embedded catalog into the DB (upsert by slug).
-// Uses a transaction with prepared statements to avoid N+1 queries.
-func (s *Service) SeedBundledCatalog() error {
-	catalog, err := loadBundledCatalog()
+// StartRegistryMetaRefresher starts the background worker pool that keeps the
+// registry metadata cache (latest published version, release date) warm. It is
+// idempotent and stops with ctx.
+func (s *Service) StartRegistryMetaRefresher(ctx context.Context) {
+	if s.registryMeta == nil {
+		s.registryMeta = newRegistryMetaRefresher(s.db, s.logger)
+	}
+	s.registryMeta.Start(ctx)
+}
+
+// SetCatalogResolver connects the App Store to the shared catalog registry.
+func (s *Service) SetCatalogResolver(resolver CatalogResolver) {
+	s.resolver = resolver
+}
+
+// SeedCatalogs loads every enabled Docker application catalog into the DB.
+func (s *Service) SeedCatalogs(ctx context.Context) error {
+	if s.resolver == nil {
+		return fmt.Errorf("app catalog resolver is not configured")
+	}
+
+	sources, err := s.resolver.EnabledAppSources(ctx, dockerAppCatalogKind)
+	if err != nil {
+		return fmt.Errorf("resolving app catalogs: %w", err)
+	}
+	if len(sources) == 0 {
+		return fmt.Errorf("no enabled app catalogs")
+	}
+
+	appsBySlug := make(map[string]AppTemplate)
+	supportedSources := 0
+	for _, source := range sources {
+		if !isLoadableCatalogSource(source) {
+			s.logger.Warn("app catalog URL names neither a path nor an http(s) endpoint", "name", source.Name, "url", source.URL)
+			continue
+		}
+		if !isTrustedCatalogSource(source) {
+			// An operator-added catalog loads like any other; it is the
+			// operator who vouches for it, not McHarbor. Say so once per
+			// refresh so the provenance of an app on the shelf is
+			// recoverable from the log, and warn again in the UI through
+			// the Settings catalog probe.
+			s.logger.Warn("loading unverified app catalog added by an operator", "name", source.Name, "url", source.URL)
+		}
+		supportedSources++
+		catalog, err := loadCatalogSource(ctx, source)
+		if err != nil {
+			// One bad source must not blank the store: a remote index
+			// fails for reasons the host cannot fix (DNS, a CDN blip, a
+			// boot that beat the network up), and a local one fails for
+			// reasons that concern only that row. Either way the apps
+			// every other catalog supplies stay on the shelf, and the
+			// empty-result guard below still fails a refresh that
+			// produced nothing at all.
+			s.logger.Warn("skipping app catalog that could not be read", "name", source.Name, "url", source.URL, "error", err)
+			supportedSources--
+			continue
+		}
+		for _, app := range catalog.Apps {
+			appsBySlug[app.Slug] = app
+		}
+	}
+	if supportedSources == 0 {
+		return fmt.Errorf("no supported app catalogs are enabled")
+	}
+	if len(appsBySlug) == 0 {
+		return fmt.Errorf("enabled app catalogs contain no applications")
+	}
+
+	slugs := make([]string, 0, len(appsBySlug))
+	for slug := range appsBySlug {
+		slugs = append(slugs, slug)
+	}
+	sort.Strings(slugs)
+
+	apps := make([]AppTemplate, 0, len(slugs))
+	for _, slug := range slugs {
+		apps = append(apps, appsBySlug[slug])
+	}
+	return s.seedCatalogApps(ctx, apps)
+}
+
+// seedCatalogApps upserts one merged registry snapshot in a transaction.
+func (s *Service) seedCatalogApps(ctx context.Context, apps []AppTemplate) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("beginning transaction: %w", err)
+	}
+	defer mdb.RollbackTx(tx)
+
+	// Build a set of existing slugs in a single query to avoid per-app COUNT queries.
+	existingSlugs, err := existingCatalogSlugs(ctx, tx)
 	if err != nil {
 		return err
 	}
 
-	now := time.Now().UTC().Format(time.RFC3339)
+	catalogSlugs := make(map[string]bool, len(apps))
 
-	tx, err := s.db.Begin()
-	if err != nil {
-		return fmt.Errorf("beginning transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	// Build a set of existing slugs in a single query to avoid per-app COUNT queries.
-	rows, err := tx.Query("SELECT slug FROM appstore_catalog WHERE source = 'bundled' LIMIT 1000")
-	if err != nil {
-		return fmt.Errorf("querying existing slugs: %w", err)
-	}
-	existingSlugs := make(map[string]bool)
-	for rows.Next() {
-		var slug string
-		if err := rows.Scan(&slug); err == nil {
-			existingSlugs[slug] = true
-		}
-	}
-	rows.Close()
-
-	bundledSlugs := make(map[string]bool, len(catalog.Apps))
-
-	insertStmt, err := tx.Prepare(`
+	insertStmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO appstore_catalog
 		(id, slug, name, description, category, image, logo, website, docs_url,
-		 ports, volumes, env_vars, compose_override, min_memory, source, version, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'bundled', ?, ?, ?)
+		 ports, volumes, env_vars, compose_override, min_memory, source, version,
+		 latest_version, latest_release_date, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'catalog', ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("preparing insert statement: %w", err)
 	}
-	defer insertStmt.Close()
+	defer func() {
+		if err := insertStmt.Close(); err != nil {
+			s.logger.Warn("appstore: closing insert statement failed", "error", err)
+		}
+	}()
 
-	updateStmt, err := tx.Prepare(`
+	updateStmt, err := tx.PrepareContext(ctx, `
 		UPDATE appstore_catalog
 		SET name = ?, description = ?, category = ?, image = ?, logo = ?,
 		    website = ?, docs_url = ?, ports = ?, volumes = ?, env_vars = ?,
-		    compose_override = ?, min_memory = ?, version = ?, updated_at = ?
-		WHERE slug = ? AND source = 'bundled'
+		    compose_override = ?, min_memory = ?, source = 'catalog', version = ?,
+		    latest_version = ?, latest_release_date = ?, updated_at = ?
+		WHERE slug = ?
 	`)
 	if err != nil {
 		return fmt.Errorf("preparing update statement: %w", err)
 	}
-	defer updateStmt.Close()
+	defer func() {
+		if err := updateStmt.Close(); err != nil {
+			s.logger.Warn("appstore: closing update statement failed", "error", err)
+		}
+	}()
 
-	for _, app := range catalog.Apps {
-		bundledSlugs[app.Slug] = true
+	for _, app := range apps {
+		catalogSlugs[app.Slug] = true
 
-		portsJSON, _ := json.Marshal(app.Ports)     // safe: simple struct slice
-		volumesJSON, _ := json.Marshal(app.Volumes) // safe: simple struct slice
-		envJSON, _ := json.Marshal(app.EnvVars)     // safe: simple struct slice
+		portsJSON := s.marshalField(app.Slug, "ports", app.Ports)
+		volumesJSON := s.marshalField(app.Slug, "volumes", app.Volumes)
+		envJSON := s.marshalField(app.Slug, "env_vars", app.EnvVars)
 
 		if !existingSlugs[app.Slug] {
 			id := xid.New().String()
-			_, err := insertStmt.Exec(
+			_, err := insertStmt.ExecContext(ctx,
 				id, app.Slug, app.Name, app.Description, app.Category, app.Image,
 				app.Logo, app.Website, app.DocsURL,
-				string(portsJSON), string(volumesJSON), string(envJSON),
-				app.ComposeOverride, app.MinMemory, app.Version, now, now)
+				portsJSON, volumesJSON, envJSON,
+				app.ComposeOverride, app.MinMemory, app.Version,
+				latestVersion(app), latestReleaseDate(app), now, now)
 			if err != nil {
-				s.logger.Warn("failed to seed app", "slug", app.Slug, "error", err)
+				return fmt.Errorf("inserting catalog app %s: %w", app.Slug, err)
 			}
 		} else {
-			_, err := updateStmt.Exec(
+			_, err := updateStmt.ExecContext(ctx,
 				app.Name, app.Description, app.Category, app.Image, app.Logo,
-				app.Website, app.DocsURL, string(portsJSON), string(volumesJSON), string(envJSON),
-				app.ComposeOverride, app.MinMemory, app.Version, now, app.Slug)
+				app.Website, app.DocsURL, portsJSON, volumesJSON, envJSON,
+				app.ComposeOverride, app.MinMemory, app.Version,
+				latestVersion(app), latestReleaseDate(app), now, app.Slug)
 			if err != nil {
-				s.logger.Warn("failed to update seeded app", "slug", app.Slug, "error", err)
+				return fmt.Errorf("updating catalog app %s: %w", app.Slug, err)
 			}
 		}
 	}
 
-	pruneStmt, err := tx.Prepare(`
+	pruneStmt, err := tx.PrepareContext(ctx, `
 		DELETE FROM appstore_catalog
-		WHERE source = 'bundled'
+		WHERE source = 'catalog'
 		  AND slug = ?
 	`)
 	if err != nil {
 		return fmt.Errorf("preparing prune statement: %w", err)
 	}
-	defer pruneStmt.Close()
+	defer func() {
+		if err := pruneStmt.Close(); err != nil {
+			s.logger.Warn("appstore: closing prune statement failed", "error", err)
+		}
+	}()
 
 	var pruned int64
 	for slug := range existingSlugs {
-		if bundledSlugs[slug] {
+		if catalogSlugs[slug] {
 			continue
 		}
-		result, err := pruneStmt.Exec(slug)
+		result, err := pruneStmt.ExecContext(ctx, slug)
 		if err != nil {
-			return fmt.Errorf("pruning removed bundled app %s: %w", slug, err)
+			return fmt.Errorf("pruning removed catalog app %s: %w", slug, err)
 		}
 		pruned += mdb.RowsAffected(result)
 	}
@@ -143,12 +242,68 @@ func (s *Service) SeedBundledCatalog() error {
 		return fmt.Errorf("committing catalog seed: %w", err)
 	}
 
-	s.logger.Info("app store catalog seeded", "apps", len(catalog.Apps), "pruned", pruned)
+	s.logger.Info("app store catalogs seeded", "apps", len(apps), "pruned", pruned)
 	return nil
 }
 
+// existingCatalogSlugs reads every stored catalog slug inside tx, closing the cursor before the caller's writes start.
+func existingCatalogSlugs(ctx context.Context, tx *sql.Tx) (map[string]bool, error) {
+	rows, err := tx.QueryContext(ctx, "SELECT slug FROM appstore_catalog LIMIT 100000")
+	if err != nil {
+		return nil, fmt.Errorf("querying existing slugs: %w", err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("appstore: closing catalog slug rows failed", "error", err)
+		}
+	}()
+	slugs := make(map[string]bool)
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, fmt.Errorf("scanning existing catalog slug: %w", err)
+		}
+		slugs[slug] = true
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating existing catalog slugs: %w", err)
+	}
+	return slugs, nil
+}
+
+// marshalField encodes one catalog column, logging and storing an empty string on failure so a single bad field cannot abort the whole seed.
+func (s *Service) marshalField(slug, field string, v any) string {
+	data, err := json.Marshal(v)
+	if err != nil {
+		s.logger.Warn("appstore: encoding catalog field failed", "slug", slug, "field", field, "error", err)
+		return ""
+	}
+	return string(data)
+}
+
+// unmarshalField decodes one catalog column, logging a failure and leaving dst as decoded so the caller's nil fallback still applies.
+func (s *Service) unmarshalField(raw, field string, dst any) {
+	if err := json.Unmarshal([]byte(raw), dst); err != nil {
+		s.logger.Warn("appstore: decoding catalog field failed", "field", field, "error", err)
+	}
+}
+
 // List returns catalog items with optional category/search filter and pagination.
-func (s *Service) List(category, search string, page, perPage int) ([]AppTemplate, int64, error) {
+//
+// Installation records are reconciled against live environment state first, so
+// an app whose containers were removed outside the store stops reporting as
+// installed (throttled — see reconcileInstallations).
+func (s *Service) List(ctx context.Context, category, search string, page, perPage int) ([]AppTemplate, int64, error) {
+	s.reconcileInstallations(ctx)
+
+	enabled, err := s.appCatalogEnabled(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	if !enabled {
+		return []AppTemplate{}, 0, nil
+	}
+
 	like := "%"
 	if search != "" {
 		like = "%" + search + "%"
@@ -160,7 +315,7 @@ func (s *Service) List(category, search string, page, perPage int) ([]AppTemplat
 
 	// Count
 	var total int64
-	if err := s.db.QueryRow(`
+	if err := s.db.QueryRowContext(ctx, `
 		SELECT COUNT(*)
 		FROM appstore_catalog c
 		WHERE (? = '' OR c.category = ?)
@@ -174,20 +329,27 @@ func (s *Service) List(category, search string, page, perPage int) ([]AppTemplat
 	query := `
 		SELECT c.id, c.slug, c.name, c.description, c.category, c.image, c.logo,
 		       c.website, c.docs_url, c.ports, c.volumes, c.env_vars,
-		       c.compose_override, c.min_memory, c.source, c.version, c.updated_at
+		       c.compose_override, c.min_memory, c.source, c.version,
+		       c.latest_version, c.latest_release_date, c.updated_at
 		FROM appstore_catalog c
 		WHERE (? = '' OR c.category = ?)
 		  AND (? = '' OR c.name LIKE ? OR c.description LIKE ? OR c.slug LIKE ?)
 		ORDER BY c.category ASC, c.name ASC
 		LIMIT ? OFFSET ?
 	`
-	queryArgs := append(filterArgs, perPage, offset)
+	queryArgs := make([]any, 0, len(filterArgs)+2)
+	queryArgs = append(queryArgs, filterArgs...)
+	queryArgs = append(queryArgs, perPage, offset)
 
-	rows, err := s.db.Query(query, queryArgs...)
+	rows, err := s.db.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying catalog: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			s.logger.Warn("appstore: closing catalog rows failed", "error", err)
+		}
+	}()
 
 	var apps []AppTemplate
 	for rows.Next() {
@@ -204,23 +366,35 @@ func (s *Service) List(category, search string, page, perPage int) ([]AppTemplat
 		apps = []AppTemplate{}
 	}
 
-	installsBySlug, err := s.loadInstallationsBySlug(appSlugs(apps))
+	installsBySlug, err := s.loadInstallationsBySlug(ctx, appSlugs(apps))
 	if err != nil {
 		return nil, 0, err
 	}
 	for i := range apps {
 		s.applyInstallations(&apps[i], installsBySlug[apps[i].Slug])
 	}
+	s.applyRegistryMeta(ctx, apps)
 
 	return apps, total, nil
 }
 
 // BySlug returns a single catalog item.
-func (s *Service) BySlug(slug string) (*AppTemplate, error) {
-	row := s.db.QueryRow(`
+func (s *Service) BySlug(ctx context.Context, slug string) (*AppTemplate, error) {
+	s.reconcileInstallations(ctx)
+
+	enabled, err := s.appCatalogEnabled(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !enabled {
+		return nil, nil
+	}
+
+	row := s.db.QueryRowContext(ctx, `
 		SELECT c.id, c.slug, c.name, c.description, c.category, c.image, c.logo,
 		       c.website, c.docs_url, c.ports, c.volumes, c.env_vars,
-		       c.compose_override, c.min_memory, c.source, c.version, c.updated_at
+		       c.compose_override, c.min_memory, c.source, c.version,
+		       c.latest_version, c.latest_release_date, c.updated_at
 		FROM appstore_catalog c
 		WHERE c.slug = ?
 	`, slug)
@@ -233,18 +407,30 @@ func (s *Service) BySlug(slug string) (*AppTemplate, error) {
 		return nil, fmt.Errorf("querying app %s: %w", slug, err)
 	}
 
-	installsBySlug, err := s.loadInstallationsBySlug([]string{slug})
+	installsBySlug, err := s.loadInstallationsBySlug(ctx, []string{slug})
 	if err != nil {
 		return nil, err
 	}
 	s.applyInstallations(&app, installsBySlug[slug])
+	// applyRegistryMeta writes through the slice, so read the result back.
+	metaApps := []AppTemplate{app}
+	s.applyRegistryMeta(ctx, metaApps)
+	app = metaApps[0]
 
 	return &app, nil
 }
 
 // Categories returns category names with counts.
-func (s *Service) Categories() ([]CategoryCount, error) {
-	rows, err := s.db.Query(`
+func (s *Service) Categories(ctx context.Context) ([]CategoryCount, error) {
+	enabled, err := s.appCatalogEnabled(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !enabled {
+		return []CategoryCount{}, nil
+	}
+
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT category, COUNT(*) as count
 		FROM appstore_catalog
 		GROUP BY category
@@ -254,7 +440,11 @@ func (s *Service) Categories() ([]CategoryCount, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying categories: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			s.logger.Warn("appstore: closing category rows failed", "error", err)
+		}
+	}()
 
 	var cats []CategoryCount
 	for rows.Next() {
@@ -270,68 +460,27 @@ func (s *Service) Categories() ([]CategoryCount, error) {
 	return cats, rows.Err()
 }
 
-// Install creates a Stack from a catalog app.
-func (s *Service) Install(ctx context.Context, req InstallRequest) (*InstallResult, error) {
-	// Look up app
-	app, err := s.BySlug(req.Slug)
-	if err != nil {
-		return nil, err
+// appCatalogEnabled gates cached application definitions on there being a
+// catalog that could have populated them. SeedCatalogs merges every enabled
+// docker_app source — the trusted remote index and the /mnt/app-catalog
+// mount alike — into one appstore_catalog snapshot, so asking for one
+// specific source here would hide a shelf the operator legitimately filled
+// from the other. The gate exists so a store emptied by disabling every
+// catalog reads as empty rather than as a stale cache; that only needs to
+// know whether any source is on.
+func (s *Service) appCatalogEnabled(ctx context.Context) (bool, error) {
+	var enabled int
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1
+			FROM settings_catalogs
+			WHERE kind = 'docker_app'
+			  AND enabled = 1
+		)
+	`).Scan(&enabled); err != nil {
+		return false, fmt.Errorf("checking app catalog state: %w", err)
 	}
-	if app == nil {
-		return nil, fmt.Errorf("app %q not found in catalog", req.Slug)
-	}
-
-	// Determine stack name
-	stackName := req.Name
-	if stackName == "" {
-		stackName = app.Slug
-	}
-
-	// Merge defaults with user overrides
-	ports, volumes, envVars := mergeOverrides(*app, req)
-
-	// Generate compose YAML
-	compose := generateCompose(*app, stackName, ports, volumes, envVars, req.Network)
-
-	if s.stackSvc == nil {
-		return nil, fmt.Errorf("stack installer unavailable")
-	}
-
-	// Create stack via the injected stack installer.
-	desc := fmt.Sprintf("Installed from App Store: %s", app.Name)
-	st, err := s.stackSvc.CreateInstalledStack(ctx, StackInstallInput{
-		Name:          stackName,
-		Compose:       compose,
-		EnvVars:       envVars,
-		Description:   &desc,
-		EnvironmentID: strPtr(req.EnvironmentID),
-		AutoStart:     true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("creating stack for %s: %w", req.Slug, err)
-	}
-
-	// Record installation
-	id := xid.New().String()
-	now := time.Now().UTC().Format(time.RFC3339)
-	_, err = s.db.Exec(`
-		INSERT INTO appstore_installed (id, catalog_slug, stack_id, stack_name, environment_id, installed_at, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, id, req.Slug, st.ID, st.Name, req.EnvironmentID, now, now, now)
-	if err != nil {
-		s.logger.Error("appstore: failed to record installation", "slug", req.Slug, "stack", st.Name, "error", err)
-		if cleanupErr := s.stackSvc.RemoveInstalledStack(ctx, req.EnvironmentID, st.Name); cleanupErr != nil {
-			s.logger.Warn("appstore: failed to clean up stack after record failure", "slug", req.Slug, "stack", st.Name, "error", cleanupErr)
-		}
-		return nil, fmt.Errorf("recording installation for %s: %w", req.Slug, err)
-	}
-
-	return &InstallResult{
-		AppSlug:   req.Slug,
-		StackID:   st.ID,
-		StackName: st.Name,
-		Status:    st.Status,
-	}, nil
+	return enabled != 0, nil
 }
 
 // InstallWithProgress runs install and sends progress events to the channel.
@@ -339,7 +488,7 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 	defer close(events)
 
 	// Check if scan-on-install is enabled
-	scanSettings := coreSettings.ReadScannerSettings(s.db)
+	scanSettings := coreSettings.ReadScannerSettingsContext(ctx, s.db)
 	scanEnabled := scanSettings.ScanOnInstall && s.scanSvc != nil
 	totalSteps := 5
 	if scanEnabled {
@@ -348,7 +497,7 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 
 	// Step 1: Look up app
 	events <- InstallEvent{Step: 1, Total: totalSteps, Message: "Looking up app in catalog...", Status: "progress"}
-	app, err := s.BySlug(req.Slug)
+	app, err := s.BySlug(ctx, req.Slug)
 	if err != nil || app == nil {
 		events <- InstallEvent{Step: 1, Total: totalSteps, Message: "App not found in catalog", Status: "error"}
 		return
@@ -375,16 +524,17 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 	}
 
 	st, err := s.stackSvc.CreateInstalledStack(ctx, StackInstallInput{
-		Name:          stackName,
-		Compose:       compose,
-		EnvVars:       envVars,
-		Description:   &desc,
-		EnvironmentID: strPtr(req.EnvironmentID),
-		AutoStart:     true,
+		Name:           stackName,
+		Compose:        compose,
+		EnvVars:        envVars,
+		Description:    &desc,
+		EnvironmentID:  strPtr(req.EnvironmentID),
+		AutoStart:      true,
+		SecretFileMode: req.SecretFileMode,
 	})
 	if err != nil {
 		s.logger.Error("appstore: failed to create stack", "error", err, "slug", req.Slug)
-		events <- InstallEvent{Step: 4, Total: totalSteps, Message: "installation failed", Status: "error"}
+		events <- InstallEvent{Step: 4, Total: totalSteps, Message: installFailureMessage(ctx, err), Status: "error"}
 		return
 	}
 
@@ -392,7 +542,7 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 	events <- InstallEvent{Step: 5, Total: totalSteps, Message: "Recording installation...", Status: "progress"}
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err = s.db.Exec(`
+	_, err = s.db.ExecContext(ctx, `
 		INSERT INTO appstore_installed (id, catalog_slug, stack_id, stack_name, environment_id, installed_at, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, id, req.Slug, st.ID, st.Name, req.EnvironmentID, now, now, now)
@@ -407,10 +557,15 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 
 	// Step 6-7: Vulnerability scan (if enabled)
 	if scanEnabled {
-		events <- InstallEvent{Step: 6, Total: totalSteps, Message: fmt.Sprintf("Scanning %s for vulnerabilities...", app.Image), Status: "progress", Phase: "scan"}
-		scanResult, scanErr := s.scanSvc.ScanOnInstall(ctx, app.Image, req.EnvironmentID, scanSettings.DefaultScanner)
+		events <- InstallEvent{Step: 6, Total: totalSteps, Message: fmt.Sprintf("Scanning %s for vulnerabilities...", installImage(*app)), Status: "progress", Phase: "scan"}
+		// An empty scanner means "the estate default", which the scans
+		// service resolves from the scanner_configs row flagged as
+		// such. Naming an engine here would have hard-coded a default
+		// that stopped being true the moment an operator switched to a
+		// scanner other than the one this line used to name.
+		scanResult, scanErr := s.scanSvc.ScanOnInstall(ctx, installImage(*app), req.EnvironmentID, "")
 		if scanErr != nil {
-			s.logger.Warn("scan-on-install failed", "image", app.Image, "error", scanErr)
+			s.logger.Warn("scan-on-install failed", "image", installImage(*app), "error", scanErr)
 			events <- InstallEvent{Step: 7, Total: totalSteps, Message: fmt.Sprintf("Scan failed: %s", scanErr.Error()), Status: "progress", Phase: "scan-error"}
 		} else {
 			msg := fmt.Sprintf("Scan complete — %d vulnerabilities found (critical: %d, high: %d, medium: %d, low: %d)",
@@ -422,47 +577,10 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 	events <- InstallEvent{Step: totalSteps, Total: totalSteps, Message: "Installation complete", Status: "done", StackID: st.ID, StackName: st.Name}
 }
 
-// InstalledApps returns all installed apps with stack status.
-func (s *Service) InstalledApps() ([]InstalledApp, error) {
-	rows, err := s.db.Query(`
-		SELECT i.id, i.catalog_slug, i.stack_id, i.stack_name, i.environment_id,
-		       COALESCE(e.name, ''),
-		       i.installed_at, COALESCE(st.status, 'unknown')
-		FROM appstore_installed i
-		LEFT JOIN environments e ON i.environment_id = e.id
-		LEFT JOIN stacks st ON i.stack_id = st.id
-		ORDER BY i.installed_at DESC
-		LIMIT 1000
-	`)
-	if err != nil {
-		return nil, fmt.Errorf("querying installed apps: %w", err)
-	}
-	defer rows.Close()
-
-	var apps []InstalledApp
-	for rows.Next() {
-		var a InstalledApp
-		var envID sql.NullString
-		var envName string
-		if err := rows.Scan(&a.ID, &a.CatalogSlug, &a.StackID, &a.StackName, &envID, &envName, &a.InstalledAt, &a.StackStatus); err != nil {
-			return nil, fmt.Errorf("scanning installed app: %w", err)
-		}
-		if envID.Valid {
-			a.EnvironmentID = envID.String
-		}
-		a.EnvironmentName = envName
-		apps = append(apps, a)
-	}
-	if apps == nil {
-		apps = []InstalledApp{}
-	}
-	return apps, rows.Err()
-}
-
-func (s *Service) loadInstallation(installationID string) (*AppInstallation, error) {
+func (s *Service) loadInstallation(ctx context.Context, installationID string) (*AppInstallation, error) {
 	var install AppInstallation
 	var envID sql.NullString
-	err := s.db.QueryRow(`
+	err := s.db.QueryRowContext(ctx, `
 		SELECT i.id, i.stack_id, i.stack_name, i.environment_id,
 		       COALESCE(e.name, ''), i.installed_at
 		FROM appstore_installed i
@@ -489,11 +607,6 @@ func (s *Service) loadInstallation(installationID string) (*AppInstallation, err
 	return &install, nil
 }
 
-// Uninstall removes a store-installed stack and its active installation record.
-func (s *Service) Uninstall(ctx context.Context, installationID string) (*AppInstallation, error) {
-	return s.uninstall(ctx, installationID, nil)
-}
-
 // UninstallWithProgress removes a store-installed stack and streams progress events.
 func (s *Service) UninstallWithProgress(ctx context.Context, installationID string, events chan<- InstallEvent) {
 	defer close(events)
@@ -512,7 +625,7 @@ func (s *Service) UninstallWithProgress(ctx context.Context, installationID stri
 }
 
 func (s *Service) uninstall(ctx context.Context, installationID string, emit func(InstallEvent)) (*AppInstallation, error) {
-	install, err := s.loadInstallation(installationID)
+	install, err := s.loadInstallation(ctx, installationID)
 	if err != nil {
 		return nil, err
 	}
@@ -564,7 +677,7 @@ func (s *Service) uninstall(ctx context.Context, installationID string, emit fun
 	}
 
 	send(10, "Removing installation record...", "record")
-	result, err := s.db.Exec("DELETE FROM appstore_installed WHERE id = ?", installationID)
+	result, err := s.db.ExecContext(ctx, "DELETE FROM appstore_installed WHERE id = ?", installationID)
 	if err != nil {
 		return nil, fmt.Errorf("deleting app installation record: %w", err)
 	}
@@ -596,8 +709,8 @@ func (s *Service) uninstall(ctx context.Context, installationID string, emit fun
 }
 
 // SyncStatus returns the latest remote catalog sync status.
-func (s *Service) SyncStatus() (*SyncStatus, error) {
-	row := s.db.QueryRow(`
+func (s *Service) SyncStatus(ctx context.Context) (*SyncStatus, error) {
+	row := s.db.QueryRowContext(ctx, `
 		SELECT COALESCE(last_synced_at, ''), status, error, apps_added, apps_updated
 		FROM appstore_sync
 		ORDER BY created_at DESC LIMIT 1
@@ -605,7 +718,7 @@ func (s *Service) SyncStatus() (*SyncStatus, error) {
 
 	var status SyncStatus
 	err := row.Scan(&status.LastSyncedAt, &status.Status, &status.Error, &status.AppsAdded, &status.AppsUpdated)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return &SyncStatus{Status: "never"}, nil
 	}
 	if err != nil {
@@ -614,32 +727,34 @@ func (s *Service) SyncStatus() (*SyncStatus, error) {
 	return &status, nil
 }
 
-// SyncRemoteCatalog fetches the catalog from a remote URL and merges into DB.
-// This is a placeholder — actual HTTP fetch logic would go here.
-func (s *Service) SyncRemoteCatalog(catalogURL string) error {
-	if catalogURL == "" {
-		return fmt.Errorf("no remote catalog URL configured")
-	}
-
+// SyncCatalogs reloads enabled registry catalogs and records sync status.
+func (s *Service) SyncCatalogs(ctx context.Context) error {
 	// Record sync attempt
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
-	if _, err := s.db.Exec(`
+	if _, err := s.db.ExecContext(ctx, `
 		INSERT INTO appstore_sync (id, last_synced_at, status, error, apps_added, apps_updated, created_at, updated_at)
 		VALUES (?, ?, 'syncing', '', 0, 0, ?, ?)
 	`, id, now, now, now); err != nil {
 		return fmt.Errorf("recording sync attempt: %w", err)
 	}
 
-	// Stub: remote catalog HTTP fetch and merge logic is not yet implemented.
-	// Mark as success with 0 changes as a placeholder.
-	if _, err := s.db.Exec(`
+	if err := s.SeedCatalogs(ctx); err != nil {
+		if _, updateErr := s.db.ExecContext(ctx, `
+			UPDATE appstore_sync SET status = 'error', error = ?, updated_at = ? WHERE id = ?
+		`, "catalog sync failed", now, id); updateErr != nil {
+			s.logger.Error("failed to record catalog sync error", "error", updateErr)
+		}
+		return err
+	}
+
+	if _, err := s.db.ExecContext(ctx, `
 		UPDATE appstore_sync SET status = 'success', last_synced_at = ?, updated_at = ? WHERE id = ?
 	`, now, now, id); err != nil {
 		return fmt.Errorf("updating sync status: %w", err)
 	}
 
-	s.logger.Info("remote catalog sync completed", "url", catalogURL)
+	s.logger.Info("app catalog sync completed")
 	return nil
 }
 
@@ -651,20 +766,29 @@ type rowScanner interface {
 func (s *Service) scanCatalogApp(scanner rowScanner) (AppTemplate, error) {
 	var app AppTemplate
 	var portsJSON, volumesJSON, envJSON string
+	var latestVer, latestReleased string
 
 	err := scanner.Scan(
 		&app.ID, &app.Slug, &app.Name, &app.Description, &app.Category,
 		&app.Image, &app.Logo, &app.Website, &app.DocsURL,
 		&portsJSON, &volumesJSON, &envJSON,
-		&app.ComposeOverride, &app.MinMemory, &app.Source, &app.Version, &app.UpdatedAt,
+		&app.ComposeOverride, &app.MinMemory, &app.Source, &app.Version,
+		&latestVer, &latestReleased, &app.UpdatedAt,
 	)
 	if err != nil {
 		return app, fmt.Errorf("scanning app: %w", err)
 	}
 
-	json.Unmarshal([]byte(portsJSON), &app.Ports)     // safe: nil fallback below
-	json.Unmarshal([]byte(volumesJSON), &app.Volumes) // safe: nil fallback below
-	json.Unmarshal([]byte(envJSON), &app.EnvVars)     // safe: nil fallback below
+	// A row from a catalog that emits no block stores two empty strings, and
+	// an empty block would claim a version the card would then have to guess
+	// around. Leave Latest nil so the registry fallback stays in charge.
+	if latestVer != "" || latestReleased != "" {
+		app.Latest = &LatestRelease{Version: latestVer, ReleaseDate: latestReleased}
+	}
+
+	s.unmarshalField(portsJSON, "ports", &app.Ports)
+	s.unmarshalField(volumesJSON, "volumes", &app.Volumes)
+	s.unmarshalField(envJSON, "env_vars", &app.EnvVars)
 
 	if app.Ports == nil {
 		app.Ports = []PortMapping{}
@@ -680,7 +804,19 @@ func (s *Service) scanCatalogApp(scanner rowScanner) (AppTemplate, error) {
 	return app, nil
 }
 
-func (s *Service) loadInstallationsBySlug(slugs []string) (map[string][]AppInstallation, error) {
+const installsBySlugHead = `
+		SELECT i.catalog_slug, i.id, i.stack_id, i.stack_name, i.environment_id,
+		       COALESCE(e.name, ''), i.installed_at
+		FROM appstore_installed i
+		LEFT JOIN environments e ON i.environment_id = e.id
+		WHERE i.catalog_slug IN (`
+
+const installsBySlugTail = `)
+		ORDER BY i.installed_at DESC
+		LIMIT 1000
+	`
+
+func (s *Service) loadInstallationsBySlug(ctx context.Context, slugs []string) (map[string][]AppInstallation, error) {
 	installsBySlug := make(map[string][]AppInstallation, len(slugs))
 	if len(slugs) == 0 {
 		return installsBySlug, nil
@@ -691,21 +827,18 @@ func (s *Service) loadInstallationsBySlug(slugs []string) (map[string][]AppInsta
 		args = append(args, slug)
 	}
 
-	query := fmt.Sprintf(`
-		SELECT i.catalog_slug, i.id, i.stack_id, i.stack_name, i.environment_id,
-		       COALESCE(e.name, ''), i.installed_at
-		FROM appstore_installed i
-		LEFT JOIN environments e ON i.environment_id = e.id
-		WHERE i.catalog_slug IN (%s)
-		ORDER BY i.installed_at DESC
-		LIMIT 1000
-	`, strings.TrimRight(strings.Repeat("?,", len(slugs)), ","))
+	placeholders := strings.TrimRight(strings.Repeat("?,", len(slugs)), ",")
+	query := installsBySlugHead + placeholders + installsBySlugTail // SQL identifier: placeholders is only "?" repeated len(slugs) times, never caller input
 
-	rows, err := s.db.Query(query, args...)
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("querying app installations: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			s.logger.Warn("appstore: closing installation rows failed", "error", err)
+		}
+	}()
 
 	for rows.Next() {
 		var slug string

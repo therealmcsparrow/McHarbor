@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "TrueNAS-back-upbestemmingen",
+    "subtitle": "Maak een back-up van containers naar een TrueNAS-instantie via WebDAV (RFC 4918). TrueNAS biedt WebDAV aan op het geconfigureerde pad van de share (standaard /webdav voor de standaard WebDAV-share). Beheerders authenticeren met een lokale TrueNAS-gebruiker + wachtwoord via HTTP Basic-authenticatie. Uploads in delen gebruiken Content-Range PUT, dat serverzijdig door de TrueNAS-Samba-server wordt ondersteund.",
+    "registerHint": "Klik op Verbinding testen om te controleren of het WebDAV-endpoint bereikbaar is en de inloggegevens geldig zijn."
+  },
+  "fields": {
+    "username": "Gebruikersnaam",
+    "password": "Wachtwoord",
+    "folderId": "Submap op de WebDAV-share"
+  },
+  "toast": {
+    "registered": "TrueNAS-plugin geregistreerd.",
+    "testPassed": "TrueNAS-verbindingstest geslaagd.",
+    "testFailed": "TrueNAS-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noHost": "TrueNAS-basis-URL is vereist.",
+    "noUsername": "TrueNAS-gebruikersnaam is vereist.",
+    "noPassword": "TrueNAS-wachtwoord is vereist."
+  },
+  "form": {
+    "hostLabel": "Basis-URL van TrueNAS",
+    "hostHelp": "Basis-URL van de TrueNAS-server, bijv. https://nas.local. Voeg geen afsluitende slash toe.",
+    "usernameHelp": "Lokale TrueNAS-gebruiker. De gebruiker moet lees- en schrijftoegang hebben tot de geconfigureerde WebDAV-share.",
+    "passwordHelp": "Wachtwoord van de lokale TrueNAS-gebruiker. Versleuteld opgeslagen door de AES-256-GCM-service van de host.",
+    "basePathLabel": "Submap (optioneel)",
+    "basePathHelp": "Optionele submap onder de WebDAV-hoofdmap van de share. Laat leeg voor de hoofdmap van de share.",
+    "apiPathLabel": "WebDAV-pad (geavanceerd)",
+    "apiPathHelp": "Overschrijf het WebDAV-pad. Standaard /webdav. Operators met meerdere WebDAV-shares kunnen dit instellen op /webdav/{share-name}.",
+    "introTitle": "TrueNAS-inloggegevens",
+    "introBody": "TrueNAS gebruikt een lokaal gebruikersaccount voor WebDAV-authenticatie. De gebruiker moet lees- en schrijftoegang hebben tot de geconfigureerde WebDAV-share. McHarbor slaat het wachtwoord versleuteld op."
+  },
+  "setup": {
+    "title": "TrueNAS-installatiegids",
+    "step1": "Maak aan de TrueNAS-kant een WebDAV-share aan: <b>Services → SMB</b> → voeg een share toe. Stel het pad in op een map waarin je back-ups wilt opslaan (bijv. <code>/mnt/tank/backups</code>). TrueNAS stelt de share standaard beschikbaar op <code>/webdav</code> zodra de WebDAV-service is ingeschakeld (<b>Services → SMB → advanced settings</b> of via de WebDAV-specifieke service in nieuwere versies).",
+    "step2": "Maak een lokale TrueNAS-gebruiker aan (of gebruik een bestaande) met lees- en schrijftoegang tot de map van de share. De thuismap van de gebruiker maakt niet uit — alleen de ACL van de share telt.",
+    "step3": "Plak in McHarbor de basis-URL van TrueNAS (bijv. <code>https://nas.local</code> — zonder afsluitende slash), de gebruikersnaam en het wachtwoord van de gebruiker in het formulier links. Optioneel: stel een submap onder de WebDAV-hoofdmap van de share in (bijv. <code>Backups/2026</code>) en laat McHarbor tussenliggende mappen automatisch aanmaken.",
+    "step4": "Klik op <b>Test connection</b> om een testbestand te schrijven en te lezen in de opgeloste map. De plugin voert een met HTTP Basic geauthenticeerde WebDAV-<code>PROPFIND</code> uit op <code>/webdav</code> om te bevestigen dat de bestemming bereikbaar is en de inloggegevens geldig zijn.",
+    "step5": "Stel voor setups met meerdere shares de <b>WebDAV path override</b> in (bijv. <code>/webdav/Backups</code>) zodat die naar het pad van de share onder de WebDAV-hoofdmap wijst.",
+    "step6": "Start een back-up. De plugin uploadt het archief via WebDAV met <code>Content-Range</code> chunked PUT. De op samba.org gebaseerde WebDAV-server van TrueNAS ondersteunt chunked uploads, zodat zelfs back-ups van meer dan 10 GB worden gestreamd zonder de volledige payload in één keer in het geheugen te bufferen."
+  }
+}

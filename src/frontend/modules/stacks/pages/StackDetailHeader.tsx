@@ -1,73 +1,43 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useNavigate } from 'react-router';
+// StackDetailHeader — the hero, built to `ContainerDetailHeader`'s grammar.
+//
+// This used to portal into the topbar: the global chrome carried a dozen
+// stack-specific buttons. The identity — tile, name, chips — goes through
+// `PageHeadIdentity` into the shell's page-head band, which is per-page
+// rather than global, and the actions follow it through `PageHeadActions`,
+// right-aligned on the same line. The topbar keeps the breadcrumb.
+//
+// The back arrow went with the move: its target was the first crumb's target.
+
 import { useTranslation } from 'react-i18next';
-import {
-  IconArrowLeft,
-  IconPlayerPlay,
-  IconPlayerStop,
-  IconRotate,
-  IconArrowDown,
-  IconTrash,
-  IconArrowsTransferUp,
-  IconLink,
-  IconPencil,
-  IconCheck,
-  IconX,
-  IconLock,
-} from '@tabler/icons-react';
+import { IconCheck, IconX, IconLock, IconStack2 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
-import { Button } from '@resources/components/ui/Button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
+import { PageHeadActions, PageHeadIdentity } from '@resources/layout/PageHeadIdentity';
+import { HeaderActionButton } from '@resources/components/ui/HeaderActionButton';
+import { StatusIndicator } from '@resources/components/ui/StatusIndicator';
+import { StackHeaderActions } from '../components/StackHeaderActions';
+import type { StatusTone } from '@resources/theme/status-palette';
+import { PERM } from '@core/auth/permissionKeys';
 
-const STATUS_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
+/**
+ * A stack's status is its services' statuses collapsed into one word.
+ * `partial` is the interesting one — some services up, some down — and it
+ * gets warning rather than danger, because the stack is degraded, not dead.
+ */
+const STATUS_TONES: Record<string, StatusTone> = {
   running: 'success',
-  stopped: 'destructive',
   partial: 'warning',
+  stopped: 'danger',
 };
-
-type HeaderActionButtonProps = {
-  tooltip: string;
-  onClick: () => void;
-  icon: React.ReactNode;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  className?: string;
-  disabled?: boolean;
-};
-
-function HeaderActionButton({
-  tooltip,
-  onClick,
-  icon,
-  variant = 'outline',
-  className = '',
-  disabled = false,
-}: HeaderActionButtonProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          variant={variant}
-          size="icon-sm"
-          aria-label={tooltip}
-          className={className}
-          disabled={disabled}
-        >
-          {icon}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 type StackDetailHeaderProps = {
   stackName: string;
   status: string;
   isManaged: boolean;
   isRunning: boolean;
+  serviceCount: number;
   editing?: boolean;
   onAction: (action: string) => void;
   onRemove: () => void;
@@ -78,13 +48,15 @@ type StackDetailHeaderProps = {
   onCancelEdit?: () => void;
   saving?: boolean;
   locked?: boolean;
+  targetsSelf?: boolean;
 };
 
 export function StackDetailHeader({
   stackName,
-  status,
+  status: stackStatus,
   isManaged,
   isRunning,
+  serviceCount,
   editing,
   onAction,
   onRemove,
@@ -95,145 +67,89 @@ export function StackDetailHeader({
   onCancelEdit,
   saving,
   locked = false,
+  targetsSelf = false,
 }: StackDetailHeaderProps) {
-  const navigate = useNavigate();
   const { t } = useTranslation('stacks');
   const { t: tc } = useTranslation('common');
+  const lockedLabel = tc('actions.locked');
 
   return (
-    <div className="flex flex-1 items-center justify-between">
-      {/* Left: back + name + badges */}
-      <div className="flex items-center gap-3">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={() => navigate('/stacks')}
-              variant="outline"
-              size="icon-sm"
-              aria-label={t('detail.backToStacks')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <IconArrowLeft className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('detail.backToStacks')}</TooltipContent>
-        </Tooltip>
-        <div className="h-5 w-px bg-border" />
-        <div className="flex items-center gap-2">
-          <h1 className="text-sm font-semibold text-foreground">{stackName}</h1>
-          {locked && (
-            <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
-              <IconLock className="size-3" />
-              {tc('actions.locked')}
+    <>
+      <PageHeadIdentity>
+        <span
+          aria-hidden="true"
+          className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/12 ring-1 ring-primary/25 ring-inset"
+        >
+          <IconStack2 className="size-6 text-primary" />
+        </span>
+        <div className="min-w-0">
+          <h1 className="truncate font-display text-2xl leading-tight font-semibold tracking-tight text-foreground">
+            {stackName}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <StatusIndicator
+              tone={STATUS_TONES[stackStatus] ?? 'neutral'}
+              label={stackStatus}
+              size="sm"
+              pulse={stackStatus === 'running'}
+            />
+            {locked && (
+              <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px]">
+                <IconLock className="size-3" />
+                {lockedLabel}
+              </Badge>
+            )}
+            <Badge variant={isManaged ? 'default' : 'outline'} className="px-1.5 py-0 text-[10px]">
+              {isManaged ? t('badges.managed') : t('badges.discovered')}
             </Badge>
-          )}
-          <Badge
-            variant={isManaged ? 'default' : 'outline'}
-            className="text-[9px] px-1.5 py-0"
-          >
-            {isManaged ? t('badges.managed') : t('badges.discovered')}
-          </Badge>
-          <Badge
-            variant={STATUS_VARIANTS[status] ?? 'secondary'}
-            className="text-[10px] px-1.5 py-0"
-          >
-            {status}
-          </Badge>
+            <span className="rounded-md bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {t('detail.servicesCount')}: {serviceCount}
+            </span>
+          </div>
         </div>
-      </div>
+      </PageHeadIdentity>
 
-      {/* Right: action buttons */}
-      <div className="flex items-center gap-1.5">
-        {editing ? (
-          <>
-            <HeaderActionButton
-              tooltip={t('editStack.saveStack')}
-              onClick={() => onSave?.()}
-              variant="default"
-              icon={
-                saving ? (
-                  <span className="size-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                ) : (
-                  <IconCheck className="size-3.5" />
-                )
-              }
-            />
-            <HeaderActionButton
-              tooltip={t('editStack.cancel')}
-              onClick={() => onCancelEdit?.()}
-              icon={<IconX className="size-3.5" />}
-              className="text-muted-foreground"
-            />
-          </>
-        ) : (
-          <>
-            {isManaged && (
+      {/* Actions, right-aligned in the same page-head band as the identity
+          they act on. */}
+      <PageHeadActions>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {editing ? (
+            <>
               <HeaderActionButton
-                tooltip={t('editStack.editStack')}
-                onClick={() => onEdit?.()}
-                disabled={locked}
-                icon={<IconPencil className="size-3.5" />}
+                tooltip={t('editStack.saveStack')}
+                permission={PERM.STACKS_MANAGE}
+                onClick={() => onSave?.()}
+                variant="default"
+                icon={
+                  saving ? (
+                    <span className="size-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <IconCheck className="size-3.5" />
+                  )
+                }
               />
-            )}
-            {isRunning ? (
-              <>
-                <HeaderActionButton
-                  tooltip={t('actions.stop')}
-                  onClick={() => onAction('stop')}
-                  disabled={locked}
-                  icon={<IconPlayerStop className="size-3.5" />}
-                />
-                <HeaderActionButton
-                  tooltip={t('actions.restart')}
-                  onClick={() => onAction('restart')}
-                  disabled={locked}
-                  icon={<IconRotate className="size-3.5" />}
-                />
-              </>
-            ) : (
-              isManaged && (
-                <HeaderActionButton
-                  tooltip={t('actions.up')}
-                  onClick={() => onAction('up')}
-                  variant="default"
-                  disabled={locked}
-                  icon={<IconPlayerPlay className="size-3.5" />}
-                />
-              )
-            )}
-            <HeaderActionButton
-              tooltip={t('actions.down')}
-              onClick={() => onAction('down')}
-              disabled={locked}
-              icon={<IconArrowDown className="size-3.5" />}
-            />
-            {!isManaged && (
               <HeaderActionButton
-                tooltip={t('takeOver.adopt')}
-                onClick={onTakeOver}
-                variant="secondary"
-                disabled={locked}
-                icon={<IconArrowsTransferUp className="size-3.5" />}
+                tooltip={t('editStack.cancel')}
+                onClick={() => onCancelEdit?.()}
+                icon={<IconX className="size-3.5" />}
+                className="text-muted-foreground"
               />
-            )}
-            <HeaderActionButton
-              tooltip={t('link.linkContainer')}
-              onClick={onLinkContainer}
-              variant="secondary"
-              disabled={locked}
-              icon={<IconLink className="size-3.5" />}
+            </>
+          ) : (
+            <StackHeaderActions
+              isManaged={isManaged}
+              isRunning={isRunning}
+              locked={locked}
+              onAction={onAction}
+              onRemove={onRemove}
+              onTakeOver={onTakeOver}
+              onLinkContainer={onLinkContainer}
+              onEdit={onEdit}
+              targetsSelf={targetsSelf}
             />
-            <div className="h-5 w-px bg-border mx-0.5" />
-            <HeaderActionButton
-              tooltip={t('actions.remove')}
-              onClick={onRemove}
-              variant="destructive"
-              disabled={locked}
-              icon={<IconTrash className="size-3.5" />}
-            />
-          </>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      </PageHeadActions>
+    </>
   );
 }

@@ -1,9 +1,25 @@
 {
   "title": "Dashboard",
   "description": "Overzicht van je Docker-omgeving",
+  "summary": {
+    "environments_one": "{{count}} omgeving",
+    "environments_other": "{{count}} omgevingen",
+    "containers_one": "{{count}} container",
+    "containers_other": "{{count}} containers",
+    "acrossStacks_one": "verdeeld over {{count}} stack",
+    "acrossStacks_other": "verdeeld over {{count}} stacks",
+    "vms_one": "{{count}} virtuele machine",
+    "vms_other": "{{count}} virtuele machines",
+    "acrossEnvironments_one": "verdeeld over {{count}} omgeving",
+    "acrossEnvironments_other": "verdeeld over {{count}} omgevingen",
+    "agentsBehind_one": "{{count}} agent een versie achter",
+    "agentsBehind_other": "{{count}} agents een versie achter",
+    "scansNeedReview_one": "{{count}} scan moet worden beoordeeld",
+    "scansNeedReview_other": "{{count}} scans moeten worden beoordeeld",
+    "unreachable_one": "{{count}} host onbereikbaar",
+    "unreachable_other": "{{count}} hosts onbereikbaar"
+  },
   "addWidget": "Widget toevoegen",
-  "editDashboard": "Dashboard bewerken",
-  "doneEditing": "Klaar met bewerken",
   "edit": "Bewerken",
   "done": "Klaar",
   "reset": "Herstellen",
@@ -16,11 +32,44 @@
     "metrics": "Statistieken",
     "monitoring": "Monitoring",
     "operations": "Operaties",
-    "kubernetes": "Kubernetes"
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Widget verwijderen",
     "decreaseHeight": "Hoogte verlagen",
-    "increaseHeight": "Hoogte verhogen"
+    "increaseHeight": "Hoogte verhogen",
+    "failed": "{{title}} kon niet worden getoond",
+    "retry": "Opnieuw proberen",
+    "size": "Grootte",
+    "width": "Breedte",
+    "height": "Hoogte"
+  },
+  "template": {
+    "pickerLabel": "Dashboardindelingen",
+    "wizardPrompt": "Begin met een indeling"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "Wat draait er, waarop, en de acties die je het vaakst gebruikt"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Workflowuitvoeringen, alerts en kwetsbaarheden op de voorgrond"
+      },
+      "production": {
+        "name": "Productie",
+        "description": "Capaciteit, alerts, kwetsbaarheden en opslag in één oogopslag"
+      },
+      "monitoring": {
+        "name": "Monitoring",
+        "description": "Tijdreeksgrafieken en grootste verbruikers, om trends te volgen"
+      },
+      "starter": {
+        "name": "Basis",
+        "description": "Het oordeel en je containers — de rest voeg je toe wanneer je het nodig hebt"
+      }
+    }
   }
 }

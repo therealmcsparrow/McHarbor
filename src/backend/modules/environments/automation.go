@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package environments manages Docker, Kubernetes and agent environments: CRUD, connection tests, provisioning, migration and merging.
 package environments
 
 import (
@@ -10,9 +11,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/docker/docker/api/types/filters"
+	"github.com/moby/moby/client"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/quiesce"
 )
 
 const automaticImagePruneHour = 3
@@ -26,10 +28,20 @@ type automationEnvironment struct {
 
 // AutomationService runs background environment automation tasks.
 type AutomationService struct {
-	db         *sql.DB
-	dockerPool *docker.ClientPool
-	logger     *slog.Logger
-	now        func() time.Time
+	db          *sql.DB
+	dockerPool  *docker.ClientPool
+	logger      *slog.Logger
+	now         func() time.Time
+	coordinator automationCoordinator
+	nodeID      string
+	hasCoord    bool
+}
+
+// automationCoordinator is the subset of the cluster coordinator needed by
+// automatic environment maintenance.
+type automationCoordinator interface {
+	LeaderOf(ctx context.Context, name string) bool
+	NodeID() string
 }
 
 // NewAutomationService creates an environment automation service.
@@ -40,6 +52,17 @@ func NewAutomationService(db *sql.DB, dockerPool *docker.ClientPool, logger *slo
 		logger:     logger,
 		now:        time.Now,
 	}
+}
+
+// NewAutomationServiceWithCoordinator creates an automation service that only
+// runs maintenance on the elected HA leader. SQLite coordinators always report
+// leader=true.
+func NewAutomationServiceWithCoordinator(db *sql.DB, dockerPool *docker.ClientPool, logger *slog.Logger, coord automationCoordinator, nodeID string) *AutomationService {
+	s := NewAutomationService(db, dockerPool, logger)
+	s.coordinator = coord
+	s.nodeID = nodeID
+	s.hasCoord = coord != nil
+	return s
 }
 
 // Start runs the environment automation loop until the context is cancelled.
@@ -54,12 +77,17 @@ func (s *AutomationService) Start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			s.runDueTasks(ctx)
+			quiesce.Run(func() { s.runDueTasks(ctx) })
 		}
 	}
 }
 
 func (s *AutomationService) runDueTasks(ctx context.Context) {
+	if !s.leaderFor(ctx) {
+		s.logger.Debug("environment automation: not leader this tick; skipping", "node", s.nodeID)
+		return
+	}
+
 	envs, err := s.listAutomaticImagePruneEnvironments(ctx)
 	if err != nil {
 		s.logger.Error("environments: failed to list automatic image pruning environments", "error", err)
@@ -75,15 +103,21 @@ func (s *AutomationService) runDueTasks(ctx context.Context) {
 	}
 }
 
+func (s *AutomationService) leaderFor(ctx context.Context) bool {
+	if !s.hasCoord {
+		return true
+	}
+	return s.coordinator.LeaderOf(ctx, "environment-automation")
+}
+
 func (s *AutomationService) listAutomaticImagePruneEnvironments(ctx context.Context) ([]automationEnvironment, error) {
-	queryCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	queryCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	rows, err := s.db.QueryContext(queryCtx, `
 		SELECT id, name, timezone, last_automatic_image_prune_run_at
 		FROM environments
-		WHERE orchestrator_type = 'docker'
-		  AND is_active = 1
+		WHERE is_active = 1
 		  AND automatic_image_pruning_enabled = 1
 		ORDER BY name ASC
 		LIMIT 1000
@@ -91,7 +125,7 @@ func (s *AutomationService) listAutomaticImagePruneEnvironments(ctx context.Cont
 	if err != nil {
 		return nil, fmt.Errorf("querying automatic image pruning environments: %w", err)
 	}
-	defer rows.Close()
+	defer func() { logCloseErr(rows.Close()) }()
 
 	envs := make([]automationEnvironment, 0)
 	for rows.Next() {
@@ -147,7 +181,7 @@ func (s *AutomationService) runAutomaticImagePrune(ctx context.Context, env auto
 		}
 	}()
 
-	cli, err := s.dockerPool.Get(env.ID)
+	cli, err := s.dockerPool.GetContext(ctx, env.ID)
 	if err != nil {
 		s.logger.Error("environments: automatic image pruning failed to get docker client", "envID", env.ID, "envName", env.Name, "error", err)
 		return
@@ -156,11 +190,12 @@ func (s *AutomationService) runAutomaticImagePrune(ctx context.Context, env auto
 	pruneCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
-	report, err := cli.ImagesPrune(pruneCtx, unusedImagePruneFilters())
+	reportRes, err := cli.ImagePrune(pruneCtx, client.ImagePruneOptions{Filters: unusedImagePruneFilters()})
 	if err != nil {
 		s.logger.Error("environments: automatic image pruning failed", "envID", env.ID, "envName", env.Name, "error", err)
 		return
 	}
+	report := reportRes.Report
 
 	s.logger.Info(
 		"environments: automatic image pruning completed",
@@ -172,7 +207,7 @@ func (s *AutomationService) runAutomaticImagePrune(ctx context.Context, env auto
 }
 
 func (s *AutomationService) recordAutomaticImagePruneRun(ctx context.Context, envID string, runAt time.Time) error {
-	updateCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	updateCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	if _, err := s.db.ExecContext(
@@ -187,6 +222,6 @@ func (s *AutomationService) recordAutomaticImagePruneRun(ctx context.Context, en
 	return nil
 }
 
-func unusedImagePruneFilters() filters.Args {
-	return filters.NewArgs(filters.Arg("dangling", "false"))
+func unusedImagePruneFilters() client.Filters {
+	return make(client.Filters).Add("dangling", "false")
 }

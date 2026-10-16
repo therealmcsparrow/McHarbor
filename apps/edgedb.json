@@ -4,7 +4,7 @@
     "description":  "Graph-relational database with a powerful query language and strong type system.",
     "category":  "Databases",
     "image":  "edgedb/edgedb:latest",
-    "logo":  "https://icon.horse/icon/www.edgedb.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.edgedb.com\u0026sz=128",
     "website":  "https://www.edgedb.com",
     "docsUrl":  "https://www.edgedb.com/docs",
     "ports":  [
@@ -28,5 +28,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

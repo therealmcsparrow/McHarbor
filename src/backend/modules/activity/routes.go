@@ -4,8 +4,7 @@
 package activity
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
@@ -14,11 +13,11 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/activity", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Post("/", h.HandleCreate)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/activity", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermActivityView)).Get("/", h.HandleList, apispec.Scoped(), apispec.Paginated(), apispec.Query("from", ""), apispec.Query("search", ""), apispec.Query("search_mode", ""), apispec.Query("to", ""))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/", h.HandleCreate, apispec.Request(CreateRequest{}))
+			r.With(rbac.RequireGlobalPermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge, apispec.Query("vacuum", ""))
 		})
 	})
 }

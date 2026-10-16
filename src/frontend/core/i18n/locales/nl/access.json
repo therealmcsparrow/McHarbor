@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Akkoord op toegangsreview",
+    "description": "Leg vast dat de toegangsreview is uitgevoerd en het resultaat is geaccepteerd. De hieronder berekende machtigingen zijn de invoer van de review; het akkoord is de vastlegging ervan."
+  },
+  "effective": {
+    "title": "Effectieve toegang",
+    "description": "Kies een gebruiker en een bereik om alle machtigingen te zien die de gebruiker daar heeft en waar elke machtiging vandaan komt.",
+    "user": "Gebruiker",
+    "userPlaceholder": "Selecteer een gebruiker",
+    "environment": "Omgeving",
+    "allEnvironments": "Globaal (geen omgeving)",
+    "stack": "Stack",
+    "noStack": "Hele omgeving",
+    "filter": "Machtigingen filteren",
+    "showAll": "Toon machtigingen die de gebruiker niet heeft",
+    "empty": "Kies een gebruiker om de effectieve machtigingen te zien.",
+    "noMatches": "Geen machtiging komt overeen met dit filter.",
+    "noSource": "Geen toekenning",
+    "wildcard": "{{username}} heeft een wildcardrol, die alle machtigingen verleent, ook later toegevoegde.",
+    "breakGlass": "{{username}} heeft een open break-glass-sessie: alle machtigingen zijn verleend totdat deze eindigt.",
+    "abac": "Attribuutbeleid wordt op deze installatie afgedwongen en kan nog steeds een verzoek weigeren dat deze rollen toestaan.",
+    "overridesNote": "Gehouden is wat routepoorten afdwingen: rollen, goedgekeurde verhogingen en break-glass. Met overrides past de per-gebruiker toekenning en weigering toe zoals de beleidsengine dat doet; routepoorten lezen overrides momenteel niet.",
+    "summary": "{{held}} van {{total}} machtigingen gehouden",
+    "held": "Gehouden",
+    "notHeld": "Niet gehouden",
+    "columns": {
+      "permission": "Machtiging",
+      "held": "Gehouden",
+      "authorize": "Met overrides",
+      "sources": "Verleend door"
+    },
+    "source": {
+      "roleDirect": "Rol {{role}}",
+      "roleGroup": "Rol {{role}} via groep {{group}}",
+      "wildcard": "wildcard",
+      "scopeGlobal": "globaal",
+      "scopeEnvironment": "in {{environment}}",
+      "scopeStack": "op stack {{stack}}",
+      "elevation": "Verhoging tot {{until}}",
+      "breakGlass": "Break-glass-sessie",
+      "overrideGrant": "Toekenningsoverride",
+      "overrideDeny": "Weigeringsoverride",
+      "conditional": "alleen voor {{resource}}",
+      "expires": "verloopt {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Catalogus exporteren (CSV)",
+    "exportJson": "Catalogus exporteren (JSON)",
+    "exportFailed": "De machtigingencatalogus kon niet worden geëxporteerd.",
+    "exported": "Machtigingencatalogus geëxporteerd"
+  },
+  "endpoints": {
+    "title": "Adressen om bij de identiteitsprovider te registreren",
+    "intro": "Registreer deze adressen aan de kant van de identiteitsprovider. Ze volgen het publieke adres waarop McHarbor bereikbaar is.",
+    "oidcRedirect": "Redirect-URI (OIDC)",
+    "oidcRedirectHint": "Gedeeld door elke OpenID Connect-provider op deze installatie.",
+    "acs": "Assertion Consumer Service-URL (SAML)",
+    "spMetadata": "Metadata-URL van de serviceprovider (SAML)",
+    "login": "Directe aanmeld-URL",
+    "samlAfterSave": "De SAML ACS- en metadata-URL's bevatten de provider-ID, dus ze verschijnen zodra de provider is opgeslagen."
+  },
+  "metadata": {
+    "title": "IdP-metadata importeren",
+    "description": "Plak de SAML-metadata-URL of XML van de identiteitsprovider. McHarbor leest die, vult de velden in die deze plugin accepteert en toont de rest ter controle.",
+    "url": "Metadata-URL",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "Of plak de metadata-XML",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Metadata lezen",
+    "prefillReady": "{{count}} veld kan uit deze metadata worden ingevuld.",
+    "applyPrefill": "Formulier invullen",
+    "copyManually": "Deze plugin heeft geen veld voor deze waarden, dus kopieer ze naar waar de plugin erom vraagt.",
+    "entityId": "IdP-entiteits-ID",
+    "sso": "Single sign-on-URL ({{binding}})",
+    "slo": "Single logout-URL ({{binding}})",
+    "certificate": "Certificaatvingerafdruk, SHA-256 ({{use}})",
+    "anyUse": "elk gebruik",
+    "expires": "verloopt {{date}}",
+    "nameIdFormats": "NameID-formaten: {{formats}}",
+    "reason": {
+      "invalid_url": "De metadata-URL moet een http- of https-adres zijn.",
+      "fetch_failed": "De metadata-URL kon niet worden opgehaald. Controleer of McHarbor er bij kan; het serverlog bevat de details.",
+      "not_saml_metadata": "Dit is geen SAML-metadatadocument.",
+      "no_idp_descriptor": "De metadata beschrijft geen identiteitsprovider (geen IDPSSODescriptor).",
+      "input_missing": "Voer een metadata-URL in of plak de XML."
+    }
+  },
+  "preview": {
+    "title": "Groepskoppeling bekijken",
+    "description": "Voer de groepen in waarmee een gebruiker zou aanmelden om te zien welke McHarbor-groepen en -rollen die zou krijgen.",
+    "sampleGroups": "Providergroepen, één per regel",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Gebruik de {{count}} groepen uit de verbindingstest",
+    "run": "Voorbeeld bekijken",
+    "groupsJoined": "Toegetreden groepen",
+    "noGroups": "Deze groepen leiden tot geen enkele McHarbor-groep.",
+    "newGroup": "aangemaakt bij eerste aanmelding",
+    "from": "van {{groups}}",
+    "noRoles": "Deze groep heeft geen rollen.",
+    "defaultRole": "Een nieuw aangemaakte gebruiker krijgt ook de standaardrol {{role}}.",
+    "unmapped": "Niet gekoppeld: {{groups}}",
+    "scopeGlobal": "globaal",
+    "scopeEnvironment": "omgeving {{environment}}",
+    "scopeStack": "stack {{stack}}",
+    "loadGroups": "Groepen laden van de provider"
+  },
+  "impact": {
+    "title": "Wie rollen krijgt of verliest",
+    "summary": "{{evaluated}} gebruikers geëvalueerd op basis van hun laatste aanmelding: {{changed}} zouden wijzigen, {{unchanged}} niet.",
+    "users": "Betrokken gebruikers",
+    "legend_one": "{{gained}} rol erbij, {{lost}} kwijt",
+    "legend_other": "{{gained}} rollen erbij, {{lost}} kwijt",
+    "joined": "Treedt toe tot: {{groups}}",
+    "left": "Verlaat: {{groups}}",
+    "unknown": "Niet geëvalueerd, geen aanmelding vastgelegd sinds groepsclaims worden bijgehouden: {{users}}",
+    "confirmTitle": "De nieuwe groepskoppeling toepassen?",
+    "confirmDescription": "Deze wijzigingen gaan voor elke gebruiker in bij de volgende aanmelding.",
+    "nextSignIn": "Een koppeling verwijderen verwijdert geen lidmaatschappen die zij al heeft aangemaakt; alleen groepen die een koppeling nog noemt blijven synchroon met de provider.",
+    "confirm": "Koppeling opslaan"
+  },
+  "wizard": {
+    "progress": "Voortgang van de installatie",
+    "steps": {
+      "type": "Kies een provider",
+      "configure": "Configureren",
+      "access": "Toegang en groepen",
+      "review": "Controleren en opslaan",
+      "done": "Provider opgeslagen"
+    },
+    "next": "Volgende",
+    "finish": "Voltooien",
+    "defaultRole": "Standaardrol voor nieuwe gebruikers",
+    "defaultRoleHint": "Wordt toegekend aan accounts die door automatische provisioning zijn aangemaakt.",
+    "noDefaultRole": "Geen standaardrol",
+    "fetchGroupsAfterSave": "Deze provider kan zijn groepen weergeven. Na het opslaan kan het bewerkdialoogvenster ze ophalen voor de koppeling.",
+    "review": {
+      "description": "Controleer de instellingen voordat de provider wordt opgeslagen.",
+      "name": "Naam",
+      "type": "Type",
+      "fields": "Geconfigureerde velden",
+      "autoProvision": "Automatische provisioning",
+      "defaultRole": "Standaardrol",
+      "autoImport": "Groepen importeren op naam",
+      "mappings": "Groepskoppelingen",
+      "yes": "Ja",
+      "no": "Nee",
+      "none": "Geen",
+      "disabledNote": "De provider wordt uitgeschakeld opgeslagen, dus niemand kan ermee aanmelden totdat je hem inschakelt."
+    },
+    "done": {
+      "title": "{{name}} is opgeslagen",
+      "description": "Registreer de onderstaande adressen bij de identiteitsprovider en schakel daarna de verbinding in en test die.",
+      "enable": "Provider inschakelen",
+      "enableFirst": "Schakel de provider in om de verbinding te testen.",
+      "test": "Verbinding testen",
+      "previewHint": "Bekijk de koppeling met echte groepen: voer de verbindingstest uit of laad de groepen van de provider."
+    }
+  }
+}

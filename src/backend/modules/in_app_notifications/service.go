@@ -6,7 +6,11 @@ package inappnotifications
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log/slog"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/rs/xid"
@@ -36,53 +40,152 @@ func NewService(db *sql.DB) *Service {
 	return &Service{db: db}
 }
 
-// ListForUser returns paginated notifications with read state for the user.
-func (s *Service) ListForUser(ctx context.Context, userID string, page, perPage int) ([]Notification, int64, error) {
-	var total int64
-	if err := s.db.QueryRowContext(
-		ctx,
-		`SELECT COUNT(*)
-		 FROM in_app_notifications n
+// ListFilter narrows a user's notification list. Mode is contains, exact or regex;
+// empty fields match everything.
+type ListFilter struct {
+	Query  string
+	Mode   string
+	Levels []string
+	Status string
+}
+
+// maxRegexScan bounds how many rows a regex search reads, because a regex cannot be
+// pushed into SQL and is matched in Go before paginating.
+const maxRegexScan = 1000
+
+// ErrInvalidPattern is returned for a regex search that does not compile.
+var ErrInvalidPattern = errors.New("invalid search pattern")
+
+// ListForUser returns one page of the user's notifications with read state,
+// unread first, filtered on the server so a search covers every page.
+func (s *Service) ListForUser(ctx context.Context, userID string, page, perPage int, f ListFilter) ([]Notification, int64, error) {
+	where := ` FROM in_app_notifications n
 		 LEFT JOIN in_app_notification_reads r
 		   ON r.notification_id = n.id AND r.user_id = ?
-		 WHERE r.deleted_at IS NULL`,
-		userID,
-	).Scan(&total); err != nil {
+		 WHERE r.deleted_at IS NULL`
+	args := []any{userID}
+	switch f.Status {
+	case "unread":
+		where += " AND r.read_at IS NULL"
+	case "read":
+		where += " AND r.read_at IS NOT NULL"
+	}
+	if len(f.Levels) > 0 {
+		where += " AND n.level IN (?" + strings.Repeat(", ?", len(f.Levels)-1) + ")"
+		for _, l := range f.Levels {
+			args = append(args, l)
+		}
+	}
+	q := strings.TrimSpace(f.Query)
+	var re *regexp.Regexp
+	switch {
+	case q == "":
+	case f.Mode == "regex":
+		if len(q) > 256 {
+			return nil, 0, ErrInvalidPattern
+		}
+		compiled, err := regexp.Compile("(?i)" + q)
+		if err != nil {
+			return nil, 0, ErrInvalidPattern
+		}
+		re = compiled
+	case f.Mode == "exact":
+		where += " AND (LOWER(n.title) = LOWER(?) OR LOWER(n.message) = LOWER(?))"
+		args = append(args, q, q)
+	default:
+		like := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(strings.ToLower(q)) + "%"
+		where += " AND (LOWER(n.title) LIKE ? ESCAPE '!' OR LOWER(n.message) LIKE ? ESCAPE '!')"
+		args = append(args, like, like)
+	}
+	order := " ORDER BY CASE WHEN r.read_at IS NULL THEN 0 ELSE 1 END ASC, n.created_at DESC"
+	cols := "SELECT n.id, n.level, n.title, n.message, n.action, n.entity_type, n.entity_id, n.created_at, r.read_at"
+
+	if re != nil {
+		all, err := s.scanAll(ctx, cols+where+order+" LIMIT ?", append(args, maxRegexScan)...)
+		if err != nil {
+			return nil, 0, err
+		}
+		matched := make([]Notification, 0, len(all))
+		for _, n := range all {
+			if re.MatchString(n.Title) || re.MatchString(n.Message) {
+				matched = append(matched, n)
+			}
+		}
+		start := (page - 1) * perPage
+		if start > len(matched) {
+			start = len(matched)
+		}
+		end := start + perPage
+		if end > len(matched) {
+			end = len(matched)
+		}
+		return matched[start:end], int64(len(matched)), nil
+	}
+
+	var total int64
+	if err := s.db.QueryRowContext(ctx, "SELECT COUNT(*)"+where, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("counting in-app notifications: %w", err)
 	}
-
-	offset := (page - 1) * perPage
-	rows, err := s.db.QueryContext(
-		ctx,
-		`SELECT n.id, n.level, n.title, n.message, n.action, n.entity_type, n.entity_id, n.created_at, r.read_at
-		 FROM in_app_notifications n
-		 LEFT JOIN in_app_notification_reads r
-		   ON r.notification_id = n.id AND r.user_id = ?
-		 WHERE r.deleted_at IS NULL
-		 ORDER BY CASE WHEN r.read_at IS NULL THEN 0 ELSE 1 END ASC, n.created_at DESC
-		 LIMIT ? OFFSET ?`,
-		userID,
-		perPage,
-		offset,
-	)
+	items, err := s.scanAll(ctx, cols+where+order+" LIMIT ? OFFSET ?", append(args, perPage, (page-1)*perPage)...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("listing in-app notifications: %w", err)
+		return nil, 0, err
 	}
-	defer rows.Close()
+	return items, total, nil
+}
 
-	items := make([]Notification, 0, perPage)
+func (s *Service) scanAll(ctx context.Context, query string, args ...any) ([]Notification, error) {
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("listing in-app notifications: %w", err)
+	}
+	defer closeRows(rows)
+	items := []Notification{}
 	for rows.Next() {
 		item, err := scanNotification(rows)
 		if err != nil {
-			return nil, 0, fmt.Errorf("scanning in-app notification row: %w", err)
+			return nil, fmt.Errorf("scanning in-app notification row: %w", err)
 		}
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("iterating in-app notification rows: %w", err)
+		return nil, fmt.Errorf("iterating in-app notification rows: %w", err)
 	}
+	return items, nil
+}
 
-	return items, total, nil
+// Counts is what the filter chips show: the user's notifications by read state and
+// by level, unfiltered, so a chip says how many it would reveal.
+type Counts struct {
+	Total   int64            `json:"total"`
+	Unread  int64            `json:"unread"`
+	ByLevel map[string]int64 `json:"byLevel"`
+}
+
+// CountsForUser returns the user's notification counts for the filter chips.
+func (s *Service) CountsForUser(ctx context.Context, userID string) (Counts, error) {
+	out := Counts{ByLevel: map[string]int64{}}
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT n.level, COUNT(*), SUM(CASE WHEN r.read_at IS NULL THEN 1 ELSE 0 END)
+		 FROM in_app_notifications n
+		 LEFT JOIN in_app_notification_reads r
+		   ON r.notification_id = n.id AND r.user_id = ?
+		 WHERE r.deleted_at IS NULL
+		 GROUP BY n.level`, userID)
+	if err != nil {
+		return out, fmt.Errorf("counting in-app notifications: %w", err)
+	}
+	defer closeRows(rows)
+	for rows.Next() {
+		var level string
+		var n, unread int64
+		if err := rows.Scan(&level, &n, &unread); err != nil {
+			return out, fmt.Errorf("scanning in-app notification counts: %w", err)
+		}
+		out.ByLevel[level] = n
+		out.Total += n
+		out.Unread += unread
+	}
+	return out, rows.Err()
 }
 
 // UnreadCount returns the number of unread notifications for the user.
@@ -203,7 +306,9 @@ func (s *Service) MarkAllRead(ctx context.Context, userID string) (int64, error)
 				now,
 				now,
 			); err != nil {
-				_ = tx.Rollback()
+				if rbErr := tx.Rollback(); rbErr != nil && !errors.Is(rbErr, sql.ErrTxDone) {
+					slog.Warn("in_app_notifications: rolling back mark-all-read", "error", rbErr)
+				}
 				return totalMarked, fmt.Errorf("marking all in-app notifications as read: %w", err)
 			}
 		}
@@ -236,7 +341,7 @@ func (s *Service) unreadIDs(ctx context.Context, userID string, limit int) ([]st
 	if err != nil {
 		return nil, fmt.Errorf("listing unread in-app notification ids: %w", err)
 	}
-	defer rows.Close()
+	defer closeRows(rows)
 
 	var ids []string
 	for rows.Next() {
@@ -283,4 +388,11 @@ func scanNotification(scanner interface {
 	item.ReadAt = readAt.String
 
 	return item, nil
+}
+
+// closeRows releases a result set and logs a failed Close, which a deferred call cannot return.
+func closeRows(rows *sql.Rows) {
+	if err := rows.Close(); err != nil {
+		slog.Warn("in_app_notifications: closing rows", "error", err)
+	}
 }

@@ -4,7 +4,7 @@
   "description": "Workload orchestrator that deploys, manages, and scales containers and non-containerized apps.",
   "category": "Networking",
   "image": "hashicorp/nomad:latest",
-  "logo": "https://www.nomadproject.io/assets/images/logo-hashicorp-nomad-color.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/nomad.svg",
   "website": "https://www.nomadproject.io",
   "docsUrl": "https://developer.hashicorp.com/nomad/docs",
   "ports": [
@@ -41,5 +41,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

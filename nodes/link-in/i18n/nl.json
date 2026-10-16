@@ -1,6 +1,6 @@
 {
-  "label": "Link In",
-  "description": "Receive the latest message from a link output in another workflow",
+  "label": "Link in",
+  "description": "Ontvang het laatste bericht van een link-uitvoer in een andere workflow",
   "config": {
     "source": "Bronuitvoer"
   }

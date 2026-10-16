@@ -1,0 +1,33 @@
+{
+  "label": "Parse",
+  "description": "Parse JSON, YAML, XML, CSV or HTML text into structured data",
+  "config": {
+    "format": "Format",
+    "property": "Property",
+    "delimiter": "Delimiter",
+    "has_headers": "Has Headers",
+    "selector": "Selector",
+    "output_type": "Output Type",
+    "attribute": "Attribute"
+  },
+  "options": {
+    "format": {
+      "json": "JSON",
+      "yaml": "YAML",
+      "xml": "XML",
+      "csv": "CSV",
+      "html": "HTML"
+    },
+    "output_type": {
+      "text": "Text",
+      "html": "HTML",
+      "attribute": "Attribute"
+    },
+    "delimiter": {
+      ",": "Comma",
+      ";": "Semicolon",
+      "\\t": "Tab",
+      "|": "Pipe"
+    }
+  }
+}

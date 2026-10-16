@@ -1,0 +1,42 @@
+{
+    "slug":  "sglang",
+    "name":  "SGLang",
+    "description":  "High-throughput inference engine and OpenAI-compatible server for large language models; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "lmsysorg/sglang:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/sgl-project/sglang",
+    "docsUrl":  "https://docs.sglang.ai/get_started/install.html",
+    "ports":  [
+                  {
+                      "host":  30000,
+                      "container":  30000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sglang/cache",
+                        "container":  "/root/.cache/huggingface"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "HF_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Hugging Face access token for gated models",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

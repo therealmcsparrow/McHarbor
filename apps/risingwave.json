@@ -1,0 +1,41 @@
+{
+    "slug":  "risingwave",
+    "name":  "RisingWave",
+    "description":  "Cloud-native streaming database that queries and materializes results from data streams using SQL.",
+    "category":  "Analytics",
+    "image":  "risingwavelabs/risingwave:latest",
+    "logo":  "https://github.com/risingwavelabs.png",
+    "website":  "https://www.risingwave.com",
+    "docsUrl":  "https://docs.risingwave.com/docs/current/risingwave-docker-compose/",
+    "ports":  [
+                  {
+                      "host":  4566,
+                      "container":  4566,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5691,
+                      "container":  5691,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/risingwave/data",
+                        "container":  "/risingwave/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

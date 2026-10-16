@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Vlootstatus",
+      "description": "Eenregelig oordeel of er iets je aandacht nodig heeft, met doorklik"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "Vloot controleren…",
+    "empty": "Geen containers in deze omgeving.",
+    "unavailable": "Vlootstatus niet beschikbaar",
+    "barLabel": "Vlootstatus over {{count}} containers",
+    "subtitle": "{{count}} container totaal",
+    "subtitle_other": "{{count}} containers totaal",
+    "verdict": {
+      "allUp": "Alles wat kritiek is draait.",
+      "down": "{{count}} container ligt eruit.",
+      "down_other": "{{count}} containers liggen eruit."
+    },
+    "wants": {
+      "none": "Niets vraagt om je aandacht.",
+      "some": "{{count}} ding vraagt om je aandacht.",
+      "some_other": "{{count}} dingen vragen om je aandacht."
+    },
+    "facts": {
+      "running": "{{running}} van {{total}} containers actief",
+      "updates": "{{count}} image-update beschikbaar",
+      "updates_other": "{{count}} image-updates beschikbaar",
+      "noUpdates": "geen image-updates in behandeling",
+      "updatesUnchecked": "image-updates nog niet gecontroleerd",
+      "noRestarts": "geen herstartlussen in de vloot",
+      "restarting": "{{count}} container herstart",
+      "restarting_other": "{{count}} containers herstarten"
+    },
+    "actions": {
+      "checkUpdates": "Updates zoeken",
+      "liveLogs": "Live logboek"
+    },
+    "state": {
+      "running": "Actief",
+      "unhealthy": "Ongezond",
+      "paused": "Gepauzeerd",
+      "exited": "Gestopt"
+    },
+    "cards": {
+      "unhealthy": "{{name}} faalt zijn health check",
+      "unhealthyDetail": "Actief {{uptime}} · bedient nog verkeer",
+      "unhealthyDetailPlain": "Bedient nog verkeer",
+      "dead": "{{name}} is dood",
+      "deadDetail": "Docker kon hem niet draaiend houden",
+      "restarting": "{{name}} herstart",
+      "restartingDetail": "Docker probeert hem nog op te starten",
+      "snapshots": "{{count}} snapshot is te laat",
+      "snapshots_other": "{{count}} snapshots zijn te laat",
+      "days": "{{count}} dag",
+      "days_other": "{{count}} dagen",
+      "never": "nooit gedraaid",
+      "exited": "{{count}} container is gestopt",
+      "exited_other": "{{count}} containers zijn gestopt",
+      "exitedDetail": "Wacht om gestart te worden",
+      "updates": "{{count}} image-update staat klaar",
+      "updates_other": "{{count}} image-updates staan klaar",
+      "updatesDetail": "Pull en opnieuw aanmaken om toe te passen",
+      "allClear": "Er is nu niets dat je aandacht nodig heeft",
+      "allClearDetail": "Elke container draait en elke snapshot is actueel"
+    }
+  }
+}

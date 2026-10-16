@@ -1,0 +1,42 @@
+{
+    "slug":  "zabbix-agent",
+    "name":  "Zabbix Agent",
+    "description":  "Lightweight agent that reports host metrics to a Zabbix server for infrastructure monitoring.",
+    "category":  "Monitoring",
+    "image":  "zabbix/zabbix-agent2:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zabbix.png",
+    "website":  "https://www.zabbix.com",
+    "docsUrl":  "https://www.zabbix.com/documentation/current/en/manual/installation/containers",
+    "ports":  [
+                  {
+                      "host":  10050,
+                      "container":  10050,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZBX_SERVER_HOST",
+                        "default":  "zabbix-server",
+                        "description":  "Hostname or IP of the Zabbix server allowed to connect"
+                    },
+                    {
+                        "key":  "ZBX_HOSTNAME",
+                        "default":  "zabbix-agent",
+                        "description":  "Hostname this agent reports as"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

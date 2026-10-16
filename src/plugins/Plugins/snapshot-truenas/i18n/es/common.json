@@ -1,0 +1,51 @@
+{
+  "form": {
+    "connectionSection": "Conexión con TrueNAS",
+    "targetSection": "Destino de la instantánea",
+    "advancedSection": "Avanzado",
+    "apiUrl": {
+      "label": "URL de la API",
+      "help": "URL base de la API de middleware de TrueNAS. Incluya /api/v2.0."
+    },
+    "apiKey": {
+      "label": "Clave de API",
+      "help": "Clave de API generada desde Credentials → Local Users → <user> → API Keys. Almacenada cifrada en reposo por el servicio de cifrado del host."
+    },
+    "datasetPath": {
+      "label": "Ruta del dataset",
+      "help": "Ruta del dataset ZFS del que se toma la instantánea. Las instantáneas se toman de forma recursiva, e incluyen los datasets hijos."
+    },
+    "verifyTls": {
+      "label": "Verificar TLS",
+      "help": "Desactívelo para aceptar certificados autofirmados (instalaciones predeterminadas de TrueNAS). Desactivado equivale a --insecure."
+    },
+    "recursiveHint": "Las instantáneas son recursivas: una instantánea de tank/backups incluye tank/backups/child1 y tank/backups/child2. El host emite una instantánea por ejecución de copia de seguridad; no se toma ninguna instantánea individual de los datasets hijos."
+  },
+  "setup": {
+    "title": "Antes de empezar",
+    "intro": "snapshot-truenas se comunica con la API de middleware de TrueNAS mediante HTTPS. Confirme que la API es accesible desde el host y luego rellene el formulario.",
+    "steps": [
+      {
+        "title": "Confirme que el middleware de TrueNAS es accesible",
+        "body": "Desde el host donde se ejecuta McHarbor, verifique la conectividad HTTPS. Sustituya nas.local por el nombre de host de su TrueNAS:",
+        "code": "curl -k https://nas.local/api/v2.0/zfs/snapshot"
+      },
+      {
+        "title": "Cree un usuario dedicado (recomendado)",
+        "body": "Credentials → Local Users → Add. Conceda solo los datasets de los que deban tomarse instantáneas. Aislar la cuenta de servicio permite revocar la clave de API con seguridad más adelante."
+      },
+      {
+        "title": "Genere una clave de API",
+        "body": "Credentials → Local Users → <user> → API Keys → Add. Copie la clave generada: TrueNAS solo la muestra una vez. Péguela en el campo Clave de API del formulario."
+      },
+      {
+        "title": "Identifique o cree el dataset",
+        "body": "Storage → Pools → ⋮ → Add Dataset. Use un dataset dedicado (p. ej. tank/backups) para que el movimiento de instantáneas no engorde la lista de datasets. Anote la ruta exacta: distingue mayúsculas de minúsculas."
+      },
+      {
+        "title": "Pruebe la conexión",
+        "body": "Tras guardar la configuración, haga clic en 'Probar la conexión' en la pestaña Instantáneas. Un resultado verde de la sonda confirma que la clave de API funciona y que el dataset existe en TrueNAS."
+      }
+    ]
+  }
+}

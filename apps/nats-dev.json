@@ -4,7 +4,7 @@
     "description":  "NATS lightweight high-performance messaging system on Alpine for development.",
     "category":  "Developer Tools",
     "image":  "nats:2-alpine",
-    "logo":  "https://icon.horse/icon/nats.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=nats.io\u0026sz=128",
     "website":  "https://nats.io",
     "docsUrl":  "https://hub.docker.com/_/nats",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "2-alpine"
+    "version":  "2-alpine",
+    "latest":  {
+        "version":  "2-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,38 @@
+{
+    "slug":  "ngrok",
+    "name":  "ngrok",
+    "description":  "Creates secure tunnels from a public endpoint to a service running on a private network.",
+    "category":  "Networking",
+    "image":  "ngrok/ngrok:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ngrok.png",
+    "website":  "https://ngrok.com/",
+    "docsUrl":  "https://ngrok.com/docs/getting-started/",
+    "ports":  [
+                  {
+                      "host":  4040,
+                      "container":  4040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NGROK_AUTHTOKEN",
+                        "default":  "change-me",
+                        "description":  "Authentication token from your ngrok dashboard",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

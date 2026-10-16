@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "lifecycleFeed": {
+      "label": "Levenscyclusfeed",
+      "description": "Recente aanmaak-, wijzigings- en verwijdergebeurtenissen over alle resources"
+    }
+  },
+  "lifecycleFeedWidget": {
+    "title": "Levenscyclusfeed",
+    "loading": "Levenscyclusgebeurtenissen laden...",
+    "empty": "Geen recente levenscyclusgebeurtenissen",
+    "more": "{{count}} meer",
+    "viewAll": "Alles bekijken",
+    "justNow": "zojuist"
+  }
+}

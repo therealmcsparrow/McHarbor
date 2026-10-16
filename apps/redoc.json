@@ -1,0 +1,40 @@
+{
+    "slug":  "redoc",
+    "name":  "Redoc",
+    "description":  "Renders OpenAPI and Swagger specifications as interactive, readable API documentation.",
+    "category":  "Developer Tools",
+    "image":  "redocly/redoc:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=redocly.com\u0026sz=128",
+    "website":  "https://redocly.com/redoc",
+    "docsUrl":  "https://redocly.com/docs/redoc/deployment/docker",
+    "ports":  [
+                  {
+                      "host":  8091,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redoc/spec",
+                        "container":  "/usr/share/nginx/html/spec"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SPEC_URL",
+                        "default":  "spec/openapi.yaml",
+                        "description":  "Path or URL to the OpenAPI spec file to render"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

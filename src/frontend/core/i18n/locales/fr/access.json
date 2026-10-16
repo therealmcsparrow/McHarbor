@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Validation de la revue des accès",
+    "description": "Consignez que la revue des accès a été effectuée et son résultat accepté. Les autorisations calculées ci-dessous sont les données d'entrée de la revue ; la validation en est l'enregistrement."
+  },
+  "effective": {
+    "title": "Accès effectifs",
+    "description": "Choisissez un utilisateur et une portée pour voir toutes les autorisations qu'il détient et leur origine.",
+    "user": "Utilisateur",
+    "userPlaceholder": "Sélectionner un utilisateur",
+    "environment": "Environnement",
+    "allEnvironments": "Global (aucun environnement)",
+    "stack": "Stack",
+    "noStack": "Environnement entier",
+    "filter": "Filtrer les autorisations",
+    "showAll": "Afficher les autorisations que l'utilisateur ne détient pas",
+    "empty": "Choisissez un utilisateur pour voir ses autorisations effectives.",
+    "noMatches": "Aucune autorisation ne correspond à ce filtre.",
+    "noSource": "Aucune attribution",
+    "wildcard": "{{username}} détient un rôle générique, qui accorde toutes les autorisations, y compris celles ajoutées ultérieurement.",
+    "breakGlass": "{{username}} a une session break-glass ouverte : toutes les autorisations sont accordées jusqu'à sa fin.",
+    "abac": "Les politiques d'attributs sont appliquées sur cette installation et peuvent encore refuser une requête que ces rôles autorisent.",
+    "overridesNote": "« Détenue » correspond à ce que font respecter les contrôles de route : rôles, élévations approuvées et break-glass. « Avec surcharges » applique les surcharges d'octroi et de refus par utilisateur comme le fait le moteur de politiques ; les contrôles de route ne lisent pas les surcharges aujourd'hui.",
+    "summary": "{{held}} autorisations détenues sur {{total}}",
+    "held": "Détenue",
+    "notHeld": "Non détenue",
+    "columns": {
+      "permission": "Autorisation",
+      "held": "Détenue",
+      "authorize": "Avec surcharges",
+      "sources": "Accordée par"
+    },
+    "source": {
+      "roleDirect": "Rôle {{role}}",
+      "roleGroup": "Rôle {{role}} via le groupe {{group}}",
+      "wildcard": "générique",
+      "scopeGlobal": "global",
+      "scopeEnvironment": "dans {{environment}}",
+      "scopeStack": "sur la stack {{stack}}",
+      "elevation": "Élévation jusqu'au {{until}}",
+      "breakGlass": "Session break-glass",
+      "overrideGrant": "Surcharge d'octroi",
+      "overrideDeny": "Surcharge de refus",
+      "conditional": "uniquement pour {{resource}}",
+      "expires": "expire le {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Exporter le catalogue (CSV)",
+    "exportJson": "Exporter le catalogue (JSON)",
+    "exportFailed": "Le catalogue des autorisations n'a pas pu être exporté.",
+    "exported": "Catalogue des autorisations exporté"
+  },
+  "endpoints": {
+    "title": "Adresses à enregistrer auprès du fournisseur d'identité",
+    "intro": "Enregistrez ces adresses du côté du fournisseur d'identité. Elles suivent l'adresse publique sur laquelle McHarbor est joignable.",
+    "oidcRedirect": "URI de redirection (OIDC)",
+    "oidcRedirectHint": "Partagée par tous les fournisseurs OpenID Connect de cette installation.",
+    "acs": "URL Assertion Consumer Service (SAML)",
+    "spMetadata": "URL des métadonnées du fournisseur de services (SAML)",
+    "login": "URL de connexion directe",
+    "samlAfterSave": "Les URL ACS et de métadonnées SAML contiennent l'ID du fournisseur ; elles apparaissent une fois le fournisseur enregistré."
+  },
+  "metadata": {
+    "title": "Importer les métadonnées de l'IdP",
+    "description": "Collez l'URL des métadonnées SAML du fournisseur d'identité ou le XML. McHarbor le lit, renseigne les champs acceptés par ce plugin et affiche le reste pour vérification.",
+    "url": "URL des métadonnées",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "Ou collez le XML des métadonnées",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Lire les métadonnées",
+    "prefillReady": "{{count}} champ peut être renseigné à partir de ces métadonnées.",
+    "applyPrefill": "Remplir le formulaire",
+    "copyManually": "Ce plugin n'a pas de champ pour ces valeurs ; copiez-les là où le plugin les demande.",
+    "entityId": "ID d'entité de l'IdP",
+    "sso": "URL d'authentification unique ({{binding}})",
+    "slo": "URL de déconnexion unique ({{binding}})",
+    "certificate": "Empreinte du certificat, SHA-256 ({{use}})",
+    "anyUse": "tout usage",
+    "expires": "expire le {{date}}",
+    "nameIdFormats": "Formats NameID : {{formats}}",
+    "reason": {
+      "invalid_url": "L'URL des métadonnées doit être une adresse http ou https.",
+      "fetch_failed": "L'URL des métadonnées n'a pas pu être récupérée. Vérifiez que McHarbor peut y accéder ; le journal du serveur contient les détails.",
+      "not_saml_metadata": "Ce document n'est pas un document de métadonnées SAML.",
+      "no_idp_descriptor": "Les métadonnées ne décrivent aucun fournisseur d'identité (aucun IDPSSODescriptor).",
+      "input_missing": "Saisissez une URL de métadonnées ou collez le XML."
+    }
+  },
+  "preview": {
+    "title": "Aperçu du mappage de groupes",
+    "description": "Saisissez les groupes avec lesquels un utilisateur se connecterait pour voir quels groupes et rôles McHarbor il obtiendrait.",
+    "sampleGroups": "Groupes du fournisseur, un par ligne",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Utiliser les {{count}} groupes du test de connexion",
+    "run": "Aperçu",
+    "groupsJoined": "Groupes rejoints",
+    "noGroups": "Ces groupes n'aboutissent à aucun groupe McHarbor.",
+    "newGroup": "créé à la première connexion",
+    "from": "depuis {{groups}}",
+    "noRoles": "Ce groupe n'a aucun rôle.",
+    "defaultRole": "Un utilisateur nouvellement provisionné reçoit aussi le rôle par défaut {{role}}.",
+    "unmapped": "Non mappés : {{groups}}",
+    "scopeGlobal": "global",
+    "scopeEnvironment": "environnement {{environment}}",
+    "scopeStack": "stack {{stack}}",
+    "loadGroups": "Charger les groupes depuis le fournisseur"
+  },
+  "impact": {
+    "title": "Qui gagne ou perd des rôles",
+    "summary": "{{evaluated}} utilisateurs évalués d'après leur dernière connexion : {{changed}} changeraient, {{unchanged}} resteraient inchangés.",
+    "users": "Utilisateurs concernés",
+    "legend_one": "{{gained}} rôle gagné, {{lost}} perdu",
+    "legend_other": "{{gained}} rôles gagnés, {{lost}} perdus",
+    "joined": "Rejoint : {{groups}}",
+    "left": "Quitte : {{groups}}",
+    "unknown": "Non évalués, aucune connexion enregistrée depuis le suivi des revendications de groupes : {{users}}",
+    "confirmTitle": "Appliquer le nouveau mappage de groupes ?",
+    "confirmDescription": "Ces modifications prennent effet pour chaque utilisateur à sa prochaine connexion.",
+    "nextSignIn": "La suppression d'un mappage ne supprime pas les appartenances qu'il a déjà créées ; seuls les groupes encore nommés par un mappage restent synchronisés avec le fournisseur.",
+    "confirm": "Enregistrer le mappage"
+  },
+  "wizard": {
+    "progress": "Progression de la configuration",
+    "steps": {
+      "type": "Choisir un fournisseur",
+      "configure": "Configurer",
+      "access": "Accès et groupes",
+      "review": "Vérifier et enregistrer",
+      "done": "Fournisseur enregistré"
+    },
+    "next": "Suivant",
+    "finish": "Terminer",
+    "defaultRole": "Rôle par défaut des nouveaux utilisateurs",
+    "defaultRoleHint": "Attribué aux comptes créés par le provisionnement automatique.",
+    "noDefaultRole": "Aucun rôle par défaut",
+    "fetchGroupsAfterSave": "Ce fournisseur peut lister ses groupes. Une fois enregistré, la boîte de dialogue de modification pourra les récupérer pour le mappage.",
+    "review": {
+      "description": "Vérifiez les paramètres avant l'enregistrement du fournisseur.",
+      "name": "Nom",
+      "type": "Type",
+      "fields": "Champs configurés",
+      "autoProvision": "Provisionnement automatique",
+      "defaultRole": "Rôle par défaut",
+      "autoImport": "Importer les groupes par nom",
+      "mappings": "Mappages de groupes",
+      "yes": "Oui",
+      "no": "Non",
+      "none": "Aucun",
+      "disabledNote": "Le fournisseur est enregistré désactivé : personne ne peut se connecter avec lui tant que vous ne l'activez pas."
+    },
+    "done": {
+      "title": "{{name}} est enregistré",
+      "description": "Enregistrez les adresses ci-dessous auprès du fournisseur d'identité, puis activez et testez la connexion.",
+      "enable": "Activer le fournisseur",
+      "enableFirst": "Activez le fournisseur pour tester la connexion.",
+      "test": "Tester la connexion",
+      "previewHint": "Prévisualisez le mappage avec de vrais groupes : lancez le test de connexion ou chargez les groupes du fournisseur."
+    }
+  }
+}

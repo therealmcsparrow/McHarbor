@@ -1,5 +1,5 @@
 {
-  "label": "Docker Event Trigger",
+  "label": "Docker-Ereignis-Trigger",
   "description": "Startet einen Workflow aus Docker-Events mit Filter nach Typ, Aktion, Name oder Label",
   "config": {
     "environment": "Umgebung",
@@ -15,6 +15,34 @@
       "image": "Image",
       "volume": "Volume",
       "network": "Netzwerk"
+    },
+    "action": {
+      "create": "Erstellen",
+      "start": "Starten",
+      "stop": "Stoppen",
+      "restart": "Neustarten",
+      "die": "Beendet (die)",
+      "kill": "Kill",
+      "destroy": "Zerstören",
+      "pause": "Pausieren",
+      "unpause": "Fortsetzen",
+      "oom": "Speicher voll (OOM)",
+      "health_status": "Gesundheitsstatus",
+      "rename": "Umbenennen",
+      "update": "Aktualisieren",
+      "exec_create": "Exec erstellen",
+      "exec_start": "Exec starten",
+      "exec_die": "Exec beendet",
+      "pull": "Pull",
+      "push": "Push",
+      "delete": "Löschen",
+      "tag": "Taggen",
+      "untag": "Tag entfernen",
+      "prune": "Bereinigen",
+      "mount": "Einhängen",
+      "unmount": "Aushängen",
+      "connect": "Verbinden",
+      "disconnect": "Trennen"
     }
   }
 }

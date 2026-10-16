@@ -1,0 +1,60 @@
+{
+  "config": {
+    "name": { "help": "Display name for this SMTP communication channel." },
+    "host": { "help": "SMTP relay hostname or IP address." },
+    "port": { "help": "SMTP port. Use 587 for STARTTLS, 465 for implicit TLS, or 25 for plain/internal relays." },
+    "encryption": { "help": "One of starttls, ssl_tls, or none. STARTTLS is recommended for port 587." },
+    "auth_method": { "help": "One of none, plain, login, or cram_md5." },
+    "username": { "help": "SMTP AUTH username. Leave blank when authentication is none." },
+    "password": { "help": "SMTP AUTH password or app password. Stored encrypted at rest." },
+    "from_address": { "help": "Envelope sender and From header." },
+    "from_name": { "help": "Optional display name for the From header." },
+    "to": { "help": "Comma-separated recipient email addresses." },
+    "subject_prefix": { "help": "Optional prefix added to every notification subject." }
+  },
+  "menu": {
+    "root": "SMTP"
+  },
+  "forms": {
+    "config": "SMTP configuration",
+    "setupGuide": "SMTP setup guide"
+  },
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "usernameRequired": "Username is required",
+  "passwordRequired": "Password is required",
+  "title": "SMTP notification delivery",
+  "subtitle": "Plugin-owned communication channel",
+  "description": "This plugin owns the SMTP communication channel. It stores SMTP settings on the channel itself and does not use the removed host email-server surface.",
+  "nameLabel": "Channel name",
+  "namePlaceholder": "Operations email",
+  "hostLabel": "SMTP host",
+  "portLabel": "SMTP port",
+  "encryptionLabel": "Encryption",
+  "authMethodLabel": "Authentication",
+  "usernameLabel": "Username",
+  "passwordLabel": "Password",
+  "fromAddressLabel": "From address",
+  "fromNameLabel": "From name",
+  "toLabel": "Recipients",
+  "subjectPrefixLabel": "Subject prefix",
+  "securityTitle": "Security",
+  "securityHelp": "TLS and SMTP AUTH",
+  "securityDescription": "Use STARTTLS for port 587, SSL/TLS for port 465, and no encryption only for trusted internal relays.",
+  "testTitle": "Test connection",
+  "testHelp": "Sends email",
+  "testDescription": "The host test action sends a real email through this channel. Use a test recipient first if your relay pages an on-call mailbox.",
+  "requiredField": "Required",
+  "setupGuideTitle": "SMTP communication channel setup guide",
+  "guide": {
+    "step1": { "body": "Create or choose an SMTP relay account dedicated to McHarbor notifications. Prefer an app password or scoped relay credential over a personal mailbox password." },
+    "step2": { "body": "Set <b>SMTP host</b> and <b>port</b>. Use port <code>587</code> with <code>encryption=starttls</code> for most providers, port <code>465</code> with <code>encryption=ssl_tls</code> for implicit TLS, or port <code>25</code> with <code>encryption=none</code> only for trusted internal relays." },
+    "step3": { "body": "Select the authentication method your relay supports: <code>none</code>, <code>plain</code>, <code>login</code>, or <code>cram_md5</code>. Fill <b>Username</b> and <b>Password</b> for every method except <code>none</code>." },
+    "step4": { "body": "Set <b>From address</b> to a stable sender such as <code>mcharbor@example.com</code>. Some providers require this address to match the authenticated account or a verified sender identity." },
+    "step5": { "body": "Add one or more comma-separated recipients. Start with a test mailbox, then switch to your operations or on-call distribution list once delivery is confirmed." },
+    "step6": { "body": "Optionally set <b>Subject prefix</b>, for example <code>[McHarbor Prod]</code>, so alerts are easy to filter in mail clients and ticketing systems." },
+    "step7": { "body": "Save the channel and click <b>Test connection</b>. The plugin sends a real test email through the same SMTP path used for live workflow, alert, and backup events." },
+    "step8": { "body": "If Test fails with an authentication error, verify the username, app password, sender identity, and provider SMTP AUTH settings. If STARTTLS fails, confirm the port/encryption pairing." }
+  },
+  "encryptionOption": { "none": "None" },
+  "authOption": { "none": "None", "plain": "Plain", "login": "Login" }
+}

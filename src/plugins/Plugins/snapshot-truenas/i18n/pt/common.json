@@ -1,0 +1,51 @@
+{
+  "form": {
+    "connectionSection": "Conexão com o TrueNAS",
+    "targetSection": "Destino do snapshot",
+    "advancedSection": "Avançado",
+    "apiUrl": {
+      "label": "URL da API",
+      "help": "URL base da API middleware do TrueNAS. Inclua /api/v2.0."
+    },
+    "apiKey": {
+      "label": "Chave de API",
+      "help": "Chave de API gerada em Credentials → Local Users → <user> → API Keys. Armazenada criptografada em repouso pelo serviço de criptografia do host."
+    },
+    "datasetPath": {
+      "label": "Caminho do dataset",
+      "help": "Caminho do dataset ZFS do qual será feito o snapshot. Os snapshots são feitos recursivamente, cobrindo os datasets filhos."
+    },
+    "verifyTls": {
+      "label": "Verificar TLS",
+      "help": "Desative para aceitar certificados autoassinados (instalações padrão do TrueNAS). Desativado equivale a --insecure."
+    },
+    "recursiveHint": "Os snapshots são recursivos: um snapshot de tank/backups cobre tank/backups/child1 e tank/backups/child2. O host emite um snapshot por execução de backup; nenhum dataset filho recebe snapshot individualmente."
+  },
+  "setup": {
+    "title": "Antes de começar",
+    "intro": "O snapshot-truenas conversa com a API middleware do TrueNAS via HTTPS. Confirme que a API está acessível a partir do host e depois preencha o formulário.",
+    "steps": [
+      {
+        "title": "Confirme que o middleware do TrueNAS está acessível",
+        "body": "No host onde o McHarbor roda, verifique a conectividade HTTPS. Substitua nas.local pelo nome do host do seu TrueNAS:",
+        "code": "curl -k https://nas.local/api/v2.0/zfs/snapshot"
+      },
+      {
+        "title": "Crie um usuário dedicado (recomendado)",
+        "body": "Credentials → Local Users → Add. Conceda apenas os datasets dos quais deve ser feito snapshot. O isolamento por conta de serviço torna seguro revogar a chave de API depois."
+      },
+      {
+        "title": "Gere uma chave de API",
+        "body": "Credentials → Local Users → <user> → API Keys → Add. Copie a chave gerada — o TrueNAS só a mostra uma vez. Cole-a no campo Chave de API do formulário."
+      },
+      {
+        "title": "Identifique ou crie o dataset",
+        "body": "Storage → Pools → ⋮ → Add Dataset. Use um dataset dedicado (ex.: tank/backups) para que a rotatividade de snapshots não infle a lista de datasets. Anote o caminho exato — ele diferencia maiúsculas de minúsculas."
+      },
+      {
+        "title": "Teste a conexão",
+        "body": "Após salvar a configuração, clique em 'Testar conexão' na aba Snapshots. Um resultado verde confirma que a chave de API funciona e que o dataset existe no lado do TrueNAS."
+      }
+    ]
+  }
+}

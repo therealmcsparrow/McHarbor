@@ -1,7 +1,7 @@
 {
   "label": "Try Catch",
-  "description": "Guard downstream execution and route failures into a catch branch",
+  "description": "Die nachgelagerte Ausführung absichern und Fehler in einen Catch-Zweig leiten",
   "config": {
-    "error_property": "Error Property"
+    "error_property": "Fehlereigenschaft"
   }
 }

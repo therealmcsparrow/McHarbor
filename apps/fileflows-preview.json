@@ -1,0 +1,47 @@
+{
+    "slug":  "fileflows-preview",
+    "name":  "FileFlows (Preview)",
+    "description":  "Preview channel build of FileFlows. Rule-based file processing and media conversion automation.",
+    "category":  "Media",
+    "image":  "revenz/fileflows:preview",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/fileflows.png",
+    "website":  "https://fileflows.com",
+    "docsUrl":  "https://fileflows.com/docs",
+    "ports":  [
+                  {
+                      "host":  6000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fileflows-preview/data",
+                        "container":  "/app/Data"
+                    },
+                    {
+                        "host":  "/opt/appdata/fileflows-preview/logs",
+                        "container":  "/app/Logs"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/temp",
+                        "container":  "/temp"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "preview",
+    "latest":  {
+        "version":  "preview",
+        "release_date":  "2026-09-29"
+    }
+}

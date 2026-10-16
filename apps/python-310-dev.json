@@ -4,7 +4,7 @@
     "description":  "Python 3.10 slim image, stable interpreter with structural pattern matching and parenthesized context managers.",
     "category":  "Developer Tools",
     "image":  "python:3.10-slim",
-    "logo":  "https://icon.horse/icon/www.python.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/python.svg",
     "website":  "https://www.python.org",
     "docsUrl":  "https://docs.python.org/3.10/",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Force stdout/stderr streams to be unbuffered"
                     }
                 ],
-    "version":  "3.10-slim"
+    "version":  "3.10-slim",
+    "latest":  {
+        "version":  "3.10-slim",
+        "release_date":  "2026-09-10"
+    }
 }

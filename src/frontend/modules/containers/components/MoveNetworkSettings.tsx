@@ -57,9 +57,10 @@ export function MoveNetworkSettings({
     ...modeOptions,
     ...targetNetworkOptions.filter((option) => !modeOptions.some((mode) => mode.value === option.value)),
   ];
-  const modeSelectOptions = networkMode && !networkModeOptions.some((option) => option.value === networkMode)
-    ? [...networkModeOptions, { value: networkMode, label: networkMode }]
-    : networkModeOptions;
+  const modeSelectOptions =
+    networkMode && !networkModeOptions.some((option) => option.value === networkMode)
+      ? [...networkModeOptions, { value: networkMode, label: networkMode }]
+      : networkModeOptions;
 
   const targetNetworkPatch = (targetName: string): Partial<MoveNetworkConfig> => {
     const targetNetwork = targetNetworks.find((network) => network.Name === targetName);
@@ -77,33 +78,32 @@ export function MoveNetworkSettings({
     return patch;
   };
 
-  const primarySourceName = plan.networks.find((network) => (network.sourceName || network.name) === plan.networkMode)?.sourceName
-    || plan.networks.find((network) => network.name === plan.networkMode)?.name
-    || networks[0]?.sourceName
-    || '';
+  const primarySourceName =
+    plan.networks.find((network) => (network.sourceName || network.name) === plan.networkMode)?.sourceName ||
+    plan.networks.find((network) => network.name === plan.networkMode)?.name ||
+    networks[0]?.sourceName ||
+    '';
 
   const isPrimaryNetwork = (network: MoveNetworkConfig) => network.sourceName === primarySourceName;
-  const targetNameFor = (network: MoveNetworkConfig) => isPrimaryNetwork(network)
-    ? networkMode
-    : network.targetName;
+  const targetNameFor = (network: MoveNetworkConfig) => (isPrimaryNetwork(network) ? networkMode : network.targetName);
 
   const handleNetworkModeChange = (value: string) => {
     onNetworkModeChange(value);
-    onNetworksChange(networks.map((network) => (
-      isPrimaryNetwork(network) ? { ...network, ...targetNetworkPatch(value) } : network
-    )));
+    onNetworksChange(
+      networks.map((network) => (isPrimaryNetwork(network) ? { ...network, ...targetNetworkPatch(value) } : network)),
+    );
   };
 
   const updateNetwork = (sourceName: string, patch: Partial<MoveNetworkConfig>) => {
-    onNetworksChange(networks.map((network) => (
-      network.sourceName === sourceName ? { ...network, ...patch } : network
-    )));
+    onNetworksChange(
+      networks.map((network) => (network.sourceName === sourceName ? { ...network, ...patch } : network)),
+    );
   };
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <IconNetwork className="size-4 text-cyan-400" />
+        <IconNetwork className="size-4 text-chart-1" />
         {t('moveDialog.editNetworkSettings')}
       </div>
 
@@ -126,14 +126,14 @@ export function MoveNetworkSettings({
           const isBuiltin = builtinNetworkModes.has(targetName);
           const canConfigureEndpoint = targetName !== 'host' && targetName !== 'none';
           const showCreationFields = !!source?.willCreate && !isBuiltin;
-          const showEndpointFields = canConfigureEndpoint && (
-            !isBuiltin
-            || !!source?.ipAddress
-            || !!source?.macAddress
-            || !!network.ipAddress
-            || !!network.macAddress
-            || !!network.aliases?.length
-          );
+          const showEndpointFields =
+            canConfigureEndpoint &&
+            (!isBuiltin ||
+              !!source?.ipAddress ||
+              !!source?.macAddress ||
+              !!network.ipAddress ||
+              !!network.macAddress ||
+              !!network.aliases?.length);
           const showNetworkCard = showCreationFields || showEndpointFields || network.sourceName !== targetName;
           if (!showNetworkCard) return null;
 

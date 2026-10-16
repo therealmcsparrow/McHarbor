@@ -9,9 +9,7 @@ export const storageLocationList: NodeDefinition = {
   category: 'action',
   description: 'Return configured storage locations without secret values',
   icon: 'IconDatabaseSearch',
-  configSchema: [
-    { key: 'enabled_only', label: 'Enabled Only', type: 'toggle', required: false, default: true },
-  ],
+  configSchema: [{ key: 'enabled_only', label: 'Enabled Only', type: 'toggle', required: false, default: true }],
   inputPorts: ['input'],
   outputPorts: ['output', 'error'],
 };

@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Nom d'affichage de ce canal de communication Discord." },
+    "webhook_url": { "help": "URL du webhook du canal Discord. Stockée chiffrée au repos." }
+  },
+  "title": "Livraison des notifications Discord",
+  "subtitle": "Canal de communication géré par le plugin",
+  "description": "Ce plugin gère Discord. Il stocke l'URL du webhook Discord sur le canal lui-même et distribue les notifications via le runtime du plugin.",
+  "nameLabel": "Nom du canal",
+  "namePlaceholder": "Discord Opérations",
+  "webhookUrlLabel": "URL du webhook",
+  "securityTitle": "Sécurité",
+  "securityHelp": "URL du webhook chiffrée",
+  "securityDescription": "L'URL du webhook est stockée chiffrée au repos. Créez un webhook dédié pour McHarbor afin de pouvoir le renouveler indépendamment.",
+  "testTitle": "Tester la connexion",
+  "testHelp": "Envoie un message",
+  "testDescription": "L'action de test de l'hôte publie un vrai message sur le canal Discord configuré. Utilisez d'abord un canal de test privé si le webhook cible un salon d'astreinte.",
+  "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+  "requiredField": "Obligatoire",
+  "setupGuideTitle": "Guide de configuration du canal de communication Discord",
+  "guide": {
+    "step1": { "body": "Ouvrez le serveur Discord cible et créez un canal textuel dédié aux alertes McHarbor, ou choisissez un canal d'exploitation existant." },
+    "step2": { "body": "Ouvrez les paramètres du canal, accédez à <b>Integrations</b>, créez un webhook et copiez l'URL du webhook." },
+    "step3": { "body": "Collez l'URL du webhook dans la configuration de ce canal. McHarbor la stocke chiffrée et la masque dans les réponses de l'API." },
+    "step4": { "body": "Enregistrez le canal et cliquez sur <b>Tester la connexion</b>. Le plugin publie un vrai message de test dans Discord par le même chemin que celui des événements réels de workflow, d'alerte et de sauvegarde." },
+    "step5": { "body": "Si le test échoue, vérifiez que le webhook n'a pas été supprimé, que le canal existe toujours et que les autorisations du serveur permettent les publications par webhook." }
+  }
+}

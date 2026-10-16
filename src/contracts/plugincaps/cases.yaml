@@ -1,0 +1,1805 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+# Shared by src/backend/core/plugincaps (Parse) and src/cli/internal/cli (plugin dev validate).
+# Each case appends its `capabilities` text to `manifest`; `error` is a substring both
+# implementations must put in their message, and an empty `error` means the manifest must pass.
+manifest: |
+  schema: "mcharbor.plugin/v1"
+  slug: addon-demo
+  adds_permissions:
+    - key: "demo.view"
+    - key: "demo.backup.manage"
+    - key: "demo.backup.delete"
+    - key: "demo.restore.run"
+    - key: "demo.manage"
+    - key: "demo.console"
+  consumes_permissions:
+    - "compute.view"
+    - "host_updates.reboot"
+  contributes:
+    routes:
+      - method: GET
+        path: "/api/demo"
+      - method: DELETE
+        path: "/api/demo/backups/{runId}"
+      - method: DELETE
+        path: "/api/demo/backup-plans/{planId}"
+      - method: POST
+        path: "/api/demo/auth"
+        public: true
+      - method: POST
+        path: "/api/demo/private"
+      - method: GET
+        path: "/api/demo/machines"
+        requires_permission: "demo.view"
+      - method: POST
+        path: "/api/demo/machines/{id}/start"
+        requires_permission: "demo.manage"
+      - method: GET
+        path: "/api/demo/machines/{id}/logs"
+        requires_permission: "demo.view"
+      - method: POST
+        path: "/api/demo/reports"
+      - method: GET
+        path: "/api/demo/reports/{id}/export"
+      - method: GET
+        path: "/api/demo/reboot-drain"
+        requires_permission: "demo.view"
+      - method: POST
+        path: "/api/demo/reboot-drain/stop"
+        requires_permission: "host_updates.reboot"
+      - method: POST
+        path: "/api/demo/reboot-drain/foreign"
+        requires_permission: "other.manage"
+      - method: GET
+        path: "/api/demo/foreign-list"
+        requires_permission: "other.view"
+    nodes:
+      - "demo-trigger"
+    forms:
+      - {resource: channel, kind: config_form, key: pigeon}
+      - {resource: storage, kind: config_form, key: carrier}
+    capabilities:
+cases:
+  - name: every kind is accepted
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+      - kind: backup-row-actions
+        source_kind: vm
+        pages: {open: "/plugins/addon-demo/{subject}", restore: "/plugins/addon-demo/{subject}/r/{id}", edit_plan: "/plugins/addon-demo/{subject}/p/{id}"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+      - kind: estate-source
+        metric: vms
+        path: "/api/demo"
+        environment_field: environmentId
+      - kind: lifecycle-subject
+        subject_type: vm
+        page: "/plugins/addon-demo"
+      - kind: document-export
+        formats: [pdf, docx]
+        permission: compute.view
+        generate_path: "/api/demo/reports"
+        export_path: "/api/demo/reports/{id}/export"
+      - kind: login-endpoint
+        provider_type: ldap
+        path: "/api/demo/auth"
+  - name: unknown kind
+    error: unknown kind
+    capabilities: |
+      - kind: teleport
+        domain: vm
+  - name: missing required field
+    error: is required
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/api/demo"
+  - name: field from another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        page: "/plugins/addon-demo"
+  - name: bad token
+    error: must match
+    capabilities: |
+      - kind: runbook-provider
+        domain: "VM Stuff"
+  - name: bad environment field
+    error: is not a JSON field name
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/api/demo"
+        environment_field: "1bad"
+  - name: page under another plugin
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: lifecycle-subject
+        subject_type: vm
+        page: "/plugins/addon-other"
+  - name: page prefix trick
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: lifecycle-subject
+        subject_type: vm
+        page: "/plugins/addon-demo-evil"
+  - name: route outside the api tree
+    error: must start with /api/
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/demo"
+        environment_field: environmentId
+  - name: undeclared route
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/api/other"
+        environment_field: environmentId
+  - name: wrong method
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/api/demo/auth"
+        environment_field: environmentId
+  - name: login route not public
+    error: is declared but not public
+    capabilities: |
+      - kind: login-endpoint
+        provider_type: ldap
+        path: "/api/demo/private"
+  - name: malformed permission key
+    error: is not a permission key
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: "Not-A-Key"
+        generate_path: "/api/demo/reports"
+        export_path: "/api/demo/reports/{id}/export"
+  - name: foreign permission
+    error: neither in adds_permissions nor consumes_permissions
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: containers.manage
+        generate_path: "/api/demo/reports"
+        export_path: "/api/demo/reports/{id}/export"
+  - name: backup map missing a key
+    error: pages.edit_plan is required
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: backup map unknown key
+    error: is not a known key
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo", extra: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: backup route with the wrong method
+    error: routes.delete_run
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/private", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: backup permission not owned
+    error: permissions.restore
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: other.restore}
+  - name: declared twice
+    error: declared twice
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+      - kind: runbook-provider
+        domain: vm
+  - name: runbook descriptors are accepted
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            query: {env: "$env"}
+            id: id
+            name: [name]
+            detail: [state]
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            destructive: true
+            permissions: [demo.manage]
+            params:
+              - {name: vm, type: target, target: vm}
+              - {name: graceSeconds, type: int, min: 0, max: 3600}
+            call:
+              method: POST
+              path: "/api/demo/machines/{vm}/start"
+              body: [{json: graceSeconds, param: graceSeconds, type: int}]
+          - key: vm.logs
+            description_key: runbook.steps.logs
+            kind: diagnostic
+            target: vm
+            permissions: [demo.view]
+            params:
+              - {name: vm, type: target, target: vm}
+            call:
+              method: GET
+              path: "/api/demo/machines/{vm}/logs"
+              query: {env: "$env", tail: "=150"}
+              text: logs
+  - name: runbook step route not declared
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/reboot"}
+  - name: runbook step permission not owned
+    error: neither in adds_permissions nor consumes_permissions
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage, other.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook step key without the domain prefix
+    error: must start with the domain
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: ct.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook step param with an unknown type
+    error: is not one of
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}, {name: note, type: markdown}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook diagnostic that is not a read
+    error: a diagnostic is read-only
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: diagnostic
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook step omits the permission its route enforces
+    error: which permissions does not list
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.view]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook path placeholder names no param
+    error: names no param
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{machine}/start"}
+  - name: runbook step target is not declared
+    error: neither environment nor a kind under targets
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: pool
+            permissions: [demo.manage]
+            params: [{name: pool, type: target, target: pool}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook target list route not declared
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/elsewhere", id: id, name: [name]}
+  - name: runbook target kind outside the domain
+    error: must be vm or start with vm_
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: container, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+  - name: runbook steps without a namespace
+    error: i18n_ns
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+        steps:
+          - key: vm.start
+            description_key: runbook.steps.start
+            kind: action
+            target: vm
+            permissions: [demo.manage]
+            params: [{name: vm, type: target, target: vm}]
+            call: {method: POST, path: "/api/demo/machines/{vm}/start"}
+  - name: runbook field from another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: estate-source
+        metric: vms
+        path: "/api/demo"
+        environment_field: environmentId
+        domain: vm
+  - name: runbook target without a label key
+    error: label_key
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, path: "/api/demo/machines", id: id, name: [name]}
+  - name: runbook target label key is not an i18n key
+    error: is not an i18n key
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: "Not A Key!", path: "/api/demo/machines", id: id, name: [name]}
+  - name: runbook targets without a namespace
+    error: i18n_ns
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+  - name: runbook target of a kind the host has never heard of is accepted
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm_widget, label_key: runbook.targets.widget, path: "/api/demo/machines", id: id, name: [name]}
+  - name: document export without its generate route
+    error: generate_path is required
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: compute.view
+        export_path: "/api/demo/reports/{id}/export"
+  - name: document export without its download route
+    error: export_path is required
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: compute.view
+        generate_path: "/api/demo/reports"
+  - name: document export generate route not declared
+    error: generate_path
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: compute.view
+        generate_path: "/api/demo/elsewhere"
+        export_path: "/api/demo/reports/{id}/export"
+  - name: document export download route not declared
+    error: export_path
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: compute.view
+        generate_path: "/api/demo/reports"
+        export_path: "/api/demo/reports/{id}/download"
+  - name: document export generate route with the wrong method
+    error: generate_path
+    capabilities: |
+      - kind: document-export
+        formats: [pdf]
+        permission: compute.view
+        generate_path: "/api/demo/machines"
+        export_path: "/api/demo/reports/{id}/export"
+  - name: picker source over a declared runbook target
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", query: {env: "$env"}, id: id, name: [name], detail: [state]}
+      - kind: picker-source
+        target: vm
+  - name: picker source declared before its runbook provider
+    error: ""
+    capabilities: |
+      - kind: picker-source
+        target: vm
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+  - name: picker source naming no runbook target
+    error: is not a targets[].kind
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+      - kind: picker-source
+        target: vm_disk
+  - name: picker source without any runbook provider
+    error: is not a targets[].kind
+    capabilities: |
+      - kind: picker-source
+        target: vm
+  - name: picker source over a route without a permission
+    error: declares no requires_permission
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo", id: id, name: [name]}
+      - kind: picker-source
+        target: vm
+  - name: picker source with a malformed target
+    error: must match
+    capabilities: |
+      - kind: picker-source
+        target: "VM List"
+  - name: picker source with a field of another kind
+    error: does not apply
+    capabilities: |
+      - kind: picker-source
+        target: vm
+        path: "/api/demo/machines"
+  - name: picker source declared twice
+    error: declared twice
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, path: "/api/demo/machines", id: id, name: [name]}
+      - kind: picker-source
+        target: vm
+      - kind: picker-source
+        target: vm
+  - name: workflow node alias over a listed node
+    error: ""
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: demo-trigger
+        node: demo-trigger
+  - name: workflow node alias to a node the plugin does not list
+    error: is not listed under contributes.nodes
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: demo-trigger
+        node: other-node
+  - name: workflow node alias that is a composite action
+    error: must match
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: "plugin:addon-demo:demo-trigger"
+        node: demo-trigger
+  - name: workflow node alias without its node
+    error: exactly one of node or channel_type
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: demo-trigger
+  - name: workflow node alias claimed twice
+    error: declared twice
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: demo-trigger
+        node: demo-trigger
+      - kind: workflow-node-alias
+        alias: demo-trigger
+        node: demo-trigger
+  - name: email channel over the plugin's own channel type
+    error: ""
+    capabilities: |
+      - kind: email-channel
+        channel_type: pigeon
+  - name: email channel for a channel type the plugin does not mount
+    error: is not the key of a contributes.forms entry
+    capabilities: |
+      - kind: email-channel
+        channel_type: raven
+  - name: email channel naming a form of another resource
+    error: is not the key of a contributes.forms entry
+    capabilities: |
+      - kind: email-channel
+        channel_type: carrier
+  - name: email channel with a malformed channel type
+    error: must match
+    capabilities: |
+      - kind: email-channel
+        channel_type: "Pigeon Mail"
+  - name: email channel without its channel type
+    error: field channel_type is required
+    capabilities: |
+      - kind: email-channel
+  - name: email channel with a field of another kind
+    error: does not apply
+    capabilities: |
+      - kind: email-channel
+        channel_type: pigeon
+        node: demo-trigger
+  - name: email channel declared twice
+    error: declared twice
+    capabilities: |
+      - kind: email-channel
+        channel_type: pigeon
+      - kind: email-channel
+        channel_type: pigeon
+  - name: workflow node alias to the plugin's own channel type
+    error: ""
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: send-pigeon
+        channel_type: pigeon
+  - name: workflow node alias to a channel type the plugin does not mount
+    error: is not the key of a contributes.forms entry
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: send-raven
+        channel_type: raven
+  - name: workflow node alias naming both a node and a channel type
+    error: exactly one of node or channel_type
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: send-pigeon
+        node: demo-trigger
+        channel_type: pigeon
+  - name: workflow node alias claimed once as a node and once as a channel
+    error: declared twice
+    capabilities: |
+      - kind: workflow-node-alias
+        alias: send-pigeon
+        node: demo-trigger
+      - kind: workflow-node-alias
+        alias: send-pigeon
+        channel_type: pigeon
+  - name: runbook attach declared
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: runbook.attach.vm}
+
+  - name: runbook attach with a subject target of its own
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: runbook.attach.vm, subject_targets: [vm]}
+
+  - name: runbook attach subject target not declared
+    error: "is not a kind under targets"
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: runbook.attach.vm, subject_targets: [pod]}
+
+  - name: runbook attach kind outside the domain
+    error: "must be vm or start with vm_"
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: pod, label_key: runbook.attach.vm}
+
+  - name: runbook attach kind owned by the host
+    error: "belongs to the host"
+    capabilities: |
+      - kind: runbook-provider
+        domain: stack
+        i18n_ns: demo
+        targets:
+          - kind: stack
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: stack, label_key: runbook.attach.vm}
+
+  - name: runbook attach label_key malformed
+    error: "is not an i18n key"
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: "bad key"}
+
+  - name: runbook attach kind declared on two targets
+    error: "declared twice"
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - kind: vm
+            label_key: runbook.targets.vm
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: runbook.attach.vm}
+          - kind: vm_disk
+            label_key: runbook.targets.disk
+            path: "/api/demo/machines"
+            id: id
+            name: [name]
+            attach: {kind: vm, label_key: runbook.attach.vm}
+  - name: console subject declared
+    error: ""
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        consoles: [vnc, serial, spice]
+        permission: demo.console
+  - name: console subject with a console the agent cannot open
+    error: is not an agent console kind
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        consoles: [vnc, rdp]
+        permission: demo.console
+  - name: console subject listing a console twice
+    error: is listed twice
+    capabilities: |
+      - kind: console-subject
+        subject_type: ct
+        consoles: [tty, tty]
+        permission: demo.console
+  - name: console subject gated on a consumed host key
+    error: is not in adds_permissions
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        consoles: [vnc]
+        permission: compute.view
+  - name: console subject without consoles
+    error: field consoles is required
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        permission: demo.console
+  - name: console subject with a malformed subject type
+    error: must match
+    capabilities: |
+      - kind: console-subject
+        subject_type: "Virtual Machine"
+        consoles: [vnc]
+        permission: demo.console
+  - name: console subject with a field of another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        consoles: [vnc]
+        permission: demo.console
+        page: "/plugins/addon-demo"
+  - name: console subject declared twice
+    error: declared twice
+    capabilities: |
+      - kind: console-subject
+        subject_type: vm
+        consoles: [vnc]
+        permission: demo.console
+      - kind: console-subject
+        subject_type: vm
+        consoles: [serial]
+        permission: demo.console
+  - name: consoles on a kind that does not take them
+    error: does not apply to this kind
+    capabilities: |
+      - kind: lifecycle-subject
+        subject_type: vm
+        page: "/plugins/addon-demo"
+        consoles: [vnc]
+  - name: agent rpc declared with send and observe
+    error: ""
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start, vm_query, ct_create, net_ensure_request]
+        observe: [vm_event, net_lease_event]
+  - name: agent rpc declared with send only
+    error: ""
+    capabilities: |
+      - kind: agent-rpc
+        send: [ct_backup_run]
+  - name: agent rpc declaring the compute foundation's probe, pool, link and image messages
+    error: ""
+    capabilities: |
+      - kind: agent-rpc
+        send: [compute_probe_request, compute_config_request, compute_migrate_request, pool_detect_request, pool_file_request, net_detect_request, compute_image_fetch, compute_image_list]
+        observe: [net_lease_event, compute_migrate_progress]
+  - name: agent rpc sending the host's own image cancel
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [compute_image_fetch, compute_image_cancel]
+  - name: agent rpc sending the external switch confirmation
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [net_ensure_request, net_adopt_confirm]
+  - name: agent rpc sending an unknown message type
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_teleport]
+  - name: agent rpc sending a terminal message outside the ceiling
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start, exec_start]
+  - name: agent rpc sending an agent self-update outside the ceiling
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [agent_update_request]
+  - name: agent rpc sending a frame it may only observe
+    error: is outside the agent-rpc ceiling
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_event]
+  - name: agent rpc listing a send type twice
+    error: is listed twice
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start, vm_start]
+  - name: agent rpc listing an observed frame twice
+    error: is listed twice
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start]
+        observe: [vm_event, vm_event]
+  - name: agent rpc with an empty send list
+    error: field send is required
+    capabilities: |
+      - kind: agent-rpc
+        send: []
+        observe: [vm_event]
+  - name: agent rpc observing an unknown frame
+    error: is not an observable agent frame
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start]
+        observe: [exec_output]
+  - name: agent rpc with a field of another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start]
+        permission: demo.manage
+  - name: agent rpc declared twice
+    error: declared twice
+    capabilities: |
+      - kind: agent-rpc
+        send: [vm_start]
+      - kind: agent-rpc
+        send: [ct_start]
+  - name: send on a kind that does not take it
+    error: does not apply to this kind
+    capabilities: |
+      - kind: lifecycle-subject
+        subject_type: vm
+        page: "/plugins/addon-demo"
+        send: [vm_start]
+  - name: reboot drain declared
+    error: ""
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop"}
+  - name: reboot drain without a stop route
+    error: routes.stop is required
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain"}
+  - name: reboot drain with a route key the host does not call
+    error: is not a known key
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop", kill: "/api/demo/private"}
+  - name: reboot drain naming a route the plugin does not declare
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/guests/running", stop: "/api/demo/reboot-drain/stop"}
+  - name: reboot drain stopping through a GET route
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain"}
+  - name: reboot drain listing through an ungated route
+    error: declares no requires_permission
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo", stop: "/api/demo/reboot-drain/stop"}
+  - name: reboot drain stopping through a public route
+    error: is public
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/auth"}
+  - name: reboot drain gated on a key the plugin has no stake in
+    error: neither in adds_permissions nor consumes_permissions
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/foreign"}
+  - name: reboot drain with a placeholder route
+    error: must not carry placeholders
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/machines/{id}/logs", stop: "/api/demo/reboot-drain/stop"}
+  - name: reboot drain with a malformed subject type
+    error: must match
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: "Virtual Machine"
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop"}
+  - name: reboot drain with a field of another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop"}
+        permission: demo.manage
+  - name: reboot drain declared twice for one subject
+    error: declared twice
+    capabilities: |
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop"}
+      - kind: reboot-drain
+        subject_type: vm
+        routes: {running: "/api/demo/reboot-drain", stop: "/api/demo/reboot-drain/stop"}
+  - name: search source and action are accepted
+    error: ""
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            items: rows
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: vm_log
+            label_key: search.group.vms
+            path: "/api/demo/reboot-drain"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/vms/{id}/logs?tab=log"
+            icon: server
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo?action=create"
+            permission: demo.manage
+          - key: vm.import
+            label_key: search.action.createVm
+            icon: download
+            link: "/plugins/addon-demo"
+            permission: compute.view
+  - name: search source fanned out per item, linking with a query placeholder
+    error: ""
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host}"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/reboot-drain"
+              items: rows
+              id: id
+              param: host
+              label: name
+  - name: search source fan out combined with env scoped
+    error: are exclusive
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host}"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/reboot-drain"
+              items: rows
+              id: id
+              param: host
+              label: name
+  - name: search source fan out over an undeclared route
+    error: "fan_out: GET /api/demo/missing is not a route this plugin declares"
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host}"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/missing"
+              items: rows
+              id: id
+              param: host
+              label: name
+  - name: search source fan out with a malformed parameter
+    error: fan_out param
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host}"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/reboot-drain"
+              items: rows
+              id: id
+              param: Host-1
+              label: name
+  - name: search source fan out taking the palette's env parameter
+    error: palette's own environment parameter
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host}"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/reboot-drain"
+              items: rows
+              id: id
+              param: env
+              label: name
+  - name: search source link with a malformed query placeholder
+    error: is not name=value
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: false
+            id: id
+            name: [name]
+            link: "/plugins/addon-demo/{id}?host={host"
+            icon: device-desktop
+            fan_out:
+              path: "/api/demo/reboot-drain"
+              items: rows
+              id: id
+              param: host
+              label: name
+  - name: search source on an undeclared route
+    error: is not a route this plugin declares
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/missing"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source on a route that is not GET
+    error: GET /api/demo/private is not a route this plugin declares
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/private"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source on a route without a permission
+    error: declares no requires_permission
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source on a route gated by a foreign key
+    error: neither in adds_permissions nor consumes_permissions
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/foreign-list"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source path with a placeholder
+    error: must not carry placeholders
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines/{id}/logs"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source link to an absolute URL
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "https://evil.example/plugins/addon-demo"
+            icon: device-desktop
+  - name: search source link into another plugin
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-other/{id}"
+            icon: device-desktop
+  - name: search source link with a slug prefix trick
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo-evil/{id}"
+            icon: device-desktop
+  - name: search source link with a dot segment
+    error: "is not a page name or a {field} placeholder"
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/../settings"
+            icon: device-desktop
+  - name: search source link with a malformed placeholder
+    error: "is not a page name or a {field} placeholder"
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id-x}"
+            icon: device-desktop
+  - name: search source with an unknown icon
+    error: "is not in the palette's icon list"
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: skull
+  - name: search source with a malformed key
+    error: must match
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: "VM"
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source with a malformed label key
+    error: is not an i18n key
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: "search group"
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source with a malformed id field
+    error: is not a JSON field name
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: "a-b"
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source without a name field
+    error: name must name between 1 and 4 fields
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: []
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source with a malformed items path
+    error: is not a dotted JSON field path
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            items: "pods..x"
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source key declared twice
+    error: key vm declared twice
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source without a namespace
+    error: field i18n_ns is required
+    capabilities: |
+      - kind: search-source
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source with a field of another kind
+    error: does not apply to this kind
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+        page: "/plugins/addon-demo"
+  - name: search sources over the limit
+    error: at most 8
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: s0
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s1
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s2
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s3
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s4
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s5
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s6
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s7
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+          - key: s8
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search source declared twice by one plugin
+    error: declared twice
+    capabilities: |
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: vm
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+      - kind: search-source
+        i18n_ns: demo
+        sources:
+          - key: other
+            label_key: search.group.vms
+            path: "/api/demo/machines"
+            env_scoped: true
+            id: id
+            name: [name]
+            detail: [state, host]
+            link: "/plugins/addon-demo/{id}"
+            icon: device-desktop
+  - name: search action gated by a foreign key
+    error: neither in adds_permissions nor consumes_permissions
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo?action=create"
+            permission: containers.manage
+  - name: search action without a permission
+    error: is not a permission key
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo?action=create"
+  - name: search action link with a placeholder
+    error: must not carry placeholders
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo/{id}"
+            permission: demo.manage
+  - name: search action link with a fragment
+    error: is not name=value
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo?action=create#x"
+            permission: demo.manage
+  - name: search action link to a script URL
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "javascript:alert(1)"
+            permission: demo.manage
+  - name: search action with a malformed key
+    error: must match
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: "Create VM"
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: plus
+            link: "/plugins/addon-demo?action=create"
+            permission: demo.manage
+  - name: search action with a malformed keywords key
+    error: keywords_key
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: "create vm"
+            icon: plus
+            link: "/plugins/addon-demo?action=create"
+            permission: demo.manage
+  - name: search action with an unknown icon
+    error: "is not in the palette's icon list"
+    capabilities: |
+      - kind: search-action
+        i18n_ns: demo
+        actions:
+          - key: vm.create
+            label_key: search.action.createVm
+            keywords_key: search.action.createVmKeywords
+            icon: bomb
+            link: "/plugins/addon-demo?action=create"
+            permission: demo.manage
+  - name: backup source label is accepted
+    error: ""
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        label_key: backups.sourceLabel
+        i18n_ns: demo
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: backup source label without its namespace
+    error: label_key and i18n_ns come together
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        label_key: backups.sourceLabel
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: backup source label that is not a key
+    error: "label_key \"backups source\" is not an i18n key"
+    capabilities: |
+      - kind: backup-row-actions
+        source_kind: vm
+        label_key: "backups source"
+        i18n_ns: demo
+        pages: {open: "/plugins/addon-demo", restore: "/plugins/addon-demo", edit_plan: "/plugins/addon-demo"}
+        routes: {delete_run: "/api/demo/backups/{id}", delete_plan: "/api/demo/backup-plans/{id}"}
+        permissions: {view: demo.view, manage: demo.backup.manage, delete: demo.backup.delete, restore: demo.restore.run}
+  - name: runbook target empty label is accepted
+    error: ""
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, empty_label_key: runbook.targets.vmDefault, path: "/api/demo/machines", id: id, name: [name]}
+  - name: runbook target empty label that is not a key
+    error: empty_label_key
+    capabilities: |
+      - kind: runbook-provider
+        domain: vm
+        i18n_ns: demo
+        targets:
+          - {kind: vm, label_key: runbook.targets.vm, empty_label_key: "the default", path: "/api/demo/machines", id: id, name: [name]}
+  - name: estate source on environment cards, per environment
+    error: ""
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        env_scoped: true
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: device-desktop
+        running_field: state
+        running_values: [running]
+        link: "/plugins/addon-demo/{environmentId}"
+  - name: estate source on environment cards, filtered by environment field
+    error: ""
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: server
+  - name: estate source neither env scoped nor carrying an environment field
+    error: environment_field is required
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+  - name: estate source card field without a label key
+    error: applies only to a source that names a label_key
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        icon: server
+  - name: estate source label that is not a key
+    error: is not an i18n key
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: "the machines"
+        i18n_ns: demo
+        icon: server
+  - name: estate source label without its namespace
+    error: label_key and i18n_ns come together
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        icon: server
+  - name: estate source with an unknown icon
+    error: is not in the palette's icon list
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: flux-capacitor
+  - name: estate source running values without a running field
+    error: running_field and running_values come together
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: server
+        running_values: [running]
+  - name: estate source on a route with no permission gate
+    error: declares no requires_permission
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: server
+  - name: estate source link outside the plugin
+    error: must be /plugins/addon-demo or a path under it
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: server
+        link: "/plugins/addon-other"
+  - name: estate source link with a foreign placeholder
+    error: may only carry the {environmentId} placeholder
+    capabilities: |
+      - kind: estate-source
+        metric: machines
+        path: "/api/demo/machines"
+        environment_field: environmentId
+        label_key: estate.machines
+        i18n_ns: demo
+        icon: server
+        link: "/plugins/addon-demo/{id}"

@@ -1,0 +1,39 @@
+{
+    "slug":  "zot",
+    "name":  "Zot Registry",
+    "description":  "Minimal, vendor-neutral OCI image and artifact registry with a small footprint.",
+    "category":  "CI/CD",
+    "image":  "ghcr.io/project-zot/zot:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/zot-registry.svg",
+    "website":  "https://zotregistry.dev",
+    "docsUrl":  "https://zotregistry.dev/latest/install-guides/",
+    "ports":  [
+                  {
+                      "host":  5010,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zot/data",
+                        "container":  "/var/lib/registry"
+                    },
+                    {
+                        "host":  "/opt/appdata/zot/config",
+                        "container":  "/etc/zot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -4,7 +4,7 @@
     "description":  "Platform to programmatically author, schedule, and monitor complex data workflows as DAGs.",
     "category":  "Databases",
     "image":  "apache/airflow:latest",
-    "logo":  "https://icon.horse/icon/airflow.apache.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/apache-airflow.svg",
     "website":  "https://airflow.apache.org",
     "docsUrl":  "https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html",
     "ports":  [
@@ -62,5 +62,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

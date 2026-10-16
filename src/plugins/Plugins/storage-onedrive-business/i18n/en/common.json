@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "OneDrive for Business Backup Destinations",
+    "subtitle": "Back up containers to OneDrive for Business drives under a work/school tenant. The plugin handles Test, Upload, Download, Delete, and List at backup time. Large backups use Microsoft's chunked upload session so there is no size cap.",
+    "registerHint": "Add a destination from the host's Storage Locations page and pick \"OneDrive for Business\" as the type."
+  },
+  "fields": {
+    "clientId":     "Azure AD application (client) ID",
+    "clientSecret": "Azure AD client secret",
+    "refreshToken": "Refresh token (delivered by the OAuth consent flow)",
+    "tenantId":     "Azure AD tenant ID",
+    "upn":          "User Principal Name (UPN) for the service account",
+    "driveId":      "Drive ID (leave empty to use the service account's drive)"
+  },
+  "help": {
+    "clientId":     "Register an app at https://entra.microsoft.com → App registrations. The app must have Files.ReadWrite.All and User.Read delegated permissions.",
+    "clientSecret": "Generate a client secret in the Azure AD app registration. It is encrypted at rest by the host's AES-256-GCM service.",
+    "refreshToken": "After saving the destination, click \"Save and connect\" to complete the Microsoft consent flow and store a long-lived refresh token.",
+    "tenantId":     "Find your tenant ID at https://entra.microsoft.com → Tenant properties.",
+    "upn":          "The service account's User Principal Name (e.g. backups@contoso.onmicrosoft.com). Required when Drive ID is empty.",
+    "driveId":      "Optional. Leave empty to target the service account's drive."
+  },
+  "toast": {
+    "registered": "OneDrive for Business plugin registered.",
+    "testPassed": "OneDrive for Business connection test passed.",
+    "testFailed": "OneDrive for Business connection test failed: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure AD application (client) ID is required.",
+    "noClientSecret": "Azure AD client secret is required.",
+    "noRefreshToken": "Refresh token is required. Run \"Save and connect\" first.",
+    "noTenantId":     "Azure AD tenant ID is required for OneDrive for Business destinations.",
+    "noUpn":          "User Principal Name (UPN) is required when no Drive ID is set."
+  },
+  "form": {
+    "intro": {
+      "title": "Microsoft 365 consent",
+      "body": "Save this location, then use Connect to grant account consent. McHarbor stores the returned tokens encrypted."
+    },
+    "tenantId": {
+      "label": "Tenant ID",
+      "help": "Microsoft Entra tenant ID (GUID). From Entra admin center > Overview. The OAuth consent flow redirects to login.microsoftonline.com/{tenant_id}/…"
+    },
+    "clientId": {
+      "label": "Client ID",
+      "help": "Application (client) ID of the Entra app registration with Files.ReadWrite delegated permission and a Web redirect URI pointing at this McHarbor host."
+    },
+    "clientSecret": {
+      "label": "Client Secret",
+      "help": "Client secret value from Entra admin center → App registrations → Certificates & secrets. Stored encrypted at rest."
+    },
+    "driveId": {
+      "label": "Drive ID",
+      "help": "Optional. Fully-qualified Graph drive identifier. Leave blank to use the service account's drive (resolved via UPN or /me/drive)."
+    },
+    "basePath": {
+      "label": "Base Path",
+      "help": "Optional. Graph path inside the drive, e.g. /Backups/2026. Leave blank to use the drive root. Not prefilled on purpose."
+    },
+    "upn": {
+      "label": "User Principal Name (UPN)",
+      "help": "Optional. UPN of the service account, e.g. backups@contoso.onmicrosoft.com. When drive_id is also blank, uploads target /users/{upn}/drive; if both upn and drive_id are blank, /me/drive (the refresh token's user) is used as a fallback."
+    }
+  },
+  "setup": {
+    "title": "OneDrive for Business setup guide",
+    "step1": "In the Microsoft Entra admin center, open <b>App registrations > New registration</b>. Pick <b>Accounts in this organizational directory only</b> as the supported account type and copy the <b>Tenant ID</b> from the <b>Overview</b> page — paste it into the <b>Tenant ID</b> field on the left.",
+    "step2": "Under <b>Certificates & secrets</b>, create a new client secret. Copy the <b>Value</b> (not the <b>Secret ID</b>) — paste it into the <b>Client Secret</b> field on the left. Copy the <b>Application (client) ID</b> into the <b>Client ID</b> field.",
+    "step3": "Grant the app the <code>Files.ReadWrite.All</code> and <code>User.Read</code> application permissions (admin consent required). The OAuth flow will request <code>offline_access</code> on the operator's behalf.",
+    "step4": "Set the <b>UPN</b> to the service account you want to back up to. Leave blank to use the refresh token's user (<code>/me/drive</code>). <b>Drive ID</b> is optional — leave blank to target the resolved drive (the service account when UPN is set, the refresh-token user otherwise).",
+    "step5": "Leave <b>Base Path</b> blank for the drive root, or enter an explicit Graph path like <code>/Backups/2026</code>. The form does not prefill a default.",
+    "step6": "Click <b>Save and connect</b> (or <b>Connect</b> on the storage card). Microsoft will ask you to sign in and grant the requested scopes. McHarbor stores the returned refresh token encrypted and <warn>never shows it again</warn>.",
+    "step7": "Click <b>Test connection</b> to round-trip a probe object in the chosen drive."
+  }
+}

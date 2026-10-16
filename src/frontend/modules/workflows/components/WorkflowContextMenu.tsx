@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { cssVars } from '@resources/utils/cssVars';
 import { useEffect, useRef, useState } from 'react';
 import { IconChevronRight } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
@@ -49,8 +50,8 @@ export function WorkflowContextMenu({ x, y, items, onSelect, onClose }: Workflow
   return (
     <div
       ref={menuRef}
-      className="fixed z-[100] min-w-[180px] rounded-lg border border-border bg-popover py-1 shadow-xl"
-      style={{ left: x, top: y }}
+      className="fixed top-(--y) left-(--x) z-100 min-w-[180px] rounded-lg border border-border bg-popover py-1 shadow-xl"
+      style={cssVars({ x: `${x}px`, y: `${y}px` })}
     >
       {items.map((item, i) => {
         if (item.separator) {
@@ -62,13 +63,14 @@ export function WorkflowContextMenu({ x, y, items, onSelect, onClose }: Workflow
             <div
               key={item.key}
               className="relative"
+              role="presentation"
               onMouseEnter={() => setOpenSub(item.key)}
               onMouseLeave={() => setOpenSub(null)}
             >
               <Button
                 variant="ghost"
                 className={cn(
-                  'flex w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs h-auto text-foreground',
+                  'flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs text-foreground',
                 )}
               >
                 {item.icon && <span className="size-3.5 shrink-0">{item.icon}</span>}
@@ -76,10 +78,7 @@ export function WorkflowContextMenu({ x, y, items, onSelect, onClose }: Workflow
                 <IconChevronRight className="size-3 text-muted-foreground" />
               </Button>
               {openSub === item.key && (
-                <div
-                  className="absolute left-full top-0 z-[101] min-w-[180px] rounded-lg border border-border bg-popover py-1 shadow-xl"
-                  style={{ marginLeft: 2 }}
-                >
+                <div className="absolute top-0 left-full z-101 ml-0.5 min-w-[180px] rounded-lg border border-border bg-popover py-1 shadow-xl">
                   {item.children.map((child, ci) => {
                     if (child.separator) {
                       return <div key={`csep-${ci}`} className="my-1 border-t border-border" />;
@@ -96,11 +95,9 @@ export function WorkflowContextMenu({ x, y, items, onSelect, onClose }: Workflow
                           }
                         }}
                         className={cn(
-                          'flex w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs h-auto',
-                          child.disabled && 'opacity-30 cursor-not-allowed',
-                          child.danger
-                            ? 'text-red-400 hover:bg-red-500/10'
-                            : 'text-foreground',
+                          'flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs',
+                          child.disabled && 'cursor-not-allowed opacity-30',
+                          child.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground',
                         )}
                       >
                         {child.icon && <span className="size-3.5 shrink-0">{child.icon}</span>}
@@ -129,18 +126,14 @@ export function WorkflowContextMenu({ x, y, items, onSelect, onClose }: Workflow
               }
             }}
             className={cn(
-              'flex w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs h-auto',
-              item.disabled && 'opacity-30 cursor-not-allowed',
-              item.danger
-                ? 'text-red-400 hover:bg-red-500/10'
-                : 'text-foreground',
+              'flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-1.5 text-xs',
+              item.disabled && 'cursor-not-allowed opacity-30',
+              item.danger ? 'text-danger hover:bg-danger/10' : 'text-foreground',
             )}
           >
             {item.icon && <span className="size-3.5 shrink-0">{item.icon}</span>}
             <span className="flex-1 text-left">{item.label}</span>
-            {item.shortcut && (
-              <span className="text-[10px] text-muted-foreground/60">{item.shortcut}</span>
-            )}
+            {item.shortcut && <span className="text-[10px] text-muted-foreground/60">{item.shortcut}</span>}
           </Button>
         );
       })}

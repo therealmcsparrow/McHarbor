@@ -7,6 +7,28 @@
   "tableView": "Visualização de tabela",
   "cardView": "Visualização de cartão",
   "columns": {
+    "id": "ID",
+    "type": "Tipo",
+    "orchestrator": "Orquestrador",
+    "createdAt": "Criado",
+    "updatedAt": "Atualizado",
+    "protected": "Protegido",
+    "environment": "Ambiente",
+    "containerIds": "IDs dos contêineres",
+    "owner": "Proprietário",
+    "groupOwner": "Proprietário",
+    "groupStack": "Stack",
+    "groupEnvironment": "Ambiente",
+    "groupContainers": "Contêineres",
+    "containerName": "Nome do contêiner",
+    "statusText": "Status",
+    "imageId": "ID da imagem",
+    "command": "Comando",
+    "networks": "Redes",
+    "ipAddresses": "Endereços IP",
+    "volumes": "Volumes",
+    "labels": "Rótulos",
+    "groupContainer": "Contêiner",
     "name": "Nome",
     "status": "Status",
     "services": "Serviços",
@@ -16,8 +38,8 @@
     "created": "Criado"
   },
   "badges": {
-    "managed": "gerenciou",
-    "discovered": "descoberto"
+    "managed": "Gerenciou",
+    "discovered": "Descoberto"
   },
   "actions": {
     "view": "Ver detalhes",
@@ -92,8 +114,10 @@
     "composeFile": "Arquivo Compose",
     "editCompose": "Editar",
     "saveCompose": "Salvar",
+    "revealComposeValues": "Mostrar valores",
+    "hideComposeValues": "Ocultar valores",
     "readOnly": "Somente leitura (pilha descoberta)",
-    "envVars": "Variáveis ​​de ambiente",
+    "envVars": "Variáveis de ambiente",
     "noEnvVars": "Nenhuma variável de ambiente configurada.",
     "key": "Chave",
     "value": "Valor",
@@ -107,7 +131,10 @@
     "loadingLayers": "Carregando camadas...",
     "webhooks": "Webhooks",
     "editMode": "Editar",
-    "descriptionPlaceholder": "Descrição da pilha..."
+    "descriptionPlaceholder": "Descrição da pilha...",
+    "tabs": {
+      "ariaLabel": "Seções do stack"
+    }
   },
   "webhooks": {
     "title": "Webhooks",
@@ -138,19 +165,21 @@
     "button": "Podar órfãos",
     "pruning": "Poda...",
     "noOrphans": "Nenhum serviço órfão encontrado",
-    "removed": "Serviços órfãos {{count}} removidos"
+    "removed_one": "Serviços órfãos {{count}} removidos",
+    "removed_other": "Serviços órfãos {{count}} removidos"
   },
   "editStack": {
     "editStack": "Editar pilha",
     "saveStack": "Salvar",
     "saving": "Salvando...",
-    "cancel": "Cancelar",
-    "envVarsSaved": "Variáveis ​​de ambiente salvas"
+    "cancel": "Cancelar"
   },
   "confirm": {
     "removeTitle": "Remover pilha",
     "removeDescription": "Isso irá parar e remover todos os contêineres em \"{{name}}\" e excluí-los permanentemente.",
-    "removeLabel": "Remover"
+    "removeLabel": "Remover",
+    "downTitle": "Derrubar stack",
+    "downDescription": "Isto para e remove todos os contêineres e redes de \"{{name}}\". Os volumes e a definição da stack são mantidos."
   },
   "takeOver": {
     "title": "Assumir o gerenciamento",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Reinstale todas as pilhas",
-      "reinstallAllDescription": "Forçar a recriação de pilhas gerenciadas {{count}} com suas imagens atuais. Isso pode interromper brevemente os serviços em execução."
+      "reinstallAllDescription_one": "Forçar a recriação de {{count}} pilha gerenciada com suas imagens atuais. Isso pode interromper brevemente os serviços em execução.",
+      "reinstallAllDescription_other": "Forçar a recriação de {{count}} pilhas gerenciadas com suas imagens atuais. Isso pode interromper brevemente os serviços em execução."
     }
   },
   "toast": {
@@ -215,7 +245,14 @@
     "webhookCreated": "Webhook criado",
     "webhookUpdated": "Webhook atualizado",
     "webhookDeleted": "Webhook excluído",
-    "envVarsSaved": "Variáveis ​​de ambiente salvas",
-    "pruned": "Serviços órfãos {{count}} removidos"
+    "envVarsSaved": "Variáveis de ambiente salvas",
+    "pruned_one": "Serviços órfãos {{count}} removidos",
+    "pruned_other": "Serviços órfãos {{count}} removidos"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Aguardando a API do McHarbor voltar a ficar on-line...",
+      "apiRecoveryTimeout": "A API do McHarbor não voltou a ficar on-line a tempo."
+    }
   }
 }

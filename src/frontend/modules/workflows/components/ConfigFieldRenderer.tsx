@@ -1,27 +1,19 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { IconEye, IconEyeOff } from "@tabler/icons-react";
-import { cn } from "@resources/utils/cn";
-import { Button } from "@resources/components/ui/Button";
-import { Input } from "@resources/components/ui/Input";
-import { NumberInput } from "@resources/components/ui/NumberInput";
-import { Label } from "@resources/components/ui/Label";
-import { Switch } from "@resources/components/ui/Switch";
-import { MetricConditionsField } from "./MetricConditionsField";
-import { CronField } from "./CronField";
-import { CodeField } from "./CodeField";
-import { EnvironmentSelect } from "./EnvironmentSelect";
-import { ContainerSelect } from "./ContainerSelect";
-import { LinkOutputSelect } from "./LinkOutputSelect";
-import { EmailServerSelect } from "./EmailServerSelect";
-import { CommunicationChannelSelect } from "./CommunicationChannelSelect";
-import { WebhookSelect } from "./WebhookSelect";
-import { RegistrySelect } from "./RegistrySelect";
-import { StorageLocationSelect } from "./StorageLocationSelect";
-import type { ConfigField } from "../types";
+import { useTranslation } from 'react-i18next';
+import { NumberInput } from '@resources/components/ui/NumberInput';
+import { Label } from '@resources/components/ui/Label';
+import { Switch } from '@resources/components/ui/Switch';
+import { displayValue } from '../utils/display-value';
+import { MetricConditionsField } from './MetricConditionsField';
+import { CronField } from './CronField';
+import { CodeField } from './CodeField';
+import { ConfigTextField } from './ConfigTextField';
+import { ConfigSelectField } from './ConfigSelectField';
+import { ConfigFieldLabelled } from './ConfigFieldLabelled';
+import { ConfigResourceField } from './ConfigResourceField';
+import type { ConfigField } from '../types';
 
 interface ConfigFieldRendererProps {
   field: ConfigField;
@@ -33,7 +25,7 @@ interface ConfigFieldRendererProps {
 
 function parseJsonInput(text: string, emptyValue: unknown): unknown {
   const trimmed = text.trim();
-  if (trimmed === "") {
+  if (trimmed === '') {
     return emptyValue;
   }
   try {
@@ -43,262 +35,58 @@ function parseJsonInput(text: string, emptyValue: unknown): unknown {
   }
 }
 
-function maskSecretValue(value: string): string {
-  if (!value) {
-    return "";
-  }
-
-  const visibleLength = Math.min(value.length, 32);
-  const masked = "•".repeat(visibleLength);
-  return value.length > visibleLength ? `${masked}…` : masked;
-}
-
-export function ConfigFieldRenderer({
-  field,
-  value,
-  onChange,
-  nodeConfig,
-  nodeKey,
-}: ConfigFieldRendererProps) {
-  const { t } = useTranslation("common");
-  const [showSecret, setShowSecret] = useState(false);
-  const strVal =
-    value != null
-      ? String(value)
-      : field.default != null
-        ? String(field.default)
-        : "";
+export function ConfigFieldRenderer({ field, value, onChange, nodeConfig, nodeKey }: ConfigFieldRendererProps) {
+  const { t } = useTranslation('common');
+  const strVal = value != null ? displayValue(value) : displayValue(field.default);
   const fieldLabel = nodeKey
-    ? t(`nodes:${nodeKey}.config.${field.key}`, { defaultValue: field.label })
+    ? // eslint-disable-next-line mcharbor/no-restricted-syntax -- i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
+      t(`nodes:${nodeKey}.config.${field.key}`, { defaultValue: field.label })
     : field.label;
-  const secretToggleLabel = showSecret
-    ? t("workflows.hideSensitiveField", { defaultValue: `Hide ${fieldLabel}` })
-    : t("workflows.showSensitiveField", { defaultValue: `Show ${fieldLabel}` });
+  const envId =
+    typeof nodeConfig.environment === 'string' && nodeConfig.environment ? nodeConfig.environment : undefined;
+  const containerId =
+    typeof nodeConfig.container === 'string' && nodeConfig.container ? nodeConfig.container : undefined;
+  const optionLabel = (optValue: string, fallback: string) =>
+    nodeKey
+      ? t(`nodes:${nodeKey}.options.${field.key}.${optValue}`, {
+          // eslint-disable-next-line mcharbor/no-restricted-syntax -- i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
+          defaultValue: fallback,
+        })
+      : fallback;
 
   switch (field.type) {
-    case "text":
-    case "expression":
+    case 'text':
+    case 'expression':
+    case 'textarea':
+      return <ConfigTextField field={field} strVal={strVal} onChange={onChange} fieldLabel={fieldLabel} />;
+
+    case 'number':
       return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <div className="flex items-center gap-2">
-            <Input
-              type={field.secret && !showSecret ? "password" : "text"}
-              value={strVal}
-              onChange={(e) => onChange(e.target.value)}
-              className={cn(
-                "h-8 text-xs",
-                field.type === "expression" && "font-mono",
-              )}
-            />
-            {field.secret ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label={secretToggleLabel}
-                onClick={() => setShowSecret((current) => !current)}
-              >
-                {showSecret ? (
-                  <IconEyeOff className="size-3.5" />
-                ) : (
-                  <IconEye className="size-3.5" />
-                )}
-              </Button>
-            ) : null}
-          </div>
-        </div>
+        <ConfigFieldLabelled label={fieldLabel} required={field.required}>
+          <NumberInput value={Number(strVal) || 0} onChange={(v) => onChange(v)} size="sm" />
+        </ConfigFieldLabelled>
       );
 
-    case "textarea":
+    case 'select':
       return (
-        <div>
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <Label className="text-xs">
-              {fieldLabel}
-              {field.required && <span className="text-destructive"> *</span>}
-            </Label>
-            {field.secret ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-label={secretToggleLabel}
-                onClick={() => setShowSecret((current) => !current)}
-              >
-                {showSecret
-                  ? t("workflows.hide", { defaultValue: "Hide" })
-                  : t("workflows.show", { defaultValue: "Show" })}
-              </Button>
-            ) : null}
-          </div>
-          <textarea
-            value={
-              field.secret && !showSecret ? maskSecretValue(strVal) : strVal
-            }
-            onChange={(e) => onChange(e.target.value)}
-            rows={3}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            readOnly={field.secret && !showSecret}
-          />
-        </div>
+        <ConfigSelectField
+          field={field}
+          strVal={strVal}
+          onChange={onChange}
+          fieldLabel={fieldLabel}
+          optionLabel={optionLabel}
+        />
       );
 
-    case "number":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <NumberInput
-            value={Number(strVal) || 0}
-            onChange={(v) => onChange(v)}
-            size="sm"
-          />
-        </div>
-      );
-
-    case "select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <select
-            value={strVal}
-            onChange={(e) => onChange(e.target.value)}
-            className="h-8 w-full rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <option value="" className="bg-card text-muted-foreground">
-              {t("workflows.selectPlaceholder")}
-            </option>
-            {field.options?.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                className="bg-card text-foreground"
-              >
-                {nodeKey
-                  ? t(`nodes:${nodeKey}.options.${field.key}.${opt.value}`, {
-                      defaultValue: opt.label,
-                    })
-                  : opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
-
-    case "environment-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <EnvironmentSelect value={strVal} onChange={(v) => onChange(v)} />
-        </div>
-      );
-
-    case "container-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <ContainerSelect
-            value={strVal}
-            onChange={(v) => onChange(v)}
-            envId={
-              typeof nodeConfig.environment === "string"
-                ? nodeConfig.environment
-                : undefined
-            }
-          />
-        </div>
-      );
-
-    case "email-server-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <EmailServerSelect value={strVal} onChange={(v) => onChange(v)} />
-        </div>
-      );
-
-    case "communication-channel-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <CommunicationChannelSelect
-            value={strVal}
-            onChange={(v) => onChange(v)}
-            channelType={field.channelType}
-          />
-        </div>
-      );
-
-    case "webhook-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <WebhookSelect value={strVal} onChange={(v) => onChange(v)} />
-        </div>
-      );
-
-    case "registry-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <RegistrySelect value={strVal} onChange={(v) => onChange(v)} />
-        </div>
-      );
-
-    case "storage-location-select":
-      return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <StorageLocationSelect
-            value={strVal}
-            onChange={(v) => onChange(v)}
-          />
-        </div>
-      );
-
-    case "toggle":
+    case 'toggle':
       return (
         <div className="flex items-center justify-between">
           <Label className="text-xs">{fieldLabel}</Label>
-          <Switch
-            aria-label={fieldLabel}
-            checked={Boolean(value)}
-            onCheckedChange={(checked) => onChange(checked)}
-          />
+          <Switch aria-label={fieldLabel} checked={Boolean(value)} onCheckedChange={(checked) => onChange(checked)} />
         </div>
       );
 
-    case "json":
+    case 'json':
       return (
         <div>
           <Label className="mb-1.5 text-xs">
@@ -306,79 +94,63 @@ export function ConfigFieldRenderer({
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <textarea
-            value={
-              typeof value === "string"
-                ? value
-                : JSON.stringify(value ?? "", null, 2)
-            }
-            onChange={(e) => onChange(parseJsonInput(e.target.value, ""))}
+            value={typeof value === 'string' ? value : JSON.stringify(value ?? '', null, 2)}
+            onChange={(e) => onChange(parseJsonInput(e.target.value, ''))}
             rows={4}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             placeholder="{}"
           />
         </div>
       );
 
-    case "metric-conditions":
+    case 'metric-conditions':
       return <MetricConditionsField value={value} onChange={onChange} />;
 
-    case "cron":
+    case 'cron':
       return (
         <CronField
           field={field}
           value={strVal}
           onChange={onChange}
           nodeKey={nodeKey}
-          timezone={
-            typeof nodeConfig.timezone === "string" ? nodeConfig.timezone : null
-          }
+          timezone={typeof nodeConfig.timezone === 'string' ? nodeConfig.timezone : null}
         />
       );
 
-    case "key-value":
+    case 'key-value':
       return (
         <div>
           <Label className="mb-1.5 text-xs">{fieldLabel}</Label>
           <textarea
-            value={
-              typeof value === "string"
-                ? value
-                : JSON.stringify(value ?? {}, null, 2)
-            }
+            value={typeof value === 'string' ? value : JSON.stringify(value ?? {}, null, 2)}
             onChange={(e) => onChange(parseJsonInput(e.target.value, {}))}
             rows={3}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder='{"key": "value"}'
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            placeholder={t('configField.keyValuePlaceholder', { ns: 'workflows' })}
           />
         </div>
       );
 
-    case "link-output-select":
+    case 'code': {
+      const lang = nodeConfig.language === 'typescript' ? 'typescript' : 'javascript';
       return (
-        <div>
-          <Label className="mb-1.5 text-xs">
-            {fieldLabel}
-            {field.required && <span className="text-destructive"> *</span>}
-          </Label>
-          <LinkOutputSelect value={strVal} onChange={(v) => onChange(v)} />
-        </div>
-      );
-
-    case "code": {
-      const lang =
-        nodeConfig.language === "typescript" ? "typescript" : "javascript";
-      return (
-        <CodeField
-          field={field}
-          value={strVal}
-          onChange={(v) => onChange(v)}
-          language={lang}
-          fieldLabel={fieldLabel}
-        />
+        <CodeField field={field} value={strVal} onChange={(v) => onChange(v)} language={lang} fieldLabel={fieldLabel} />
       );
     }
 
     default:
-      return null;
+      return (
+        <ConfigResourceField
+          field={field}
+          value={value}
+          onChange={onChange}
+          nodeConfig={nodeConfig}
+          nodeKey={nodeKey}
+          fieldLabel={fieldLabel}
+          strVal={strVal}
+          envId={envId}
+          containerId={containerId}
+        />
+      );
   }
 }

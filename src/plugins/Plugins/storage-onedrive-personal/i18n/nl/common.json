@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "OneDrive (persoonlijk)-back-upbestemmingen",
+    "subtitle": "Maak een back-up van containers naar je persoonlijke OneDrive. De plugin verzorgt Test, Uploaden, Downloaden, Verwijderen en Weergeven tijdens de back-up. Grote back-ups gebruiken de uploadsessie in delen van Microsoft, dus er is geen groottelimiet.",
+    "registerHint": "Voeg een bestemming toe via de pagina Opslaglocaties van de host en kies \"OneDrive (Personal)\" als type."
+  },
+  "fields": {
+    "clientId":     "Azure AD-applicatie-(client-)ID",
+    "clientSecret": "Azure AD-clientgeheim",
+    "refreshToken": "Refresh-token (geleverd door de OAuth-toestemmingsflow)",
+    "tenant":       "Tenant (consumers / common / organizations)"
+  },
+  "help": {
+    "clientId":     "Registreer een app op https://entra.microsoft.com → App registrations. De app moet de gedelegeerde machtiging Files.ReadWrite hebben en de redirect-URI moet naar je McHarbor-instantie zijn geconfigureerd.",
+    "clientSecret": "Genereer een clientgeheim in de Azure AD-appregistratie. Het wordt versleuteld opgeslagen door de AES-256-GCM-service van de host.",
+    "refreshToken": "Klik na het opslaan van de bestemming op \"Opslaan en verbinden\" om de Microsoft-toestemmingsflow te voltooien en een langlevend refresh-token op te slaan.",
+    "tenant":       "Gebruik \"consumers\" voor persoonlijke accounts. Gebruik OneDrive for Business of SharePoint Online voor werk- / schoolaccounts."
+  },
+  "toast": {
+    "registered": "OneDrive (persoonlijk)-plugin geregistreerd.",
+    "testPassed": "OneDrive (persoonlijk)-verbindingstest geslaagd.",
+    "testFailed": "OneDrive (persoonlijk)-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure AD-applicatie-(client-)ID is vereist.",
+    "noClientSecret": "Azure AD-clientgeheim is vereist.",
+    "noRefreshToken": "Refresh-token is vereist. Voer eerst \"Opslaan en verbinden\" uit."
+  },
+  "form": {
+    "driveId": {
+      "label": "Drive ID",
+      "help": "Optioneel. Laat leeg om de standaarddrive van de provider te gebruiken."
+    },
+    "basePath": {
+      "label": "Basispad",
+      "help": "Optioneel. Graph-pad binnen de drive, bijv. /Backups/2026. Laat leeg om de drive-hoofdmap te gebruiken."
+    },
+    "clientId": {
+      "label": "Client ID",
+      "help": "Optioneel. Laat leeg om de in de plugin ingebouwde standaardwaarde te gebruiken. Vul je eigen Application (client) ID uit het Entra-beheercentrum in als je een eigen Azure AD-app voor OneDrive Personal hebt geregistreerd."
+    },
+    "clientSecret": {
+      "label": "Client Secret",
+      "help": "Optioneel. Laat leeg als je appregistratie een openbare client van het type Mobile and desktop applications is (het aanbevolen pad voor persoonlijke Microsoft-accounts). Alleen invullen voor Web-registraties."
+    },
+    "intro": {
+      "title": "Microsoft-account vereist",
+      "save": "Sla deze locatie op en klik daarna op ",
+      "signIn": "Aanmelden bij Microsoft",
+      "redirect": ". Je wordt doorgestuurd naar ",
+      "account": " waar je moet inloggen met het live.com-account (persoonlijk Microsoft-account) dat eigenaar is van de OneDrive waarnaar je back-ups wilt maken, en de gevraagde ",
+      "comma": ", ",
+      "and": ", en ",
+      "tail": "-scopes. McHarbor slaat het geretourneerde refresh token versleuteld op en toont het nooit meer."
+    }
+  },
+  "setup": {
+    "title": "OneDrive (Personal)-installatiegids",
+    "steps": {
+      "save": "Sla deze locatie op. De plugin bevat een ingebouwde appregistratie, dus er zijn geen velden vereist. Vul optioneel je eigen <b>Client ID</b> in als je een eigen Azure AD-app voor OneDrive Personal hebt geregistreerd, en <b>Drive ID</b> / <b>Base Path</b> als je een specifieke drivemap wilt vastpinnen.",
+      "signIn": "Klik op <b>Sign in with Microsoft</b> (of <b>Connect</b> op de opslagkaart). Je wordt doorgestuurd naar <code>login.live.com</code> — log in met het persoonlijke Microsoft-account (<code>live.com</code> / <code>hotmail.com</code> / <code>outlook.com</code>) dat eigenaar is van de OneDrive waarnaar je back-ups wilt maken.",
+      "grant": "Sta de gevraagde scopes <code>Files.ReadWrite</code>, <code>User.Read</code> en <code>offline_access</code> toe. McHarbor slaat het geretourneerde refresh token versleuteld op en <warn>toont het nooit meer</warn>.",
+      "test": "Klik op <b>Test connection</b> om een testobject te schrijven en te lezen in de gekozen drive."
+    }
+  }
+}

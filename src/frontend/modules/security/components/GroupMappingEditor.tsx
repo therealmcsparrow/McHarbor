@@ -11,6 +11,7 @@ import { useStableListKeys } from '@resources/hooks/useStableListKeys';
 import { useGroups } from '../hooks/useGroups';
 import { useFetchProviderGroups } from '../hooks/useIdentityProviders';
 import type { GroupMapping } from '../hooks/useIdentityProviders';
+import { PERM } from '@core/auth/permissionKeys';
 
 type GroupMappingEditorProps = {
   autoImport: boolean;
@@ -55,9 +56,7 @@ export function GroupMappingEditor({
   }
 
   function updateMapping(index: number, partial: Partial<GroupMapping>) {
-    onMappingsChange(
-      mappings.map((m, i) => (i === index ? { ...m, ...partial } : m))
-    );
+    onMappingsChange(mappings.map((m, i) => (i === index ? { ...m, ...partial } : m)));
   }
 
   function handleFetchGroups() {
@@ -122,6 +121,7 @@ export function GroupMappingEditor({
                 searchable={groupOptions.length > 5}
               />
               <Button
+                permission={PERM.IDENTITY_PROVIDERS_MANAGE}
                 variant="ghost"
                 size="icon"
                 onClick={() => removeMapping(index)}
@@ -135,6 +135,7 @@ export function GroupMappingEditor({
 
           <div className="flex gap-2">
             <Button
+              permission={PERM.IDENTITY_PROVIDERS_MANAGE}
               variant="outline"
               size="sm"
               onClick={addMapping}
@@ -146,6 +147,7 @@ export function GroupMappingEditor({
 
             {providerId && supportsFetchGroups && (
               <Button
+                permission={PERM.IDENTITY_PROVIDERS_MANAGE}
                 variant="outline"
                 size="sm"
                 onClick={handleFetchGroups}
@@ -158,11 +160,7 @@ export function GroupMappingEditor({
             )}
           </div>
 
-          {mappings.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {t('identity.groupMappingHint')}
-            </p>
-          )}
+          {mappings.length > 0 && <p className="text-xs text-muted-foreground">{t('identity.groupMappingHint')}</p>}
         </div>
       )}
     </div>

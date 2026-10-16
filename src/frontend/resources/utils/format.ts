@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import i18n from '@core/i18n/i18n';
+import i18n from 'i18next';
 
 function getLocale(): string {
   return i18n.language || 'en';
@@ -59,10 +59,7 @@ export function formatUptime(seconds: number): string {
 // date layout (DD/MM/YYYY or MM/DD/YYYY) plus the locale's
 // preferred time format. Pass `prefs` to honor the per-user time
 // format; omit it to fall back to defaults (24h + ddmmyyyy).
-export function formatDate(
-  dateStr: string | undefined | null,
-  prefs?: Partial<LocaleFormat>,
-): string {
+export function formatDate(dateStr: string | undefined | null, prefs?: Partial<LocaleFormat>): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
@@ -72,12 +69,24 @@ export function formatDate(
   return `${dateLayout(dateFormat, date, locale)} ${timePart}`;
 }
 
+// formatDateCustom renders a timestamp with caller-supplied Intl options under
+// the *application's* locale. Chart axes need shapes the fixed helpers here do
+// not offer ("4 Mar, 14"); calling toLocaleString(undefined, ...) at the call
+// site instead used the browser's locale, which is not the language the UI is
+// rendered in.
+export function formatDateCustom(
+  value: string | number | Date | undefined | null,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  if (!value) return '-';
+  const date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat(getLocale(), options).format(date);
+}
+
 // formatDateOnly renders just the calendar date using the user's
 // chosen DD/MM vs MM/DD layout.
-export function formatDateOnly(
-  dateStr: string | undefined | null,
-  prefs?: Partial<LocaleFormat>,
-): string {
+export function formatDateOnly(dateStr: string | undefined | null, prefs?: Partial<LocaleFormat>): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
@@ -88,10 +97,7 @@ export function formatDateOnly(
 
 // formatTime renders the time-of-day using the user's chosen 12h
 // or 24h notation.
-export function formatTime(
-  dateStr: string | undefined | null,
-  prefs?: Partial<LocaleFormat>,
-): string {
+export function formatTime(dateStr: string | undefined | null, prefs?: Partial<LocaleFormat>): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
@@ -116,11 +122,7 @@ function formatTimeOfDate(date: Date, locale: string, timeFormat: '12h' | '24h')
 // format the parts ourselves and join with the requested
 // separators. Locale date order is preserved as the "fallback"
 // when a caller has not yet picked a preference.
-function dateLayout(
-  dateFormat: 'ddmmyyyy' | 'mmddyyyy',
-  date: Date,
-  locale: string,
-): string {
+function dateLayout(dateFormat: 'ddmmyyyy' | 'mmddyyyy', date: Date, locale: string): string {
   const localeFormatter = new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: '2-digit',

@@ -13,6 +13,13 @@
       "gauge": "Indicador",
       "counter": "Encimera",
       "event": "Evento"
+    },
+    "unit": {
+      "ms": "Milisegundos",
+      "s": "Segundos",
+      "bytes": "Bytes",
+      "percent": "Porcentaje",
+      "count": "Recuento"
     }
   }
 }

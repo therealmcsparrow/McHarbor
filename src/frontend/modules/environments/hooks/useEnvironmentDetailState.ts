@@ -1,68 +1,42 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useState } from 'react';
-import { normalizeTimezone } from '../timezones';
+import { useState } from 'react';
+import { normalizeTimezone } from '@resources/utils/timezones';
 import type { EnvironmentInfo } from './useEnvironments';
+import {
+  ALL_DAYS,
+  clampDayCount,
+  clampHours,
+  clampThreshold,
+  parseSelectedDays,
+  serializeSelectedDays,
+  type AutoUpdateDay,
+} from './environmentDetailHelpers';
 
-export type EnvironmentDetailTab =
-  | 'overview'
-  | 'activity'
-  | 'automation'
-  | 'retention'
-  | 'host'
-  | 'docker'
-  | 'processes'
-  | 'terminal'
-  | 'logs';
+export type { AutoUpdateDay };
 
-const ALL_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
-type WeekDay = (typeof ALL_DAYS)[number];
-export type AutoUpdateDay = WeekDay;
+export const environmentDetailTabs = [
+  'overview',
+  'activity',
+  'automation',
+  'retention',
+  'access',
+  'host',
+  'terminal',
+  'logs',
+  'docker',
+  'processes',
+  'services',
+  'updates',
+] as const;
 
-function clampThreshold(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 80;
-  }
-
-  return Math.min(100, Math.max(1, Math.round(value)));
-}
-
-function clampDayCount(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 7;
-  }
-
-  return Math.min(3650, Math.max(1, Math.round(value)));
-}
-
-function clampHours(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 24;
-  }
-
-  return Math.min(8760, Math.max(0, Math.round(value)));
-}
-
-function parseSelectedDays(value: string): Set<AutoUpdateDay> {
-  const next = new Set<AutoUpdateDay>();
-  for (const raw of value.split(',')) {
-    const day = raw.trim().toLowerCase() as AutoUpdateDay;
-    if ((ALL_DAYS as readonly string[]).includes(day)) {
-      next.add(day);
-    }
-  }
-  return next;
-}
-
-function serializeSelectedDays(selected: Set<AutoUpdateDay>): string {
-  return ALL_DAYS.filter((day) => selected.has(day as AutoUpdateDay)).join(',');
-}
+export type EnvironmentDetailTab = (typeof environmentDetailTabs)[number];
 
 export function useEnvironmentDetailState(env?: EnvironmentInfo) {
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [regeneratedToken, setRegeneratedToken] = useState('');
-  const [activeTab, setActiveTab] = useState<EnvironmentDetailTab>('overview');
+  const [regeneratedPin, setRegeneratedPin] = useState('');
   const [trackContainerEventsEnabled, setTrackContainerEventsEnabled] = useState(true);
   const [collectContainerMetricsEnabled, setCollectContainerMetricsEnabled] = useState(true);
   const [highlightContainerChangesEnabled, setHighlightContainerChangesEnabled] = useState(true);
@@ -84,30 +58,30 @@ export function useEnvironmentDetailState(env?: EnvironmentInfo) {
   );
   const [metricRetentionHours, setMetricRetentionHours] = useState('24');
 
-  useEffect(() => {
-    if (!env) {
-      return;
+  const [syncedEnv, setSyncedEnv] = useState<typeof env>(undefined);
+  if (env !== syncedEnv) {
+    setSyncedEnv(env);
+    if (env) {
+      setTrackContainerEventsEnabled(env.trackContainerEventsEnabled);
+      setCollectContainerMetricsEnabled(env.collectContainerMetricsEnabled);
+      setHighlightContainerChangesEnabled(env.highlightContainerChangesEnabled);
+      setDockerDiskUsageNotificationsEnabled(env.dockerDiskUsageNotificationsEnabled);
+      setDockerDiskUsageThresholdPercent(String(env.dockerDiskUsageThresholdPercent));
+      setDockerDiskUsageUseGlobalDefault(env.dockerDiskUsageUseGlobalDefault);
+      setScheduledUpdateCheckEnabled(env.scheduledUpdateCheckEnabled);
+      setAutomaticImagePruningEnabled(env.automaticImagePruningEnabled);
+      setImagePruneDanglingOnly(env.imagePruneDanglingOnly);
+      setTimezone(normalizeTimezone(env.timezone));
+      setLogRetentionDays(String(env.logRetentionDays));
+      setContainerPruneEnabled(env.containerPruneEnabled);
+      setContainerPruneStoppedDays(String(env.containerPruneStoppedDays));
+      setAutoUpdateEnabled(env.autoUpdateEnabled);
+      setAutoUpdateWindowStart(env.autoUpdateWindowStart || '02:00');
+      setAutoUpdateWindowEnd(env.autoUpdateWindowEnd || '05:00');
+      setAutoUpdateDaysSelected(parseSelectedDays(env.autoUpdateDays));
+      setMetricRetentionHours(String(env.metricRetentionHours));
     }
-
-    setTrackContainerEventsEnabled(env.trackContainerEventsEnabled);
-    setCollectContainerMetricsEnabled(env.collectContainerMetricsEnabled);
-    setHighlightContainerChangesEnabled(env.highlightContainerChangesEnabled);
-    setDockerDiskUsageNotificationsEnabled(env.dockerDiskUsageNotificationsEnabled);
-    setDockerDiskUsageThresholdPercent(String(env.dockerDiskUsageThresholdPercent));
-    setDockerDiskUsageUseGlobalDefault(env.dockerDiskUsageUseGlobalDefault);
-    setScheduledUpdateCheckEnabled(env.scheduledUpdateCheckEnabled);
-    setAutomaticImagePruningEnabled(env.automaticImagePruningEnabled);
-    setImagePruneDanglingOnly(env.imagePruneDanglingOnly);
-    setTimezone(normalizeTimezone(env.timezone));
-    setLogRetentionDays(String(env.logRetentionDays));
-    setContainerPruneEnabled(env.containerPruneEnabled);
-    setContainerPruneStoppedDays(String(env.containerPruneStoppedDays));
-    setAutoUpdateEnabled(env.autoUpdateEnabled);
-    setAutoUpdateWindowStart(env.autoUpdateWindowStart || '02:00');
-    setAutoUpdateWindowEnd(env.autoUpdateWindowEnd || '05:00');
-    setAutoUpdateDaysSelected(parseSelectedDays(env.autoUpdateDays));
-    setMetricRetentionHours(String(env.metricRetentionHours));
-  }, [env]);
+  }
 
   const normalizedThreshold = clampThreshold(Number.parseInt(dockerDiskUsageThresholdPercent, 10));
   const normalizedLogRetention = clampDayCount(Number.parseInt(logRetentionDays, 10));
@@ -145,8 +119,8 @@ export function useEnvironmentDetailState(env?: EnvironmentInfo) {
     setTokenDialogOpen,
     regeneratedToken,
     setRegeneratedToken,
-    activeTab,
-    setActiveTab,
+    regeneratedPin,
+    setRegeneratedPin,
     trackContainerEventsEnabled,
     collectContainerMetricsEnabled,
     highlightContainerChangesEnabled,

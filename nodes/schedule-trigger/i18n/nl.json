@@ -1,7 +1,8 @@
 {
-  "label": "Schedule Trigger",
-  "description": "Run a workflow on a cron-based schedule",
+  "label": "Schematrigger",
+  "description": "Voer een workflow uit volgens een cron-schema",
   "config": {
-    "cron": "Cron-expressie"
+    "cron": "Cron-expressie",
+    "timezone": "Tijdzone"
   }
 }

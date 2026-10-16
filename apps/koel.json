@@ -1,0 +1,61 @@
+{
+    "slug":  "koel",
+    "name":  "Koel",
+    "description":  "Personal music streaming server with a web player for a private audio library.",
+    "category":  "Media",
+    "image":  "phanan/koel:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/koel.png",
+    "website":  "https://koel.dev",
+    "docsUrl":  "https://docs.koel.dev/installation.html",
+    "ports":  [
+                  {
+                      "host":  4042,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/koel/music",
+                        "container":  "/music"
+                    },
+                    {
+                        "host":  "/opt/appdata/koel/storage",
+                        "container":  "/var/www/html/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APP_KEY",
+                        "default":  "change-me",
+                        "description":  "Application encryption key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ADMIN_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Initial admin account email"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin account password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DB_CONNECTION",
+                        "default":  "sqlite",
+                        "description":  "Database driver"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

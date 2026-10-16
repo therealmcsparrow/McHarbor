@@ -1,0 +1,127 @@
+{
+  "aiAssistant": {
+    "fab": {
+      "tooltip": "AI vragen",
+      "tooltipScoped": "AI vragen over {{name}}"
+    },
+    "title": "AI-assistent",
+    "description": "Stel vragen over de geselecteerde McHarbor-omgeving.",
+    "menuItem": "AI-chat",
+    "footer": "Antwoorden gebruiken de actieve McHarbor-context en de ingestelde standaard AI-provider.",
+    "backendUnavailable": "De AI-provider is niet beschikbaar. Controleer Instellingen > AI en test de standaardverbinding.",
+    "rateLimited": "De AI-provider heeft zijn limiet bereikt. Wacht even en vraag opnieuw, of kies een andere provider bij Instellingen > AI.",
+    "settings": {
+      "title": "AI-instellingen"
+    },
+    "reset": "Resetten",
+    "focusedOn": "Gericht op {{name}}",
+    "providersActive_one": "{{count}} contextprovider",
+    "providersActive_other": "{{count}} contextproviders",
+    "thinking": "Bezig...",
+    "capabilities": "Voorgestelde acties",
+    "actionDone": "Actie voltooid.",
+    "actions": {
+      "title": "Openstaande AI-actie",
+      "description": "Controleer het proefplan voordat McHarbor iets wijzigt.",
+      "approveAndRun": "Goedkeuren en uitvoeren",
+      "run": "Uitvoeren",
+      "deny": "Weigeren",
+      "awaitingApproval": "Wacht op goedkeuring",
+      "review": "Bekijken",
+      "plan": "Dry-run-plan",
+      "queuePosition": "{{index}} van {{total}}",
+      "feedback": {
+        "executed": "{{tool}} uitgevoerd.",
+        "denied": "{{tool}} geweigerd.",
+        "failed": "{{tool}} is mislukt: {{error}}",
+        "error": "{{tool}} kon niet worden voltooid.",
+        "unknownError": "onbekende fout"
+      },
+      "status": {
+        "pending": "Openstaand",
+        "approved": "Goedgekeurd",
+        "executed": "Uitgevoerd",
+        "failed": "Mislukt",
+        "denied": "Geweigerd",
+        "expired": "Verlopen"
+      }
+    },
+    "providerLabel": "AI-provider",
+    "placeholder": "Vraag de AI...",
+    "send": "Verzenden",
+    "userMessageLabel": "Jij",
+    "assistantMessageLabel": "AI-assistent",
+    "askAbout": "Vraag over {{name}}",
+    "seed": {
+      "withSummary": "{{summary}}",
+      "withResource": "Over de {{kind}} \"{{name}}\" ({{facts}}): ",
+      "kind": {
+        "container": "container",
+        "image": "image",
+        "stack": "stack",
+        "volume": "volume",
+        "network": "netwerk",
+        "environment": "omgeving",
+        "general": "pagina",
+        "workflow": "workflow",
+        "log": "log",
+        "plugin": "plugin"
+      }
+    },
+    "providerDefault": "Standaardprovider",
+    "providerDefaultNamed": "Standaard ({{name}})"
+  },
+  "fab": {
+    "prompts": {
+      "container": "Leg deze container uit en identificeer recente fouten.",
+      "stack": "Vat deze stack en implementatiefouten samen.",
+      "image": "Leg deze image en bekende problemen uit.",
+      "volume": "Leg dit volume en de containerafhankelijkheden uit.",
+      "network": "Leg dit netwerk en connectiviteitsproblemen uit.",
+      "pod": "Leg deze pod en recente fouten uit.",
+      "deployment": "Vat deze deployment en rolloutproblemen samen.",
+      "workflow": "Leg de meest recente workflowfout uit.",
+      "environment": "Geef een overzicht van deze omgeving.",
+      "fallback": "Geef een overzicht van de huidige McHarbor-installatie."
+    }
+  },
+  "capability": {
+    "confirmTitle": "Actie bevestigen",
+    "confirmBody": "De AI wil \"{{label}}\" uitvoeren. Doorgaan?",
+    "cancel": "Annuleren",
+    "confirm": "Uitvoeren",
+    "done": "Voltooid."
+  },
+  "oauth": {
+    "connect": "Verbinden met uw account",
+    "connectHelp": "Meld u aan bij uw provider.",
+    "githubHint": "GitHub Models gebruikt uw bestaande GitHub-account.",
+    "anthropicHint": "Anthropic gebruikt momenteel API-sleutels.",
+    "notConnected": "Niet verbonden",
+    "connectedAs": "Aangemeld als {{account}}",
+    "disconnect": "Verbinding verbreken",
+    "beginTitle": "Verbinden met {{provider}}",
+    "beginHelp": "Open de URL, voer de code in en keur de toegang goed.",
+    "copyCode": "Code kopieren",
+    "openBrowser": "{{provider}} openen",
+    "pollHint": "Wachten op goedkeuring...",
+    "errorGeneric": "Verbinden is mislukt."
+  },
+  "description": "AI-configuratie voor McHarbor.",
+  "sections": {
+    "provider": "Provider",
+    "credentials": "Inloggegevens",
+    "parameters": "Parameters",
+    "advanced": "Geavanceerd"
+  },
+  "fields": {
+    "provider": "AI-provider",
+    "model": "Model",
+    "baseUrl": "API-basis-URL",
+    "apiKey": "API-sleutel",
+    "maxTokens": "Maximale tokens",
+    "temperature": "Temperatuur",
+    "systemPrompt": "Systeemprompt"
+  },
+  "test": "Verbinding testen"
+}

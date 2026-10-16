@@ -4,7 +4,7 @@
     "description":  "Scalable, low-latency WebRTC SFU for video and audio conferencing.",
     "category":  "Communications",
     "image":  "livekit/livekit-server:latest",
-    "logo":  "https://icon.horse/icon/livekit.io",
+    "logo":  "https://cdn.simpleicons.org/livekit",
     "website":  "https://livekit.io",
     "docsUrl":  "https://docs.livekit.io/home",
     "ports":  [
@@ -43,5 +43,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

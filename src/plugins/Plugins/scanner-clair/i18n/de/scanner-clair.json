@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Clair",
+    "description": "Clair v4 von Red Hat: Image-Indizierung und CVE-Abgleich über einen externen Clair-Server."
+  },
+  "settings": {
+    "title": "Clair",
+    "subtitle": "Clair v4 von Red Hat: Image-Indizierung und CVE-Abgleich über einen externen Clair-Server."
+  }
+}

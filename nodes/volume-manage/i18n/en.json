@@ -1,0 +1,27 @@
+{
+  "label": "Volume Manage",
+  "description": "Create, remove, back up or restore a Docker volume",
+  "config": {
+    "environment": "Environment",
+    "action": "Action",
+    "name": "Name",
+    "driver": "Driver",
+    "labels": "Labels",
+    "force": "Force",
+    "volume": "Volume",
+    "backup_path": "Backup File Path",
+    "overwrite": "Overwrite Existing Files",
+    "helper_image": "Helper Image"
+  },
+  "options": {
+    "action": {
+      "create": "Create",
+      "remove": "Remove",
+      "backup": "Backup",
+      "restore": "Restore"
+    },
+    "driver": {
+      "local": "Local"
+    }
+  }
+}

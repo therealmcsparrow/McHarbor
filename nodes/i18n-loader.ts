@@ -7,17 +7,11 @@
  */
 const nodeI18nModules = import.meta.glob<Record<string, unknown>>('@nodes/*/i18n/*.json', { import: 'default' });
 
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
   for (const key of Object.keys(source)) {
     const sv = source[key];
     const tv = target[key];
-    if (
-      sv && typeof sv === 'object' && !Array.isArray(sv) &&
-      tv && typeof tv === 'object' && !Array.isArray(tv)
-    ) {
+    if (sv && typeof sv === 'object' && !Array.isArray(sv) && tv && typeof tv === 'object' && !Array.isArray(tv)) {
       deepMerge(tv as Record<string, unknown>, sv as Record<string, unknown>);
     } else {
       target[key] = sv;
@@ -30,13 +24,17 @@ export async function buildNodeTranslations(lang: string): Promise<Record<string
   const result: Record<string, unknown> = {};
 
   for (const [path, loadTranslations] of Object.entries(nodeI18nModules)) {
-    const fileLang = path.match(/[\\/]i18n[\\/]([^\\/]+)\.json$/)?.[1];
-    if (!fileLang || fileLang !== lang) {
+    const match = path.match(/[\\/]([^\\/]+)[\\/]i18n[\\/]([^\\/]+)\.json$/);
+    const nodeKey = match?.[1];
+    const fileLang = match?.[2];
+    if (!nodeKey || !fileLang || fileLang !== lang) {
       continue;
     }
 
     const translations = await loadTranslations();
-    deepMerge(result, translations as Record<string, unknown>);
+    const existing = result[nodeKey];
+    const target = existing && typeof existing === 'object' ? (existing as Record<string, unknown>) : {};
+    result[nodeKey] = deepMerge(target, translations as Record<string, unknown>);
   }
 
   return result;

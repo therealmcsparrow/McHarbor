@@ -105,6 +105,9 @@ type workflowRunOptions struct {
 	// FlowContext.FlowVars["_workflowId"] so scoped expressions
 	// can reference the current run.
 	WorkflowID string
+	// UserID is the account behind a manual run. Empty for every
+	// other trigger; see FlowContext.UserID.
+	UserID string
 	// Trigger describes why this run started.
 	Trigger string
 	// StartNodeID, if non-empty, begins execution at this node.

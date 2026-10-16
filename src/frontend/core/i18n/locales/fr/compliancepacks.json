@@ -1,0 +1,164 @@
+{
+  "title": "Packs de conformité",
+  "description": "Preuves pour un référentiel de contrôles nommé : les vérifications que McHarbor peut exécuter sur un hôte actif, les preuves qu'il consigne et les contrôles qu'il ne peut pas voir.",
+  "disclaimer": "Un pack fournit des preuves pour un référentiel ; il n'affirme pas la conformité à celui-ci. Une vérification réussie signifie que la vérification a réussi : que le contrôle soit satisfait relève de votre jugement et de celui de votre auditeur.",
+  "framework": {
+    "label": "Référentiel",
+    "mappingOnly": "Cartographie des preuves uniquement : ce référentiel n'a aucune vérification automatique"
+  },
+  "run": {
+    "never": "Jamais exécuté",
+    "last": "Dernière exécution {{time}}",
+    "startedBy": "Lancé par",
+    "environment": "Environnement",
+    "defaultEnvironment": "Environnement par défaut",
+    "trigger": {
+      "manual": "Lancé manuellement",
+      "scheduled": "Planifié"
+    },
+    "status": {
+      "running": "En cours",
+      "completed": "Terminé",
+      "failed": "Échoué"
+    }
+  },
+  "actions": {
+    "runChecks": "Exécuter les vérifications",
+    "showFacts": "Afficher les faits derrière ce verdict",
+    "hideFacts": "Masquer les faits"
+  },
+  "runDialog": {
+    "title": "Exécuter les vérifications maintenant",
+    "body": "Cela lit le démon Docker et tous les conteneurs de l'environnement sélectionné et enregistre une nouvelle exécution. Rien n'est modifié sur l'hôte.",
+    "confirm": "Exécuter les vérifications",
+    "environment": "Environnement"
+  },
+  "attestation": {
+    "title": "Validation",
+    "description": "Qui a examiné ces preuves et les a acceptées, quand, et sur quelle exécution. Une validation n'est jamais modifiée ; une plus récente la remplace et les deux restent consignées.",
+    "never": "Personne n'a encore validé ceci.",
+    "last": "Validé {{time}} par {{user}}",
+    "run": "Exécution {{id}}, lancée {{time}}",
+    "noRun": "Aucune exécution : validation de la revue dans son ensemble",
+    "action": "Valider",
+    "runOpen": "L'exécution est encore en cours. Validez une fois qu'elle est terminée.",
+    "dialog": {
+      "title": "Enregistrer une validation",
+      "body": "Cela consigne, sous votre nom et à l'heure actuelle, que vous avez examiné les preuves ci-dessous et que vous les acceptez. Elle ne pourra plus être modifiée ni supprimée.",
+      "confirm": "Enregistrer la validation",
+      "framework": "Référentiel",
+      "run": "Exécution",
+      "note": "Note",
+      "notePlaceholder": "Ce que vous avez examiné, ce que vous avez accepté et où la décision est consignée",
+      "noteRequired": "Une note est requise : une validation sans un mot de justification ne prouve pas qu'une revue a eu lieu."
+    }
+  },
+  "toast": {
+    "started": "Exécution des vérifications lancée",
+    "failed": "L'exécution des vérifications n'a pas pu être lancée"
+  },
+  "summary": {
+    "pass": "Conformes",
+    "warn": "Nécessitent une attention",
+    "fail": "En échec",
+    "info": "Informatifs",
+    "unknown": "Non évalués"
+  },
+  "verdict": {
+    "pass": "Conforme",
+    "warn": "Attention",
+    "fail": "Échec",
+    "info": "Info",
+    "unknown": "Non évalué"
+  },
+  "coverage": {
+    "mechanical": "Vérifié automatiquement",
+    "evidenced": "Prouvé par les données enregistrées",
+    "notCovered": "Non couvert"
+  },
+  "group": {
+    "host": "Configuration de l'hôte",
+    "daemon": "Configuration du démon",
+    "files": "Fichiers de configuration du démon",
+    "images": "Images et fichiers de build",
+    "runtime": "Runtime de conteneur",
+    "operations": "Opérations de sécurité",
+    "swarm": "Configuration Swarm"
+  },
+  "table": {
+    "control": "Contrôle",
+    "requirement": "Ce qu'il exige",
+    "verdict": "Verdict",
+    "coverage": "Couverture",
+    "evidence": "Preuve",
+    "empty": "Ce pack n'a jamais été exécuté ; aucun contrôle n'a donc encore de verdict."
+  },
+  "notAssessed": {
+    "title": "Contrôles non évalués",
+    "body": "{{count}} contrôles de ce pack n'ont aucun verdict. Non évalué ne signifie pas conforme : cela veut dire que les preuves n'ont pas pu être recueillies, ou que McHarbor ne peut pas voir le contrôle du tout."
+  },
+  "fact": {
+    "serverVersion": "Version de Docker Engine",
+    "interContainerCommunication": "Communication inter-conteneurs sur le bridge par défaut",
+    "debug": "Journalisation de débogage",
+    "storageDriver": "Pilote de stockage",
+    "connectionType": "Transport configuré",
+    "usernsRemap": "Remappage des espaces de noms utilisateur",
+    "authorizationPlugins": "Plugins d'autorisation",
+    "authorizationPluginNames": "Noms des plugins d'autorisation",
+    "loggingDriver": "Pilote de journalisation par défaut",
+    "liveRestore": "Restauration à chaud",
+    "seccompProfile": "Profil seccomp par défaut",
+    "experimental": "Build expérimentale",
+    "swarmState": "État de Swarm",
+    "containersChecked": "Conteneurs inspectés",
+    "containersViolating": "Conteneurs enfreignant ce contrôle",
+    "violations": "Conteneurs concernés",
+    "inspectFailures": "Inspections échouées"
+  },
+  "reason": {
+    "daemonUnavailable": "Le démon Docker n'a pas pu être lu ; ce contrôle n'a donc pas de verdict.",
+    "containersUnavailable": "La liste des conteneurs n'a pas pu être lue ; ce contrôle n'a donc pas de verdict.",
+    "inspectIncomplete": "Certains conteneurs n'ont pas pu être inspectés ; un résultat propre ne décrirait donc que ceux qui l'ont été.",
+    "containerListCapped": "Il existe plus de conteneurs qu'une exécution n'en inspecte ; ce résultat couvre donc un sous-ensemble.",
+    "noContainers": "Cet environnement n'a aucun conteneur ; il n'y avait donc rien à vérifier.",
+    "notCoveredByMcHarbor": "McHarbor ne peut pas voir ce contrôle. Il est listé pour que la lacune soit visible plutôt que sous-entendue.",
+    "evidencedNotChecked": "McHarbor consigne les preuves de ce contrôle mais ne les juge pas.",
+    "versionRecorded": "La version du moteur en cours d'exécution est consignée. McHarbor ne peut pas savoir si elle est à jour pour cet hôte.",
+    "versionUnreported": "Le démon n'a pas signalé sa version.",
+    "iccEnabled": "Les conteneurs du bridge par défaut peuvent communiquer entre eux sans qu'un réseau soit déclaré.",
+    "bridgeUnreadable": "Le réseau bridge par défaut n'a pas pu être inspecté.",
+    "debugLoggingEnabled": "Le démon s'exécute avec la journalisation de débogage, qui consigne le détail des requêtes dans le journal de l'hôte.",
+    "legacyStorageDriver": "Le démon utilise un pilote de stockage que le benchmark déconseille.",
+    "storageDriverUnreported": "Le démon n'a pas signalé son pilote de stockage.",
+    "daemonTCPNoTLS": "Le démon est joint via TCP non chiffré ; quiconque peut atteindre le port peut donc le commander.",
+    "connectionTypeUnknown": "Le transport configuré de l'environnement n'a pas pu être lu.",
+    "usernsDisabled": "Le remappage des espaces de noms utilisateur est désactivé ; le root d'un conteneur est donc le root de l'hôte.",
+    "noAuthorizationPlugin": "Aucun plugin d'autorisation ne statue sur les requêtes du démon.",
+    "loggingDriverLocal": "La sortie des conteneurs reste sur l'hôte. Un sidecar qui l'expédie ailleurs satisfait l'intention et cette vérification ne peut pas le voir.",
+    "liveRestoreDisabled": "Les conteneurs s'arrêtent lorsque le démon s'arrête.",
+    "seccompDisabled": "Le profil seccomp par défaut du démon est désactivé.",
+    "seccompUnreported": "Le démon n'a pas signalé de profil seccomp.",
+    "experimentalEnabled": "Le démon est une build expérimentale.",
+    "swarmActive": "Le mode Swarm est actif. Ce n'est un constat que sur un hôte qui n'est pas destiné à orchestrer avec lui.",
+    "containersRunAsRoot": "Des conteneurs s'exécutent en tant que root.",
+    "containersWithoutHealthcheck": "Des conteneurs ne déclarent aucun contrôle de santé.",
+    "containersAddCapabilities": "Des conteneurs ajoutent des capacités du noyau au-delà de l'ensemble par défaut.",
+    "containersPrivileged": "Des conteneurs s'exécutent en mode privilégié, ce qui équivaut au root de l'hôte.",
+    "containersOnPrivilegedPorts": "Des conteneurs publient sur un port de l'hôte inférieur à 1024.",
+    "containersShareHostNetwork": "Des conteneurs partagent l'espace de noms réseau de l'hôte.",
+    "containersWithoutMemoryLimit": "Des conteneurs n'ont aucune limite de mémoire ; l'un d'eux peut donc épuiser l'hôte.",
+    "containersWithoutCPULimit": "Des conteneurs n'ont ni parts ni quota de CPU.",
+    "containersWritableRootfs": "Des conteneurs ont un système de fichiers racine accessible en écriture.",
+    "containersRestartUnbounded": "Des conteneurs redémarrent sans nombre de tentatives borné.",
+    "containersShareHostPID": "Des conteneurs partagent l'espace de noms des processus de l'hôte.",
+    "containersShareHostIPC": "Des conteneurs partagent l'espace de noms IPC de l'hôte.",
+    "containersExposeHostDevices": "Des conteneurs reçoivent directement un périphérique de l'hôte.",
+    "containersSharedMountPropagation": "Des conteneurs utilisent la propagation de montage partagée, ce qui leur permet d'écrire dans l'arborescence de montage de l'hôte.",
+    "containersShareHostUTS": "Des conteneurs partagent l'espace de noms UTS de l'hôte.",
+    "containersSeccompUnconfined": "Des conteneurs s'exécutent avec seccomp désactivé.",
+    "containersMayGainPrivileges": "Des conteneurs peuvent acquérir des privilèges supplémentaires.",
+    "containersWithoutPIDsLimit": "Des conteneurs n'ont aucune limite de PID ; une fork bomb peut donc épuiser l'hôte.",
+    "containersMountDockerSocket": "Des conteneurs montent le socket Docker, ce qui équivaut au root de l'hôte."
+  }
+}

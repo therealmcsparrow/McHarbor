@@ -1,0 +1,24 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+GET /agent/binary/*/*|binary-download
+HEAD /agent/binary/*/*|binary-download
+GET /agent/image/*/*|binary-download
+GET /agent/install/*|binary-download
+GET /agent/ws|agent
+POST /incident-webhooks/*|inbound-webhook
+POST /internal/node/agent-rpc/*|agent
+GET /internal/node/agent-stream/*|agent
+GET /internal/node/stats/*|agent
+POST /internal/node/workflow-trigger/fire|agent
+GET /livez|probe
+GET /readyz|probe
+GET /scim/v2/Groups|inbound-webhook
+GET /scim/v2/Groups/*|inbound-webhook
+GET /scim/v2/Schemas|inbound-webhook
+GET /scim/v2/ServiceProviderConfig|inbound-webhook
+GET /scim/v2/Users|inbound-webhook
+GET /scim/v2/Users/*|inbound-webhook
+GET /agents/*/status|published-api
+GET /docs|published-api
+POST /plugins/loader/reload|published-api
+GET /rbac/policies/*/history|published-api

@@ -1,0 +1,49 @@
+{
+    "slug":  "mautrix-telegram",
+    "name":  "mautrix-telegram",
+    "description":  "Matrix bridge that connects a Telegram account or bot into a Matrix room for two-way messaging.",
+    "category":  "Communications",
+    "image":  "dock.mau.dev/mautrix/telegram:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/telegram.png",
+    "website":  "https://docs.mau.fi/bridges/python/telegram/index.html",
+    "docsUrl":  "https://docs.mau.fi/bridges/general/docker-setup.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mautrix-telegram/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "HOMESERVER_ADDRESS",
+                        "default":  "https://matrix.example.com",
+                        "description":  "URL of the Matrix homeserver to bridge into"
+                    },
+                    {
+                        "key":  "TELEGRAM_API_ID",
+                        "default":  "change-me",
+                        "description":  "Telegram application API ID",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TELEGRAM_API_HASH",
+                        "default":  "change-me",
+                        "description":  "Telegram application API hash",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

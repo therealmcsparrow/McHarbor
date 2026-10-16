@@ -1,0 +1,49 @@
+{
+    "slug":  "pyload",
+    "name":  "pyLoad",
+    "description":  "Free and lightweight download manager for one-click hosters with a web interface.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/pyload-ng:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pyload.png",
+    "website":  "https://pyload.net",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-pyload-ng",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pyload/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/pyload/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

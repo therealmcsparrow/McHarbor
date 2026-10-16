@@ -4,23 +4,19 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const comment: NodeDefinition = {
-  "key": "comment",
-  "label": "Comment",
-  "category": "utility",
-  "description": "Annotate a workflow without changing execution",
-  "icon": "IconPencil",
-  "configSchema": [
+  key: 'comment',
+  label: 'Comment',
+  category: 'utility',
+  description: 'Annotate a workflow without changing execution',
+  icon: 'IconPencil',
+  configSchema: [
     {
-      "key": "text",
-      "label": "Comment",
-      "type": "textarea",
-      "required": false
-    }
+      key: 'text',
+      label: 'Comment',
+      type: 'textarea',
+      required: false,
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output'],
 };

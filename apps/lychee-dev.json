@@ -1,0 +1,39 @@
+{
+    "slug":  "lychee-dev",
+    "name":  "Lychee (Dev)",
+    "description":  "Dev channel build of Lychee. Self-hosted photo-management system with a clean responsive interface.",
+    "category":  "Photos & Files",
+    "image":  "lycheeorg/lychee:dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lychee.png",
+    "website":  "https://lycheeorg.github.io",
+    "docsUrl":  "https://lycheeorg.github.io/docs/",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lychee-dev/config",
+                        "container":  "/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/lychee-dev/uploads",
+                        "container":  "/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

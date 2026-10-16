@@ -6,13 +6,16 @@ import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { NotificationsTable } from '../components/NotificationsTable';
-import { useNotificationsPageState } from '../hooks/useNotificationsPageState';
+import { notificationsPageSizeOptions, useNotificationsPageState } from '../hooks/useNotificationsPageState';
 
 export default function NotificationsPage() {
   const { t } = useTranslation('common');
   const {
+    filters,
     page,
-    setPage,
+    pageSize,
+    handlePageChange,
+    handlePageSizeChange,
     pendingDelete,
     setPendingDelete,
     notificationsQuery,
@@ -30,12 +33,13 @@ export default function NotificationsPage() {
   } = useNotificationsPageState();
   const total = notificationsQuery.data?.total ?? 0;
   const gridEmptyMessage = notificationsQuery.isError
-    ? t('notifications.unavailable')
+    ? [t('notifications.unavailable'), notificationsQuery.error?.message].filter(Boolean).join(' — ')
     : t('notifications.empty');
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
+        headingLeaf
         title={t('notifications.title')}
         description={t('notifications.pageDescription')}
         actions={
@@ -51,7 +55,11 @@ export default function NotificationsPage() {
         }
       />
 
+      {/* The route is declared `scroll: 'data'`: the shell is a fixed frame and
+          the page itself never scrolls. The table claims the remaining height
+          and scrolls its own rows, so its toolbar and pagination band stay put. */}
       <NotificationsTable
+        filters={filters}
         notifications={notifications}
         loading={notificationsQuery.isPending}
         emptyMessage={gridEmptyMessage}
@@ -61,18 +69,20 @@ export default function NotificationsPage() {
         total={total}
         page={page}
         totalPages={totalPages}
+        pageSize={pageSize}
+        pageSizeOptions={notificationsPageSizeOptions}
         deletePending={deleteMutation.isPending}
         onOpen={handleOpen}
         onDelete={setPendingDelete}
         onBatchMarkRead={handleBatchMarkRead}
         onBatchDelete={handleBatchDelete}
-        onPreviousPage={() => setPage((current) => current - 1)}
-        onNextPage={() => setPage((current) => current + 1)}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
       />
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        onOpenChange={(open) => !open && setPendingDelete(null)}
+        onOpenChange={(isOpen) => !isOpen && setPendingDelete(null)}
         title={t('notifications.deleteTitle')}
         description={t('notifications.deleteDescription', { title: pendingDelete?.title ?? '' })}
         confirmLabel={t('actions.delete')}

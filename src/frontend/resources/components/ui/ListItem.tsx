@@ -14,17 +14,17 @@ type ListItemProps = {
 
 export function ListItem({ title, subtitle, badge, actions, className }: ListItemProps) {
   return (
-    <div className={cn('flex items-center justify-between rounded-lg border border-border bg-card p-4', className)}>
-      <div className="flex items-center gap-3 min-w-0">
+    <div className={cn('mc-glass flex items-center justify-between rounded-lg p-4', className)}>
+      <div className="flex min-w-0 items-center gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-foreground truncate">{title}</p>
+            <p className="truncate text-sm font-medium text-foreground">{title}</p>
             {badge}
           </div>
-          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground truncate">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-1 shrink-0 ml-4">{actions}</div>}
+      {actions && <div className="ml-4 flex shrink-0 items-center gap-1">{actions}</div>}
     </div>
   );
 }

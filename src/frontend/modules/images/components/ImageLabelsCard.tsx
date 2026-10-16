@@ -3,6 +3,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { ImageInspect } from '@core/types/docker';
+import { ImageKeyValueRow } from './ImageKeyValueRow';
 
 type ImageLabelsCardProps = {
   image: ImageInspect;
@@ -12,17 +13,14 @@ export function ImageLabelsCard({ image }: ImageLabelsCardProps) {
   const { t } = useTranslation('images');
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="mc-glass rounded-lg p-6">
+      <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
         {t('detail.labels')}
       </h3>
-      <div className="max-h-48 overflow-y-auto">
+      <div className="max-h-48 overflow-x-hidden overflow-y-auto">
         {image.Config?.Labels && Object.keys(image.Config.Labels).length > 0 ? (
           Object.entries(image.Config.Labels).map(([key, value]) => (
-            <div key={key} className="flex gap-2 border-b border-border py-1.5 last:border-0">
-              <span className="shrink-0 font-mono text-xs font-medium text-foreground">{key}</span>
-              <span className="truncate font-mono text-xs text-muted-foreground">{value}</span>
-            </div>
+            <ImageKeyValueRow key={key} itemKey={key} value={value} />
           ))
         ) : (
           <p className="text-sm text-muted-foreground">{t('detail.noLabels')}</p>

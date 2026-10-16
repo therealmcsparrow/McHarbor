@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "Syslog (RFC5424)",
+    "description": "RFC5424 over UDP, TCP, or TLS to rsyslog, syslog-ng, QRadar, or ArcSight."
+  },
+  "settings": {
+    "title": "Syslog (RFC5424)",
+    "subtitle": "RFC5424 over UDP, TCP, or TLS to rsyslog, syslog-ng, QRadar, or ArcSight."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Syslog forwarding delivery",
+      "description": "Delivered and failed audit events per syslog forwarder, success rate, the longest stretch without a successful delivery, and the failure reasons that keep recurring."
+    }
+  },
+  "subject": {
+    "syslog-forwarder": "Syslog forwarder"
+  },
+  "subjectAll": {
+    "syslog-forwarder": "All syslog forwarders"
+  }
+}

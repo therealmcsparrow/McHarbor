@@ -1,0 +1,49 @@
+{
+    "slug":  "jellyfin-unstable",
+    "name":  "Jellyfin (Unstable)",
+    "description":  "Unstable channel build of Jellyfin. Free and open-source media server. Stream movies, TV, music, and more.",
+    "category":  "Media",
+    "image":  "jellyfin/jellyfin:unstable",
+    "logo":  "https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg",
+    "website":  "https://jellyfin.org",
+    "docsUrl":  "https://jellyfin.org/docs/",
+    "ports":  [
+                  {
+                      "host":  9096,
+                      "container":  8096,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jellyfin-unstable/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/jellyfin-unstable/cache",
+                        "container":  "/cache"
+                    },
+                    {
+                        "host":  "/opt/appdata/jellyfin-unstable/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JELLYFIN_PublishedServerUrl",
+                        "default":  "http://localhost:8096",
+                        "description":  "Public URL for the server"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "unstable",
+    "latest":  {
+        "version":  "unstable",
+        "release_date":  "2026-09-29"
+    }
+}

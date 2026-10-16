@@ -1,0 +1,32 @@
+{
+    "slug":  "element-web-dev",
+    "name":  "Element Web (Dev)",
+    "description":  "Dev channel build of Element Web. Secure and private Matrix-based messenger with end-to-end encryption and VoIP.",
+    "category":  "Communications",
+    "image":  "vectorim/element-web:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/element.svg",
+    "website":  "https://element.io",
+    "docsUrl":  "https://element.io/help",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

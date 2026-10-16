@@ -4,7 +4,7 @@
     "description":  "Go 1.22 on Alpine Linux, statically typed compiled language with range over integers and improved routing.",
     "category":  "Developer Tools",
     "image":  "golang:1.22-alpine",
-    "logo":  "https://icon.horse/icon/go.dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/golang.svg",
     "website":  "https://go.dev",
     "docsUrl":  "https://go.dev/doc/",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Disable CGO for static binaries"
                     }
                 ],
-    "version":  "1.22-alpine"
+    "version":  "1.22-alpine",
+    "latest":  {
+        "version":  "1.22-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

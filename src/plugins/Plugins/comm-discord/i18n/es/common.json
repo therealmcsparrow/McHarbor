@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Nombre para mostrar de este canal de comunicación de Discord." },
+    "webhook_url": { "help": "URL del webhook del canal de Discord. Se almacena cifrada en reposo." }
+  },
+  "title": "Entrega de notificaciones de Discord",
+  "subtitle": "Canal de comunicación propio del plugin",
+  "description": "Este plugin gestiona Discord. Almacena la URL del webhook de Discord en el propio canal y envía las notificaciones a través del runtime de plugins.",
+  "nameLabel": "Nombre del canal",
+  "namePlaceholder": "Discord de operaciones",
+  "webhookUrlLabel": "URL del webhook",
+  "securityTitle": "Seguridad",
+  "securityHelp": "URL del webhook cifrada",
+  "securityDescription": "La URL del webhook se almacena cifrada en reposo. Cree un webhook dedicado para McHarbor para poder rotarlo de forma independiente.",
+  "testTitle": "Probar la conexión",
+  "testHelp": "Envía un mensaje",
+  "testDescription": "La acción de prueba del host publica un mensaje real en el canal de Discord configurado. Use primero un canal de prueba privado si el webhook apunta a una sala de guardia.",
+  "secretKeepHint": "Déjelo en blanco para conservar el valor almacenado.",
+  "requiredField": "Obligatorio",
+  "setupGuideTitle": "Guía de configuración del canal de comunicación de Discord",
+  "guide": {
+    "step1": { "body": "Abra el servidor de Discord de destino y cree un canal de texto dedicado a las alertas de McHarbor, o elija un canal de operaciones existente." },
+    "step2": { "body": "Abra los ajustes del canal, vaya a <b>Integrations</b>, cree un webhook y copie la URL del webhook." },
+    "step3": { "body": "Pegue la URL del webhook en la configuración de este canal. McHarbor la almacena cifrada y la oculta en las respuestas de la API." },
+    "step4": { "body": "Guarde el canal y haga clic en <b>Probar la conexión</b>. El plugin publica un mensaje de prueba real en Discord por la misma ruta que se usa para los eventos reales de flujos de trabajo, alertas y copias de seguridad." },
+    "step5": { "body": "Si la prueba falla, compruebe que el webhook no se ha eliminado, que el canal sigue existiendo y que los permisos del servidor permiten publicar mediante webhooks." }
+  }
+}

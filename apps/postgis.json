@@ -4,7 +4,7 @@
     "description":  "PostgreSQL with the PostGIS spatial database extension for geographic objects.",
     "category":  "Databases",
     "image":  "postgis/postgis:16-3.4-alpine",
-    "logo":  "https://icon.horse/icon/postgis.net",
+    "logo":  "https://www.google.com/s2/favicons?domain=postgis.net\u0026sz=128",
     "website":  "https://postgis.net",
     "docsUrl":  "https://postgis.net/documentation/",
     "ports":  [
@@ -38,5 +38,9 @@
                         "description":  "Default database name"
                     }
                 ],
-    "version":  "16-3.4-alpine"
+    "version":  "16-3.4-alpine",
+    "latest":  {
+        "version":  "16-3.4-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

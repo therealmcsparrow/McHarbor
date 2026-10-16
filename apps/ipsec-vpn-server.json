@@ -1,0 +1,57 @@
+{
+    "slug":  "ipsec-vpn-server",
+    "name":  "IPsec VPN Server",
+    "description":  "IPsec/L2TP and IKEv2 VPN server for connecting remote devices to a private network.",
+    "category":  "Networking",
+    "image":  "hwdsl2/ipsec-vpn-server:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/hwdsl2/docker-ipsec-vpn-server",
+    "docsUrl":  "https://github.com/hwdsl2/docker-ipsec-vpn-server",
+    "ports":  [
+                  {
+                      "host":  500,
+                      "container":  500,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  4500,
+                      "container":  4500,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ipsec-vpn-server/config",
+                        "container":  "/etc/ipsec.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VPN_IPSEC_PSK",
+                        "default":  "change-me",
+                        "description":  "IPsec pre-shared key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "VPN_USER",
+                        "default":  "vpnuser",
+                        "description":  "VPN username"
+                    },
+                    {
+                        "key":  "VPN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "VPN user password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

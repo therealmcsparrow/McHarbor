@@ -1,0 +1,44 @@
+{
+    "slug":  "puppet-server",
+    "name":  "Puppet Server",
+    "description":  "Configuration management server that compiles and serves catalogs to Puppet agents across an infrastructure.",
+    "category":  "CI/CD",
+    "image":  "puppet/puppetserver:latest",
+    "logo":  "https://cdn.simpleicons.org/puppet",
+    "website":  "https://www.puppet.com",
+    "docsUrl":  "https://github.com/puppetlabs/puppetserver/blob/main/documentation/docker.markdown",
+    "ports":  [
+                  {
+                      "host":  8140,
+                      "container":  8140,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/puppet-server/code",
+                        "container":  "/etc/puppetlabs/code"
+                    },
+                    {
+                        "host":  "/opt/appdata/puppet-server/puppet",
+                        "container":  "/etc/puppetlabs/puppet"
+                    },
+                    {
+                        "host":  "/opt/appdata/puppet-server/data",
+                        "container":  "/opt/puppetlabs/server/data/puppetserver"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

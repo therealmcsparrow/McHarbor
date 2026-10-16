@@ -1,6 +1,6 @@
 {
-  "label": "Link Out",
-  "description": "Store the current message for another workflow to consume",
+  "label": "Link uit",
+  "description": "Bewaar het huidige bericht zodat een andere workflow het kan ophalen",
   "config": {
     "name": "Naam"
   }

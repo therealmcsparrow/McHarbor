@@ -1,0 +1,180 @@
+{
+  "title": "Incidents",
+  "description": "Containers that crash-looped, exited repeatedly, ran out of memory, turned unhealthy or fired an alert — with everything McHarbor knows about them in one place.",
+  "empty": "No incidents.",
+  "notFound": "This incident does not exist.",
+  "columns": {
+    "container": "Container",
+    "signal": "Signal",
+    "signals": "Signals",
+    "status": "Status",
+    "narrative": "Narrative",
+    "started": "Started",
+    "last": "Last signal",
+    "subject": "Subject"
+  },
+  "signal": {
+    "crash_loop": "Crash loop",
+    "exit_nonzero": "Repeated failing exit",
+    "oom": "Out of memory",
+    "unhealthy": "Unhealthy",
+    "alert": "Alert fired"
+  },
+  "status": {
+    "open": "Open",
+    "resolved": "Resolved",
+    "all": "All"
+  },
+  "narrativeStatus": {
+    "none": "Not narrated",
+    "pending": "Narrating…",
+    "ready": "Narrated",
+    "failed": "Failed",
+    "refused": "Refused"
+  },
+  "confidence": {
+    "low": "Low confidence",
+    "medium": "Medium confidence",
+    "high": "High confidence"
+  },
+  "detail": {
+    "description": "{{signal}} · {{count}} signals · first {{first}} · last {{last}}",
+    "refresh": "Refresh evidence",
+    "resolve": "Resolve",
+    "resolveTitle": "Resolve this incident?",
+    "resolveDescription": "Close the incident for {{name}} now and build its timeline. A new signal opens a new incident.",
+    "resolveConfirm": "Resolve incident"
+  },
+  "narrative": {
+    "title": "What happened",
+    "explain": "Explain this",
+    "again": "Explain again",
+    "working": "Asking the model…",
+    "none": "No narrative yet. Explain this sends the evidence below to the AI model configured for McHarbor.",
+    "lastFailed": "The last narration failed.",
+    "failedTitle": "Why the narration failed",
+    "undetermined": "The model could not determine a cause from the available evidence. What it looked at is below.",
+    "changes": "Changed shortly before",
+    "causes": "Probable causes",
+    "attribution": "Written by {{model}} through {{connection}} ({{provider}}) for {{who}} at {{time}}.",
+    "attributionProactive": "Written automatically by {{model}} through {{connection}} ({{provider}}) at {{time}}.",
+    "shown": "What the model was shown",
+    "shownHint": "The exact, redacted text sent. Fingerprint {{hash}}."
+  },
+  "refusal": {
+    "not_opted_in": "Narration is off for this environment. Turn it on in the narration settings first; nothing was sent.",
+    "no_model": "No AI model is configured and enabled. Add one under the AI assistant settings; nothing was sent.",
+    "in_progress": "A narration is already running for this incident.",
+    "cap_reached": "The hourly narration limit for this environment is reached.",
+    "not_resolved": "Only a resolved incident has a timeline to summarise.",
+    "model_failed": "The model did not answer. The reason is on the incident.",
+    "not_open": "This incident is already resolved."
+  },
+  "evidence": {
+    "title": "Evidence",
+    "window": "From {{from}} to {{to}}",
+    "truncated": "Trimmed to size",
+    "pending": "Evidence is being collected.",
+    "nothing": "Nothing recorded in this window.",
+    "image": "Image",
+    "state": "State",
+    "exitCode": "Exit code",
+    "restarts": "Restarts",
+    "health": "Health",
+    "oomKilled": "Out of memory",
+    "yes": "Yes",
+    "no": "No",
+    "exit": "exit {{code}}",
+    "events": "Container events",
+    "logs": "Last log lines",
+    "imageChanges": "Image changes",
+    "audit": "Who changed what",
+    "deploys": "Deploys to this environment",
+    "alerts": "Alerts",
+    "drift": "Drift from desired state",
+    "metrics": "Metrics",
+    "peakContainerCpu": "Container CPU peak",
+    "peakContainerMem": "Container memory peak",
+    "peakHostCpu": "Host CPU peak",
+    "peakHostMem": "Host memory peak",
+    "pluginNote": {
+      "plugin_unloaded": "The plugin that raised this incident is not loaded, so its evidence could not be read.",
+      "plugin_unavailable": "The plugin that raised this incident did not answer in time."
+    }
+  },
+  "logsNote": {
+    "unavailable": "Logs are not available here.",
+    "unreachable": "The environment could not be reached for logs.",
+    "not_found": "The container no longer exists, so there are no logs.",
+    "logs_unavailable": "The logs could not be read."
+  },
+  "timeline": {
+    "title": "Timeline",
+    "summarise": "Summarise",
+    "kind": {
+      "symptom": "First symptom",
+      "event": "Event",
+      "action": "Action",
+      "alert": "Alert",
+      "change": "Last change",
+      "resolved": "Resolved"
+    }
+  },
+  "settings": {
+    "open": "Narration settings",
+    "title": "Narration for this environment",
+    "description": "Whether incidents in this environment may be explained by the AI model, and how often.",
+    "noModel": "No AI model is configured and enabled, so nothing can be sent. Configure one under the AI assistant settings.",
+    "destinationLocal": "Evidence would go to {{connection}}: {{provider}} running {{model}} at {{url}}, a self-hosted model.",
+    "destinationRemote": "Evidence would leave this network: it goes to {{connection}}, {{provider}} running {{model}} at {{url}}.",
+    "whatIsSent": "What is sent: the container's recent events and log lines, image changes, audit entries and deploys touching it, alerts, drift and metrics — with passwords, tokens, credentials, addresses and Docker endpoints removed first. Environment variables are never sent.",
+    "optIn": "Allow narration for this environment",
+    "acknowledge": "I understand that incident evidence from this environment will be sent to the model named above.",
+    "proactive": "Narrate new incidents automatically",
+    "hourlyCap": "Automatic narrations per hour",
+    "hourlyCapHint": "Automatic narration pauses once this many narrations have run in the last hour. Explain this is never refused for it.",
+    "save": "Save"
+  },
+  "snippet": {
+    "title": "Incident narrative",
+    "pending": "An incident is open for this alert; no narrative yet.",
+    "open": "Open the incident"
+  },
+  "findings": {
+    "open": "Behaviour",
+    "title": "Behaviour findings",
+    "description": "Patterns found in the recorded history by fixed rules. The numbers are measured; a model may only explain them.",
+    "back": "Back to incidents",
+    "empty": "No findings.",
+    "explain": "Explain this finding",
+    "dismiss": "Dismiss",
+    "explainedBy": "Explained by {{model}} for {{who}}.",
+    "columns": {
+      "kind": "Pattern",
+      "subject": "Where",
+      "numbers": "What the numbers say",
+      "explanation": "Explanation",
+      "lastSeen": "Last seen",
+      "actions": "Actions"
+    },
+    "kind": {
+      "memory_climb": "Memory climbing",
+      "host_memory_forecast": "Host memory running out",
+      "scheduled_restarts": "Restarts on a schedule",
+      "post_deploy_failures": "Failures after a deploy",
+    "host_disk_forecast": "Host disk running out",
+    "storage_location_forecast": "Storage destination running out"
+    },
+    "says": {
+      "memory_climb": "Memory grew {{growth}}% over {{days}} days, about {{perDay}} a day (fit {{r2}}).",
+      "host_memory_forecast": "At {{current}}% and rising {{perDay}} points a day, memory is full in about {{days}} days.",
+      "scheduled_restarts": "Restarts around {{time}} UTC on {{days}} different days.",
+      "post_deploy_failures": "{{after}} failing exits in the day after a deploy, against {{before}} the day before.",
+    "host_disk_forecast": "At {{current}}% and rising {{perDay}} points a day, this filesystem reaches {{ceiling}}% in about {{days}} days (fit {{r2}}).",
+    "storage_location_forecast": "At {{current}}% and rising {{perDay}} points a day, this destination reaches {{ceiling}}% in about {{days}} days (fit {{r2}})."
+    }
+  },
+  "subjectType": {
+    "container": "Container"
+  }
+}

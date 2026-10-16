@@ -1,0 +1,37 @@
+{
+  "widgets": {
+    "workloadHeatmap": {
+      "label": "Carte thermique des charges",
+      "description": "Un carré par conteneur, coloré selon l’état"
+    }
+  },
+  "workloadHeatmapWidget": {
+    "title": "États des charges",
+    "count_one": "{{count}} conteneur",
+    "count_other": "{{count}} conteneurs",
+    "empty": "Aucun conteneur trouvé",
+    "emptyHint": "Les charges apparaîtront ici dès que cet environnement en aura.",
+    "gridLabel_one": "{{count}} conteneur, groupé par état",
+    "gridLabel_other": "{{count}} conteneurs, groupés par état",
+    "cellLabel": "{{name}} — {{state}}",
+    "open": "Ouvrir le conteneur",
+    "none": "Aucun",
+    "state": {
+      "running": "En cours",
+      "created": "Créé",
+      "removing": "Suppression",
+      "paused": "En pause",
+      "restarting": "Redémarrage",
+      "exited": "Arrêté",
+      "dead": "Mort"
+    },
+    "field": {
+      "status": "Statut",
+      "stack": "Stack",
+      "ports": "Ports",
+      "ip": "Adresse IP",
+      "created": "Créé",
+      "id": "ID"
+    }
+  }
+}

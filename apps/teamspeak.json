@@ -1,0 +1,51 @@
+{
+    "slug":  "teamspeak",
+    "name":  "TeamSpeak Server",
+    "description":  "Low-latency voice chat server for gaming and team communication.",
+    "category":  "Communications",
+    "image":  "teamspeak:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/teamspeak.png",
+    "website":  "https://teamspeak.com",
+    "docsUrl":  "https://hub.docker.com/_/teamspeak",
+    "ports":  [
+                  {
+                      "host":  9987,
+                      "container":  9987,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  30033,
+                      "container":  30033,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  10011,
+                      "container":  10011,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/teamspeak/data",
+                        "container":  "/var/ts3server"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TS3SERVER_LICENSE",
+                        "default":  "accept",
+                        "description":  "Accepts the TeamSpeak server license on first boot"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

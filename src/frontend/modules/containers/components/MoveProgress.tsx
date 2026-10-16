@@ -14,24 +14,27 @@ type MoveProgressProps = {
   onCancel?: () => void;
 };
 
-function logLineColor(entry: MoveProgressLogEntry, isLast: boolean, status?: string): string {
-  if (status === 'error' && isLast) return 'text-destructive';
-  if (status === 'done' && isLast) return 'text-green-400';
+function logLineColor(entry: MoveProgressLogEntry, isLast: boolean, statusValue?: string): string {
+  if (statusValue === 'error' && isLast) return 'text-destructive';
+  if (statusValue === 'done' && isLast) return 'text-success';
   if (entry.phase === 'error') return 'text-destructive';
-  if (isLast && status !== 'done' && status !== 'error') return 'text-foreground';
+  if (isLast && statusValue !== 'done' && statusValue !== 'error') return 'text-foreground';
   return 'text-muted-foreground';
 }
 
 export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgressProps) {
   const { t } = useTranslation('containers');
   const logEndRef = useRef<HTMLDivElement>(null);
-  const transferRatio = progress?.bytesTransferred && progress.bytesTotal
-    ? Math.min(progress.bytesTransferred / progress.bytesTotal, 1)
-    : null;
+  const transferRatio =
+    progress?.bytesTransferred && progress.bytesTotal
+      ? Math.min(progress.bytesTransferred / progress.bytesTotal, 1)
+      : null;
   const progressPercent = progress
-    ? Math.round(transferRatio === null
-      ? (progress.step / progress.total) * 100
-      : (((progress.step - 1) / progress.total) + (transferRatio / progress.total)) * 100)
+    ? Math.round(
+        transferRatio === null
+          ? (progress.step / progress.total) * 100
+          : ((progress.step - 1) / progress.total + transferRatio / progress.total) * 100,
+      )
     : 0;
   const finished = progress?.status === 'done' || progress?.status === 'error';
 
@@ -43,11 +46,11 @@ export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgress
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {progress?.status === 'done' ? (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-            <IconCheck className="size-4 text-green-500" />
+          <div className="flex size-8 shrink-0 items-center justify-center bg-success/10">
+            <IconCheck className="size-4 text-success" />
           </div>
         ) : progress?.status === 'error' ? (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+          <div className="flex size-8 shrink-0 items-center justify-center bg-destructive/10">
             <IconX className="size-4 text-destructive" />
           </div>
         ) : (
@@ -60,7 +63,7 @@ export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgress
               progress?.status === 'error'
                 ? '[&::-moz-progress-bar]:bg-destructive [&::-webkit-progress-value]:bg-destructive'
                 : progress?.status === 'done'
-                  ? '[&::-moz-progress-bar]:bg-green-500 [&::-webkit-progress-value]:bg-green-500'
+                  ? '[&::-moz-progress-bar]:bg-success [&::-webkit-progress-value]:bg-success'
                   : '[&::-moz-progress-bar]:bg-primary [&::-webkit-progress-value]:bg-primary'
             }`}
             value={progressPercent}
@@ -68,9 +71,7 @@ export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgress
           />
         </div>
 
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          {progressPercent}%
-        </span>
+        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{progressPercent}%</span>
       </div>
 
       <div className="max-h-[240px] min-h-[140px] overflow-y-auto rounded-md border border-border bg-muted/50 p-3 font-mono text-xs leading-relaxed">
@@ -78,7 +79,7 @@ export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgress
           const isLast = index === logs.length - 1;
           return (
             <div key={entry.id} className="flex gap-2">
-              <span className="shrink-0 select-none text-muted-foreground/40">
+              <span className="shrink-0 text-muted-foreground/40 select-none">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <span className={logLineColor(entry, isLast, progress?.status)}>{entry.message}</span>
@@ -88,11 +89,7 @@ export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgress
         <div ref={logEndRef} />
       </div>
 
-      {!finished && (
-        <p className="text-xs text-muted-foreground">
-          {t('moveDialog.progress.cancelNote')}
-        </p>
-      )}
+      {!finished && <p className="text-xs text-muted-foreground">{t('moveDialog.progress.cancelNote')}</p>}
 
       {finished ? (
         <Button

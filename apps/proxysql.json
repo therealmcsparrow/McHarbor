@@ -1,0 +1,40 @@
+{
+    "slug":  "proxysql",
+    "name":  "ProxySQL",
+    "description":  "High-performance SQL proxy for MySQL and MariaDB that handles query routing, caching and failover.",
+    "category":  "Databases",
+    "image":  "proxysql/proxysql:latest",
+    "logo":  "https://github.com/sysown.png",
+    "website":  "https://proxysql.com",
+    "docsUrl":  "https://proxysql.com/documentation/",
+    "ports":  [
+                  {
+                      "host":  6033,
+                      "container":  6033,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6032,
+                      "container":  6032,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/proxysql/data",
+                        "container":  "/var/lib/proxysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,37 @@
+{
+  "label": "Objet de stockage",
+  "description": "Lister, envoyer, télécharger ou supprimer des objets sur un emplacement de stockage via son adaptateur",
+  "config": {
+    "storage_location_id": "Emplacement de stockage",
+    "action": "Action",
+    "prefix": "Préfixe",
+    "key": "Clé de l'objet",
+    "source_mode": "Source",
+    "property": "Propriété source",
+    "content_encoding": "Encodage source",
+    "content": "Contenu",
+    "output_encoding": "Encodage de sortie",
+    "output_property": "Propriété de sortie"
+  },
+  "options": {
+    "action": {
+      "list": "Lister",
+      "upload": "Envoyer",
+      "download": "Télécharger",
+      "delete": "Supprimer"
+    },
+    "source_mode": {
+      "property": "Propriété du message",
+      "text": "Texte en ligne"
+    },
+    "content_encoding": {
+      "auto": "Automatique (texte ou JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Texte",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

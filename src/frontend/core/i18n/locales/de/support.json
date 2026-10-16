@@ -1,0 +1,290 @@
+{
+  "overview": {
+    "section": "Support-Fähigkeit",
+    "bundle": {
+      "title": "Support-Bundle",
+      "description": "Erzeugt ein geschwärztes Diagnosepaket für den McHarbor-Support."
+    },
+    "diagnostics": {
+      "title": "Diagnose",
+      "description": "Führt Health-Checks mit Ergebnissen „bestanden“, „Warnung“ und „fehlgeschlagen“ aus."
+    },
+    "inventory": {
+      "title": "Zustandsinventar",
+      "description": "Was im Datenverzeichnis liegt, wie groß es ist und ob es gesichert wird."
+    }
+  },
+  "status": {
+    "pass": "Bestanden",
+    "warn": "Warnung",
+    "fail": "Fehlgeschlagen",
+    "skip": "Übersprungen"
+  },
+  "check": {
+    "database": "Datenbank",
+    "migrations": "Datenbankmigrationen",
+    "data_dir": "Datenverzeichnis",
+    "docker": "Docker-Erreichbarkeit",
+    "agents": "Remote-Agents",
+    "plugins": "Plugins",
+    "identity": "Identitätsanbieter",
+    "outbound": "Ausgehendes Netzwerk",
+    "tls": "TLS-Zertifikat",
+    "backup_key": "Backup-Verschlüsselungsschlüssel",
+    "encryption_key": "Datenverschlüsselungsschlüssel",
+    "readiness": "Bereitschaft",
+    "target_migrations": "Migrationen für die Zielversion",
+    "plugin_compat": "Plugin-Kompatibilität",
+    "busy": "Laufende Backups und Exporte"
+  },
+  "reason": {
+    "database": {
+      "ok": "Die Datenbank antwortet.",
+      "unreachable": "Die Datenbank antwortet nicht. Prüfen Sie, ob sie läuft und ob MCHARBOR_DB_DSN oder DATABASE_PATH auf sie zeigt."
+    },
+    "migrations": {
+      "ok": "Jede Migration, die diese Version mitliefert, wurde angewendet.",
+      "pending": "Einige Migrationen wurden nicht angewendet. Starten Sie McHarbor neu, damit es sie anwenden kann, und prüfen Sie das Log, falls sie weiterhin fehlschlagen.",
+      "ahead": "Die Datenbank enthält Migrationen, die diese Version nicht kennt. Sie wurde von einem neueren McHarbor verwendet; betreiben Sie keine ältere Version darauf.",
+      "unreadable": "Das Migrationsprotokoll konnte nicht gelesen werden. Prüfen Sie zuerst die Datenbankverbindung."
+    },
+    "data_dir": {
+      "ok": "Das Datenverzeichnis existiert, ist beschreibbar und hat Platz.",
+      "missing": "Das Datenverzeichnis existiert nicht. Prüfen Sie DATA_DIR und den Volume-Mount.",
+      "not_writable": "McHarbor kann nicht in das Datenverzeichnis schreiben. Prüfen Sie, dass der Mount nicht schreibgeschützt ist und der Prozess ihn besitzt.",
+      "low_space": "Weniger als 2 GB sind frei. Schaffen Sie Platz, bevor Sie Backups, Exporte oder ein Upgrade ausführen."
+    },
+    "docker": {
+      "ok": "Jeder direkt verbundene Docker-Host hat innerhalb von 5 Sekunden geantwortet.",
+      "some_unreachable": "Einige Docker-Hosts haben nicht innerhalb von 5 Sekunden geantwortet. Prüfen Sie den Socket-Mount oder die TCP-Adresse dieser Umgebungen.",
+      "unreachable": "Kein direkt verbundener Docker-Host hat geantwortet. Prüfen Sie den Docker-Socket-Mount und ob der Daemon läuft.",
+      "none": "Es gibt keine direkt verbundenen Docker-Umgebungen.",
+      "unreadable": "Die Umgebungsliste konnte nicht gelesen werden."
+    },
+    "agents": {
+      "ok": "Jede Agent-Umgebung hat einen verbundenen Agent.",
+      "disconnected": "Einige Agents sind nicht mit diesem Node verbunden. Prüfen Sie den Agent-Dienst auf diesen Hosts und ihre Route zu McHarbor.",
+      "none": "Es gibt keine Agent-Umgebungen.",
+      "unreadable": "Die Umgebungsliste konnte nicht gelesen werden."
+    },
+    "plugins": {
+      "ok": "Jedes aktivierte Plugin wurde geladen.",
+      "load_failed": "Einige Plugins konnten nicht geladen werden. Ein für einen anderen McHarbor-Build erstelltes Plugin muss im Plugin Store aktualisiert oder repariert werden.",
+      "runtime_off": "Die Plugin-Laufzeit ist auf dieser Plattform nicht aktiv oder noch nicht gestartet."
+    },
+    "identity": {
+      "configured": "Externe Identitätsanbieter sind aktiviert.",
+      "local_only": "Nur lokale Konten können sich anmelden. Fügen Sie unter Sicherheit einen Identitätsanbieter hinzu, wenn Sie Single Sign-on nutzen.",
+      "unreadable": "Die Liste der Identitätsanbieter konnte nicht gelesen werden."
+    },
+    "outbound": {
+      "ok": "Die Katalog-URL hat geantwortet.",
+      "unreachable": "Die Katalog-URL hat nicht innerhalb von 5 Sekunden geantwortet. Prüfen Sie DNS, den Proxy und die Firewall für ausgehendes HTTPS.",
+      "server_error": "Die Katalog-URL hat mit einem Serverfehler geantwortet. Der Katalog ist möglicherweise ausgefallen; versuchen Sie es später erneut.",
+      "not_configured": "Es ist keine Katalog-URL konfiguriert, daher wurde der ausgehende Zugriff nicht getestet."
+    },
+    "tls": {
+      "ok": "Das Zertifikat ist mehr als 30 Tage gültig.",
+      "expiring": "Das Zertifikat läuft innerhalb von 30 Tagen ab. Laden Sie ein erneuertes Zertifikat hoch oder erzeugen Sie das selbstsignierte neu.",
+      "expired": "Das Zertifikat ist abgelaufen. Browser und Agents lehnen es ab, bis es ersetzt wird.",
+      "missing": "Es wurde keine Zertifikatsdatei gefunden.",
+      "unreadable": "Die Zertifikatsdatei konnte nicht geparst werden.",
+      "disabled": "TLS ist deaktiviert (TLS_ENABLED=false). Beenden Sie TLS an einem Reverse Proxy."
+    },
+    "backup_key": {
+      "present": "Ein Backup-Verschlüsselungsschlüssel ist geladen.",
+      "missing": "Es ist kein Backup-Verschlüsselungsschlüssel geladen, daher können Backups nicht verschlüsselt werden. Binden Sie einen unter BACKUP_ENCRYPTION_KEY_FILE ein."
+    },
+    "encryption_key": {
+      "env": "Der Datenverschlüsselungsschlüssel stammt aus ENCRYPTION_KEY.",
+      "auto_generated": "Der Datenverschlüsselungsschlüssel wurde in DATA_DIR/.encryption_key erzeugt. Geht diese Datei verloren, gehen alle gespeicherten Secrets verloren, und jeder HA-Node würde seinen eigenen erzeugen. Kopieren Sie ihn nach ENCRYPTION_KEY."
+    },
+    "readiness": {
+      "ok": "Dieser Node ist bereit, Datenverkehr anzunehmen.",
+      "not_ready": "Dieser Node ist nicht bereit: Sehen Sie nach, welche Bereitschaftsbedingung falsch ist.",
+      "not_ready_yet": "Der Cluster-Dienst wurde noch nicht gestartet."
+    },
+    "target_migrations": {
+      "target_unknown": "Die Migrationen der Zielversion sind erst bekannt, wenn ihr Image abgerufen wurde. Die aktuelle Datenbank ist vollständig migriert.",
+      "pending": "Diese Version hat noch nicht angewendete Migrationen. Beheben Sie sie vor dem Upgrade.",
+      "ahead": "Die Datenbank enthält bereits Migrationen, die diese Version nicht kennt.",
+      "unreadable": "Das Migrationsprotokoll konnte nicht gelesen werden."
+    },
+    "plugin_compat": {
+      "ok": "Jedes installierte Plugin erklärt Unterstützung für die Zielversion.",
+      "incompatible": "Einige Plugins erklären keine Unterstützung für die Zielversion. Sie werden erst nach einem Update geladen.",
+      "unknown": "Einige Plugins deklarieren keinen lesbaren Versionsbereich. Prüfen Sie sie nach dem Upgrade.",
+      "unreadable": "Die Liste der installierten Plugins konnte nicht gelesen werden.",
+      "none": "Es sind keine Plugins installiert."
+    },
+    "busy": {
+      "idle": "Es läuft kein Backup, kein Export und kein Support-Bundle.",
+      "running": "Ein Backup, ein Export oder ein Support-Bundle läuft. Ein Upgrade startet McHarbor neu und würde es unterbrechen."
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnose",
+    "description": "Health-Checks für diesen McHarbor-Node, jeweils mit dem, was zu tun ist, wenn er nicht bestanden wird. Die Ergebnisse sind geschwärzt und können gefahrlos mit dem Support geteilt werden.",
+    "runAll": "Alle Prüfungen ausführen",
+    "runCheck": "{{check}} ausführen",
+    "copyJson": "JSON kopieren",
+    "notRun": "Noch nicht ausgeführt",
+    "duration": "{{ms}} ms",
+    "generatedAt": "Letzter Lauf {{time}}",
+    "summary": "{{pass}} bestanden, {{warn}} Warnungen, {{fail}} fehlgeschlagen"
+  },
+  "bundle": {
+    "title": "Support-Bundle",
+    "description": "Packt geschwärzte Diagnosedaten für den McHarbor-Support zusammen. Nichts verlässt diesen Server, bis Sie die Datei herunterladen.",
+    "categoriesTitle": "Im Bundle enthalten",
+    "categoriesHint": "Schlüssel, Tokens, Passwörter, Kubeconfigs, Agent-Tokens und API-Schlüssel werden nie erfasst, und jede Datei wird vor dem Schreiben von Zugangsdaten bereinigt.",
+    "noneSelected": "Wählen Sie mindestens eine Kategorie.",
+    "preview": "Schwärzung in der Vorschau anzeigen",
+    "generate": "Bundle erzeugen",
+    "estimate": "Geschätzte Größe: {{size}}",
+    "running": "Wird erzeugt: {{progress}}%",
+    "category": {
+      "system": {
+        "title": "Version und Konfiguration",
+        "description": "Version, Build, Plattform und Umgebungsvariablen, wobei Werte nur für als sicher bekannte Variablen angezeigt werden."
+      },
+      "logs": {
+        "title": "Aktuelle Server-Logs",
+        "description": "Die letzten 500 Logeinträge, die dieser Prozess im Speicher gehalten hat."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Aktivierte Plugins und was der Loader für jedes gemeldet hat."
+      },
+      "cluster": {
+        "title": "Cluster",
+        "description": "Bereitschaft und die Hochverfügbarkeitstopologie."
+      },
+      "database": {
+        "title": "Datenbank",
+        "description": "Treiber, Serverversion und die Migrationsliste."
+      },
+      "environments": {
+        "title": "Umgebungen",
+        "description": "Namen, Verbindungstypen und Agent-Versionen. Keine Adressen, Sockets oder Zugangsdaten."
+      },
+      "audit": {
+        "title": "Abgelehnte Berechtigungen",
+        "description": "Wie viele Anfragen am letzten Tag und in der letzten Woche abgelehnt wurden."
+      },
+      "diagnostics": {
+        "title": "Diagnose",
+        "description": "Das Ergebnis jeder Diagnoseprüfung."
+      }
+    },
+    "previewTitle": "Vorschau der Schwärzung",
+    "previewDescription": "Genau das wird das Bundle enthalten: {{count}} Dateien, {{size}}.",
+    "previewTruncated": "Es werden nur die ersten 64 KB angezeigt; das Bundle enthält die gesamte Datei.",
+    "historyTitle": "Erzeugte Bundles",
+    "historyDescription": "Die neuesten {{count}} Bundles werden behalten; ältere werden automatisch gelöscht.",
+    "empty": "Es wurden noch keine Bundles erzeugt.",
+    "columns": {
+      "created": "Erstellt",
+      "createdBy": "Von",
+      "categories": "Inhalt",
+      "size": "Größe",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "state": {
+      "running": "Wird erzeugt",
+      "ready": "Bereit",
+      "failed": "Fehlgeschlagen"
+    },
+    "failed": "Die Erzeugung ist fehlgeschlagen. Details stehen im Server-Log.",
+    "download": "Herunterladen",
+    "delete": "Löschen",
+    "deleteTitle": "Dieses Support-Bundle löschen?",
+    "deleteDescription": "Die Bundle-Datei wird von diesem Server entfernt. Bereits heruntergeladene Kopien sind davon nicht betroffen."
+  },
+  "inventory": {
+    "title": "Zustandsinventar",
+    "description": "Alles, was McHarbor in seinem Datenverzeichnis aufbewahrt: wie groß es ist, ob McHarbor darin schreiben kann, ob ein Instanz-Backup es enthält und ob es bereinigt werden kann. Schreibgeschützt.",
+    "dataDir": "Datenverzeichnis",
+    "used": "Von McHarbor belegt",
+    "free": "Frei auf dem Volume",
+    "driver": "Datenbank",
+    "columns": {
+      "category": "Kategorie",
+      "path": "Pfad",
+      "size": "Größe",
+      "writable": "Beschreibbar",
+      "backup": "Instanz-Backup",
+      "cleanup": "Bereinigung"
+    },
+    "missing": "Nicht vorhanden",
+    "files_one": "{{count}} Datei",
+    "files_other": "{{count}} Dateien",
+    "truncated": "Die Größe ist eine Untergrenze; die Durchsuchung wurde vorzeitig beendet.",
+    "yes": "Ja",
+    "no": "Nein",
+    "category": {
+      "database": "Datenbank",
+      "encryption_key": "Datenverschlüsselungsschlüssel",
+      "server_secret": "Server-Secret",
+      "tls": "TLS-Zertifikate",
+      "plugins": "Installierte Plugins",
+      "plugin_catalog": "Plugin-Katalog-Cache",
+      "stacks": "Stacks",
+      "files": "Hochgeladene Dateien",
+      "custom_nodes": "Benutzerdefinierte Workflow-Nodes",
+      "widgets": "Dashboard-Widgets",
+      "widgets_state": "Widget-Zustand",
+      "workflow_nodes": "Workflow-Node-Zustand",
+      "git": "Git-Arbeitskopien",
+      "container_backups": "Container-Backups",
+      "backup_staging": "Backup-Zwischenspeicher",
+      "instance_backups": "Instanz-Backups",
+      "restore_staging": "Wiederherstellungs-Zwischenspeicher",
+      "restore_ledger": "Wiederherstellungsprotokoll",
+      "restore_status": "Wiederherstellungsstatus",
+      "support_bundles": "Support-Bundles",
+      "other": "Sonstiges"
+    },
+    "backup": {
+      "included": "Enthalten",
+      "partial": "Teilweise",
+      "excluded": "Nicht enthalten",
+      "database": "Als Tabellen"
+    },
+    "cleanup": {
+      "no": "Behalten",
+      "safe": "Sicher entfernbar",
+      "managed": "Durch Aufbewahrung bereinigt",
+      "regenerable": "Bei Bedarf neu erstellt",
+      "unknown": "Unbekannt, nicht von McHarbor erstellt"
+    }
+  },
+  "preUpgrade": {
+    "open": "Prüfung vor dem Upgrade",
+    "title": "Prüfung vor dem Upgrade",
+    "description": "Was Sie vor dem Upgrade von {{current}} auf {{target}} wissen sollten. Diese Prüfung ändert nichts und blockiert das Update nicht.",
+    "rerun": "Erneut ausführen",
+    "pluginsTitle": "Installierte Plugins",
+    "pluginRange": "Deklariert {{range}}",
+    "noRange": "Kein Versionsbereich",
+    "compat": {
+      "yes": "Kompatibel",
+      "no": "Nicht kompatibel",
+      "unknown": "Unbekannt"
+    },
+    "rollbackTitle": "Wenn das Upgrade schiefgeht",
+    "rollbackSqlite": "Erstellen Sie zuerst ein Instanz-Backup (Einstellungen → System → Instanz-Backup). SQLite-Migrationen gehen nur vorwärts: Um zurückzurollen, stoppen Sie McHarbor, stellen Sie das Backup oder eine Kopie des Daten-Volumes wieder her und starten Sie den vorherigen Image-Tag.",
+    "rollbackExternal": "Erstellen Sie zuerst einen Dump der externen Datenbank. Migrationen gehen nur vorwärts: Um zurückzurollen, stoppen Sie jeden Node, stellen Sie den Dump wieder her und starten Sie auf allen Nodes gemeinsam den vorherigen Image-Tag.",
+    "rollbackImage": "Das vorherige Image bleibt im lokalen Image-Cache, sodass es ohne Download erneut gestartet werden kann.",
+    "rollbackKey": "Belassen Sie ENCRYPTION_KEY, MCHARBOR_SECRET und den Backup-Schlüssel beim Upgrade und bei jedem Rollback unverändert.",
+    "compatTitle": "Vor dem Upgrade",
+    "compatLink": "Kompatibilitätsmatrix: unterstützte Datenbanken, Mindestversionen der Agents, HA-Modi und getestete Docker- und Kubernetes-Versionen"
+  },
+  "keyBanner": {
+    "title": "Der Datenverschlüsselungsschlüssel existiert nur im Datenverzeichnis",
+    "description": "ENCRYPTION_KEY ist nicht gesetzt, daher hat McHarbor DATA_DIR/.encryption_key erzeugt. Geht diese Datei verloren, ist jedes gespeicherte Secret unlesbar, und ein zweiter Node würde einen anderen Schlüssel erzeugen. Kopieren Sie den Schlüssel nach ENCRYPTION_KEY.",
+    "open": "Diagnose öffnen",
+    "dismiss": "Verwerfen"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "LDAP / Active Directory",
+    "subtitle": "Federe el inicio de sesión de McHarbor con cualquier directorio LDAP v3 o Active Directory. El plugin gestiona el flujo de autenticación de búsqueda y nuevo bind contra el directorio configurado y aprovisiona usuarios en el primer bind correcto.",
+    "registerHint": "Añada un proveedor desde la página Ajustes > Seguridad > Proveedores de identidad del host y elija \"LDAP\" como provider_type."
+  },
+  "fields": {
+    "url":              "URL del servidor LDAP",
+    "bind_dn":          "DN de bind",
+    "bind_password":    "Contraseña de bind",
+    "user_base_dn":     "DN base de usuarios",
+    "user_filter":      "Filtro de búsqueda de usuarios",
+    "user_attr":        "Atributo de nombre de usuario",
+    "email_attr":       "Atributo de correo electrónico",
+    "name_attr":        "Atributo de nombre para mostrar",
+    "start_tls":        "Usar StartTLS",
+    "skip_tls_verify":  "Omitir la verificación de TLS",
+    "group_base_dn":    "DN base de grupos",
+    "group_filter":     "Filtro de grupos",
+    "group_attr":       "Atributo de nombre de grupo"
+  },
+  "help": {
+    "url":              "URL del servidor LDAP. Use ldaps://host:636 para TLS implícito o ldap://host:389 para conexión sin cifrar (y active StartTLS más abajo para actualizarla).",
+    "bind_dn":          "DN de la cuenta de servicio usada para las búsquedas. Vacío = bind anónimo (la mayoría de los directorios se niegan a devolver entradas de usuario de forma anónima). Ejemplo: cn=mcharbor-svc,ou=service,dc=example,dc=com.",
+    "bind_password":    "Contraseña de la cuenta de servicio. Almacenada cifrada en reposo (AES-256-GCM).",
+    "user_base_dn":     "DN base bajo el que residen las entradas de usuario. El plugin limita las búsquedas de usuarios a este subárbol. Ejemplo: ou=users,dc=example,dc=com.",
+    "user_filter":      "Plantilla de filtro LDAP para buscar a un usuario por su nombre de inicio de sesión. El marcador %s se sustituye por el nombre de usuario escapado. Predeterminado: (uid=%s) para OpenLDAP. Para Active Directory: (sAMAccountName=%s) o (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)).",
+    "user_attr":        "Atributo que contiene el nombre de inicio de sesión. Predeterminado: uid (OpenLDAP). Active Directory: sAMAccountName.",
+    "email_attr":       "Atributo que contiene el correo electrónico del usuario. Predeterminado: mail. Se usa para el aprovisionamiento y el enrutamiento de notificaciones.",
+    "name_attr":        "Atributo que contiene el nombre para mostrar del usuario. Predeterminado: cn. Se usa en las entradas del registro de auditoría y en el menú desplegable de usuarios.",
+    "start_tls":        "Actualiza una conexión ldap:// sin cifrar a TLS mediante la operación extendida StartTLS. No tiene efecto cuando la URL ya es ldaps://.",
+    "skip_tls_verify":  "Omite la verificación del certificado. Solo para pruebas/desarrollo: NO lo active en producción.",
+    "group_base_dn":    "DN base para las búsquedas de grupos. Si está vacío, usa el DN base de usuarios. Ejemplo: ou=groups,dc=example,dc=com.",
+    "group_filter":     "Plantilla de filtro para obtener los grupos a los que pertenece un usuario. El marcador %s se sustituye por el DN completo del usuario. Predeterminado: (|(member=%s)(uniqueMember=%s)) funciona con posixGroup y groupOfUniqueNames de OpenLDAP. Active Directory: (member:1.2.840.113556.1.4.1941:=<userDN>) necesita un servidor LDAP que admita el overlay memberOf.",
+    "group_attr":       "Atributo usado como nombre de grupo en el asignador de grupos de McHarbor. Predeterminado: cn. Active Directory: sAMAccountName si sus grupos son entidades de seguridad."
+  },
+  "guide": {
+    "title":    "Configurar el inicio de sesión con LDAP / Active Directory en McHarbor",
+    "subtitle": "Cree una cuenta de servicio de solo lectura, apunte McHarbor a su directorio y asigne los atributos de usuario y de grupo a los claims que espera el host.",
+    "step1": {
+      "title": "Cree una cuenta de servicio de solo lectura",
+      "body":  "La mayoría de los directorios se niegan a devolver entradas de usuario a binds anónimos. Cree una cuenta de servicio dedicada con acceso de lectura a los objetos de usuario de su directorio: OpenLDAP: añada una entrada posixAccount bajo ou=service,dc=example,dc=com con un userPassword con hash; Active Directory: cree un usuario en una OU de cuentas de servicio y desactive el inicio de sesión interactivo y la caducidad de la contraseña. Anote el DN completo y la contraseña: van en los campos DN de bind / Contraseña de bind del formulario del proveedor."
+    },
+    "step2": {
+      "title": "Localice el DN base de usuarios",
+      "body":  "Elija el subárbol bajo el que residen todas las entradas de usuario. En una estructura plana típica es ou=users,dc=example,dc=com. Para un árbol profundo que abarca varias OU (Active Directory) suele ser el NC del dominio: dc=example,dc=com. El plugin limita cada búsqueda de usuarios a este DN, por lo que un valor demasiado amplio perjudica el rendimiento; uno demasiado estrecho provoca \"usuario no encontrado\" para los usuarios que residen fuera del subárbol."
+    },
+    "step3": {
+      "title": "Establezca el filtro de usuarios y el atributo de nombre de usuario",
+      "body":  "El filtro predeterminado (uid=%s) apunta al atributo uid de las entradas posixAccount de OpenLDAP. Active Directory usa sAMAccountName; cambie el filtro a (sAMAccountName=%s) y el Atributo de nombre de usuario a sAMAccountName. En bosques de AD con varios dominios en el mismo árbol, es más seguro un filtro más estricto como (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s))."
+    },
+    "step4": {
+      "title": "Establezca los atributos de correo y de nombre para mostrar",
+      "body":  "Los valores predeterminados son mail y cn, que coinciden con OpenLDAP y AD de fábrica. Si su directorio usa un esquema distinto (mail frente a userPrincipalName, displayName frente a cn), cambie en consecuencia el Atributo de correo electrónico y el Atributo de nombre para mostrar. El plugin lee estos atributos una vez por inicio de sesión; un valor ausente deja en blanco el claim correspondiente pero no bloquea la autenticación."
+    },
+    "step5": {
+      "title": "Configurar TLS",
+      "body":  "LDAPS (ldaps://host:636) es el camino más sencillo: el handshake TLS forma parte de la conexión. StartTLS (ldap://host:389 + interruptor StartTLS activado) es la alternativa para directorios que escuchan en un solo puerto. Si el certificado del servidor es autofirmado o lo emite una CA interna, deje DESACTIVADA la opción Omitir la verificación de TLS en producción e importe la cadena de la CA en el almacén de confianza del host."
+    },
+    "step6": {
+      "title": "Configure la búsqueda de grupos (opcional)",
+      "body":  "Deje en blanco DN base de grupos + Filtro de grupos si solo necesita autenticación de usuarios. Para asignar grupos del directorio a roles de McHarbor, rellene el DN base (por defecto el DN base de usuarios) y una plantilla de filtro que coincida con el atributo de pertenencia de su grupo. El valor predeterminado (|(member=%s)(uniqueMember=%s)) funciona con OpenLDAP. Para Active Directory, cambie el filtro a (member:1.2.840.113556.1.4.1941:=<userDN>) y asegúrese de que el directorio admita el overlay memberOf."
+    },
+    "step7": {
+      "title": "Pruebe la conexión",
+      "body":  "Haga clic en \"Probar la conexión\" en el formulario del proveedor. Un resultado verde significa que el bind tuvo éxito, que el DN base de usuarios se resolvió y que se aceptó la sintaxis del filtro. Cierre sesión y use el formulario de inicio de sesión LDAP de la página de inicio de sesión; en el primer bind correcto se aprovisiona automáticamente un registro de usuario de McHarbor y se emite la cookie de sesión."
+    }
+  }
+}

@@ -1,12 +1,12 @@
 {
-  "label": "SSH Exec",
-  "description": "Run a remote command over SSH with password or key authentication",
+  "label": "SSH-Ausführung",
+  "description": "Einen Remote-Befehl über SSH mit Passwort- oder Schlüsselauthentifizierung ausführen",
   "config": {
     "host": "Host",
     "port": "Port",
-    "user": "User",
-    "password": "Password",
-    "private_key": "Private Key",
-    "command": "Command"
+    "user": "Benutzer",
+    "password": "Passwort",
+    "private_key": "Privater Schlüssel",
+    "command": "Befehl"
   }
 }

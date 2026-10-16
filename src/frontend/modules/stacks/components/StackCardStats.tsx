@@ -1,8 +1,8 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useRef, useEffect } from 'react';
-import type { StackInfo } from '../hooks/useStacks';
+import { useState } from 'react';
+import type { StackInfo } from '@resources/hooks/useStacks';
 import type { BulkContainerMetric } from '@resources/hooks/useContainersBulkStats';
 import { Sparkline } from '@resources/components/Sparkline';
 
@@ -52,18 +52,33 @@ export type StatsHistory = {
 };
 
 export function useStatsHistory(stats: AggregatedStats | null): StatsHistory {
-  const historyRef = useRef<StatsHistory>({ cpu: [], mem: [], netRx: [], netTx: [] });
+  const [state, setState] = useState<{ source: AggregatedStats | null; history: StatsHistory }>({
+    source: null,
+    history: { cpu: [], mem: [], netRx: [], netTx: [] },
+  });
 
-  useEffect(() => {
-    if (!stats) return;
-    const h = historyRef.current;
-    h.cpu = [...h.cpu, stats.cpuPercent].slice(-MAX_HISTORY);
-    h.mem = [...h.mem, stats.memUsage].slice(-MAX_HISTORY);
-    h.netRx = [...h.netRx, stats.netRx].slice(-MAX_HISTORY);
-    h.netTx = [...h.netTx, stats.netTx].slice(-MAX_HISTORY);
-  }, [stats]);
+  // aggregateStats returns a fresh object every render, so sameness is judged by value.
+  const changed =
+    !!stats &&
+    (!state.source ||
+      state.source.cpuPercent !== stats.cpuPercent ||
+      state.source.memUsage !== stats.memUsage ||
+      state.source.netRx !== stats.netRx ||
+      state.source.netTx !== stats.netTx);
+  if (stats && changed) {
+    const h = state.history;
+    setState({
+      source: stats,
+      history: {
+        cpu: [...h.cpu, stats.cpuPercent].slice(-MAX_HISTORY),
+        mem: [...h.mem, stats.memUsage].slice(-MAX_HISTORY),
+        netRx: [...h.netRx, stats.netRx].slice(-MAX_HISTORY),
+        netTx: [...h.netTx, stats.netTx].slice(-MAX_HISTORY),
+      },
+    });
+  }
 
-  return historyRef.current;
+  return state.history;
 }
 
 type MiniChartProps = {
@@ -78,7 +93,7 @@ export function MiniChart({ label, value, data, color }: MiniChartProps) {
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between">
         <span className="text-[10px] text-muted-foreground">{label}</span>
-        <span className="text-[10px] tabular-nums text-foreground">{value}</span>
+        <span className="text-[10px] text-foreground tabular-nums">{value}</span>
       </div>
       <div className="h-5">
         <Sparkline data={data.length >= 2 ? data : [0, 0]} width={120} height={20} color={color} />

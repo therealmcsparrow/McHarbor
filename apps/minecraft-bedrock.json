@@ -4,7 +4,7 @@
     "description":  "Dedicated Minecraft Bedrock Edition server supporting cross-play with consoles and mobile.",
     "category":  "Gaming",
     "image":  "itzg/minecraft-bedrock-server:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/minecraft.svg",
     "website":  "https://github.com/itzg/docker-minecraft-bedrock-server",
     "docsUrl":  "https://github.com/itzg/docker-minecraft-bedrock-server/blob/master/README.md",
     "ports":  [
@@ -57,5 +57,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

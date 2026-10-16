@@ -1,0 +1,46 @@
+{
+    "slug":  "lnbits",
+    "name":  "LNbits",
+    "description":  "Lightning Network wallet and accounts system for accepting and managing Bitcoin payments.",
+    "category":  "Finance",
+    "image":  "lnbits/lnbits:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lnbits.png",
+    "website":  "https://lnbits.com",
+    "docsUrl":  "https://docs.lnbits.org/guide/installation.html",
+    "ports":  [
+                  {
+                      "host":  8192,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lnbits/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LNBITS_ADMIN_UI",
+                        "default":  "true",
+                        "description":  "Enable the admin web interface"
+                    },
+                    {
+                        "key":  "LNBITS_BACKEND_WALLET_CLASS",
+                        "default":  "VoidWallet",
+                        "description":  "Lightning backend wallet class to use"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

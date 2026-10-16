@@ -1,0 +1,45 @@
+{
+  "slug": "organizr",
+  "name": "Organizr",
+  "description": "Homelab dashboard that wraps your services in tabs behind a single login.",
+  "category": "Dashboards",
+  "image": "organizr/organizr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/organizr.png",
+  "website": "https://organizr.app",
+  "docsUrl": "https://docs.organizr.app/installation/installing-organizr",
+  "ports": [
+    {
+      "host": 8107,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/organizr/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

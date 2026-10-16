@@ -1,0 +1,215 @@
+{
+  "title": "RBAC-Richtlinien",
+  "description": "Attributbasierte Zugriffsrichtlinien für McHarbor-Berechtigungen erstellen und verwalten.",
+  "actions": {
+    "new": "Richtlinie erstellen",
+    "edit": "Richtlinie bearbeiten",
+    "delete": "Richtlinie löschen",
+    "test": "Richtlinie testen",
+    "enable": "Richtlinie aktivieren",
+    "disable": "Richtlinie deaktivieren"
+  },
+  "table": {
+    "name": "Name",
+    "effect": "Wirkung",
+    "resourceType": "Ressource",
+    "priority": "Priorität",
+    "permissions": "Berechtigungen",
+    "status": "Status",
+    "actions": "Aktionen"
+  },
+  "effect": {
+    "allow": "Erlauben",
+    "deny": "Verweigern"
+  },
+  "status": {
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "empty": {
+    "title": "Noch keine Richtlinien",
+    "description": "Erstellen Sie eine ABAC-Richtlinie, um Berechtigungen anhand von Benutzern, Umgebungen, Ressourcen, Labels und Zeit zu erteilen oder zu verweigern."
+  },
+  "delete": {
+    "title": "Richtlinie löschen",
+    "description": "{{name}} löschen?",
+    "warning": "Dies entfernt die Richtlinie dauerhaft und beendet ihre Auswertung bei künftigen Autorisierungsprüfungen.",
+    "cancel": "Abbrechen",
+    "confirm": "Löschen"
+  },
+  "editor": {
+    "titleCreate": "Richtlinie erstellen",
+    "titleEdit": "Richtlinie bearbeiten",
+    "name": "Name",
+    "namePlaceholder": "Zugriff auf Produktionscontainer",
+    "resourceType": "Ressourcentyp",
+    "resourceContainer": "Container",
+    "resourceImage": "Image",
+    "resourceVolume": "Volume",
+    "resourceNetwork": "Netzwerk",
+    "resourceStack": "Stack",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Optionale Erläuterung für Administratoren, die diese Richtlinie prüfen",
+    "effect": "Wirkung",
+    "effectAllow": "Erlauben",
+    "effectDeny": "Verweigern",
+    "priority": "Priorität",
+    "enabled": "Aktiviert",
+    "permissions": "Berechtigungen",
+    "permissionsPlaceholder": "containers.view, containers.exec",
+    "permissionsHint": "Kommagetrennte Berechtigungsschlüssel, für die diese Richtlinie gilt.",
+    "expression": "Ausdruck",
+    "cancel": "Abbrechen",
+    "save": "Richtlinie speichern",
+    "saving": "Wird gespeichert...",
+    "anyResource": "Beliebige Ressource",
+    "pluginSource": "{{label}} · {{source}}",
+    "permissionsHintSelect": "Die Richtlinie wird nur für die enthaltenen Berechtigungen ausgewertet.",
+    "include": "Einschließen",
+    "includeAll": "Alle einschließen",
+    "clear": "Leeren",
+    "noResolver": "McHarbor kann für diesen Typ keine Details laden: Nur resource.type und resource.id sind bekannt."
+  },
+  "tester": {
+    "title": "{{name}} testen",
+    "description": "Führen Sie diesen Richtlinienausdruck gegen Beispielattribute aus, bevor Sie ihn aktivieren.",
+    "expressionLabel": "Ausdruck",
+    "attributesLabel": "Attribute-JSON",
+    "attributesAriaLabel": "JSON mit Testattributen der Richtlinie",
+    "parseError": "Ungültiges JSON: {{error}}",
+    "matched": "Trifft zu",
+    "denied": "Trifft nicht zu",
+    "errorBadge": "Fehler",
+    "close": "Schließen",
+    "run": "Test ausführen",
+    "running": "Läuft...",
+    "userLabelsTitle": "Benutzerlabels",
+    "userIdPlaceholder": "Benutzer-ID",
+    "lookup": "Nachschlagen",
+    "noLabels": "Dieser Benutzer hat keine Labels.",
+    "applyLabels": "Diese Labels verwenden"
+  },
+  "toast": {
+    "created": "Richtlinie erstellt",
+    "updated": "Richtlinie aktualisiert",
+    "deleted": "Richtlinie gelöscht"
+  },
+  "reference": {
+    "title": "Ausdrucksreferenz",
+    "intro": "Ein Ausdruck liefert true, wenn die Richtlinie greift. Klicken Sie auf einen Eintrag, um ihn an der Cursorposition einzufügen.",
+    "tabs": {
+      "variables": "Variablen",
+      "helpers": "Funktionen",
+      "examples": "Beispiele"
+    },
+    "everywhere": "In jeder Richtlinie verfügbar",
+    "forType": "Für diesen Ressourcentyp",
+    "insert": "Einfügen",
+    "types": {
+      "api_key": "API-Schlüssel",
+      "alert": "Alarmregel",
+      "communication_channel": "Kommunikationskanal",
+      "container": "Container",
+      "backup_plan": "Container-Backupplan",
+      "desired_state": "Soll-Zustand",
+      "environment": "Umgebung",
+      "git_repo": "Git-Repository",
+      "group": "Gruppe",
+      "identity_provider": "Identitätsanbieter",
+      "image": "Image",
+      "incident": "Vorfall",
+      "network": "Netzwerk",
+      "registry": "Registry",
+      "role": "Rolle",
+      "schedule": "Zeitplan",
+      "secret": "Geheimnis",
+      "stack": "Stack",
+      "storage_location": "Speicherort",
+      "user": "Benutzer",
+      "volume": "Volume",
+      "webhook": "Webhook",
+      "workflow": "Workflow"
+    },
+    "vars": {
+      "user_id": "Benutzer-ID des Aufrufers",
+      "user_username": "Benutzername des Aufrufers",
+      "user_email": "E-Mail-Adresse des Aufrufers",
+      "user_roles": "Namen aller Rollen des Aufrufers, direkt oder über Gruppen",
+      "user_groups": "Namen der Gruppen des Aufrufers",
+      "user_labels": "Am Benutzer gesetzte Labels; auslesen mit hasLabel(user.labels, key)",
+      "env_id": "Umgebung der Anfrage, leer bei globalen Aktionen",
+      "env_name": "Umgebungsname",
+      "env_type": "Verbindungstyp: socket, tcp, agent …",
+      "request_method": "HTTP-Methode",
+      "request_path": "Routenpfad",
+      "request_ip": "Client-Adresse unter Berücksichtigung vertrauenswürdiger Proxys",
+      "request_apiKey": "Der Aufruf erfolgte mit einem API-Schlüssel",
+      "request_readOnly": "GET, HEAD oder OPTIONS",
+      "now_hour": "Stunde 0–23, Serverzeit",
+      "now_minute": "Minute 0–59",
+      "now_weekday": "0 = Sonntag … 6 = Samstag",
+      "now_day": "Tag des Monats",
+      "now_month": "Monat 1–12",
+      "now_year": "Jahr",
+      "now_date": "JJJJ-MM-TT, UTC",
+      "now_unixTime": "Sekunden seit 1970",
+      "resource_type": "Der Ressourcentyp",
+      "resource_id": "Die Ressourcen-ID aus der Route",
+      "resource_name": "Anzeigename",
+      "resource_owner": "ID des besitzenden Benutzers, sofern die Ressource einen erfasst",
+      "resource_state": "Aktueller Zustand, sofern die Ressource einen hat",
+      "resource_environment": "ID der Umgebung, in der die Ressource liegt",
+      "resource_labels": "Labels; auslesen mit hasLabel(resource.labels, key)",
+      "resource_image": "Image-Referenz, die der Container ausführt",
+      "resource_attrs_connectionType": "socket, tcp, ssh oder agent"
+    },
+    "helpers": {
+      "hasLabel": "Der Wert des Labels oder eine leere Zeichenfolge, wenn es fehlt.",
+      "labelIn": "Ob das Label einer der Werte ist.",
+      "inList": "Ob value einem der Elemente entspricht.",
+      "hasRole": "Ob der Benutzer eine Rolle mit diesem Namen besitzt.",
+      "inGroup": "Ob der Benutzer Mitglied dieser Gruppe ist.",
+      "startsWith": "Präfixprüfung.",
+      "endsWith": "Suffixprüfung.",
+      "contains": "Teilzeichenfolgenprüfung.",
+      "matches": "Prüfung mit regulärem Ausdruck (RE2-Syntax, höchstens 256 Zeichen).",
+      "inCIDR": "Ob die IP in einem der Netzwerke liegt.",
+      "between": "Prüfung auf einen Bereich einschließlich der Grenzen.",
+      "isWeekend": "Samstag oder Sonntag, UTC."
+    },
+    "examples": {
+      "prodOnly": {
+        "title": "Nur mit Produktions-Label versehene Ressourcen",
+        "expression": "hasLabel(resource.labels, \"env\") == \"prod\""
+      },
+      "officeHours": {
+        "title": "Nur während der Bürozeiten",
+        "expression": "!isWeekend() && between(now.hour, 8, 18)"
+      },
+      "internalNetwork": {
+        "title": "Nur aus dem internen Netzwerk",
+        "expression": "inCIDR(request.ip, \"10.0.0.0/8\", \"192.168.0.0/16\")"
+      },
+      "noApiKeyWrites": {
+        "title": "Keine Änderungen über API-Schlüssel",
+        "expression": "request.apiKey && !request.readOnly"
+      },
+      "teamOwnership": {
+        "title": "Das Team des Benutzers besitzt die Ressource",
+        "expression": "hasLabel(resource.labels, \"team\") == hasLabel(user.labels, \"team\")"
+      },
+      "ownResources": {
+        "title": "Nur Ressourcen, die dem Benutzer gehören",
+        "expression": "resource.owner == user.id"
+      },
+      "largeVms": {
+        "title": "Große virtuelle Maschinen erfordern die Plattformgruppe",
+        "expression": "resource.attrs.vcpus > 8 && !inGroup(\"platform\")"
+      },
+      "namePattern": {
+        "title": "Namen, die einem Muster folgen",
+        "expression": "matches(resource.name, \"^web-[0-9]+$\")"
+      }
+    }
+  }
+}

@@ -9,6 +9,7 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -16,7 +17,9 @@ import (
 	"time"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
+	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
 )
 
 const agentDirectTransferProbeMinVersion = "1.3.7"
@@ -26,11 +29,32 @@ type Service struct {
 	db        *sql.DB
 	enc       *encryption.Service
 	agentPool *coreagent.AgentPool
+
+	// Cross-module collaborators for the offline replay path, injected by
+	// main.go via SetOfflineBridges. Nil until then; see bridges.go.
+	eventClassifier OfflineEventClassifier
+	metricsIngester OfflineMetricsIngester
+	// vault reads this module's adopted credential through the secrets vault
+	// once Phase 5b's start-up backfill has linked it, and falls back to the
+	// legacy column until then. Built here rather than injected: every
+	// construction site already supplies the database and the encryption
+	// service, and a service built without it would quietly read the legacy
+	// column forever.
+	vault *secrets.Service
+
+	// dataDir locates $DATA_DIR/tls, which the install-script generator reads
+	// to pin the agent to this host's certificate instead of telling it to
+	// skip verification.
+	dataDir string
 }
 
 // NewService creates a new agent service.
-func NewService(db *sql.DB, enc *encryption.Service, agentPool *coreagent.AgentPool) *Service {
-	return &Service{db: db, enc: enc, agentPool: agentPool}
+func NewService(db *sql.DB, enc *encryption.Service, agentPool *coreagent.AgentPool, dataDir string) *Service {
+	svc := &Service{db: db, enc: enc, agentPool: agentPool, dataDir: dataDir}
+	if db != nil && enc != nil {
+		svc.vault = secrets.NewService(db, enc, nil)
+	}
+	return svc
 }
 
 // GenerateAgentToken creates a new agent token with "agt_" prefix.
@@ -43,21 +67,28 @@ func (s *Service) GenerateAgentToken() (string, error) {
 }
 
 // ValidateAgentToken looks up an environment by matching the decrypted agent_token.
-// Returns the environment ID on success.
-func (s *Service) ValidateAgentToken(token string) (string, error) {
+// Returns the environment ID on success; ctx comes from the handshake request so
+// a dropped agent connection cancels the vault read.
+func (s *Service) ValidateAgentToken(ctx context.Context, token string) (string, error) {
 	tokenHash := s.enc.StableHash(token)
 
 	var envID string
 	var encToken string
-	err := s.db.QueryRow(
-		`SELECT id, agent_token
+	var tokenSecretID sql.NullString
+	err := s.db.QueryRowContext(ctx,
+		// A socket environment mid-migration is matched too. Its row still
+		// reads as `socket` on purpose — it keeps working until the agent
+		// arrives — so gating on connection_type alone would refuse the very
+		// handshake the migration is waiting for.
+		`SELECT id, agent_token, agent_token_secret_id
 		 FROM environments
-		 WHERE connection_type = 'agent' AND agent_token_hash = ?
+		 WHERE (connection_type = 'agent' OR pending_connection_type = 'agent')
+		   AND agent_token_hash = ?
 		 LIMIT 1`,
 		tokenHash,
-	).Scan(&envID, &encToken)
+	).Scan(&envID, &encToken, &tokenSecretID)
 	if err == nil {
-		decrypted, decryptErr := s.enc.Decrypt(encToken)
+		decrypted, decryptErr := s.readAgentToken(ctx, tokenSecretID, encToken)
 		if decryptErr != nil {
 			return "", fmt.Errorf("decrypting agent token: %w", decryptErr)
 		}
@@ -66,33 +97,73 @@ func (s *Service) ValidateAgentToken(token string) (string, error) {
 		}
 		return "", fmt.Errorf("invalid agent token")
 	}
-	if err != sql.ErrNoRows {
+	if !errors.Is(err, sql.ErrNoRows) {
 		return "", fmt.Errorf("querying agent token: %w", err)
 	}
 
-	return s.validateLegacyAgentToken(token, tokenHash)
+	return s.validateLegacyAgentToken(ctx, token, tokenHash)
+}
+
+// PromotePendingAgentMigration completes a migration to an agent.
+//
+// Called once the agent has authenticated, which is the only proof that the
+// environment is reachable the new way — and the moment the failsafe stops
+// being able to revert it. The old endpoint is cleared here and nowhere
+// earlier: it is what a stalled migration is rolled back onto, and leaving it
+// behind afterwards is how a host ends up polled twice.
+//
+// Matches both shapes of in-flight migration: the graceful one, still on its
+// old connection_type with a pending marker, and the immediate one, already on
+// `agent` with a revert target recorded. A revert target on its own also
+// qualifies, so a row left marked by an earlier race heals on the next
+// handshake instead of showing a migration that finished long ago.
+func (s *Service) PromotePendingAgentMigration(ctx context.Context, envID string) (bool, error) {
+	now := time.Now().UTC().Format(time.RFC3339)
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE environments
+		SET connection_type = 'agent',
+		    socket_path = NULL, host = NULL, port = NULL,
+		    tls_ca = NULL, tls_cert = NULL, tls_key = NULL,
+		    tls_ca_secret_id = NULL, tls_cert_secret_id = NULL, tls_key_secret_id = NULL,
+		    ssh_host = NULL, ssh_port = NULL, ssh_user = NULL, ssh_key = NULL,
+		    ssh_key_secret_id = NULL,
+		    pending_connection_type = NULL, pending_migration_started_at = NULL,
+		    migration_revert_to = NULL,
+		    updated_at = ?
+		WHERE id = ?
+		  AND (pending_migration_started_at IS NOT NULL OR migration_revert_to IS NOT NULL)`,
+		now, envID)
+	if err != nil {
+		return false, fmt.Errorf("promoting pending agent migration: %w", err)
+	}
+	return db.RowsAffected(res) > 0, nil
 }
 
 // UpdateAgentStatus updates the agent connection metadata in the DB.
-func (s *Service) UpdateAgentStatus(envID, status string, auth *coreagent.AuthPayload) error {
+func (s *Service) UpdateAgentStatus(ctx context.Context, envID, status string, auth *coreagent.AuthPayload) error {
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	if auth != nil {
-		_, err := s.db.Exec(`
+		// An older agent sends no install kind. Writing the empty string would
+		// replace a known value with an unknown one on every reconnect, so it
+		// is preserved instead.
+		installKind := auth.InstallKind
+		_, err := s.db.ExecContext(ctx, `
 			UPDATE environments
 			SET agent_status = ?, agent_version = ?, agent_hostname = ?,
 			    agent_os = ?, agent_arch = ?, agent_last_seen = ?,
+			    agent_install_kind = COALESCE(NULLIF(?, ''), agent_install_kind),
 			    docker_version = ?, last_connected = ?, updated_at = ?
 			WHERE id = ?`,
 			status, auth.AgentVersion, auth.Hostname,
-			auth.OS, auth.Arch, now,
+			auth.OS, auth.Arch, now, installKind,
 			auth.DockerVersion, now, now,
 			envID,
 		)
 		return err
 	}
 
-	_, err := s.db.Exec(`
+	_, err := s.db.ExecContext(ctx, `
 		UPDATE environments SET agent_status = ?, agent_last_seen = ?, updated_at = ? WHERE id = ?`,
 		status, now, now, envID,
 	)
@@ -100,8 +171,8 @@ func (s *Service) UpdateAgentStatus(envID, status string, auth *coreagent.AuthPa
 }
 
 // ListAgents returns agent info for all agent-type environments.
-func (s *Service) ListAgents() ([]AgentInfo, error) {
-	rows, err := s.db.Query(`
+func (s *Service) ListAgents(ctx context.Context) ([]Info, error) {
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, name, agent_status, agent_hostname, agent_os, agent_arch,
 		       agent_version, docker_version, agent_last_seen
 		FROM environments
@@ -111,11 +182,15 @@ func (s *Service) ListAgents() ([]AgentInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying agents: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("closing sql rows failed", "error", err)
+		}
+	}()
 
-	var agents []AgentInfo
+	var agents []Info
 	for rows.Next() {
-		var a AgentInfo
+		var a Info
 		var status, hostname, os, arch, version, dockerVer, lastSeen sql.NullString
 		if err := rows.Scan(&a.EnvID, &a.EnvName, &status, &hostname, &os, &arch, &version, &dockerVer, &lastSeen); err != nil {
 			return nil, fmt.Errorf("scanning agent: %w", err)
@@ -146,28 +221,28 @@ func (s *Service) ListAgents() ([]AgentInfo, error) {
 		if lastSeen.Valid {
 			a.LastSeen = lastSeen.String
 		}
-		s.applyLiveAgentMetadata(&a)
+		s.applyLiveAgentMetadata(ctx, &a)
 		agents = append(agents, a)
 	}
 	if agents == nil {
-		agents = []AgentInfo{}
+		agents = []Info{}
 	}
 	return agents, rows.Err()
 }
 
 // AgentStatus returns agent info for a single environment.
-func (s *Service) AgentStatus(envID string) (*AgentInfo, error) {
-	var a AgentInfo
+func (s *Service) AgentStatus(ctx context.Context, envID string) (*Info, error) {
+	var a Info
 	var status, hostname, os, arch, version, dockerVer, lastSeen sql.NullString
 
-	err := s.db.QueryRow(`
+	err := s.db.QueryRowContext(ctx, `
 		SELECT id, name, agent_status, agent_hostname, agent_os, agent_arch,
 		       agent_version, docker_version, agent_last_seen
 		FROM environments
 		WHERE id = ? AND connection_type = 'agent'
 	`, envID).Scan(&a.EnvID, &a.EnvName, &status, &hostname, &os, &arch, &version, &dockerVer, &lastSeen)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -180,6 +255,9 @@ func (s *Service) AgentStatus(envID string) (*AgentInfo, error) {
 	}
 	if s.agentPool.IsConnected(a.EnvID) {
 		a.Status = "connected"
+		if conn, ok := s.agentPool.Get(a.EnvID); ok && conn != nil {
+			a.AgentBuild = conn.Build
+		}
 	}
 	if hostname.Valid {
 		a.Hostname = hostname.String
@@ -199,16 +277,22 @@ func (s *Service) AgentStatus(envID string) (*AgentInfo, error) {
 	if lastSeen.Valid {
 		a.LastSeen = lastSeen.String
 	}
-	s.applyLiveAgentMetadata(&a)
+	s.applyLiveAgentMetadata(ctx, &a)
 	return &a, nil
 }
 
-func (s *Service) applyLiveAgentMetadata(a *AgentInfo) {
+func (s *Service) applyLiveAgentMetadata(ctx context.Context, a *Info) {
 	if a == nil || s.agentPool == nil {
 		return
 	}
+	// LastSeen is the only evidence available for "has this agent ever been up",
+	// and it is read before the live branch overwrites Status, so a disconnected
+	// agent that once worked reads as unhealthy while one that never connected
+	// reads as unknown.
+	everConnected := a.LastSeen != ""
 	conn, ok := s.agentPool.Get(a.EnvID)
 	if !ok {
+		a.Health, a.LatencyMs = s.health(ctx, a.EnvID, everConnected)
 		return
 	}
 	a.Status = "connected"
@@ -217,11 +301,12 @@ func (s *Service) applyLiveAgentMetadata(a *AgentInfo) {
 	a.Arch = conn.Arch
 	a.AgentVersion = conn.Version
 	a.DockerVersion = conn.DockerVer
+	a.Health, a.LatencyMs = s.health(ctx, a.EnvID, true)
 }
 
 // RegenerateToken creates a new token for an agent environment.
 // Returns the plaintext token.
-func (s *Service) RegenerateToken(envID string) (string, error) {
+func (s *Service) RegenerateToken(ctx context.Context, envID string) (string, error) {
 	token, err := s.GenerateAgentToken()
 	if err != nil {
 		return "", err
@@ -234,9 +319,13 @@ func (s *Service) RegenerateToken(envID string) (string, error) {
 	tokenHash := s.enc.StableHash(token)
 
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err = s.db.Exec(
+	_, err = s.db.ExecContext(ctx,
+		// agent_token_secret_id is cleared so the read-through falls straight
+		// back to the token just written; the next boot re-adopts it. Leaving
+		// a stale vault copy here would disconnect the agent on its next
+		// reconnect, which is the failure §5b.11 is most worried about.
 		`UPDATE environments
-		 SET agent_token = ?, agent_token_hash = ?, updated_at = ?
+		 SET agent_token = ?, agent_token_hash = ?, agent_token_secret_id = NULL, updated_at = ?
 		 WHERE id = ? AND connection_type = 'agent'`,
 		encrypted, tokenHash, now, envID,
 	)
@@ -260,11 +349,11 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 		result.DurationMs = time.Since(started).Milliseconds()
 	}()
 
-	source, err := s.AgentStatus(result.SourceEnvID)
+	source, err := s.AgentStatus(ctx, result.SourceEnvID)
 	if err != nil {
 		return result, err
 	}
-	target, err := s.AgentStatus(result.TargetEnvID)
+	target, err := s.AgentStatus(ctx, result.TargetEnvID)
 	if err != nil {
 		return result, err
 	}
@@ -321,10 +410,11 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 		result.Error = fmt.Sprintf("Target agent must be updated to mcharbor-agent %s or newer.", agentDirectTransferProbeMinVersion)
 		return result, nil
 	}
-	if strings.TrimSpace(targetConn.TransferURL) == "" {
-		result.Error = "Target agent is connected but does not advertise a direct transfer URL."
+	if len(targetConn.TransferCandidates) == 0 && strings.TrimSpace(targetConn.TransferURL) == "" {
+		result.Error = "Target agent is connected but does not advertise a direct transfer address."
 		return result, nil
 	}
+	result.CandidateCount = len(targetConn.TransferCandidates)
 
 	transferID, err := randomTransferValue(16)
 	if err != nil {
@@ -382,8 +472,39 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 		"receiverTokenFingerprint", receiverTokenFingerprint(receiver),
 	)
 
+	// One receiver answers on every address the target host is reachable at,
+	// because it is keyed by transfer ID and bearer token rather than by
+	// address. So the candidates are probed against the single receiver
+	// prepared above, and the first that answers wins.
 	result.Phase = "probe"
-	statusCode, responderMarker, err := sourceConn.Transport.StartTransferProbe(testCtx, transferID, probeURL, token)
+	candidates := coreagent.TransferCandidatesFor(sourceConn, targetConn, probeURL, result.SourceEnvID)
+	var statusCode int
+	var responderMarker string
+	for i, candidateURL := range candidates {
+		result.CandidatesTried = i + 1
+		result.ProbeURL = candidateURL
+		statusCode, responderMarker, err = sourceConn.Transport.StartTransferProbe(testCtx, transferID, candidateURL, token)
+		if err == nil {
+			targetConn.RememberTransferRoute(result.SourceEnvID, candidateURL)
+			break
+		}
+		slog.Debug("agent direct transfer candidate failed",
+			"transferId", transferID,
+			"sourceEnv", result.SourceEnvID,
+			"targetEnv", result.TargetEnvID,
+			"candidate", candidateURL,
+			"candidateIndex", i+1,
+			"candidateCount", len(candidates),
+			"statusCode", statusCode,
+			"error", err,
+		)
+		if testCtx.Err() != nil {
+			break
+		}
+	}
+	if err != nil {
+		targetConn.ForgetTransferRoute(result.SourceEnvID)
+	}
 	result.StatusCode = statusCode
 	result.ResponderMarker = responderMarker
 	if err != nil {
@@ -484,8 +605,8 @@ func agentVersionPart(parts []string, index int) int {
 	return value
 }
 
-func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, error) {
-	rows, err := s.db.Query(
+func (s *Service) validateLegacyAgentToken(ctx context.Context, token, tokenHash string) (string, error) {
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, agent_token
 		 FROM environments
 		 WHERE connection_type = 'agent' AND agent_token IS NOT NULL AND (agent_token_hash IS NULL OR agent_token_hash = '')
@@ -494,8 +615,13 @@ func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, err
 	if err != nil {
 		return "", fmt.Errorf("querying legacy agent environments: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("closing sql rows failed", "error", err)
+		}
+	}()
 
+	// bounded by the first matching legacy row: the loop returns after one backfill write
 	for rows.Next() {
 		var envID, encToken string
 		if err := rows.Scan(&envID, &encToken); err != nil {
@@ -508,7 +634,7 @@ func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, err
 		if subtle.ConstantTimeCompare([]byte(decrypted), []byte(token)) != 1 {
 			continue
 		}
-		if _, updateErr := s.db.Exec(
+		if _, updateErr := s.db.ExecContext(ctx,
 			"UPDATE environments SET agent_token_hash = ? WHERE id = ?",
 			tokenHash,
 			envID,
@@ -522,4 +648,21 @@ func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, err
 	}
 
 	return "", fmt.Errorf("invalid agent token")
+}
+
+// readAgentToken reads an environment's enrolment token through the vault
+// when Phase 5b has adopted it, and falls back to the legacy agent_token
+// column when it has not.
+//
+// The fallback matters more here than anywhere else in the catalogue: this
+// token is what every remote agent presents to reconnect, and a vault read
+// that failed without a fallback would disconnect the whole estate. Note also
+// that `agent_token_hash` — which is what actually authenticates a connecting
+// agent — is untouched by adoption; the ciphertext is only ever read back to
+// show or redeploy a token.
+func (s *Service) readAgentToken(ctx context.Context, secretID sql.NullString, legacy string) (string, error) {
+	if s.vault == nil {
+		return s.enc.Decrypt(legacy)
+	}
+	return s.vault.ReadThrough(ctx, secretID, legacy)
 }

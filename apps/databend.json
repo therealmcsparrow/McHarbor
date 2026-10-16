@@ -1,0 +1,52 @@
+{
+    "slug":  "databend",
+    "name":  "Databend",
+    "description":  "Cloud-native elastic data warehouse built in Rust for fast SQL analytics on object storage.",
+    "category":  "Analytics",
+    "image":  "datafuselabs/databend:latest",
+    "logo":  "https://github.com/datafuselabs.png",
+    "website":  "https://databend.com",
+    "docsUrl":  "https://docs.databend.com/guides/deploy/deploy/non-production/deploying-databend-with-docker",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3307,
+                      "container":  3307,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/databend/data",
+                        "container":  "/var/lib/databend"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "QUERY_DEFAULT_USER",
+                        "default":  "databend",
+                        "description":  "Default admin username"
+                    },
+                    {
+                        "key":  "QUERY_DEFAULT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Default admin password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "slug":  "jackett-dev",
+    "name":  "Jackett (Dev)",
+    "description":  "Dev channel build of Jackett. Indexer proxy that translates queries from Sonarr, Radarr and Lidarr into hundreds of tracker searches.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/jackett:development",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jackett.png",
+    "website":  "https://github.com/Jackett/Jackett",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-jackett/",
+    "ports":  [
+                  {
+                      "host":  10117,
+                      "container":  9117,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jackett-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/jackett-dev/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "AUTO_UPDATE",
+                        "default":  "true",
+                        "description":  "Let Jackett update itself inside the container"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

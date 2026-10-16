@@ -3,6 +3,8 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { usePermission } from '@core/auth/usePermission';
+import { PERM } from '@core/auth/permissionKeys';
 import { api } from '@core/api/client';
 import i18n from '@core/i18n/i18n';
 import { useCustomNodeRegistry } from '../stores/custom-node-registry';
@@ -29,11 +31,14 @@ export type CustomNodeWithCode = {
  */
 export function useCustomNodeSync() {
   const setCustomNodes = useCustomNodeRegistry((s) => s.setCustomNodes);
+  // custom_nodes.view gates the list route; the palette shows built-ins only
+  // without it, rather than logging a 403 on every canvas open.
+  const allowed = usePermission(PERM.CUSTOM_NODES_VIEW);
 
   const query = useQuery({
+    enabled: allowed,
     queryKey: ['custom-nodes'],
-    queryFn: () =>
-      api.get<CustomNodeWithCode[]>('/custom-nodes').then((r) => r.data ?? []),
+    queryFn: () => api.get<CustomNodeWithCode[]>('/custom-nodes').then((r) => r.data ?? []),
     staleTime: 5 * 60_000,
   });
 
@@ -61,7 +66,12 @@ export function useCustomNodeSync() {
       outputPorts: node.outputPorts,
     }));
 
-    setCustomNodes(definitions);
+    // Plugin-contributed nodes share this registry (usePluginNodes)
+    // and are keyed `plugin:<slug>:<key>`; keep them when the custom
+    // list is replaced, or a palette mount wipes them off the canvas
+    // picker until the plugin bridge notices and re-registers.
+    const pluginNodes = useCustomNodeRegistry.getState().customNodes.filter((n) => n.key.startsWith('plugin:'));
+    setCustomNodes([...definitions, ...pluginNodes]);
   }, [query.data, setCustomNodes]);
 
   return query;

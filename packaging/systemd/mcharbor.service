@@ -1,0 +1,27 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+[Unit]
+Description=McHarbor container management platform
+Documentation=https://github.com/therealmcsparrow/mcharbor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/mcharbor
+EnvironmentFile=/etc/mcharbor/mcharbor.env
+EnvironmentFile=-/etc/mcharbor/install-kind.env
+EnvironmentFile=-/etc/mcharbor/encryption-key.env
+ExecStart=/opt/mcharbor/mcharbor
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+
+Environment="GODEBUG=cpu.avx512f=off,cpu.avx512vl=off"
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

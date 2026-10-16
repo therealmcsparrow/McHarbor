@@ -2,7 +2,7 @@
     "slug":  "piwigo",
     "name":  "Piwigo",
     "description":  "Photo gallery web application with categories, tags, and user management.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "linuxserver/piwigo:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/piwigo.png",
     "website":  "https://piwigo.org",
@@ -41,5 +41,9 @@
                         "description":  "Group ID"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

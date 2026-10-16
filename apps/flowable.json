@@ -1,0 +1,33 @@
+{
+    "slug":  "flowable",
+    "name":  "Flowable",
+    "description":  "Open source business process management and workflow engine with a modeler, tasks, and admin UI.",
+    "category":  "Business & ERP",
+    "image":  "flowable/flowable-ui:latest",
+    "logo":  "https://github.com/flowable.png",
+    "website":  "https://www.flowable.com",
+    "docsUrl":  "https://github.com/flowable/flowable-engine",
+    "ports":  [
+                  {
+                      "host":  8130,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -6,6 +6,7 @@ package inappnotifications
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -21,7 +22,7 @@ func TestListForUserIncludesReadState(t *testing.T) {
 	seedNotification(t, db, "notif-2", "warning", "Alert deleted", "cpu alert was deleted", "2026-03-16T10:00:00Z")
 	seedRead(t, db, "read-1", "notif-1", "user-1")
 
-	items, total, err := svc.ListForUser(context.Background(), "user-1", 1, 10)
+	items, total, err := svc.ListForUser(context.Background(), "user-1", 1, 10, ListFilter{})
 	if err != nil {
 		t.Fatalf("ListForUser returned error: %v", err)
 	}
@@ -111,7 +112,7 @@ func TestDeleteForUserHidesNotificationFromListAndUnreadCount(t *testing.T) {
 		t.Fatal("expected DeleteForUser to hide existing notification")
 	}
 
-	items, total, err := svc.ListForUser(context.Background(), "user-1", 1, 10)
+	items, total, err := svc.ListForUser(context.Background(), "user-1", 1, 10, ListFilter{})
 	if err != nil {
 		t.Fatalf("ListForUser after delete returned error: %v", err)
 	}
@@ -140,7 +141,11 @@ func openInAppNotificationsTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("sql.Open returned error: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("closing db: %v", err)
+		}
+	})
 
 	return db
 }
@@ -217,5 +222,71 @@ func seedRead(t *testing.T, db *sql.DB, id, notificationID, userID string) {
 		userID,
 	); err != nil {
 		t.Fatalf("seeding in_app_notification_reads: %v", err)
+	}
+}
+
+// TestListForUserFilters guards the page's search and chips: text, level and read
+// state are applied on the server, across every page, in all three match modes.
+func TestListForUserFilters(t *testing.T) {
+	db := openInAppNotificationsTestDB(t)
+	createInAppNotificationTables(t, db)
+	svc := NewService(db)
+	seedNotification(t, db, "n1", "success", "Container started", "nginx was started", "2026-03-16T09:00:00Z")
+	seedNotification(t, db, "n2", "warning", "Alert deleted", "cpu alert was deleted", "2026-03-16T10:00:00Z")
+	seedNotification(t, db, "n3", "error", "Backup failed", "100% of volume db_data unreadable", "2026-03-16T11:00:00Z")
+	seedRead(t, db, "r1", "n1", "user-1")
+	ctx := context.Background()
+
+	ids := func(f ListFilter) []string {
+		items, total, err := svc.ListForUser(ctx, "user-1", 1, 10, f)
+		if err != nil {
+			t.Fatalf("%+v: %v", f, err)
+		}
+		if int(total) != len(items) {
+			t.Fatalf("%+v: total %d for %d items", f, total, len(items))
+		}
+		out := []string{}
+		for _, n := range items {
+			out = append(out, n.ID)
+		}
+		return out
+	}
+	cases := []struct {
+		f    ListFilter
+		want string
+	}{
+		{ListFilter{Query: "NGINX"}, "n1"},
+		{ListFilter{Query: "100%"}, "n3"},
+		{ListFilter{Query: "db_d"}, "n3"},
+		{ListFilter{Query: "_"}, "n3"},
+		{ListFilter{Query: "alert deleted", Mode: "exact"}, "n2"},
+		{ListFilter{Query: "alert", Mode: "exact"}, ""},
+		{ListFilter{Query: "^backup", Mode: "regex"}, "n3"},
+		{ListFilter{Levels: []string{"warning", "error"}}, "n2,n3"},
+		{ListFilter{Status: "read"}, "n1"},
+		{ListFilter{Status: "unread", Levels: []string{"error"}}, "n3"},
+	}
+	for _, c := range cases {
+		got := ids(c.f)
+		joined := ""
+		for i, id := range got {
+			if i > 0 {
+				joined += ","
+			}
+			joined += id
+		}
+		if c.want == "n2,n3" && (joined == "n3,n2") {
+			joined = "n2,n3"
+		}
+		if joined != c.want {
+			t.Errorf("%+v = %q, want %q", c.f, joined, c.want)
+		}
+	}
+	if _, _, err := svc.ListForUser(ctx, "user-1", 1, 10, ListFilter{Query: "(", Mode: "regex"}); !errors.Is(err, ErrInvalidPattern) {
+		t.Fatalf("bad regex: %v", err)
+	}
+	counts, err := svc.CountsForUser(ctx, "user-1")
+	if err != nil || counts.Total != 3 || counts.Unread != 2 || counts.ByLevel["error"] != 1 {
+		t.Fatalf("counts %+v %v", counts, err)
 	}
 }

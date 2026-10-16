@@ -1,0 +1,11 @@
+{
+  "label": "Restaurer la sauvegarde du conteneur",
+  "description": "Restaure une exécution de sauvegarde terminée dans le conteneur",
+  "config": {
+    "environment": "Environnement",
+    "container": "Conteneur (filtre)",
+    "run_id": "Exécution de sauvegarde",
+    "restore_items": "Éléments à restaurer",
+    "secret_key": "Clé secrète"
+  }
+}

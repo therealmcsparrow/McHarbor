@@ -10,22 +10,12 @@ type AgentDirectTransferTestResultProps = {
   result: DirectTransferTestResult;
 };
 
-function ResultRow({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value?: string | number | boolean;
-  mono?: boolean;
-}) {
+function ResultRow({ label, value, mono }: { label: string; value?: string | number | boolean; mono?: boolean }) {
   if (value === undefined || value === '') return null;
   return (
     <div className="grid gap-1 rounded-lg border border-border/60 bg-background/40 px-3 py-2 sm:grid-cols-[10rem_1fr]">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <span className={cn('break-all text-sm text-foreground', mono && 'font-mono text-xs')}>
-        {String(value)}
-      </span>
+      <span className={cn('text-sm break-all text-foreground', mono && 'font-mono text-xs')}>{String(value)}</span>
     </div>
   );
 }
@@ -92,24 +82,32 @@ export function AgentDirectTransferTestResult({ result }: AgentDirectTransferTes
 
       {result.receiver && (
         <div className="space-y-2 pt-2">
-          <h4 className="text-sm font-medium text-foreground">
-            {t('agent.directTransferTest.receiverTitle')}
-          </h4>
+          <h4 className="text-sm font-medium text-foreground">{t('agent.directTransferTest.receiverTitle')}</h4>
           <div className="grid gap-2">
-            <ResultRow label={t('agent.directTransferTest.receiverTransferId')} value={result.receiver.transferId} mono />
+            <ResultRow
+              label={t('agent.directTransferTest.receiverTransferId')}
+              value={result.receiver.transferId}
+              mono
+            />
             <ResultRow label={t('agent.directTransferTest.receiverKind')} value={result.receiver.kind} />
             <ResultRow label={t('agent.directTransferTest.receiverExpiresAt')} value={result.receiver.expiresAt} mono />
-            <ResultRow label={t('agent.directTransferTest.tokenFingerprint')} value={result.receiver.tokenFingerprint} mono />
-            <ResultRow label={t('agent.directTransferTest.receiverAgentMarker')} value={result.receiver.agentMarker} mono />
+            <ResultRow
+              label={t('agent.directTransferTest.tokenFingerprint')}
+              value={result.receiver.tokenFingerprint}
+              mono
+            />
+            <ResultRow
+              label={t('agent.directTransferTest.receiverAgentMarker')}
+              value={result.receiver.agentMarker}
+              mono
+            />
           </div>
         </div>
       )}
 
       {result.diagnostic && (
         <div className="space-y-2 pt-2">
-          <h4 className="text-sm font-medium text-foreground">
-            {t('agent.directTransferTest.diagnosticTitle')}
-          </h4>
+          <h4 className="text-sm font-medium text-foreground">{t('agent.directTransferTest.diagnosticTitle')}</h4>
           <div className="grid gap-2">
             <ResultRow
               label={t('agent.directTransferTest.receiverExists')}

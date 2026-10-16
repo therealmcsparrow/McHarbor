@@ -1,0 +1,67 @@
+{
+  "page": {
+    "title": "Nextcloud-Backup-Ziele",
+    "subtitle": "Sichert Container über WebDAV (RFC 4918) auf eine Nextcloud-Instanz. Zwei Authentifizierungsmodi: OAuth-2.0-Refresh-Token-Ablauf (der Operator erstellt einen OAuth2-Client unter /settings/admin/oauth2) oder direkte App-Passwort-Authentifizierung (der Operator erzeugt ein App-Passwort unter Persönliche Einstellungen → Sicherheit). Chunked-Uploads verwenden den WebDAV-PUT-Stream mit Content-Length + Content-Range; große Uploads funktionieren, weil der WebDAV-Server von Nextcloud serverseitig Chunked-Ranges unterstützt. Gleiche Roundtrip-Form des Tests (schreiben / ändern / löschen) wie bei den SharePoint- und Google-Drive-Plugins.",
+    "registerHint": "Klicken Sie auf Verbindung testen, um zu prüfen, ob der WebDAV-Endpunkt erreichbar ist und die Zugangsdaten gültig sind. Nach dem Speichern des Dialogs führt der Test des Plugins Schreiben / Ändern / Löschen in einem eindeutig benannten Ordner unter dem konfigurierten Basispfad aus."
+  },
+  "fields": {
+    "clientId": "OAuth-Client-ID",
+    "clientSecret": "OAuth-Client-Secret / App-Passwort",
+    "refreshToken": "Refresh-Token (vom OAuth-Zustimmungsablauf geliefert)",
+    "folderId": "Ordner unterhalb des Benutzerstamms (leer für den Benutzerstamm)"
+  },
+  "help": {
+    "clientId": "Optional. OAuth-2.0-client_id aus Nextcloud Admin → Einstellungen → Sicherheit → OAuth-2.0-Clients. Leer lassen, wenn Sie stattdessen ein App-Passwort verwenden.",
+    "clientSecret": "Entweder das OAuth-2.0-client_secret aus der OAuth-Client-Konfiguration Ihrer Nextcloud oder ein App-Passwort, das unter Nextcloud Persönliche Einstellungen → Sicherheit → App-Passwörter erzeugt wurde. Beide funktionieren bei jedem WebDAV-Aufruf über HTTP Basic Auth.",
+    "refreshToken": "Klicken Sie nach dem Speichern des Ziels auf Verbinden, um die Kontozustimmung zu erteilen und einen langlebigen Refresh-Token zu speichern.",
+    "folderId": "Schrägstriche werden als Ordnertrenner behandelt. Zwischenordner werden automatisch erstellt (MKCOL für jedes Segment)."
+  },
+  "toast": {
+    "registered": "Nextcloud-Plugin registriert.",
+    "testPassed": "Nextcloud-Verbindungstest bestanden.",
+    "testFailed": "Nextcloud-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "noHost": "Nextcloud-Basis-URL ist erforderlich.",
+    "noUsername": "Nextcloud-Benutzername ist erforderlich.",
+    "noSecret": "OAuth-Client-Secret oder App-Passwort ist erforderlich."
+  },
+  "form": {
+    "introTitle": "Nextcloud-Zugangsdaten",
+    "introBody": "Erzeuge ein App-Passwort unter Personal settings → Security → App passwords oder registriere einen OAuth-2.0-Client in den Administratoreinstellungen. Beide Varianten funktionieren über HTTP-Basic-Authentifizierung bei jedem WebDAV-Aufruf. McHarbor speichert das Geheimnis verschlüsselt.",
+    "host": {
+      "label": "Nextcloud-Basis-URL",
+      "help": "Basis-URL der Nextcloud-Instanz, z. B. https://cloud.example.com. Keinen abschließenden Schrägstrich anhängen — das Plugin leitet den WebDAV-Endpunkt zur Laufzeit selbst ab."
+    },
+    "username": {
+      "label": "Benutzername",
+      "help": "Nextcloud-Login (Benutzername oder E-Mail). Wird verwendet, um den WebDAV-Pfad unter /remote.php/dav/files/{username}/ einzugrenzen."
+    },
+    "clientId": {
+      "label": "OAuth-Client-ID (optional)",
+      "help": "OAuth-2.0-client_id aus Nextcloud admin → Settings → Security → OAuth 2.0 clients. Leer lassen, wenn du stattdessen ein App-Passwort verwendest."
+    },
+    "clientSecret": {
+      "help": "Zwei gültige Optionen: (1) das OAuth-2.0-client_secret aus der Konfiguration deines Nextcloud-OAuth-Clients oder (2) ein App-Passwort, das in Nextcloud Personal settings → Security → App passwords erzeugt wurde. Beide funktionieren über HTTP-Basic-Authentifizierung bei jedem WebDAV-Aufruf. Verschlüsselt gespeichert."
+    },
+    "basePath": {
+      "label": "Ordner unter dem Benutzerstamm",
+      "help": "Optionaler Unterordner unter dem Nextcloud-Files-Stammverzeichnis des Benutzers, z. B. Backups/2026. Leer lassen für den Benutzerstamm. Schrägstriche gelten als Ordnertrenner, und Zwischenordner werden automatisch angelegt."
+    },
+    "apiPath": {
+      "label": "WebDAV-Pfadpräfix (erweitert)",
+      "help": "Überschreibt den WebDAV-Pfad. Standard ist /remote.php/dav/files/{username}/. Setze dies nur, wenn deine Nextcloud hinter einem Reverse Proxy steht, der den WebDAV-Pfad umschreibt. Leer lassen, wenn du nicht weißt, was du tust."
+    }
+  },
+  "setup": {
+    "title": "Nextcloud-Einrichtungsanleitung",
+    "steps": {
+      "s1": "Öffne in Nextcloud <b>Personal settings → Security → App passwords</b>. (Administratoren können dies für die gesamte Instanz über <b>Settings → Security</b> aktivieren.) Gib dem App-Passwort einen aussagekräftigen Namen (z. B. <code>mcharbor-backups</code>) und klicke auf <b>Create app password</b>.",
+      "s2": "Kopiere den Benutzernamen (das Konto, unter dem Backups abgelegt werden sollen) und das soeben von Nextcloud erzeugte App-Passwort. Beides unterscheidet zwischen Groß- und Kleinschreibung.",
+      "s3": "Füge in McHarbor die Nextcloud-Basis-URL (z. B. <code>https://cloud.example.com</code> — ohne abschließenden Schrägstrich), den Benutzernamen und das App-Passwort in das Formular links ein. Optional: Lege einen Ordner unter dem Benutzerstamm fest (z. B. <code>Backups/2026</code>) und lass McHarbor Zwischenordner automatisch anlegen.",
+      "s4": "Klicke auf <b>Test connection</b>, um eine Testdatei im aufgelösten Ordner zu schreiben und wieder zu lesen. Das Plugin führt einen per HTTP Basic authentifizierten WebDAV-<code>PROPFIND</code> gegen <code>/remote.php/dav/files/{username}/</code> aus, um zu bestätigen, dass das Ziel erreichbar und die Zugangsdaten gültig sind.",
+      "s5": "Optional: Wenn du zu einem delegierten OAuth-Ablauf wechseln möchtest (damit der Operator keine App-Passwörter verwalten muss), erstelle einen OAuth-2.0-Client unter <b>Nextcloud admin → Settings → Security → OAuth 2.0 clients</b>. Setze die Redirect-URI auf <code>/api/storage-locations/oauth/callback</code> deines McHarbor-Hosts. Erzeuge ein Client Secret, füge beides in das Formular ein und klicke auf <b>Connect</b>, um die Zustimmung zu erteilen. Das Plugin speichert das Refresh-Token und erneuert es bei jedem Backup-Lauf transparent.",
+      "s6": "Starte ein Backup. Das Plugin lädt das Archiv per WebDAV mit <code>Content-Range</code>-Chunked-PUT hoch, sodass auch Backups über 10 GB gestreamt werden, ohne die gesamte Nutzlast auf einmal im Speicher zu puffern. Der WebDAV-Server von Nextcloud setzt die Chunks serverseitig wieder zusammen."
+    }
+  }
+}

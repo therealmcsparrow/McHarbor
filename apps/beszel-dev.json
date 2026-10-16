@@ -1,0 +1,35 @@
+{
+    "slug":  "beszel-dev",
+    "name":  "Beszel (Dev)",
+    "description":  "Dev channel build of Beszel. Lightweight server monitoring hub with historical metrics.",
+    "category":  "Monitoring",
+    "image":  "henrygd/beszel:dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/beszel.png",
+    "website":  "https://beszel.dev",
+    "docsUrl":  "https://beszel.dev/guide",
+    "ports":  [
+                  {
+                      "host":  9090,
+                      "container":  8090,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/beszel-dev/data",
+                        "container":  "/beszel_data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,15 +1,15 @@
 {
-  "label": "Sort",
-  "description": "Sort an array on the current message",
+  "label": "Sorteren",
+  "description": "Sorteer een array in het huidige bericht",
   "config": {
     "property": "Eigenschap",
-    "sort_by": "Sort By",
+    "sort_by": "Sorteren op",
     "direction": "Richting"
   },
   "options": {
     "direction": {
       "asc": "Oplopend",
-      "desc": "Descending"
+      "desc": "Aflopend"
     }
   }
 }

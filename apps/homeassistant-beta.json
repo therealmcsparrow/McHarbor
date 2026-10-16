@@ -1,0 +1,36 @@
+{
+    "slug":  "homeassistant-beta",
+    "name":  "Home Assistant (Beta)",
+    "description":  "Beta channel build of Home Assistant. Open-source home automation platform with thousands of integrations.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/home-assistant/home-assistant:beta",
+    "logo":  "https://www.home-assistant.io/images/favicon-192x192-full.png",
+    "website":  "https://www.home-assistant.io",
+    "docsUrl":  "https://www.home-assistant.io/docs/",
+    "ports":  [
+                  {
+                      "host":  9123,
+                      "container":  8123,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/homeassistant-beta/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

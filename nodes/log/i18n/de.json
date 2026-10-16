@@ -1,15 +1,15 @@
 {
-  "label": "Log",
-  "description": "Write a message to the workflow log stream",
+  "label": "Protokoll",
+  "description": "Eine Nachricht in den Workflow-Protokollstrom schreiben",
   "config": {
-    "level": "Level",
+    "level": "Stufe",
     "message": "Nachricht"
   },
   "options": {
     "level": {
       "info": "Info",
-      "warn": "Warn",
-      "error": "Error"
+      "warn": "Warnung",
+      "error": "Fehler"
     }
   }
 }

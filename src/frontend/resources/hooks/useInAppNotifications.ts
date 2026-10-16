@@ -2,12 +2,14 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePermission } from '@core/auth/usePermission';
+import { PERM } from '@core/auth/permissionKeys';
 import { api, type PaginatedData } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 
 export interface InAppNotification {
   id: string;
-  level: 'info' | 'success' | 'warning';
+  level: 'info' | 'success' | 'warning' | 'error';
   title: string;
   message: string;
   action?: string;
@@ -24,26 +26,50 @@ type InAppNotificationCount = {
 
 export const inAppNotificationQueryKeys = {
   all: ['in-app-notifications'] as const,
-  list: (page: number, perPage: number) => ['in-app-notifications', 'list', page, perPage] as const,
+  list: (page: number, perPage: number, filter?: InAppNotificationFilter) =>
+    ['in-app-notifications', 'list', page, perPage, filter ?? {}] as const,
+  counts: ['in-app-notifications', 'counts'] as const,
   unreadCount: ['in-app-notifications', 'unread-count'] as const,
 };
+
+export type InAppNotificationFilter = {
+  q?: string;
+  mode?: 'contains' | 'exact' | 'regex';
+  status?: 'all' | 'read' | 'unread';
+  level?: string;
+};
+
+export type InAppNotificationCounts = { total: number; unread: number; byLevel: Record<string, number> };
 
 type UseInAppNotificationsOptions = {
   page?: number;
   perPage?: number;
+  filter?: InAppNotificationFilter;
 };
 
+/**
+ * Both reads below are gated on in_app_notifications.view, which the backend
+ * enforces on the same routes. Without the key the bell has nothing to show,
+ * so asking for it produced a 403 on a timer.
+ */
 export function useInAppNotifications(options: UseInAppNotificationsOptions = {}) {
   const page = options.page ?? 1;
   const perPage = options.perPage ?? 12;
+  const allowed = usePermission(PERM.IN_APP_NOTIFICATIONS_VIEW);
 
   return useQuery({
-    queryKey: inAppNotificationQueryKeys.list(page, perPage),
+    enabled: allowed,
+    queryKey: inAppNotificationQueryKeys.list(page, perPage, options.filter),
     queryFn: async () => {
-      const response = await api.get<PaginatedData<InAppNotification>>('/in-app-notifications', {
-        page: String(page),
-        per_page: String(perPage),
-      });
+      const f = options.filter ?? {};
+      const params: Record<string, string> = { page: String(page), per_page: String(perPage) };
+      if (f.q?.trim()) {
+        params.q = f.q.trim();
+        params.mode = f.mode ?? 'contains';
+      }
+      if (f.status && f.status !== 'all') params.status = f.status;
+      if (f.level && f.level !== 'all') params.level = f.level;
+      const response = await api.get<PaginatedData<InAppNotification>>('/in-app-notifications', params);
       return assertSuccess(response);
     },
     staleTime: 10_000,
@@ -52,7 +78,9 @@ export function useInAppNotifications(options: UseInAppNotificationsOptions = {}
 }
 
 export function useUnreadInAppNotificationCount() {
+  const allowed = usePermission(PERM.IN_APP_NOTIFICATIONS_VIEW);
   return useQuery({
+    enabled: allowed,
     queryKey: inAppNotificationQueryKeys.unreadCount,
     queryFn: async () => {
       const response = await api.get<InAppNotificationCount>('/in-app-notifications/unread-count');
@@ -72,7 +100,7 @@ export function useMarkInAppNotificationRead() {
       return assertSuccess(response);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
     },
   });
 }
@@ -91,7 +119,7 @@ export function useMarkInAppNotificationsReadBatch() {
       return notificationIDs.length;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
     },
   });
 }
@@ -105,7 +133,7 @@ export function useMarkAllInAppNotificationsRead() {
       return assertSuccess(response);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
     },
   });
 }
@@ -119,7 +147,7 @@ export function useDeleteInAppNotification() {
       return assertSuccess(response);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
     },
   });
 }
@@ -138,7 +166,18 @@ export function useDeleteInAppNotificationsBatch() {
       return notificationIDs.length;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
+      void queryClient.invalidateQueries({ queryKey: inAppNotificationQueryKeys.all });
     },
+  });
+}
+
+export function useInAppNotificationCounts() {
+  const allowed = usePermission(PERM.IN_APP_NOTIFICATIONS_VIEW);
+  return useQuery({
+    enabled: allowed,
+    queryKey: inAppNotificationQueryKeys.counts,
+    queryFn: async () => assertSuccess(await api.get<InAppNotificationCounts>('/in-app-notifications/counts')),
+    staleTime: 10_000,
+    refetchInterval: 30_000,
   });
 }

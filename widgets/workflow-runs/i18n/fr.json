@@ -11,6 +11,9 @@
     "status": "Statut",
     "duration": "Durée",
     "when": "Quand",
-    "noRuns": "Aucun flux de travail n'est encore exécuté"
+    "noRuns": "Aucun flux de travail n'est encore exécuté",
+    "successRate": "{{percent}}% de réussite",
+    "more": "{{count}} de plus",
+    "viewAll": "Tous les workflows"
   }
 }

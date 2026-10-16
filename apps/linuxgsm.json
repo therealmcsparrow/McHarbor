@@ -1,0 +1,37 @@
+{
+    "slug":  "linuxgsm",
+    "name":  "LinuxGSM",
+    "description":  "Command-line framework for installing and managing a wide range of dedicated game servers.",
+    "category":  "Gaming",
+    "image":  "gameservermanagers/linuxgsm-docker:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/linuxgsm.png",
+    "website":  "https://linuxgsm.com",
+    "docsUrl":  "https://docs.linuxgsm.com/container/docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/linuxgsm/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GSM_GAME",
+                        "default":  "csgoserver",
+                        "description":  "LinuxGSM server script short name to install"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

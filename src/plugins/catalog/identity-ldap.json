@@ -1,0 +1,16 @@
+{
+  "slug": "identity-ldap",
+  "name": "LDAP / Active Directory",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "LDAP / Active Directory identity provider. Form-based bind-and-search authentication (search-then-rebind) against OpenLDAP, AD, 389 DS, etc. Optional StartTLS or LDAPS. Install this plugin to add 'LDAP / Active Directory' as a provider_type in Settings > Security > Identity Providers.",
+  "category": "Identity providers",
+  "icon": "IconAddressBook",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/identity-ldap-1.0.0.tar.gz"
+    }
+  ]
+}

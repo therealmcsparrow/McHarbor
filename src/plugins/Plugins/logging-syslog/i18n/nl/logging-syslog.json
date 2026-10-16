@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "Syslog (RFC5424)",
+    "description": "RFC5424 via UDP, TCP of TLS naar rsyslog, syslog-ng, QRadar of ArcSight."
+  },
+  "settings": {
+    "title": "Syslog (RFC5424)",
+    "subtitle": "RFC5424 via UDP, TCP of TLS naar rsyslog, syslog-ng, QRadar of ArcSight."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Bezorging van syslog-doorsturing",
+      "description": "Bezorgde en mislukte auditgebeurtenissen per syslog-forwarder, slagingspercentage, de langste periode zonder geslaagde bezorging en de foutredenen die blijven terugkomen."
+    }
+  },
+  "subject": {
+    "syslog-forwarder": "Syslog-forwarder"
+  },
+  "subjectAll": {
+    "syslog-forwarder": "Alle syslog-forwarders"
+  }
+}

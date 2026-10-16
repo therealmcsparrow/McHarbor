@@ -1,0 +1,45 @@
+{
+    "slug":  "ombi-dev",
+    "name":  "Ombi (Dev)",
+    "description":  "Dev channel build of Ombi. Media request portal that lets Plex, Jellyfin and Emby users request movies and shows.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/ombi:development",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ombi.png",
+    "website":  "https://ombi.io",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-ombi/",
+    "ports":  [
+                  {
+                      "host":  4579,
+                      "container":  3579,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ombi-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

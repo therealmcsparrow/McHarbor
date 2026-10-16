@@ -1,0 +1,58 @@
+{
+    "slug":  "privacyidea",
+    "name":  "privacyIDEA",
+    "description":  "Multi-factor authentication system managing OTP, push, and WebAuthn tokens for existing user directories.",
+    "category":  "Identity & SSO",
+    "image":  "gpappsoft/privacyidea-docker:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/privacyidea.svg",
+    "website":  "https://www.privacyidea.org",
+    "docsUrl":  "https://github.com/gpappsoft/privacyidea-docker",
+    "ports":  [
+                  {
+                      "host":  8089,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8449,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/privacyidea/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PI_ADMIN_USER",
+                        "default":  "admin",
+                        "description":  "Initial privacyIDEA administrator username"
+                    },
+                    {
+                        "key":  "PI_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial privacyIDEA administrator password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PI_PEPPER",
+                        "default":  "change-me",
+                        "description":  "Secret pepper value used to protect stored secrets",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

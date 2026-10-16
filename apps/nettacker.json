@@ -1,0 +1,47 @@
+{
+    "slug":  "nettacker",
+    "name":  "OWASP Nettacker",
+    "description":  "Automated reconnaissance and vulnerability scanning framework with a web dashboard for scan results.",
+    "category":  "Security",
+    "image":  "owasp/nettacker:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=owasp.org\u0026sz=128",
+    "website":  "https://owasp.org/www-project-nettacker/",
+    "docsUrl":  "https://github.com/OWASP/Nettacker/wiki",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nettacker/data",
+                        "container":  "/root/.nettacker/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NETTACKER_ADMIN_USERNAME",
+                        "default":  "admin",
+                        "description":  "Web UI administrator username"
+                    },
+                    {
+                        "key":  "NETTACKER_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Web UI administrator password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

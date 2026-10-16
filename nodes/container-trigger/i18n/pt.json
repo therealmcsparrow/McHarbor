@@ -1,0 +1,31 @@
+{
+  "label": "Gatilho de contêiner",
+  "description": "Iniciar um fluxo quando um contêiner muda de estado ou saúde",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "watch": "Observar",
+    "status": "Evento de status",
+    "health": "Estado de saude"
+  },
+  "options": {
+    "watch": {
+      "status": "Mudanças de estado",
+      "health": "Mudanças de saúde"
+    },
+    "status": {
+      "any": "Qualquer",
+      "start": "Começar",
+      "stop": "Parar",
+      "die": "Morrer",
+      "health_status": "Estado de saúde"
+    },
+    "health": {
+      "any": "Qualquer",
+      "healthy": "Saudavel",
+      "unhealthy": "Nao saudavel",
+      "starting": "Iniciando",
+      "none": "Sem healthcheck"
+    }
+  }
+}

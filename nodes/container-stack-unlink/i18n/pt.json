@@ -1,8 +1,8 @@
 {
-  "label": "Unlink Container From Stack",
-  "description": "Remove the manual stack link for a container",
+  "label": "Desvincular contêiner da stack",
+  "description": "Remove o vínculo manual de stack de um contêiner",
   "config": {
-    "environment": "Environment",
-    "container": "Container"
+    "environment": "Ambiente",
+    "container": "Contêiner"
   }
 }

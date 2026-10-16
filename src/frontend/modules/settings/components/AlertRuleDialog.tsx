@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@resources/components/ui/Button';
 import {
@@ -16,91 +16,49 @@ import {
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
 import { Select } from '@resources/components/ui/Select';
-import { Switch } from '@resources/components/ui/Switch';
-import { Textarea } from '@resources/components/ui/Textarea';
-import { useCreateAlert, useUpdateAlert, type AlertRule } from '../hooks/useAlerts';
+import { useCreateAlert, useTestAlert, useUpdateAlert, type AlertRule } from '@resources/hooks/useAlerts';
+import { findCondition, useAlertConditions } from '@resources/hooks/useAlertConditions';
+import { DEFAULT_FORM, formFromRule, payloadFromForm, type AlertFormState } from './alert-rule-form';
 import { type CommunicationChannel } from '../hooks/useNotificationChannels';
-import {
-  ALERT_SEVERITIES,
-  ALERT_SEVERITY_LABEL_KEYS,
-  ALERT_TYPES,
-  ALERT_TYPE_LABEL_KEYS,
-} from './alert-options';
+import { ALERT_SEVERITIES, ALERT_SEVERITY_LABEL_KEYS } from './alert-options';
+import { AlertConditionFields } from './AlertConditionFields';
+import { AlertDeliveryFields } from './AlertDeliveryFields';
+import { AlertDestinationsField } from './AlertDestinationsField';
+import { PERM } from '@core/auth/permissionKeys';
 
 type AlertRuleDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   channels: CommunicationChannel[];
   alert?: AlertRule | null;
+  onOpenCommunications: () => void;
 };
 
-type AlertFormState = {
-  name: string;
-  severity: AlertRule['severity'];
-  type: AlertRule['type'];
-  condition: string;
-  target: string;
-  channelId: string;
-  sendInApp: boolean;
-};
-
-const DEFAULT_FORM: AlertFormState = {
-  name: '',
-  severity: 'warning',
-  type: 'cpu',
-  condition: '',
-  target: '*',
-  channelId: '',
-  sendInApp: false,
-};
-
-export function AlertRuleDialog({ open, onOpenChange, channels, alert }: AlertRuleDialogProps) {
+export function AlertRuleDialog({
+  open: isOpen,
+  onOpenChange,
+  channels,
+  alert: rule,
+  onOpenCommunications,
+}: AlertRuleDialogProps) {
   const { t } = useTranslation('settings');
-  const { t: tc } = useTranslation('common');
+  const { data: catalog } = useAlertConditions();
   const createAlert = useCreateAlert();
   const updateAlert = useUpdateAlert();
-  const isEditing = Boolean(alert);
+  const testAlert = useTestAlert();
+  const isEditing = Boolean(rule);
   const [form, setForm] = useState<AlertFormState>(DEFAULT_FORM);
 
-  useEffect(() => {
-    if (!open) return;
-
-    if (alert) {
-      setForm({
-        name: alert.name,
-        severity: alert.severity,
-        type: alert.type,
-        condition: alert.condition,
-        target: alert.target || '*',
-        channelId: alert.channelId || '',
-        sendInApp: alert.sendInApp,
-      });
-      return;
-    }
-
-    setForm(DEFAULT_FORM);
-  }, [alert, channels, open]);
-
-  const channelOptions = [
-    {
-      value: '',
-      label: t('alerts.noChannelOption'),
-    },
-    ...channels.map((channel) => ({
-      value: channel.id,
-      label: channel.enabled
-        ? channel.name
-        : `${channel.name} (${t('communications.disabled')})`,
-    })),
-  ];
-  if (form.channelId && !channelOptions.some((channel) => channel.value === form.channelId)) {
-    channelOptions.unshift({
-      value: form.channelId,
-      label: t('alerts.unassignedChannel'),
-    });
+  const [seeded, setSeeded] = useState<{ rule: typeof rule; isOpen: boolean }>({ rule: undefined, isOpen: false });
+  if (seeded.rule !== rule || seeded.isOpen !== isOpen) {
+    setSeeded({ rule, isOpen });
+    if (isOpen) setForm(rule ? formFromRule(rule) : DEFAULT_FORM);
   }
+
+  const selected = findCondition(catalog, form.sourceType, form.conditionKey);
+  const hasDestination = form.destinations.length > 0 || form.sendInApp;
+  const canSave = Boolean(form.name.trim()) && Boolean(selected) && hasDestination;
   const isPending = createAlert.isPending || updateAlert.isPending;
-  const canSave = !!(form.name.trim() && (form.channelId || form.sendInApp));
 
   function handleClose(nextOpen: boolean) {
     if (!nextOpen) {
@@ -109,38 +67,42 @@ export function AlertRuleDialog({ open, onOpenChange, channels, alert }: AlertRu
     onOpenChange(nextOpen);
   }
 
-  function handleSave() {
-    const payload = {
-      name: form.name.trim(),
-      severity: form.severity,
-      type: form.type,
-      condition: form.condition.trim(),
-      target: form.target.trim(),
-      channelId: form.channelId,
-      sendInApp: form.sendInApp,
-    };
+  /**
+   * Switching condition resets the threshold to the new declaration's
+   * defaults. Carrying "> 80%" across from CPU usage to a restart-loop
+   * count would look configured while meaning something else entirely.
+   */
+  function handleSourceChange(sourceType: string, conditionKey: string) {
+    const next = findCondition(catalog, sourceType, conditionKey);
+    setForm((current) => ({
+      ...current,
+      sourceType,
+      conditionKey,
+      condition: {
+        operator: next?.condition.defaultOperator,
+        threshold: next?.condition.defaultThreshold,
+        unit: next?.condition.unit,
+        forSeconds: 0,
+        windowSeconds: next?.condition.kind === 'count_in_window' ? 900 : 0,
+        params: {},
+      },
+    }));
+  }
 
-    if (alert) {
-      updateAlert.mutate(
-        {
-          id: alert.id,
-          ...payload,
-        },
-        {
-          onSuccess: () => handleClose(false),
-        }
-      );
+  function handleSave() {
+    const payload = payloadFromForm(form);
+
+    if (rule) {
+      updateAlert.mutate({ id: rule.id, ...payload }, { onSuccess: () => handleClose(false) });
       return;
     }
 
-    createAlert.mutate(payload, {
-      onSuccess: () => handleClose(false),
-    });
+    createAlert.mutate(payload, { onSuccess: () => handleClose(false) });
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEditing ? t('alerts.editTitle') : t('alerts.createTitle')}</DialogTitle>
           <DialogDescription>
@@ -148,13 +110,13 @@ export function AlertRuleDialog({ open, onOpenChange, channels, alert }: AlertRu
           </DialogDescription>
         </DialogHeader>
 
-        <DialogBody className="space-y-5">
+        <DialogBody className="space-y-6">
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label>{t('alerts.nameLabel')}</Label>
               <Input
                 value={form.name}
-                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                onChange={(changeEvent) => setForm((current) => ({ ...current, name: changeEvent.target.value }))}
                 placeholder={t('alerts.namePlaceholder')}
               />
             </div>
@@ -171,79 +133,72 @@ export function AlertRuleDialog({ open, onOpenChange, channels, alert }: AlertRu
                 searchable={false}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label>{t('alerts.typeLabel')}</Label>
-              <Select
-                value={form.type}
-                onChange={(value) => setForm((current) => ({ ...current, type: value as AlertRule['type'] }))}
-                options={ALERT_TYPES.map((type) => ({
-                  value: type,
-                  label: t(ALERT_TYPE_LABEL_KEYS[type]),
-                }))}
-                searchable={false}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('alerts.targetLabel')}</Label>
-              <Input
-                value={form.target}
-                onChange={(event) => setForm((current) => ({ ...current, target: event.target.value }))}
-                placeholder={t('alerts.targetPlaceholder')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('alerts.channelLabel')}</Label>
-              <Select
-                value={form.channelId}
-                onChange={(value) => setForm((current) => ({ ...current, channelId: value }))}
-                options={channelOptions}
-                placeholder={t('alerts.channelPlaceholder')}
-              />
-              <p className="text-xs text-muted-foreground">
-                {channels.length === 0 ? t('alerts.noChannelsInlineHint') : t('alerts.channelRequiredHint')}
-              </p>
-            </div>
-
-            <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4 sm:col-span-2">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">{t('alerts.inAppLabel')}</p>
-                  <p className="text-xs text-muted-foreground">{t('alerts.inAppDescription')}</p>
-                </div>
-                <Switch
-                  aria-label={t('alerts.inAppLabel')}
-                  checked={form.sendInApp}
-                  onCheckedChange={(checked) => setForm((current) => ({ ...current, sendInApp: checked }))}
-                />
-              </div>
-              {!canSave ? (
-                <p className="text-xs text-muted-foreground">{t('alerts.destinationRequiredHint')}</p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label>{t('alerts.conditionLabel')}</Label>
-              <Textarea
-                value={form.condition}
-                onChange={(event) => setForm((current) => ({ ...current, condition: event.target.value }))}
-                placeholder={t('alerts.conditionPlaceholder')}
-                className="min-h-[120px]"
-              />
-            </div>
           </div>
+
+          <AlertConditionFields
+            catalog={catalog}
+            sourceType={form.sourceType}
+            conditionKey={form.conditionKey}
+            condition={form.condition}
+            target={form.target}
+            onSourceChange={handleSourceChange}
+            onConditionChange={(condition) => setForm((current) => ({ ...current, condition }))}
+            onTargetChange={(target) => setForm((current) => ({ ...current, target }))}
+          />
+
+          <AlertDestinationsField
+            channels={channels}
+            destinations={form.destinations}
+            sendInApp={form.sendInApp}
+            onDestinationsChange={(destinations) => setForm((current) => ({ ...current, destinations }))}
+            onSendInAppChange={(sendInApp) => setForm((current) => ({ ...current, sendInApp }))}
+            onOpenCommunications={onOpenCommunications}
+          />
+
+          <AlertDeliveryFields
+            environmentIds={form.environmentIds}
+            cooldownSeconds={form.cooldownSeconds}
+            notifyOnRecovery={form.notifyOnRecovery}
+            messageTemplate={form.messageTemplate}
+            alertName={form.name}
+            severity={form.severity}
+            sourceType={form.sourceType}
+            conditionKey={form.conditionKey}
+            condition={form.condition}
+            showEnvironmentScope={selected ? selected.condition.targetKind !== 'none' : false}
+            onEnvironmentIdsChange={(environmentIds) => setForm((current) => ({ ...current, environmentIds }))}
+            onCooldownChange={(cooldownSeconds) => setForm((current) => ({ ...current, cooldownSeconds }))}
+            onNotifyOnRecoveryChange={(notifyOnRecovery) => setForm((current) => ({ ...current, notifyOnRecovery }))}
+            onMessageTemplateChange={(messageTemplate) => setForm((current) => ({ ...current, messageTemplate }))}
+          />
+
+          {!hasDestination ? (
+            <p className="text-xs text-muted-foreground">{t('alerts.destinationRequiredHint')}</p>
+          ) : null}
         </DialogBody>
 
         <DialogFooter>
+          {rule ? (
+            <Button
+              permission={PERM.ALERTS_MANAGE}
+              variant="outline"
+              onClick={() => testAlert.mutate(rule.id)}
+              disabled={testAlert.isPending}
+            >
+              {testAlert.isPending ? t('alerts.testing') : t('alerts.testRule')}
+            </Button>
+          ) : null}
           <Button variant="outline" onClick={() => handleClose(false)}>
-            {tc('actions.cancel')}
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
-          <Button onClick={handleSave} disabled={isPending || !canSave}>
+          <Button permission={PERM.ALERTS_MANAGE} onClick={handleSave} disabled={isPending || !canSave}>
             {isPending
-              ? (isEditing ? tc('actions.saving') : t('alerts.creating'))
-              : (isEditing ? tc('actions.save') : tc('actions.create'))}
+              ? isEditing
+                ? t('actions.saving', { ns: 'common' })
+                : t('alerts.creating')
+              : isEditing
+                ? t('actions.save', { ns: 'common' })
+                : t('actions.create', { ns: 'common' })}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -16,7 +16,11 @@ type ChartConfig = {
   accentColor: string;
   getValue: (s: DashboardStats) => string;
   getUnit: (s: DashboardStats) => string;
-  getDescription?: (s: DashboardStats, host: ReturnType<typeof useHostMetrics>['data'], t: (key: string, params?: Record<string, string>) => string) => string | undefined;
+  getDescription?: (
+    s: DashboardStats,
+    host: ReturnType<typeof useHostMetrics>['data'],
+    t: (key: string, params?: Record<string, string>) => string,
+  ) => string | undefined;
   getChart: (s: DashboardStats, t: (key: string) => string) => React.ReactNode | null;
   hasData: (s: DashboardStats) => boolean;
 };
@@ -47,7 +51,7 @@ const CONFIG: Record<string, ChartConfig> = {
   'memory-chart': {
     titleKey: 'metricChartWidget.memoryUsage',
     icon: IconCpu2,
-    accentColor: 'hsl(280 70% 50%)',
+    accentColor: 'var(--chart-3)',
     getValue: (s) => {
       const last = s.memoryHistory?.[s.memoryHistory.length - 1];
       return last ? splitBytes(last.value).value : '0';
@@ -56,7 +60,8 @@ const CONFIG: Record<string, ChartConfig> = {
       const last = s.memoryHistory?.[s.memoryHistory.length - 1];
       return last ? splitBytes(last.value).unit : 'B';
     },
-    getDescription: (_s, host, t) => host ? t('metricChartWidget.ofTotal', { total: formatBytes(host.host.memTotal) }) : undefined,
+    getDescription: (_s, host, t) =>
+      host ? t('metricChartWidget.ofTotal', { total: formatBytes(host.host.memTotal) }) : undefined,
     hasData: (s) => (s.memoryHistory?.length ?? 0) > 0,
     getChart: (s) =>
       s.memoryHistory ? (
@@ -64,7 +69,7 @@ const CONFIG: Record<string, ChartConfig> = {
           data={s.memoryHistory}
           dataKey="value"
           xAxisKey="timestamp"
-          color="hsl(280 70% 50%)"
+          color="var(--chart-3)"
           formatValue={(v) => formatBytes(v)}
           compact
         />
@@ -73,18 +78,18 @@ const CONFIG: Record<string, ChartConfig> = {
   'network-io-chart': {
     titleKey: 'metricChartWidget.networkIO',
     icon: IconArrowBarDown,
-    accentColor: 'hsl(142 70% 45%)',
+    accentColor: 'var(--status-success)',
     getValue: (s) => {
       const last = s.networkRxHistory?.[s.networkRxHistory.length - 1];
       return last ? splitBytes(last.value).value : '0';
     },
     getUnit: (s) => {
       const last = s.networkRxHistory?.[s.networkRxHistory.length - 1];
-      return last ? splitBytes(last.value).unit : 'B';
+      return `${last ? splitBytes(last.value).unit : 'B'}/s`;
     },
     getDescription: (s, _host, t) => {
       const last = s.networkTxHistory?.[s.networkTxHistory.length - 1];
-      return t('metricChartWidget.tx', { value: last ? formatBytes(last.value) : '0 B' });
+      return t('metricChartWidget.tx', { value: `${last ? formatBytes(last.value) : '0 B'}/s` });
     },
     hasData: (s) => (s.networkRxHistory?.length ?? 0) > 0,
     getChart: (s, t) =>
@@ -98,9 +103,9 @@ const CONFIG: Record<string, ChartConfig> = {
           dataKey="rx"
           secondaryDataKey="tx"
           xAxisKey="timestamp"
-          color="hsl(142 70% 45%)"
-          secondaryColor="hsl(30 80% 55%)"
-          formatValue={(v) => formatBytes(v)}
+          color="var(--status-success)"
+          secondaryColor="var(--chart-2)"
+          formatValue={(v) => `${formatBytes(v)}/s`}
           label={t('metricChartWidget.rxLabel')}
           secondaryLabel={t('metricChartWidget.txLabel')}
           compact
@@ -110,18 +115,18 @@ const CONFIG: Record<string, ChartConfig> = {
   'disk-io-chart': {
     titleKey: 'metricChartWidget.diskIO',
     icon: IconDeviceFloppy,
-    accentColor: 'hsl(210 70% 50%)',
+    accentColor: 'var(--chart-5)',
     getValue: (s) => {
       const last = s.blockReadHistory?.[s.blockReadHistory.length - 1];
       return last ? splitBytes(last.value).value : '0';
     },
     getUnit: (s) => {
       const last = s.blockReadHistory?.[s.blockReadHistory.length - 1];
-      return last ? splitBytes(last.value).unit : 'B';
+      return `${last ? splitBytes(last.value).unit : 'B'}/s`;
     },
     getDescription: (s, _host, t) => {
       const last = s.blockWriteHistory?.[s.blockWriteHistory.length - 1];
-      return t('metricChartWidget.write', { value: last ? formatBytes(last.value) : '0 B' });
+      return t('metricChartWidget.write', { value: `${last ? formatBytes(last.value) : '0 B'}/s` });
     },
     hasData: (s) => (s.blockReadHistory?.length ?? 0) > 0,
     getChart: (s, t) =>
@@ -135,9 +140,9 @@ const CONFIG: Record<string, ChartConfig> = {
           dataKey="read"
           secondaryDataKey="write"
           xAxisKey="timestamp"
-          color="hsl(210 70% 50%)"
-          secondaryColor="hsl(0 70% 50%)"
-          formatValue={(v) => formatBytes(v)}
+          color="var(--chart-5)"
+          secondaryColor="var(--status-danger)"
+          formatValue={(v) => `${formatBytes(v)}/s`}
           label={t('metricChartWidget.readLabel')}
           secondaryLabel={t('metricChartWidget.writeLabel')}
           compact

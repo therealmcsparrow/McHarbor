@@ -1,0 +1,35 @@
+{
+  "slug": "myspeed",
+  "name": "MySpeed",
+  "description": "Scheduled internet speed tests with history charts and notifications.",
+  "category": "Monitoring",
+  "image": "germannewsmaker/myspeed:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/myspeed.png",
+  "website": "https://myspeed.dev",
+  "docsUrl": "https://docs.myspeed.dev/setup/docker",
+  "ports": [
+    {
+      "host": 5216,
+      "container": 5216,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/myspeed/data",
+      "container": "/myspeed/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

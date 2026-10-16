@@ -1,0 +1,28 @@
+{
+  "label": "Container Backup Manage",
+  "description": "List backup plans or runs, or get, cancel and delete a backup run",
+  "config": {
+    "environment": "Environment",
+    "action": "Action",
+    "container": "Container (filter)",
+    "status": "Status",
+    "limit": "Limit",
+    "run_id": "Backup Run"
+  },
+  "options": {
+    "action": {
+      "list_plans": "List plans",
+      "list_runs": "List runs",
+      "get_run": "Get run",
+      "cancel_run": "Cancel run",
+      "delete_run": "Delete run"
+    },
+    "status": {
+      "all": "All",
+      "completed": "Completed",
+      "running": "Running",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    }
+  }
+}

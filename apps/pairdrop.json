@@ -1,0 +1,50 @@
+{
+  "slug": "pairdrop",
+  "name": "PairDrop",
+  "description": "AirDrop-style local file sharing between any devices through the browser.",
+  "category": "Photos & Files",
+  "image": "lscr.io/linuxserver/pairdrop:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pairdrop.png",
+  "website": "https://pairdrop.net",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-pairdrop/",
+  "ports": [
+    {
+      "host": 3019,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    },
+    {
+      "key": "RATE_LIMIT",
+      "default": "false",
+      "description": "Limit clients to 1000 requests per 5 minutes"
+    },
+    {
+      "key": "WS_FALLBACK",
+      "default": "false",
+      "description": "Fall back to WebSocket transfer when WebRTC is unavailable"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

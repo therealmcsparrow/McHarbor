@@ -4,7 +4,7 @@
     "description":  "Coordinator for pinning and replicating content across IPFS daemons.",
     "category":  "Networking",
     "image":  "ipfs/ipfs-cluster:latest",
-    "logo":  "https://icon.horse/icon/cluster.ipfs.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ipfs.svg",
     "website":  "https://cluster.ipfs.io",
     "docsUrl":  "https://ipfscluster.io/documentation",
     "ports":  [
@@ -49,5 +49,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

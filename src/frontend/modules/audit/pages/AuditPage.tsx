@@ -1,240 +1,200 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconClipboardList, IconEye } from '@tabler/icons-react';
-import { useEnvironmentStore } from '@resources/stores/environment';
 import { PageHeader } from '@resources/layout/PageHeader';
-import { Badge } from '@resources/components/ui/Badge';
-import { Spinner } from '@resources/components/ui/Spinner';
-import { Select } from '@resources/components/ui/Select';
-import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
-import { DateRangeFilter, DEFAULT_DATE_RANGE_VALUE, type DateRangeFilterValue } from '@resources/components/DateRangeFilter';
-import { useInfiniteScrollSentinel } from '@resources/hooks/useInfiniteScrollSentinel';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@resources/components/ui/Dialog';
-import { Button } from '@resources/components/ui/Button';
-import { formatDate, truncateId } from '@resources/utils/format';
-import { resolveDateRange } from '@resources/utils/date-range';
-import { useSavedSearchFilters } from '@resources/hooks/useSavedSearchFilters';
-import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
-import {
-  type AuditEntry,
-  AuditEntryDetails,
-  ACTION_VARIANTS,
-} from '../components/AuditEntryDetails';
-import { useAuditLogs } from '../hooks/useAuditLogs';
+import { Tabs, TabsContent } from '@resources/components/ui/Tabs';
+import { AuditCoveragePanel } from '../components/AuditCoveragePanel';
+import { IconClipboardList } from '@tabler/icons-react';
+import { TablePage } from '@resources/layout/TablePage';
+import type { SearchMode } from '@resources/utils/search-filter';
+import { EMPTY_DATE_RANGE, type DateRangePresetId } from '@resources/utils/date-range';
+import { DEFAULT_DATE_RANGE_VALUE } from '@resources/components/DateRangeFilter';
+import { useAuditPage, type AuditViewId } from '../hooks/useAuditPage';
+import { AuditPageDialogs } from '../components/AuditPageDialogs';
+import { AuditFilterControls } from '../components/AuditFilterControls';
+import { AUDIT_FILTERS_DEFAULT_STATE } from '../hooks/useAuditFilters';
+import { AuditCenterTabsContent, AuditHeaderActions, AuditTabsList } from '../components/AuditCenterTabs';
+import { AuditVerifyDialog } from '../components/AuditVerifyDialog';
 
 export default function AuditPage() {
   const { t } = useTranslation('common');
-  const environments = useEnvironmentStore((s) => s.environments);
-  const [actionFilter, setActionFilter] = useState('');
-  const [entityTypeFilter, setEntityTypeFilter] = useState('');
-  const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('contains');
-  const [selected, setSelected] = useState<AuditEntry | null>(null);
-  const [dateRange, setDateRange] = useState<DateRangeFilterValue>(DEFAULT_DATE_RANGE_VALUE);
-  const resolvedRange = useMemo(() => resolveDateRange(dateRange.preset, dateRange.custom), [dateRange]);
   const {
-    data,
+    filters,
+    selected,
+    setSelected,
+    exportOpen,
+    setExportOpen,
+    actionsOpen,
+    setActionsOpen,
+    actionModuleFilter,
+    setActionModuleFilter,
+    verifyOpen,
+    setVerifyOpen,
     isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useAuditLogs(actionFilter, entityTypeFilter, resolvedRange);
-  const entries = useMemo(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
-    [data],
-  );
-  const matcher = useMemo(() => createSearchMatcher(query, mode), [mode, query]);
-  const savedFilters = useSavedSearchFilters<{
-    actionFilter: string;
-    entityTypeFilter: string;
-    query: string;
-    mode: SearchMode;
-  }>('mcharbor-audit-filters');
-
-  const envName = useCallback((id: string | null) => {
-    if (!id) return t('audit.local');
-    return environments.find((e) => e.id === id)?.name ?? truncateId(id);
-  }, [environments, t]);
-
-  const { actionOptions, entityTypeOptions } = useMemo(() => {
-    const actions = new Set<string>();
-    const types = new Set<string>();
-    for (const entry of entries) {
-      if (entry.action) actions.add(entry.action);
-      if (entry.entityType) types.add(entry.entityType);
-    }
-    return {
-      actionOptions: [
-        { value: '', label: t('audit.allActions') },
-        ...[...actions].sort().map((a) => ({ value: a, label: a })),
-      ],
-      entityTypeOptions: [
-        { value: '', label: t('audit.allEntityTypes') },
-        ...[...types].sort().map((et) => ({ value: et, label: et })),
-      ],
-    };
-  }, [entries, t]);
-
-  const filteredEntries = useMemo(
-    () =>
-      entries.filter((entry) =>
-        matchesSearchFields(query, mode, [
-          formatDate(entry.timestamp),
-          entry.username,
-          entry.action,
-          entry.entityName,
-          entry.entityType,
-          entry.entityId,
-          envName(entry.environmentId),
-          entry.details,
-        ]).matched),
-    [entries, envName, mode, query],
-  );
-
-  const sentinelRef = useInfiniteScrollSentinel({
-    enabled: hasNextPage,
-    loading: isFetchingNextPage,
-    onIntersect: () => void fetchNextPage(),
-  });
-
-  const handleSaveFilter = () => {
-    const label = window.prompt(t('filters.savePrompt'));
-    if (!label) {
-      return;
-    }
-
-    savedFilters.savePreset(label, { actionFilter, entityTypeFilter, query, mode });
-  };
+    isFetching,
+    refetch,
+    total,
+    totalPages,
+    rangeFrom,
+    rangeTo,
+    envName,
+    view,
+    setView,
+    entityTypeOptions,
+    filteredEntries,
+    columns,
+  } = useAuditPage();
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader title={t('audit.title')} description={t('audit.description')} />
-      <SearchFilterToolbar
-        query={query}
-        onQueryChange={setQuery}
-        mode={mode}
-        onModeChange={setMode}
-        placeholder={t('audit.searchPlaceholder')}
-        regexError={matcher.error !== null}
-        savedFilters={savedFilters.presets.map((preset) => ({ value: preset.id, label: preset.label }))}
-        selectedSavedFilterId={savedFilters.selectedPresetId}
-        onSavedFilterSelect={(value) => {
-          savedFilters.setSelectedPresetId(value);
-          const preset = savedFilters.presets.find((entry) => entry.id === value);
-          if (!preset) {
-            return;
-          }
-          setActionFilter(preset.state.actionFilter);
-          setEntityTypeFilter(preset.state.entityTypeFilter);
-          setQuery(preset.state.query);
-          setMode(preset.state.mode);
-        }}
-        onSaveFilter={handleSaveFilter}
-        onDeleteSavedFilter={savedFilters.deleteSelectedPreset}
-        extraControls={
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
-            <Select value={actionFilter} onChange={setActionFilter} options={actionOptions} placeholder={t('audit.filterAction')} className="w-48" />
-            <Select value={entityTypeFilter} onChange={setEntityTypeFilter} options={entityTypeOptions} placeholder={t('audit.filterEntityType')} className="w-48" />
-            <div className="text-xs text-muted-foreground">{t('filters.matchCount', { count: filteredEntries.length })}</div>
-          </div>
-        }
-      />
+    <>
+      {/* Two views, not two stacked panels. TablePage's own contract is that
+          its grid is "the only scroller on the page", so rendering the coverage
+          panel above it left the page unable to scroll at all. A tab gives each
+          view the full height it expects, and the events table stays the
+          landing view because it is what the page is for. */}
+      <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+        <PageHeader
+          headingLeaf
+          title={t('audit.title')}
+          description={t('audit.description')}
+          actions={<AuditHeaderActions onVerify={() => setVerifyOpen(true)} onExport={() => setExportOpen(true)} />}
+        />
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        {isLoading ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner size="lg" />
-          </div>
-        ) : filteredEntries.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center py-16 text-muted-foreground">
-            <IconClipboardList className="mb-2 h-8 w-8" />
-            <p>{query.trim() ? t('filters.noMatches') : t('audit.noEntries')}</p>
-          </div>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-muted">
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnTimestamp')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnUser')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnAction')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEntity')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEnvironment')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnDetails')}</th>
-                    <th className="px-4 py-2.5 text-right font-medium text-muted-foreground" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEntries.map((entry) => (
-                    <tr key={entry.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(entry.timestamp)}</td>
-                      <td className="px-4 py-2.5 font-medium text-foreground">{entry.username ?? '-'}</td>
-                      <td className="px-4 py-2.5">
-                        <Badge variant={ACTION_VARIANTS[entry.action] ?? 'secondary'}>{entry.action}</Badge>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-foreground truncate max-w-48">{entry.entityName ?? entry.entityType ?? '-'}</span>
-                          {entry.entityId && <span className="font-mono text-xs text-muted-foreground">{truncateId(entry.entityId)}</span>}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{envName(entry.environmentId)}</td>
-                      <td className="px-4 py-2.5 text-muted-foreground max-w-48 truncate">{entry.details ?? '-'}</td>
-                      <td className="px-4 py-2.5 text-right">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon-sm" onClick={() => setSelected(entry)} aria-label={t('audit.viewDetails')}>
-                              <IconEye className="size-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{t('audit.viewDetails')}</TooltipContent>
-                        </Tooltip>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div ref={sentinelRef} className="flex h-12 shrink-0 items-center justify-center text-xs text-muted-foreground">
-              {isFetchingNextPage && (
-                <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  {t('common:list.loadingMore')}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        <Tabs
+          value={view}
+          onValueChange={(value) => setView(value as AuditViewId)}
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden"
+        >
+          <AuditTabsList />
+
+          <TabsContent value="events" className="min-h-0 flex-1 overflow-hidden">
+            <TablePage
+              header={false}
+              title={t('audit.title')}
+              id="audit"
+              search={{
+                value: filters.query,
+                onChange: (value) => {
+                  filters.setQuery(value);
+                  filters.resetPage();
+                },
+                mode: filters.mode,
+                onModeChange: (value) => {
+                  filters.setMode(value);
+                  filters.resetPage();
+                },
+                placeholder: t('audit.searchPlaceholder'),
+                error: filters.matcher.error !== null,
+              }}
+              savedFilters={{
+                state: {
+                  actionFilters: filters.actionFilters,
+                  entityTypeFilter: filters.entityTypeFilter,
+                  query: filters.query,
+                  mode: filters.mode,
+                  range: filters.dateRange.preset === 'custom' ? undefined : filters.dateRange.preset,
+                  actor: filters.actor,
+                  severities: filters.severities,
+                },
+                onRestore: (state) => {
+                  filters.setActionFilters((state.actionFilters as string[]) ?? []);
+                  filters.setEntityTypeFilter(typeof state.entityTypeFilter === 'string' ? state.entityTypeFilter : '');
+                  filters.setQuery(typeof state.query === 'string' ? state.query : '');
+                  filters.setMode((state.mode as SearchMode) ?? 'contains');
+                  filters.setActor(typeof state.actor === 'string' ? state.actor : '');
+                  filters.setSeverities(Array.isArray(state.severities) ? (state.severities as string[]) : []);
+                  if (typeof state.range === 'string' && state.range !== 'custom') {
+                    filters.setDateRange({ preset: state.range as DateRangePresetId, custom: EMPTY_DATE_RANGE });
+                  } else {
+                    filters.setDateRange(DEFAULT_DATE_RANGE_VALUE);
+                  }
+                  filters.resetPage();
+                },
+                pristine: filters.isPristine,
+                defaults: AUDIT_FILTERS_DEFAULT_STATE,
+              }}
+              filters={
+                <AuditFilterControls
+                  dateRange={filters.dateRange}
+                  onDateRangeChange={(value) => {
+                    filters.setDateRange(value);
+                    filters.resetPage();
+                  }}
+                  actionCount={filters.actionFilters.length}
+                  onOpenActions={() => setActionsOpen(true)}
+                  entityType={filters.entityTypeFilter}
+                  onEntityTypeChange={(value) => {
+                    filters.setEntityTypeFilter(value);
+                    filters.resetPage();
+                  }}
+                  entityTypeOptions={entityTypeOptions}
+                  actor={filters.actor}
+                  onActorChange={(value) => {
+                    filters.setActor(value);
+                    filters.resetPage();
+                  }}
+                  severities={filters.severities}
+                  onSeveritiesChange={(value) => {
+                    filters.setSeverities(value);
+                    filters.resetPage();
+                  }}
+                />
+              }
+              toolbar={{
+                columns: true,
+                density: true,
+                refresh: { onRefresh: () => void refetch(), isFetching },
+                // Only the server endpoint can reach past the loaded page.
+                export: { filename: 'mcharbor-audit-export', server: () => setExportOpen(true) },
+                chips: { items: filters.chips, onClear: filters.clearAll },
+              }}
+              columns={columns}
+              data={filteredEntries}
+              loading={isLoading}
+              empty={{
+                icon: <IconClipboardList className="size-8" />,
+                title: filters.query.trim() ? t('filters.noMatches') : t('audit.noEntries'),
+              }}
+              getRowId={(entry) => entry.id}
+              pagination={{
+                mode: 'server',
+                page: filters.page,
+                totalPages,
+                pageSize: filters.pageSize,
+                total,
+                from: rangeFrom,
+                to: rangeTo,
+                onPageChange: (next) => filters.clampPage(next, totalPages),
+                onPageSizeChange: (next) => {
+                  filters.setPageSize(next);
+                  filters.setPage(1);
+                },
+              }}
+            />
+          </TabsContent>
+
+          <AuditCenterTabsContent envName={envName} />
+
+          <TabsContent value="coverage" className="min-h-0 flex-1 overflow-auto">
+            <AuditCoveragePanel />
+          </TabsContent>
+        </Tabs>
       </div>
 
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-2xl p-0">
-          <DialogHeader>
-            <DialogTitle>{t('audit.detailsTitle')}</DialogTitle>
-            <DialogDescription>
-              {selected?.action} — {selected?.entityName ?? selected?.entityType ?? ''}
-            </DialogDescription>
-          </DialogHeader>
-          {selected && (
-            <DialogBody className="p-0">
-              <AuditEntryDetails entry={selected} envName={envName} />
-            </DialogBody>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      <AuditPageDialogs
+        filters={filters}
+        selected={selected}
+        setSelected={setSelected}
+        exportOpen={exportOpen}
+        setExportOpen={setExportOpen}
+        actionsOpen={actionsOpen}
+        setActionsOpen={setActionsOpen}
+        actionModuleFilter={actionModuleFilter}
+        setActionModuleFilter={setActionModuleFilter}
+        envName={envName}
+      />
+      <AuditVerifyDialog open={verifyOpen} onOpenChange={setVerifyOpen} />
+    </>
   );
 }

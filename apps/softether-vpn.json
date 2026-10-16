@@ -1,0 +1,50 @@
+{
+    "slug":  "softether-vpn",
+    "name":  "SoftEther VPN",
+    "description":  "Multi-protocol VPN server supporting SSL-VPN, L2TP, and OpenVPN clients.",
+    "category":  "Networking",
+    "image":  "siomiz/softethervpn:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.softether.org\u0026sz=128",
+    "website":  "https://www.softether.org/",
+    "docsUrl":  "https://github.com/SoftEtherVPN/SoftEtherVPN",
+    "ports":  [
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  992,
+                      "container":  992,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1194,
+                      "container":  1194,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  5555,
+                      "container":  5555,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/softether-vpn/data",
+                        "container":  "/usr/vpnserver"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

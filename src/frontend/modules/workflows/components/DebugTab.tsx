@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconBug, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
-import { NODE_DEFINITION_MAP, CATEGORY_TAG_COLORS } from '../nodes';
+import { resolveNodeDefinition, CATEGORY_TAG_COLORS } from '../nodes';
 import { TraceSection } from './TraceSection';
 
 export type NodeTrace = {
@@ -46,12 +46,10 @@ export function DebugTab({ messages, onClear }: DebugTabProps) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="flex flex-col items-center justify-center px-4 py-16">
         <IconBug className="size-8 text-muted-foreground/20" />
         <p className="mt-3 text-xs text-muted-foreground">{t('workflows.noDebugMessages')}</p>
-        <p className="mt-1 text-[10px] text-muted-foreground/60">
-          {t('workflows.noDebugDescription')}
-        </p>
+        <p className="mt-1 text-[10px] text-muted-foreground/60">{t('workflows.noDebugDescription')}</p>
       </div>
     );
   }
@@ -65,11 +63,13 @@ export function DebugTab({ messages, onClear }: DebugTabProps) {
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {messages.map((entry) => (
-          entry.type === 'trace'
-            ? <NodeTraceRow key={entry.id} entry={entry} />
-            : <DebugMessageRow key={entry.id} entry={entry} />
-        ))}
+        {messages.map((entry) =>
+          entry.type === 'trace' ? (
+            <NodeTraceRow key={entry.id} entry={entry} />
+          ) : (
+            <DebugMessageRow key={entry.id} entry={entry} />
+          ),
+        )}
       </div>
     </div>
   );
@@ -79,15 +79,15 @@ function NodeTraceRow({ entry }: { entry: NodeTrace }) {
   const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(false);
   const time = entry.timestamp.split('T')[1]?.split('.')[0] ?? entry.timestamp;
-  const def = NODE_DEFINITION_MAP[entry.action];
-  const tagColor = def ? CATEGORY_TAG_COLORS[def.category] ?? '' : 'bg-blue-500/20 text-blue-400';
+  const def = resolveNodeDefinition(entry.action);
+  const tagColor = def ? (CATEGORY_TAG_COLORS[def.category] ?? '') : 'bg-info/20 text-info';
 
   return (
     <div className="border-b border-border">
       <Button
         variant="ghost"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center gap-1.5 rounded-none px-3 py-2 h-auto"
+        className="flex h-auto w-full items-center gap-1.5 rounded-none px-3 py-2"
       >
         {expanded ? (
           <IconChevronDown className="size-2.5 shrink-0 text-muted-foreground" />
@@ -95,28 +95,25 @@ function NodeTraceRow({ entry }: { entry: NodeTrace }) {
           <IconChevronRight className="size-2.5 shrink-0 text-muted-foreground" />
         )}
         <span className="shrink-0 font-mono text-[9px] text-muted-foreground/50">{time}</span>
-        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-medium ${tagColor}`}>
-          {entry.nodeLabel}
-        </span>
+        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-medium ${tagColor}`}>{entry.nodeLabel}</span>
         <span className="flex-1" />
-        <span className="text-[9px] text-muted-foreground/40">{entry.durationMs}ms</span>
+        <span className="text-[9px] text-muted-foreground/40">
+          {t('debugTab.durationMs', { ns: 'workflows', ms: entry.durationMs })}
+        </span>
       </Button>
       {expanded && (
         <div>
           <TraceSection
             label={t('workflows.input')}
             badge="input"
-            badgeColor="bg-slate-500/20 text-slate-400"
+            badgeColor="bg-muted/20 text-muted-foreground"
             data={entry.input}
           />
-          <TraceSection
-            label={t('workflows.config')}
-            data={entry.config}
-          />
+          <TraceSection label={t('workflows.config')} data={entry.config} />
           <TraceSection
             label={t('workflows.output')}
             badge={entry.outputPort}
-            badgeColor="bg-emerald-500/20 text-emerald-400"
+            badgeColor="bg-success/20 text-success"
             data={entry.output}
           />
         </div>
@@ -132,42 +129,42 @@ function DebugMessageRow({ entry }: { entry: DebugMessage }) {
   const time = entry.timestamp.split('T')[1]?.split('.')[0] ?? entry.timestamp;
 
   const sourceLabel = entry.source === 'debug-node' ? 'debug' : 'sniff';
-  const sourceBadgeColor = entry.source === 'sniffer'
-    ? 'bg-red-500/20 text-red-400'
-    : 'bg-purple-500/20 text-purple-400';
+  const sourceBadgeColor = entry.source === 'sniffer' ? 'bg-danger/20 text-danger' : 'bg-chart-3/20 text-chart-3';
 
   return (
     <div className="border-b border-border">
       <Button
         variant="ghost"
         onClick={() => hasData && setExpanded(!expanded)}
-        className="flex w-full items-center gap-1.5 rounded-none px-3 py-2 h-auto"
+        className="flex h-auto w-full items-center gap-1.5 rounded-none px-3 py-2"
       >
         {hasData ? (
-          expanded
-            ? <IconChevronDown className="size-2.5 shrink-0 text-muted-foreground" />
-            : <IconChevronRight className="size-2.5 shrink-0 text-muted-foreground" />
+          expanded ? (
+            <IconChevronDown className="size-2.5 shrink-0 text-muted-foreground" />
+          ) : (
+            <IconChevronRight className="size-2.5 shrink-0 text-muted-foreground" />
+          )
         ) : (
           <span className="size-2.5 shrink-0" />
         )}
         <span className="shrink-0 font-mono text-[9px] text-muted-foreground/50">{time}</span>
-        <span className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-medium ${sourceBadgeColor}`}>
-          {sourceLabel}
-        </span>
+        <span className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-medium ${sourceBadgeColor}`}>{sourceLabel}</span>
         {entry.level && entry.level !== 'info' && (
-          <span className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-medium ${
-            entry.level === 'error' ? 'bg-red-500/20 text-red-400' :
-            entry.level === 'warning' ? 'bg-amber-500/20 text-amber-400' :
-            'bg-blue-500/20 text-blue-400'
-          }`}>
+          <span
+            className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-medium ${
+              entry.level === 'error'
+                ? 'bg-danger/20 text-danger'
+                : entry.level === 'warning'
+                  ? 'bg-warning/20 text-warning'
+                  : 'bg-info/20 text-info'
+            }`}
+          >
             {entry.level}
           </span>
         )}
-        {entry.nodeLabel && (
-          <span className="truncate text-[10px] font-medium text-foreground">{entry.nodeLabel}</span>
-        )}
+        {entry.nodeLabel && <span className="truncate text-[10px] font-medium text-foreground">{entry.nodeLabel}</span>}
         {entry.message && (
-          <span className="truncate flex-1 text-left text-[10px] text-muted-foreground">{entry.message}</span>
+          <span className="flex-1 truncate text-left text-[10px] text-muted-foreground">{entry.message}</span>
         )}
       </Button>
       {hasData && expanded && (
@@ -182,4 +179,3 @@ function DebugMessageRow({ entry }: { entry: DebugMessage }) {
     </div>
   );
 }
-

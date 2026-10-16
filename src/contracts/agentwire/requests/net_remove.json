@@ -1,0 +1,35 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "networkId": "NetworkID",
+      "name": "Name",
+      "mode": "managed",
+      "bridge": "Bridge",
+      "vlanTag": 7,
+      "subnetCidr": "SubnetCIDR",
+      "gatewayIp": "GatewayIP",
+      "dhcpEnabled": true,
+      "dhcpRangeStart": "DHCPRangeStart",
+      "dhcpRangeEnd": "DHCPRangeEnd",
+      "natEnabled": true,
+      "uplinkLink": "UplinkLink"
+    }
+  ],
+  "wire": {
+    "operation": "remove",
+    "envId": "env-1",
+    "networkId": "NetworkID",
+    "name": "Name",
+    "mode": "managed",
+    "bridge": "Bridge",
+    "vlanTag": 7,
+    "subnetCidr": "SubnetCIDR",
+    "gatewayIp": "GatewayIP",
+    "dhcpEnabled": true,
+    "dhcpRangeStart": "DHCPRangeStart",
+    "dhcpRangeEnd": "DHCPRangeEnd",
+    "natEnabled": true,
+    "uplinkLink": "UplinkLink"
+  }
+}

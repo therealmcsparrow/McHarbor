@@ -2,33 +2,52 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
+import { IconActivity } from '@tabler/icons-react';
 import { api, type PaginatedData } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { Badge } from '@resources/components/ui/Badge';
-import { timeAgo } from '@resources/utils/format';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
+import {
+  ROW_HEIGHT,
+  ToneDot,
+  WidgetBadge,
+  WidgetEmpty,
+  WidgetFooterLink,
+  WidgetFrame,
+  WidgetList,
+  WidgetLoading,
+  WidgetRow,
+  relativeTime,
+  useFittedRows,
+  type Tone,
+} from '@modules/dashboard/components/widget-kit';
 
+// Mirrors modules/activity/service.go.
 type ActivityEvent = {
   id: string;
-  type: string;
+  containerId: string;
+  containerName?: string;
+  eventType: string;
   action: string;
-  resourceType: string;
-  resourceName: string;
   timestamp: string;
 };
 
-const ACTION_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
+const ACTION_TONE: Record<string, Tone> = {
   start: 'success',
   create: 'success',
-  stop: 'destructive',
-  die: 'destructive',
-  kill: 'destructive',
-  destroy: 'destructive',
+  unpause: 'success',
+  stop: 'danger',
+  die: 'danger',
+  kill: 'danger',
+  destroy: 'danger',
   restart: 'warning',
   pause: 'warning',
-  unpause: 'success',
 };
+
+function actionTone(action: string): Tone {
+  return ACTION_TONE[action] ?? 'neutral';
+}
 
 function useActivityFeed() {
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -38,7 +57,7 @@ function useActivityFeed() {
       api
         .get<PaginatedData<ActivityEvent>>('/activity', {
           ...(envId ? { env: envId } : {}),
-          per_page: '15',
+          per_page: '25',
         })
         .then((r) => r.data?.items ?? []),
     refetchInterval: 10_000,
@@ -46,41 +65,68 @@ function useActivityFeed() {
 }
 
 export default function ActivityFeedWidget({ typeId: _typeId }: { colSpan: number; typeId: WidgetTypeId }) {
-  const { t } = useTranslation('dashboard');
-  const { data: events, isLoading } = useActivityFeed();
+  const { t, i18n } = useTranslation('dashboard');
+  const navigate = useNavigate();
+  const { data: raw = [], isLoading } = useActivityFeed();
+  // The collector records every Docker event twice; one row per event is enough.
+  const events = raw.filter(
+    (e, i) =>
+      i === 0 ||
+      !(
+        raw[i - 1]?.containerId === e.containerId &&
+        raw[i - 1]?.action === e.action &&
+        raw[i - 1]?.timestamp === e.timestamp
+      ),
+  );
+  const { ref, capacity } = useFittedRows(ROW_HEIGHT);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('activityFeedWidget.loadingActivity')}
-      </div>
-    );
-  }
-
-  if (!events || events.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('activityFeedWidget.noRecentActivity')}
-      </div>
-    );
-  }
+  const shown = events.slice(0, capacity);
+  const remaining = events.length - shown.length;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h3 className="shrink-0 px-4 pt-3 pb-2 text-sm font-semibold text-foreground">{t('activityFeedWidget.title')}</h3>
-      <div className="flex-1 overflow-y-auto px-4 pb-3">
-        <div className="space-y-2">
-          {events.map((event) => (
-            <div key={event.id} className="flex items-center gap-2 text-xs">
-              <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'} className="shrink-0 text-[10px] px-1.5 py-0.5">
-                {event.action}
-              </Badge>
-              <span className="min-w-0 truncate text-foreground">{event.resourceName || event.resourceType}</span>
-              <span className="ml-auto shrink-0 text-muted-foreground">{timeAgo(event.timestamp)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <WidgetFrame
+      title={t('activityFeedWidget.title')}
+      badge={events.length > 0 ? <WidgetBadge>{events.length}</WidgetBadge> : undefined}
+      footer={
+        <>
+          <span>{remaining > 0 ? t('activityFeedWidget.more', { count: remaining }) : null}</span>
+          <WidgetFooterLink label={t('activityFeedWidget.viewAll')} onClick={() => navigate('/activity')} />
+        </>
+      }
+    >
+      {isLoading ? (
+        <WidgetLoading label={t('activityFeedWidget.loadingActivity')} />
+      ) : events.length === 0 ? (
+        <WidgetEmpty
+          icon={<IconActivity className="size-5" aria-hidden="true" />}
+          title={t('activityFeedWidget.noRecentActivity')}
+        />
+      ) : (
+        <WidgetList listRef={ref}>
+          {shown.map((entry) => {
+            const tone = actionTone(entry.action);
+            return (
+              <li key={entry.id}>
+                <WidgetRow
+                  leading={<ToneDot tone={tone} />}
+                  title={entry.containerName || entry.containerId.slice(0, 12)}
+                  subtitle={entry.eventType}
+                  trailing={
+                    <span className="flex flex-col items-end gap-0.5">
+                      <span className="rounded-full bg-glass-2 px-1.5 py-0.5 text-[10px] leading-none font-medium tracking-wide text-foreground uppercase">
+                        {entry.action}
+                      </span>
+                      <span className="text-[11px] leading-none whitespace-nowrap tabular-nums">
+                        {relativeTime(entry.timestamp, t('activityFeedWidget.justNow'), i18n.language)}
+                      </span>
+                    </span>
+                  }
+                />
+              </li>
+            );
+          })}
+        </WidgetList>
+      )}
+    </WidgetFrame>
   );
 }

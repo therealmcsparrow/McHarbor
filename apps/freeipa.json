@@ -1,0 +1,62 @@
+{
+    "slug":  "freeipa",
+    "name":  "FreeIPA",
+    "description":  "Integrated identity management combining an LDAP directory, Kerberos, DNS, and a certificate authority.",
+    "category":  "Identity & SSO",
+    "image":  "quay.io/freeipa/freeipa-server:almalinux-9",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/freeipa.svg",
+    "website":  "https://www.freeipa.org",
+    "docsUrl":  "https://github.com/freeipa/freeipa-container",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  389,
+                      "container":  389,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  636,
+                      "container":  636,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/freeipa/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "IPA_SERVER_HOSTNAME",
+                        "default":  "ipa.example.com",
+                        "description":  "Fully qualified hostname for this FreeIPA server"
+                    },
+                    {
+                        "key":  "PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Directory Manager and admin password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "almalinux-9",
+    "latest":  {
+        "version":  "almalinux-9",
+        "release_date":  "2026-09-29"
+    }
+}

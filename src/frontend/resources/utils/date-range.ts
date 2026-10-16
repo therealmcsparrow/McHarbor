@@ -98,7 +98,11 @@ function addYears(d: Date, years: number): Date {
   return out;
 }
 
-export function resolveDateRange(preset: DateRangePresetId, custom: DateRange = EMPTY_DATE_RANGE, now: Date = new Date()): DateRange {
+export function resolveDateRange(
+  preset: DateRangePresetId,
+  custom: DateRange = EMPTY_DATE_RANGE,
+  now: Date = new Date(),
+): DateRange {
   switch (preset) {
     case 'all':
       return EMPTY_DATE_RANGE;

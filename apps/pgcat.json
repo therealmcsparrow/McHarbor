@@ -1,0 +1,40 @@
+{
+    "slug":  "pgcat",
+    "name":  "PgCat",
+    "description":  "Postgres and PgBouncer-compatible connection pooler written in Rust with sharding and failover support.",
+    "category":  "Databases",
+    "image":  "ghcr.io/postgresml/pgcat:latest",
+    "logo":  "https://github.com/postgresml.png",
+    "website":  "https://github.com/postgresml/pgcat",
+    "docsUrl":  "https://github.com/postgresml/pgcat#usage",
+    "ports":  [
+                  {
+                      "host":  6433,
+                      "container":  6432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pgcat/config",
+                        "container":  "/etc/pgcat"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PGCAT_CONFIG",
+                        "default":  "/etc/pgcat/pgcat.toml",
+                        "description":  "Path to the pgcat configuration file"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

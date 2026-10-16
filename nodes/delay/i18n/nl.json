@@ -1,7 +1,7 @@
 {
-  "label": "Delay",
-  "description": "Pause workflow execution for a number of seconds",
+  "label": "Vertraging",
+  "description": "Pauzeer de uitvoering van de workflow voor een aantal seconden",
   "config": {
-    "seconds": "Seconds"
+    "seconds": "Seconden"
   }
 }

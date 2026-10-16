@@ -6,10 +6,7 @@ import { useEnvironmentStore } from '@resources/stores/environment';
 /**
  * Builds an API URL with the current environment ID appended as query param.
  */
-export function envUrl(
-  path: string,
-  params?: Record<string, string>
-): string {
+export function envUrl(path: string, params?: Record<string, string>): string {
   const envId = useEnvironmentStore.getState().currentId;
   const searchParams = new URLSearchParams(params);
   if (envId) {
@@ -22,9 +19,7 @@ export function envUrl(
 /**
  * Returns env query params as an object for use with api.get().
  */
-export function envParams(
-  extra?: Record<string, string>
-): Record<string, string> {
+export function envParams(extra?: Record<string, string>): Record<string, string> {
   const envId = useEnvironmentStore.getState().currentId;
   const params: Record<string, string> = { ...extra };
   if (envId) {

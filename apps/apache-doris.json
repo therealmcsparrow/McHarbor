@@ -1,0 +1,46 @@
+{
+    "slug":  "apache-doris",
+    "name":  "Apache Doris",
+    "description":  "Real-time OLAP database for reporting and ad hoc analytics with MySQL wire protocol compatibility.",
+    "category":  "Analytics",
+    "image":  "apache/doris:doris-all-in-one-2.1.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://doris.apache.org",
+    "docsUrl":  "https://doris.apache.org/docs/dev/install/docker-deploy/docker-deploy-existing-cluster/",
+    "ports":  [
+                  {
+                      "host":  8030,
+                      "container":  8030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9030,
+                      "container":  9030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8040,
+                      "container":  8040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apache-doris/data",
+                        "container":  "/opt/apache-doris"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "doris-all-in-one-2.1.0",
+    "latest":  {
+        "version":  "doris-all-in-one-2.1.0",
+        "release_date":  "2026-09-29"
+    }
+}

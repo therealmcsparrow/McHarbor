@@ -4,7 +4,7 @@
     "description":  "Rails framework on Ruby, opinionated full-stack web framework for rapid application development.",
     "category":  "Developer Tools",
     "image":  "rails:latest",
-    "logo":  "https://icon.horse/icon/rubyonrails.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ruby-on-rails.svg",
     "website":  "https://rubyonrails.org",
     "docsUrl":  "https://guides.rubyonrails.org",
     "ports":  [
@@ -38,5 +38,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

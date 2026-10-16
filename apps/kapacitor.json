@@ -1,0 +1,39 @@
+{
+    "slug":  "kapacitor",
+    "name":  "Kapacitor",
+    "description":  "Real-time streaming data-processing engine for alerting on and reacting to sensor and industrial metrics stored in InfluxDB.",
+    "category":  "IoT & Industrial",
+    "image":  "kapacitor:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kapacitor.png",
+    "website":  "https://www.influxdata.com/time-series-platform/kapacitor",
+    "docsUrl":  "https://docs.influxdata.com/kapacitor/v1/introduction/installation",
+    "ports":  [
+                  {
+                      "host":  9092,
+                      "container":  9092,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kapacitor/data",
+                        "container":  "/var/lib/kapacitor"
+                    },
+                    {
+                        "host":  "/opt/appdata/kapacitor/config",
+                        "container":  "/etc/kapacitor"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

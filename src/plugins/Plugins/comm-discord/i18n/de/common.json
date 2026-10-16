@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Anzeigename für diesen Discord-Kommunikationskanal." },
+    "webhook_url": { "help": "Webhook-URL des Discord-Kanals. Wird im Ruhezustand verschlüsselt gespeichert." }
+  },
+  "title": "Discord-Benachrichtigungszustellung",
+  "subtitle": "Vom Plugin verwalteter Kommunikationskanal",
+  "description": "Dieses Plugin verwaltet den Discord. Es speichert die Discord-Webhook-URL im Kanal selbst und sendet Benachrichtigungen über die Plugin-Laufzeit.",
+  "nameLabel": "Kanalname",
+  "namePlaceholder": "Betriebs-Discord",
+  "webhookUrlLabel": "Webhook-URL",
+  "securityTitle": "Sicherheit",
+  "securityHelp": "Verschlüsselte Webhook-URL",
+  "securityDescription": "Die Webhook-URL wird im Ruhezustand verschlüsselt gespeichert. Erstellen Sie einen eigenen Webhook für McHarbor, damit er unabhängig rotiert werden kann.",
+  "testTitle": "Verbindung testen",
+  "testHelp": "Sendet eine Nachricht",
+  "testDescription": "Die Testaktion des Hosts sendet eine echte Nachricht an den konfigurierten Discord-Kanal. Verwenden Sie zuerst einen privaten Testkanal, wenn der Webhook auf einen Bereitschaftsraum zeigt.",
+  "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+  "requiredField": "Erforderlich",
+  "setupGuideTitle": "Einrichtungsanleitung für den Discord-Kommunikationskanal",
+  "guide": {
+    "step1": { "body": "Öffnen Sie den Ziel-Discord-Server und erstellen Sie einen eigenen Textkanal für McHarbor-Warnungen, oder wählen Sie einen vorhandenen Operations-Kanal." },
+    "step2": { "body": "Öffnen Sie die Kanaleinstellungen, gehen Sie zu <b>Integrations</b>, erstellen Sie einen Webhook und kopieren Sie die Webhook-URL." },
+    "step3": { "body": "Fügen Sie die Webhook-URL in diese Kanalkonfiguration ein. McHarbor speichert sie verschlüsselt und blendet sie in API-Antworten aus." },
+    "step4": { "body": "Speichern Sie den Kanal und klicken Sie auf <b>Verbindung testen</b>. Das Plugin sendet eine echte Testnachricht an Discord über denselben Pfad, der für Live-Workflow-, Alarm- und Backup-Ereignisse genutzt wird." },
+    "step5": { "body": "Schlägt der Test fehl, prüfen Sie, ob der Webhook nicht gelöscht wurde, der Kanal noch existiert und die Serverberechtigungen Webhook-Beiträge zulassen." }
+  }
+}

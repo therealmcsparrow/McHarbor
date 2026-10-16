@@ -1,0 +1,127 @@
+{
+  "aiAssistant": {
+    "fab": {
+      "tooltip": "Demander à l'IA",
+      "tooltipScoped": "Interroger l'IA à propos de {{name}}"
+    },
+    "title": "Assistant IA",
+    "description": "Posez des questions sur l'environnement McHarbor sélectionné.",
+    "menuItem": "AI Chat",
+    "footer": "Context is shared across McHarbor. Addons can extend capabilities via @resources/ai.",
+    "backendUnavailable": "Sorry — the AI backend is not configured or is unavailable. Open Settings → AI to configure an API key.",
+    "rateLimited": "Le fournisseur d'IA a atteint sa limite de requêtes. Patientez un instant puis réessayez, ou changez de fournisseur dans Paramètres > IA.",
+    "settings": {
+      "title": "AI Assistant"
+    },
+    "reset": "Réinitialiser",
+    "focusedOn": "Centré sur {{name}}",
+    "providersActive_one": "{{count}} provider",
+    "providersActive_other": "{{count}} providers",
+    "thinking": "Thinking…",
+    "capabilities": "Actions suggérées",
+    "actionDone": "Action terminée.",
+    "actions": {
+      "title": "Action IA en attente",
+      "description": "Vérifiez le plan à blanc avant que McHarbor ne modifie quoi que ce soit.",
+      "approveAndRun": "Approuver et exécuter",
+      "run": "Exécuter",
+      "deny": "Refuser",
+      "awaitingApproval": "En attente d'approbation",
+      "review": "Vérifier",
+      "plan": "Plan à blanc",
+      "queuePosition": "{{index}} sur {{total}}",
+      "feedback": {
+        "executed": "{{tool}} exécutée.",
+        "denied": "{{tool}} refusée.",
+        "failed": "{{tool}} a échoué : {{error}}",
+        "error": "Impossible de terminer {{tool}}.",
+        "unknownError": "erreur inconnue"
+      },
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvée",
+        "executed": "Exécutée",
+        "failed": "Échouée",
+        "denied": "Refusée",
+        "expired": "Expirée"
+      }
+    },
+    "providerLabel": "Fournisseur IA",
+    "placeholder": "Ask the AI…",
+    "send": "Envoyer",
+    "userMessageLabel": "Vous",
+    "assistantMessageLabel": "Assistant IA",
+    "askAbout": "Poser une question sur {{name}}",
+    "seed": {
+      "withSummary": "{{summary}}",
+      "withResource": "À propos du {{kind}} \"{{name}}\" ({{facts}}) : ",
+      "kind": {
+        "container": "conteneur",
+        "image": "image",
+        "stack": "stack",
+        "volume": "volume",
+        "network": "réseau",
+        "environment": "environnement",
+        "general": "page",
+        "workflow": "flux de travail",
+        "log": "journal",
+        "plugin": "plugin"
+      }
+    },
+    "providerDefault": "Fournisseur par défaut",
+    "providerDefaultNamed": "Par défaut ({{name}})"
+  },
+  "fab": {
+    "prompts": {
+      "container": "Explain this container: what it does, its current state, and any recent errors in the last 50 log lines.",
+      "stack": "Summarise this stack, its services, and any deployment errors.",
+      "image": "What does this image do, and are there any recommended settings or known issues?",
+      "volume": "What data is stored on this volume, and what containers depend on it?",
+      "network": "Describe this network, the containers attached to it, and any connectivity issues.",
+      "pod": "Explain this pod, its containers, and any recent failures.",
+      "deployment": "Summarise this deployment, its replicas, and any rollout issues.",
+      "workflow": "Explain the most recent failure in this workflow, if any.",
+      "environment": "Give me a quick overview of this environment: containers, images, and stacks.",
+      "fallback": "Give me a quick overview of the current McHarbor setup."
+    }
+  },
+  "capability": {
+    "confirmTitle": "Confirmer l'action",
+    "confirmBody": "The AI wants to run \"{{label}}\". This cannot be undone.",
+    "cancel": "Annuler",
+    "confirm": "Exécuter",
+    "done": "Terminé."
+  },
+  "oauth": {
+    "connect": "Se connecter avec votre compte",
+    "connectHelp": "Sign in with your provider — McHarbor stores an OAuth token, no API key needed.",
+    "githubHint": "GitHub Models uses your existing GitHub account. You need Copilot access for premium models.",
+    "anthropicHint": "Coming soon. Anthropic currently only ships API keys.",
+    "notConnected": "Non connecté",
+    "connectedAs": "Connecté en tant que {{account}}",
+    "disconnect": "Se déconnecter",
+    "beginTitle": "Se connecter à {{provider}}",
+    "beginHelp": "Ouvrez l'URL, saisissez le code, puis approuvez l'acces.",
+    "copyCode": "Copier le code",
+    "openBrowser": "Ouvrir {{provider}}",
+    "pollHint": "Waiting for approval…",
+    "errorGeneric": "Impossible de se connecter."
+  },
+  "description": "Configuration de l'IA pour McHarbor.",
+  "sections": {
+    "provider": "Fournisseur",
+    "credentials": "Identifiants",
+    "parameters": "Paramètres",
+    "advanced": "Avancé"
+  },
+  "fields": {
+    "provider": "Fournisseur d'IA",
+    "model": "Modèle",
+    "baseUrl": "URL de base de l'API",
+    "apiKey": "Clé d'API",
+    "maxTokens": "Max tokens",
+    "temperature": "Température",
+    "systemPrompt": "Invite système"
+  },
+  "test": "Tester la connexion"
+}

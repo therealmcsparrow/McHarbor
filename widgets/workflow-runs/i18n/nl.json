@@ -11,6 +11,9 @@
     "status": "Status",
     "duration": "Duur",
     "when": "Wanneer",
-    "noRuns": "Nog geen workflow-uitvoeringen"
+    "noRuns": "Nog geen workflow-uitvoeringen",
+    "successRate": "{{percent}}% geslaagd",
+    "more": "{{count}} meer",
+    "viewAll": "Alle workflows"
   }
 }

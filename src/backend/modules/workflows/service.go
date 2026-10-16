@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package workflows stores visual workflows and executes their node graphs, from manual runs, webhooks and background triggers.
 package workflows
 
 import (
@@ -17,12 +18,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"math"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,30 +35,38 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/events"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/api/types/volume"
-	dockerclient "github.com/docker/docker/client"
+	"github.com/moby/moby/api/pkg/authconfig"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/events"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/api/types/registry"
+	dockerclient "github.com/moby/moby/client"
 	"gopkg.in/yaml.v3"
 
 	"github.com/rs/xid"
+	"github.com/therealmcsparrow/mcharbor/core/apppaths"
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	coreemail "github.com/therealmcsparrow/mcharbor/core/email"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/envredact"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/plugincaps"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
 	coresettings "github.com/therealmcsparrow/mcharbor/core/settings"
+	"github.com/therealmcsparrow/mcharbor/core/telemetry"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
-func unusedImagePruneFilters() filters.Args {
-	return filters.NewArgs(filters.Arg("dangling", "false"))
+// nodeLongOpTimeout bounds a workflow node whose work is an image build or a
+// storage round-trip rather than a single API call.
+const nodeLongOpTimeout = 2 * time.Minute
+
+func unusedImagePruneFilters() dockerclient.Filters {
+	return make(dockerclient.Filters).Add("dangling", "false")
 }
 
 // LinkOutCallback is called when a link-out node stores a message,
@@ -71,6 +82,27 @@ type CustomNodeExecutor interface {
 	IsCustomNode(key string) bool
 }
 
+// PluginNodeExecutor runs canvas nodes whose action is
+// `plugin:<slug>:<key>` — nodes an installed plugin registered through
+// its NodeRegistry. Implemented by internal/bootstrap over the plugin
+// runtime so this package never imports it.
+type PluginNodeExecutor interface {
+	IsPluginNode(actionKey string) bool
+	ExecutePluginNode(ctx context.Context, actionKey string, in PluginNodeInput) (port string, msg map[string]interface{}, err error)
+}
+
+// PluginNodeInput is the engine-side view of what a plugin node
+// receives. Mirrors plugin.NodeExecInput field for field; the bridge
+// copies it across so the two packages stay decoupled.
+type PluginNodeInput struct {
+	Key           string
+	Config        map[string]interface{}
+	Msg           map[string]interface{}
+	EnvironmentID string
+	UserID        string
+	WorkflowID    string
+}
+
 // Service handles workflow persistence and business logic.
 type Service struct {
 	db             *sql.DB
@@ -84,19 +116,36 @@ type Service struct {
 		ExecuteCustom(ctx context.Context, nodeKey string, config, msg map[string]interface{}, timeout float64) (string, map[string]interface{}, error)
 		IsCustomNode(key string) bool
 	}
-	notifier     *corenotify.Dispatcher
-	imageScanner ImageScanner
+	pluginNodes PluginNodeExecutor
+	// nodeAlias resolves a bare stored action a loaded plugin claims through a
+	// workflow-node-alias capability. Defaults to the live capability registry.
+	nodeAlias NodeAliasResolver
+	// channelAlias and emailChannels answer the comm plugins' channel claims; nil
+	// means the live capability registry (see channel_caps.go).
+	channelAlias  ChannelAliasResolver
+	emailChannels func() []string
+	notifier      *corenotify.Dispatcher
+	imageScanner  ImageScanner
 	// Runtime adapters for cross-module integration. Injected from
 	// main.go via the Set*Runtime methods below so this package does
 	// not import its sibling modules.
+	// secretResolver substitutes ${secret:NAME} in node configs at execution
+	// time. Built in NewService rather than injected — see resolveNodeSecrets.
+	secretResolver SecretResolver
 	backupRunner   ContainerBackupRunner
 	stackLinker    StackContainerLinker
 	storageReader  StorageLocationReader
+	storageObjects StorageObjectOperator
 }
 
 // NewService creates a new workflow service.
 func NewService(db *sql.DB, pool *docker.ClientPool, logger *slog.Logger, enc *encryption.Service, notifier *corenotify.Dispatcher, dataDir string, backupCrypto *backupcrypto.Service) *Service {
-	return &Service{db: db, pool: pool, logger: logger, enc: enc, notifier: notifier, dataDir: dataDir, backupCrypto: backupCrypto}
+	svc := &Service{db: db, pool: pool, logger: logger, enc: enc, notifier: notifier, dataDir: dataDir, backupCrypto: backupCrypto,
+		nodeAlias: plugincaps.Default.NodeAliasAction}
+	if db != nil && enc != nil {
+		svc.secretResolver = secrets.NewService(db, enc, nil)
+	}
+	return svc
 }
 
 // SetCustomExecutor registers the custom node executor for handling third-party nodes.
@@ -105,6 +154,34 @@ func (s *Service) SetCustomExecutor(executor interface {
 	IsCustomNode(key string) bool
 }) {
 	s.customExecutor = executor
+}
+
+// SetPluginNodeExecutor registers the bridge that runs plugin-contributed
+// workflow nodes (`plugin:<slug>:<key>` actions).
+func (s *Service) SetPluginNodeExecutor(executor PluginNodeExecutor) {
+	s.pluginNodes = executor
+}
+
+// NodeAliasResolver maps a bare canvas action to the `plugin:<slug>:<key>` action of
+// the loaded plugin that claims it, and reports false when nothing claims it.
+type NodeAliasResolver func(action string) (string, bool)
+
+// SetNodeAliasResolver replaces the capability-registry resolver; tests use it.
+func (s *Service) SetNodeAliasResolver(r NodeAliasResolver) {
+	s.nodeAlias = r
+}
+
+// resolveAction returns the action a node runs as: a claimed alias becomes its
+// plugin's composite action, anything else is returned unchanged. Built-in actions
+// never reach it from ExecuteNode, whose switch matches them first.
+func (s *Service) resolveAction(action string) string {
+	if s == nil || s.nodeAlias == nil {
+		return action
+	}
+	if resolved, ok := s.nodeAlias(action); ok {
+		return resolved
+	}
+	return action
 }
 
 // SetImageScanner registers the vulnerability scanner runtime adapter.
@@ -135,8 +212,14 @@ func (s *Service) SetStorageLocationRuntime(r StorageLocationReader) {
 	s.storageReader = r
 }
 
+// SetStorageObjectRuntime registers the runtime adapter that fulfils
+// storage-object and storage-location-test workflow nodes.
+func (s *Service) SetStorageObjectRuntime(r StorageObjectOperator) {
+	s.storageObjects = r
+}
+
 // List returns paginated workflows, optionally filtered by status.
-func (s *Service) List(status string, page, perPage int) ([]Workflow, int64, error) {
+func (s *Service) List(ctx context.Context, status string, page, perPage int) ([]Workflow, int64, error) {
 	offset := (page - 1) * perPage
 
 	var total int64
@@ -144,21 +227,21 @@ func (s *Service) List(status string, page, perPage int) ([]Workflow, int64, err
 	var err error
 
 	if status != "" {
-		err = s.db.QueryRow("SELECT COUNT(*) FROM workflows WHERE status = ?", status).Scan(&total)
+		err = s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM workflows WHERE status = ?", status).Scan(&total)
 		if err != nil {
 			return nil, 0, fmt.Errorf("counting workflows: %w", err)
 		}
-		rows, err = s.db.Query(
-			"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at FROM workflows WHERE status = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+		rows, err = s.db.QueryContext(ctx,
+			"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at, self_host_authorized FROM workflows WHERE status = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?",
 			status, perPage, offset,
 		)
 	} else {
-		err = s.db.QueryRow("SELECT COUNT(*) FROM workflows").Scan(&total)
+		err = s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM workflows").Scan(&total)
 		if err != nil {
 			return nil, 0, fmt.Errorf("counting workflows: %w", err)
 		}
-		rows, err = s.db.Query(
-			"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at FROM workflows ORDER BY updated_at DESC LIMIT ? OFFSET ?",
+		rows, err = s.db.QueryContext(ctx,
+			"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at, self_host_authorized FROM workflows ORDER BY updated_at DESC LIMIT ? OFFSET ?",
 			perPage, offset,
 		)
 	}
@@ -166,15 +249,21 @@ func (s *Service) List(status string, page, perPage int) ([]Workflow, int64, err
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing workflows: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var items []Workflow
 	for rows.Next() {
 		var wf Workflow
-		if err := rows.Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt); err != nil {
+		if err := rows.Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt, &wf.SelfHostAuthorized); err != nil {
 			return nil, 0, fmt.Errorf("scanning workflow: %w", err)
 		}
+		if err := s.decryptWorkflowPayload(&wf); err != nil {
+			return nil, 0, err
+		}
 		items = append(items, wf)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterating workflows: %w", err)
 	}
 	if items == nil {
 		items = []Workflow{}
@@ -184,11 +273,11 @@ func (s *Service) List(status string, page, perPage int) ([]Workflow, int64, err
 }
 
 // Get returns a single workflow by ID.
-func (s *Service) Get(id string) (*Workflow, error) {
+func (s *Service) Get(ctx context.Context, id string) (*Workflow, error) {
 	var wf Workflow
-	err := s.db.QueryRow(
-		"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at FROM workflows WHERE id = ?", id,
-	).Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt)
+	err := s.db.QueryRowContext(ctx,
+		"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at, self_host_authorized FROM workflows WHERE id = ?", id,
+	).Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt, &wf.SelfHostAuthorized)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -196,12 +285,57 @@ func (s *Service) Get(id string) (*Workflow, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting workflow: %w", err)
 	}
+	if err := s.decryptWorkflowPayload(&wf); err != nil {
+		return nil, err
+	}
 
 	return &wf, nil
 }
 
+func (s *Service) encryptWorkflowField(value, label string) (string, error) {
+	if value == "" {
+		return value, nil
+	}
+	if s.enc == nil {
+		return "", fmt.Errorf("encrypting workflow %s: %w", label, ErrWorkflowEncryptionUnavailable)
+	}
+	enc, err := s.enc.Encrypt(value)
+	if err != nil {
+		return "", fmt.Errorf("encrypting workflow %s: %w", label, err)
+	}
+	return enc, nil
+}
+
+func (s *Service) decryptWorkflowField(value, label string) (string, error) {
+	if value == "" || !encryption.IsEncrypted(value) {
+		return value, nil
+	}
+	if s.enc == nil {
+		return "", fmt.Errorf("decrypting workflow %s: %w", label, ErrWorkflowEncryptionUnavailable)
+	}
+	plain, err := s.enc.Decrypt(value)
+	if err != nil {
+		return "", fmt.Errorf("decrypting workflow %s: %w", label, err)
+	}
+	return plain, nil
+}
+
+func (s *Service) decryptWorkflowPayload(wf *Workflow) error {
+	canvasData, err := s.decryptWorkflowField(wf.CanvasData, "canvas data")
+	if err != nil {
+		return err
+	}
+	variables, err := s.decryptWorkflowField(wf.Variables, "variables")
+	if err != nil {
+		return err
+	}
+	wf.CanvasData = canvasData
+	wf.Variables = variables
+	return nil
+}
+
 // Create inserts a new workflow and returns it.
-func (s *Service) Create(input CreateInput) (*Workflow, error) {
+func (s *Service) Create(ctx context.Context, input CreateInput) (*Workflow, error) {
 	now := time.Now().UTC().Format(time.RFC3339)
 	wf := Workflow{
 		ID:          xid.New().String(),
@@ -214,9 +348,18 @@ func (s *Service) Create(input CreateInput) (*Workflow, error) {
 		UpdatedAt:   now,
 	}
 
-	_, err := s.db.Exec(
+	storedCanvas, err := s.encryptWorkflowField(wf.CanvasData, "canvas data")
+	if err != nil {
+		return nil, err
+	}
+	storedVariables, err := s.encryptWorkflowField(wf.Variables, "variables")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.ExecContext(ctx,
 		"INSERT INTO workflows (id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		wf.ID, wf.Name, wf.Description, wf.Status, wf.CanvasData, wf.Variables, wf.CreatedBy, wf.UpdatedBy, wf.LastRunAt, wf.CreatedAt, wf.UpdatedAt,
+		wf.ID, wf.Name, wf.Description, wf.Status, storedCanvas, storedVariables, wf.CreatedBy, wf.UpdatedBy, wf.LastRunAt, wf.CreatedAt, wf.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating workflow: %w", err)
@@ -226,8 +369,8 @@ func (s *Service) Create(input CreateInput) (*Workflow, error) {
 }
 
 // Export returns a portable workflow export payload.
-func (s *Service) Export(id string) (*WorkflowExport, error) {
-	wf, err := s.Get(id)
+func (s *Service) Export(ctx context.Context, id string) (*WorkflowExport, error) {
+	wf, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +396,7 @@ func (s *Service) Export(id string) (*WorkflowExport, error) {
 }
 
 // Import creates a draft workflow from an exported workflow payload.
-func (s *Service) Import(input WorkflowExport) (*Workflow, error) {
+func (s *Service) Import(ctx context.Context, input WorkflowExport) (*Workflow, error) {
 	if input.Kind != "mcharbor.workflow" || input.Version < 1 {
 		return nil, fmt.Errorf("%w: unsupported format", ErrInvalidWorkflowExport)
 	}
@@ -277,6 +420,10 @@ func (s *Service) Import(input WorkflowExport) (*Workflow, error) {
 	if err := validateJSONObject(variables); err != nil {
 		return nil, fmt.Errorf("%w: validating workflow variables", ErrInvalidWorkflowExport)
 	}
+	authorized, err := s.evaluateSelfHost(ctx, canvasData)
+	if err != nil {
+		return nil, err
+	}
 
 	now := time.Now().UTC().Format(time.RFC3339)
 	wf := Workflow{
@@ -288,11 +435,22 @@ func (s *Service) Import(input WorkflowExport) (*Workflow, error) {
 		Variables:   variables,
 		CreatedAt:   now,
 		UpdatedAt:   now,
+
+		SelfHostAuthorized: authorized,
 	}
 
-	_, err := s.db.Exec(
-		"INSERT INTO workflows (id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		wf.ID, wf.Name, wf.Description, wf.Status, wf.CanvasData, wf.Variables, wf.CreatedBy, wf.UpdatedBy, wf.LastRunAt, wf.CreatedAt, wf.UpdatedAt,
+	storedCanvas, err := s.encryptWorkflowField(wf.CanvasData, "canvas data")
+	if err != nil {
+		return nil, err
+	}
+	storedVariables, err := s.encryptWorkflowField(wf.Variables, "variables")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.ExecContext(ctx,
+		"INSERT INTO workflows (id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at, self_host_authorized) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		wf.ID, wf.Name, wf.Description, wf.Status, storedCanvas, storedVariables, wf.CreatedBy, wf.UpdatedBy, wf.LastRunAt, wf.CreatedAt, wf.UpdatedAt, wf.SelfHostAuthorized,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("importing workflow: %w", err)
@@ -318,46 +476,81 @@ func validateJSONObject(raw string) error {
 }
 
 // Update applies partial updates to an existing workflow and returns the updated record.
-func (s *Service) Update(id string, input UpdateInput) (*Workflow, error) {
+// Every edit re-decides the host_self record before anything is written, so an edit by
+// someone without host_self.manage clears it, and one that adds a static McHarbor target
+// is refused with a *selfguard.Refusal.
+func (s *Service) Update(ctx context.Context, id string, input UpdateInput) (*Workflow, error) {
 	var exists int
-	if err := s.db.QueryRow("SELECT 1 FROM workflows WHERE id = ?", id).Scan(&exists); err != nil {
-		return nil, nil // not found
+	if err := s.db.QueryRowContext(ctx, "SELECT 1 FROM workflows WHERE id = ?", id).Scan(&exists); err != nil {
+		return nil, nil //nolint:nilerr // any lookup failure reads as not found; the handler maps a nil workflow to 404
+	}
+
+	var canvas string
+	if input.CanvasData != nil {
+		canvas = *input.CanvasData
+	} else {
+		current, err := s.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if current == nil {
+			return nil, nil
+		}
+		canvas = current.CanvasData
+	}
+	authorized, err := s.evaluateSelfHost(ctx, canvas)
+	if err != nil {
+		return nil, err
 	}
 
 	now := time.Now().UTC().Format(time.RFC3339)
+	if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET self_host_authorized = ?, updated_at = ? WHERE id = ?", authorized, now, id); err != nil {
+		return nil, fmt.Errorf("recording workflow host_self decision: %w", err)
+	}
 
 	if input.Name != nil {
-		if _, err := s.db.Exec("UPDATE workflows SET name = ?, updated_at = ? WHERE id = ?", *input.Name, now, id); err != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET name = ?, updated_at = ? WHERE id = ?", *input.Name, now, id); err != nil {
 			return nil, fmt.Errorf("updating workflow name: %w", err)
 		}
 	}
 	if input.Description != nil {
-		if _, err := s.db.Exec("UPDATE workflows SET description = ?, updated_at = ? WHERE id = ?", *input.Description, now, id); err != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET description = ?, updated_at = ? WHERE id = ?", *input.Description, now, id); err != nil {
 			return nil, fmt.Errorf("updating workflow description: %w", err)
 		}
 	}
 	if input.Status != nil {
-		if _, err := s.db.Exec("UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?", *input.Status, now, id); err != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET status = ?, updated_at = ? WHERE id = ?", *input.Status, now, id); err != nil {
 			return nil, fmt.Errorf("updating workflow status: %w", err)
 		}
 	}
 	if input.CanvasData != nil {
-		if _, err := s.db.Exec("UPDATE workflows SET canvas_data = ?, updated_at = ? WHERE id = ?", *input.CanvasData, now, id); err != nil {
+		stored, err := s.encryptWorkflowField(*input.CanvasData, "canvas data")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET canvas_data = ?, updated_at = ? WHERE id = ?", stored, now, id); err != nil {
 			return nil, fmt.Errorf("updating workflow canvas data: %w", err)
 		}
 	}
 	if input.Variables != nil {
-		if _, err := s.db.Exec("UPDATE workflows SET variables = ?, updated_at = ? WHERE id = ?", *input.Variables, now, id); err != nil {
+		stored, err := s.encryptWorkflowField(*input.Variables, "variables")
+		if err != nil {
+			return nil, err
+		}
+		// variables_secret_id is cleared here for the same reason every other
+		// adopted module clears its pointer: the vault copy must never outlive
+		// the value it copied.
+		if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET variables = ?, variables_secret_id = NULL, updated_at = ? WHERE id = ?", stored, now, id); err != nil {
 			return nil, fmt.Errorf("updating workflow variables: %w", err)
 		}
 	}
 
-	return s.Get(id)
+	return s.Get(ctx, id)
 }
 
 // Delete removes a workflow by ID. Returns true if a row was deleted.
-func (s *Service) Delete(id string) (bool, error) {
-	result, err := s.db.Exec("DELETE FROM workflows WHERE id = ?", id)
+func (s *Service) Delete(ctx context.Context, id string) (bool, error) {
+	result, err := s.db.ExecContext(ctx, "DELETE FROM workflows WHERE id = ?", id)
 	if err != nil {
 		return false, fmt.Errorf("deleting workflow: %w", err)
 	}
@@ -366,7 +559,7 @@ func (s *Service) Delete(id string) (bool, error) {
 }
 
 // ListRuns returns paginated workflow runs, optionally filtered by workflow ID.
-func (s *Service) ListRuns(workflowID string, page, perPage int) ([]WorkflowRun, int64, error) {
+func (s *Service) ListRuns(ctx context.Context, workflowID string, page, perPage int) ([]WorkflowRun, int64, error) {
 	offset := (page - 1) * perPage
 
 	var total int64
@@ -374,20 +567,20 @@ func (s *Service) ListRuns(workflowID string, page, perPage int) ([]WorkflowRun,
 	var err error
 
 	if workflowID != "" {
-		err = s.db.QueryRow("SELECT COUNT(*) FROM workflow_runs WHERE workflow_id = ?", workflowID).Scan(&total)
+		err = s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM workflow_runs WHERE workflow_id = ?", workflowID).Scan(&total)
 		if err != nil {
 			return nil, 0, fmt.Errorf("counting workflow runs: %w", err)
 		}
-		rows, err = s.db.Query(
+		rows, err = s.db.QueryContext(ctx,
 			"SELECT id, workflow_id, status, trigger, duration_ms, node_count, error, started_at, finished_at FROM workflow_runs WHERE workflow_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?",
 			workflowID, perPage, offset,
 		)
 	} else {
-		err = s.db.QueryRow("SELECT COUNT(*) FROM workflow_runs").Scan(&total)
+		err = s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM workflow_runs").Scan(&total)
 		if err != nil {
 			return nil, 0, fmt.Errorf("counting workflow runs: %w", err)
 		}
-		rows, err = s.db.Query(
+		rows, err = s.db.QueryContext(ctx,
 			"SELECT id, workflow_id, status, trigger, duration_ms, node_count, error, started_at, finished_at FROM workflow_runs ORDER BY started_at DESC LIMIT ? OFFSET ?",
 			perPage, offset,
 		)
@@ -395,7 +588,7 @@ func (s *Service) ListRuns(workflowID string, page, perPage int) ([]WorkflowRun,
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing workflow runs: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var runs []WorkflowRun
 	for rows.Next() {
@@ -406,6 +599,9 @@ func (s *Service) ListRuns(workflowID string, page, perPage int) ([]WorkflowRun,
 		}
 		runs = append(runs, run)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterating workflow runs: %w", err)
+	}
 	if runs == nil {
 		runs = []WorkflowRun{}
 	}
@@ -414,13 +610,14 @@ func (s *Service) ListRuns(workflowID string, page, perPage int) ([]WorkflowRun,
 }
 
 // RecordRun inserts a workflow run record into the database.
-func (s *Service) RecordRun(workflowID, trigger, status string, durationMs int64, nodeCount int, errMsg string) {
+func (s *Service) RecordRun(ctx context.Context, workflowID, trigger, status string, durationMs int64, nodeCount int, errMsg string) {
 	now := time.Now().UTC().Format(time.RFC3339)
 	finishedAt := ""
 	if status != "running" {
 		finishedAt = now
+		telemetry.WorkflowRun(trigger, status, time.Duration(durationMs)*time.Millisecond)
 	}
-	_, err := s.db.Exec(
+	_, err := s.db.ExecContext(ctx,
 		"INSERT INTO workflow_runs (id, workflow_id, status, trigger, duration_ms, node_count, error, started_at, finished_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		xid.New().String(), workflowID, status, trigger, durationMs, nodeCount, errMsg, now, finishedAt,
 	)
@@ -430,9 +627,9 @@ func (s *Service) RecordRun(workflowID, trigger, status string, durationMs int64
 }
 
 // UpdateLastRunAt sets the last_run_at and updated_at timestamps on a workflow.
-func (s *Service) UpdateLastRunAt(id string) {
+func (s *Service) UpdateLastRunAt(ctx context.Context, id string) {
 	now := time.Now().UTC().Format(time.RFC3339)
-	if _, err := s.db.Exec("UPDATE workflows SET last_run_at = ?, updated_at = ? WHERE id = ?", now, now, id); err != nil {
+	if _, err := s.db.ExecContext(ctx, "UPDATE workflows SET last_run_at = ?, updated_at = ? WHERE id = ?", now, now, id); err != nil {
 		s.logger.Error("workflows: update last_run_at error", "id", id, "error", err)
 	}
 }
@@ -445,7 +642,7 @@ func (s *Service) ListActiveWorkflows(ctx context.Context) ([]struct{ ID, Canvas
 	if err != nil {
 		return nil, fmt.Errorf("querying active workflows: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var result []struct{ ID, CanvasData string }
 	for rows.Next() {
@@ -453,20 +650,28 @@ func (s *Service) ListActiveWorkflows(ctx context.Context) ([]struct{ ID, Canvas
 		if err := rows.Scan(&item.ID, &item.CanvasData); err != nil {
 			continue
 		}
+		canvasData, err := s.decryptWorkflowField(item.CanvasData, "canvas data")
+		if err != nil {
+			return nil, err
+		}
+		item.CanvasData = canvasData
 		result = append(result, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating active workflows: %w", err)
 	}
 	return result, nil
 }
 
 // ListActiveDockerEnvIDs returns IDs of all active Docker environments.
-func (s *Service) ListActiveDockerEnvIDs() ([]string, error) {
-	rows, err := s.db.Query(
-		"SELECT id FROM environments WHERE is_active = 1 AND orchestrator_type = 'docker' LIMIT 1000",
+func (s *Service) ListActiveDockerEnvIDs(ctx context.Context) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx,
+		"SELECT id FROM environments WHERE is_active = 1 LIMIT 1000",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("querying docker environments: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var ids []string
 	for rows.Next() {
@@ -476,17 +681,20 @@ func (s *Service) ListActiveDockerEnvIDs() ([]string, error) {
 		}
 		ids = append(ids, id)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating docker environments: %w", err)
+	}
 	return ids, nil
 }
 
 // StoreLinkMessage upserts a link message for a link-out node.
-func (s *Service) StoreLinkMessage(workflowID, nodeID, name string, msg Msg) error {
+func (s *Service) StoreLinkMessage(ctx context.Context, workflowID, nodeID, name string, msg Msg) error {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("marshalling link message: %w", err)
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err = s.db.Exec(
+	_, err = s.db.ExecContext(ctx,
 		`INSERT INTO workflow_link_messages (id, workflow_id, node_id, name, msg, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?)
 		 ON CONFLICT(workflow_id, node_id) DO UPDATE SET name = excluded.name, msg = excluded.msg, updated_at = excluded.updated_at`,
@@ -499,9 +707,9 @@ func (s *Service) StoreLinkMessage(workflowID, nodeID, name string, msg Msg) err
 }
 
 // FetchLinkMessage retrieves the stored msg for a link-out node.
-func (s *Service) FetchLinkMessage(workflowID, nodeID string) (Msg, error) {
+func (s *Service) FetchLinkMessage(ctx context.Context, workflowID, nodeID string) (Msg, error) {
 	var raw string
-	err := s.db.QueryRow(
+	err := s.db.QueryRowContext(ctx,
 		"SELECT msg FROM workflow_link_messages WHERE workflow_id = ? AND node_id = ? LIMIT 1",
 		workflowID, nodeID,
 	).Scan(&raw)
@@ -519,14 +727,14 @@ func (s *Service) FetchLinkMessage(workflowID, nodeID string) (Msg, error) {
 }
 
 // ListLinkOutputs returns all link-out nodes across all workflows.
-func (s *Service) ListLinkOutputs() ([]LinkOutputInfo, error) {
-	rows, err := s.db.Query(
+func (s *Service) ListLinkOutputs(ctx context.Context) ([]LinkOutputInfo, error) {
+	rows, err := s.db.QueryContext(ctx,
 		"SELECT id, name, canvas_data FROM workflows LIMIT 1000",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("querying workflows for link outputs: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var results []LinkOutputInfo
 	for rows.Next() {
@@ -534,8 +742,12 @@ func (s *Service) ListLinkOutputs() ([]LinkOutputInfo, error) {
 		if err := rows.Scan(&wfID, &wfName, &canvasRaw); err != nil {
 			continue
 		}
+		decryptedCanvas, err := s.decryptWorkflowField(canvasRaw, "canvas data")
+		if err != nil {
+			continue
+		}
 		var canvas CanvasData
-		if err := json.Unmarshal([]byte(canvasRaw), &canvas); err != nil {
+		if err := json.Unmarshal([]byte(decryptedCanvas), &canvas); err != nil {
 			continue
 		}
 		for _, node := range canvas.Nodes {
@@ -551,19 +763,85 @@ func (s *Service) ListLinkOutputs() ([]LinkOutputInfo, error) {
 			})
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating link outputs: %w", err)
+	}
 	if results == nil {
 		results = []LinkOutputInfo{}
 	}
 	return results, nil
 }
 
+// executePluginNode dispatches a `plugin:<slug>:<key>` action to the
+// plugin runtime. A missing bridge or an unregistered key is reported
+// on the error port rather than as a hard failure, so a workflow that
+// references a plugin which was later uninstalled degrades the same
+// way a custom node with a broken script does.
+func (s *Service) executePluginNode(ctx context.Context, node *CanvasNode, msg Msg, flowCtx *FlowContext, envID string) (string, Msg, error) {
+	fail := func(reason string) (string, Msg, error) {
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"error": reason, "action": node.Action}
+		return "error", out, nil
+	}
+	if s.pluginNodes == nil || !s.pluginNodes.IsPluginNode(node.Action) {
+		s.logger.Warn("workflows: plugin node has no executor", "action", node.Action)
+		return fail("plugin node unavailable")
+	}
+	key := node.Action[strings.LastIndex(node.Action, ":")+1:]
+	if msg == nil {
+		// A trigger node run by hand from the editor has no event to
+		// carry; give it the empty msg every built-in trigger starts
+		// with, so the plugin and the downstream nodes see one shape.
+		msg = NewMsg(nil)
+		msg["topic"] = key
+	}
+	in := PluginNodeInput{
+		Key:           key,
+		Config:        node.Config,
+		Msg:           msg,
+		EnvironmentID: envID,
+	}
+	if flowCtx != nil {
+		in.UserID = flowCtx.UserID
+		if id, ok := flowCtx.FlowVars["_workflowId"].(string); ok {
+			in.WorkflowID = id
+		}
+	}
+	port, outMsg, err := s.pluginNodes.ExecutePluginNode(ctx, node.Action, in)
+	if err != nil {
+		s.logger.Error("workflows: plugin node execution failed", "error", err, "action", node.Action)
+		return fail("plugin node execution failed")
+	}
+	if outMsg == nil {
+		outMsg = CloneMsg(msg)
+	}
+	outMsg = EnsureMsgID(outMsg)
+	if port == "" {
+		port = "output"
+	}
+	return port, outMsg, nil
+}
+
 // ExecuteNode executes a single workflow node and returns the output port, output msg, and error.
 // Trigger nodes (msg == nil) create the initial msg; all other nodes receive and transform the msg.
 func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, flowCtx *FlowContext, fallbackEnvID string) (string, Msg, error) {
+	applyLegacyNodeAlias(node)
+	s.applyChannelAlias(node)
 	nodeEnvID, _ := node.Config["environment"].(string)
 	if nodeEnvID == "" {
 		nodeEnvID = fallbackEnvID
 	}
+
+	// One call, above the switch, covers every node type. Resolution produces
+	// a copy — the plaintext must not reach the stored canvas — and a missing
+	// reference fails the node rather than running it with an empty
+	// credential.
+	resolvedNode, err := s.resolveNodeSecrets(ctx, node, nodeEnvID)
+	if err != nil {
+		return "error", msg, err
+	}
+	node = resolvedNode
 
 	switch node.Action {
 	case "manual-trigger":
@@ -601,21 +879,20 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		time.Sleep(200 * time.Millisecond)
 		now := time.Now().UTC()
 		cron, _ := node.Config["cron"].(string)
+		tz, _ := node.Config["timezone"].(string)
+		if tz == "" {
+			tz = "UTC"
+		}
 		out := NewMsg(map[string]interface{}{
 			"trigger":   "schedule",
 			"cron":      cron,
+			"timezone":  tz,
 			"timestamp": now.Format(time.RFC3339),
 			"datetime":  now.Format("2006-01-02 15:04:05 UTC"),
 			"unix":      now.Unix(),
 		})
 		out["topic"] = "schedule"
 		return "output", out, nil
-
-	case "container-status-trigger":
-		return s.executeContainerStatusTrigger(ctx, node, nodeEnvID)
-
-	case "container-health-trigger":
-		return s.executeContainerHealthTrigger(ctx, node, nodeEnvID)
 
 	case "docker-event-trigger":
 		return s.executeDockerEventTrigger(ctx, node, nodeEnvID)
@@ -636,17 +913,7 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeSendConfiguredNotification(ctx, node, msg)
 
 	case "condition":
-		time.Sleep(100 * time.Millisecond)
-		field, _ := node.Config["field"].(string)
-		operator, _ := node.Config["operator"].(string)
-		value, _ := node.Config["value"].(string)
-		result := evaluateCondition(field, operator, value, msg)
-		port := "true"
-		if !result {
-			port = "false"
-		}
-		// Pass msg through unchanged — routing decision only
-		return port, msg, nil
+		return s.executeConditionNode(node, msg)
 
 	case "approval":
 		return s.executeApproval(node, msg)
@@ -686,12 +953,6 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		// Pass msg through unchanged — junction is a routing point
 		return "output", msg, nil
 
-	case "docker-action":
-		return s.executeDockerAction(ctx, node, msg, nodeEnvID)
-
-	case "container-power":
-		return s.executeContainerPower(ctx, node, msg, nodeEnvID)
-
 	case "loop":
 		return s.executeLoopRuntime(node, msg, flowCtx)
 
@@ -721,9 +982,10 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		}
 
 		if target != nil && property != "" {
-			if actionType == "set" {
+			switch actionType {
+			case "set":
 				SetPath(target, property, value)
-			} else if actionType == "delete" {
+			case "delete":
 				DeletePath(target, property)
 			}
 		}
@@ -735,44 +997,17 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		// Pass msg through unchanged — debug output is a side-effect via SSE
 		return "output", msg, nil
 
-	case "docker-info":
-		return s.executeDockerInfo(ctx, node, msg, nodeEnvID)
-
 	case "docker-prune":
 		return s.executeDockerPrune(ctx, node, msg, nodeEnvID)
 
-	case "docker-image-pull":
-		return s.executeDockerImagePull(ctx, node, msg, nodeEnvID)
-
 	case "image-vulnerability-scan":
 		return s.executeImageVulnerabilityScan(ctx, node, msg, nodeEnvID)
-
-	case "host-info":
-		return s.executeHostInfo(ctx, node, msg, nodeEnvID)
-
-	case "environment-status":
-		return s.executeEnvironmentStatus(ctx, node, msg, nodeEnvID)
 
 	case "host-exec":
 		return s.executeHostExec(ctx, node, msg, nodeEnvID)
 
 	case "join":
 		return s.executeJoinRuntime(node, msg, flowCtx)
-
-	case "parse-json":
-		return s.executeParseJSON(node, msg)
-
-	case "parse-csv":
-		return s.executeParseCSV(node, msg)
-
-	case "parse-xml":
-		return s.executeParseXML(node, msg)
-
-	case "parse-yaml":
-		return s.executeParseYAML(node, msg)
-
-	case "parse-html":
-		return s.executeParseHTML(node, msg)
 
 	case "node-script":
 		code, _ := node.Config["code"].(string)
@@ -807,10 +1042,6 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeSwitch(node, msg)
 
 	// Container nodes
-	case "container-list":
-		return s.executeContainerList(ctx, node, msg, nodeEnvID)
-	case "container-inspect":
-		return s.executeContainerInspect(ctx, node, msg, nodeEnvID)
 	case "container-logs":
 		return s.executeContainerLogs(ctx, node, msg, nodeEnvID)
 	case "container-exec":
@@ -823,86 +1054,44 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeContainerBackupPlanRun(ctx, node, msg)
 	case "container-backup-download":
 		return s.executeContainerBackupDownload(ctx, node, msg)
+	case "container-backup-restore":
+		return s.executeContainerBackupRestore(ctx, node, msg)
+	case "container-backup-manage":
+		return s.executeContainerBackupManage(ctx, node, msg, nodeEnvID)
 	case "container-stack-link":
 		return s.executeContainerStackLink(ctx, node, msg, nodeEnvID)
 	case "container-stack-unlink":
 		return s.executeContainerStackUnlink(ctx, node, msg, nodeEnvID)
 
 	// Stack nodes
-	case "stack-deploy":
-		return s.executeStackDeployRuntime(ctx, node, msg, nodeEnvID)
-	case "stack-list":
-		return s.executeStackList(ctx, node, msg, nodeEnvID)
-	case "stack-status":
-		return s.executeStackStatus(ctx, node, msg, nodeEnvID)
-	case "stack-remove":
-		return s.executeStackRemove(ctx, node, msg, nodeEnvID)
 	case "stack-backup":
 		return s.executeStackBackup(ctx, node, msg, nodeEnvID)
 
 	// Image nodes
-	case "image-list":
-		return s.executeImageList(ctx, node, msg, nodeEnvID)
-	case "image-inspect":
-		return s.executeImageInspect(ctx, node, msg, nodeEnvID)
-	case "image-remove":
-		return s.executeImageRemove(ctx, node, msg, nodeEnvID)
-	case "image-tag":
-		return s.executeImageTag(ctx, node, msg, nodeEnvID)
 
 	// Volume nodes
-	case "volume-list":
-		return s.executeVolumeList(ctx, node, msg, nodeEnvID)
-	case "volume-create":
-		return s.executeVolumeCreate(ctx, node, msg, nodeEnvID)
-	case "volume-remove":
-		return s.executeVolumeRemove(ctx, node, msg, nodeEnvID)
-	case "volume-inspect":
-		return s.executeVolumeInspect(ctx, node, msg, nodeEnvID)
-	case "volume-backup":
-		return s.executeVolumeBackup(ctx, node, msg, nodeEnvID)
-	case "volume-restore":
-		return s.executeVolumeRestore(ctx, node, msg, nodeEnvID)
 
 	// Network nodes
-	case "network-list":
-		return s.executeNetworkList(ctx, node, msg, nodeEnvID)
-	case "network-create":
-		return s.executeNetworkCreate(ctx, node, msg, nodeEnvID)
-	case "network-remove":
-		return s.executeNetworkRemove(ctx, node, msg, nodeEnvID)
-	case "network-inspect":
-		return s.executeNetworkInspect(ctx, node, msg, nodeEnvID)
-	case "network-connect":
-		return s.executeNetworkConnect(ctx, node, msg, nodeEnvID)
 
 	// Advanced Docker nodes
 	case "container-stats":
 		return s.executeContainerStats(ctx, node, msg, nodeEnvID)
-	case "container-rename":
-		return s.executeContainerRename(ctx, node, msg, nodeEnvID)
-	case "container-wait":
-		return s.executeContainerWait(ctx, node, msg, nodeEnvID)
 	case "image-build":
 		return s.executeImageBuildRuntime(ctx, node, msg, nodeEnvID)
-	case "image-push":
-		return s.executeImagePush(ctx, node, msg, nodeEnvID)
 	case "registry-search":
 		return s.executeRegistrySearch(ctx, node, msg, nodeEnvID)
-	case "compose-up":
-		return s.executeComposeUp(ctx, node, msg, nodeEnvID)
-	case "compose-down":
-		return s.executeComposeDown(ctx, node, msg, nodeEnvID)
 
 	// Storage nodes
 	case "storage-location-list":
 		return s.executeStorageLocationList(ctx, node, msg)
 	case "storage-location-get":
 		return s.executeStorageLocationGet(ctx, node, msg)
+	case "storage-object":
+		return s.executeStorageObject(ctx, node, msg)
+	case "storage-location-test":
+		return s.executeStorageLocationTest(ctx, node, msg)
 
 	// Trigger nodes
-	case "cron-trigger":
-		return s.executeCronTrigger(ctx, node)
 	case "file-watch-trigger":
 		return s.executeFileWatchTrigger(ctx, node)
 
@@ -912,7 +1101,7 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	case "aggregate":
 		return s.executeAggregateRuntime(node, msg, flowCtx)
 	case "rate-limit":
-		return s.executeRateLimitRuntime(node, msg, flowCtx)
+		return s.executeRateLimitRuntime(ctx, node, msg, flowCtx)
 	case "filter":
 		return s.executeFilter(node, msg)
 	case "sort":
@@ -927,18 +1116,8 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	// Data transformation nodes
 	case "template":
 		return s.executeTemplate(node, msg)
-	case "map":
-		return s.executeMap(node, msg)
-	case "pick":
-		return s.executePick(node, msg)
-	case "omit":
-		return s.executeOmit(node, msg)
 	case "merge-objects":
 		return s.executeMergeObjects(node, msg)
-	case "base64":
-		return s.executeBase64(node, msg)
-	case "hash":
-		return s.executeHash(node, msg)
 	case "date-format":
 		return s.executeDateFormat(node, msg)
 	case "math":
@@ -957,36 +1136,48 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeGraphQLRequest(ctx, node, msg)
 
 	// Notification nodes
-	case "send-slack":
-		return s.executeSendWebhookGeneric(ctx, node, msg, "slack")
-	case "send-discord":
-		return s.executeSendWebhookGeneric(ctx, node, msg, "discord")
-	case "send-teams":
-		return s.executeSendWebhookGeneric(ctx, node, msg, "teams")
-	case "send-telegram":
-		return s.executeSendTelegram(ctx, node, msg)
+	case "send-communication":
+		return s.executeSendCommunication(ctx, node, msg)
+	case NodeITSMOpen, NodeITSMUpdate, NodeITSMResolve:
+		return s.executeITSM(ctx, node, msg)
+	case NodeITSMStatus:
+		out := NewMsg(map[string]interface{}{})
+		out["topic"] = NodeITSMStatus
+		return "output", out, nil
+
+	// Consolidated nodes (routers live in merged_nodes.go)
+	case "parse":
+		return s.executeParse(node, msg)
+	case "container-action":
+		return s.executeContainerAction(ctx, node, msg, nodeEnvID)
+	case "inspect":
+		return s.executeInspect(ctx, node, msg, nodeEnvID)
+	case "list":
+		return s.executeList(ctx, node, msg, nodeEnvID)
+	case "kv":
+		return s.executeKV(ctx, node, msg)
+	case "environment-info":
+		return s.executeEnvironmentInfo(ctx, node, msg, nodeEnvID)
+	case "encode":
+		return s.executeEncode(node, msg)
+	case "object":
+		return s.executeObject(node, msg)
+	case "file":
+		return s.executeFile(node, msg)
+	case "image-manage":
+		return s.executeImageManage(ctx, node, msg, nodeEnvID)
+	case "network-manage":
+		return s.executeNetworkManage(ctx, node, msg, nodeEnvID)
+	case "volume-manage":
+		return s.executeVolumeManage(ctx, node, msg, nodeEnvID)
+	case "stack-manage":
+		return s.executeStackManage(ctx, node, msg, nodeEnvID)
+	case "container-trigger":
+		return s.executeContainerTrigger(ctx, node, nodeEnvID)
 	case "send-webhook":
 		return s.executeSendOutboundWebhook(ctx, node, msg)
-	case "send-whatsapp":
-		return s.executeSendWhatsApp(ctx, node, msg)
-	case "send-signal":
-		return s.executeSendSignal(ctx, node, msg)
-	case "send-ntfy":
-		return s.executeSendNtfy(ctx, node, msg)
-	case "send-gotify":
-		return s.executeSendGotify(ctx, node, msg)
 
 	// Storage / State nodes
-	case "read-file":
-		return s.executeReadFile(node, msg)
-	case "write-file":
-		return s.executeWriteFile(node, msg)
-	case "kv-get":
-		return s.executeKVGet(node, msg)
-	case "kv-set":
-		return s.executeKVSet(node, msg)
-	case "kv-delete":
-		return s.executeKVDelete(node, msg)
 	case "sql-query":
 		return s.executeSQLQuery(ctx, node, msg)
 
@@ -994,7 +1185,7 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	case "assert":
 		return s.executeAssert(node, msg)
 	case "metric-record":
-		return s.executeMetricRecord(node, msg, flowCtx)
+		return s.executeMetricRecord(ctx, node, msg, flowCtx)
 	case "health-check":
 		return s.executeHealthCheck(ctx, node, msg)
 
@@ -1004,15 +1195,15 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	case "ftp-upload":
 		return s.executeFTPUploadRuntime(ctx, node, msg)
 	case "dns-lookup":
-		return s.executeDNSLookup(node, msg)
+		return s.executeDNSLookup(ctx, node, msg)
 	case "ping":
-		return s.executePing(node, msg)
+		return s.executePing(ctx, node, msg)
 
 	case "link-out":
 		name, _ := node.Config["name"].(string)
 		wfID, _ := flowCtx.FlowVars["_workflowId"].(string)
 		if wfID != "" {
-			if err := s.StoreLinkMessage(wfID, node.ID, name, msg); err != nil {
+			if err := s.StoreLinkMessage(ctx, wfID, node.ID, name, msg); err != nil {
 				s.logger.Error("link-out: store failed", "error", err, "node", node.ID)
 			}
 			if s.onLinkOut != nil {
@@ -1025,7 +1216,7 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		source, _ := node.Config["source"].(string)
 		parts := strings.SplitN(source, ":", 2)
 		if len(parts) == 2 {
-			stored, err := s.FetchLinkMessage(parts[0], parts[1])
+			stored, err := s.FetchLinkMessage(ctx, parts[0], parts[1])
 			if err != nil {
 				s.logger.Error("link-in: fetch failed", "error", err, "source", source)
 				return "output", NewMsg(nil), nil
@@ -1037,6 +1228,19 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return "output", NewMsg(nil), nil
 
 	default:
+		// Plugin-contributed node: the SPA writes `plugin:<slug>:<key>`
+		// as the action; the loaded plugin owns the executor.
+		if strings.HasPrefix(node.Action, "plugin:") {
+			return s.executePluginNode(ctx, node, msg, flowCtx, nodeEnvID)
+		}
+		// A bare action a loaded plugin claims (a node the host once shipped):
+		// run it as that plugin's node, on a copy so the canvas keeps its id.
+		if resolved := s.resolveAction(node.Action); resolved != node.Action {
+			aliased := *node
+			aliased.Action = resolved
+			return s.executePluginNode(ctx, &aliased, msg, flowCtx, nodeEnvID)
+		}
+
 		// Check if this is a custom (third-party) node
 		if s.customExecutor != nil && s.customExecutor.IsCustomNode(node.Action) {
 			timeoutSec := configFloat(node.Config, "timeout", 10)
@@ -1067,7 +1271,7 @@ func (s *Service) executeContainerStatusTrigger(ctx context.Context, node *Canva
 		statusEvent = "any"
 	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -1080,22 +1284,23 @@ func (s *Service) executeContainerStatusTrigger(ctx context.Context, node *Canva
 	if containerName != "" {
 		inspectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
-		info, inspectErr := cli.ContainerInspect(inspectCtx, containerName)
+		infoRes, inspectErr := cli.ContainerInspect(inspectCtx, containerName, dockerclient.ContainerInspectOptions{})
+		info := infoRes.Container
 		if inspectErr == nil {
-			payload["currentState"] = info.State.Status
+			payload["currentState"] = string(info.State.Status)
 			payload["running"] = info.State.Running
 			payload["startedAt"] = info.State.StartedAt
 			payload["finishedAt"] = info.State.FinishedAt
 			payload["exitCode"] = info.State.ExitCode
 			payload["image"] = info.Config.Image
 			if info.State.Health != nil {
-				payload["health"] = info.State.Health.Status
+				payload["health"] = string(info.State.Health.Status)
 			}
 		} else {
 			payload["inspectError"] = inspectErr.Error()
 		}
 
-		filterArgs := filters.NewArgs()
+		filterArgs := make(dockerclient.Filters)
 		filterArgs.Add("type", "container")
 		if containerName != "" {
 			filterArgs.Add("container", containerName)
@@ -1106,7 +1311,8 @@ func (s *Service) executeContainerStatusTrigger(ctx context.Context, node *Canva
 
 		eventCtx, eventCancel := context.WithTimeout(ctx, 15*time.Second)
 		defer eventCancel()
-		eventsCh, errCh := cli.Events(eventCtx, events.ListOptions{Filters: filterArgs})
+		eventStream := cli.Events(eventCtx, dockerclient.EventsListOptions{Filters: filterArgs})
+		eventsCh, errCh := eventStream.Messages, eventStream.Err
 
 		select {
 		case evt := <-eventsCh:
@@ -1135,22 +1341,23 @@ func (s *Service) executeContainerHealthTrigger(ctx context.Context, node *Canva
 		return "", nil, fmt.Errorf("container is required")
 	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, err := cli.ContainerInspect(opCtx, containerName)
+	infoRes, err := cli.ContainerInspect(opCtx, containerName, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return "", nil, fmt.Errorf("inspecting container health: %w", err)
 	}
+	info := infoRes.Container
 
 	health := "none"
 	if info.State != nil && info.State.Health != nil {
-		health = info.State.Health.Status
+		health = string(info.State.Health.Status)
 	}
 	want, _ := node.Config["health"].(string)
 	if want == "" {
@@ -1169,17 +1376,17 @@ func (s *Service) executeContainerHealthTrigger(ctx context.Context, node *Canva
 }
 
 func (s *Service) executeDockerEventTrigger(ctx context.Context, node *CanvasNode, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	filterArgs := filters.NewArgs()
+	filterArgs := make(dockerclient.Filters)
 	if eventType, _ := node.Config["type"].(string); eventType != "" && eventType != "any" {
 		filterArgs.Add("type", eventType)
 	}
-	if action, _ := node.Config["action"].(string); strings.TrimSpace(action) != "" {
-		filterArgs.Add("event", strings.TrimSpace(action))
+	for _, action := range configStringSlice(node.Config["action"]) {
+		filterArgs.Add("event", action)
 	}
 	if label, _ := node.Config["label"].(string); strings.TrimSpace(label) != "" {
 		filterArgs.Add("label", strings.TrimSpace(label))
@@ -1188,7 +1395,8 @@ func (s *Service) executeDockerEventTrigger(ctx context.Context, node *CanvasNod
 	eventCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	eventsCh, errCh := cli.Events(eventCtx, events.ListOptions{Filters: filterArgs})
+	eventStream := cli.Events(eventCtx, dockerclient.EventsListOptions{Filters: filterArgs})
+	eventsCh, errCh := eventStream.Messages, eventStream.Err
 	for {
 		select {
 		case evt := <-eventsCh:
@@ -1247,7 +1455,7 @@ func (s *Service) executeMetricTrigger(ctx context.Context, node *CanvasNode, en
 		return "", nil, fmt.Errorf("container name or ID is required")
 	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -1285,17 +1493,23 @@ func (s *Service) executeDockerAction(ctx context.Context, node *CanvasNode, msg
 		return "", nil, fmt.Errorf("action is required")
 	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "error", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ref, guardErr := s.guardSelfContainer(ctx, envID, containerName, false)
+	if guardErr != nil {
+		return "", nil, guardErr
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	// Check current state before acting
 	if action != "restart" && action != "remove" {
-		info, inspectErr := cli.ContainerInspect(opCtx, containerName)
+		infoRes, inspectErr := cli.ContainerInspect(opCtx, ref, dockerclient.ContainerInspectOptions{})
+		info := infoRes.Container
 		if inspectErr == nil {
 			alreadyRunning := info.State.Running
 			if action == "start" && alreadyRunning {
@@ -1305,7 +1519,7 @@ func (s *Service) executeDockerAction(ctx context.Context, node *CanvasNode, msg
 					"action":    action,
 					"container": containerName,
 					"error":     "Container is already running",
-					"state":     info.State.Status,
+					"state":     string(info.State.Status),
 				}
 				return "error", out, nil
 			}
@@ -1315,8 +1529,8 @@ func (s *Service) executeDockerAction(ctx context.Context, node *CanvasNode, msg
 				out["payload"] = map[string]interface{}{
 					"action":    action,
 					"container": containerName,
-					"error":     fmt.Sprintf("Container is already in state %s", info.State.Status),
-					"state":     info.State.Status,
+					"error":     fmt.Sprintf("Container is already in state %s", string(info.State.Status)),
+					"state":     string(info.State.Status),
 				}
 				return "error", out, nil
 			}
@@ -1326,13 +1540,19 @@ func (s *Service) executeDockerAction(ctx context.Context, node *CanvasNode, msg
 	var opErr error
 	switch action {
 	case "start":
-		opErr = cli.ContainerStart(opCtx, containerName, container.StartOptions{})
-	case "stop":
-		opErr = cli.ContainerStop(opCtx, containerName, container.StopOptions{})
-	case "restart":
-		opErr = cli.ContainerRestart(opCtx, containerName, container.StopOptions{})
+		_, opErr = cli.ContainerStart(opCtx, ref, dockerclient.ContainerStartOptions{})
+	case "stop", "restart":
+		stopOpts := dockerclient.ContainerStopOptions{}
+		if t := int(configFloat(node.Config, "timeout", 0)); t > 0 {
+			stopOpts.Timeout = &t
+		}
+		if action == "stop" {
+			_, opErr = cli.ContainerStop(opCtx, ref, stopOpts)
+		} else {
+			_, opErr = cli.ContainerRestart(opCtx, ref, dockerclient.ContainerRestartOptions(stopOpts))
+		}
 	case "remove":
-		opErr = cli.ContainerRemove(opCtx, containerName, container.RemoveOptions{Force: true})
+		_, opErr = cli.ContainerRemove(opCtx, ref, dockerclient.ContainerRemoveOptions{Force: true})
 	default:
 		return "", nil, fmt.Errorf("unknown docker action: %s", action)
 	}
@@ -1355,94 +1575,12 @@ func (s *Service) executeDockerAction(ctx context.Context, node *CanvasNode, msg
 		"status":    "success",
 	}
 	if action != "remove" {
-		info, inspectErr := cli.ContainerInspect(opCtx, containerName)
+		infoRes, inspectErr := cli.ContainerInspect(opCtx, ref, dockerclient.ContainerInspectOptions{})
+		info := infoRes.Container
 		if inspectErr == nil {
-			result["state"] = info.State.Status
+			result["state"] = string(info.State.Status)
 			result["running"] = info.State.Running
 		}
-	}
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = result
-	return "output", out, nil
-}
-
-func (s *Service) executeContainerPower(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	action, _ := node.Config["action"].(string)
-	containerName, _ := node.Config["container"].(string)
-	if containerName == "" {
-		return "", nil, fmt.Errorf("container name or ID is required")
-	}
-	if action == "" {
-		return "", nil, fmt.Errorf("action is required")
-	}
-
-	cli, err := s.pool.Get(envID)
-	if err != nil {
-		return "error", nil, fmt.Errorf("docker connection failed: %w", err)
-	}
-
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	info, inspectErr := cli.ContainerInspect(opCtx, containerName)
-	if inspectErr == nil {
-		if action == "enable" && info.State.Running {
-			out := CloneMsg(msg)
-			out = EnsureMsgID(out)
-			out["payload"] = map[string]interface{}{
-				"action":    action,
-				"container": containerName,
-				"error":     "container is already running",
-				"state":     info.State.Status,
-			}
-			return "error", out, nil
-		}
-		if action == "disable" && !info.State.Running {
-			out := CloneMsg(msg)
-			out = EnsureMsgID(out)
-			out["payload"] = map[string]interface{}{
-				"action":    action,
-				"container": containerName,
-				"error":     fmt.Sprintf("container is already in state %s", info.State.Status),
-				"state":     info.State.Status,
-			}
-			return "error", out, nil
-		}
-	}
-
-	var opErr error
-	switch action {
-	case "enable":
-		opErr = cli.ContainerStart(opCtx, containerName, container.StartOptions{})
-	case "disable":
-		opErr = cli.ContainerStop(opCtx, containerName, container.StopOptions{})
-	default:
-		return "", nil, fmt.Errorf("unknown container-power action: %s", action)
-	}
-
-	if opErr != nil {
-		s.logger.Error("workflows: container-power action failed", "error", opErr, "action", action, "container", containerName)
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{
-			"action":    action,
-			"container": containerName,
-			"error":     "operation failed",
-		}
-		return "error", out, nil
-	}
-
-	result := map[string]interface{}{
-		"action":    action,
-		"container": containerName,
-		"status":    "success",
-	}
-	postInfo, postErr := cli.ContainerInspect(opCtx, containerName)
-	if postErr == nil {
-		result["state"] = postInfo.State.Status
-		result["running"] = postInfo.State.Running
 	}
 
 	out := CloneMsg(msg)
@@ -1457,11 +1595,11 @@ func FetchContainerMetric(ctx context.Context, cli *dockerclient.Client, contain
 	statsCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	resp, err := cli.ContainerStats(statsCtx, containerID, false)
+	resp, err := cli.ContainerStats(statsCtx, containerID, dockerclient.ContainerStatsOptions{Stream: false, IncludePreviousSample: true})
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -1605,15 +1743,16 @@ func cleanWorkflowStringSlice(input []string) []string {
 
 // executeDockerInfo retrieves Docker system information.
 func (s *Service) executeDockerInfo(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	infoCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	infoCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, err := cli.Info(infoCtx)
+	infoRes, err := cli.Info(infoCtx, dockerclient.InfoOptions{})
+	info := infoRes.Info
 	if err != nil {
 		s.logger.Error("workflows: docker info failed", "error", err, "envID", envID)
 		out := CloneMsg(msg)
@@ -1646,7 +1785,7 @@ func (s *Service) executeDockerInfo(ctx context.Context, node *CanvasNode, msg M
 }
 
 func (s *Service) executeEnvironmentStatus(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -1654,10 +1793,10 @@ func (s *Service) executeEnvironmentStatus(ctx context.Context, node *CanvasNode
 		return "error", out, nil
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	ping, err := cli.Ping(opCtx)
+	ping, err := cli.Ping(opCtx, dockerclient.PingOptions{})
 	if err != nil {
 		s.logger.Error("workflows: environment ping failed", "error", err, "envID", envID)
 		out := CloneMsg(msg)
@@ -1666,7 +1805,8 @@ func (s *Service) executeEnvironmentStatus(ctx context.Context, node *CanvasNode
 		return "error", out, nil
 	}
 
-	info, infoErr := cli.Info(opCtx)
+	infoRes, infoErr := cli.Info(opCtx, dockerclient.InfoOptions{})
+	info := infoRes.Info
 	payload := map[string]interface{}{
 		"reachable":      true,
 		"environmentId":  envID,
@@ -1696,7 +1836,7 @@ func (s *Service) executeEnvironmentStatus(ctx context.Context, node *CanvasNode
 
 // executeDockerPrune removes unused Docker resources.
 func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -1713,7 +1853,7 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 
 	switch resource {
 	case "containers":
-		report, pruneErr := cli.ContainersPrune(opCtx, filters.Args{})
+		reportRes, pruneErr := cli.ContainerPrune(opCtx, dockerclient.ContainerPruneOptions{})
 		if pruneErr != nil {
 			s.logger.Error("workflows: container prune failed", "error", pruneErr, "envID", envID)
 			out := CloneMsg(msg)
@@ -1721,11 +1861,12 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 			out["payload"] = map[string]interface{}{"error": "container prune failed"}
 			return "error", out, nil
 		}
+		report := reportRes.Report
 		result["containersDeleted"] = report.ContainersDeleted
 		result["spaceReclaimed"] = report.SpaceReclaimed
 
 	case "images":
-		report, pruneErr := cli.ImagesPrune(opCtx, unusedImagePruneFilters())
+		reportRes, pruneErr := cli.ImagePrune(opCtx, dockerclient.ImagePruneOptions{Filters: unusedImagePruneFilters()})
 		if pruneErr != nil {
 			s.logger.Error("workflows: image prune failed", "error", pruneErr, "envID", envID)
 			out := CloneMsg(msg)
@@ -1733,11 +1874,12 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 			out["payload"] = map[string]interface{}{"error": "image prune failed"}
 			return "error", out, nil
 		}
+		report := reportRes.Report
 		result["imagesDeleted"] = len(report.ImagesDeleted)
 		result["spaceReclaimed"] = report.SpaceReclaimed
 
 	case "volumes":
-		report, pruneErr := cli.VolumesPrune(opCtx, filters.Args{})
+		reportRes, pruneErr := cli.VolumePrune(opCtx, dockerclient.VolumePruneOptions{})
 		if pruneErr != nil {
 			s.logger.Error("workflows: volume prune failed", "error", pruneErr, "envID", envID)
 			out := CloneMsg(msg)
@@ -1745,11 +1887,12 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 			out["payload"] = map[string]interface{}{"error": "volume prune failed"}
 			return "error", out, nil
 		}
+		report := reportRes.Report
 		result["volumesDeleted"] = report.VolumesDeleted
 		result["spaceReclaimed"] = report.SpaceReclaimed
 
 	case "networks":
-		report, pruneErr := cli.NetworksPrune(opCtx, filters.Args{})
+		reportRes, pruneErr := cli.NetworkPrune(opCtx, dockerclient.NetworkPruneOptions{})
 		if pruneErr != nil {
 			s.logger.Error("workflows: network prune failed", "error", pruneErr, "envID", envID)
 			out := CloneMsg(msg)
@@ -1757,23 +1900,40 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 			out["payload"] = map[string]interface{}{"error": "network prune failed"}
 			return "error", out, nil
 		}
+		report := reportRes.Report
 		result["networksDeleted"] = report.NetworksDeleted
 
 	case "all":
 		var totalReclaimed uint64
-		cr, _ := cli.ContainersPrune(opCtx, filters.Args{})
+		crRes, pruneErr := cli.ContainerPrune(opCtx, dockerclient.ContainerPruneOptions{})
+		if pruneErr != nil {
+			s.logger.Error("workflows: containers prune failed during full prune", "error", pruneErr, "envID", envID)
+		}
+		cr := crRes.Report
 		result["containersDeleted"] = cr.ContainersDeleted
 		totalReclaimed += cr.SpaceReclaimed
 
-		ir, _ := cli.ImagesPrune(opCtx, unusedImagePruneFilters())
+		irRes, pruneErr := cli.ImagePrune(opCtx, dockerclient.ImagePruneOptions{Filters: unusedImagePruneFilters()})
+		if pruneErr != nil {
+			s.logger.Error("workflows: images prune failed during full prune", "error", pruneErr, "envID", envID)
+		}
+		ir := irRes.Report
 		result["imagesDeleted"] = len(ir.ImagesDeleted)
 		totalReclaimed += ir.SpaceReclaimed
 
-		vr, _ := cli.VolumesPrune(opCtx, filters.Args{})
+		vrRes, pruneErr := cli.VolumePrune(opCtx, dockerclient.VolumePruneOptions{})
+		if pruneErr != nil {
+			s.logger.Error("workflows: volumes prune failed during full prune", "error", pruneErr, "envID", envID)
+		}
+		vr := vrRes.Report
 		result["volumesDeleted"] = vr.VolumesDeleted
 		totalReclaimed += vr.SpaceReclaimed
 
-		nr, _ := cli.NetworksPrune(opCtx, filters.Args{})
+		nrRes, pruneErr := cli.NetworkPrune(opCtx, dockerclient.NetworkPruneOptions{})
+		if pruneErr != nil {
+			s.logger.Error("workflows: networks prune failed during full prune", "error", pruneErr, "envID", envID)
+		}
+		nr := nrRes.Report
 		result["networksDeleted"] = nr.NetworksDeleted
 		result["spaceReclaimed"] = totalReclaimed
 	}
@@ -1786,7 +1946,7 @@ func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg 
 
 // executeDockerImagePull pulls a Docker image from a registry.
 func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -1804,7 +1964,7 @@ func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, 
 		return "", nil, err
 	}
 
-	reader, err := cli.ImagePull(pullCtx, imageName, image.PullOptions{RegistryAuth: registryAuth})
+	reader, err := cli.ImagePull(pullCtx, imageName, dockerclient.ImagePullOptions{RegistryAuth: registryAuth})
 	if err != nil {
 		s.logger.Error("workflows: image pull failed", "error", err, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -1812,7 +1972,7 @@ func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, 
 		out["payload"] = map[string]interface{}{"error": "image pull failed", "image": imageName}
 		return "error", out, nil
 	}
-	defer reader.Close()
+	defer func() { closeutil.Report(reader.Close(), "reader") }()
 
 	// Drain the pull output to completion
 	if _, copyErr := io.Copy(io.Discard, reader); copyErr != nil {
@@ -1835,22 +1995,21 @@ func (s *Service) executeImageVulnerabilityScan(ctx context.Context, node *Canva
 		return "", nil, fmt.Errorf("image is required")
 	}
 
+	// The node's `scanner` is passed through untouched — empty
+	// included. Resolution moved into the scans service when the
+	// engines became plugins: it accepts a scanner_configs id (what the
+	// node's scanner picker writes), an engine type (what nodes saved
+	// before the picker carry), or empty for the estate default, and it
+	// is the only layer that can tell those apart.
+	//
+	// The enabled-check that used to live here is gone with it. It read
+	// three booleans out of the settings table and hard-coded the three
+	// built-in engine names, so a fourth scanner would have been
+	// rejected by a node that had no way to know about it. A disabled
+	// or missing scanner now surfaces as an error from StartScan below,
+	// on the same error output, with a message that names the real
+	// cause.
 	scannerName, _ := node.Config["scanner"].(string)
-	settings := coresettings.ReadScannerSettings(s.db)
-	if scannerName == "" {
-		scannerName = settings.DefaultScanner
-	}
-	enabled := map[string]bool{
-		"trivy": settings.TrivyEnabled,
-		"grype": settings.GrypeEnabled,
-		"clair": settings.ClairEnabled,
-	}
-	if !enabled[scannerName] {
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{"image": imageRef, "scanner": scannerName, "error": "scanner is disabled"}
-		return "error", out, nil
-	}
 
 	if s.imageScanner == nil {
 		s.logger.Error("workflows: image vulnerability scanner is not configured", "image", imageRef, "scanner", scannerName)
@@ -1870,7 +2029,10 @@ func (s *Service) executeImageVulnerabilityScan(ctx context.Context, node *Canva
 	scanCtx := ctx
 	cancel := func() {}
 	if wait {
-		timeout := time.Duration(settings.ScanTimeout) * time.Second
+		// ScanTimeout is one of the three scanner settings that stayed
+		// in core: it bounds how long the *workflow run* blocks, which
+		// is the host's concern and must not vary per engine.
+		timeout := time.Duration(coresettings.ReadScannerSettingsContext(ctx, s.db).ScanTimeout) * time.Second
 		if timeout < 30*time.Second {
 			timeout = 30 * time.Second
 		}
@@ -1921,15 +2083,16 @@ func (s *Service) executeImageVulnerabilityScan(ctx context.Context, node *Canva
 
 // executeHostInfo returns system information from the Docker host via Docker info.
 func (s *Service) executeHostInfo(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	infoCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	infoCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, err := cli.Info(infoCtx)
+	infoRes, err := cli.Info(infoCtx, dockerclient.InfoOptions{})
+	info := infoRes.Info
 	if err != nil {
 		s.logger.Error("workflows: host info failed", "error", err, "envID", envID)
 		out := CloneMsg(msg)
@@ -1955,7 +2118,7 @@ func (s *Service) executeHostInfo(ctx context.Context, node *CanvasNode, msg Msg
 
 // executeHostExec runs a command on the Docker host via a temporary container.
 func (s *Service) executeHostExec(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -1977,13 +2140,14 @@ func (s *Service) executeHostExec(ctx context.Context, node *CanvasNode, msg Msg
 	defer cancel()
 
 	// Run command via a temporary alpine container with host PID namespace
-	resp, err := cli.ContainerCreate(execCtx, &container.Config{
+	hostConfig := hostExecHostConfig()
+	if guardErr := s.guardSelfCreate(ctx, envID, hostConfig); guardErr != nil {
+		return "", nil, guardErr
+	}
+	resp, err := cli.ContainerCreate(execCtx, dockerclient.ContainerCreateOptions{Config: &container.Config{
 		Image: "alpine:3.20",
 		Cmd:   []string{"sh", "-c", command},
-	}, &container.HostConfig{
-		AutoRemove: true,
-		PidMode:    "host",
-	}, nil, nil, "")
+	}, HostConfig: hostConfig})
 	if err != nil {
 		s.logger.Error("workflows: host exec create failed", "error", err, "envID", envID)
 		out := CloneMsg(msg)
@@ -1992,7 +2156,7 @@ func (s *Service) executeHostExec(ctx context.Context, node *CanvasNode, msg Msg
 		return "error", out, nil
 	}
 
-	if startErr := cli.ContainerStart(execCtx, resp.ID, container.StartOptions{}); startErr != nil {
+	if _, startErr := cli.ContainerStart(execCtx, resp.ID, dockerclient.ContainerStartOptions{}); startErr != nil {
 		s.logger.Error("workflows: host exec start failed", "error", startErr, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -2001,7 +2165,8 @@ func (s *Service) executeHostExec(ctx context.Context, node *CanvasNode, msg Msg
 	}
 
 	// Wait for completion
-	statusCh, errCh := cli.ContainerWait(execCtx, resp.ID, container.WaitConditionNotRunning)
+	wait := cli.ContainerWait(execCtx, resp.ID, dockerclient.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
+	statusCh, errCh := wait.Result, wait.Error
 	var exitCode int64
 	select {
 	case waitResult := <-statusCh:
@@ -2017,11 +2182,14 @@ func (s *Service) executeHostExec(ctx context.Context, node *CanvasNode, msg Msg
 	}
 
 	// Capture logs
-	logReader, logErr := cli.ContainerLogs(execCtx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
+	logReader, logErr := cli.ContainerLogs(execCtx, resp.ID, dockerclient.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	var output string
 	if logErr == nil {
-		defer logReader.Close()
-		logBytes, _ := io.ReadAll(logReader)
+		defer func() { closeutil.Report(logReader.Close(), "logReader") }()
+		logBytes, readErr := io.ReadAll(logReader)
+		if readErr != nil {
+			s.logger.Warn("workflows: reading container logs", "error", readErr)
+		}
 		output = string(logBytes)
 	}
 
@@ -2200,7 +2368,7 @@ func xmlDecodeElement(decoder *xml.Decoder, start xml.StartElement) (interface{}
 	for {
 		tok, err := decoder.Token()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return nil, err
@@ -2380,7 +2548,7 @@ func (s *Service) executeParseHTML(node *CanvasNode, msg Msg) (string, Msg, erro
 
 // executeContainerList lists containers, optionally filtered by name.
 func (s *Service) executeContainerList(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2391,17 +2559,17 @@ func (s *Service) executeContainerList(ctx context.Context, node *CanvasNode, ms
 	}
 	nameFilter, _ := node.Config["name_filter"].(string)
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	opts := container.ListOptions{All: showAll}
+	opts := dockerclient.ContainerListOptions{All: showAll}
 	if nameFilter != "" {
-		f := filters.NewArgs()
+		f := make(dockerclient.Filters)
 		f.Add("name", nameFilter)
 		opts.Filters = f
 	}
 
-	containers, listErr := cli.ContainerList(opCtx, opts)
+	containersRes, listErr := cli.ContainerList(opCtx, opts)
 	if listErr != nil {
 		s.logger.Error("workflows: container list failed", "error", listErr, "envID", envID)
 		out := CloneMsg(msg)
@@ -2409,6 +2577,7 @@ func (s *Service) executeContainerList(ctx context.Context, node *CanvasNode, ms
 		out["payload"] = map[string]interface{}{"error": "container list failed"}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	items := make([]interface{}, 0, len(containers))
 	for _, c := range containers {
@@ -2416,10 +2585,10 @@ func (s *Service) executeContainerList(ctx context.Context, node *CanvasNode, ms
 			"id":      c.ID[:12],
 			"names":   c.Names,
 			"image":   c.Image,
-			"state":   c.State,
+			"state":   string(c.State),
 			"status":  c.Status,
 			"created": c.Created,
-			"ports":   c.Ports,
+			"ports":   wirePorts(c.Ports),
 		})
 	}
 
@@ -2431,7 +2600,7 @@ func (s *Service) executeContainerList(ctx context.Context, node *CanvasNode, ms
 
 // executeContainerInspect returns detailed information about a container.
 func (s *Service) executeContainerInspect(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2441,10 +2610,10 @@ func (s *Service) executeContainerInspect(ctx context.Context, node *CanvasNode,
 		return "", nil, fmt.Errorf("container is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, inspectErr := cli.ContainerInspect(opCtx, containerName)
+	infoRes, inspectErr := cli.ContainerInspect(opCtx, containerName, dockerclient.ContainerInspectOptions{})
 	if inspectErr != nil {
 		s.logger.Error("workflows: container inspect failed", "error", inspectErr, "container", containerName, "envID", envID)
 		out := CloneMsg(msg)
@@ -2452,6 +2621,10 @@ func (s *Service) executeContainerInspect(ctx context.Context, node *CanvasNode,
 		out["payload"] = map[string]interface{}{"error": "container inspect failed", "container": containerName}
 		return "error", out, nil
 	}
+	info := infoRes.Container
+	// A run's output is stored and shown to anyone who can read the workflow, which is not
+	// the audience a container's credentials are for; there is no reveal path here.
+	envredact.Policy{McHarbor: docker.IsMcHarborInstance(info)}.Container(&info)
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -2459,7 +2632,7 @@ func (s *Service) executeContainerInspect(ctx context.Context, node *CanvasNode,
 		"id":         info.ID[:12],
 		"name":       strings.TrimPrefix(info.Name, "/"),
 		"image":      info.Config.Image,
-		"state":      info.State.Status,
+		"state":      string(info.State.Status),
 		"running":    info.State.Running,
 		"startedAt":  info.State.StartedAt,
 		"finishedAt": info.State.FinishedAt,
@@ -2479,7 +2652,7 @@ func (s *Service) executeContainerInspect(ctx context.Context, node *CanvasNode,
 
 // executeContainerLogs retrieves recent logs from a container.
 func (s *Service) executeContainerLogs(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2498,10 +2671,10 @@ func (s *Service) executeContainerLogs(ctx context.Context, node *CanvasNode, ms
 	}
 	since, _ := node.Config["since"].(string)
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	opts := container.LogsOptions{
+	opts := dockerclient.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Tail:       strconv.Itoa(tail),
@@ -2518,9 +2691,12 @@ func (s *Service) executeContainerLogs(ctx context.Context, node *CanvasNode, ms
 		out["payload"] = map[string]interface{}{"error": "container logs failed", "container": containerName}
 		return "error", out, nil
 	}
-	defer reader.Close()
+	defer func() { closeutil.Report(reader.Close(), "reader") }()
 
-	logBytes, _ := io.ReadAll(reader)
+	logBytes, readErr := io.ReadAll(reader)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading container logs", "container", containerName, "error", readErr)
+	}
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -2534,7 +2710,7 @@ func (s *Service) executeContainerLogs(ctx context.Context, node *CanvasNode, ms
 
 // executeContainerExec runs a command inside a running container using detached exec + inspect.
 func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2549,10 +2725,15 @@ func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, ms
 	}
 	workdir, _ := node.Config["workdir"].(string)
 
+	ref, guardErr := s.guardSelfContainer(ctx, envID, containerName, true)
+	if guardErr != nil {
+		return "", nil, guardErr
+	}
+
 	opCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	execConfig := container.ExecOptions{
+	execConfig := dockerclient.ExecCreateOptions{
 		Cmd:          []string{"sh", "-c", command},
 		AttachStdout: true,
 		AttachStderr: true,
@@ -2561,7 +2742,7 @@ func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, ms
 		execConfig.WorkingDir = workdir
 	}
 
-	execResp, execErr := cli.ContainerExecCreate(opCtx, containerName, execConfig)
+	execResp, execErr := cli.ExecCreate(opCtx, ref, execConfig)
 	if execErr != nil {
 		s.logger.Error("workflows: container exec create failed", "error", execErr, "container", containerName, "envID", envID)
 		out := CloneMsg(msg)
@@ -2570,7 +2751,7 @@ func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, ms
 		return "error", out, nil
 	}
 
-	attachResp, attachErr := cli.ContainerExecAttach(opCtx, execResp.ID, container.ExecAttachOptions{})
+	attachResp, attachErr := cli.ExecAttach(opCtx, execResp.ID, dockerclient.ExecAttachOptions{})
 	if attachErr != nil {
 		s.logger.Error("workflows: container exec attach failed", "error", attachErr, "container", containerName, "envID", envID)
 		out := CloneMsg(msg)
@@ -2580,10 +2761,13 @@ func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, ms
 	}
 	defer attachResp.Close()
 
-	outputBytes, _ := io.ReadAll(attachResp.Reader)
+	outputBytes, readErr := io.ReadAll(attachResp.Reader)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading exec output", "container", containerName, "error", readErr)
+	}
 
 	// Get exit code
-	inspectResp, inspectErr := cli.ContainerExecInspect(opCtx, execResp.ID)
+	inspectResp, inspectErr := cli.ExecInspect(opCtx, execResp.ID, dockerclient.ExecInspectOptions{})
 	var exitCode int
 	if inspectErr == nil {
 		exitCode = inspectResp.ExitCode
@@ -2606,7 +2790,7 @@ func (s *Service) executeContainerExec(ctx context.Context, node *CanvasNode, ms
 
 // executeContainerCreate creates (and optionally starts) a new container.
 func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2616,11 +2800,7 @@ func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, 
 		return "", nil, fmt.Errorf("image is required")
 	}
 	containerName, _ := node.Config["name"].(string)
-	portsStr, _ := node.Config["ports"].(string)
-	restartPolicy, _ := node.Config["restart_policy"].(string)
-	if restartPolicy == "" {
-		restartPolicy = "no"
-	}
+	portsStr := strings.Join(configStringSlice(node.Config["ports"]), ",")
 	autoStart := true
 	if v, ok := node.Config["auto_start"].(bool); ok {
 		autoStart = v
@@ -2648,7 +2828,7 @@ func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, 
 		}
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	opCtx, cancel := context.WithTimeout(ctx, nodeLongOpTimeout)
 	defer cancel()
 
 	config := &container.Config{
@@ -2656,11 +2836,12 @@ func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, 
 		Env:   envVars,
 	}
 
-	hostConfig := &container.HostConfig{
-		RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyMode(restartPolicy)},
+	hostConfig := containerCreateHostConfig(node)
+	if guardErr := s.guardSelfCreate(ctx, envID, hostConfig); guardErr != nil {
+		return "", nil, guardErr
 	}
 
-	resp, createErr := cli.ContainerCreate(opCtx, config, hostConfig, nil, nil, containerName)
+	resp, createErr := cli.ContainerCreate(opCtx, dockerclient.ContainerCreateOptions{Config: config, HostConfig: hostConfig, Name: containerName})
 	if createErr != nil {
 		s.logger.Error("workflows: container create failed", "error", createErr, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -2678,7 +2859,7 @@ func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, 
 	}
 
 	if autoStart {
-		if startErr := cli.ContainerStart(opCtx, resp.ID, container.StartOptions{}); startErr != nil {
+		if _, startErr := cli.ContainerStart(opCtx, resp.ID, dockerclient.ContainerStartOptions{}); startErr != nil {
 			s.logger.Error("workflows: container start after create failed", "error", startErr, "envID", envID)
 			result["started"] = false
 			result["startError"] = "failed to start container"
@@ -2854,52 +3035,19 @@ func (s *Service) executeContainerStackUnlink(ctx context.Context, node *CanvasN
 // Stack node implementations
 // ---------------------------------------------------------------------------
 
-// executeStackDeploy deploys a compose stack by writing a temp compose file and running docker compose up.
-func (s *Service) executeStackDeploy(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
-	if err != nil {
-		return "", nil, fmt.Errorf("docker connection failed: %w", err)
-	}
-
-	stackName, _ := node.Config["stack_name"].(string)
-	if stackName == "" {
-		return "", nil, fmt.Errorf("stack name is required")
-	}
-
-	// Stack operations use labels on containers to identify stack membership
-	// We list containers with the stack label to check if the stack exists
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	f := filters.NewArgs()
-	f.Add("label", "com.docker.compose.project="+stackName)
-	existing, _ := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	// Legacy fallback retained for compatibility. Runtime execution uses executeStackDeployRuntime.
-	out["payload"] = map[string]interface{}{
-		"stack":         stackName,
-		"action":        "deploy",
-		"existingCount": len(existing),
-		"status":        "acknowledged",
-	}
-	return "output", out, nil
-}
-
 // executeStackList lists compose stacks by grouping containers by their compose project label.
 func (s *Service) executeStackList(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project")
-	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
 		s.logger.Error("workflows: stack list failed", "error", listErr, "envID", envID)
 		out := CloneMsg(msg)
@@ -2907,6 +3055,7 @@ func (s *Service) executeStackList(ctx context.Context, node *CanvasNode, msg Ms
 		out["payload"] = map[string]interface{}{"error": "stack list failed"}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	stacks := map[string]map[string]interface{}{}
 	for _, c := range containers {
@@ -2943,7 +3092,7 @@ func (s *Service) executeStackList(ctx context.Context, node *CanvasNode, msg Ms
 
 // executeStackStatus returns the status of a specific compose stack.
 func (s *Service) executeStackStatus(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -2953,12 +3102,12 @@ func (s *Service) executeStackStatus(ctx context.Context, node *CanvasNode, msg 
 		return "", nil, fmt.Errorf("stack name is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project="+stackName)
-	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
 		s.logger.Error("workflows: stack status failed", "error", listErr, "stack", stackName, "envID", envID)
 		out := CloneMsg(msg)
@@ -2966,6 +3115,7 @@ func (s *Service) executeStackStatus(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "stack status failed", "stack": stackName}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	services := make([]interface{}, 0, len(containers))
 	running := 0
@@ -2975,7 +3125,7 @@ func (s *Service) executeStackStatus(ctx context.Context, node *CanvasNode, msg 
 			"id":      c.ID[:12],
 			"service": svcName,
 			"image":   c.Image,
-			"state":   c.State,
+			"state":   string(c.State),
 			"status":  c.Status,
 		})
 		if c.State == "running" {
@@ -2998,7 +3148,7 @@ func (s *Service) executeStackStatus(ctx context.Context, node *CanvasNode, msg 
 
 // executeStackRemove removes all containers belonging to a compose stack.
 func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3006,6 +3156,9 @@ func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg 
 	stackName, _ := node.Config["stack_name"].(string)
 	if stackName == "" {
 		return "", nil, fmt.Errorf("stack name is required")
+	}
+	if guardErr := s.guardSelfStack(ctx, envID, stackName); guardErr != nil {
+		return "", nil, guardErr
 	}
 	removeVolumes := false
 	if v, ok := node.Config["remove_volumes"].(bool); ok {
@@ -3015,9 +3168,9 @@ func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg 
 	opCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project="+stackName)
-	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
 		s.logger.Error("workflows: stack remove list failed", "error", listErr, "stack", stackName, "envID", envID)
 		out := CloneMsg(msg)
@@ -3025,10 +3178,11 @@ func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "stack remove failed", "stack": stackName}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	removed := 0
 	for _, c := range containers {
-		rmErr := cli.ContainerRemove(opCtx, c.ID, container.RemoveOptions{Force: true, RemoveVolumes: removeVolumes})
+		_, rmErr := cli.ContainerRemove(opCtx, c.ID, dockerclient.ContainerRemoveOptions{Force: true, RemoveVolumes: removeVolumes})
 		if rmErr != nil {
 			s.logger.Error("workflows: stack remove container failed", "error", rmErr, "container", c.ID[:12], "stack", stackName)
 			continue
@@ -3047,7 +3201,7 @@ func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg 
 }
 
 func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3057,12 +3211,12 @@ func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg 
 		return "", nil, fmt.Errorf("stack name is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project="+stackName)
-	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
 		s.logger.Error("workflows: stack backup list failed", "error", listErr, "stack", stackName, "envID", envID)
 		out := CloneMsg(msg)
@@ -3070,6 +3224,7 @@ func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "stack backup failed", "stack": stackName}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	items := make([]interface{}, 0, len(containers))
 	for _, c := range containers {
@@ -3079,11 +3234,11 @@ func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg 
 			"image":       c.Image,
 			"imageID":     c.ImageID,
 			"command":     c.Command,
-			"state":       c.State,
+			"state":       string(c.State),
 			"status":      c.Status,
 			"created":     c.Created,
 			"labels":      c.Labels,
-			"ports":       c.Ports,
+			"ports":       wirePorts(c.Ports),
 			"mounts":      c.Mounts,
 			"networkMode": c.HostConfig.NetworkMode,
 		})
@@ -3108,7 +3263,7 @@ func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg 
 
 // executeImageList lists Docker images.
 func (s *Service) executeImageList(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3122,17 +3277,17 @@ func (s *Service) executeImageList(ctx context.Context, node *CanvasNode, msg Ms
 		filterDangling = v
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	opts := image.ListOptions{All: showAll}
+	opts := dockerclient.ImageListOptions{All: showAll}
 	if filterDangling {
-		f := filters.NewArgs()
+		f := make(dockerclient.Filters)
 		f.Add("dangling", "true")
 		opts.Filters = f
 	}
 
-	images, listErr := cli.ImageList(opCtx, opts)
+	imagesRes, listErr := cli.ImageList(opCtx, opts)
 	if listErr != nil {
 		s.logger.Error("workflows: image list failed", "error", listErr, "envID", envID)
 		out := CloneMsg(msg)
@@ -3140,6 +3295,7 @@ func (s *Service) executeImageList(ctx context.Context, node *CanvasNode, msg Ms
 		out["payload"] = map[string]interface{}{"error": "image list failed"}
 		return "error", out, nil
 	}
+	images := imagesRes.Items
 
 	items := make([]interface{}, 0, len(images))
 	for _, img := range images {
@@ -3161,7 +3317,7 @@ func (s *Service) executeImageList(ctx context.Context, node *CanvasNode, msg Ms
 
 // executeImageInspect returns detailed info about a Docker image.
 func (s *Service) executeImageInspect(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3171,10 +3327,10 @@ func (s *Service) executeImageInspect(ctx context.Context, node *CanvasNode, msg
 		return "", nil, fmt.Errorf("image is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, _, inspectErr := cli.ImageInspectWithRaw(opCtx, imageName)
+	info, inspectErr := cli.ImageInspect(opCtx, imageName)
 	if inspectErr != nil {
 		s.logger.Error("workflows: image inspect failed", "error", inspectErr, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -3194,7 +3350,7 @@ func (s *Service) executeImageInspect(ctx context.Context, node *CanvasNode, msg
 		"created":      info.Created,
 		"author":       info.Author,
 		"layers":       len(info.RootFS.Layers),
-		"env":          info.Config.Env,
+		"env":          imageEnvForRun(info.Config.Env),
 		"cmd":          info.Config.Cmd,
 		"entrypoint":   info.Config.Entrypoint,
 		"labels":       info.Config.Labels,
@@ -3203,9 +3359,16 @@ func (s *Service) executeImageInspect(ctx context.Context, node *CanvasNode, msg
 	return "output", out, nil
 }
 
+// imageEnvForRun withholds credential-looking values from an image's env: a run's output is
+// shown to anyone who can read the workflow, and there is no reveal path here.
+func imageEnvForRun(env []string) []string {
+	masked, _ := envredact.Policy{}.EnvList(env)
+	return masked
+}
+
 // executeImageRemove removes a Docker image.
 func (s *Service) executeImageRemove(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3223,10 +3386,10 @@ func (s *Service) executeImageRemove(ctx context.Context, node *CanvasNode, msg 
 		pruneChildren = v
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	deleted, rmErr := cli.ImageRemove(opCtx, imageName, image.RemoveOptions{Force: force, PruneChildren: pruneChildren})
+	deletedRes, rmErr := cli.ImageRemove(opCtx, imageName, dockerclient.ImageRemoveOptions{Force: force, PruneChildren: pruneChildren})
 	if rmErr != nil {
 		s.logger.Error("workflows: image remove failed", "error", rmErr, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -3234,6 +3397,7 @@ func (s *Service) executeImageRemove(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "image remove failed", "image": imageName}
 		return "error", out, nil
 	}
+	deleted := deletedRes.Items
 
 	untagged := 0
 	deletedCount := 0
@@ -3258,7 +3422,7 @@ func (s *Service) executeImageRemove(ctx context.Context, node *CanvasNode, msg 
 
 // executeImageTag tags a Docker image with a new name.
 func (s *Service) executeImageTag(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3269,10 +3433,10 @@ func (s *Service) executeImageTag(ctx context.Context, node *CanvasNode, msg Msg
 		return "", nil, fmt.Errorf("source and target are required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	if tagErr := cli.ImageTag(opCtx, source, target); tagErr != nil {
+	if _, tagErr := cli.ImageTag(opCtx, dockerclient.ImageTagOptions{Source: source, Target: target}); tagErr != nil {
 		s.logger.Error("workflows: image tag failed", "error", tagErr, "source", source, "target", target, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -3296,7 +3460,7 @@ func (s *Service) executeImageTag(ctx context.Context, node *CanvasNode, msg Msg
 
 // executeVolumeList lists Docker volumes.
 func (s *Service) executeVolumeList(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3306,17 +3470,17 @@ func (s *Service) executeVolumeList(ctx context.Context, node *CanvasNode, msg M
 		filterDangling = v
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	opts := volume.ListOptions{}
+	opts := dockerclient.VolumeListOptions{}
 	if filterDangling {
-		f := filters.NewArgs()
+		f := make(dockerclient.Filters)
 		f.Add("dangling", "true")
 		opts.Filters = f
 	}
 
-	resp, listErr := cli.VolumeList(opCtx, opts)
+	respRes, listErr := cli.VolumeList(opCtx, opts)
 	if listErr != nil {
 		s.logger.Error("workflows: volume list failed", "error", listErr, "envID", envID)
 		out := CloneMsg(msg)
@@ -3324,9 +3488,10 @@ func (s *Service) executeVolumeList(ctx context.Context, node *CanvasNode, msg M
 		out["payload"] = map[string]interface{}{"error": "volume list failed"}
 		return "error", out, nil
 	}
+	resp := respRes.Items
 
-	items := make([]interface{}, 0, len(resp.Volumes))
-	for _, vol := range resp.Volumes {
+	items := make([]interface{}, 0, len(resp))
+	for _, vol := range resp {
 		items = append(items, map[string]interface{}{
 			"name":       vol.Name,
 			"driver":     vol.Driver,
@@ -3345,7 +3510,7 @@ func (s *Service) executeVolumeList(ctx context.Context, node *CanvasNode, msg M
 
 // executeVolumeCreate creates a Docker volume.
 func (s *Service) executeVolumeCreate(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3367,10 +3532,10 @@ func (s *Service) executeVolumeCreate(ctx context.Context, node *CanvasNode, msg
 		}
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	vol, createErr := cli.VolumeCreate(opCtx, volume.CreateOptions{
+	volRes, createErr := cli.VolumeCreate(opCtx, dockerclient.VolumeCreateOptions{
 		Name:   name,
 		Driver: driver,
 		Labels: labels,
@@ -3382,6 +3547,7 @@ func (s *Service) executeVolumeCreate(ctx context.Context, node *CanvasNode, msg
 		out["payload"] = map[string]interface{}{"error": "volume create failed", "name": name}
 		return "error", out, nil
 	}
+	vol := volRes.Volume
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -3396,24 +3562,27 @@ func (s *Service) executeVolumeCreate(ctx context.Context, node *CanvasNode, msg
 
 // executeVolumeRemove removes a Docker volume.
 func (s *Service) executeVolumeRemove(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	name, _ := node.Config["name"].(string)
+	name := nodeConfigString(node, "volume", nodeConfigString(node, "name", ""))
 	if name == "" {
 		return "", nil, fmt.Errorf("volume name is required")
+	}
+	if guardErr := s.guardSelfVolume(ctx, envID, name); guardErr != nil {
+		return "", nil, guardErr
 	}
 	force := false
 	if v, ok := node.Config["force"].(bool); ok {
 		force = v
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	if rmErr := cli.VolumeRemove(opCtx, name, force); rmErr != nil {
+	if _, rmErr := cli.VolumeRemove(opCtx, name, dockerclient.VolumeRemoveOptions{Force: force}); rmErr != nil {
 		s.logger.Error("workflows: volume remove failed", "error", rmErr, "name", name, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -3432,20 +3601,20 @@ func (s *Service) executeVolumeRemove(ctx context.Context, node *CanvasNode, msg
 
 // executeVolumeInspect returns detailed info about a Docker volume.
 func (s *Service) executeVolumeInspect(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	name, _ := node.Config["name"].(string)
+	name := nodeConfigString(node, "volume", nodeConfigString(node, "name", ""))
 	if name == "" {
 		return "", nil, fmt.Errorf("volume name is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	vol, inspectErr := cli.VolumeInspect(opCtx, name)
+	volRes, inspectErr := cli.VolumeInspect(opCtx, name, dockerclient.VolumeInspectOptions{})
 	if inspectErr != nil {
 		s.logger.Error("workflows: volume inspect failed", "error", inspectErr, "name", name, "envID", envID)
 		out := CloneMsg(msg)
@@ -3453,6 +3622,7 @@ func (s *Service) executeVolumeInspect(ctx context.Context, node *CanvasNode, ms
 		out["payload"] = map[string]interface{}{"error": "volume inspect failed", "name": name}
 		return "error", out, nil
 	}
+	vol := volRes.Volume
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -3479,7 +3649,7 @@ func (s *Service) executeVolumeBackup(ctx context.Context, node *CanvasNode, msg
 		return "", nil, fmt.Errorf("backup path is required")
 	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3516,8 +3686,11 @@ func (s *Service) executeVolumeRestore(ctx context.Context, node *CanvasNode, ms
 	if strings.TrimSpace(backupPath) == "" {
 		return "", nil, fmt.Errorf("backup path is required")
 	}
+	if guardErr := s.guardSelfVolume(ctx, envID, volumeName); guardErr != nil {
+		return "", nil, guardErr
+	}
 
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3615,15 +3788,15 @@ func (s *Service) executeStorageLocationGet(ctx context.Context, node *CanvasNod
 
 // executeNetworkList lists Docker networks.
 func (s *Service) executeNetworkList(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	networks, listErr := cli.NetworkList(opCtx, network.ListOptions{})
+	networksRes, listErr := cli.NetworkList(opCtx, dockerclient.NetworkListOptions{})
 	if listErr != nil {
 		s.logger.Error("workflows: network list failed", "error", listErr, "envID", envID)
 		out := CloneMsg(msg)
@@ -3631,6 +3804,7 @@ func (s *Service) executeNetworkList(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "network list failed"}
 		return "error", out, nil
 	}
+	networks := networksRes.Items
 
 	items := make([]interface{}, 0, len(networks))
 	for _, n := range networks {
@@ -3652,7 +3826,7 @@ func (s *Service) executeNetworkList(ctx context.Context, node *CanvasNode, msg 
 
 // executeNetworkCreate creates a Docker network.
 func (s *Service) executeNetworkCreate(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3671,16 +3845,24 @@ func (s *Service) executeNetworkCreate(ctx context.Context, node *CanvasNode, ms
 	}
 	subnet, _ := node.Config["subnet"].(string)
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	opts := network.CreateOptions{
+	opts := dockerclient.NetworkCreateOptions{
 		Driver:   driver,
 		Internal: internal,
 	}
 	if subnet != "" {
+		prefix, parseErr := netip.ParsePrefix(subnet)
+		if parseErr != nil {
+			s.logger.Error("workflows: network create failed", "error", parseErr, "name", name, "envID", envID)
+			out := CloneMsg(msg)
+			out = EnsureMsgID(out)
+			out["payload"] = map[string]interface{}{"error": "network create failed", "name": name}
+			return "error", out, nil
+		}
 		opts.IPAM = &network.IPAM{
-			Config: []network.IPAMConfig{{Subnet: subnet}},
+			Config: []network.IPAMConfig{{Subnet: prefix}},
 		}
 	}
 
@@ -3705,20 +3887,20 @@ func (s *Service) executeNetworkCreate(ctx context.Context, node *CanvasNode, ms
 
 // executeNetworkRemove removes a Docker network.
 func (s *Service) executeNetworkRemove(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	name, _ := node.Config["name"].(string)
+	name := nodeConfigString(node, "network", nodeConfigString(node, "name", ""))
 	if name == "" {
 		return "", nil, fmt.Errorf("network name is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	if rmErr := cli.NetworkRemove(opCtx, name); rmErr != nil {
+	if _, rmErr := cli.NetworkRemove(opCtx, name, dockerclient.NetworkRemoveOptions{}); rmErr != nil {
 		s.logger.Error("workflows: network remove failed", "error", rmErr, "name", name, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -3737,20 +3919,20 @@ func (s *Service) executeNetworkRemove(ctx context.Context, node *CanvasNode, ms
 
 // executeNetworkInspect returns detailed info about a Docker network.
 func (s *Service) executeNetworkInspect(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 
-	name, _ := node.Config["name"].(string)
+	name := nodeConfigString(node, "network", nodeConfigString(node, "name", ""))
 	if name == "" {
 		return "", nil, fmt.Errorf("network name is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	info, inspectErr := cli.NetworkInspect(opCtx, name, network.InspectOptions{})
+	infoRes, inspectErr := cli.NetworkInspect(opCtx, name, dockerclient.NetworkInspectOptions{})
 	if inspectErr != nil {
 		s.logger.Error("workflows: network inspect failed", "error", inspectErr, "name", name, "envID", envID)
 		out := CloneMsg(msg)
@@ -3758,14 +3940,15 @@ func (s *Service) executeNetworkInspect(ctx context.Context, node *CanvasNode, m
 		out["payload"] = map[string]interface{}{"error": "network inspect failed", "name": name}
 		return "error", out, nil
 	}
+	info := infoRes.Network
 
 	containers := make(map[string]interface{}, len(info.Containers))
 	for id, ep := range info.Containers {
 		containers[id[:12]] = map[string]interface{}{
 			"name":        ep.Name,
-			"ipv4Address": ep.IPv4Address,
-			"ipv6Address": ep.IPv6Address,
-			"macAddress":  ep.MacAddress,
+			"ipv4Address": wireText(ep.IPv4Address),
+			"ipv6Address": wireText(ep.IPv6Address),
+			"macAddress":  wireText(ep.MacAddress),
 		}
 	}
 
@@ -3786,7 +3969,7 @@ func (s *Service) executeNetworkInspect(ctx context.Context, node *CanvasNode, m
 
 // executeNetworkConnect connects or disconnects a container from a network.
 func (s *Service) executeNetworkConnect(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -3801,14 +3984,19 @@ func (s *Service) executeNetworkConnect(ctx context.Context, node *CanvasNode, m
 		action = "connect"
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ref, guardErr := s.guardSelfContainer(ctx, envID, containerName, false)
+	if guardErr != nil {
+		return "", nil, guardErr
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	var opErr error
 	if action == "disconnect" {
-		opErr = cli.NetworkDisconnect(opCtx, networkName, containerName, false)
+		_, opErr = cli.NetworkDisconnect(opCtx, networkName, dockerclient.NetworkDisconnectOptions{Container: ref})
 	} else {
-		opErr = cli.NetworkConnect(opCtx, networkName, containerName, nil)
+		_, opErr = cli.NetworkConnect(opCtx, networkName, dockerclient.NetworkConnectOptions{Container: ref})
 	}
 
 	if opErr != nil {
@@ -3885,8 +4073,94 @@ func (s *Service) executeSwitch(node *CanvasNode, msg Msg) (string, Msg, error) 
 	return "default", msg, nil
 }
 
+// executeConditionNode routes a message on the node's own condition first, then on
+// each extra condition in order, matching the port set the canvas draws.
+//
+// Without extras the node is a two-port branch: "true" / "false". With extras the
+// canvas draws "true", "condition_0".."condition_N-1", "else"
+// (getEffectiveOutputPorts in src/frontend/modules/workflows/types.ts), and the
+// first match wins — so an extra condition is only reached when the primary one
+// and every earlier extra have failed.
+func (s *Service) executeConditionNode(node *CanvasNode, msg Msg) (string, Msg, error) {
+	time.Sleep(100 * time.Millisecond)
+
+	field, _ := node.Config["field"].(string)
+	operator, _ := node.Config["operator"].(string)
+	value, _ := node.Config["value"].(string)
+	primary := evaluateCondition(field, operator, value, msg)
+
+	extras := parseExtraConditions(node.Config["extra_conditions"])
+
+	// Pass msg through unchanged in every branch — a condition node decides
+	// routing and never rewrites the message.
+	if len(extras) == 0 {
+		if primary {
+			return "true", msg, nil
+		}
+		return "false", msg, nil
+	}
+
+	if primary {
+		return "true", msg, nil
+	}
+	for i, extra := range extras {
+		// A malformed entry holds its index and never matches. Evaluating it would
+		// match everything, because evaluateCondition treats an empty field as true.
+		if extra.Invalid {
+			continue
+		}
+		if evaluateCondition(extra.Field, extra.Operator, extra.Value, msg) {
+			return fmt.Sprintf("condition_%d", i), msg, nil
+		}
+	}
+	return "else", msg, nil
+}
+
+// extraCondition is one additional branch on a condition node, matching the
+// frontend's ExtraCondition type. Label is carried for parity and is not read
+// here: the canvas shows it, the engine routes by index.
+type extraCondition struct {
+	Field    string
+	Operator string
+	Value    string
+	// Invalid marks an entry that could not be read. It keeps its index so the
+	// canvas's edges stay aligned, and is never evaluated.
+	Invalid bool
+}
+
+// parseExtraConditions reads node.Config["extra_conditions"], which arrives as
+// []interface{} of map[string]interface{} from the stored canvas JSON.
+//
+// A malformed entry is kept rather than skipped, because dropping it would shift
+// every later condition onto the wrong output port — the edges the canvas drew
+// are bound to the index, so the count has to survive intact.
+func parseExtraConditions(raw interface{}) []extraCondition {
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	out := make([]extraCondition, 0, len(list))
+	for _, item := range list {
+		entry, ok := item.(map[string]interface{})
+		if !ok {
+			out = append(out, extraCondition{Invalid: true})
+			continue
+		}
+		field, _ := entry["field"].(string)
+		operator, _ := entry["operator"].(string)
+		value, _ := entry["value"].(string)
+		out = append(out, extraCondition{Field: field, Operator: operator, Value: value})
+	}
+	return out
+}
+
 // evaluateCondition checks a simple condition against the msg using dot-notation paths.
 // Fields like "payload.status" resolve to msg["payload"]["status"].
+//
+// An unknown operator returns true, so the operator lists the UI offers must stay
+// within this set or a condition silently always passes. PREDICATE_OPERATORS in
+// src/frontend/modules/workflows/node-predicates.ts is that set, and
+// node-predicates.contract.test.ts parses this switch to keep the two in step.
 func evaluateCondition(field, operator, value string, msg Msg) bool {
 	if field == "" {
 		return true
@@ -3906,10 +4180,14 @@ func evaluateCondition(field, operator, value string, msg Msg) bool {
 		return fieldValue != value
 	case "contains":
 		return strings.Contains(fieldValue, value)
+	case "starts_with":
+		return strings.HasPrefix(fieldValue, value)
 	case "is_empty":
 		return fieldValue == ""
 	case "is_not_empty":
 		return fieldValue != ""
+	case ">", "<", ">=", "<=":
+		return compareOrdered(fieldValue, operator, value)
 	case "regex":
 		if re, err := regexp.Compile(value); err == nil {
 			return re.MatchString(fieldValue)
@@ -3920,32 +4198,44 @@ func evaluateCondition(field, operator, value string, msg Msg) bool {
 	}
 }
 
+// compareOrdered evaluates the four ordering operators, numerically when both
+// sides parse as numbers and lexicographically otherwise.
+//
+// The string fallback matters because a msg path resolves through
+// fmt.Sprintf("%v", …): a timestamp or a semver-ish string is the common case for
+// an ordering test, and refusing it would make the operator useless there.
+func compareOrdered(fieldValue, operator, value string) bool {
+	left, leftErr := strconv.ParseFloat(strings.TrimSpace(fieldValue), 64)
+	right, rightErr := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if leftErr == nil && rightErr == nil {
+		switch operator {
+		case ">":
+			return left > right
+		case "<":
+			return left < right
+		case ">=":
+			return left >= right
+		case "<=":
+			return left <= right
+		}
+		return false
+	}
+	switch operator {
+	case ">":
+		return fieldValue > value
+	case "<":
+		return fieldValue < value
+	case ">=":
+		return fieldValue >= value
+	case "<=":
+		return fieldValue <= value
+	}
+	return false
+}
+
 // ---------------------------------------------------------------------------
 // Trigger node implementations
 // ---------------------------------------------------------------------------
-
-func (s *Service) executeCronTrigger(ctx context.Context, node *CanvasNode) (string, Msg, error) {
-	select {
-	case <-ctx.Done():
-		return "", nil, ctx.Err()
-	case <-time.After(200 * time.Millisecond):
-	}
-	cron, _ := node.Config["cron"].(string)
-	tz, _ := node.Config["timezone"].(string)
-	if tz == "" {
-		tz = "UTC"
-	}
-	now := time.Now().UTC()
-	out := NewMsg(map[string]interface{}{
-		"trigger":   "cron",
-		"cron":      cron,
-		"timezone":  tz,
-		"timestamp": now.Format(time.RFC3339),
-		"unix":      now.Unix(),
-	})
-	out["topic"] = "cron"
-	return "output", out, nil
-}
 
 func (s *Service) executeFileWatchTrigger(ctx context.Context, node *CanvasNode) (string, Msg, error) {
 	select {
@@ -3954,7 +4244,7 @@ func (s *Service) executeFileWatchTrigger(ctx context.Context, node *CanvasNode)
 	case <-time.After(200 * time.Millisecond):
 	}
 	watchPath, _ := node.Config["path"].(string)
-	eventTypes, _ := node.Config["event_types"].(string)
+	eventTypes := configStringSlice(node.Config["event_types"])
 	storageLocationID, _ := node.Config["storage_location_id"].(string)
 	now := time.Now().UTC()
 	out := NewMsg(map[string]interface{}{
@@ -3991,51 +4281,6 @@ func (s *Service) fileWatchStorageLocationPayload(ctx context.Context, id string
 // ---------------------------------------------------------------------------
 // Logic / Flow node implementations
 // ---------------------------------------------------------------------------
-
-func (s *Service) executeRange(node *CanvasNode, msg Msg) (string, Msg, error) {
-	property, _ := node.Config["property"].(string)
-	if property == "" {
-		property = "payload"
-	}
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	raw, ok := GetPath(out, property)
-	if !ok {
-		out["payload"] = map[string]interface{}{"error": "property not found", "property": property}
-		return "error", out, nil
-	}
-	arr, ok := raw.([]interface{})
-	if !ok {
-		// Not an array — pass through with the single item
-		return "output", out, nil
-	}
-	// In a real executor, range would emit one msg per item.
-	// For now, set parts metadata and pass the first item.
-	if len(arr) > 0 {
-		SetPath(out, property, arr[0])
-	}
-	out["parts"] = map[string]interface{}{
-		"type":  "array",
-		"count": len(arr),
-		"index": 0,
-	}
-	return "output", out, nil
-}
-
-func (s *Service) executeAggregate(node *CanvasNode, msg Msg) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeAggregateRuntime.
-	time.Sleep(100 * time.Millisecond)
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["_aggregate"] = map[string]interface{}{"status": "collected"}
-	return "output", out, nil
-}
-
-func (s *Service) executeRateLimit(node *CanvasNode, msg Msg) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeRateLimitRuntime.
-	time.Sleep(100 * time.Millisecond)
-	return "output", msg, nil
-}
 
 func (s *Service) executeFilter(node *CanvasNode, msg Msg) (string, Msg, error) {
 	time.Sleep(100 * time.Millisecond)
@@ -4098,15 +4343,26 @@ func (s *Service) executeSort(node *CanvasNode, msg Msg) (string, Msg, error) {
 	return "output", out, nil
 }
 
-func (s *Service) executeDeduplicate(node *CanvasNode, msg Msg) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeDeduplicateRuntime.
-	time.Sleep(100 * time.Millisecond)
-	return "unique", msg, nil
-}
-
 // ---------------------------------------------------------------------------
 // Data transformation node implementations
 // ---------------------------------------------------------------------------
+
+var msgTemplatePattern = regexp.MustCompile(`\{\{([^}]+)\}\}`)
+
+// renderMsgTemplate replaces {{path}} placeholders with the value found at
+// that path in msg. Unknown paths are left as-is so the user can see them.
+func renderMsgTemplate(tmpl string, msg Msg) string {
+	if !strings.Contains(tmpl, "{{") {
+		return tmpl
+	}
+	return msgTemplatePattern.ReplaceAllStringFunc(tmpl, func(match string) string {
+		key := strings.TrimSpace(match[2 : len(match)-2])
+		if v, ok := GetPath(msg, key); ok {
+			return fmt.Sprintf("%v", v)
+		}
+		return match
+	})
+}
 
 func (s *Service) executeTemplate(node *CanvasNode, msg Msg) (string, Msg, error) {
 	tmpl, _ := node.Config["template"].(string)
@@ -4118,14 +4374,7 @@ func (s *Service) executeTemplate(node *CanvasNode, msg Msg) (string, Msg, error
 		return "error", msg, nil
 	}
 
-	// Simple Mustache-style replacement: {{field}} → value from msg
-	result := regexp.MustCompile(`\{\{([^}]+)\}\}`).ReplaceAllStringFunc(tmpl, func(match string) string {
-		key := strings.TrimSpace(match[2 : len(match)-2])
-		if v, ok := GetPath(msg, key); ok {
-			return fmt.Sprintf("%v", v)
-		}
-		return match
-	})
+	result := renderMsgTemplate(tmpl, msg)
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -4180,8 +4429,7 @@ func (s *Service) executePick(node *CanvasNode, msg Msg) (string, Msg, error) {
 	if property == "" {
 		property = "payload"
 	}
-	fieldsStr, _ := node.Config["fields"].(string)
-	fields := strings.Split(fieldsStr, ",")
+	fields := configStringSlice(node.Config["fields"])
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -4196,7 +4444,6 @@ func (s *Service) executePick(node *CanvasNode, msg Msg) (string, Msg, error) {
 
 	picked := make(map[string]interface{})
 	for _, f := range fields {
-		f = strings.TrimSpace(f)
 		if v, exists := obj[f]; exists {
 			picked[f] = v
 		}
@@ -4210,11 +4457,10 @@ func (s *Service) executeOmit(node *CanvasNode, msg Msg) (string, Msg, error) {
 	if property == "" {
 		property = "payload"
 	}
-	fieldsStr, _ := node.Config["fields"].(string)
-	fields := strings.Split(fieldsStr, ",")
+	fields := configStringSlice(node.Config["fields"])
 	omitSet := make(map[string]bool, len(fields))
 	for _, f := range fields {
-		omitSet[strings.TrimSpace(f)] = true
+		omitSet[f] = true
 	}
 
 	out := CloneMsg(msg)
@@ -4239,7 +4485,7 @@ func (s *Service) executeOmit(node *CanvasNode, msg Msg) (string, Msg, error) {
 }
 
 func (s *Service) executeMergeObjects(node *CanvasNode, msg Msg) (string, Msg, error) {
-	sourcesStr, _ := node.Config["sources"].(string)
+	sources := configStringSlice(node.Config["sources"])
 	outputProp, _ := node.Config["output_property"].(string)
 	if outputProp == "" {
 		outputProp = "payload"
@@ -4249,8 +4495,7 @@ func (s *Service) executeMergeObjects(node *CanvasNode, msg Msg) (string, Msg, e
 	out = EnsureMsgID(out)
 
 	merged := make(map[string]interface{})
-	for _, src := range strings.Split(sourcesStr, ",") {
-		src = strings.TrimSpace(src)
+	for _, src := range sources {
 		if raw, ok := GetPath(out, src); ok {
 			if obj, ok := raw.(map[string]interface{}); ok {
 				for k, v := range obj {
@@ -4285,6 +4530,7 @@ func (s *Service) executeBase64(node *CanvasNode, msg Msg) (string, Msg, error) 
 	if action == "decode" {
 		decoded, err := base64.StdEncoding.DecodeString(str)
 		if err != nil {
+			s.logger.Warn("workflows: base64 decode failed", "error", err)
 			s.logger.Warn("workflows: base64 decode failed", "error", err, "property", property)
 			return "error", workflowErrorMsg(msg, "base64 decode failed", map[string]interface{}{"property": property}), nil
 		}
@@ -4342,9 +4588,7 @@ func (s *Service) executeDateFormat(node *CanvasNode, msg Msg) (string, Msg, err
 		property = "payload"
 	}
 	outputFormat, _ := node.Config["output_format"].(string)
-	if outputFormat == "" {
-		outputFormat = time.RFC3339
-	}
+	outputFormat = resolveDateFormatPreset(outputFormat)
 	tz, _ := node.Config["timezone"].(string)
 	if tz == "" {
 		tz = "UTC"
@@ -4378,15 +4622,49 @@ func (s *Service) executeDateFormat(node *CanvasNode, msg Msg) (string, Msg, err
 	}
 	if parseErr != nil {
 		out["payload"] = map[string]interface{}{"error": "could not parse date", "input": str}
-		return "error", out, nil
+		return "error", out, nil //nolint:nilerr // an unparseable date is reported on the error port, not as a hard node failure
 	}
 
 	loc, locErr := time.LoadLocation(tz)
 	if locErr != nil {
 		loc = time.UTC
 	}
+	if outputFormat == dateFormatUnix {
+		SetPath(out, property, strconv.FormatInt(parsed.In(loc).Unix(), 10))
+		return "output", out, nil
+	}
 	SetPath(out, property, parsed.In(loc).Format(outputFormat))
 	return "output", out, nil
+}
+
+// dateFormatUnix is the sentinel the "unix" preset resolves to; it is not
+// a Go layout, so executeDateFormat branches on it before calling Format.
+const dateFormatUnix = "\x00unix"
+
+// resolveDateFormatPreset maps the preset keys the date-format node offers
+// in its picker to Go layouts. Anything else is treated as a literal
+// layout, which keeps workflows saved with a hand-typed format working.
+func resolveDateFormatPreset(value string) string {
+	switch strings.TrimSpace(value) {
+	case "", "rfc3339":
+		return time.RFC3339
+	case "rfc1123":
+		return time.RFC1123
+	case "date":
+		return "2006-01-02"
+	case "datetime":
+		return "2006-01-02 15:04:05"
+	case "time":
+		return "15:04:05"
+	case "date_eu":
+		return "02-01-2006"
+	case "date_us":
+		return "01/02/2006"
+	case "unix":
+		return dateFormatUnix
+	default:
+		return value
+	}
 }
 
 func (s *Service) executeMath(node *CanvasNode, msg Msg) (string, Msg, error) {
@@ -4419,7 +4697,7 @@ func (s *Service) executeMath(node *CanvasNode, msg Msg) (string, Msg, error) {
 		parsed, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			out["payload"] = map[string]interface{}{"error": "not a number"}
-			return "error", out, nil
+			return "error", out, nil //nolint:nilerr // a non-numeric input is reported on the error port, not as a hard node failure
 		}
 		val = parsed
 	default:
@@ -4519,8 +4797,8 @@ func (s *Service) executeStringOps(node *CanvasNode, msg Msg) (string, Msg, erro
 			result = str
 		}
 	case "substring":
-		start, _ := strconv.Atoi(arg1)
-		end, _ := strconv.Atoi(arg2)
+		start := atoiOrZero(arg1)
+		end := atoiOrZero(arg2)
 		if start < 0 {
 			start = 0
 		}
@@ -4580,36 +4858,6 @@ func (s *Service) executeJSONPath(node *CanvasNode, msg Msg) (string, Msg, error
 // HTTP node implementations
 // ---------------------------------------------------------------------------
 
-func (s *Service) executeWebhookResponse(node *CanvasNode, msg Msg) (string, Msg, error) {
-	statusCode := int(configFloat(node.Config, "status_code", 200))
-	contentType, _ := node.Config["content_type"].(string)
-	body, _ := node.Config["body"].(string)
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["res"] = map[string]interface{}{
-		"status":      statusCode,
-		"contentType": contentType,
-		"body":        body,
-	}
-	return "output", out, nil
-}
-
-func (s *Service) executeHTTPResponse(node *CanvasNode, msg Msg) (string, Msg, error) {
-	statusCode := int(configFloat(node.Config, "status_code", 200))
-	headers, _ := node.Config["headers"].(map[string]interface{})
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	hdrs := make(map[string]interface{})
-	for k, v := range headers {
-		hdrs[k] = v
-	}
-	out["res"] = map[string]interface{}{"status": statusCode}
-	out["headers"] = hdrs
-	return "output", out, nil
-}
-
 func (s *Service) executeGraphQLRequest(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	urlStr, _ := node.Config["url"].(string)
 	query, _ := node.Config["query"].(string)
@@ -4624,9 +4872,12 @@ func (s *Service) executeGraphQLRequest(ctx context.Context, node *CanvasNode, m
 	if variables != nil {
 		body["variables"] = variables
 	}
-	bodyBytes, _ := json.Marshal(body)
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return "", nil, fmt.Errorf("encoding graphql request: %w", err)
+	}
 
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	reqCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(reqCtx, "POST", urlStr, bytes.NewReader(bodyBytes))
@@ -4646,9 +4897,12 @@ func (s *Service) executeGraphQLRequest(ctx context.Context, node *CanvasNode, m
 		out["payload"] = map[string]interface{}{"error": "graphql request failed"}
 		return "error", out, nil
 	}
-	defer resp.Body.Close()
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading response body", "error", readErr)
+	}
 	var parsed interface{}
 	if jsonErr := json.Unmarshal(respBody, &parsed); jsonErr != nil {
 		parsed = string(respBody)
@@ -4665,6 +4919,18 @@ func (s *Service) executeGraphQLRequest(ctx context.Context, node *CanvasNode, m
 // Notification node implementations
 // ---------------------------------------------------------------------------
 
+// configuredEmailRequest addresses the mail to the node's own recipients when it names any;
+// an empty to leaves Recipient empty, so the channel's saved recipients are the default.
+func configuredEmailRequest(channelID string, emailTypes []string, to, subject, body string) corenotify.ChannelRequest {
+	return corenotify.ChannelRequest{
+		ChannelID:    channelID,
+		ChannelTypes: emailTypes,
+		Title:        subject,
+		Message:      body,
+		Recipient:    to,
+	}
+}
+
 func (s *Service) executeSendConfiguredEmail(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	if deliveryMode, _ := node.Config["delivery_mode"].(string); deliveryMode == "custom" {
 		return s.executeSendCustomEmail(ctx, node, msg)
@@ -4674,25 +4940,33 @@ func (s *Service) executeSendConfiguredEmail(ctx context.Context, node *CanvasNo
 		return "", nil, fmt.Errorf("notification dispatcher is not configured")
 	}
 
-	to, _ := node.Config["to"].(string)
+	to := strings.Join(configStringSlice(node.Config["to"]), ",")
 	subject, _ := node.Config["subject"].(string)
 	body, _ := node.Config["body"].(string)
-	serverID, _ := node.Config["server_id"].(string)
-	if strings.TrimSpace(to) == "" {
-		return "", nil, fmt.Errorf("recipient is required")
+	channelID, _ := node.Config["channel_id"].(string)
+	if channelID == "" {
+		channelID, _ = node.Config["server_id"].(string)
 	}
+	// An empty "To" is not an error here: it leaves Recipient empty, so the dispatcher
+	// delivers to the recipients saved on the channel, the same default reports use.
 	if strings.TrimSpace(body) == "" {
 		return "", nil, fmt.Errorf("body is required")
 	}
 
-	delivery, err := s.notifier.SendEmail(ctx, corenotify.EmailRequest{
-		ServerID: serverID,
-		To:       to,
-		Subject:  subject,
-		Body:     body,
-	})
+	// With no server picked the default email channel is wanted, and only a plugin that
+	// declares its channel type an email transport can supply one; with none loaded the
+	// node fails rather than handing the mail to whichever channel is the default.
+	var emailTypes []string
+	if channelID == "" {
+		emailTypes = s.emailChannelTypes()
+		if len(emailTypes) == 0 {
+			return "", nil, fmt.Errorf("no installed communication plugin can send email")
+		}
+	}
+
+	delivery, err := s.notifier.SendChannel(ctx, configuredEmailRequest(channelID, emailTypes, to, subject, body))
 	if err != nil {
-		s.logger.Error("workflows: configured email send failed", "error", err, "serverID", serverID)
+		s.logger.Error("workflows: configured email send failed", "error", err, "channelID", channelID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
 		out["payload"] = map[string]interface{}{
@@ -4706,17 +4980,17 @@ func (s *Service) executeSendConfiguredEmail(ctx context.Context, node *CanvasNo
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	out["payload"] = map[string]interface{}{
-		"sent":       true,
-		"to":         to,
-		"subject":    subject,
-		"serverId":   delivery.TargetID,
-		"serverName": delivery.TargetName,
+		"sent":        true,
+		"to":          to,
+		"subject":     subject,
+		"channelId":   delivery.TargetID,
+		"channelName": delivery.TargetName,
 	}
 	return "output", out, nil
 }
 
 func (s *Service) executeSendCustomEmail(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	to, _ := node.Config["to"].(string)
+	to := strings.Join(configStringSlice(node.Config["to"]), ",")
 	subject, _ := node.Config["subject"].(string)
 	body, _ := node.Config["body"].(string)
 	host, _ := node.Config["smtp_host"].(string)
@@ -4824,73 +5098,6 @@ func (s *Service) executeSendConfiguredNotification(ctx context.Context, node *C
 	return "output", out, nil
 }
 
-// executeSendWebhookGeneric handles Slack, Discord, and Teams webhook messages.
-func (s *Service) executeSendWebhookGeneric(ctx context.Context, node *CanvasNode, msg Msg, platform string) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, platform)
-	}
-
-	webhookURL, _ := node.Config["webhook_url"].(string)
-	message, _ := node.Config["message"].(string)
-	if webhookURL == "" || message == "" {
-		return "", nil, fmt.Errorf("webhook_url and message are required")
-	}
-
-	var body map[string]interface{}
-	switch platform {
-	case "discord":
-		username, _ := node.Config["username"].(string)
-		body = map[string]interface{}{"content": message}
-		if username != "" {
-			body["username"] = username
-		}
-	case "teams":
-		title, _ := node.Config["title"].(string)
-		color, _ := node.Config["color"].(string)
-		body = map[string]interface{}{"text": message}
-		if title != "" {
-			body["title"] = title
-		}
-		if color != "" {
-			body["themeColor"] = strings.TrimPrefix(color, "#")
-		}
-	default: // slack
-		channel, _ := node.Config["channel"].(string)
-		username, _ := node.Config["username"].(string)
-		body = map[string]interface{}{"text": message}
-		if channel != "" {
-			body["channel"] = channel
-		}
-		if username != "" {
-			body["username"] = username
-		}
-	}
-
-	return s.postJSON(ctx, webhookURL, body, msg, platform)
-}
-
-func (s *Service) executeSendTelegram(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, "telegram")
-	}
-
-	botToken, _ := node.Config["bot_token"].(string)
-	chatID, _ := node.Config["chat_id"].(string)
-	message, _ := node.Config["message"].(string)
-	parseMode, _ := node.Config["parse_mode"].(string)
-
-	if botToken == "" || chatID == "" || message == "" {
-		return "", nil, fmt.Errorf("bot_token, chat_id, and message are required")
-	}
-
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
-	body := map[string]interface{}{"chat_id": chatID, "text": message}
-	if parseMode != "" {
-		body["parse_mode"] = parseMode
-	}
-	return s.postJSON(ctx, apiURL, body, msg, "telegram")
-}
-
 func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	if deliveryMode, _ := node.Config["delivery_mode"].(string); deliveryMode == "configured" {
 		return s.executeSendConfiguredWebhook(ctx, node, msg)
@@ -4915,9 +5122,12 @@ func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNo
 	if raw, ok := GetPath(msg, bodySource); ok {
 		bodyData = raw
 	}
-	bodyBytes, _ := json.Marshal(bodyData)
+	bodyBytes, err := json.Marshal(bodyData)
+	if err != nil {
+		return "", nil, fmt.Errorf("encoding webhook body: %w", err)
+	}
 
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	reqCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(reqCtx, method, urlStr, bytes.NewReader(bodyBytes))
@@ -4937,8 +5147,11 @@ func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNo
 		out["payload"] = map[string]interface{}{"error": "webhook request failed"}
 		return "error", out, nil
 	}
-	defer resp.Body.Close()
-	respBody, _ := io.ReadAll(resp.Body)
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading response body", "error", readErr)
+	}
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
@@ -4979,9 +5192,12 @@ func (s *Service) executeSendConfiguredWebhook(ctx context.Context, node *Canvas
 	if raw, ok := GetPath(msg, bodySource); ok {
 		bodyData = raw
 	}
-	bodyBytes, _ := json.Marshal(bodyData)
+	bodyBytes, err := json.Marshal(bodyData)
+	if err != nil {
+		return "", nil, fmt.Errorf("encoding webhook body: %w", err)
+	}
 
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	reqCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, wh.URL, bytes.NewReader(bodyBytes))
@@ -5000,7 +5216,7 @@ func (s *Service) executeSendConfiguredWebhook(ctx context.Context, node *Canvas
 	duration := int(time.Since(start).Milliseconds())
 	if err != nil {
 		s.logger.Error("workflows: configured webhook failed", "error", err, "webhookID", wh.ID)
-		if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), 0, "request failed", false, duration); recErr != nil {
+		if recErr := s.recordWebhookDelivery(ctx, wh.ID, "workflow", string(bodyBytes), 0, "request failed", false, duration); recErr != nil {
 			s.logger.Warn("workflows: recording webhook delivery failed", "error", recErr, "webhookID", wh.ID)
 		}
 		out := CloneMsg(msg)
@@ -5008,11 +5224,14 @@ func (s *Service) executeSendConfiguredWebhook(ctx context.Context, node *Canvas
 		out["payload"] = map[string]interface{}{"error": "webhook request failed", "webhookId": wh.ID}
 		return "error", out, nil
 	}
-	defer resp.Body.Close()
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading response body", "error", readErr)
+	}
 	success := resp.StatusCode >= 200 && resp.StatusCode < 300
-	if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), resp.StatusCode, string(respBody), success, duration); recErr != nil {
+	if recErr := s.recordWebhookDelivery(ctx, wh.ID, "workflow", string(bodyBytes), resp.StatusCode, string(respBody), success, duration); recErr != nil {
 		s.logger.Warn("workflows: recording webhook delivery failed", "error", recErr, "webhookID", wh.ID)
 	}
 
@@ -5055,10 +5274,10 @@ func (s *Service) resolveConfiguredWebhook(ctx context.Context, id string) (*con
 	return &wh, nil
 }
 
-func (s *Service) recordWebhookDelivery(webhookID, event, payload string, respStatus int, respBody string, success bool, duration int) error {
+func (s *Service) recordWebhookDelivery(ctx context.Context, webhookID, event, payload string, respStatus int, respBody string, success bool, duration int) error {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err := s.db.Exec(
+	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO webhook_deliveries (id, webhook_id, event, payload, response_status, response_body, success, duration, created_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, webhookID, event, payload, respStatus, respBody, success, duration, now,
@@ -5069,184 +5288,18 @@ func (s *Service) recordWebhookDelivery(webhookID, event, payload string, respSt
 	return nil
 }
 
-func (s *Service) executeSendWhatsApp(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, "whatsapp")
+// executeSendCommunication is the merged "Send Message" node. Delivery
+// always goes through a channel configured under Settings → Communication.
+// The node itself has no channel_type field; it is only present on nodes
+// rewritten from the legacy send-<provider> keys, where it selects the
+// default channel of that provider when channel_id is empty. Recipient,
+// title and message accept {{path}} placeholders resolved against msg.
+func (s *Service) executeSendCommunication(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	channelType, _ := node.Config["channel_type"].(string)
+	if channelType == "any" {
+		channelType = ""
 	}
-
-	apiURL, _ := node.Config["api_url"].(string)
-	accessToken, _ := node.Config["access_token"].(string)
-	phoneNumber, _ := node.Config["phone_number"].(string)
-	message, _ := node.Config["message"].(string)
-
-	if apiURL == "" || accessToken == "" || phoneNumber == "" || message == "" {
-		return "", nil, fmt.Errorf("api_url, access_token, phone_number, and message are required")
-	}
-
-	body := map[string]interface{}{
-		"messaging_product": "whatsapp",
-		"to":                phoneNumber,
-		"type":              "text",
-		"text":              map[string]interface{}{"body": message},
-	}
-	bodyBytes, _ := json.Marshal(body)
-
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(reqCtx, "POST", apiURL, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return "", nil, fmt.Errorf("creating whatsapp request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		s.logger.Error("workflows: whatsapp send failed", "error", err)
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{"error": "whatsapp send failed"}
-		return "error", out, nil
-	}
-	defer resp.Body.Close()
-	respBody, _ := io.ReadAll(resp.Body)
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{"statusCode": resp.StatusCode, "body": string(respBody)}
-	if resp.StatusCode >= 400 {
-		return "error", out, nil
-	}
-	return "output", out, nil
-}
-
-func (s *Service) executeSendSignal(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, "signal")
-	}
-
-	apiURL, _ := node.Config["api_url"].(string)
-	sender, _ := node.Config["sender"].(string)
-	recipient, _ := node.Config["recipient"].(string)
-	message, _ := node.Config["message"].(string)
-
-	if apiURL == "" || sender == "" || recipient == "" || message == "" {
-		return "", nil, fmt.Errorf("api_url, sender, recipient, and message are required")
-	}
-
-	body := map[string]interface{}{
-		"message":    message,
-		"number":     sender,
-		"recipients": []string{recipient},
-	}
-	return s.postJSON(ctx, apiURL+"/v2/send", body, msg, "signal")
-}
-
-func (s *Service) executeSendNtfy(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, "ntfy")
-	}
-
-	serverURL, _ := node.Config["server_url"].(string)
-	if serverURL == "" {
-		serverURL = "https://ntfy.sh"
-	}
-	topic, _ := node.Config["topic"].(string)
-	message, _ := node.Config["message"].(string)
-	title, _ := node.Config["title"].(string)
-	priority, _ := node.Config["priority"].(string)
-	tags, _ := node.Config["tags"].(string)
-
-	if topic == "" || message == "" {
-		return "", nil, fmt.Errorf("topic and message are required")
-	}
-
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(reqCtx, "POST", serverURL+"/"+topic, strings.NewReader(message))
-	if err != nil {
-		return "", nil, fmt.Errorf("creating ntfy request: %w", err)
-	}
-	if title != "" {
-		req.Header.Set("Title", title)
-	}
-	if priority != "" {
-		req.Header.Set("Priority", priority)
-	}
-	if tags != "" {
-		req.Header.Set("Tags", tags)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		s.logger.Error("workflows: ntfy send failed", "error", err)
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{"error": "ntfy send failed"}
-		return "error", out, nil
-	}
-	defer resp.Body.Close()
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{"status": "sent", "topic": topic, "statusCode": resp.StatusCode}
-	return "output", out, nil
-}
-
-func (s *Service) executeSendGotify(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	if usesConfiguredCommunication(node) {
-		return s.executeSendConfiguredCommunication(ctx, node, msg, "gotify")
-	}
-
-	serverURL, _ := node.Config["server_url"].(string)
-	appToken, _ := node.Config["app_token"].(string)
-	message, _ := node.Config["message"].(string)
-	title, _ := node.Config["title"].(string)
-	priority := int(configFloat(node.Config, "priority", 5))
-
-	if serverURL == "" || appToken == "" || message == "" {
-		return "", nil, fmt.Errorf("server_url, app_token, and message are required")
-	}
-
-	body := map[string]interface{}{
-		"message":  message,
-		"priority": priority,
-	}
-	if title != "" {
-		body["title"] = title
-	}
-	bodyBytes, _ := json.Marshal(body)
-
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(reqCtx, "POST", serverURL+"/message?token="+appToken, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return "", nil, fmt.Errorf("creating gotify request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		s.logger.Error("workflows: gotify send failed", "error", err)
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{"error": "gotify send failed"}
-		return "error", out, nil
-	}
-	defer resp.Body.Close()
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{"status": "sent", "statusCode": resp.StatusCode}
-	return "output", out, nil
-}
-
-func usesConfiguredCommunication(node *CanvasNode) bool {
-	mode, _ := node.Config["communication_mode"].(string)
-	return mode == "configured"
+	return s.executeSendConfiguredCommunication(ctx, node, msg, channelType)
 }
 
 func (s *Service) executeSendConfiguredCommunication(ctx context.Context, node *CanvasNode, msg Msg, channelType string) (string, Msg, error) {
@@ -5255,17 +5308,22 @@ func (s *Service) executeSendConfiguredCommunication(ctx context.Context, node *
 	}
 
 	channelID, _ := node.Config["channel_id"].(string)
-	title, _ := node.Config["title"].(string)
-	message, _ := node.Config["message"].(string)
-	if strings.TrimSpace(message) == "" {
+	rawRecipient, _ := node.Config["recipient"].(string)
+	rawTitle, _ := node.Config["title"].(string)
+	rawMessage, _ := node.Config["message"].(string)
+	if strings.TrimSpace(rawMessage) == "" {
 		return "", nil, fmt.Errorf("message is required")
 	}
+	recipient := strings.TrimSpace(renderMsgTemplate(rawRecipient, msg))
+	title := renderMsgTemplate(rawTitle, msg)
+	message := renderMsgTemplate(rawMessage, msg)
 
 	delivery, err := s.notifier.SendChannel(ctx, corenotify.ChannelRequest{
 		ChannelID:   channelID,
 		ChannelType: channelType,
 		Title:       title,
 		Message:     message,
+		Recipient:   recipient,
 	})
 	if err != nil {
 		s.logger.Error("workflows: configured communication send failed", "error", err, "channelID", channelID, "channelType", channelType)
@@ -5275,6 +5333,7 @@ func (s *Service) executeSendConfiguredCommunication(ctx context.Context, node *
 			"error":       "communication send failed",
 			"channelId":   channelID,
 			"channelType": channelType,
+			"recipient":   recipient,
 			"title":       title,
 		}
 		return "error", out, nil
@@ -5287,44 +5346,9 @@ func (s *Service) executeSendConfiguredCommunication(ctx context.Context, node *
 		"channelId":   delivery.TargetID,
 		"channelName": delivery.TargetName,
 		"channelType": delivery.TargetType,
+		"recipient":   recipient,
 		"title":       title,
 		"message":     message,
-	}
-	return "output", out, nil
-}
-
-// postJSON is a helper for notification nodes that POST JSON to a webhook URL.
-func (s *Service) postJSON(ctx context.Context, url string, body map[string]interface{}, msg Msg, platform string) (string, Msg, error) {
-	bodyBytes, _ := json.Marshal(body)
-
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(reqCtx, "POST", url, bytes.NewReader(bodyBytes))
-	if err != nil {
-		return "", nil, fmt.Errorf("creating %s request: %w", platform, err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		s.logger.Error("workflows: "+platform+" send failed", "error", err, "url", url)
-		out := CloneMsg(msg)
-		out = EnsureMsgID(out)
-		out["payload"] = map[string]interface{}{"error": platform + " send failed"}
-		return "error", out, nil
-	}
-	defer resp.Body.Close()
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{
-		"status":     "sent",
-		"platform":   platform,
-		"statusCode": resp.StatusCode,
-	}
-	if resp.StatusCode >= 400 {
-		return "error", out, nil
 	}
 	return "output", out, nil
 }
@@ -5348,11 +5372,7 @@ func (s *Service) executeReadFile(node *CanvasNode, msg Msg) (string, Msg, error
 		return "", nil, fmt.Errorf("path is required")
 	}
 
-	// Resolve relative to DATA_DIR
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "/app/data"
-	}
+	dataDir := apppaths.DataDir()
 	fullPath := filepath.Join(dataDir, "files", filepath.Clean(filePath))
 
 	data, err := os.ReadFile(fullPath)
@@ -5393,10 +5413,7 @@ func (s *Service) executeWriteFile(node *CanvasNode, msg Msg) (string, Msg, erro
 		return "", nil, fmt.Errorf("path is required")
 	}
 
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "/app/data"
-	}
+	dataDir := apppaths.DataDir()
 	fullPath := filepath.Join(dataDir, "files", filepath.Clean(filePath))
 
 	raw, ok := GetPath(msg, property)
@@ -5409,6 +5426,7 @@ func (s *Service) executeWriteFile(node *CanvasNode, msg Msg) (string, Msg, erro
 		str, _ := raw.(string)
 		decoded, err := base64.StdEncoding.DecodeString(str)
 		if err != nil {
+			s.logger.Warn("workflows: base64 decode failed", "error", err)
 			out := CloneMsg(msg)
 			out = EnsureMsgID(out)
 			out["payload"] = map[string]interface{}{"error": "base64 decode failed"}
@@ -5435,7 +5453,7 @@ func (s *Service) executeWriteFile(node *CanvasNode, msg Msg) (string, Msg, erro
 			writeErr = err
 		} else {
 			_, writeErr = f.Write(data)
-			f.Close()
+			closeutil.Report(f.Close(), "f")
 		}
 	} else {
 		writeErr = os.WriteFile(fullPath, data, 0o644)
@@ -5455,7 +5473,7 @@ func (s *Service) executeWriteFile(node *CanvasNode, msg Msg) (string, Msg, erro
 	return "output", out, nil
 }
 
-func (s *Service) executeKVGet(node *CanvasNode, msg Msg) (string, Msg, error) {
+func (s *Service) executeKVGet(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	key, _ := node.Config["key"].(string)
 	outputProp, _ := node.Config["output_property"].(string)
 	if outputProp == "" {
@@ -5468,7 +5486,7 @@ func (s *Service) executeKVGet(node *CanvasNode, msg Msg) (string, Msg, error) {
 	}
 
 	var value sql.NullString
-	err := s.db.QueryRow("SELECT value FROM workflow_kv WHERE key = ? AND (expires_at IS NULL OR expires_at > datetime('now')) LIMIT 1", key).Scan(&value)
+	err := s.db.QueryRowContext(ctx, "SELECT value FROM workflow_kv WHERE key = ? AND (expires_at IS NULL OR expires_at > datetime('now')) LIMIT 1", key).Scan(&value)
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	if err != nil || !value.Valid {
@@ -5485,7 +5503,7 @@ func (s *Service) executeKVGet(node *CanvasNode, msg Msg) (string, Msg, error) {
 	return "output", out, nil
 }
 
-func (s *Service) executeKVSet(node *CanvasNode, msg Msg) (string, Msg, error) {
+func (s *Service) executeKVSet(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	key, _ := node.Config["key"].(string)
 	property, _ := node.Config["property"].(string)
 	if property == "" {
@@ -5498,7 +5516,10 @@ func (s *Service) executeKVSet(node *CanvasNode, msg Msg) (string, Msg, error) {
 	}
 
 	raw, _ := GetPath(msg, property)
-	valueBytes, _ := json.Marshal(raw)
+	valueBytes, err := json.Marshal(raw)
+	if err != nil {
+		return "", nil, fmt.Errorf("encoding kv value: %w", err)
+	}
 	valueStr := string(valueBytes)
 
 	var expiresAt *string
@@ -5507,7 +5528,7 @@ func (s *Service) executeKVSet(node *CanvasNode, msg Msg) (string, Msg, error) {
 		expiresAt = &t
 	}
 
-	_, err := s.db.Exec(
+	_, err = s.db.ExecContext(ctx,
 		"INSERT OR REPLACE INTO workflow_kv (key, value, expires_at, updated_at) VALUES (?, ?, ?, datetime('now'))",
 		key, valueStr, expiresAt,
 	)
@@ -5521,13 +5542,13 @@ func (s *Service) executeKVSet(node *CanvasNode, msg Msg) (string, Msg, error) {
 	return "output", out, nil
 }
 
-func (s *Service) executeKVDelete(node *CanvasNode, msg Msg) (string, Msg, error) {
+func (s *Service) executeKVDelete(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	key, _ := node.Config["key"].(string)
 	if key == "" {
 		return "", nil, fmt.Errorf("key is required")
 	}
 
-	_, err := s.db.Exec("DELETE FROM workflow_kv WHERE key = ?", key)
+	_, err := s.db.ExecContext(ctx, "DELETE FROM workflow_kv WHERE key = ?", key)
 	if err != nil {
 		s.logger.Error("workflows: kv delete failed", "error", err, "key", key)
 	}
@@ -5556,9 +5577,13 @@ func (s *Service) executeSQLQuery(ctx context.Context, node *CanvasNode, msg Msg
 		return "error", workflowErrorMsg(msg, "sql query failed", nil), nil
 	}
 	defer cleanup()
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
-	cols, _ := rows.Columns()
+	cols, colErr := rows.Columns()
+	if colErr != nil {
+		s.logger.Error("workflows: sql query columns failed", "error", colErr)
+		return "error", workflowErrorMsg(msg, "sql query failed", nil), nil
+	}
 	results := make([]interface{}, 0, sqlQueryMaxRows)
 	for rows.Next() {
 		if len(results) >= sqlQueryMaxRows {
@@ -5619,7 +5644,7 @@ func (s *Service) executeAssert(node *CanvasNode, msg Msg) (string, Msg, error) 
 	return "fail", out, nil
 }
 
-func (s *Service) executeMetricRecord(node *CanvasNode, msg Msg, flowCtx *FlowContext) (string, Msg, error) {
+func (s *Service) executeMetricRecord(ctx context.Context, node *CanvasNode, msg Msg, flowCtx *FlowContext) (string, Msg, error) {
 	metricName, _ := node.Config["metric_name"].(string)
 	metricName = strings.TrimSpace(metricName)
 	if metricName == "" {
@@ -5655,7 +5680,7 @@ func (s *Service) executeMetricRecord(node *CanvasNode, msg Msg, flowCtx *FlowCo
 		workflowID, _ = flowCtx.FlowVars["_workflowId"].(string)
 	}
 
-	recordedID, recordedAt, numericValue, err := s.recordWorkflowMetric(workflowID, node.ID, metricName, metricType, property, unit, raw, labels)
+	recordedID, recordedAt, numericValue, err := s.recordWorkflowMetric(ctx, workflowID, node.ID, metricName, metricType, property, unit, raw, labels)
 	if err != nil {
 		s.logger.Error("workflows: metric record failed", "error", err, "metric", metricName)
 		out["payload"] = map[string]interface{}{"error": "metric record failed", "metric": metricName}
@@ -5678,7 +5703,7 @@ func (s *Service) executeMetricRecord(node *CanvasNode, msg Msg, flowCtx *FlowCo
 	return "output", out, nil
 }
 
-func (s *Service) recordWorkflowMetric(workflowID, nodeID, metricName, metricType, sourceProperty, unit string, raw interface{}, labels map[string]interface{}) (string, string, interface{}, error) {
+func (s *Service) recordWorkflowMetric(ctx context.Context, workflowID, nodeID, metricName, metricType, sourceProperty, unit string, raw interface{}, labels map[string]interface{}) (string, string, interface{}, error) {
 	if s.db == nil {
 		return "", "", nil, fmt.Errorf("database is required")
 	}
@@ -5692,7 +5717,10 @@ func (s *Service) recordWorkflowMetric(workflowID, nodeID, metricName, metricTyp
 
 	valueJSON, err := json.Marshal(raw)
 	if err != nil {
-		valueJSON, _ = json.Marshal(fmt.Sprintf("%v", raw))
+		valueJSON, err = json.Marshal(fmt.Sprintf("%v", raw))
+		if err != nil {
+			return "", "", nil, fmt.Errorf("marshalling metric value: %w", err)
+		}
 	}
 
 	labelsJSON, err := json.Marshal(labels)
@@ -5715,7 +5743,7 @@ func (s *Service) recordWorkflowMetric(workflowID, nodeID, metricName, metricTyp
 		}
 	}
 
-	if _, err := s.db.Exec(
+	if _, err := s.db.ExecContext(ctx,
 		`INSERT INTO workflow_metrics (
 			id,
 			workflow_id,
@@ -5777,7 +5805,7 @@ func (s *Service) executeHealthCheck(ctx context.Context, node *CanvasNode, msg 
 			lastErr = err
 			continue
 		}
-		resp.Body.Close()
+		closeutil.Report(resp.Body.Close(), "resp.Body")
 		statusCode = resp.StatusCode
 		if statusCode == expectedStatus {
 			out := CloneMsg(msg)
@@ -5813,41 +5841,7 @@ func (s *Service) executeHealthCheck(ctx context.Context, node *CanvasNode, msg 
 // External service node implementations
 // ---------------------------------------------------------------------------
 
-func (s *Service) executeSSHExec(node *CanvasNode, msg Msg) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeSSHExecRuntime.
-	host, _ := node.Config["host"].(string)
-	command, _ := node.Config["command"].(string)
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{
-		"host":    host,
-		"command": command,
-		"status":  "stub",
-		"note":    "SSH execution requires runtime implementation",
-	}
-	return "output", out, nil
-}
-
-func (s *Service) executeFTPUpload(node *CanvasNode, msg Msg) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeFTPUploadRuntime.
-	host, _ := node.Config["host"].(string)
-	remotePath, _ := node.Config["remote_path"].(string)
-	protocol, _ := node.Config["protocol"].(string)
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{
-		"host":       host,
-		"remotePath": remotePath,
-		"protocol":   protocol,
-		"status":     "stub",
-		"note":       "FTP/SFTP upload requires runtime implementation",
-	}
-	return "output", out, nil
-}
-
-func (s *Service) executeDNSLookup(node *CanvasNode, msg Msg) (string, Msg, error) {
+func (s *Service) executeDNSLookup(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	hostname, _ := node.Config["hostname"].(string)
 	recordType, _ := node.Config["record_type"].(string)
 	if recordType == "" {
@@ -5865,25 +5859,25 @@ func (s *Service) executeDNSLookup(node *CanvasNode, msg Msg) (string, Msg, erro
 	var err error
 	switch recordType {
 	case "A", "AAAA":
-		ips, lookupErr := net.LookupHost(hostname)
+		ips, lookupErr := net.DefaultResolver.LookupHost(ctx, hostname)
 		err = lookupErr
 		records = ips
 	case "MX":
-		mxs, lookupErr := net.LookupMX(hostname)
+		mxs, lookupErr := net.DefaultResolver.LookupMX(ctx, hostname)
 		err = lookupErr
 		for _, mx := range mxs {
 			records = append(records, fmt.Sprintf("%s (priority %d)", mx.Host, mx.Pref))
 		}
 	case "TXT":
-		txts, lookupErr := net.LookupTXT(hostname)
+		txts, lookupErr := net.DefaultResolver.LookupTXT(ctx, hostname)
 		err = lookupErr
 		records = txts
 	case "CNAME":
-		cname, lookupErr := net.LookupCNAME(hostname)
+		cname, lookupErr := net.DefaultResolver.LookupCNAME(ctx, hostname)
 		err = lookupErr
 		records = []string{cname}
 	case "NS":
-		nss, lookupErr := net.LookupNS(hostname)
+		nss, lookupErr := net.DefaultResolver.LookupNS(ctx, hostname)
 		err = lookupErr
 		for _, ns := range nss {
 			records = append(records, ns.Host)
@@ -5907,7 +5901,7 @@ func (s *Service) executeDNSLookup(node *CanvasNode, msg Msg) (string, Msg, erro
 	return "output", out, nil
 }
 
-func (s *Service) executePing(node *CanvasNode, msg Msg) (string, Msg, error) {
+func (s *Service) executePing(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
 	host, _ := node.Config["host"].(string)
 	timeout := configFloat(node.Config, "timeout", 5)
 
@@ -5917,12 +5911,13 @@ func (s *Service) executePing(node *CanvasNode, msg Msg) (string, Msg, error) {
 
 	// TCP ping as a portable alternative to ICMP (no raw socket needed)
 	start := time.Now()
-	conn, err := net.DialTimeout("tcp", host+":80", time.Duration(timeout)*time.Second)
+	dialer := &net.Dialer{Timeout: time.Duration(timeout) * time.Second}
+	conn, err := dialer.DialContext(ctx, "tcp", host+":80")
 	elapsed := time.Since(start)
 	if err != nil {
 		// Try port 443 as fallback
 		start = time.Now()
-		conn, err = net.DialTimeout("tcp", host+":443", time.Duration(timeout)*time.Second)
+		conn, err = dialer.DialContext(ctx, "tcp", host+":443")
 		elapsed = time.Since(start)
 	}
 
@@ -5930,6 +5925,7 @@ func (s *Service) executePing(node *CanvasNode, msg Msg) (string, Msg, error) {
 	out = EnsureMsgID(out)
 
 	if err != nil {
+		s.logger.Warn("workflows: ping failed", "host", host, "error", err)
 		out["payload"] = map[string]interface{}{
 			"host":      host,
 			"reachable": false,
@@ -5937,7 +5933,7 @@ func (s *Service) executePing(node *CanvasNode, msg Msg) (string, Msg, error) {
 		}
 		return "error", out, nil
 	}
-	conn.Close()
+	closeutil.Report(conn.Close(), "conn")
 
 	out["payload"] = map[string]interface{}{
 		"host":      host,
@@ -5952,7 +5948,7 @@ func (s *Service) executePing(node *CanvasNode, msg Msg) (string, Msg, error) {
 // ---------------------------------------------------------------------------
 
 func (s *Service) executeContainerStats(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -5989,7 +5985,7 @@ func (s *Service) executeContainerStats(ctx context.Context, node *CanvasNode, m
 }
 
 func (s *Service) executeContainerRename(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6000,11 +5996,16 @@ func (s *Service) executeContainerRename(ctx context.Context, node *CanvasNode, 
 		return "", nil, fmt.Errorf("container and new_name are required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
+	ref, guardErr := s.guardSelfContainer(ctx, envID, containerName, false)
+	if guardErr != nil {
+		return "", nil, guardErr
+	}
+
 	unlockProtected := configBool(node.Config, "unlock_protected", false)
-	if err := ensureWorkflowContainerMutable(opCtx, cli, containerName, unlockProtected); err != nil {
+	if err := ensureWorkflowContainerMutable(opCtx, cli, ref, unlockProtected); err != nil {
 		s.logger.Error("workflows: container rename blocked", "error", err, "container", containerName, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -6012,7 +6013,7 @@ func (s *Service) executeContainerRename(ctx context.Context, node *CanvasNode, 
 		return "error", out, nil
 	}
 
-	if renameErr := cli.ContainerRename(opCtx, containerName, newName); renameErr != nil {
+	if _, renameErr := cli.ContainerRename(opCtx, ref, dockerclient.ContainerRenameOptions{NewName: newName}); renameErr != nil {
 		s.logger.Error("workflows: container rename failed", "error", renameErr, "container", containerName, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -6031,10 +6032,11 @@ func ensureWorkflowContainerMutable(ctx context.Context, cli *dockerclient.Clien
 		return docker.EnsureContainerMutable(ctx, cli, id)
 	}
 
-	info, err := cli.ContainerInspect(ctx, id)
+	infoRes, err := cli.ContainerInspect(ctx, id, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
+	info := infoRes.Container
 
 	imageName := ""
 	labels := map[string]string{}
@@ -6052,7 +6054,7 @@ func ensureWorkflowContainerMutable(ctx context.Context, cli *dockerclient.Clien
 }
 
 func (s *Service) executeContainerWait(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6080,7 +6082,8 @@ func (s *Service) executeContainerWait(ctx context.Context, node *CanvasNode, ms
 		waitCond = container.WaitConditionNotRunning
 	}
 
-	statusCh, errCh := cli.ContainerWait(opCtx, containerName, waitCond)
+	waitResult := cli.ContainerWait(opCtx, containerName, dockerclient.ContainerWaitOptions{Condition: waitCond})
+	statusCh, errCh := waitResult.Result, waitResult.Error
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 
@@ -6108,26 +6111,8 @@ func (s *Service) executeContainerWait(ctx context.Context, node *CanvasNode, ms
 	}
 }
 
-func (s *Service) executeImageBuild(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	// Legacy fallback retained for compatibility. Runtime execution uses executeImageBuildRuntime.
-	tag, _ := node.Config["tag"].(string)
-	dockerfile, _ := node.Config["dockerfile"].(string)
-	contextPath, _ := node.Config["context_path"].(string)
-
-	out := CloneMsg(msg)
-	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{
-		"tag":         tag,
-		"dockerfile":  dockerfile,
-		"contextPath": contextPath,
-		"status":      "stub",
-		"note":        "image build requires tar context streaming implementation",
-	}
-	return "output", out, nil
-}
-
 func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6145,7 +6130,7 @@ func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Ms
 		return "", nil, err
 	}
 
-	reader, pushErr := cli.ImagePush(pushCtx, imageName, image.PushOptions{RegistryAuth: registryAuth})
+	reader, pushErr := cli.ImagePush(pushCtx, imageName, dockerclient.ImagePushOptions{RegistryAuth: registryAuth})
 	if pushErr != nil {
 		s.logger.Error("workflows: image push failed", "error", pushErr, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -6153,7 +6138,7 @@ func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Ms
 		out["payload"] = map[string]interface{}{"error": "image push failed", "image": imageName}
 		return "error", out, nil
 	}
-	defer reader.Close()
+	defer func() { closeutil.Report(reader.Close(), "reader") }()
 	if _, copyErr := io.Copy(io.Discard, reader); copyErr != nil {
 		s.logger.Warn("workflows: image push stream drain failed", "error", copyErr, "image", imageName, "envID", envID)
 	}
@@ -6165,7 +6150,7 @@ func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Ms
 }
 
 func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6176,7 +6161,7 @@ func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, m
 	}
 	limit := int(configFloat(node.Config, "limit", 25))
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	registryAuth, registryName, err := s.registryAuthForNode(opCtx, node)
@@ -6184,7 +6169,7 @@ func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, m
 		return "", nil, err
 	}
 
-	results, searchErr := cli.ImageSearch(opCtx, term, registry.SearchOptions{Limit: limit, RegistryAuth: registryAuth})
+	resultsRes, searchErr := cli.ImageSearch(opCtx, term, dockerclient.ImageSearchOptions{Limit: limit, RegistryAuth: registryAuth})
 	if searchErr != nil {
 		s.logger.Error("workflows: registry search failed", "error", searchErr, "term", term, "envID", envID)
 		out := CloneMsg(msg)
@@ -6192,6 +6177,7 @@ func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, m
 		out["payload"] = map[string]interface{}{"error": "registry search failed", "term": term}
 		return "error", out, nil
 	}
+	results := resultsRes.Items
 
 	items := make([]interface{}, 0, len(results))
 	for _, r := range results {
@@ -6234,7 +6220,7 @@ func (s *Service) registryAuthForNode(ctx context.Context, node *CanvasNode) (st
 		return "", "", nil
 	}
 
-	auth, err := registry.EncodeAuthConfig(registry.AuthConfig{
+	auth, err := authconfig.Encode(registry.AuthConfig{
 		Username:      username,
 		Password:      password,
 		ServerAddress: strings.TrimRight(regURL, "/"),
@@ -6254,7 +6240,7 @@ func (s *Service) configuredRegistryAuth(ctx context.Context, registryID string)
 		return "", "", fmt.Errorf("registry not found")
 	}
 
-	auth, err := registry.EncodeAuthConfig(registry.AuthConfig{
+	auth, err := authconfig.Encode(registry.AuthConfig{
 		Username:      reg.Username,
 		Password:      reg.Password,
 		ServerAddress: strings.TrimRight(reg.URL, "/"),
@@ -6310,7 +6296,7 @@ func (s *Service) resolveConfiguredRegistry(ctx context.Context, registryID stri
 }
 
 func (s *Service) inspectRegistryTagDigest(ctx context.Context, node *CanvasNode, envID string) (string, map[string]interface{}, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6320,7 +6306,7 @@ func (s *Service) inspectRegistryTagDigest(ctx context.Context, node *CanvasNode
 		return "", nil, fmt.Errorf("image is required")
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	registryAuth, registryName, err := s.registryAuthForNode(opCtx, node)
@@ -6328,7 +6314,7 @@ func (s *Service) inspectRegistryTagDigest(ctx context.Context, node *CanvasNode
 		return "", nil, err
 	}
 
-	info, err := cli.DistributionInspect(opCtx, imageRef, registryAuth)
+	info, err := cli.DistributionInspect(opCtx, imageRef, dockerclient.DistributionInspectOptions{EncodedRegistryAuth: registryAuth})
 	if err != nil {
 		return "", nil, fmt.Errorf("inspecting registry tag: %w", err)
 	}
@@ -6370,27 +6356,27 @@ func (s *Service) runVolumeArchiveHelper(ctx context.Context, cli *dockerclient.
 		readonly = false
 	}
 
-	resp, err := cli.ContainerCreate(ctx,
-		&container.Config{
-			Image: helperImage,
-			Cmd:   cmd,
-			Env:   []string{"BACKUP_FILE=" + backupFile},
+	resp, err := cli.ContainerCreate(ctx, dockerclient.ContainerCreateOptions{Config: &container.Config{
+		Image: helperImage,
+		Cmd:   cmd,
+		Env:   []string{"BACKUP_FILE=" + backupFile},
+	}, HostConfig: &container.HostConfig{
+		AutoRemove: false,
+		Mounts: []mount.Mount{
+			{Type: mount.TypeVolume, Source: volumeName, Target: "/source", ReadOnly: readonly},
+			{Type: mount.TypeBind, Source: backupDir, Target: "/backup"},
 		},
-		&container.HostConfig{
-			AutoRemove: false,
-			Mounts: []mount.Mount{
-				{Type: mount.TypeVolume, Source: volumeName, Target: "/source", ReadOnly: readonly},
-				{Type: mount.TypeBind, Source: backupDir, Target: "/backup"},
-			},
-		},
-		nil,
-		nil,
-		"mcharbor-workflow-volume-backup-"+xid.New().String(),
-	)
+	}, Name: "mcharbor-workflow-volume-backup-" + xid.New().String()})
 	if err != nil {
 		return fmt.Errorf("creating helper container: %w", err)
 	}
-	defer removeHelperContainer(context.Background(), cli, resp.ID, s.logger)
+	// Detached on purpose: the helper container has to be removed even when
+	// ctx is what cancelled the run. Bounded so cleanup cannot hang.
+	defer func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		defer cancel()
+		removeHelperContainer(cleanupCtx, cli, resp.ID, s.logger)
+	}()
 
 	return runHelperContainer(ctx, cli, resp.ID)
 }
@@ -6410,27 +6396,27 @@ func (s *Service) runVolumeRestoreHelper(ctx context.Context, cli *dockerclient.
 		overwriteValue = "true"
 	}
 
-	resp, err := cli.ContainerCreate(ctx,
-		&container.Config{
-			Image: helperImage,
-			Cmd:   []string{"sh", "-c", `if [ "$OVERWRITE" != "true" ] && [ "$(ls -A /target 2>/dev/null)" ]; then exit 3; fi; tar -xzf "/backup/$BACKUP_FILE" -C /target`},
-			Env:   []string{"BACKUP_FILE=" + backupFile, "OVERWRITE=" + overwriteValue},
+	resp, err := cli.ContainerCreate(ctx, dockerclient.ContainerCreateOptions{Config: &container.Config{
+		Image: helperImage,
+		Cmd:   []string{"sh", "-c", `if [ "$OVERWRITE" != "true" ] && [ "$(ls -A /target 2>/dev/null)" ]; then exit 3; fi; tar -xzf "/backup/$BACKUP_FILE" -C /target`},
+		Env:   []string{"BACKUP_FILE=" + backupFile, "OVERWRITE=" + overwriteValue},
+	}, HostConfig: &container.HostConfig{
+		AutoRemove: false,
+		Mounts: []mount.Mount{
+			{Type: mount.TypeVolume, Source: volumeName, Target: "/target"},
+			{Type: mount.TypeBind, Source: backupDir, Target: "/backup", ReadOnly: true},
 		},
-		&container.HostConfig{
-			AutoRemove: false,
-			Mounts: []mount.Mount{
-				{Type: mount.TypeVolume, Source: volumeName, Target: "/target"},
-				{Type: mount.TypeBind, Source: backupDir, Target: "/backup", ReadOnly: true},
-			},
-		},
-		nil,
-		nil,
-		"mcharbor-workflow-volume-restore-"+xid.New().String(),
-	)
+	}, Name: "mcharbor-workflow-volume-restore-" + xid.New().String()})
 	if err != nil {
 		return fmt.Errorf("creating helper container: %w", err)
 	}
-	defer removeHelperContainer(context.Background(), cli, resp.ID, s.logger)
+	// Detached on purpose: the helper container has to be removed even when
+	// ctx is what cancelled the run. Bounded so cleanup cannot hang.
+	defer func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
+		defer cancel()
+		removeHelperContainer(cleanupCtx, cli, resp.ID, s.logger)
+	}()
 
 	return runHelperContainer(ctx, cli, resp.ID)
 }
@@ -6446,20 +6432,21 @@ func splitBackupPath(path string) (string, string, error) {
 }
 
 func pullHelperImage(ctx context.Context, cli *dockerclient.Client, imageName string) error {
-	reader, err := cli.ImagePull(ctx, imageName, image.PullOptions{})
+	reader, err := cli.ImagePull(ctx, imageName, dockerclient.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
-	defer reader.Close()
+	defer func() { closeutil.Report(reader.Close(), "reader") }()
 	_, err = io.Copy(io.Discard, reader)
 	return err
 }
 
 func runHelperContainer(ctx context.Context, cli *dockerclient.Client, id string) error {
-	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(ctx, id, dockerclient.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("starting helper container: %w", err)
 	}
-	statusCh, errCh := cli.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	waitResult := cli.ContainerWait(ctx, id, dockerclient.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
+	statusCh, errCh := waitResult.Result, waitResult.Error
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -6476,15 +6463,15 @@ func runHelperContainer(ctx context.Context, cli *dockerclient.Client, id string
 }
 
 func removeHelperContainer(ctx context.Context, cli *dockerclient.Client, id string, logger *slog.Logger) {
-	rmCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	rmCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
-	if err := cli.ContainerRemove(rmCtx, id, container.RemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
+	if _, err := cli.ContainerRemove(rmCtx, id, dockerclient.ContainerRemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
 		logger.Warn("workflows: helper container cleanup failed", "error", err, "container", id)
 	}
 }
 
 func dockerEventMsg(evt events.Message, autoTriggered bool) Msg {
-	if evt.ID == "" && evt.Actor.ID == "" {
+	if evt.Actor.ID == "" {
 		out := NewMsg(map[string]interface{}{
 			"trigger":       "docker-event",
 			"matched":       false,
@@ -6506,7 +6493,7 @@ func dockerEventMsg(evt events.Message, autoTriggered bool) Msg {
 		"type":             string(evt.Type),
 		"action":           action,
 		"normalizedAction": normalized,
-		"id":               evt.ID,
+		"id":               evt.Actor.ID,
 		"actorId":          evt.Actor.ID,
 		"actorAttributes":  evt.Actor.Attributes,
 		"scope":            string(evt.Scope),
@@ -6525,22 +6512,27 @@ func matchesDockerEventNode(node *CanvasNode, evt events.Message) bool {
 		return false
 	}
 
-	cfgAction, _ := node.Config["action"].(string)
-	cfgAction = strings.TrimSpace(cfgAction)
-	if cfgAction != "" {
+	if wanted := configStringSlice(node.Config["action"]); len(wanted) > 0 {
 		action := strings.TrimSpace(string(evt.Action))
 		normalized := action
 		if idx := strings.Index(normalized, ":"); idx != -1 {
 			normalized = strings.TrimSpace(normalized[:idx])
 		}
-		if cfgAction != action && cfgAction != normalized {
+		matched := false
+		for _, cfgAction := range wanted {
+			if cfgAction == action || cfgAction == normalized {
+				matched = true
+				break
+			}
+		}
+		if !matched {
 			return false
 		}
 	}
 
 	name, _ := node.Config["name"].(string)
 	name = strings.TrimSpace(name)
-	if name != "" && name != evt.ID && name != evt.Actor.ID && name != evt.Actor.Attributes["name"] {
+	if name != "" && name != evt.Actor.ID && name != evt.Actor.Attributes["name"] {
 		return false
 	}
 
@@ -6570,7 +6562,7 @@ func containerHealthFromEvent(evt events.Message) string {
 }
 
 func (s *Service) executeComposeUp(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6579,20 +6571,27 @@ func (s *Service) executeComposeUp(ctx context.Context, node *CanvasNode, msg Ms
 	if stackName == "" {
 		return "", nil, fmt.Errorf("stack name is required")
 	}
+	if guardErr := s.guardSelfStack(ctx, envID, stackName); guardErr != nil {
+		return "", nil, guardErr
+	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
 	// List containers in this stack to report status
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project="+stackName)
-	containers, _ := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
+	containers := containersRes.Items
+	if listErr != nil {
+		s.logger.Warn("workflows: listing stack containers", "stack", stackName, "error", listErr)
+	}
 
 	// Start any stopped containers in the stack
 	started := 0
 	for _, c := range containers {
 		if c.State != "running" {
-			if startErr := cli.ContainerStart(opCtx, c.ID, container.StartOptions{}); startErr == nil {
+			if _, startErr := cli.ContainerStart(opCtx, c.ID, dockerclient.ContainerStartOptions{}); startErr == nil {
 				started++
 			}
 		}
@@ -6610,7 +6609,7 @@ func (s *Service) executeComposeUp(ctx context.Context, node *CanvasNode, msg Ms
 }
 
 func (s *Service) executeComposeDown(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -6618,6 +6617,9 @@ func (s *Service) executeComposeDown(ctx context.Context, node *CanvasNode, msg 
 	stackName, _ := node.Config["stack_name"].(string)
 	if stackName == "" {
 		return "", nil, fmt.Errorf("stack name is required")
+	}
+	if guardErr := s.guardSelfStack(ctx, envID, stackName); guardErr != nil {
+		return "", nil, guardErr
 	}
 	removeVolumes := false
 	if v, ok := node.Config["remove_volumes"].(bool); ok {
@@ -6627,9 +6629,9 @@ func (s *Service) executeComposeDown(ctx context.Context, node *CanvasNode, msg 
 	opCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	f := filters.NewArgs()
+	f := make(dockerclient.Filters)
 	f.Add("label", "com.docker.compose.project="+stackName)
-	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	containersRes, listErr := cli.ContainerList(opCtx, dockerclient.ContainerListOptions{All: true, Filters: f})
 	if listErr != nil {
 		s.logger.Error("workflows: compose down list failed", "error", listErr, "stack", stackName)
 		out := CloneMsg(msg)
@@ -6637,16 +6639,17 @@ func (s *Service) executeComposeDown(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "compose down failed", "stack": stackName}
 		return "error", out, nil
 	}
+	containers := containersRes.Items
 
 	stopped := 0
 	removed := 0
 	for _, c := range containers {
 		if c.State == "running" {
-			if stopErr := cli.ContainerStop(opCtx, c.ID, container.StopOptions{}); stopErr == nil {
+			if _, stopErr := cli.ContainerStop(opCtx, c.ID, dockerclient.ContainerStopOptions{}); stopErr == nil {
 				stopped++
 			}
 		}
-		if rmErr := cli.ContainerRemove(opCtx, c.ID, container.RemoveOptions{Force: true, RemoveVolumes: removeVolumes}); rmErr == nil {
+		if _, rmErr := cli.ContainerRemove(opCtx, c.ID, dockerclient.ContainerRemoveOptions{Force: true, RemoveVolumes: removeVolumes}); rmErr == nil {
 			removed++
 		}
 	}
@@ -6661,4 +6664,13 @@ func (s *Service) executeComposeDown(ctx context.Context, node *CanvasNode, msg 
 		"status":  "down",
 	}
 	return "output", out, nil
+}
+
+// atoiOrZero parses a workflow config integer and treats anything unparseable as zero, which every caller already clamps.
+func atoiOrZero(raw string) int {
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0
+	}
+	return n
 }

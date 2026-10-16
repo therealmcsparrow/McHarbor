@@ -1,9 +1,25 @@
 {
   "title": "Dashboard",
   "description": "Overview of your Docker environment",
+  "summary": {
+    "environments_one": "{{count}} environment",
+    "environments_other": "{{count}} environments",
+    "containers_one": "{{count}} container",
+    "containers_other": "{{count}} containers",
+    "acrossStacks_one": "across {{count}} stack",
+    "acrossStacks_other": "across {{count}} stacks",
+    "vms_one": "{{count}} virtual machine",
+    "vms_other": "{{count}} virtual machines",
+    "acrossEnvironments_one": "across {{count}} environment",
+    "acrossEnvironments_other": "across {{count}} environments",
+    "agentsBehind_one": "{{count}} agent a version behind",
+    "agentsBehind_other": "{{count}} agents a version behind",
+    "scansNeedReview_one": "{{count}} scan needs review",
+    "scansNeedReview_other": "{{count}} scans need review",
+    "unreachable_one": "{{count}} host unreachable",
+    "unreachable_other": "{{count}} hosts unreachable"
+  },
   "addWidget": "Add Widget",
-  "editDashboard": "Edit Dashboard",
-  "doneEditing": "Done Editing",
   "edit": "Edit",
   "done": "Done",
   "reset": "Reset",
@@ -16,11 +32,44 @@
     "metrics": "Metrics",
     "monitoring": "Monitoring",
     "operations": "Operations",
-    "kubernetes": "Kubernetes"
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Remove widget",
     "decreaseHeight": "Decrease height",
-    "increaseHeight": "Increase height"
+    "increaseHeight": "Increase height",
+    "failed": "{{title}} could not be shown",
+    "retry": "Try again",
+    "size": "Size",
+    "width": "Width",
+    "height": "Height"
+  },
+  "template": {
+    "pickerLabel": "Dashboard layouts",
+    "wizardPrompt": "Start from a layout"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "What is running, on what, and the quick actions you reach for most"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Workflow runs, alerts and vulnerabilities front and centre"
+      },
+      "production": {
+        "name": "Production",
+        "description": "Capacity, alerts, vulnerabilities and storage at a glance"
+      },
+      "monitoring": {
+        "name": "Monitoring",
+        "description": "Time-series charts and top consumers, for watching trends"
+      },
+      "starter": {
+        "name": "Starter",
+        "description": "The verdict and your containers — everything else you add as you need it"
+      }
+    }
   }
 }

@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Access review sign-off",
+    "description": "Record that the access review was carried out and its result accepted. The permissions computed below are the review's input; the sign-off is its record."
+  },
+  "effective": {
+    "title": "Effective access",
+    "description": "Pick a user and a scope to see every permission they hold there and where each one comes from.",
+    "user": "User",
+    "userPlaceholder": "Select a user",
+    "environment": "Environment",
+    "allEnvironments": "Global (no environment)",
+    "stack": "Stack",
+    "noStack": "Whole environment",
+    "filter": "Filter permissions",
+    "showAll": "Show permissions the user does not hold",
+    "empty": "Pick a user to see their effective permissions.",
+    "noMatches": "No permission matches this filter.",
+    "noSource": "No grant",
+    "wildcard": "{{username}} holds a wildcard role, which grants every permission, including ones added later.",
+    "breakGlass": "{{username}} has an open break-glass session: every permission is granted until it ends.",
+    "abac": "Attribute policies are enforced on this install and can still deny a request these roles allow.",
+    "overridesNote": "Held is what route gates enforce: roles, approved elevations and break-glass. With overrides applies the per-user grant and deny overrides the way the policy engine does; route gates do not read overrides today.",
+    "summary": "{{held}} of {{total}} permissions held",
+    "held": "Held",
+    "notHeld": "Not held",
+    "columns": {
+      "permission": "Permission",
+      "held": "Held",
+      "authorize": "With overrides",
+      "sources": "Granted by"
+    },
+    "source": {
+      "roleDirect": "Role {{role}}",
+      "roleGroup": "Role {{role}} via group {{group}}",
+      "wildcard": "wildcard",
+      "scopeGlobal": "global",
+      "scopeEnvironment": "in {{environment}}",
+      "scopeStack": "on stack {{stack}}",
+      "elevation": "Elevation until {{until}}",
+      "breakGlass": "Break-glass session",
+      "overrideGrant": "Grant override",
+      "overrideDeny": "Deny override",
+      "conditional": "only for {{resource}}",
+      "expires": "expires {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Export catalog (CSV)",
+    "exportJson": "Export catalog (JSON)",
+    "exportFailed": "The permission catalog could not be exported.",
+    "exported": "Permission catalog exported"
+  },
+  "endpoints": {
+    "title": "Addresses to register with the identity provider",
+    "intro": "Register these addresses on the identity provider's side. They follow the public address McHarbor is reached on.",
+    "oidcRedirect": "Redirect URI (OIDC)",
+    "oidcRedirectHint": "Shared by every OpenID Connect provider on this install.",
+    "acs": "Assertion Consumer Service URL (SAML)",
+    "spMetadata": "Service provider metadata URL (SAML)",
+    "login": "Direct sign-in URL",
+    "samlAfterSave": "The SAML ACS and metadata URLs contain the provider id, so they appear once the provider is saved."
+  },
+  "metadata": {
+    "title": "Import IdP metadata",
+    "description": "Paste the identity provider's SAML metadata URL or XML. McHarbor reads it, fills in the fields this plugin accepts, and shows the rest for you to check.",
+    "url": "Metadata URL",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "Or paste the metadata XML",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Read metadata",
+    "prefillReady": "{{count}} field can be filled in from this metadata.",
+    "applyPrefill": "Fill in the form",
+    "copyManually": "This plugin has no field for these values, so copy them where the plugin asks for them.",
+    "entityId": "IdP entity ID",
+    "sso": "Single sign-on URL ({{binding}})",
+    "slo": "Single logout URL ({{binding}})",
+    "certificate": "Certificate fingerprint, SHA-256 ({{use}})",
+    "anyUse": "any use",
+    "expires": "expires {{date}}",
+    "nameIdFormats": "NameID formats: {{formats}}",
+    "reason": {
+      "invalid_url": "The metadata URL must be an http or https address.",
+      "fetch_failed": "The metadata URL could not be fetched. Check that McHarbor can reach it; the server log has the details.",
+      "not_saml_metadata": "This is not a SAML metadata document.",
+      "no_idp_descriptor": "The metadata describes no identity provider (no IDPSSODescriptor).",
+      "input_missing": "Enter a metadata URL or paste the XML."
+    }
+  },
+  "preview": {
+    "title": "Preview group mapping",
+    "description": "Enter the groups a user would sign in with to see which McHarbor groups and roles they would get.",
+    "sampleGroups": "Provider groups, one per line",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Use the {{count}} groups from the connection test",
+    "run": "Preview",
+    "groupsJoined": "Groups joined",
+    "noGroups": "These groups lead to no McHarbor group.",
+    "newGroup": "created on first sign-in",
+    "from": "from {{groups}}",
+    "noRoles": "This group carries no roles.",
+    "defaultRole": "A newly provisioned user also gets the default role {{role}}.",
+    "unmapped": "Not mapped: {{groups}}",
+    "scopeGlobal": "global",
+    "scopeEnvironment": "environment {{environment}}",
+    "scopeStack": "stack {{stack}}",
+    "loadGroups": "Load groups from the provider"
+  },
+  "impact": {
+    "title": "Who gains or loses roles",
+    "summary": "{{evaluated}} users evaluated from their last sign-in: {{changed}} would change, {{unchanged}} would not.",
+    "users": "Affected users",
+    "legend_one": "{{gained}} role gained, {{lost}} lost",
+    "legend_other": "{{gained}} roles gained, {{lost}} lost",
+    "joined": "Joins: {{groups}}",
+    "left": "Leaves: {{groups}}",
+    "unknown": "Not evaluated, no sign-in recorded since group claims were tracked: {{users}}",
+    "confirmTitle": "Apply the new group mapping?",
+    "confirmDescription": "These changes take effect for each user at their next sign-in.",
+    "nextSignIn": "Removing a mapping does not remove memberships it already created; only groups a mapping still names are kept in step with the provider.",
+    "confirm": "Save mapping"
+  },
+  "wizard": {
+    "progress": "Setup progress",
+    "steps": {
+      "type": "Choose a provider",
+      "configure": "Configure",
+      "access": "Access and groups",
+      "review": "Review and save",
+      "done": "Provider saved"
+    },
+    "next": "Next",
+    "finish": "Finish",
+    "defaultRole": "Default role for new users",
+    "defaultRoleHint": "Given to accounts created by automatic provisioning.",
+    "noDefaultRole": "No default role",
+    "fetchGroupsAfterSave": "This provider can list its groups. Once it is saved, the edit dialog can fetch them for the mapping.",
+    "review": {
+      "description": "Check the settings before the provider is saved.",
+      "name": "Name",
+      "type": "Type",
+      "fields": "Configured fields",
+      "autoProvision": "Automatic provisioning",
+      "defaultRole": "Default role",
+      "autoImport": "Import groups by name",
+      "mappings": "Group mappings",
+      "yes": "Yes",
+      "no": "No",
+      "none": "None",
+      "disabledNote": "The provider is saved disabled, so nobody can sign in with it until you enable it."
+    },
+    "done": {
+      "title": "{{name}} is saved",
+      "description": "Register the addresses below with the identity provider, then enable and test the connection.",
+      "enable": "Enable provider",
+      "enableFirst": "Enable the provider to test the connection.",
+      "test": "Test connection",
+      "previewHint": "Preview the mapping against real groups: run the connection test, or load the provider's groups."
+    }
+  }
+}

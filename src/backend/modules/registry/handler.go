@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package registry manages the container image registries McHarbor pulls from and their credentials.
 package registry
 
 import (
@@ -58,10 +59,10 @@ func NewHandler(app *router.AppDeps) *Handler {
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	page, perPage := response.ParsePagination(r)
 
-	items, total, err := h.service.List(page, perPage)
+	items, total, err := h.service.List(r.Context(), page, perPage)
 	if err != nil {
 		h.app.Logger.Error("registry: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryListFailed, err)
 		return
 	}
 
@@ -72,7 +73,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateRegistryInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -85,10 +86,10 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reg, err := h.service.Create(input)
+	reg, err := h.service.Create(r.Context(), input)
 	if err != nil {
 		h.app.Logger.Error("registry: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryCreateFailed, err)
 		return
 	}
 
@@ -99,10 +100,10 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	reg, err := h.service.ByID(id)
+	reg, err := h.service.ByID(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("registry: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryFailed, err)
 		return
 	}
 	if reg == nil {
@@ -119,14 +120,14 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateRegistryInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
-	reg, err := h.service.Update(id, input)
+	reg, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
 		h.app.Logger.Error("registry: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryUpdateFailed, err)
 		return
 	}
 	if reg == nil {
@@ -141,10 +142,10 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	deleted, err := h.service.Delete(id)
+	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("registry: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryRemoveFailed, err)
 		return
 	}
 	if !deleted {
@@ -159,10 +160,10 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleTestConnection(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	result, err := h.service.TestConnection(id)
+	result, err := h.service.TestConnection(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("registry: test connection error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrRegistryFailed)
+		response.InternalErrorCause(w, r, i18n.ErrRegistryFailed, err)
 		return
 	}
 	if result == nil {

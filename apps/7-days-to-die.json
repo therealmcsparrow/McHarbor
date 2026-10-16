@@ -1,0 +1,72 @@
+{
+    "slug":  "7-days-to-die",
+    "name":  "7 Days to Die",
+    "description":  "Dedicated server for the zombie survival crafting game 7 Days to Die.",
+    "category":  "Gaming",
+    "image":  "vinanrra/7dtd-server:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=7daystodie.com\u0026sz=128",
+    "website":  "https://7daystodie.com",
+    "docsUrl":  "https://github.com/Vinanrra/Docker-7DaysToDie",
+    "ports":  [
+                  {
+                      "host":  26900,
+                      "container":  26900,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  26900,
+                      "container":  26900,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  26901,
+                      "container":  26901,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  26902,
+                      "container":  26902,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/7-days-to-die/data",
+                        "container":  "/home/sdtdserver/instance"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "My 7DTD Server",
+                        "description":  "Server name shown in the server browser"
+                    },
+                    {
+                        "key":  "SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SERVER_MAX_PLAYER_COUNT",
+                        "default":  "8",
+                        "description":  "Maximum player slots"
+                    },
+                    {
+                        "key":  "WEBDASHBOARD_ENABLED",
+                        "default":  "true",
+                        "description":  "Enable the web dashboard"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

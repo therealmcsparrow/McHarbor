@@ -10,6 +10,8 @@
     "container": "Container",
     "mapping": "Host → Container",
     "protocol": "Protocol",
-    "noPorts": "Geen gepubliceerde poorten gevonden"
+    "noPorts": "Geen gepubliceerde poorten gevonden",
+    "published": "{{count}} gepubliceerd",
+    "more": "{{count}} meer"
   }
 }

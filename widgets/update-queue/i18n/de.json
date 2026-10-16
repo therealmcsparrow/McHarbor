@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "Update-Warteschlange",
+      "description": "Container mit verfügbarem Image-Update und die Aktion zur Prüfung"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "Update-Warteschlange",
+    "checkNow": "Nach Updates suchen",
+    "checkAgain": "Erneut suchen",
+    "notChecked": "Es wurde noch keine Update-Prüfung ausgeführt",
+    "upToDate": "Alles ist aktuell",
+    "reviewAll": "{{count}} Update prüfen",
+    "reviewAll_other": "{{count}} Updates prüfen",
+    "more": "{{count}} weitere"
+  }
+}

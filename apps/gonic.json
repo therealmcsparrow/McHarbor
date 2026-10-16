@@ -1,0 +1,57 @@
+{
+  "slug": "gonic",
+  "name": "gonic",
+  "description": "Lightweight Subsonic-compatible music streaming server with podcast and playlist support.",
+  "category": "Media",
+  "image": "sentriz/gonic:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gonic.png",
+  "website": "https://github.com/sentriz/gonic",
+  "docsUrl": "https://github.com/sentriz/gonic#with-docker",
+  "ports": [
+    {
+      "host": 4747,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gonic/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/gonic/music",
+      "container": "/music",
+      "readOnly": true
+    },
+    {
+      "host": "/opt/appdata/gonic/podcasts",
+      "container": "/podcasts"
+    },
+    {
+      "host": "/opt/appdata/gonic/playlists",
+      "container": "/playlists"
+    },
+    {
+      "host": "/opt/appdata/gonic/cache",
+      "container": "/cache"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    },
+    {
+      "key": "GONIC_SCAN_INTERVAL",
+      "default": "60",
+      "description": "Minutes between automatic library scans"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

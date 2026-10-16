@@ -1,11 +1,27 @@
 {
   "title": "Tableau de bord",
-  "description": "Présentation de votre environnement Docker",
+  "description": "Vue d'ensemble de votre environnement Docker",
+  "summary": {
+    "environments_one": "{{count}} environnement",
+    "environments_other": "{{count}} environnements",
+    "containers_one": "{{count}} conteneur",
+    "containers_other": "{{count}} conteneurs",
+    "acrossStacks_one": "sur {{count}} stack",
+    "acrossStacks_other": "sur {{count}} stacks",
+    "vms_one": "{{count}} machine virtuelle",
+    "vms_other": "{{count}} machines virtuelles",
+    "acrossEnvironments_one": "sur {{count}} environnement",
+    "acrossEnvironments_other": "sur {{count}} environnements",
+    "agentsBehind_one": "{{count}} agent en retard d'une version",
+    "agentsBehind_other": "{{count}} agents en retard d'une version",
+    "scansNeedReview_one": "{{count}} analyse à examiner",
+    "scansNeedReview_other": "{{count}} analyses à examiner",
+    "unreachable_one": "{{count}} hôte injoignable",
+    "unreachable_other": "{{count}} hôtes injoignables"
+  },
   "addWidget": "Ajouter un widget",
-  "editDashboard": "Modifier le tableau de bord",
-  "doneEditing": "Modification terminée",
   "edit": "Modifier",
-  "done": "Fait",
+  "done": "Terminé",
   "reset": "Réinitialiser",
   "loading": "Chargement...",
   "addWidgets": "Ajouter des widgets",
@@ -13,14 +29,47 @@
   "categories": {
     "resources": "Ressources",
     "host": "Hôte",
-    "metrics": "Métrique",
+    "metrics": "Métriques",
     "monitoring": "Surveillance",
     "operations": "Opérations",
-    "kubernetes": "Kubernetes"
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Supprimer le widget",
     "decreaseHeight": "Diminuer la hauteur",
-    "increaseHeight": "Augmenter la hauteur"
+    "increaseHeight": "Augmenter la hauteur",
+    "failed": "Impossible d'afficher {{title}}",
+    "retry": "Réessayer",
+    "size": "Taille",
+    "width": "Largeur",
+    "height": "Hauteur"
+  },
+  "template": {
+    "pickerLabel": "Dispositions de tableau de bord",
+    "wizardPrompt": "Partir d'une disposition"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "Ce qui tourne, sur quoi, et les actions les plus fréquentes"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Exécutions de flux de travail, alertes et vulnérabilités au premier plan"
+      },
+      "production": {
+        "name": "Production",
+        "description": "Capacité, alertes, vulnérabilités et stockage en un coup d'œil"
+      },
+      "monitoring": {
+        "name": "Surveillance",
+        "description": "Séries temporelles et plus gros consommateurs, pour suivre les tendances"
+      },
+      "starter": {
+        "name": "Premiers pas",
+        "description": "Le verdict et vos conteneurs — le reste s'ajoute au besoin"
+      }
+    }
   }
 }

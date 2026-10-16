@@ -1,0 +1,45 @@
+{
+    "slug":  "heimdall-dev",
+    "name":  "Heimdall (Dev)",
+    "description":  "Dev channel build of Heimdall. Application dashboard and launcher for self-hosted services.",
+    "category":  "Dashboards",
+    "image":  "lscr.io/linuxserver/heimdall:development",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/heimdall.png",
+    "website":  "https://docs.linuxserver.io/images/docker-heimdall/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-heimdall/",
+    "ports":  [
+                  {
+                      "host":  9087,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/heimdall-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

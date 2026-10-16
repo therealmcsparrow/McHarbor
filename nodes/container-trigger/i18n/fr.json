@@ -1,0 +1,31 @@
+{
+  "label": "Déclencheur conteneur",
+  "description": "Démarrer un workflow quand l'état ou la santé d'un conteneur change",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "watch": "Surveiller",
+    "status": "Événement de statut",
+    "health": "Etat de sante"
+  },
+  "options": {
+    "watch": {
+      "status": "Changements d'état",
+      "health": "Changements de santé"
+    },
+    "status": {
+      "any": "N'importe lequel",
+      "start": "Commencer",
+      "stop": "Arrêt",
+      "die": "Mourir",
+      "health_status": "État de santé"
+    },
+    "health": {
+      "any": "Tous",
+      "healthy": "Sain",
+      "unhealthy": "Non sain",
+      "starting": "Demarrage",
+      "none": "Aucun healthcheck"
+    }
+  }
+}

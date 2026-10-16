@@ -4,80 +4,77 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const containerCreate: NodeDefinition = {
-  "key": "container-create",
-  "label": "Container Create",
-  "category": "action",
-  "description": "Create a new container from an image",
-  "icon": "IconSquarePlus",
-  "configSchema": [
+  key: 'container-create',
+  label: 'Container Create',
+  category: 'action',
+  description: 'Create a new container from an image',
+  icon: 'IconSquarePlus',
+  configSchema: [
     {
-      "key": "environment",
-      "label": "Environment",
-      "type": "environment-select",
-      "required": true
+      key: 'environment',
+      label: 'Environment',
+      type: 'environment-select',
+      required: true,
     },
     {
-      "key": "image",
-      "label": "Image",
-      "type": "text",
-      "required": true
+      key: 'image',
+      label: 'Image',
+      type: 'image-select',
+      allowCustom: true,
+      required: true,
     },
     {
-      "key": "name",
-      "label": "Name",
-      "type": "text",
-      "required": false
+      key: 'name',
+      label: 'Name',
+      type: 'text',
+      required: false,
     },
     {
-      "key": "ports",
-      "label": "Ports",
-      "type": "text",
-      "required": false
+      key: 'ports',
+      label: 'Ports',
+      type: 'multiselect',
+      allowCustom: true,
+      required: false,
     },
     {
-      "key": "env_vars",
-      "label": "Environment Variables",
-      "type": "key-value",
-      "required": false
+      key: 'env_vars',
+      label: 'Environment Variables',
+      type: 'key-value',
+      required: false,
     },
     {
-      "key": "restart_policy",
-      "label": "Restart Policy",
-      "type": "select",
-      "required": false,
-      "default": "no",
-      "options": [
+      key: 'restart_policy',
+      label: 'Restart Policy',
+      type: 'select',
+      required: false,
+      default: 'no',
+      options: [
         {
-          "value": "no",
-          "label": "No"
+          value: 'no',
+          label: 'No',
         },
         {
-          "value": "always",
-          "label": "Always"
+          value: 'always',
+          label: 'Always',
         },
         {
-          "value": "on-failure",
-          "label": "On Failure"
+          value: 'on-failure',
+          label: 'On Failure',
         },
         {
-          "value": "unless-stopped",
-          "label": "Unless Stopped"
-        }
-      ]
+          value: 'unless-stopped',
+          label: 'Unless Stopped',
+        },
+      ],
     },
     {
-      "key": "auto_start",
-      "label": "Auto Start",
-      "type": "toggle",
-      "required": false,
-      "default": true
-    }
+      key: 'auto_start',
+      label: 'Auto Start',
+      type: 'toggle',
+      required: false,
+      default: true,
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

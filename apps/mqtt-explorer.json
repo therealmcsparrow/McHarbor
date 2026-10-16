@@ -1,0 +1,35 @@
+{
+    "slug":  "mqtt-explorer",
+    "name":  "MQTT Explorer",
+    "description":  "Browser-based client for exploring MQTT broker topics, message payloads and retained state in real time.",
+    "category":  "Home Automation",
+    "image":  "smeagolworms4/mqtt-explorer:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mqtt.png",
+    "website":  "https://mqtt-explorer.com",
+    "docsUrl":  "https://github.com/smeagolworms4/mqtt-explorer",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mqtt-explorer/config",
+                        "container":  "/mqtt-explorer/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

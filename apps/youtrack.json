@@ -1,0 +1,48 @@
+{
+    "slug":  "youtrack",
+    "name":  "YouTrack",
+    "description":  "Issue tracker and project management tool from JetBrains with agile boards and Git integration.",
+    "category":  "Productivity",
+    "image":  "jetbrains/youtrack:2025.3.131383",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/youtrack.svg",
+    "website":  "https://www.jetbrains.com/youtrack",
+    "docsUrl":  "https://www.jetbrains.com/help/youtrack/server/youtrack-docker-installation.html",
+    "ports":  [
+                  {
+                      "host":  8096,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/youtrack/data",
+                        "container":  "/opt/youtrack/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/youtrack/conf",
+                        "container":  "/opt/youtrack/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/youtrack/logs",
+                        "container":  "/opt/youtrack/logs"
+                    },
+                    {
+                        "host":  "/opt/appdata/youtrack/backups",
+                        "container":  "/opt/youtrack/backups"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "2025.3.131383",
+    "latest":  {
+        "version":  "2025.3.131383",
+        "release_date":  "2026-09-29"
+    }
+}

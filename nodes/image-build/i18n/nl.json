@@ -1,13 +1,13 @@
 {
-  "label": "Image Build",
-  "description": "Build a Docker image from a workflow-managed build context",
+  "label": "Image bouwen",
+  "description": "Bouw een Docker-image vanuit een door de workflow beheerde buildcontext",
   "config": {
-    "environment": "Environment",
+    "environment": "Omgeving",
     "tag": "Tag",
     "dockerfile": "Dockerfile",
-    "context_path": "Context Path",
-    "target": "Target Stage",
-    "build_args": "Build Args",
-    "no_cache": "No Cache"
+    "context_path": "Contextpad",
+    "target": "Doelstage",
+    "build_args": "Build-argumenten",
+    "no_cache": "Geen cache"
   }
 }

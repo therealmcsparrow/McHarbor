@@ -1,0 +1,36 @@
+{
+    "slug":  "mainsail",
+    "name":  "Mainsail",
+    "description":  "Fast, lightweight web interface for Klipper 3D printers built on top of the Moonraker API.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/mainsail-crew/mainsail:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mainsail.png",
+    "website":  "https://docs.mainsail.xyz",
+    "docsUrl":  "https://docs.mainsail.xyz/setup/docker",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mainsail/config",
+                        "container":  "/usr/share/nginx/html/config.json",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

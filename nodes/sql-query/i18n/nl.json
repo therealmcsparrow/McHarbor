@@ -1,6 +1,6 @@
 {
-  "label": "SQL Query",
-  "description": "Run a read-only SQL query against the workflow database",
+  "label": "SQL-query",
+  "description": "Voer een alleen-lezen SQL-query uit op de workflowdatabase",
   "config": {
     "query": "Query",
     "output_property": "Uitvoerpad"

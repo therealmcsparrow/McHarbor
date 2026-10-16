@@ -1,0 +1,45 @@
+{
+  "slug": "feishin",
+  "name": "Feishin",
+  "description": "Modern web music player for Navidrome and Jellyfin libraries.",
+  "category": "Media",
+  "image": "ghcr.io/jeffvli/feishin:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/feishin.png",
+  "website": "https://github.com/jeffvli/feishin",
+  "docsUrl": "https://github.com/jeffvli/feishin#docker",
+  "ports": [
+    {
+      "host": 9180,
+      "container": 9180,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "SERVER_NAME",
+      "default": "Music",
+      "description": "Display name of the preconfigured server"
+    },
+    {
+      "key": "SERVER_TYPE",
+      "default": "navidrome",
+      "description": "Server type: navidrome or jellyfin"
+    },
+    {
+      "key": "SERVER_URL",
+      "default": "http://localhost:4533",
+      "description": "URL of the music server"
+    },
+    {
+      "key": "SERVER_LOCK",
+      "default": "false",
+      "description": "Lock the client to the preconfigured server"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,0 +1,635 @@
+{
+  "title": "Contêineres de sistema",
+  "description": "Uma distribuição inteira com seu próprio init, usuários e serviços, usando uma fração da memória de uma máquina virtual.",
+  "nav": {
+    "containers": "Contêineres de sistema",
+    "templates": "Templates de contêiner",
+    "section": {
+      "compute": "Computação"
+    }
+  },
+  "actions": {
+    "create": "Criar contêiner",
+    "start": "Iniciar",
+    "shutdown": "Desligar",
+    "stop": "Parar",
+    "restart": "Reiniciar",
+    "freeze": "Congelar",
+    "unfreeze": "Descongelar",
+    "console": "Console",
+    "delete": "Excluir",
+    "snapshot": "Criar snapshot",
+    "revert": "Reverter",
+    "clone": "Clonar",
+    "makeTemplate": "Transformar em template",
+    "unTemplate": "Deixar de ser template",
+    "addNic": "Adicionar interface",
+    "addMount": "Adicionar montagem",
+    "editLimits": "Alterar limites",
+    "applyLimits": "Aplicar",
+    "diagnose": "Perguntar o que há de errado",
+    "refresh": "Atualizar",
+    "cancel": "Cancelar",
+    "back": "Voltar",
+    "next": "Avançar"
+  },
+  "list": {
+    "searchPlaceholder": "Pesquisar contêineres",
+    "title": "Contêineres de sistema",
+    "empty": {
+      "title": "Nenhum contêiner de sistema ainda",
+      "body": "Um contêiner de sistema executa uma distribuição inteira (com seu próprio init, usuários e serviços), iniciando em cerca de um segundo e usando uma fração da memória de uma máquina virtual.",
+      "action": "Criar o primeiro"
+    },
+    "emptyTemplates": {
+      "title": "Nenhum template de contêiner ainda",
+      "body": "Marque um contêiner parado como template para clonar novos contêineres a partir dele. Em um pool copy-on-write, cada clone é quase instantâneo e não custa praticamente nenhum espaço."
+    },
+    "columns": {
+      "name": "Nome",
+      "state": "Estado",
+      "host": "Host",
+      "os": "SO",
+      "init": "Init",
+      "memory": "Memória",
+      "processes": "Processos",
+      "address": "Endereço",
+      "uptime": "Tempo ativo",
+      "pool": "Pool",
+      "isolation": "Isolamento"
+    },
+    "filter": {
+      "all": "Todos",
+      "running": "Em execução",
+      "stopped": "Parado",
+      "problem": "Requer atenção"
+    }
+  },
+  "state": {
+    "defined": "Definido",
+    "running": "Em execução",
+    "frozen": "Congelado",
+    "stopping": "Parando",
+    "stopped": "Parado",
+    "crashed": "Travou",
+    "unknown": "Desconhecido",
+    "unknownHint": "Não é possível alcançar o host deste contêiner, então seu estado é realmente desconhecido. Ele é supervisionado pelo systemd e provavelmente ainda está em execução, mas nada pode confirmar isso até que o agente volte.",
+    "frozenHint": "Todos os processos estão suspensos. Memória, arquivos abertos e conexões de rede continuam todos lá, e o descongelamento retoma exatamente de onde parou."
+  },
+  "isolation": {
+    "privileged": "Privilegiado",
+    "unprivileged": "Sem privilégios",
+    "privilegedHint": "Este contêiner não tem user namespace. O root dentro dele é root no host em tudo o que importa.",
+    "unprivilegedHint": "O root dentro deste contêiner é mapeado para um usuário sem privilégios no host.",
+    "nesting": "Aninhamento",
+    "nestingHint": "Este contêiner pode executar contêineres próprios, o que exige um cgroup de dispositivos relaxado e um perfil de montagem permissivo.",
+    "idMapping": "Mapeamento de IDs",
+    "idMappingHint": "A faixa de uids e gids do host para a qual os uids do próprio contêiner são mapeados. Dois contêineres nunca compartilham uma faixa."
+  },
+  "address": {
+    "observed": "Endereço observado",
+    "observedHint": "Lido do network namespace do contêiner pelo agente, e não informado de dentro do contêiner."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Visão geral",
+      "console": "Console",
+      "resources": "Recursos",
+      "mounts": "Montagens",
+      "processes": "Processos",
+      "snapshots": "Snapshots",
+      "backups": "Backups"
+    },
+    "overview": {
+      "init": "Sistema init",
+      "os": "Sistema operacional",
+      "pool": "Pool de armazenamento",
+      "isolation": "Isolamento",
+      "memory": "Memória",
+      "processes": "Processos",
+      "started": "Iniciado",
+      "neverStarted": "Nunca iniciado",
+      "exitReason": "Motivo da saída",
+      "lastError": "Último erro",
+      "unknown": "Desconhecido"
+    }
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Conectando…",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "reconnect": "Reconectar",
+    "notRunning": "O contêiner não está em execução, então não há nada a que se conectar.",
+    "permissionHint": "Conectar um console é um shell root dentro do contêiner, por isso exige uma permissão própria.",
+    "shell": "Shell",
+    "modeHint": "O Console se conecta ao terminal do próprio contêiner (PID 1) e reproduz sua saída recente; desconectar deixa o contêiner em execução. O Shell inicia um novo shell root que termina quando você desconecta.",
+    "rootShellWarning": "Tudo o que for digitado aqui é executado como root dentro do contêiner."
+  },
+  "resources": {
+    "title": "Limites de recursos",
+    "liveNote": "Estes se aplicam imediatamente a um contêiner em execução. Não há reinicialização nem indisponibilidade: a alteração entra em vigor assim que é aplicada.",
+    "queuedNote": "Este contêiner não está em execução, então estes valores ficam armazenados para a próxima inicialização.",
+    "memoryMax": "Limite de memória",
+    "memoryMaxHint": "O teto rígido. Ao ultrapassá-lo, o OOM killer do kernel encerra um processo dentro do contêiner, geralmente não o culpado.",
+    "memoryHigh": "Limitar em",
+    "memoryHighHint": "Um limite flexível contra o qual o kernel aplica throttling antes de começar a encerrar qualquer coisa, o que transforma um contêiner que morre em um contêiner que fica lento. O padrão é 90% do limite rígido.",
+    "swapMax": "Swap",
+    "swapMaxHint": "Desativado por padrão. O swap dentro de um contêiner sai do swap do host e transforma a pressão de memória de um contêiner na latência de todos os outros.",
+    "cpuMax": "Limite de CPU",
+    "cpuMaxHint": "Uma cota e um período em microssegundos: “200000 100000” equivale a dois núcleos. Deixe como “max” para não ter limite.",
+    "cpuWeight": "Parcela de CPU",
+    "cpuWeightHint": "Peso relativo quando os contêineres disputam os mesmos núcleos. Não tem efeito enquanto houver núcleos sobrando.",
+    "cpuSet": "Fixado em núcleos",
+    "pidsMax": "Limite de processos",
+    "pidsMaxHint": "O número máximo de processos. Sem um limite, um único contêiner pode esgotar o espaço de processos do host e derrubar todo o resto junto.",
+    "diskQuota": "Cota de disco",
+    "diskQuotaHint": "Aplicada pelo pool de armazenamento. Um pool de diretório não consegue aplicar uma cota.",
+    "usage": {
+      "cpu": "CPU",
+      "memory": "Memória",
+      "processes": "Processos",
+      "rootfs": "Rootfs",
+      "ofLimit": "do limite",
+      "noLimit": "Sem limite"
+    },
+    "applied": {
+      "title": "Em vigor agora",
+      "clampedOne": "O kernel ajustou um valor: {{fields}}.",
+      "clampedOther": "O kernel ajustou {{count}} valores: {{fields}}.",
+      "clampedHint": "O kernel arredonda e limita. O que é mostrado aqui é o que está realmente em vigor, e não o que foi solicitado.",
+      "never": "Estes limites nunca chegaram a um kernel em execução.",
+      "pidsBadge": "{{value}} pids"
+    },
+    "lxcfsNote": "As ferramentas dentro do contêiner (free, top, /proc/cpuinfo) informam os valores do host, e não os do contêiner. Os números aqui leem o cgroup do próprio contêiner e estão corretos."
+  },
+  "mounts": {
+    "title": "Montagens",
+    "empty": "Sem montagens. O contêiner enxerga apenas o próprio rootfs.",
+    "columns": {
+      "kind": "Tipo",
+      "source": "Origem",
+      "destination": "Destino",
+      "options": "Opções"
+    },
+    "kind": {
+      "volume": "Volume",
+      "bind": "Bind do host",
+      "device": "Dispositivo"
+    },
+    "kindHint": {
+      "volume": "Um diretório dentro do próprio pool de armazenamento deste contêiner.",
+      "bind": "Um caminho no host. Tudo o que estiver por trás dele fica totalmente acessível de dentro do contêiner.",
+      "device": "Um nó de dispositivo do host."
+    },
+    "readonly": "Somente leitura",
+    "shiftIds": "IDs deslocados",
+    "shiftIdsHint": "Sem isto, todo arquivo na montagem parece pertencer a ninguém (nobody) de dentro de um contêiner sem privilégios.",
+    "hostBindWarning": "Um bind mount de um caminho do host dá a este contêiner tudo o que está por trás desse caminho. Um contêiner que consegue gravar no /etc do host pode reescrever as senhas do host.",
+    "mustBeStopped": "O contêiner precisa estar parado antes que suas montagens possam ser alteradas."
+  },
+  "processes": {
+    "title": "Processos",
+    "empty": "Sem processos. O contêiner não está em execução.",
+    "columns": {
+      "pid": "PID",
+      "user": "Usuário",
+      "command": "Comando",
+      "cpu": "CPU",
+      "memory": "Memória"
+    },
+    "hostPidHint": "O mesmo processo visto do host, onde seu pid é diferente.",
+    "note": "Lido pelo host a partir do cgroup do contêiner. Nada dentro do contêiner precisa cooperar para isso funcionar."
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": "Nenhum snapshot ainda.",
+    "columns": {
+      "name": "Nome",
+      "taken": "Criado",
+      "mechanism": "Mecanismo",
+      "consistency": "Consistência",
+      "size": "Tamanho",
+      "depth": "Profundidade da cadeia"
+    },
+    "consistent": "Consistente",
+    "crashConsistent": "Consistente contra falhas",
+    "consistentHint": "O contêiner estava congelado quando este snapshot foi criado, então seu sistema de arquivos está em um estado do qual ele poderia ter sido desligado.",
+    "crashConsistentHint": "O contêiner estava em execução e descongelado. Tudo o que ainda não foi gravado em disco está ausente, o mesmo estado que uma queda de energia produz.",
+    "mechanismHint": {
+      "zfs": "Um snapshot ZFS. Instantâneo e sem custo até que os dados do contêiner divirjam dele.",
+      "btrfs": "Um snapshot btrfs. Instantâneo e sem custo até que os dados do contêiner divirjam dele.",
+      "lvm": "Um snapshot LVM.",
+      "rsync": "Uma cópia completa. Este pool não tem mecanismo de snapshot próprio, então esta é uma cópia real do rootfs: correta, mas muito mais lenta e ocupa o espaço correspondente."
+    },
+    "chainWarning": "Cadeias profundas de snapshots deixam todas as leituras lentas. Esse é o motivo habitual de um contêiner ficar misteriosamente lento.",
+    "revertWarning": "Reverter descarta todas as alterações feitas desde este snapshot e todos os snapshots criados depois dele.",
+    "freezeOption": "Congelar o contêiner enquanto o snapshot é criado",
+    "freezeHint": "Custa milissegundos em um pool copy-on-write e é o que torna o snapshot restaurável."
+  },
+  "create": {
+    "title": "Criar um contêiner de sistema",
+    "steps": {
+      "source": "Origem",
+      "profile": "Perfil",
+      "resources": "Recursos",
+      "network": "Rede",
+      "setup": "Configuração",
+      "summary": "Resumo"
+    },
+    "source": {
+      "title": "O que este contêiner deve executar?",
+      "image": "Uma imagem de distribuição",
+      "imageHint": "Um arquivo de sistema de arquivos raiz que o McHarbor já baixou e verificou.",
+      "template": "Um dos seus templates",
+      "templateHint": "Um contêiner que você marcou como template. Em um pool copy-on-write, isto é quase instantâneo.",
+      "noImages": "Nenhuma imagem de contêiner foi baixada neste host ainda.",
+      "downloadImages": "Baixar imagens"
+    },
+    "profile": {
+      "title": "Como ele deve ser isolado?",
+      "init": "Sistema init",
+      "initHint": "O systemd precisa de uma subárvore de cgroup delegada e de um sinal de parada próprio. Escolher o errado produz um contêiner que inicia e sai imediatamente.",
+      "unprivileged": "Sem privilégios (recomendado)",
+      "unprivilegedHint": "O root dentro do contêiner é mapeado para um usuário sem privilégios no host. É isso que torna seguro entregar um contêiner a alguém.",
+      "privileged": "Privilegiado",
+      "privilegedHint": "Sem user namespace. O root dentro do contêiner é root no host em tudo o que importa: use somente para algo em que você confiaria com o próprio host.",
+      "nesting": "Permitir contêineres dentro deste contêiner",
+      "nestingHint": "Necessário para executar Docker ou outro runtime de contêiner dentro. Relaxa o cgroup de dispositivos e o perfil de montagem.",
+      "privilegeRequired": "Exige a permissão ct.privileged."
+    },
+    "resources": {
+      "title": "Quanto ele deve poder usar?",
+      "preset": "Predefinição",
+      "presets": {
+        "small": "Pequeno — 512 MB, 1 núcleo",
+        "medium": "Médio — 2 GB, 2 núcleos",
+        "large": "Grande — 8 GB, 4 núcleos",
+        "custom": "Personalizado"
+      },
+      "liveNote": "Todos estes podem ser alterados depois, enquanto o contêiner está em execução."
+    },
+    "network": {
+      "title": "Como ele deve acessar a rede?",
+      "network": "Rede",
+      "noNetworks": "Nenhuma rede foi configurada neste host ainda.",
+      "addressMode": "Endereço",
+      "dhcp": "Via DHCP",
+      "static": "Estático",
+      "staticIp": "Endereço IP",
+      "staticGateway": "Gateway",
+      "staticIpv6": "IPv6 estático (CIDR)",
+      "staticGateway6": "Gateway IPv6",
+      "staticIpv6Hint": "Opcional e independente da configuração de endereço acima: um contêiner com DHCP ainda pode ter um endereço IPv6 fixo.",
+      "staticDns": "Servidores DNS",
+      "staticHint": "Um contêiner não tem cloud-init. Um endereço estático é gravado na própria configuração de rede da distribuição, então errar deixa o contêiner acessível apenas pelo console.",
+      "networkPlaceholder": "Escolha uma rede",
+      "attachment": "Conecta-se por {{attachment}}"
+    },
+    "setup": {
+      "title": "Configuração do primeiro boot",
+      "hostname": "Nome do host",
+      "timezone": "Fuso horário",
+      "sshKeys": "Chaves SSH",
+      "sshKeysHint": "Uma chave por linha. Gravadas no authorized_keys do root antes de o contêiner iniciar pela primeira vez.",
+      "password": "Senha do root",
+      "passwordHint": "Transformada em hash antes de ser armazenada e antes de sair deste servidor. A senha em si nunca é gravada em disco em lugar algum.",
+      "noAccessWarning": "Sem uma chave SSH ou uma senha, a única forma de entrar neste contêiner é pelo console."
+    },
+    "summary": {
+      "title": "Pronto para criar",
+      "startAfterCreate": "Iniciá-lo assim que for criado",
+      "startHint": "Desativado por padrão, para que você possa conferir a configuração de rede antes de ele entrar na rede."
+    }
+  },
+  "clone": {
+    "title": "Clonar {{name}}",
+    "body": "Cria um novo contêiner a partir deste, no mesmo pool. Por padrão, é uma cópia completa: depois disso, nada é compartilhado com a origem.",
+    "name": "Nome do clone",
+    "linked": "Compartilhar armazenamento com a origem",
+    "linkedHint": "Pede ao pool um clone vinculado que compartilha os dados inalterados com a origem. A origem não pode ser excluída enquanto o clone existir. Se o host não conseguir criar um vínculo, você recebe uma cópia completa e o resultado informa isso.",
+    "linkedUnavailable": "O pool deste contêiner não pode compartilhar dados, então o clone será uma cópia completa.",
+    "start": "Iniciar o clone quando estiver pronto",
+    "resultLinked": "{{name}} foi criado como clone vinculado. Ele compartilha dados com a origem, que não pode ser excluída enquanto o clone existir.",
+    "resultFull": "{{name}} foi criado como cópia completa. Ele não compartilha nada com a origem."
+  },
+  "delete": {
+    "title": "Excluir {{name}}?",
+    "body": "Isto remove o contêiner e tudo o que há dentro dele.",
+    "keepRootfs": "Manter o sistema de arquivos",
+    "keepRootfsHint": "O contêiner é removido do McHarbor, mas seus arquivos permanecem no pool.",
+    "templateInUse": "Este template ainda sustenta outros contêineres. Excluí-lo os corromperia.",
+    "confirm": "Digite o nome do contêiner para confirmar."
+  },
+  "diagnose": {
+    "title": "O que provavelmente está errado",
+    "pending": "Lendo a definição do contêiner e seu motivo de saída…",
+    "unavailable": "Nenhum provedor de IA está configurado nesta instalação.",
+    "dismiss": "Dispensar",
+    "disclaimer": "Uma sugestão de um modelo de linguagem que leu a definição, os limites e o motivo de saída deste contêiner. Nada de dentro do contêiner foi enviado."
+  },
+  "widgets": {
+    "ctSummary": {
+      "label": "Contêineres de sistema",
+      "description": "Quantos contêineres existem e quantos estão em execução."
+    },
+    "ctDensity": {
+      "label": "Densidade de contêineres",
+      "description": "O que seus contêineres realmente usam em relação ao que podem usar."
+    },
+    "empty": "Ainda não há contêineres de sistema.",
+    "running": "Em execução",
+    "stopped": "Parado",
+    "problem": "Requer atenção",
+    "memoryInUse": "Memória em uso",
+    "nearLimit": "Perto de um limite",
+    "densityHint": "Os contêineres compartilham um kernel e o cache de páginas, então o uso real fica bem abaixo da soma de seus limites."
+  },
+  "reports": {
+    "platform": "Contêineres de sistema",
+    "isolation": {
+      "label": "Isolamento de contêineres de sistema",
+      "description": "Quais contêineres tiveram uma fronteira com o host removida: privilégio, montagens do host, aninhamento e mapeamento de id."
+    },
+    "options": {
+      "aiSummary": "Adicionar uma avaliação escrita (usa seu provedor de IA configurado)"
+    }
+  },
+  "backups": {
+    "title": "Agendamentos de backup",
+    "description": "Um backup sai deste host. É um arquivo compactado do sistema de arquivos do contêiner mais um manifesto de sua definição, gravado nos destinos de armazenamento que você indicar, de modo que uma falha de pool que leve os snapshots junto deixe os backups intactos.",
+    "history": "Histórico de backups",
+    "runNow": "Fazer backup agora",
+    "addPlan": "Adicionar um agendamento",
+    "editPlan": "Editar agendamento",
+    "deletePlan": "Excluir agendamento",
+    "restore": "Restaurar",
+    "delete": "Excluir backup",
+    "disabled": "Desativado",
+    "noPlans": "Ainda não há agendamento de backup. Até que exista um, este contêiner é protegido apenas por seus snapshots, que ficam no mesmo pool que ele.",
+    "noRuns": "Ainda não foi feito nenhum backup.",
+    "noDestinations": "Nenhum destino de armazenamento está configurado. Adicione um em Configurações antes de gravar um backup.",
+    "fellBack": "Feito como cópia completa",
+    "fellBackHint": "Um incremental estava previsto e uma cópia completa foi feita no lugar: {{reason}}",
+    "idShift": {
+      "none": "Proprietários inalterados",
+      "noneHint": "O backup foi feito na faixa de ids deste contêiner, então nenhum proprietário de arquivo precisou ser movido.",
+      "shifted": "Proprietários movidos",
+      "shiftedHint": "A propriedade foi movida para a faixa de ids deste contêiner: todos os proprietários de arquivos foram deslocados da faixa em que o backup foi feito.",
+      "skipped": "Proprietários não movidos",
+      "skippedHint": "O host restaurou os arquivos sem mover seus proprietários, então eles ainda pertencem à faixa de ids em que o backup foi feito."
+    },
+    "blocked": {
+      "template": "Um template não pode ser copiado em backup: seu sistema de arquivos é o armazenamento de apoio de todos os clones dele.",
+      "hostOffline": "Não foi possível alcançar o host deste contêiner, então o backup não pode ser iniciado.",
+      "noDestination": "Adicione primeiro um destino de armazenamento em Configurações: um backup que não vai a lugar nenhum não é um backup.",
+      "noPlan": "Adicione primeiro um agendamento, para que o backup saiba onde gravar."
+    },
+    "planColumns": {
+      "name": "Agendamento",
+      "schedule": "Executa",
+      "retention": "Mantém",
+      "lastRun": "Última execução",
+      "nextRun": "Próxima execução"
+    },
+    "columns": {
+      "started": "Iniciado",
+      "operation": "O quê",
+      "kind": "Tipo",
+      "size": "Tamanho",
+      "consistency": "Feito",
+      "destinations": "Gravado em",
+      "status": "Status"
+    },
+    "operation": {
+      "backup": "Backup",
+      "restore": "Restaurar"
+    },
+    "kind": {
+      "full": "Completo",
+      "incremental": "Incremental"
+    },
+    "consistency": {
+      "snapshot": "A partir de um snapshot",
+      "snapshotHint": "O arquivo foi lido de um snapshot de um ponto no tempo, e não do sistema de arquivos ativo. Em um pool btrfs, ZFS ou LVM o snapshot é instantâneo e o contêiner nunca parou.",
+      "live-copy": "Cópia ao vivo",
+      "live-copyHint": "O rootfs foi copiado enquanto o contêiner continuava em execução, sem snapshot nem congelamento. Os arquivos foram lidos em momentos diferentes, então a cópia não é de um ponto no tempo: um banco de dados ou uma atualização de pacote em andamento pode ser capturado pela metade. Pare o contêiner antes, ou use um thin pool btrfs, ZFS ou LVM, quando isso importar.",
+      "frozen": "Congelado",
+      "frozenHint": "Os processos do contêiner foram congelados durante a cópia. Consistente, e nada foi executado enquanto ela rodava.",
+      "filesystem": "Em repouso",
+      "filesystemHint": "O contêiner não estava em execução, então nada gravava no sistema de arquivos enquanto ele era lido."
+    },
+    "status": {
+      "running": "Em execução",
+      "success": "Concluído",
+      "failure": "Falhou",
+      "cancelled": "Cancelado"
+    },
+    "errorHint": {
+      "backupKeyMissing": "Nenhuma chave de criptografia de backup está instalada neste McHarbor, então nenhum destino aceitaria o backup. Instale uma em Configurações → Armazenamento → Chave de criptografia de backup e execute o backup novamente."
+    },
+    "retention": {
+      "lastCount": "últimos {{count}}",
+      "forDays": "{{days}} dias",
+      "forever": "Para sempre"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Backup noturno",
+      "schedule": "Agendamento",
+      "scheduleHint": "Quando este backup é executado. O construtor legível cobre os casos comuns; o campo avançado aceita qualquer expressão cron de cinco campos.",
+      "enabled": "Executar neste agendamento",
+      "destinations": "Destinos",
+      "destinationsHint": "Cada destino escolhido recebe sua própria cópia. Uma cópia não é um backup.",
+      "retentionCount": "Manter esta quantidade",
+      "retentionDays": "Manter por este número de dias",
+      "retentionHint": "Zero significa para sempre. Um backup no qual um incremental posterior ainda se baseia nunca é excluído, nem o único backup restante de um contêiner que ainda existe.",
+      "fullEvery": "Fazer uma cópia completa a cada",
+      "fullEveryUnit": "execuções",
+      "fullEveryHint": "Os incrementais são rápidos e cada um depende das cópias anteriores. Reiniciar a cadeia regularmente mantém uma restauração curta. Zero nunca força uma.",
+      "quiesceNotice": "Um contêiner em execução recebe um snapshot onde o pool permite, e é congelado durante a cópia onde não permite. Uma cópia que não puder ser nenhuma das duas é recusada em vez de gravada, pois um sistema de arquivos gravado pela metade não se distingue de um bom.",
+      "save": "Salvar agendamento"
+    },
+    "deletePlanConfirm": {
+      "title": "Excluir este agendamento?",
+      "body": "Os backups que ele já gravou permanecem onde estão e continuam restauráveis. Apenas o agendamento é removido."
+    },
+    "deleteConfirm": {
+      "title": "Excluir este backup?",
+      "body": "As cópias em cada destino também são removidas. Um backup no qual um incremental posterior se baseia não pode ser excluído."
+    },
+    "restoreDialog": {
+      "title": "Restaurar {{name}}?",
+      "description": "Reconstrói o sistema de arquivos deste contêiner a partir do backup feito em {{taken}}.",
+      "needsStop": "O contêiner precisa ser parado primeiro. Substituir o sistema de arquivos sob um init em execução não falha de forma limpa.",
+      "spaceNotice": "O sistema de arquivos é reconstruído ao lado do atual e movido para o lugar na última etapa, então o host precisa de espaço para uma segunda cópia enquanto isso roda.",
+      "chainNote": "Este é um backup incremental, então a cópia completa na qual ele se baseia e todos os incrementais entre eles são baixados e aplicados em ordem.",
+      "irreversible": "Isto substitui tudo no sistema de arquivos do contêiner agora. Não pode ser desfeito.",
+      "confirm": "Digite {{name}} para confirmar",
+      "submit": "Restaurar este backup"
+    }
+  },
+  "recreate": {
+    "action": "Recriar como um novo contêiner",
+    "orphaned": {
+      "button": "Backups de contêineres excluídos",
+      "title": "Backups de contêineres excluídos",
+      "description": "Estes backups pertencem a contêineres que o McHarbor não tem mais. Um backup sobrevive ao seu contêiner de propósito: escolha um para recriar o contêiner a partir dele.",
+      "empty": "Todos os backups pertencem a um contêiner que ainda existe.",
+      "container": "Contêiner",
+      "unknownName": "Contêiner sem nome"
+    },
+    "dialog": {
+      "title": "Recriar {{name}} a partir de um backup",
+      "description": "Tudo abaixo vem da definição armazenada com o backup feito em {{taken}}. Altere o que não serve mais: um nome já em uso, um pool ou uma rede que não existe mais.",
+      "loading": "Lendo a definição do contêiner a partir do destino do backup…",
+      "pool": "Pool de armazenamento",
+      "poolPlaceholder": "Escolha um pool",
+      "poolMissing": "O pool em que este contêiner ficava ({{backend}} em {{target}}) não está neste host. Escolha outro.",
+      "interfaces": "Interfaces",
+      "noInterfaces": "Nenhuma interface. O contêiner terá apenas loopback.",
+      "networkPlaceholder": "Escolha uma rede",
+      "networkMissing": "A rede em que esta interface estava não existe mais. Escolha outra ou remova a interface.",
+      "removeInterface": "Remover a interface {{name}}",
+      "mounts": "Montagens",
+      "noMounts": "Nenhuma montagem.",
+      "removeMount": "Remover a montagem {{destination}}",
+      "startAfter": "Iniciá-lo quando a restauração terminar",
+      "restoreNote": "O contêiner é criado parado, depois seu sistema de arquivos é reconstruído a partir deste backup e de todos os backups em que ele se baseia. As interfaces recebem novos endereços MAC, então uma reserva DHCP baseada no antigo não corresponderá.",
+      "submit": "Recriar contêiner"
+    },
+    "warnings": {
+      "name_invalid": "O nome armazenado não pode ser usado por um contêiner aqui. Escolha um novo.",
+      "init_unknown": "O sistema init armazenado não é um que o McHarbor executa, então o systemd foi escolhido. Verifique antes de criar.",
+      "pool_target_unknown": "O caminho rootfs armazenado não indica em qual pool ele estava. Escolha um pool.",
+      "nic_dropped": "Uma interface sem bridge ou adaptador pai foi omitida.",
+      "mount_dropped": "Uma montagem com tipo desconhecido ou sem origem foi omitida.",
+      "limits_adjusted": "Um limite negativo foi redefinido para sem limite."
+    }
+  },
+  "permissions": {
+    "ct.view": {
+      "label": "Ver contêineres de sistema"
+    },
+    "ct.manage": {
+      "label": "Gerenciar contêineres de sistema"
+    },
+    "ct.delete": {
+      "label": "Excluir contêineres de sistema"
+    },
+    "ct.console": {
+      "label": "Abrir o console de um contêiner de sistema"
+    },
+    "ct.backup": {
+      "label": "Fazer backup de contêineres de sistema"
+    },
+    "ct.restore": {
+      "label": "Restaurar um contêiner de sistema a partir de um backup"
+    },
+    "ct.privileged": {
+      "label": "Executar contêineres privilegiados e montar caminhos do host"
+    }
+  },
+  "err": {
+    "ct": {
+      "unauthorized": "Você precisa entrar para fazer isso.",
+      "privilege_required": "Isso exige a permissão para executar contêineres privilegiados e montar caminhos do host.",
+      "invalid_request": "Algo nessa solicitação não pôde ser usado.",
+      "not_found": "Esse contêiner não existe mais.",
+      "name_taken": "Um contêiner neste host já tem esse nome.",
+      "pool_mismatch": "Esse pool já está registrado com outro backend ou caminho neste host. Escolha o pool novamente na lista.",
+      "pool_required": "Um pool de armazenamento é obrigatório.",
+      "running": "O contêiner precisa ser parado primeiro.",
+      "not_running": "O contêiner não está em execução.",
+      "host_offline": "Não foi possível alcançar o host deste contêiner.",
+      "no_capability": "Este host não pode executar contêineres de sistema.",
+      "snapshot_chain_deep": "Este contêiner tem snapshots empilhados demais. Exclua alguns antes de fazer outro.",
+      "template_in_use": "Este template ainda sustenta outros contêineres.",
+      "template_running": "Um template não pode ser iniciado.",
+      "bad_mount": "Essa montagem não é permitida.",
+      "id_range_exhausted": "Este host não tem mais nenhuma faixa de ids livre para outro contêiner sem privilégios.",
+      "command_failed": "O host não conseguiu executar isso.",
+      "agent_too_old": "O host deste contêiner executa um agente antigo demais para criar ou remover o rootfs de um contêiner. Atualize o agente nesse host e tente novamente.",
+      "image_not_cached": "Essa imagem ainda não foi baixada para este host. Baixe-a para o host em Compute → Imagens e crie o contêiner novamente.",
+      "stats_unavailable": "O agente do host não retornou estatísticas para este contêiner em execução. Atualize o agente neste host para ver o uso em tempo real.",
+      "nic_ipv6_invalid": "Informe um endereço IPv6 com o comprimento do prefixo, como 2001:db8::50/64, e um gateway IPv6. Valores IPv4 não são aceitos nesses campos.",
+      "nic_ipv6_macvlan_only": "Um endereço IPv6 estático só está disponível em redes diretas (macvlan).",
+      "not_ready": "Esta seção ainda está iniciando. Tente novamente em instantes.",
+      "backup_name_required": "Um agendamento de backup precisa de um nome.",
+      "backup_name_too_long": "O nome desse agendamento de backup é longo demais.",
+      "backup_retention_invalid": "Essa configuração de retenção está fora do intervalo.",
+      "backup_cron_invalid": "Essa não é uma expressão cron válida de cinco campos.",
+      "backup_no_destination": "Este backup não tem para onde ir. Escolha pelo menos um destino de armazenamento.",
+      "backup_chain_incomplete": "A cadeia deste backup está incompleta, então ele não pode ser restaurado.",
+      "backup_chain_unrestorable": "Este backup não pode ser restaurado: seus backups incrementais foram lidos de uma cópia ao vivo de um rootfs em pool dir. Restaure o backup completo em que ele se baseia.",
+      "backup_idmap_conflict": "Este backup não pode ser restaurado: os backups de sua cadeia registraram faixas de ids diferentes, então seus proprietários de arquivos não podem ser movidos para o contêiner de destino de forma consistente.",
+      "backup_not_confirmed": "Digite o nome do contêiner para confirmar a restauração.",
+      "backup_template": "Um template não pode ser copiado em backup nem restaurado sobre.",
+      "backup_agent_too_old": "O host deste contêiner executa um agente antigo demais para fazer backup de um contêiner.",
+      "backup_store_failed": "O McHarbor não conseguiu armazenar o backup em seu destino.",
+      "backup_manifest_missing": "A definição do contêiner deste backup não está mais em nenhum de seus destinos. Crie um contêiner manualmente e restaure nele.",
+      "backup_manifest_unreadable": "A definição do contêiner deste backup não pôde ser lida.",
+      "recreate_manage_required": "Recriar um contêiner exige ct.manage nesse host, além de ct.restore.",
+      "recreate_restore_required": "Recriar um contêiner a partir de um backup exige ct.restore nesse host."
+    }
+  },
+  "msg": {
+    "ct": {
+      "created": "Contêiner criado.",
+      "updated": "Contêiner atualizado.",
+      "started": "Contêiner iniciado.",
+      "stopped": "Contêiner parado.",
+      "shutdown_escalated": "O contêiner não parou sozinho e foi encerrado à força.",
+      "restarted": "Contêiner reiniciado.",
+      "frozen": "Contêiner congelado.",
+      "unfrozen": "Contêiner descongelado.",
+      "deleted": "Contêiner excluído.",
+      "limits_applied": "Limites aplicados. Já estão em vigor.",
+      "limits_queued": "Limites armazenados. Serão aplicados na próxima vez que o contêiner iniciar.",
+      "snapshot_created": "Snapshot criado.",
+      "snapshot_reverted": "Contêiner revertido.",
+      "snapshot_deleted": "Snapshot excluído.",
+      "cloned": "Contêiner clonado.",
+      "templated": "Template atualizado.",
+      "nic_added": "Interface adicionada.",
+      "mount_added": "Montagem adicionada.",
+      "backup_plan_saved": "Agendamento de backup salvo.",
+      "backup_plan_deleted": "Agendamento de backup excluído.",
+      "backup_started": "Backup iniciado. Ele continua em execução se você sair desta página.",
+      "backup_stored": "Backup armazenado.",
+      "backup_deleted": "Backup excluído.",
+      "restore_started": "Restauração iniciada.",
+      "recreate_started": "Contêiner definido. Seu sistema de arquivos está sendo restaurado a partir do backup e ele pode ser iniciado quando a restauração terminar."
+    }
+  },
+  "runbook": {
+    "attach": {
+      "ct": "Contêiner de sistema"
+    },
+    "targets": {
+      "ct": "Contêiner de sistema"
+    },
+    "steps": {
+      "ct_start": "Inicia o contêiner de sistema",
+      "ct_stop": "Interrompe o contêiner de sistema",
+      "ct_restart": "Reinicia o contêiner de sistema",
+      "ct_freeze": "Congela todos os processos do contêiner de sistema",
+      "ct_unfreeze": "Descongela um contêiner de sistema congelado",
+      "ct_backup_run": "Faz backup do contêiner de sistema agora",
+      "ct_state": "O estado, os limites e o host do contêiner de sistema",
+      "ct_backups": "Os 20 backups mais recentes do contêiner de sistema"
+    }
+  },
+  "estate": {
+    "containers": "Contêineres de sistema"
+  },
+  "search": {
+    "group": {
+      "containers": "Contêineres de sistema"
+    },
+    "action": {
+      "createContainer": "Criar contêiner de sistema",
+      "createContainerKeywords": "novo lxc ct contêiner"
+    }
+  }
+}

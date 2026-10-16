@@ -1,9 +1,0 @@
-{
-  "label": "Supprimer le volume",
-  "description": "Supprimer un volume Docker",
-  "config": {
-    "environment": "Environnement",
-    "name": "Nom",
-    "force": "Forcer"
-  }
-}

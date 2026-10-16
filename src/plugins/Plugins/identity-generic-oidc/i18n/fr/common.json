@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "OpenID Connect générique",
+    "subtitle": "Fédérez la connexion McHarbor vers tout fournisseur OpenID Connect conforme — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP, et bien d'autres. Le plugin récupère <issuer>/.well-known/openid-configuration à l'exécution pour découvrir les points de terminaison d'autorisation et de jeton, puis exécute le flux OIDC authorization-code standard.",
+    "registerHint": "Ajoutez un fournisseur depuis la page Paramètres > Sécurité > Fournisseurs d'identité de l'hôte et choisissez « OpenID Connect générique » comme provider_type."
+  },
+  "fields": {
+    "issuer_url":    "URL de l'émetteur",
+    "client_id":     "ID client",
+    "client_secret": "Secret client",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "issuer_url":    "L'URL de l'émetteur OIDC — généralement l'URL de base du portail utilisateur de votre fournisseur d'identité (par exemple https://login.example.com ou https://your-tenant.auth0.com/). Le plugin ajoute /.well-known/openid-configuration pour découvrir le point de terminaison d'autorisation, le point de terminaison de jeton et l'URI JWKS.",
+    "client_id":     "ID client OAuth attribué par votre IdP à l'application McHarbor. Copiez-le depuis l'écran de configuration de l'application/du client de votre IdP.",
+    "client_secret": "Secret client OAuth émis par votre IdP. Stocké chiffré au repos (AES-256-GCM).",
+    "scopes":        "Scopes OAuth séparés par des espaces. Par défaut 'openid profile email', qui couvre les claims d'identité OIDC standard. Ajoutez 'groups' si votre IdP expose un claim de groupe sous ce nom (l'assistant de correspondance des groupes de l'hôte lit le claim 'groups' affirmé par OIDC)."
+  },
+  "guide": {
+    "title":    "Configurer OpenID Connect générique dans McHarbor",
+    "subtitle": "Enregistrez un client OAuth confidentiel dans votre IdP et accordez-lui le droit de lire les claims de profil de base (et éventuellement les groupes).",
+    "step1": {
+      "title": "Ouvrir l'enregistrement d'application de votre IdP",
+      "body":  "Dans la console d'administration de votre fournisseur d'identité, accédez à Applications (ou Clients / API Clients selon le produit) et créez une nouvelle application web confidentielle. Choisissez un nom comme « McHarbor SSO » et le type Web application."
+    },
+    "step2": {
+      "title": "Définir l'URI de redirection",
+      "body":  "Sous Allowed Callback URLs / Redirect URIs, ajoutez l'URL de rappel McHarbor affichée sur la page de modification du fournisseur. L'hôte ajoute /api/identity-providers/callback à l'URL de base de votre McHarbor — copiez-la exactement pour éviter des erreurs silencieuses de code d'authentification."
+    },
+    "step3": {
+      "title": "Créer un secret client",
+      "body":  "Générez un nouveau secret client. Choisissez une expiration raisonnable (90 ou 180 jours) et définissez un rappel dans votre calendrier. Copiez la VALEUR du secret (et non l'ID du secret) dans le champ Secret client du formulaire du fournisseur. McHarbor le stocke chiffré en AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copier l'ID client",
+      "body":  "Depuis la vue d'ensemble de l'application, copiez l'ID client dans le champ ID client du formulaire du fournisseur."
+    },
+    "step5": {
+      "title": "Copier l'URL de l'émetteur",
+      "body":  "L'URL de l'émetteur est l'URL de base de votre IdP — la même URL que vos utilisateurs ouvrent pour se connecter. Formes courantes : https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Collez-la dans le champ URL de l'émetteur. Le plugin récupérera <issuer>/.well-known/openid-configuration pour valider la configuration."
+    },
+    "step6": {
+      "title": "Tester la connexion",
+      "body":  "De retour dans McHarbor, cliquez sur « Tester la connexion » dans le formulaire du fournisseur. Un résultat vert signifie que le document de découverte OIDC a été résolu et que l'IdP a accepté vos identifiants. Vous pouvez maintenant activer le fournisseur et utiliser « Se connecter avec <votre IdP> » sur la page de connexion."
+    }
+  }
+}

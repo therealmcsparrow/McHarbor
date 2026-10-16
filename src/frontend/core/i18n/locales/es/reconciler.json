@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "Qué vigilar",
+    "container": "Un contenedor",
+    "stack": "Un stack",
+    "environment": "Todo en este entorno"
+  },
+  "kindHint": {
+    "container": "Deriva cuando el contenedor falta, está detenido, ejecuta otra imagen o su configuración difiere.",
+    "stack": "Deriva cuando falta un servicio del archivo compose del stack o no se está ejecutando, o el stack ejecuta contenedores que su archivo no declara.",
+    "environment": "Deriva cuando aquí se ejecuta un contenedor que ninguna vigilancia de contenedor o stack de este entorno contempla. Etiquete un contenedor con mcharbor.reconciler.ignore=true para excluirlo."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Elija un stack",
+  "target": {
+    "environment": "Entorno completo"
+  },
+  "class": {
+    "configuration": "Configuración",
+    "state": "Estado",
+    "existence": "Existencia",
+    "image": "Imagen"
+  },
+  "details": {
+    "open": "Mostrar qué ha derivado",
+    "title": "Qué ha derivado: {{name}}",
+    "description": "Comprobado {{time}}.",
+    "field": "Campo",
+    "expected": "Esperado",
+    "actual": "Real",
+    "firstSeen": "Visto por primera vez",
+    "none": "No se encontró deriva en la última comprobación."
+  },
+  "observeOnly": "Las vigilancias de stack y de entorno no se pueden reconciliar directamente; proponga una corrección en su lugar.",
+  "report": {
+    "title": "Informe de deriva",
+    "description": "Toda deriva confirmada en todas las vigilancias, empezando por lo que lleva más tiempo mal.",
+    "open": "Informe de deriva",
+    "back": "Volver a las vigilancias",
+    "empty": "No ha derivado nada.",
+    "classFilter": "Clase",
+    "allClasses": "Todas las clases",
+    "columns": {
+      "watch": "Vigilancia",
+      "class": "Clase",
+      "field": "Campo",
+      "expected": "Esperado",
+      "actual": "Real",
+      "firstSeen": "Visto por primera vez",
+      "checked": "Comprobado"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Gestionado por una fuente Git: elimine su documento en el repositorio en su lugar.",
+  "mode": {
+    "column": "Respuesta",
+    "change": "Cambiar cómo se responde a la deriva",
+    "title": "Cómo responder a la deriva: {{name}}",
+    "description": "Elija qué hace McHarbor cuando esta vigilancia deriva.",
+    "label": "Cuando deriva",
+    "observe": "Observar",
+    "propose": "Proponer una corrección",
+    "enforce": "Aplicar",
+    "save": "Guardar",
+    "confirmEnforce": "Dejar que McHarbor lo corrija automáticamente",
+    "enforceWarning": "Aplicar modifica contenedores sin preguntar a nadie. Solo actúa mientras la aplicación esté activada en los ajustes del reconciliador, dentro de su límite por pasada y su tiempo de espera, y se detiene ante fallos repetidos hasta que alguien lo restablezca.",
+    "hint": {
+      "observe": "Registrar la deriva, alertar sobre ella y no cambiar nada.",
+      "propose": "Escribir además un plan para restaurar el estado deseado, para que alguien lo revise y apruebe.",
+      "enforce": "Aplicar el plan automáticamente cuando todos los pasos se puedan dar sin intervención humana; en caso contrario, escribir un plan para revisar."
+    }
+  },
+  "proposals": {
+    "open": "Planes",
+    "proposeNow": "Proponer una corrección",
+    "title": "Planes de reconciliación",
+    "description": "Planes para restaurar el estado deseado, en espera de revisión, y el registro de cada plan aplicado por una persona o por la aplicación automática.",
+    "statusFilter": "Estado",
+    "allStatuses": "Todos los estados",
+    "empty": "No hay planes.",
+    "errorTitle": "Por qué falló el plan",
+    "stepError": "Por qué falló este paso",
+    "dialogTitle": "Plan para {{name}}",
+    "dialogDescription": "Escrito {{time}}.",
+    "staleNotice": "La deriva cambió desde que se escribió este plan, por lo que no se aplicó. Este es el plan para la deriva tal como está ahora; revíselo de nuevo.",
+    "drift": "Qué ha derivado",
+    "plan": "Qué hace el plan",
+    "noSteps": "Nada que hacer.",
+    "approveWarning": "Aprobar aplica estos pasos al entorno ahora. McHarbor comprueba la deriva de nuevo antes y lo rechaza si cambió.",
+    "rejectNote": "Motivo (opcional)",
+    "approve": "Aprobar y aplicar",
+    "reject": "Rechazar",
+    "confirmApprove": "Aplicar ahora",
+    "confirmReject": "Rechazar plan",
+    "columns": {
+      "watch": "Vigilancia",
+      "status": "Estado",
+      "origin": "Origen",
+      "steps": "Pasos",
+      "created": "Escrito",
+      "resolvedBy": "Resuelto por"
+    },
+    "status": {
+      "pending": "En espera de revisión",
+      "applying": "Aplicando",
+      "applied": "Aplicado",
+      "failed": "Fallido",
+      "rejected": "Rechazado",
+      "superseded": "Reemplazado"
+    },
+    "origin": {
+      "propose": "Propuesta",
+      "enforce": "Aplicación automática"
+    }
+  },
+  "step": {
+    "start": "Iniciar",
+    "stop": "Detener",
+    "remove": "Eliminar",
+    "recreate": "Recrear",
+    "stack_up": "Desplegar stack",
+    "manual": "Requiere una persona",
+    "plugin": "Cambiar",
+    "disruptive": "Interrumpe el servicio"
+  },
+  "stepResult": {
+    "done": "Hecho",
+    "failed": "Fallido",
+    "skipped": "Omitido",
+    "manual": "Se deja a una persona"
+  },
+  "manual": {
+    "missing": "El contenedor no existe y el estado deseado no contiene lo suficiente para crearlo. Despliéguelo y vuelva a comprobar.",
+    "compose_managed": "El contenedor pertenece a un stack de compose; cambie el stack en lugar del contenedor.",
+    "ports": "Los puertos publicados no se pueden cambiar recreando; edite el contenedor o su stack.",
+    "mounts": "Los montajes no se pueden cambiar recreando; edite el contenedor o su stack.",
+    "networks": "Conecte el contenedor a sus redes desde la página del contenedor o de la red.",
+    "protected": "Este es un contenedor protegido (McHarbor o su agente) y nunca se modifica automáticamente.",
+    "stack_remove": "Nunca se planifica eliminar un stack; deténgalo y elimínelo desde la página del stack.",
+    "stack_stop": "Nunca se planifica detener un stack; deténgalo desde la página del stack.",
+    "git_compose": "El archivo compose del stack proviene de Git; despliéguelo mediante su pipeline de GitOps."
+  },
+  "refusal": {
+    "stale": "La deriva cambió desde que se escribió este plan. En su lugar se escribió un plan nuevo.",
+    "unknown": "No se puede acceder al entorno en este momento, por lo que no se cambió nada.",
+    "no_drift": "No hay deriva sobre la que actuar.",
+    "cannot_act": "Este nodo de McHarbor no puede aplicar cambios.",
+    "not_pending": "Alguien ya resolvió este plan.",
+    "git_managed": "Esta vigilancia está gestionada por una fuente Git. Cámbiela en el repositorio.",
+    "enforce_route": "Aplicar se concede desde el ajuste de respuesta de la vigilancia.",
+    "bad_mode": "Modo de respuesta desconocido.",
+    "not_git_managed": "Esta vigilancia no está gestionada por una fuente Git.",
+    "not_expressible": "Nada de esta deriva se puede escribir de vuelta en el repositorio.",
+    "git_failed": "Git rechazó el cambio. Compruebe las credenciales y la rama del repositorio.",
+    "sync_failed": "La sincronización falló; el motivo se muestra en la fuente.",
+    "confirm_passes_range": "Las pasadas de confirmación deben estar entre 1 y 10.",
+    "actions_per_pass_range": "Las acciones por pasada deben estar entre 1 y 25.",
+    "cooldown_range": "El tiempo de enfriamiento debe estar entre 0 y 86400 segundos.",
+    "failure_threshold_range": "El umbral de fallos debe estar entre 1 y 20.",
+    "source_fields_required": "Se requieren un nombre, un repositorio y un entorno.",
+    "invalid_branch": "Ese nombre de rama no es válido.",
+    "path_escapes_repo": "La ruta debe permanecer dentro del repositorio.",
+    "invalid": "La solicitud no era válida."
+  },
+  "pullRequest": {
+    "action": "Aceptar la deriva en Git",
+    "title": "Aceptar la deriva en Git: {{name}}",
+    "description": "McHarbor reescribe el documento de esta vigilancia para que coincida con lo que se está ejecutando, lo sube a una rama nueva y abre una pull request para su revisión. No cambia nada hasta que alguien la fusione.",
+    "confirm": "Subir rama y abrir solicitud",
+    "branch": "Rama:",
+    "open": "Abrir la pull request",
+    "noRequest": "La rama se subió, pero no se abrió ninguna pull request: {{error}}",
+    "changed": "Cambiado: {{fields}}",
+    "skipped": "No expresable, sigue habiendo deriva: {{fields}}"
+  },
+  "sources": {
+    "open": "Fuentes Git",
+    "title": "Fuentes Git",
+    "description": "Repositorios cuyos documentos son el estado deseado. Un commit cambia la intención en una pasada del reconciliador; las filas de Git se editan en el repositorio.",
+    "add": "Añadir fuente Git",
+    "addTitle": "Añadir una fuente Git",
+    "addDescription": "Cada documento YAML o JSON bajo la ruta se convierte en una vigilancia en el entorno actual.",
+    "name": "Nombre",
+    "repository": "Repositorio",
+    "repositoryPlaceholder": "Elija un repositorio",
+    "branch": "Rama",
+    "path": "Directorio",
+    "formatHint": "Un documento contiene name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe o propose) y config; un archivo puede listar varios bajo desiredStates. Enforce no se puede definir desde Git.",
+    "where": "Rama y directorio",
+    "state": "Estado",
+    "failing": "Con fallos",
+    "syncing": "Sincronizando",
+    "paused": "En pausa",
+    "errorTitle": "Por qué falló la sincronización",
+    "rows": "Vigilancias",
+    "commit": "Commit",
+    "synced": "Última sincronización",
+    "syncNow": "Sincronizar ahora",
+    "empty": "No hay fuentes Git.",
+    "deleteTitle": "Eliminar fuente Git",
+    "deleteDescription": "Dejar de leer el estado deseado de {{name}}. Sus vigilancias se conservan y luego se pueden editar aquí.",
+    "deleteConfirm": "Eliminar fuente"
+  },
+  "settings": {
+    "title": "Ajustes del reconciliador",
+    "description": "Cómo se confirma la deriva y los límites dentro de los que funciona la aplicación automática.",
+    "confirmPasses": "Pasadas para confirmar la deriva",
+    "confirmPassesHint": "La deriva solo se registra después de que esta cantidad de comprobaciones consecutivas la vean, para no notificar una actualización progresiva. Auméntelo en hosts lentos.",
+    "save": "Guardar",
+    "enforcement": "Aplicación automática",
+    "enforcementHint": "Desactivada por defecto. Solo se actúa sobre las vigilancias configuradas en Aplicar, y solo dentro de estos límites.",
+    "enforceEnabled": "Aplicación automática activada",
+    "maxActions": "Cambios por pasada",
+    "cooldownMinutes": "Tiempo de espera por vigilancia (minutos)",
+    "threshold": "Fallos antes de detenerse",
+    "saveEnforcement": "Guardar aplicación automática",
+    "breakerOpen": "La aplicación automática se detuvo tras fallos repetidos a las {{time}}. No se aplica nada hasta que se restablezca.",
+    "reset": "Restablecer y reanudar",
+    "confirmReset": "Reanudar la aplicación automática"
+  },
+  "pick": {
+    "manual": "Introducir manualmente…",
+    "fromList": "Elegir de la lista",
+    "container": "Seleccione un contenedor",
+    "containerHint": "Elegir un contenedor existente rellena la imagen y el estado con los que se ejecuta ahora. Introduzca un nombre manualmente para declarar uno que aún no existe.",
+    "image": "Seleccione una imagen",
+    "select": "Seleccionar…",
+    "loading": "Cargando…"
+  },
+  "plugin": {
+    "cluster": "Clúster",
+    "environment": "Entorno",
+    "pinHint": "Fije solo lo que deba mantenerse. Una propiedad en «Sin gestionar» nunca se comprueba.",
+    "useCurrent": "Usar los valores actuales",
+    "notManaged": "Sin gestionar",
+    "yes": "Sí",
+    "no": "No"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Ticket openen",
+  "description": "Open of meld opnieuw een ticket in een ITSM via een kanaal dat incidenten ondersteunt",
+  "config": {
+    "channel_id": "Ticketkanaal",
+    "dedup_key": "Ticketsleutel",
+    "severity": "Ernst",
+    "title": "Titel",
+    "message": "Bericht"
+  },
+  "options": {
+    "severity": {
+      "critical": "Kritiek",
+      "warning": "Waarschuwing",
+      "info": "Info"
+    }
+  }
+}

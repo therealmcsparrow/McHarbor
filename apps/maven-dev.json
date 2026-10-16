@@ -32,5 +32,9 @@
                         "description":  "Optional Maven configuration file path"
                     }
                 ],
-    "version":  "3.9-eclipse-temurin-21"
+    "version":  "3.9-eclipse-temurin-21",
+    "latest":  {
+        "version":  "3.9-eclipse-temurin-21",
+        "release_date":  "2026-09-10"
+    }
 }

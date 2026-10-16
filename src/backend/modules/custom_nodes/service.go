@@ -5,7 +5,9 @@ package customnodes
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -104,7 +106,10 @@ func (s *Service) Get(key string) (*CustomNodeWithCode, error) {
 		return nil, fmt.Errorf("invalid definition for %s: %w", key, err)
 	}
 
-	code, _ := os.ReadFile(filepath.Join(dir, "execute.js"))
+	code, err := os.ReadFile(filepath.Join(dir, "execute.js"))
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		slog.Warn("custom-nodes: reading execute.js failed", "key", key, "error", err)
+	}
 	trans := readTranslations(dir)
 
 	return &CustomNodeWithCode{

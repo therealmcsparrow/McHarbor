@@ -4,7 +4,7 @@
     "description":  "Apache Solr 9 open-source enterprise search platform built on Apache Lucene.",
     "category":  "Databases",
     "image":  "solr:9",
-    "logo":  "https://icon.horse/icon/solr.apache.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/apache-solr.svg",
     "website":  "https://solr.apache.org",
     "docsUrl":  "https://solr.apache.org/guide/",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "9"
+    "version":  "9",
+    "latest":  {
+        "version":  "9",
+        "release_date":  "2026-09-10"
+    }
 }

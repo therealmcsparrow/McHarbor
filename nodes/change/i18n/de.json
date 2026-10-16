@@ -1,16 +1,16 @@
 {
-  "label": "Change",
-  "description": "Set or delete a value on msg, flow, or global scope",
+  "label": "Ändern",
+  "description": "Einen Wert im Bereich msg, flow oder global setzen oder löschen",
   "config": {
     "action_type": "Aktion",
-    "scope": "Scope",
+    "scope": "Bereich",
     "property": "Eigenschaft",
     "value": "Wert"
   },
   "options": {
     "action_type": {
-      "set": "Set",
-      "delete": "Delete"
+      "set": "Setzen",
+      "delete": "Löschen"
     },
     "scope": {
       "msg": "msg",

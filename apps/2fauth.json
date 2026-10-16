@@ -1,0 +1,46 @@
+{
+  "slug": "2fauth",
+  "name": "2FAuth",
+  "description": "Web app to store and generate two-factor authentication (TOTP/HOTP) codes.",
+  "category": "Security",
+  "image": "2fauth/2fauth:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/2fauth.png",
+  "website": "https://docs.2fauth.app",
+  "docsUrl": "https://docs.2fauth.app/getting-started/installation/docker/",
+  "ports": [
+    {
+      "host": 8106,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/2fauth/data",
+      "container": "/2fauth"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "APP_KEY",
+      "default": "change-me-to-exactly-32-characters",
+      "description": "Encryption key, exactly 32 characters",
+      "secret": true
+    },
+    {
+      "key": "APP_URL",
+      "default": "http://localhost:8106",
+      "description": "Public URL of the app"
+    },
+    {
+      "key": "APP_NAME",
+      "default": "2FAuth",
+      "description": "Display name"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

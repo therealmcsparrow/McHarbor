@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "lifecycleFeed": {
+      "label": "Feed de ciclo de vida",
+      "description": "Eventos recentes de criação, atualização e exclusão em todos os recursos"
+    }
+  },
+  "lifecycleFeedWidget": {
+    "title": "Feed de ciclo de vida",
+    "loading": "Carregando eventos de ciclo de vida...",
+    "empty": "Nenhum evento de ciclo de vida recente",
+    "more": "mais {{count}}",
+    "viewAll": "Ver tudo",
+    "justNow": "agora mesmo"
+  }
+}

@@ -4,7 +4,7 @@
     "description":  "Open-source on-call management and incident response integrated with Grafana alerts.",
     "category":  "Monitoring",
     "image":  "grafana/oncall:latest",
-    "logo":  "https://icon.horse/icon/grafana.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/grafana.svg",
     "website":  "https://grafana.com/docs/oncall",
     "docsUrl":  "https://grafana.com/docs/oncall/latest/open-source/",
     "ports":  [
@@ -44,5 +44,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

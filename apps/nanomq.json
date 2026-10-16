@@ -1,0 +1,41 @@
+{
+    "slug":  "nanomq",
+    "name":  "NanoMQ",
+    "description":  "Lightweight MQTT broker built for edge and industrial IoT deployments with constrained resources.",
+    "category":  "IoT & Industrial",
+    "image":  "emqx/nanomq:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mqtt.png",
+    "website":  "https://nanomq.io",
+    "docsUrl":  "https://nanomq.io/docs/en/latest/installation/docker.html",
+    "ports":  [
+                  {
+                      "host":  1884,
+                      "container":  1883,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nanomq/config",
+                        "container":  "/etc/nanomq.conf",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

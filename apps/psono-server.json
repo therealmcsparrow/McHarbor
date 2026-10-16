@@ -4,7 +4,7 @@
     "description":  "Open-source password manager for teams with end-to-end encryption and sharing.",
     "category":  "Productivity",
     "image":  "psono/psono-client:latest",
-    "logo":  "https://icon.horse/icon/psono.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=psono.com\u0026sz=128",
     "website":  "https://psono.com",
     "docsUrl":  "https://doc.psono.com",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Psono URL"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

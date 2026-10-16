@@ -11,13 +11,7 @@ type SparklineProps = {
   className?: string;
 };
 
-export function Sparkline({
-  data,
-  width = 100,
-  height = 30,
-  color = 'var(--primary)',
-  className,
-}: SparklineProps) {
+export function Sparkline({ data, width = 100, height = 30, color = 'var(--primary)', className }: SparklineProps) {
   if (data.length < 2) return null;
 
   const max = Math.max(...data);
@@ -31,12 +25,7 @@ export function Sparkline({
   });
 
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      className={cn('overflow-visible', className)}
-    >
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className={cn('overflow-visible', className)}>
       <polyline
         points={points.join(' ')}
         fill="none"

@@ -10,6 +10,10 @@
     "container": "Container",
     "restarts": "Restarts",
     "state": "State",
-    "noRestarts": "No container restarts detected"
+    "noRestarts": "No container restarts detected",
+    "restartCount": "{{count}} restart",
+    "restartCount_other": "{{count}} restarts",
+    "more": "{{count}} more",
+    "allStable": "Every container has stayed up since it started"
   }
 }

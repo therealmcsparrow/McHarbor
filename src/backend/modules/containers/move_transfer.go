@@ -11,10 +11,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/moby/moby/client"
 )
 
 const moveTransferTTL = 1 * time.Hour
@@ -149,11 +152,15 @@ func moveBearerToken(header string) string {
 }
 
 func (s *Service) writeMoveTransfer(ctx context.Context, w http.ResponseWriter, entry moveTransferEntry) error {
-	cli, err := s.getClient(entry.SourceEnvID)
+	cli, err := s.getClient(ctx, entry.SourceEnvID)
 	if err != nil {
 		return err
 	}
 
+	// No context.WithTimeout here on purpose. Both SDK calls below return a
+	// stream whose lifetime is the request's: an image archive or a container
+	// path can run to gigabytes, and a deadline on ctx would cut the body
+	// mid-transfer rather than bound a slow handshake.
 	var reader io.ReadCloser
 	switch entry.Kind {
 	case moveTransferKindImage:
@@ -162,14 +169,20 @@ func (s *Service) writeMoveTransfer(ctx context.Context, w http.ResponseWriter, 
 			return fmt.Errorf("exporting move image archive: %w", err)
 		}
 	case moveTransferKindArchive:
-		reader, _, err = cli.CopyFromContainer(ctx, entry.ContainerID, entry.SourcePath)
+		var copied client.CopyFromContainerResult
+		copied, err = cli.CopyFromContainer(ctx, entry.ContainerID, client.CopyFromContainerOptions{SourcePath: entry.SourcePath})
 		if err != nil {
 			return fmt.Errorf("exporting move container archive: %w", err)
 		}
+		reader = copied.Content
 	default:
 		return fmt.Errorf("unsupported move transfer kind")
 	}
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	w.Header().Set("Content-Type", "application/x-tar")
 	w.Header().Set("Cache-Control", "no-store")

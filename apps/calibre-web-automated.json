@@ -1,0 +1,54 @@
+{
+  "slug": "calibre-web-automated",
+  "name": "Calibre-Web Automated",
+  "description": "Calibre-Web with automatic ingest, conversion and metadata enforcement for an ebook library.",
+  "category": "Media",
+  "image": "crocodilestick/calibre-web-automated:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre-web.png",
+  "website": "https://github.com/crocodilestick/Calibre-Web-Automated",
+  "docsUrl": "https://github.com/crocodilestick/Calibre-Web-Automated#quick-install",
+  "ports": [
+    {
+      "host": 8089,
+      "container": 8083,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/calibre-web-automated/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/calibre-web-automated/ingest",
+      "container": "/cwa-book-ingest"
+    },
+    {
+      "host": "/opt/appdata/calibre-web-automated/library",
+      "container": "/calibre-library"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

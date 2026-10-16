@@ -1,0 +1,51 @@
+{
+    "slug":  "pypowerwall",
+    "name":  "pyPowerwall",
+    "description":  "Local proxy and metrics API for Tesla Powerwall gateways, used to build energy dashboards without cloud access.",
+    "category":  "IoT & Industrial",
+    "image":  "jasonacox/pypowerwall:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/jasonacox/pypowerwall",
+    "docsUrl":  "https://github.com/jasonacox/pypowerwall#docker-setup",
+    "ports":  [
+                  {
+                      "host":  8675,
+                      "container":  8675,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pypowerwall/data",
+                        "container":  "/var/db"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PW_EMAIL",
+                        "default":  "",
+                        "description":  "Tesla account email used for gateway auth"
+                    },
+                    {
+                        "key":  "PW_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Powerwall gateway password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PW_HOST",
+                        "default":  "",
+                        "description":  "IP address of the Powerwall gateway"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

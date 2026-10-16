@@ -1,0 +1,48 @@
+{
+    "slug":  "cowrie",
+    "name":  "Cowrie",
+    "description":  "Medium-interaction SSH and Telnet honeypot that logs brute-force attempts and attacker shell activity.",
+    "category":  "Security",
+    "image":  "cowrie/cowrie:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.cowrie.org\u0026sz=128",
+    "website":  "https://www.cowrie.org",
+    "docsUrl":  "https://cowrie.readthedocs.io/en/latest/INSTALL.html",
+    "ports":  [
+                  {
+                      "host":  2222,
+                      "container":  2222,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2223,
+                      "container":  2223,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cowrie/etc",
+                        "container":  "/cowrie/cowrie-git/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/cowrie/log",
+                        "container":  "/cowrie/cowrie-git/var/log/cowrie"
+                    },
+                    {
+                        "host":  "/opt/appdata/cowrie/downloads",
+                        "container":  "/cowrie/cowrie-git/var/lib/cowrie/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

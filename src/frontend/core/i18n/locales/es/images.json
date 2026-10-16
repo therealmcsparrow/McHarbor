@@ -9,6 +9,16 @@
   "pruneUnused": "Podar sin usar",
   "pruneDescription": "Elimine las imágenes no utilizadas a las que no hacen referencia los contenedores.",
   "columns": {
+    "allTags": "Todas las etiquetas",
+    "digests": "Digests",
+    "parentId": "ID del padre",
+    "sharedSize": "Tamaño compartido",
+    "labels": "Etiquetas",
+    "containerCount": "Contenedores",
+    "protected": "Protegida",
+    "usedBy": "Usada por",
+    "groupRelations": "Relaciones",
+    "groupImage": "Imagen",
     "repoTag": "Repositorio:Etiqueta",
     "status": "Estado",
     "repository": "Repositorio",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "en uso",
-    "unused": "no usado"
+    "unused": "No usado"
   },
   "pull": {
     "title": "Extraer imagen",
@@ -64,13 +74,17 @@
     "noLayerHistory": "Sin historial de capas",
     "noLabels": "Sin etiquetas",
     "noEnvVars": "Sin variables de entorno",
+    "revealValues": "Mostrar valores",
+    "hideValues": "Ocultar valores",
+    "envWithheld": "Los valores que parecen credenciales están ocultos. Mostrarlos queda registrado en el registro de auditoría.",
+    "historyWithheld": "Los valores de ENV y de argumentos de compilación que parecen credenciales están ocultos. Mostrarlos queda registrado en el registro de auditoría.",
     "fields": {
       "id": "ID",
       "tags": "Etiquetas",
       "size": "Tamaño",
       "created": "Creado",
       "architecture": "Arquitectura",
-      "os": "OS",
+      "os": "SO",
       "dockerVersion": "Versión Docker",
       "author": "Autor",
       "digests": "resúmenes",
@@ -78,7 +92,7 @@
       "entrypoint": "Punto de entrada",
       "workingDir": "Directorio de trabajo",
       "user": "Usuario",
-      "stopSignal": "Detener Signal",
+      "stopSignal": "Señal de parada",
       "exposedPorts": "Puertos expuestos",
       "volumes": "Volúmenes",
       "environment": "Ambiente"
@@ -87,6 +101,17 @@
       "instruction": "Instrucción",
       "size": "Tamaño",
       "created": "Creado"
+    },
+    "tabs": {
+      "ariaLabel": "Secciones de la imagen",
+      "overview": "Resumen",
+      "config": "Configuración",
+      "labels": "Etiquetas",
+      "history": "Historial"
+    },
+    "badges": {
+      "tagged": "Etiquetada",
+      "dangling": "Huérfana"
     }
   }
 }

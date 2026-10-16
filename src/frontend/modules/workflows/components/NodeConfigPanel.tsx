@@ -1,35 +1,32 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  IconCopy,
-  IconTrash,
-  IconBug,
-  IconPlayerTrackNext,
-  IconBan,
-} from "@tabler/icons-react";
-import { cn } from "@resources/utils/cn";
-import { Input } from "@resources/components/ui/Input";
-import { Label } from "@resources/components/ui/Label";
-import { Button } from "@resources/components/ui/Button";
-import { Switch } from "@resources/components/ui/Switch";
-import { useCanvasStore } from "../stores/canvasStore";
-import { getEffectiveInputPorts, getEffectiveOutputPorts } from "../types";
-import type { CanvasNode } from "../types";
-import { NODE_DEFINITION_MAP, CATEGORY_TAG_COLORS } from "../nodes";
-import { ConfigFieldRenderer } from "./ConfigFieldRenderer";
-import { ExtraConditions } from "./ExtraConditions";
-import { SwitchCases } from "./SwitchCases";
+import { useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { IconCopy, IconTrash, IconBug, IconPlayerTrackNext, IconBan } from '@tabler/icons-react';
+import { cn } from '@resources/utils/cn';
+import { Input } from '@resources/components/ui/Input';
+import { Label } from '@resources/components/ui/Label';
+import { Button } from '@resources/components/ui/Button';
+import { Switch } from '@resources/components/ui/Switch';
+import { useCanvasStore } from '../stores/canvasStore';
+import { displayValue } from '../utils/display-value';
+import { getEffectiveInputPorts, getEffectiveOutputPorts } from '../types';
+import type { CanvasNode } from '../types';
+import { useNodeDefinition, CATEGORY_TAG_COLORS } from '../nodes';
+import { ConfigFieldRenderer } from './ConfigFieldRenderer';
+import { ExtraConditions } from './ExtraConditions';
+import { SwitchCases } from './SwitchCases';
+import { NodePortLabels } from './NodePortLabels';
+import { PERM } from '@core/auth/permissionKeys';
 
 interface NodeConfigPanelProps {
   node: CanvasNode;
 }
 
 export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
-  const { t } = useTranslation("common");
-  const definition = NODE_DEFINITION_MAP[node.action];
+  const { t } = useTranslation('common');
+  const definition = useNodeDefinition(node.action);
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel);
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
   const updateNodePortLabels = useCanvasStore((s) => s.updateNodePortLabels);
@@ -39,15 +36,9 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
   const duplicateNode = useCanvasStore((s) => s.duplicateNode);
   const removeNode = useCanvasStore((s) => s.removeNode);
 
-  const tagColor = CATEGORY_TAG_COLORS[definition?.category ?? "action"] ?? "";
-  const outputPorts = useMemo(
-    () => getEffectiveOutputPorts(node, definition),
-    [node, definition],
-  );
-  const inputPorts = useMemo(
-    () => getEffectiveInputPorts(node, definition),
-    [node, definition],
-  );
+  const tagColor = CATEGORY_TAG_COLORS[definition?.category ?? 'action'] ?? '';
+  const outputPorts = useMemo(() => getEffectiveOutputPorts(node, definition), [node, definition]);
+  const inputPorts = useMemo(() => getEffectiveInputPorts(node, definition), [node, definition]);
 
   const setConfigValue = useCallback(
     (key: string, value: unknown) => {
@@ -59,7 +50,7 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
   const setPortLabel = useCallback(
     (port: string, label: string) => {
       updateNodePortLabels(node.id, {
-        ...(node.portLabels ?? {}),
+        ...node.portLabels,
         [port]: label,
       });
     },
@@ -80,38 +71,31 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
     <div className="flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <span
-          className={cn(
-            "rounded-md px-2 py-0.5 text-[10px] font-medium uppercase",
-            tagColor,
-          )}
-        >
+        <span className={cn('rounded-md px-2 py-0.5 text-[10px] font-medium uppercase', tagColor)}>
           {definition?.category ?? node.type}
         </span>
-        <span className="truncate text-xs text-muted-foreground">
-          {definition?.label ?? node.action}
-        </span>
+        <span className="truncate text-xs text-muted-foreground">{definition?.label ?? node.action}</span>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {/* Node label */}
         <div>
-          <Label className="mb-1.5 text-xs">{t("workflows.labelField")}</Label>
+          <Label className="mb-1.5 text-xs">{t('workflows.labelField')}</Label>
           <Input
             type="text"
             value={node.label}
             onChange={(e) => updateNodeLabel(node.id, e.target.value)}
-            className="h-8 text-xs"
+            className="text-xs"
           />
         </div>
 
         {/* Config fields */}
         {definition?.configSchema.map((field) => {
           if (field.showWhen) {
-            const show = Object.entries(field.showWhen).every(
-              ([k, v]) =>
-                String(node.config[k] ?? defaultConfig[k] ?? "") === v,
-            );
+            const show = Object.entries(field.showWhen).every(([k, v]) => {
+              const current = displayValue(node.config[k] ?? defaultConfig[k]);
+              return Array.isArray(v) ? v.includes(current) : current === v;
+            });
             if (!show) return null;
           }
           return (
@@ -127,85 +111,43 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
         })}
 
         {/* Extra conditions (for condition nodes) */}
-        {node.action === "condition" && <ExtraConditions node={node} />}
+        {node.action === 'condition' && <ExtraConditions node={node} />}
 
         {/* Switch cases (for switch nodes) */}
-        {node.action === "switch" && <SwitchCases node={node} />}
+        {node.action === 'switch' && <SwitchCases node={node} />}
 
         {/* Port labels */}
-        <div>
-          <Label className="mb-1.5 text-xs">{t("workflows.portLabels")}</Label>
-          <div className="space-y-1.5">
-            {inputPorts.map((port) => (
-              <div key={`in-${port}`} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-right text-[10px] text-blue-400/70">
-                  in:{port}
-                </span>
-                <Input
-                  type="text"
-                  value={node.portLabels?.[`in:${port}`] ?? ""}
-                  onChange={(e) => setPortLabel(`in:${port}`, e.target.value)}
-                  placeholder={port}
-                  className="h-7 text-xs"
-                />
-              </div>
-            ))}
-            {outputPorts.map((port) => (
-              <div key={`out-${port}`} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-right text-[10px] text-emerald-400/70">
-                  out:{port}
-                </span>
-                <Input
-                  type="text"
-                  value={node.portLabels?.[`out:${port}`] ?? ""}
-                  onChange={(e) => setPortLabel(`out:${port}`, e.target.value)}
-                  placeholder={port}
-                  className="h-7 text-xs"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <NodePortLabels node={node} inputPorts={inputPorts} outputPorts={outputPorts} onLabelChange={setPortLabel} />
 
         {/* Node behavior toggles */}
         <div className="space-y-2 border-t border-border pt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <IconPlayerTrackNext className="size-3.5 text-amber-400" />
-              <Label className="text-xs">{t("workflows.skipNode")}</Label>
+              <IconPlayerTrackNext className="size-3.5 text-warning" />
+              <Label className="text-xs">{t('workflows.skipNode')}</Label>
             </div>
             <Switch
-              aria-label={t("workflows.skipNode")}
+              aria-label={t('workflows.skipNode')}
               checked={node.skip}
               onCheckedChange={(checked) => updateNodeSkip(node.id, checked)}
-              className={
-                node.skip ? "data-[state=checked]:bg-amber-500" : undefined
-              }
+              className={node.skip ? 'data-[state=checked]:bg-warning' : undefined}
             />
           </div>
-          <p className="text-[10px] text-muted-foreground/60 ml-5">
-            {t("workflows.skipNodeDescription")}
-          </p>
+          <p className="ml-5 text-[10px] text-muted-foreground/60">{t('workflows.skipNodeDescription')}</p>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <IconBan className="size-3.5 text-red-400" />
-              <Label className="text-xs">{t("workflows.disableNode")}</Label>
+              <IconBan className="size-3.5 text-danger" />
+              <Label className="text-xs">{t('workflows.disableNode')}</Label>
             </div>
             <Switch
-              aria-label={t("workflows.disableNode")}
+              aria-label={t('workflows.disableNode')}
               checked={node.disabled}
-              onCheckedChange={(checked) =>
-                updateNodeDisabled(node.id, checked)
-              }
-              className={
-                node.disabled ? "data-[state=checked]:bg-red-500" : undefined
-              }
+              onCheckedChange={(checked) => updateNodeDisabled(node.id, checked)}
+              className={node.disabled ? 'data-[state=checked]:bg-danger' : undefined}
             />
           </div>
-          <p className="text-[10px] text-muted-foreground/60 ml-5">
-            {t("workflows.disableNodeDescription")}
-          </p>
+          <p className="ml-5 text-[10px] text-muted-foreground/60">{t('workflows.disableNodeDescription')}</p>
         </div>
 
         {/* Actions */}
@@ -214,20 +156,17 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
             size="sm"
             variant="outline"
             onClick={() => updateNodeDebug(node.id, !node.debug)}
-            className={cn(node.debug && "border-amber-500/50 text-amber-400")}
+            className={cn(node.debug && 'border-warning/50 text-warning')}
           >
             <IconBug className="size-3.5" />
-            {node.debug ? t("workflows.debugOn") : t("workflows.debug")}
+            {node.debug ? t('workflows.debugOn') : t('workflows.debug')}
           </Button>
           <div className="flex-1" />
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => duplicateNode(node.id)}
-          >
+          <Button permission={PERM.WORKFLOWS_MANAGE} size="sm" variant="outline" onClick={() => duplicateNode(node.id)}>
             <IconCopy className="size-3.5" />
           </Button>
           <Button
+            permission={PERM.WORKFLOWS_MANAGE}
             size="sm"
             variant="destructive"
             onClick={() => removeNode(node.id)}

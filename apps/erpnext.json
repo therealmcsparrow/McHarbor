@@ -4,7 +4,7 @@
     "description":  "Open-source ERP for manufacturing, distribution, retail, services, and project-driven businesses.",
     "category":  "Productivity",
     "image":  "frappe/erpnext-worker:latest",
-    "logo":  "https://icon.horse/icon/erpnext.com",
+    "logo":  "https://cdn.simpleicons.org/erpnext",
     "website":  "https://erpnext.com",
     "docsUrl":  "https://docs.erpnext.com",
     "ports":  [
@@ -61,5 +61,9 @@
                         "description":  "Socket.IO port"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

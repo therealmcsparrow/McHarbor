@@ -1,0 +1,31 @@
+{
+  "name": "mcharbor-plugin-lxc-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "UMD bundle for the McHarbor System Containers plugin.",
+  "scripts": {
+    "build": "vite build --config vite-plugin.config.ts",
+    "typecheck": "tsc -b",
+    "test": "node ../../../../frontend/node_modules/vitest/vitest.mjs run --config vitest.config.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "@tabler/icons-react": "^3.40.0",
+    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-table": "^9.2.4",
+    "vite": "^8.0.16",
+    "typescript": "^7.0.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-i18next": "^17.0.4",
+    "i18next": "^26.0.6",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
+  }
+}

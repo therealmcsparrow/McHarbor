@@ -1,0 +1,64 @@
+{
+    "slug":  "evcc-testing",
+    "name":  "EVCC (Testing)",
+    "description":  "Testing channel build of EVCC. Solar-aware EV charging controller for wallboxes, photovoltaic systems, batteries, and smart meters.",
+    "category":  "Home Automation",
+    "image":  "evcc/evcc:testing",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/evcc.png",
+    "website":  "https://evcc.io",
+    "docsUrl":  "https://docs.evcc.io/en/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8070,
+                      "container":  7070,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9887,
+                      "container":  8887,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  10522,
+                      "container":  9522,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  5712,
+                      "container":  4712,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/evcc-testing/evcc.yaml",
+                        "container":  "/etc/evcc.yaml"
+                    },
+                    {
+                        "host":  "/opt/appdata/evcc-testing/data",
+                        "container":  "/root/.evcc"
+                    },
+                    {
+                        "host":  "/etc/machine-id",
+                        "container":  "/etc/machine-id",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/lib/dbus/machine-id",
+                        "container":  "/var/lib/dbus/machine-id",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "testing",
+    "latest":  {
+        "version":  "testing",
+        "release_date":  "2026-09-29"
+    }
+}

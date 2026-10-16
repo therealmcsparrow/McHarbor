@@ -1,0 +1,42 @@
+{
+  "slug": "forgejo",
+  "name": "Forgejo",
+  "description": "Community-governed self-hosted Git forge with issues, pull requests, packages and Actions.",
+  "category": "Developer Tools",
+  "image": "codeberg.org/forgejo/forgejo:16",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/forgejo.png",
+  "website": "https://forgejo.org",
+  "docsUrl": "https://forgejo.org/docs/latest/admin/installation-docker/",
+  "ports": [
+    {
+      "host": 3018,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 2223,
+      "container": 22,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/forgejo/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "USER_UID",
+      "default": "1000",
+      "description": "User ID the Git user runs as"
+    },
+    {
+      "key": "USER_GID",
+      "default": "1000",
+      "description": "Group ID the Git user runs as"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "16"
+}

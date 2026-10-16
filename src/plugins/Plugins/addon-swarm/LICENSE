@@ -1,0 +1,21 @@
+McHarbor-AddOns License
+
+Copyright (c) 2026 McSparrow. All rights reserved.
+
+Add-ons in this repository are licensed under the McHarbor License,
+mirroring the terms used by the host project McHarbor at
+https://github.com/therealmcsparrow/McHarbor/blob/main/LICENSE.
+
+In short:
+
+- You may use, modify, and self-host these add-ons freely.
+- You may publish derivative add-ons to your own repository.
+- You may NOT resell the add-ons or the host as a competing managed
+  service without written permission from McSparrow.
+- The McHarbor name, logo, and trademarks are not included in this
+  license; see TRADEMARKS for usage guidelines.
+
+The full license text is maintained at
+https://github.com/therealmcsparrow/McHarbor/blob/main/LICENSE and is
+incorporated by reference. If the two ever diverge, the host LICENSE
+is authoritative.

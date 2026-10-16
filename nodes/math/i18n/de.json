@@ -1,6 +1,6 @@
 {
-  "label": "Math",
-  "description": "Apply a math operation to a numeric value",
+  "label": "Mathematik",
+  "description": "Eine mathematische Operation auf einen numerischen Wert anwenden",
   "config": {
     "property": "Eigenschaft",
     "operation": "Operation",
@@ -9,16 +9,16 @@
   },
   "options": {
     "operation": {
-      "add": "Add",
-      "subtract": "Subtract",
-      "multiply": "Multiply",
-      "divide": "Divide",
-      "round": "Round",
-      "floor": "Floor",
-      "ceil": "Ceil",
-      "abs": "Absolute",
-      "min": "Min",
-      "max": "Max",
+      "add": "Addieren",
+      "subtract": "Subtrahieren",
+      "multiply": "Multiplizieren",
+      "divide": "Dividieren",
+      "round": "Runden",
+      "floor": "Abrunden",
+      "ceil": "Aufrunden",
+      "abs": "Betrag",
+      "min": "Minimum",
+      "max": "Maximum",
       "modulo": "Modulo"
     }
   }

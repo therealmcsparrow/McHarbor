@@ -1,0 +1,16 @@
+{
+  "slug": "comm-signal",
+  "name": "Signal",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Signal notification channel. Delivers workflow and backup events to phone numbers via one of four connection methods: official signal-cli-rest-api, token-based bot server, signald JSON-RPC daemon, or a no-auth community relay. Install this plugin to add 'Signal' as a channel_type in Settings > Notifications > Channels.",
+  "category": "Communication channels",
+  "icon": "IconMessageCircle",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-signal-1.0.0.tar.gz"
+    }
+  ]
+}

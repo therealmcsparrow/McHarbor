@@ -1,0 +1,27 @@
+{
+  "label": "Gestionar volumen",
+  "description": "Crear, eliminar, respaldar o restaurar un volumen Docker",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Acción",
+    "name": "Nombre",
+    "driver": "Conductor",
+    "labels": "Etiquetas",
+    "force": "Fuerza",
+    "volume": "Volumen",
+    "backup_path": "Ruta del archivo de backup",
+    "overwrite": "Sobrescribir archivos existentes",
+    "helper_image": "Image auxiliar"
+  },
+  "options": {
+    "action": {
+      "create": "Crear",
+      "remove": "Eliminar",
+      "backup": "Respaldar",
+      "restore": "Restaurar"
+    },
+    "driver": {
+      "local": "Local"
+    }
+  }
+}

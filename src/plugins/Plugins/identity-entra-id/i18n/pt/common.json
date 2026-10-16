@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Federe o login do McHarbor a um tenant do Azure AD. O plugin trata o fluxo de código de autorização OIDC nos endpoints v2.0 em login.microsoftonline.com, além da Microsoft Graph API para buscar grupos de administrador.",
+    "registerHint": "Adicione um provedor na página Configurações > Segurança > Provedores de identidade do host e escolha \"Microsoft Entra ID\" como provider_type."
+  },
+  "fields": {
+    "tenant_id":     "ID do tenant",
+    "client_id":     "ID do cliente",
+    "client_secret": "Segredo do cliente",
+    "scopes":        "Escopos"
+  },
+  "help": {
+    "tenant_id":     "ID do tenant do Azure AD (UUID). Use 'common' para aplicativos multi-tenant, 'organizations' para qualquer conta corporativa ou escolar, ou deixe 'common' para incluir também contas pessoais.",
+    "client_id":     "ID do aplicativo (cliente) da página de visão geral do App Registration.",
+    "client_secret": "Valor do segredo do cliente da página Certificates & secrets do App Registration. Armazenado criptografado em repouso.",
+    "scopes":        "Escopos OAuth separados por espaço. O padrão é openid profile email. Use 'https://graph.microsoft.com/.default' para ativar a busca de grupos pela Graph API."
+  },
+  "guide": {
+    "title":    "Configurar o Microsoft Entra ID no McHarbor",
+    "subtitle": "Registre um aplicativo cliente confidencial no seu tenant do Azure AD e conceda permissões do Microsoft Graph se quiser ativar a busca de grupos de administrador.",
+    "step1": {
+      "title": "Abra a lâmina App Registration",
+      "body":  "No portal do Azure, navegue até Microsoft Entra ID > App registrations > New registration. Escolha um nome (ex.: \"McHarbor SSO\") e selecione os tipos de conta que deseja suportar (tenant único, multi-tenant ou pessoal)."
+    },
+    "step2": {
+      "title": "Defina o URI de redirecionamento",
+      "body":  "Em Redirect URI, escolha Web e informe a URL de callback do McHarbor exibida na página de edição do provedor. O host acrescenta /api/identity-providers/callback à URL base do seu McHarbor — copie-a exatamente para evitar divergências silenciosas de código de autorização."
+    },
+    "step3": {
+      "title": "Crie um segredo do cliente",
+      "body":  "Abra Certificates & secrets > New client secret. Escolha uma validade sensata (90 ou 180 dias) e defina um lembrete no calendário. Copie o VALOR do segredo (não o Secret ID) para o campo Segredo do cliente no formulário do provedor. O McHarbor o armazena criptografado com AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copie o ID do aplicativo (cliente)",
+      "body":  "De volta à página de visão geral do App Registration, copie o Application (client) ID para o campo ID do cliente no formulário do provedor."
+    },
+    "step5": {
+      "title": "Copie o ID do diretório (tenant)",
+      "body":  "Ainda na página de visão geral, copie o Directory (tenant) ID para o campo ID do tenant no formulário do provedor. Use \"common\" se você registrou o aplicativo como multi-tenant."
+    },
+    "step6": {
+      "title": "(Opcional) Conceda Group.Read.All do Microsoft Graph",
+      "body":  "Se quiser que o assistente de mapeamento de grupos do grupo de administradores preencha os grupos do Entra, abra API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Clique em Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Teste a conexão",
+      "body":  "De volta ao McHarbor, clique em \"Testar conexão\" no formulário do provedor. Um resultado verde significa que o documento de descoberta OIDC foi resolvido e uma troca de token client-credentials foi bem-sucedida em login.microsoftonline.com — a configuração é válida. Agora você pode ativar o provedor e usar \"Entrar com Microsoft\" na página de login."
+    }
+  }
+}

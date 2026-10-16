@@ -1,0 +1,46 @@
+{
+    "slug":  "pulp",
+    "name":  "Pulp",
+    "description":  "Platform for managing and mirroring software repositories such as RPM, deb, Python, and container images.",
+    "category":  "Storage",
+    "image":  "pulp/pulp:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=pulpproject.org\u0026sz=128",
+    "website":  "https://pulpproject.org",
+    "docsUrl":  "https://pulpproject.org/pulp-in-one-container/",
+    "ports":  [
+                  {
+                      "host":  8093,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pulp/data",
+                        "container":  "/var/lib/pulp"
+                    },
+                    {
+                        "host":  "/opt/appdata/pulp/containers",
+                        "container":  "/var/lib/containers/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PULP_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin account password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

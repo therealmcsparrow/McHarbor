@@ -1,0 +1,634 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-swarm"
+name:     "Docker Swarm"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  Manage Docker Swarm from McHarbor: services, tasks, nodes, secrets, configs,
+  swarm stacks and overlay networks — with cluster init, join, leave,
+  join-token and unlock-key lifecycle, service scaling, rolling restarts and
+  rollback. Swarm is discovered by probing the daemon an environment is
+  already connected to, so the add-on stores nothing and needs no credentials
+  of its own.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - docker.socket.read
+  - menu.sidebar.add
+  - i18n.namespace.add:swarm
+  - rbac.permission.register
+  - audit.emit
+  # Contributes the three Swarm report types to the Reporting plugin's Report
+  # Studio (backend/reports.go). They lived inside Reporting until this line
+  # existed. It costs the host nothing on its own: the provider registers
+  # whether or not Reporting is installed, and the types only become reachable
+  # once it is.
+  - reporting.adapter.register
+
+# The twenty keys the host carried, unchanged.
+#
+# Unlike the Kubernetes add-on — which collapsed ten unenforceable read keys
+# into four — nothing is renamed or merged here. Every one of these already
+# gates a distinct endpoint, so the split says what the product can actually
+# do, and keeping the strings identical means the grants an operator already
+# made survive the move. Host migration 094 removes the catalog rows so these
+# can land (a plugin cannot shadow a host key); it deliberately leaves
+# `roles.permissions`, `role_presets.permissions` and `user_permissions` alone.
+#
+# Scopes are the host catalog's, carried across unchanged. `env` for almost
+# everything — Swarm is a property of one Docker environment's daemon, so a
+# grant that did not name an environment would be a grant over every daemon the
+# installation can reach. The two exceptions are the host's and are kept rather
+# than tidied: `swarm.manage` is `global` because init/join/leave reconfigures
+# the host's cluster membership rather than one environment's workloads, and
+# `swarm_stacks.manage` is `stack` so a grant can name the stacks it covers.
+adds_permissions:
+  - key:      "swarm.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm"
+    description: "Allows viewing the cluster: its state, the local node's role, and the overview."
+  # The heaviest key in the set. Init, join and leave change what the daemon
+  # *is*; join tokens and the unlock key are credentials that let a stranger's
+  # host into the cluster. They share a key because they share a blast radius.
+  - key:      "swarm.manage"
+    presets:      []
+    scope:    "global"
+    category: "Plugins"
+    label:    "Manage the Swarm cluster"
+    description: "Allows cluster lifecycle: initialise, join, leave, update settings, and read or rotate join tokens and the unlock key."
+
+  - key:      "swarm_services.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm services"
+    description: "Allows listing and inspecting Swarm services, including their logs."
+  - key:      "swarm_services.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage Swarm services"
+    description: "Allows creating and updating Swarm services, and triggering a restart or rollback."
+  # Scale is its own key, not part of manage: a replica bump is the routine
+  # operation an on-call engineer needs at 3am, and it must not require the
+  # ability to replace the service's image.
+  - key:      "swarm_services.scale"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Scale Swarm services"
+    description: "Allows changing a service's replica count. Separate from manage so scaling does not imply the ability to replace the image."
+  - key:      "swarm_services.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete Swarm services"
+    description: "Allows removing Swarm services."
+
+  - key:      "swarm_tasks.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm tasks"
+    description: "Allows listing and inspecting Swarm tasks, including their logs."
+
+  - key:      "swarm_nodes.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm nodes"
+    description: "Allows listing and inspecting Swarm nodes."
+  - key:      "swarm_nodes.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage Swarm nodes"
+    description: "Allows editing node labels, availability (active, pause, drain) and role (manager, worker)."
+  - key:      "swarm_nodes.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Remove Swarm nodes"
+    description: "Allows removing a node from the cluster."
+
+  # A Swarm secret's *payload* is write-only in the Docker API, so `view` here
+  # is metadata: names, labels, which services mount it.
+  - key:      "swarm_secrets.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm secrets"
+    description: "Allows listing and inspecting Swarm secrets. Docker never returns a secret's payload, so this is metadata only."
+  - key:      "swarm_secrets.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage Swarm secrets"
+    description: "Allows creating Swarm secrets and updating their labels."
+  - key:      "swarm_secrets.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete Swarm secrets"
+    description: "Allows removing Swarm secrets."
+
+  # Configs differ from secrets in exactly one way that matters here: Docker
+  # *does* return a config's payload, so `view` on a config is a genuine read
+  # of its contents.
+  - key:      "swarm_configs.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm configs"
+    description: "Allows listing and inspecting Swarm configs, including their contents."
+  - key:      "swarm_configs.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage Swarm configs"
+    description: "Allows creating Swarm configs and updating their labels."
+  - key:      "swarm_configs.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete Swarm configs"
+    description: "Allows removing Swarm configs."
+
+  - key:      "swarm_stacks.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm stacks"
+    description: "Allows listing and inspecting Swarm stacks."
+  - key:      "swarm_stacks.manage"
+    presets:      [editor, operator]
+    scope:    "stack"
+    category: "Plugins"
+    label:    "Deploy Swarm stacks"
+    description: "Allows deploying a Compose file as a Swarm stack."
+  - key:      "swarm_stacks.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Remove Swarm stacks"
+    description: "Allows removing a Swarm stack and everything it deployed."
+
+  - key:      "swarm_networks.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Swarm overlay networks"
+    description: "Allows listing the cluster's overlay networks."
+
+consumes_permissions: []
+
+contributes:
+  capabilities:
+    - kind: runbook-provider
+      domain: swarm
+      i18n_ns: swarm
+      targets:
+        - kind: swarm_service
+          label_key: runbook.targets.swarm_service
+          path: "/api/swarm/services"
+          query: {env: "$env"}
+          id: id
+          name: [name]
+          detail: [image]
+          attach: {kind: swarm_service, label_key: runbook.attach.swarm_service}
+        - kind: swarm_node
+          label_key: runbook.targets.swarm_node
+          path: "/api/swarm/nodes"
+          query: {env: "$env"}
+          id: id
+          name: [hostname, id]
+          detail: [role]
+      steps:
+        - key: swarm.service.scale
+          description_key: runbook.steps.swarm_service_scale
+          kind: action
+          target: swarm_service
+          destructive: true
+          permissions: [swarm_services.scale]
+          params:
+            - {name: service, type: target, target: swarm_service}
+            - {name: replicas, type: int, min: 0, max: 1000, required: true}
+          call:
+            method: POST
+            path: "/api/swarm/services/{service}/scale"
+            query: {env: "$env"}
+            body: [{json: replicas, param: replicas, type: int}]
+        - key: swarm.service.restart
+          description_key: runbook.steps.swarm_service_restart
+          kind: action
+          target: swarm_service
+          destructive: true
+          permissions: [swarm_services.manage]
+          params:
+            - {name: service, type: target, target: swarm_service}
+          call:
+            method: POST
+            path: "/api/swarm/services/{service}/restart"
+            query: {env: "$env"}
+        - key: swarm.service.state
+          description_key: runbook.steps.swarm_service_state
+          kind: diagnostic
+          target: swarm_service
+          permissions: [swarm_services.view]
+          params:
+            - {name: service, type: target, target: swarm_service}
+          call:
+            method: GET
+            path: "/api/swarm/services/{service}"
+            query: {env: "$env"}
+        - key: swarm.service.tasks
+          description_key: runbook.steps.swarm_service_tasks
+          kind: diagnostic
+          target: swarm_service
+          permissions: [swarm_tasks.view]
+          params:
+            - {name: service, type: target, target: swarm_service}
+          call:
+            method: GET
+            path: "/api/swarm/tasks"
+            query: {env: "$env", service: "service"}
+        - key: swarm.service.logs
+          description_key: runbook.steps.swarm_service_logs
+          kind: diagnostic
+          target: swarm_service
+          permissions: [swarm_services.view]
+          params:
+            - {name: service, type: target, target: swarm_service}
+          call:
+            method: GET
+            path: "/api/swarm/services/{service}/logs"
+            query: {env: "$env", tail: "=150"}
+            text: logs
+        - key: swarm.node.state
+          description_key: runbook.steps.swarm_node_state
+          kind: diagnostic
+          target: swarm_node
+          permissions: [swarm_nodes.view]
+          params:
+            - {name: node, type: target, target: swarm_node}
+          call:
+            method: GET
+            path: "/api/swarm/nodes/{node}"
+            query: {env: "$env"}
+    - kind: picker-source
+      target: swarm_service
+    - kind: picker-source
+      target: swarm_node
+    - kind: estate-source
+      metric: swarm_services
+      path: "/api/swarm/services"
+      env_scoped: true
+      label_key: estate.services
+      i18n_ns: swarm
+      icon: stack-2
+      link: "/plugins/addon-swarm/services"
+    - kind: search-source
+      i18n_ns: swarm
+      sources:
+        - key: service
+          label_key: search.group.services
+          path: "/api/swarm/services"
+          env_scoped: true
+          id: id
+          name: [name]
+          detail: [image, stackName]
+          link: "/plugins/addon-swarm/services/{id}"
+          icon: stack-2
+    - kind: search-action
+      i18n_ns: swarm
+      actions:
+        - key: swarm.stack.deploy
+          label_key: search.action.deployStack
+          keywords_key: search.action.deployStackKeywords
+          icon: rocket
+          link: "/plugins/addon-swarm/stacks?action=deploy"
+          permission: swarm_stacks.manage
+  routes:
+    # --- cluster -----------------------------------------------------------
+    #
+    # `capability` is the one route with no permission. It returns a boolean
+    # and the local node's role, leaks nothing about workloads, and the UI
+    # needs it before it can know whether to show a cluster or the
+    # "initialise" empty state. It takes `swarm.view` like every other read: an
+    # empty requires_permission short-circuits the middleware to a pass-through,
+    # which made this reachable by any authenticated user whatever their role.
+    - method: GET
+      path: "/api/swarm/capability"
+      requires_permission: "swarm.view"
+    - method: GET
+      path: "/api/swarm"
+      requires_permission: "swarm.view"
+    - method: GET
+      path: "/api/swarm/overview"
+      requires_permission: "swarm.view"
+    - method: PUT
+      path: "/api/swarm"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.cluster.updated"
+      audit_entity_type: "swarm"
+    - method: POST
+      path: "/api/swarm/init"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.cluster.initialised"
+      audit_entity_type: "swarm"
+    - method: POST
+      path: "/api/swarm/join"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.cluster.joined"
+      audit_entity_type: "swarm"
+    - method: POST
+      path: "/api/swarm/leave"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.cluster.left"
+      audit_entity_type: "swarm"
+    # Reading a join token is a credential read, which is why it takes
+    # `manage` rather than `view` even though it is a GET.
+    - method: GET
+      path: "/api/swarm/join-tokens"
+      requires_permission: "swarm.manage"
+    - method: POST
+      path: "/api/swarm/join-tokens/{kind}/rotate"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.join_token.rotated"
+      audit_entity_type: "swarm"
+    - method: GET
+      path: "/api/swarm/unlock-key"
+      requires_permission: "swarm.manage"
+    - method: POST
+      path: "/api/swarm/unlock-key/rotate"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.unlock_key.rotated"
+      audit_entity_type: "swarm"
+    - method: POST
+      path: "/api/swarm/unlock"
+      requires_permission: "swarm.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.cluster.unlocked"
+      audit_entity_type: "swarm"
+
+    # --- services ----------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/services"
+      requires_permission: "swarm_services.view"
+    - method: POST
+      path: "/api/swarm/services"
+      requires_permission: "swarm_services.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.service.created"
+      audit_entity_type: "swarm_service"
+    - method: GET
+      path: "/api/swarm/services/{id}"
+      requires_permission: "swarm_services.view"
+    - method: GET
+      path: "/api/swarm/services/{id}/logs"
+      requires_permission: "swarm_services.view"
+    - method: GET
+      path: "/api/swarm/services/{id}/env"
+      requires_permission: "swarm_services.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.service.env_revealed"
+      audit_entity_type: "swarm_service"
+      audit_severity: "warning"
+    - method: PUT
+      path: "/api/swarm/services/{id}"
+      requires_permission: "swarm_services.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.service.updated"
+      audit_entity_type: "swarm_service"
+    - method: POST
+      path: "/api/swarm/services/{id}/restart"
+      requires_permission: "swarm_services.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.service.restarted"
+      audit_entity_type: "swarm_service"
+    - method: POST
+      path: "/api/swarm/services/{id}/rollback"
+      requires_permission: "swarm_services.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.service.rolled_back"
+      audit_entity_type: "swarm_service"
+    - method: POST
+      path: "/api/swarm/services/{id}/scale"
+      requires_permission: "swarm_services.scale"
+      audit_required: true
+      audit_action: "plugin.swarm.service.scaled"
+      audit_entity_type: "swarm_service"
+    - method: DELETE
+      path: "/api/swarm/services/{id}"
+      requires_permission: "swarm_services.delete"
+      audit_required: true
+      audit_action: "plugin.swarm.service.removed"
+      audit_entity_type: "swarm_service"
+
+    # --- tasks -------------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/tasks"
+      requires_permission: "swarm_tasks.view"
+    - method: GET
+      path: "/api/swarm/tasks/{id}"
+      requires_permission: "swarm_tasks.view"
+    - method: GET
+      path: "/api/swarm/tasks/{id}/logs"
+      requires_permission: "swarm_tasks.view"
+
+    # --- nodes -------------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/nodes"
+      requires_permission: "swarm_nodes.view"
+    - method: GET
+      path: "/api/swarm/nodes/{id}"
+      requires_permission: "swarm_nodes.view"
+    - method: PUT
+      path: "/api/swarm/nodes/{id}"
+      requires_permission: "swarm_nodes.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.node.updated"
+      audit_entity_type: "swarm_node"
+    - method: POST
+      path: "/api/swarm/nodes/{id}/availability"
+      requires_permission: "swarm_nodes.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.node.availability_changed"
+      audit_entity_type: "swarm_node"
+    - method: POST
+      path: "/api/swarm/nodes/{id}/role"
+      requires_permission: "swarm_nodes.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.node.role_changed"
+      audit_entity_type: "swarm_node"
+    - method: DELETE
+      path: "/api/swarm/nodes/{id}"
+      requires_permission: "swarm_nodes.delete"
+      audit_required: true
+      audit_action: "plugin.swarm.node.removed"
+      audit_entity_type: "swarm_node"
+
+    # --- secrets -----------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/secrets"
+      requires_permission: "swarm_secrets.view"
+    - method: POST
+      path: "/api/swarm/secrets"
+      requires_permission: "swarm_secrets.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.secret.created"
+      audit_entity_type: "swarm_secret"
+    - method: GET
+      path: "/api/swarm/secrets/{id}"
+      requires_permission: "swarm_secrets.view"
+    - method: PUT
+      path: "/api/swarm/secrets/{id}"
+      requires_permission: "swarm_secrets.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.secret.updated"
+      audit_entity_type: "swarm_secret"
+    - method: DELETE
+      path: "/api/swarm/secrets/{id}"
+      requires_permission: "swarm_secrets.delete"
+      audit_required: true
+      audit_action: "plugin.swarm.secret.removed"
+      audit_entity_type: "swarm_secret"
+
+    # --- configs -----------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/configs"
+      requires_permission: "swarm_configs.view"
+    - method: POST
+      path: "/api/swarm/configs"
+      requires_permission: "swarm_configs.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.config.created"
+      audit_entity_type: "swarm_config"
+    - method: GET
+      path: "/api/swarm/configs/{id}"
+      requires_permission: "swarm_configs.view"
+    - method: PUT
+      path: "/api/swarm/configs/{id}"
+      requires_permission: "swarm_configs.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.config.updated"
+      audit_entity_type: "swarm_config"
+    - method: DELETE
+      path: "/api/swarm/configs/{id}"
+      requires_permission: "swarm_configs.delete"
+      audit_required: true
+      audit_action: "plugin.swarm.config.removed"
+      audit_entity_type: "swarm_config"
+
+    # --- stacks ------------------------------------------------------------
+    - method: GET
+      path: "/api/swarm/stacks"
+      requires_permission: "swarm_stacks.view"
+    - method: POST
+      path: "/api/swarm/stacks"
+      requires_permission: "swarm_stacks.manage"
+      audit_required: true
+      audit_action: "plugin.swarm.stack.deployed"
+      audit_entity_type: "swarm_stack"
+    - method: GET
+      path: "/api/swarm/stacks/{name}"
+      requires_permission: "swarm_stacks.view"
+    - method: DELETE
+      path: "/api/swarm/stacks/{name}"
+      requires_permission: "swarm_stacks.delete"
+      audit_required: true
+      audit_action: "plugin.swarm.stack.removed"
+      audit_entity_type: "swarm_stack"
+
+    # --- overlay networks --------------------------------------------------
+    - method: GET
+      path: "/api/swarm/networks"
+      requires_permission: "swarm_networks.view"
+
+  # `parent` is the sidebar section id, so all four entries render as one
+  # "Swarm" section rather than four loose entries under Plugins. The section
+  # label resolves from this plugin's namespace as `nav.section.swarm`.
+  #
+  # The four groups are the ones the host section used, and each entry points
+  # at its group's first tab; the plugin's own router lights the entry for
+  # every tab below it.
+  #
+  # What is gone is the host section's conditional shape — it collapsed to the
+  # overview alone when the current environment was not a Swarm, at the cost
+  # of a capability request on every page load in the product. Installing the
+  # add-on answers the same question now, and the overview still renders the
+  # "initialise a cluster" empty state for an environment that is not one yet.
+  #
+  # `icon` is a Tabler *component name*, not an asset filename:
+  # `resolvePluginIcon` looks the string up in a registry of imported
+  # components and falls back to IconPuzzle for anything it does not know.
+  menu:
+    - parent: "swarm"
+      label_ns: "swarm"
+      label_key: "nav.swarm.overview"
+      path: "/plugins/addon-swarm"
+      icon: "IconTopologyStar3"
+      required_permission: "swarm.view"
+    - parent: "swarm"
+      label_ns: "swarm"
+      label_key: "nav.swarm.workloads"
+      path: "/plugins/addon-swarm/services"
+      icon: "IconStack2"
+      required_permission: "swarm_services.view"
+    - parent: "swarm"
+      label_ns: "swarm"
+      label_key: "nav.swarm.cluster"
+      path: "/plugins/addon-swarm/nodes"
+      icon: "IconServer2"
+      required_permission: "swarm_nodes.view"
+    - parent: "swarm"
+      label_ns: "swarm"
+      label_key: "nav.swarm.config"
+      path: "/plugins/addon-swarm/secrets"
+      icon: "IconKey"
+      required_permission: "swarm_secrets.view"
+
+  # Dashboard widgets (backend/main.go RegisterWidgets; frontend/src/widgets).
+  widgets:
+    - "swarm-overview"
+    - "swarm-services"
+    - "swarm-nodes"
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host
+  # exposes them on the canvas as plugin:addon-swarm:<key>.
+  nodes:
+    - "swarm-service-scale"
+    - "swarm-service-action"
+    - "swarm-stack-deploy"
+    - "swarm-stack-remove"
+    - "swarm-node-availability"
+    - "swarm-overview"
+    - "swarm-event"
+
+  # No migrations. Swarm never had a table: the cluster is state on the Docker
+  # daemon, discovered by a capability probe. That is what makes this the
+  # cheapest of the add-on migrations — nothing to hand over, nothing to
+  # re-encrypt, nothing to roll back.
+  migrations: []
+
+  i18n_namespaces:
+    - "swarm"
+
+signature: ""
+checksum:  ""

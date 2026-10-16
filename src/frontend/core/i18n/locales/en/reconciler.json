@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "What to watch",
+    "container": "One container",
+    "stack": "A stack",
+    "environment": "Everything in this environment"
+  },
+  "kindHint": {
+    "container": "Drift when the container is missing, stopped, running another image, or its configuration differs.",
+    "stack": "Drift when a service from the stack's compose file is missing or not running, or the stack runs containers its file does not declare.",
+    "environment": "Drift when a container runs here that no container or stack watch in this environment accounts for. Label a container mcharbor.reconciler.ignore=true to leave it out."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Choose a stack",
+  "target": {
+    "environment": "Whole environment"
+  },
+  "class": {
+    "configuration": "Configuration",
+    "state": "State",
+    "existence": "Existence",
+    "image": "Image"
+  },
+  "details": {
+    "open": "Show what drifted",
+    "title": "What drifted: {{name}}",
+    "description": "Checked {{time}}.",
+    "field": "Field",
+    "expected": "Expected",
+    "actual": "Actual",
+    "firstSeen": "First seen",
+    "none": "No drift was found in the last check."
+  },
+  "observeOnly": "Stack and environment watches cannot be reconciled directly; propose a fix instead.",
+  "report": {
+    "title": "Drift report",
+    "description": "Every confirmed drift across all watches, what has been wrong longest first.",
+    "open": "Drift report",
+    "back": "Back to watches",
+    "empty": "Nothing has drifted.",
+    "classFilter": "Class",
+    "allClasses": "All classes",
+    "columns": {
+      "watch": "Watch",
+      "class": "Class",
+      "field": "Field",
+      "expected": "Expected",
+      "actual": "Actual",
+      "firstSeen": "First seen",
+      "checked": "Checked"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Managed by a Git source: delete its document in the repository instead.",
+  "mode": {
+    "column": "Response",
+    "change": "Change how drift is answered",
+    "title": "How to answer drift: {{name}}",
+    "description": "Choose what McHarbor does when this watch drifts.",
+    "label": "When it drifts",
+    "observe": "Observe",
+    "propose": "Propose a fix",
+    "enforce": "Enforce",
+    "save": "Save",
+    "confirmEnforce": "Let McHarbor fix it automatically",
+    "enforceWarning": "Enforce changes containers without asking anyone. It only acts while enforcement is switched on in the reconciler settings, within its per-pass limit and cooldown, and stops on repeated failures until someone resets it.",
+    "hint": {
+      "observe": "Record the drift, alert on it, and change nothing.",
+      "propose": "Also write a plan to restore the desired state for someone to review and approve.",
+      "enforce": "Apply the plan automatically when every step can be taken without a person; otherwise write a plan to review."
+    }
+  },
+  "proposals": {
+    "open": "Plans",
+    "proposeNow": "Propose a fix",
+    "title": "Reconcile plans",
+    "description": "Plans to restore desired state, waiting for review, and the record of every plan applied by a person or by enforcement.",
+    "statusFilter": "Status",
+    "allStatuses": "All statuses",
+    "empty": "No plans.",
+    "errorTitle": "Why the plan failed",
+    "stepError": "Why this step failed",
+    "dialogTitle": "Plan for {{name}}",
+    "dialogDescription": "Written {{time}}.",
+    "staleNotice": "The drift changed since this plan was written, so it was not applied. This is the plan for the drift as it is now; review it again.",
+    "drift": "What drifted",
+    "plan": "What the plan does",
+    "noSteps": "Nothing to do.",
+    "approveWarning": "Approving applies these steps to the environment now. McHarbor checks the drift again first and refuses if it changed.",
+    "rejectNote": "Why (optional)",
+    "approve": "Approve and apply",
+    "reject": "Reject",
+    "confirmApprove": "Apply now",
+    "confirmReject": "Reject plan",
+    "columns": {
+      "watch": "Watch",
+      "status": "Status",
+      "origin": "From",
+      "steps": "Steps",
+      "created": "Written",
+      "resolvedBy": "Resolved by"
+    },
+    "status": {
+      "pending": "Waiting for review",
+      "applying": "Applying",
+      "applied": "Applied",
+      "failed": "Failed",
+      "rejected": "Rejected",
+      "superseded": "Superseded"
+    },
+    "origin": {
+      "propose": "Proposal",
+      "enforce": "Enforcement"
+    }
+  },
+  "step": {
+    "start": "Start",
+    "stop": "Stop",
+    "remove": "Remove",
+    "recreate": "Recreate",
+    "stack_up": "Deploy stack",
+    "manual": "Needs a person",
+    "plugin": "Change",
+    "disruptive": "Interrupts service"
+  },
+  "stepResult": {
+    "done": "Done",
+    "failed": "Failed",
+    "skipped": "Skipped",
+    "manual": "Left to a person"
+  },
+  "manual": {
+    "missing": "The container does not exist, and a desired state does not hold enough to create it. Deploy it, then check again.",
+    "compose_managed": "The container belongs to a compose stack; change the stack rather than the container.",
+    "ports": "Published ports cannot be changed by recreating; edit the container or its stack.",
+    "mounts": "Mounts cannot be changed by recreating; edit the container or its stack.",
+    "networks": "Attach the container to its networks from the container or network page.",
+    "protected": "This is a protected container (McHarbor or its agent) and is never changed automatically.",
+    "stack_remove": "Removing a stack is never planned; take it down from the stack page.",
+    "stack_stop": "Stopping a stack is never planned; stop it from the stack page.",
+    "git_compose": "The stack's compose file comes from Git; deploy it through its GitOps pipeline."
+  },
+  "refusal": {
+    "stale": "The drift changed since this plan was written. A fresh plan was written instead.",
+    "unknown": "The environment cannot be reached right now, so nothing was changed.",
+    "no_drift": "There is no drift to act on.",
+    "cannot_act": "This McHarbor node cannot apply changes.",
+    "not_pending": "Someone already resolved this plan.",
+    "git_managed": "This watch is managed by a Git source. Change it in the repository.",
+    "enforce_route": "Enforce is granted from the watch's response setting.",
+    "bad_mode": "Unknown response mode.",
+    "not_git_managed": "This watch is not managed by a Git source.",
+    "not_expressible": "None of this drift can be written back to the repository.",
+    "git_failed": "Git refused the change. Check the repository's credentials and branch.",
+    "sync_failed": "The sync failed; the reason is shown on the source.",
+    "confirm_passes_range": "Confirm passes must be between 1 and 10.",
+    "actions_per_pass_range": "Actions per pass must be between 1 and 25.",
+    "cooldown_range": "The cooldown must be between 0 and 86400 seconds.",
+    "failure_threshold_range": "The failure threshold must be between 1 and 20.",
+    "source_fields_required": "A name, a repository and an environment are required.",
+    "invalid_branch": "That branch name is not valid.",
+    "path_escapes_repo": "The path must stay inside the repository.",
+    "invalid": "The request was not valid."
+  },
+  "pullRequest": {
+    "action": "Accept drift in Git",
+    "title": "Accept drift in Git: {{name}}",
+    "description": "McHarbor rewrites this watch's document to match what is running, pushes it to a new branch, and opens a pull request for review. Nothing changes until someone merges it.",
+    "confirm": "Push branch and open request",
+    "branch": "Branch:",
+    "open": "Open the pull request",
+    "noRequest": "The branch was pushed, but no pull request was opened: {{error}}",
+    "changed": "Changed: {{fields}}",
+    "skipped": "Not expressible, still drift: {{fields}}"
+  },
+  "sources": {
+    "open": "Git sources",
+    "title": "Git sources",
+    "description": "Repositories whose documents are desired state. A commit changes intent within one reconciler pass; rows from Git are edited in the repository.",
+    "add": "Add Git source",
+    "addTitle": "Add a Git source",
+    "addDescription": "Every YAML or JSON document under the path becomes a watch in the current environment.",
+    "name": "Name",
+    "repository": "Repository",
+    "repositoryPlaceholder": "Choose a repository",
+    "branch": "Branch",
+    "path": "Directory",
+    "formatHint": "A document holds name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe or propose) and config; a file may list several under desiredStates. Enforce cannot be set from Git.",
+    "where": "Branch and directory",
+    "state": "State",
+    "failing": "Failing",
+    "syncing": "Syncing",
+    "paused": "Paused",
+    "errorTitle": "Why the sync failed",
+    "rows": "Watches",
+    "commit": "Commit",
+    "synced": "Last sync",
+    "syncNow": "Sync now",
+    "empty": "No Git sources.",
+    "deleteTitle": "Delete Git source",
+    "deleteDescription": "Stop reading desired state from {{name}}. Its watches stay, and can then be edited here.",
+    "deleteConfirm": "Delete source"
+  },
+  "settings": {
+    "title": "Reconciler settings",
+    "description": "How drift is confirmed, and the limits enforcement works within.",
+    "confirmPasses": "Passes to confirm drift",
+    "confirmPassesHint": "Drift is recorded only after this many consecutive checks see it, so a rolling update is not reported. Raise it on slow hosts.",
+    "save": "Save",
+    "enforcement": "Enforcement",
+    "enforcementHint": "Off by default. Only watches set to Enforce are acted on, and only within these limits.",
+    "enforceEnabled": "Enforcement switched on",
+    "maxActions": "Changes per pass",
+    "cooldownMinutes": "Cooldown per watch (minutes)",
+    "threshold": "Failures before stopping",
+    "saveEnforcement": "Save enforcement",
+    "breakerOpen": "Enforcement stopped after repeated failures at {{time}}. Nothing is enforced until it is reset.",
+    "reset": "Reset and resume",
+    "confirmReset": "Resume enforcement"
+  },
+  "pick": {
+    "manual": "Enter manually…",
+    "fromList": "Pick from list",
+    "container": "Select a container",
+    "containerHint": "Picking an existing container fills in the image and status it runs now. Enter a name manually to declare one that does not exist yet.",
+    "image": "Select an image",
+    "select": "Select…",
+    "loading": "Loading…"
+  },
+  "plugin": {
+    "cluster": "Cluster",
+    "environment": "Environment",
+    "pinHint": "Pin only what should be held. A property left on \"Not managed\" is never checked.",
+    "useCurrent": "Use current values",
+    "notManaged": "Not managed",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Docker daemon information and configuration",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "groupRegistry": "Registry"
+  },
+  "nav": {
+    "sections": "Docker sections"
+  },
+  "sectionDescription": {
+    "info": "Daemon version, host details and object counts",
+    "registries": "Container registry connections and credentials",
+    "resources": "Host capacity and Docker disk usage"
+  },
   "tabs": {
     "info": "Docker Info",
     "registries": "Registries",
-    "networks": "Networks",
     "resources": "Resources"
   },
   "info": {
@@ -31,6 +44,15 @@
     "serverId": "Server ID",
     "cpus": "CPUs",
     "memory": "Memory",
+    "hardware": "Hardware",
+    "gpu": "GPU",
+    "networkAdapters": "Network Adapters",
+    "attachedDevices": "Attached Devices",
+    "hardwareNone": "None detected",
+    "hardwareLoading": "Reading host devices...",
+    "hardwareUnavailable": "Host device inventory is not available on this platform",
+    "hardwareRemovable": "removable",
+    "hardwareScope": "Hardware of the host running McHarbor, not of the selected environment.",
     "storageDriver": "Storage Driver",
     "dockerRootDir": "Docker Root Dir",
     "driverStatus": "Driver Status",
@@ -74,6 +96,7 @@
     "editTitle": "Edit Registry",
     "editDescription": "Update registry connection settings.",
     "nameLabel": "Name",
+    "urlPlaceholder": "https://registry.example.com",
     "urlLabel": "URL",
     "usernameLabel": "Username",
     "passwordLabel": "Password",
@@ -91,17 +114,6 @@
       "deleted": "Registry removed",
       "testSuccess": "Connection test successful"
     }
-  },
-  "networks": {
-    "title": "Docker Networks",
-    "description": "Overview of Docker networks in this environment",
-    "viewAll": "View All Networks",
-    "columnName": "Name",
-    "columnDriver": "Driver",
-    "columnScope": "Scope",
-    "columnSubnet": "Subnet",
-    "columnContainers": "Containers",
-    "noNetworks": "No networks found"
   },
   "resources": {
     "title": "Host Resources",

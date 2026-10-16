@@ -1,0 +1,35 @@
+{
+    "slug":  "esphome-beta",
+    "name":  "ESPHome (Beta)",
+    "description":  "Beta channel build of ESPHome. System to control ESP8266/ESP32 microcontrollers with simple YAML configuration.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/esphome/esphome:beta",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/esphome.png",
+    "website":  "https://esphome.io",
+    "docsUrl":  "https://esphome.io/guides/getting_started_command_line.html",
+    "ports":  [
+                  {
+                      "host":  7052,
+                      "container":  6052,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/esphome-beta/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

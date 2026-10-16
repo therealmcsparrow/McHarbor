@@ -1,0 +1,180 @@
+{
+  "title": "Incidenten",
+  "description": "Containers die in een crashlus zaten, herhaaldelijk zijn afgesloten, geen geheugen meer hadden, ongezond werden of een alert afvuurden — met alles wat McHarbor erover weet op één plek.",
+  "empty": "Geen incidenten.",
+  "notFound": "Dit incident bestaat niet.",
+  "columns": {
+    "container": "Container",
+    "signal": "Signaal",
+    "signals": "Signalen",
+    "status": "Status",
+    "narrative": "Verhaal",
+    "started": "Gestart",
+    "last": "Laatste signaal",
+    "subject": "Onderwerp"
+  },
+  "signal": {
+    "crash_loop": "Crashlus",
+    "exit_nonzero": "Herhaaldelijk falende exit",
+    "oom": "Geen geheugen meer",
+    "unhealthy": "Ongezond",
+    "alert": "Alert afgegaan"
+  },
+  "status": {
+    "open": "Open",
+    "resolved": "Opgelost",
+    "all": "Alle"
+  },
+  "narrativeStatus": {
+    "none": "Niet toegelicht",
+    "pending": "Wordt toegelicht…",
+    "ready": "Toegelicht",
+    "failed": "Mislukt",
+    "refused": "Geweigerd"
+  },
+  "confidence": {
+    "low": "Lage betrouwbaarheid",
+    "medium": "Gemiddelde betrouwbaarheid",
+    "high": "Hoge betrouwbaarheid"
+  },
+  "detail": {
+    "description": "{{signal}} · {{count}} signalen · eerste {{first}} · laatste {{last}}",
+    "refresh": "Bewijs vernieuwen",
+    "resolve": "Oplossen",
+    "resolveTitle": "Dit incident oplossen?",
+    "resolveDescription": "Sluit het incident voor {{name}} nu en bouw de tijdlijn op. Een nieuw signaal opent een nieuw incident.",
+    "resolveConfirm": "Incident oplossen"
+  },
+  "narrative": {
+    "title": "Wat er is gebeurd",
+    "explain": "Uitleg geven",
+    "again": "Opnieuw uitleggen",
+    "working": "Het model wordt geraadpleegd…",
+    "none": "Nog geen verhaal. Met Uitleg geven wordt het onderstaande bewijs naar het voor McHarbor geconfigureerde AI-model gestuurd.",
+    "lastFailed": "De laatste uitleg is mislukt.",
+    "failedTitle": "Waarom de uitleg is mislukt",
+    "undetermined": "Het model kon uit het beschikbare bewijs geen oorzaak afleiden. Hieronder staat waar het naar heeft gekeken.",
+    "changes": "Kort daarvoor gewijzigd",
+    "causes": "Waarschijnlijke oorzaken",
+    "attribution": "Geschreven door {{model}} via {{connection}} ({{provider}}) voor {{who}} om {{time}}.",
+    "attributionProactive": "Automatisch geschreven door {{model}} via {{connection}} ({{provider}}) om {{time}}.",
+    "shown": "Wat het model te zien kreeg",
+    "shownHint": "De exacte, geschoonde tekst die is verzonden. Vingerafdruk {{hash}}."
+  },
+  "refusal": {
+    "not_opted_in": "Uitleg is uitgeschakeld voor deze omgeving. Schakel het eerst in bij de uitleginstellingen; er is niets verzonden.",
+    "no_model": "Er is geen AI-model geconfigureerd en ingeschakeld. Voeg er een toe bij de instellingen van de AI-assistent; er is niets verzonden.",
+    "in_progress": "Voor dit incident loopt al een uitleg.",
+    "cap_reached": "De uitleglimiet per uur voor deze omgeving is bereikt.",
+    "not_resolved": "Alleen een opgelost incident heeft een tijdlijn om samen te vatten.",
+    "model_failed": "Het model gaf geen antwoord. De reden staat bij het incident.",
+    "not_open": "Dit incident is al opgelost."
+  },
+  "evidence": {
+    "title": "Bewijs",
+    "window": "Van {{from}} tot {{to}}",
+    "truncated": "Ingekort",
+    "pending": "Bewijs wordt verzameld.",
+    "nothing": "Niets vastgelegd in dit tijdvenster.",
+    "image": "Image",
+    "state": "Status",
+    "exitCode": "Afsluitcode",
+    "restarts": "Herstarts",
+    "health": "Gezondheid",
+    "oomKilled": "Geheugen op",
+    "yes": "Ja",
+    "no": "Nee",
+    "exit": "exit {{code}}",
+    "events": "Containergebeurtenissen",
+    "logs": "Laatste logregels",
+    "imageChanges": "Image-wijzigingen",
+    "audit": "Wie wat heeft gewijzigd",
+    "deploys": "Deploys naar deze omgeving",
+    "alerts": "Meldingen",
+    "drift": "Afwijking van de gewenste staat",
+    "metrics": "Metrics",
+    "peakContainerCpu": "Piek container-CPU",
+    "peakContainerMem": "Piek containergeheugen",
+    "peakHostCpu": "Piek host-CPU",
+    "peakHostMem": "Piek hostgeheugen",
+    "pluginNote": {
+      "plugin_unloaded": "De plugin die dit incident heeft gemeld, is niet geladen, dus het bewijs kon niet worden gelezen.",
+      "plugin_unavailable": "De plugin die dit incident heeft gemeld, reageerde niet op tijd."
+    }
+  },
+  "logsNote": {
+    "unavailable": "Logs zijn hier niet beschikbaar.",
+    "unreachable": "De omgeving kon niet worden bereikt voor logs.",
+    "not_found": "De container bestaat niet meer, dus er zijn geen logs.",
+    "logs_unavailable": "De logs konden niet worden gelezen."
+  },
+  "timeline": {
+    "title": "Tijdlijn",
+    "summarise": "Samenvatten",
+    "kind": {
+      "symptom": "Eerste symptoom",
+      "event": "Gebeurtenis",
+      "action": "Actie",
+      "alert": "Melding",
+      "change": "Laatste wijziging",
+      "resolved": "Opgelost"
+    }
+  },
+  "settings": {
+    "open": "Uitleginstellingen",
+    "title": "Uitleg voor deze omgeving",
+    "description": "Of incidenten in deze omgeving door het AI-model mogen worden uitgelegd, en hoe vaak.",
+    "noModel": "Er is geen AI-model geconfigureerd en ingeschakeld, dus er kan niets worden verzonden. Configureer er een bij de instellingen van de AI-assistent.",
+    "destinationLocal": "Bewijs zou naar {{connection}} gaan: {{provider}} met {{model}} op {{url}}, een zelf gehost model.",
+    "destinationRemote": "Bewijs zou dit netwerk verlaten: het gaat naar {{connection}}, {{provider}} met {{model}} op {{url}}.",
+    "whatIsSent": "Wat wordt verzonden: de recente gebeurtenissen en logregels van de container, image-wijzigingen, auditvermeldingen en deploys die erop van invloed zijn, meldingen, afwijkingen en metrics, waarbij eerst wachtwoorden, tokens, inloggegevens, adressen en Docker-endpoints worden verwijderd. Omgevingsvariabelen worden nooit verzonden.",
+    "optIn": "Uitleg toestaan voor deze omgeving",
+    "acknowledge": "Ik begrijp dat incidentbewijs uit deze omgeving naar het hierboven genoemde model wordt verzonden.",
+    "proactive": "Nieuwe incidenten automatisch uitleggen",
+    "hourlyCap": "Automatische uitleg per uur",
+    "hourlyCapHint": "Automatische uitleg pauzeert zodra er in het laatste uur zoveel uitleg is uitgevoerd. Uitleg geven wordt hierdoor nooit geweigerd.",
+    "save": "Opslaan"
+  },
+  "snippet": {
+    "title": "Incidentuitleg",
+    "pending": "Voor deze melding is een incident open; nog geen uitleg.",
+    "open": "Incident openen"
+  },
+  "findings": {
+    "open": "Gedrag",
+    "title": "Gedragsbevindingen",
+    "description": "Patronen die met vaste regels in de vastgelegde geschiedenis zijn gevonden. De cijfers zijn gemeten; een model mag ze alleen uitleggen.",
+    "back": "Terug naar incidenten",
+    "empty": "Geen bevindingen.",
+    "explain": "Deze bevinding uitleggen",
+    "dismiss": "Negeren",
+    "explainedBy": "Uitgelegd door {{model}} voor {{who}}.",
+    "columns": {
+      "kind": "Patroon",
+      "subject": "Waar",
+      "numbers": "Wat de cijfers zeggen",
+      "explanation": "Uitleg",
+      "lastSeen": "Laatst gezien",
+      "actions": "Acties"
+    },
+    "kind": {
+      "memory_climb": "Geheugen stijgt",
+      "host_memory_forecast": "Hostgeheugen raakt op",
+      "scheduled_restarts": "Herstarts volgens schema",
+      "post_deploy_failures": "Fouten na een deploy",
+    "host_disk_forecast": "Hostschijf raakt vol",
+    "storage_location_forecast": "Opslagbestemming raakt vol"
+    },
+    "says": {
+      "memory_climb": "Het geheugen groeide {{growth}}% in {{days}} dagen, ongeveer {{perDay}} per dag (fit {{r2}}).",
+      "host_memory_forecast": "Bij {{current}}% en een stijging van {{perDay}} punten per dag is het geheugen over ongeveer {{days}} dagen vol.",
+      "scheduled_restarts": "Herstarts rond {{time}} UTC op {{days}} verschillende dagen.",
+      "post_deploy_failures": "{{after}} mislukte afsluitingen in de dag na een deploy, tegenover {{before}} de dag ervoor.",
+    "host_disk_forecast": "Bij {{current}}% en een stijging van {{perDay}} punten per dag bereikt dit bestandssysteem over ongeveer {{days}} dagen {{ceiling}}% (fit {{r2}}).",
+    "storage_location_forecast": "Bij {{current}}% en een stijging van {{perDay}} punten per dag bereikt deze bestemming over ongeveer {{days}} dagen {{ceiling}}% (fit {{r2}})."
+    }
+  },
+  "subjectType": {
+    "container": "Container"
+  }
+}

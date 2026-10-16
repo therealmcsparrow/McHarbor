@@ -1,0 +1,28 @@
+{
+  "label": "Ação de contêiner",
+  "description": "Iniciar, parar, reiniciar, remover, renomear ou aguardar um contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "action": "Ação",
+    "timeout": "Tempo limite (segundos)",
+    "new_name": "Novo nome",
+    "unlock_protected": "Desbloquear contêiner protegido",
+    "condition": "Doença"
+  },
+  "options": {
+    "action": {
+      "start": "Iniciar",
+      "stop": "Parar",
+      "restart": "Reiniciar",
+      "remove": "Remover",
+      "rename": "Renomear",
+      "wait": "Aguardar"
+    },
+    "condition": {
+      "not-running": "Não está em execução",
+      "next-exit": "Próxima saída",
+      "removed": "Removido"
+    }
+  }
+}

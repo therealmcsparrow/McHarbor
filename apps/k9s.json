@@ -1,0 +1,36 @@
+{
+    "slug":  "k9s",
+    "name":  "k9s",
+    "description":  "Terminal UI for navigating, observing and managing a Kubernetes cluster without leaving the console.",
+    "category":  "Developer Tools",
+    "image":  "derailed/k9s:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=k9scli.io\u0026sz=128",
+    "website":  "https://k9scli.io",
+    "docsUrl":  "https://k9scli.io/topics/install/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/k9s/kubeconfig",
+                        "container":  "/root/.kube",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/opt/appdata/k9s/config",
+                        "container":  "/root/.config/k9s"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

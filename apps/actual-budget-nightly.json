@@ -1,0 +1,35 @@
+{
+    "slug":  "actual-budget-nightly",
+    "name":  "Actual Budget (Nightly)",
+    "description":  "Nightly channel build of Actual Budget. Local-first personal finance and budgeting app.",
+    "category":  "Productivity",
+    "image":  "actualbudget/actual-server:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/actual-budget.png",
+    "website":  "https://actualbudget.org",
+    "docsUrl":  "https://actualbudget.org/docs",
+    "ports":  [
+                  {
+                      "host":  6006,
+                      "container":  5006,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/actual-budget-nightly/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

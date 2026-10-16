@@ -1,0 +1,32 @@
+{
+    "slug":  "drawdb",
+    "name":  "drawDB",
+    "description":  "Free, browser-based database schema diagram editor and design tool.",
+    "category":  "Utilities",
+    "image":  "ghcr.io/drawdb-io/drawdb:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/png/drawdb.png",
+    "website":  "https://drawdb.app",
+    "docsUrl":  "https://github.com/drawdb-io/drawdb#self-hosting",
+    "ports":  [
+                  {
+                      "host":  8890,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

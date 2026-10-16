@@ -1,0 +1,27 @@
+{
+  "label": "Volume beheren",
+  "description": "Maak, verwijder, back-up of herstel een Docker-volume",
+  "config": {
+    "environment": "Omgeving",
+    "action": "Actie",
+    "name": "Naam",
+    "driver": "Driver",
+    "labels": "Labels",
+    "force": "Forceren",
+    "volume": "Volume",
+    "backup_path": "Back-upbestandspad",
+    "overwrite": "Bestaande bestanden overschrijven",
+    "helper_image": "Helper-image"
+  },
+  "options": {
+    "action": {
+      "create": "Aanmaken",
+      "remove": "Verwijderen",
+      "backup": "Back-up",
+      "restore": "Herstellen"
+    },
+    "driver": {
+      "local": "Lokaal"
+    }
+  }
+}

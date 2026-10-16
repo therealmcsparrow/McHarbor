@@ -20,7 +20,7 @@ const panelID = 'header-notifications-panel';
 export function HeaderNotifications() {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false);
   const [refreshingOnOpen, setRefreshingOnOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const notificationsQuery = useInAppNotifications({ perPage: 12 });
@@ -37,7 +37,7 @@ export function HeaderNotifications() {
   const hasUnread = unreadCount > 0;
 
   async function handleToggleOpen() {
-    if (open) {
+    if (isOpen) {
       setOpen(false);
       return;
     }
@@ -53,22 +53,22 @@ export function HeaderNotifications() {
 
   function handleOpenPage() {
     setOpen(false);
-    navigate('/notifications');
+    void navigate('/notifications');
   }
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       return;
     }
 
-    function handlePointerDown(event: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+    function handlePointerDown(evt: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(evt.target as Node)) {
         setOpen(false);
       }
     }
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+    function handleKeyDown(evt: KeyboardEvent) {
+      if (evt.key === 'Escape') {
         setOpen(false);
       }
     }
@@ -80,7 +80,7 @@ export function HeaderNotifications() {
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, refetchNotifications, refetchUnreadCount]);
+  }, [isOpen, refetchNotifications, refetchUnreadCount]);
 
   return (
     <div ref={rootRef} className="relative">
@@ -91,15 +91,17 @@ export function HeaderNotifications() {
             variant="ghost"
             size="icon"
             aria-label={t('notifications.open')}
-            aria-controls={open ? panelID : undefined}
-            aria-expanded={open}
+            aria-controls={isOpen ? panelID : undefined}
+            aria-expanded={isOpen}
             aria-haspopup="dialog"
             className="relative text-muted-foreground hover:text-foreground"
-            onClick={() => { void handleToggleOpen(); }}
+            onClick={() => {
+              void handleToggleOpen();
+            }}
           >
             <IconBell className="size-4.5" />
             {hasUnread && (
-              <span className="absolute right-1 top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground">
+              <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center bg-primary px-1 text-[10px] leading-none font-semibold text-primary-foreground">
                 {unreadBadge}
               </span>
             )}
@@ -108,12 +110,12 @@ export function HeaderNotifications() {
         <TooltipContent>{t('notifications.open')}</TooltipContent>
       </Tooltip>
 
-      {open && (
-        <div
+      {isOpen && (
+        <dialog
+          open
           id={panelID}
-          role="dialog"
           aria-label={t('notifications.title')}
-          className="absolute right-0 top-full z-50 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-xl"
+          className="absolute top-full right-0 left-auto z-50 m-0 mt-2 block h-auto w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border bg-popover p-0 text-foreground shadow-xl"
         >
           <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
             <div className="min-w-0">
@@ -140,35 +142,45 @@ export function HeaderNotifications() {
             )}
 
             {notificationsQuery.isError && (
-              <div className="px-4 py-6 text-sm text-muted-foreground">{t('notifications.unavailable')}</div>
-            )}
-
-            {!notificationsQuery.isPending && !refreshingOnOpen && !notificationsQuery.isError && unreadNotifications.length === 0 && (
-              <div className="px-4 py-6">
-                <p className="text-sm font-medium text-foreground">
-                  {totalNotifications === 0 ? t('notifications.empty') : t('notifications.allCaughtUp')}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {totalNotifications === 0 ? t('notifications.emptyDescription') : t('notifications.pageDescription')}
-                </p>
+              <div className="px-4 py-6 text-sm text-muted-foreground">
+                {[t('notifications.unavailable'), notificationsQuery.error?.message].filter(Boolean).join(' — ')}
               </div>
             )}
 
-            {!notificationsQuery.isPending && !refreshingOnOpen && !notificationsQuery.isError && unreadNotifications.length > 0 && (
-              <div>
-                {unreadNotifications.map((notification) => {
-                  return (
-                    <InAppNotificationListItem
-                      key={notification.id}
-                      notification={notification}
-                      className="border-b border-border last:border-b-0"
-                      markReadDisabled={markReadMutation.isPending}
-                      onMarkRead={(notificationID) => markReadMutation.mutate(notificationID)}
-                    />
-                  );
-                })}
-              </div>
-            )}
+            {!notificationsQuery.isPending &&
+              !refreshingOnOpen &&
+              !notificationsQuery.isError &&
+              unreadNotifications.length === 0 && (
+                <div className="px-4 py-6">
+                  <p className="text-sm font-medium text-foreground">
+                    {totalNotifications === 0 ? t('notifications.empty') : t('notifications.allCaughtUp')}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {totalNotifications === 0
+                      ? t('notifications.emptyDescription')
+                      : t('notifications.pageDescription')}
+                  </p>
+                </div>
+              )}
+
+            {!notificationsQuery.isPending &&
+              !refreshingOnOpen &&
+              !notificationsQuery.isError &&
+              unreadNotifications.length > 0 && (
+                <div>
+                  {unreadNotifications.map((notification) => {
+                    return (
+                      <InAppNotificationListItem
+                        key={notification.id}
+                        notification={notification}
+                        className="border-b border-border last:border-b-0"
+                        markReadDisabled={markReadMutation.isPending}
+                        onMarkRead={(notificationID) => markReadMutation.mutate(notificationID)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
           </div>
 
           <div className="border-t border-border p-2">
@@ -176,7 +188,7 @@ export function HeaderNotifications() {
               {t('notifications.viewAll')}
             </Button>
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

@@ -1,0 +1,278 @@
+[
+  {
+    "name": "inspect pulls, disk from the result",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_inspect",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": 40,
+      "importResult": {
+        "importId": "ImportID",
+        "kind": "Kind",
+        "disks": [
+          {
+            "index": 5,
+            "sourceFile": "SourceFile",
+            "sourceFormat": "SourceFormat",
+            "virtualSize": 11,
+            "actualSize": 10,
+            "volumePath": "VolumePath"
+          }
+        ],
+        "stagedPath": "StagedPath",
+        "name": "Name",
+        "vcpus": 5,
+        "memoryMb": 8,
+        "firmware": "Firmware",
+        "guestOsFamily": "GuestOSFamily",
+        "guestOsVariant": "GuestOSVariant",
+        "nicCount": 8,
+        "warnings": [
+          "Warnings"
+        ]
+      }
+    },
+    "phase": "pull",
+    "disk": 5,
+    "percent": 40,
+    "known": true
+  },
+  {
+    "name": "stage pulls",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_stage",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": 10
+    },
+    "phase": "pull",
+    "disk": 0,
+    "percent": 10,
+    "known": true
+  },
+  {
+    "name": "convert",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_convert",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": 60,
+      "importResult": {
+        "importId": "ImportID",
+        "kind": "Kind",
+        "disks": [
+          {
+            "index": 5,
+            "sourceFile": "SourceFile",
+            "sourceFormat": "SourceFormat",
+            "virtualSize": 11,
+            "actualSize": 10,
+            "volumePath": "VolumePath"
+          }
+        ],
+        "stagedPath": "StagedPath",
+        "name": "Name",
+        "vcpus": 5,
+        "memoryMb": 8,
+        "firmware": "Firmware",
+        "guestOsFamily": "GuestOSFamily",
+        "guestOsVariant": "GuestOSVariant",
+        "nicCount": 8,
+        "warnings": [
+          "Warnings"
+        ]
+      }
+    },
+    "phase": "convert",
+    "disk": 5,
+    "percent": 60,
+    "known": true
+  },
+  {
+    "name": "over 100 clamps",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_convert",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": 250
+    },
+    "phase": "convert",
+    "disk": 0,
+    "percent": 100,
+    "known": true
+  },
+  {
+    "name": "negative clamps",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_convert",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": -5
+    },
+    "phase": "convert",
+    "disk": 0,
+    "percent": 0,
+    "known": true
+  },
+  {
+    "name": "id from the result alone",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_convert",
+      "percent": 30,
+      "importResult": {
+        "importId": "ImportID",
+        "kind": "Kind",
+        "disks": [
+          {
+            "index": 5,
+            "sourceFile": "SourceFile",
+            "sourceFormat": "SourceFormat",
+            "virtualSize": 11,
+            "actualSize": 10,
+            "volumePath": "VolumePath"
+          }
+        ],
+        "stagedPath": "StagedPath",
+        "name": "Name",
+        "vcpus": 5,
+        "memoryMb": 8,
+        "firmware": "Firmware",
+        "guestOsFamily": "GuestOSFamily",
+        "guestOsVariant": "GuestOSVariant",
+        "nicCount": 8,
+        "warnings": [
+          "Warnings"
+        ]
+      }
+    },
+    "phase": "convert",
+    "disk": 5,
+    "percent": 30,
+    "known": true
+  },
+  {
+    "name": "unknown operation",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "Operation",
+      "import": {
+        "importId": "ImportID",
+        "sourcePath": "SourcePath",
+        "sourceUrl": "SourceURL",
+        "sourceToken": "SourceToken",
+        "fileName": "FileName",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "vmId": "VMID",
+        "format": "Format"
+      },
+      "percent": 40,
+      "importResult": {
+        "importId": "ImportID",
+        "kind": "Kind",
+        "disks": [
+          {
+            "index": 5,
+            "sourceFile": "SourceFile",
+            "sourceFormat": "SourceFormat",
+            "virtualSize": 11,
+            "actualSize": 10,
+            "volumePath": "VolumePath"
+          }
+        ],
+        "stagedPath": "StagedPath",
+        "name": "Name",
+        "vcpus": 5,
+        "memoryMb": 8,
+        "firmware": "Firmware",
+        "guestOsFamily": "GuestOSFamily",
+        "guestOsVariant": "GuestOSVariant",
+        "nicCount": 8,
+        "warnings": [
+          "Warnings"
+        ]
+      }
+    },
+    "phase": "",
+    "disk": 0,
+    "percent": 0,
+    "known": false
+  },
+  {
+    "name": "no id",
+    "envId": "env-1",
+    "importId": "ImportID",
+    "frame": {
+      "operation": "vm_import_convert",
+      "percent": 40
+    },
+    "phase": "",
+    "disk": 0,
+    "percent": 0,
+    "known": false
+  }
+]

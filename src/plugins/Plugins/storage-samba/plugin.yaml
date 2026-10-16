@@ -1,0 +1,22 @@
+schema: "mcharbor.plugin/v1"
+slug: "storage-samba"
+name: "Samba"
+version: "2026.10.01"
+description: "Backup destination backed by an SMB/CIFS share (samba.org). Anonymous, basic user/password, or NTLMv2 domain auth via go-smb2."
+author: "McSparrow <support@mcsparrow.eu>"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+
+mcharbor: ">=2026.10.01"
+go: ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+i18n_namespaces:
+  - "storage-samba"
+
+contributes:
+  forms:
+    - { resource: storage_location, kind: config_form, key: samba }
+    - { resource: storage_location, kind: setup_guide, key: samba }

@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Destinations de sauvegarde OpenCloud",
+    "subtitle": "Sauvegarde des conteneurs vers une instance OpenCloud via WebDAV (RFC 4918). OpenCloud est un serveur compatible Nextcloud (même surface de protocole) ; le plugin utilise donc les chemins WebDAV de Nextcloud (/remote.php/dav/files/{user}/). Deux modes d'authentification : flux OAuth 2.0 avec jeton d'actualisation ou authentification directe par mot de passe d'application. Les téléversements par blocs utilisent Content-Range PUT, pris en charge côté serveur par le WebDAV d'OpenCloud.",
+    "registerHint": "Cliquez sur Tester la connexion pour vérifier que le point de terminaison WebDAV est accessible et que les identifiants sont valides."
+  },
+  "fields": {
+    "clientId": "ID client OAuth",
+    "clientSecret": "Secret client OAuth / mot de passe d'application",
+    "refreshToken": "Jeton d'actualisation (fourni par le flux de consentement OAuth)",
+    "folderId": "Dossier sous la racine de l'utilisateur (vide pour la racine de l'utilisateur)"
+  },
+  "toast": {
+    "registered": "Plugin OpenCloud enregistré.",
+    "testPassed": "Le test de connexion OpenCloud a réussi.",
+    "testFailed": "Le test de connexion OpenCloud a échoué : {{error}}"
+  },
+  "error": {
+    "noHost": "L'URL de base d'OpenCloud est obligatoire.",
+    "noUsername": "Le nom d'utilisateur OpenCloud est obligatoire.",
+    "noSecret": "Le secret client OAuth ou le mot de passe d'application est obligatoire."
+  },
+  "form": {
+    "introTitle": "Identifiants OpenCloud",
+    "introBody": "Générez un mot de passe d'application dans Personal settings → Security → App passwords, ou enregistrez un client OAuth 2.0 dans les paramètres d'administration. Les deux approches fonctionnent via l'authentification HTTP Basic à chaque appel WebDAV. McHarbor stocke le secret chiffré au repos.",
+    "hostLabel": "URL de base d'OpenCloud",
+    "hostHelp": "URL de base de l'instance OpenCloud, p. ex. https://cloud.example.com. N'ajoutez pas de barre oblique finale.",
+    "usernameLabel": "Nom d'utilisateur",
+    "usernameHelp": "Identifiant OpenCloud (nom d'utilisateur ou e-mail).",
+    "clientIdLabel": "ID client OAuth (facultatif)",
+    "clientIdHelp": "client_id OAuth 2.0 depuis OpenCloud admin → Settings → Security → OAuth 2.0 clients. Laissez vide si vous utilisez un mot de passe d'application.",
+    "clientSecretHelp": "Soit le client_secret OAuth 2.0, soit un mot de passe d'application depuis OpenCloud Personal settings → Security → App passwords. Les deux fonctionnent via l'authentification HTTP Basic à chaque appel WebDAV.",
+    "basePathLabel": "Dossier sous la racine de l'utilisateur",
+    "basePathHelp": "Sous-dossier facultatif sous la racine Files OpenCloud de l'utilisateur.",
+    "apiPathLabel": "Préfixe de chemin WebDAV (avancé)",
+    "apiPathHelp": "Remplace le chemin WebDAV. Par défaut : /remote.php/dav/files/{username}/. Ne le définissez que si votre OpenCloud se trouve derrière un reverse proxy qui réécrit le chemin WebDAV."
+  },
+  "setup": {
+    "title": "Guide de configuration d'OpenCloud",
+    "step1": "Dans OpenCloud, ouvrez <b>Personal settings → Security → App passwords</b>. (Les administrateurs peuvent l'activer pour toute l'instance via <b>Settings → Security</b>.) Donnez au mot de passe d'application un nom descriptif (p. ex. <code>mcharbor-backups</code>) et cliquez sur <b>Create app password</b>.",
+    "step2": "Copiez le nom d'utilisateur (le compte sous lequel placer les sauvegardes) et le mot de passe d'application qu'OpenCloud vient de générer. Les deux sont sensibles à la casse.",
+    "step3": "Dans McHarbor, collez l'URL de base d'OpenCloud (p. ex. <code>https://cloud.example.com</code> — sans barre oblique finale), le nom d'utilisateur et le mot de passe d'application dans le formulaire à gauche. Facultatif : définissez un dossier sous la racine de l'utilisateur (p. ex. <code>Backups/2026</code>) et laissez McHarbor créer automatiquement les dossiers intermédiaires.",
+    "step4": "Cliquez sur <b>Test connection</b> pour écrire et relire un fichier de test dans le dossier résolu. Le plugin exécute un <code>PROPFIND</code> WebDAV authentifié par HTTP Basic sur <code>/remote.php/dav/files/{username}/</code> pour confirmer que la destination est joignable et que les identifiants sont valides.",
+    "step5": "Facultatif : passez à un flux OAuth délégué en créant un client OAuth 2.0 dans <b>OpenCloud admin → Settings → Security → OAuth 2.0 clients</b>. Définissez l'URI de redirection sur <code>/api/storage-locations/oauth/callback</code> de votre hôte McHarbor. Générez un client secret, collez les deux dans le formulaire, puis cliquez sur <b>Connect</b> pour accorder le consentement. Le plugin stocke le refresh token et le renouvelle de façon transparente à chaque exécution de sauvegarde.",
+    "step6": "Déclenchez une sauvegarde. Le plugin envoie l'archive via WebDAV en PUT fragmenté avec <code>Content-Range</code>, de sorte que même les sauvegardes de plus de 10 Go sont transmises en flux sans mettre toute la charge en mémoire tampon. Le serveur WebDAV d'OpenCloud réassemble les fragments côté serveur."
+  }
+}

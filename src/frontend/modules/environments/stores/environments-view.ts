@@ -15,6 +15,6 @@ export const useEnvironmentsViewStore = create<EnvironmentsViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-environments-view' }
-  )
+    { name: 'mcharbor-environments-view' },
+  ),
 );

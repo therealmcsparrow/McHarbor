@@ -42,5 +42,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "v3.0"
+  "version":  "v3.0",
+  "latest":  {
+      "version":  "v3.0",
+      "release_date":  "2026-09-10"
+  }
 }

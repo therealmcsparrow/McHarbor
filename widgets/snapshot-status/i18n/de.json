@@ -1,0 +1,20 @@
+{
+  "widgets": {
+    "snapshotStatus": {
+      "label": "Snapshot-Status",
+      "description": "Letzter erfolgreicher Snapshot je Ziel und was überfällig ist"
+    }
+  },
+  "snapshotStatusWidget": {
+    "title": "Snapshot-Status",
+    "never": "nie",
+    "noPlans": "Keine Snapshot-Pläne konfiguriert",
+    "overdueCount": "{{count}} überfällig",
+    "overdueCount_other": "{{count}} überfällig",
+    "more": "{{count}} weitere",
+    "allCurrent": "Alles aktuell",
+    "viewAll": "Alle Backups",
+    "overdue": "Überfällig",
+    "current": "Aktuell"
+  }
+}

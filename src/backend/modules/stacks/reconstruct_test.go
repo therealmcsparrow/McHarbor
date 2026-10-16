@@ -7,19 +7,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 )
 
 func TestReconstructComposeSkipsGeneratedHostname(t *testing.T) {
 	containerID := "1f386cd87629916ec1e1501d41f44f86b00cc4b18f5080e353b30e26f26cf4d7"
 
-	compose, err := ReconstructCompose([]types.ContainerJSON{
+	compose, err := ReconstructCompose([]container.InspectResponse{
 		{
-			ContainerJSONBase: &container.ContainerJSONBase{
-				ID: containerID,
-			},
+			ID: containerID,
 			Config: &container.Config{
 				Hostname: containerID[:12],
 				Image:    "ghcr.io/therealmcsparrow/mcharbor:1.1.4",
@@ -52,11 +49,9 @@ func TestContainerMatchesAnyCandidateWithStaleHostnameAndRealID(t *testing.T) {
 
 func TestCloneSelfContainerConfigUsesTargetImageAndDropsGeneratedHostname(t *testing.T) {
 	current := container.InspectResponse{
-		ContainerJSONBase: &container.ContainerJSONBase{
-			ID: "49ca1252ea2939a2168b02a7ff0e4a2a2d020da55ad596a4ece4037e7d8f1f82",
-			HostConfig: &container.HostConfig{
-				AutoRemove: true,
-			},
+		ID: "49ca1252ea2939a2168b02a7ff0e4a2a2d020da55ad596a4ece4037e7d8f1f82",
+		HostConfig: &container.HostConfig{
+			AutoRemove: true,
 		},
 		Config: &container.Config{
 			Hostname: "49ca1252ea29",
@@ -88,10 +83,8 @@ func TestCloneSelfContainerConfigUsesTargetImageAndDropsGeneratedHostname(t *tes
 }
 
 func TestSelfContainerMatchesManagedStackByComposeWorkingDir(t *testing.T) {
-	current := types.ContainerJSON{
-		ContainerJSONBase: &container.ContainerJSONBase{
-			Name: "/mcharbor",
-		},
+	current := container.InspectResponse{
+		Name: "/mcharbor",
 		Config: &container.Config{
 			Labels: map[string]string{
 				"com.docker.compose.project":             "docker",
@@ -111,10 +104,8 @@ func TestSelfContainerMatchesManagedStackByComposeWorkingDir(t *testing.T) {
 }
 
 func TestSelfContainerMatchesManagedStackByContainerName(t *testing.T) {
-	current := types.ContainerJSON{
-		ContainerJSONBase: &container.ContainerJSONBase{
-			Name: "/mcharbor",
-		},
+	current := container.InspectResponse{
+		Name:   "/mcharbor",
 		Config: &container.Config{},
 	}
 	stack := &Stack{

@@ -1,6 +1,6 @@
 {
-  "label": "Math",
-  "description": "Apply a math operation to a numeric value",
+  "label": "Rekenen",
+  "description": "Pas een wiskundige bewerking toe op een numerieke waarde",
   "config": {
     "property": "Eigenschap",
     "operation": "Bewerking",
@@ -9,14 +9,14 @@
   },
   "options": {
     "operation": {
-      "add": "Add",
-      "subtract": "Subtract",
-      "multiply": "Multiply",
-      "divide": "Divide",
-      "round": "Round",
-      "floor": "Floor",
-      "ceil": "Ceil",
-      "abs": "Absolute",
+      "add": "Optellen",
+      "subtract": "Aftrekken",
+      "multiply": "Vermenigvuldigen",
+      "divide": "Delen",
+      "round": "Afronden",
+      "floor": "Naar beneden afronden",
+      "ceil": "Naar boven afronden",
+      "abs": "Absoluut",
       "min": "Min",
       "max": "Max",
       "modulo": "Modulo"

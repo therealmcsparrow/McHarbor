@@ -1,0 +1,20 @@
+{
+  "widgets": {
+    "snapshotStatus": {
+      "label": "Snapshotstatus",
+      "description": "Laatste geslaagde snapshot per doel, en wat te laat is"
+    }
+  },
+  "snapshotStatusWidget": {
+    "title": "Snapshotstatus",
+    "never": "nooit",
+    "noPlans": "Geen snapshotplannen ingesteld",
+    "overdueCount": "{{count}} te laat",
+    "overdueCount_other": "{{count}} te laat",
+    "more": "{{count}} meer",
+    "allCurrent": "Alles actueel",
+    "viewAll": "Alle back-ups",
+    "overdue": "Achterstallig",
+    "current": "Actueel"
+  }
+}

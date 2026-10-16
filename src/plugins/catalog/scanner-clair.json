@@ -1,0 +1,16 @@
+{
+  "slug": "scanner-clair",
+  "name": "Clair",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Scans container images against an external Clair v4 server. Indexes the image through Clair's indexer API and reports matched CVEs from its matcher API, with an optional bearer token stored encrypted. Because a scanner is a named instance, one install can back a production Clair and a staging one. Configure it in Security > Scanners.",
+  "category": "Vulnerability scanners",
+  "icon": "IconShieldSearch",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/scanner-clair-1.0.0.tar.gz"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+    "slug":  "modsecurity-crs",
+    "name":  "ModSecurity CRS",
+    "description":  "Reverse proxy bundling ModSecurity with the OWASP Core Rule Set to filter common web attacks.",
+    "category":  "Security",
+    "image":  "owasp/modsecurity-crs:nginx",
+    "logo":  "https://www.google.com/s2/favicons?domain=coreruleset.org\u0026sz=128",
+    "website":  "https://coreruleset.org",
+    "docsUrl":  "https://github.com/coreruleset/modsecurity-crs-docker",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/modsecurity-crs/conf",
+                        "container":  "/etc/nginx/conf.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PARANOIA",
+                        "default":  "1",
+                        "description":  "CRS paranoia level 1-4; higher blocks more but risks false positives"
+                    },
+                    {
+                        "key":  "BACKEND",
+                        "default":  "http://backend:80",
+                        "description":  "Upstream backend the WAF proxies requests to"
+                    }
+                ],
+    "version":  "nginx",
+    "latest":  {
+        "version":  "nginx",
+        "release_date":  "2026-09-29"
+    }
+}

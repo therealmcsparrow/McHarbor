@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "SAML 2.0",
+    "subtitle": "Federe o login do McHarbor a qualquer provedor de identidade SAML 2.0 (Okta, Auth0, Keycloak, ADFS, Google Workspace, Azure AD etc.). O plugin trata o lado do SP: construir o ServiceProvider, gerar AuthnRequests assinados e analisar asserções assinadas no endpoint ACS.",
+    "registerHint": "Adicione um provedor na página Configurações > Segurança > Provedores de identidade do host e escolha \"SAML 2.0\" como provider_type."
+  },
+  "fields": {
+    "metadata_url":   "URL de metadados do IdP",
+    "entity_id":      "Entity ID do SP",
+    "sp_certificate": "Certificado do SP (PEM)",
+    "sp_private_key": "Chave privada do SP (PEM)"
+  },
+  "help": {
+    "metadata_url":   "URL do documento XML de metadados SAML 2.0 do IdP. O plugin o busca a cada login para descobrir o endpoint de SSO e o certificado de assinatura do IdP. A URL deve estar acessível a partir do McHarbor sem autenticação.",
+    "entity_id":      "Entity ID do SP opcional anunciado nos metadados do SP. Deixe vazio para usar a URL de metadados do McHarbor. O valor deve corresponder ao configurado no lado do IdP, ou o login falhará com \"Unknown SP\".",
+    "sp_certificate": "Certificado X.509 do SP opcional codificado em PEM. Necessário apenas se o IdP espera AuthnRequests assinados ou asserções criptografadas. Gere com `openssl req -x509 -newkey rsa:2048 -keyout sp.key -out sp.crt -days 365 -nodes -subj '/CN=mcharbor'`. Armazenado criptografado em repouso.",
+    "sp_private_key": "Chave privada RSA opcional codificada em PEM correspondente ao certificado do SP. PKCS#1 (`-----BEGIN RSA PRIVATE KEY-----`) e PKCS#8 (`-----BEGIN PRIVATE KEY-----`) são aceitos. Armazenada criptografada em repouso."
+  },
+  "guide": {
+    "title":    "Configurar o login SAML 2.0 no McHarbor",
+    "subtitle": "Aponte seu IdP para a URL de metadados do McHarbor, cole a URL de metadados do IdP no McHarbor e, opcionalmente, envie um par de chaves para AuthnRequests assinados.",
+    "step1": {
+      "title": "Localize a URL de metadados SAML do seu IdP",
+      "body":  "Todo IdP expõe um documento XML de metadados SAML 2.0 que descreve seu endpoint de SSO e o certificado de assinatura. Locais comuns: Okta > Applications > seu app > Sign On > Settings > Metadata URL; Auth0 > Application > Addons > SAML2 > Usage > Identity Provider Metadata; Keycloak > Realm > Endpoints > SAML 2.0 Identity Provider Metadata. Copie a URL para o campo URL de metadados do IdP no formulário do provedor."
+    },
+    "step2": {
+      "title": "Baixe os metadados do SP do McHarbor",
+      "body":  "Clique em \"Baixar metadados do SP\" na página de edição do provedor (ou GET /api/identity-providers/<id>/metadata). O XML inclui a URL ACS do McHarbor e (se você enviou um par de chaves) o certificado de assinatura do SP. Envie este arquivo ou cole seu conteúdo no assistente \"Import SP metadata\" ou \"New SAML application\" do seu IdP."
+    },
+    "step3": {
+      "title": "Defina a URL ACS no lado do IdP",
+      "body":  "Se seu IdP exige entrada manual em vez de importação de metadados, defina a Assertion Consumer Service URL como `<mcharbor-base>/api/identity-providers/callback` e o Entity ID do SP com o valor exibido no formulário do provedor (padrão: `<mcharbor-base>/api/identity-providers/metadata`). O formato NameID deve ser `EmailAddress` ou `Unspecified`."
+    },
+    "step4": {
+      "title": "(Opcional) Envie um par de chaves do SP para requisições assinadas",
+      "body":  "Se seu IdP exige AuthnRequests assinados, gere um par de chaves RSA autoassinado: `openssl req -x509 -newkey rsa:2048 -keyout sp.key -out sp.crt -days 365 -nodes -subj '/CN=mcharbor'`. Cole todo o conteúdo de sp.crt no campo Certificado do SP e de sp.key no campo Chave privada do SP. Baixe novamente os metadados do SP e envie-os de novo ao IdP para que ele reconheça o novo certificado de assinatura."
+    },
+    "step5": {
+      "title": "Mapeie atributos do IdP para claims do McHarbor",
+      "body":  "No lado do IdP, garanta que a asserção inclua no mínimo um atributo de e-mail (urn:oid:0.9.2342.19200300.100.1.3 ou http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress). O nome de exibição é opcional. A participação em grupos é lida de `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` se presente, mas nenhuma API de busca de grupos de administrador está conectada na v1."
+    },
+    "step6": {
+      "title": "Teste a conexão",
+      "body":  "De volta ao McHarbor, clique em \"Testar conexão\" no formulário do provedor. Um resultado verde significa que a URL de metadados do IdP foi resolvida e analisada corretamente. Clique em \"Entrar com SAML\" na página de login para verificar o fluxo completo — você deve voltar ao McHarbor com um cookie de sessão."
+    }
+  }
+}

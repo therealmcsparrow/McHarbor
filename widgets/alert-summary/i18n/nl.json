@@ -14,6 +14,8 @@
       "critical": "Kritiek",
       "warning": "Waarschuwing",
       "info": "Info"
-    }
+    },
+    "enabled": "{{count}} actief",
+    "viewRules": "Regels beheren"
   }
 }

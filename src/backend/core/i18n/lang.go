@@ -11,6 +11,7 @@ import (
 // Lang represents a supported language.
 type Lang string
 
+// The supported languages; English is the default and the fallback.
 const (
 	EN Lang = "en"
 	NL Lang = "nl"

@@ -1,0 +1,335 @@
+[
+  {
+    "name": "slot fixture",
+    "envId": "env-1",
+    "frame": {
+      "operation": "Operation",
+      "envId": "EnvID",
+      "containerId": "ContainerID",
+      "spec": {
+        "name": "Name",
+        "rootfsPath": "RootfsPath",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "templatePath": "TemplatePath",
+        "initSystem": "InitSystem",
+        "initArgv": [
+          "InitArgv"
+        ],
+        "privileged": true,
+        "nesting": true,
+        "uidMapStart": 11,
+        "uidMapCount": 11,
+        "gidMapStart": 11,
+        "gidMapCount": 11,
+        "idmapMechanism": "IDMapMech",
+        "limits": {
+          "cpuMax": "CPUMax",
+          "cpuWeight": 9,
+          "cpuset": "CPUSet",
+          "memoryMaxBytes": 14,
+          "memoryHighBytes": 15,
+          "swapMaxBytes": 12,
+          "pidsMax": 7,
+          "ioMax": "IOMax",
+          "diskQuotaBytes": 14
+        },
+        "nics": [
+          {
+            "nicId": "NICID",
+            "networkId": "NetworkID",
+            "bridge": "Bridge",
+            "vlanTag": 7,
+            "slot": 4,
+            "guestName": "GuestName",
+            "mac": "MAC",
+            "vethHost": "VethHost",
+            "addressMode": "AddressMode",
+            "staticIp": "StaticIP",
+            "staticGw": "StaticGW",
+            "staticDns": [
+              "StaticDNS"
+            ],
+            "attachKind": "AttachKind",
+            "parentLink": "ParentLink",
+            "linkMode": "LinkMode"
+          }
+        ],
+        "mounts": [
+          {
+            "mountId": "MountID",
+            "kind": "Kind",
+            "source": "Source",
+            "destination": "Destination",
+            "readonly": true,
+            "shiftIds": true
+          }
+        ],
+        "hostname": "Hostname",
+        "sshKeys": [
+          "SSHKeys"
+        ],
+        "passwordHash": "PasswordHash",
+        "netConfigFormat": "NetConfigFmt",
+        "unitName": "UnitName"
+      },
+      "graceSeconds": 12,
+      "deleteRootfs": true,
+      "limits": {
+        "cpuMax": "CPUMax",
+        "cpuWeight": 9,
+        "cpuset": "CPUSet",
+        "memoryMaxBytes": 14,
+        "memoryHighBytes": 15,
+        "swapMaxBytes": 12,
+        "pidsMax": 7,
+        "ioMax": "IOMax",
+        "diskQuotaBytes": 14
+      },
+      "snapshotId": "SnapshotID",
+      "snapshotName": "SnapshotName",
+      "clone": {
+        "targetContainerId": "TargetContainerID",
+        "spec": {
+          "name": "Name",
+          "rootfsPath": "RootfsPath",
+          "poolId": "PoolID",
+          "poolBackend": "PoolBackend",
+          "poolTarget": "PoolTarget",
+          "templatePath": "TemplatePath",
+          "initSystem": "InitSystem",
+          "initArgv": [
+            "InitArgv"
+          ],
+          "privileged": true,
+          "nesting": true,
+          "uidMapStart": 11,
+          "uidMapCount": 11,
+          "gidMapStart": 11,
+          "gidMapCount": 11,
+          "idmapMechanism": "IDMapMech",
+          "limits": {
+            "cpuMax": "CPUMax",
+            "cpuWeight": 9,
+            "cpuset": "CPUSet",
+            "memoryMaxBytes": 14,
+            "memoryHighBytes": 15,
+            "swapMaxBytes": 12,
+            "pidsMax": 7,
+            "ioMax": "IOMax",
+            "diskQuotaBytes": 14
+          },
+          "nics": [
+            {
+              "nicId": "NICID",
+              "networkId": "NetworkID",
+              "bridge": "Bridge",
+              "vlanTag": 7,
+              "slot": 4,
+              "guestName": "GuestName",
+              "mac": "MAC",
+              "vethHost": "VethHost",
+              "addressMode": "AddressMode",
+              "staticIp": "StaticIP",
+              "staticGw": "StaticGW",
+              "staticDns": [
+                "StaticDNS"
+              ],
+              "attachKind": "AttachKind",
+              "parentLink": "ParentLink",
+              "linkMode": "LinkMode"
+            }
+          ],
+          "mounts": [
+            {
+              "mountId": "MountID",
+              "kind": "Kind",
+              "source": "Source",
+              "destination": "Destination",
+              "readonly": true,
+              "shiftIds": true
+            }
+          ],
+          "hostname": "Hostname",
+          "sshKeys": [
+            "SSHKeys"
+          ],
+          "passwordHash": "PasswordHash",
+          "netConfigFormat": "NetConfigFmt",
+          "unitName": "UnitName"
+        },
+        "linked": true
+      },
+      "backup": {
+        "runId": "RunID",
+        "chainId": "ChainID",
+        "kind": "Kind",
+        "rootfsPath": "RootfsPath",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "manifest": {
+          "filled": true
+        },
+        "listingName": "ListingName",
+        "upload": {
+          "url": "URL",
+          "token": "Token"
+        },
+        "scratchDir": "ScratchDir"
+      },
+      "restore": {
+        "runId": "RunID",
+        "targetPath": "TargetPath",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "artifacts": [
+          {
+            "part": "Part",
+            "kind": "Kind",
+            "url": "URL",
+            "token": "Token",
+            "sequence": 8,
+            "sizeBytes": 9
+          }
+        ],
+        "scratchDir": "ScratchDir",
+        "sourceIdMap": {
+          "privileged": true,
+          "uidStart": 8,
+          "uidCount": 8,
+          "gidStart": 8,
+          "gidCount": 8
+        },
+        "targetIdMap": {
+          "privileged": true,
+          "uidStart": 8,
+          "uidCount": 8,
+          "gidStart": 8,
+          "gidCount": 8
+        }
+      },
+      "imageId": "ImageID",
+      "poolId": "PoolID",
+      "states": [
+        {
+          "containerId": "ContainerID",
+          "state": "State",
+          "unitName": "UnitName",
+          "unitActive": "UnitActive",
+          "unitSub": "UnitSub",
+          "initPid": 7,
+          "startedAt": "2026-09-30T12:00:00Z",
+          "ips": [
+            "IPs"
+          ],
+          "exitReason": "ExitReason",
+          "lastError": "LastError"
+        }
+      ],
+      "state": {
+        "containerId": "ContainerID",
+        "state": "State",
+        "unitName": "UnitName",
+        "unitActive": "UnitActive",
+        "unitSub": "UnitSub",
+        "initPid": 7,
+        "startedAt": "2026-09-30T12:00:00Z",
+        "ips": [
+          "IPs"
+        ],
+        "exitReason": "ExitReason",
+        "lastError": "LastError"
+      },
+      "stats": {
+        "containerId": "ContainerID",
+        "cpuPercent": 1.5,
+        "cpuUsageNsec": 12,
+        "memoryBytes": 11,
+        "memoryMaxBytes": 14,
+        "memoryHighBytes": 15,
+        "swapBytes": 9,
+        "pidsCurrent": 11,
+        "pidsMax": 7,
+        "ioReadBytes": 11,
+        "ioWriteBytes": 12,
+        "netRxBytes": 10,
+        "netTxBytes": 10,
+        "rootfsUsedBytes": 15,
+        "sampledAt": "2026-09-30T12:00:00Z"
+      },
+      "processes": [
+        {
+          "pid": 3,
+          "hostPid": 7,
+          "ppid": 4,
+          "user": "User",
+          "command": "Command",
+          "cpuPercent": 1.5,
+          "memoryBytes": 11
+        }
+      ],
+      "applied": {
+        "cpuMax": "CPUMax",
+        "cpuWeight": 9,
+        "cpuset": "CPUSet",
+        "memoryMaxBytes": 14,
+        "memoryHighBytes": 15,
+        "swapMaxBytes": 12,
+        "pidsMax": 7,
+        "ioMax": "IOMax",
+        "diskQuotaBytes": 14
+      },
+      "percent": 7,
+      "sizeBytes": 9,
+      "backupResult": {
+        "kind": "Kind",
+        "bytesWritten": 12,
+        "listingName": "ListingName",
+        "listingPresent": true,
+        "fellBackToFull": true,
+        "fallbackReason": "FallbackReason",
+        "consistency": "Consistency",
+        "idShift": "IDShift",
+        "error": "Error"
+      },
+      "backupBytes": 11,
+      "progress": {
+        "key": "Progress"
+      },
+      "orphans": [
+        "Orphans"
+      ],
+      "success": true,
+      "error": "Error",
+      "errorCode": "ErrorCode"
+    },
+    "event": {
+      "envId": "env-1",
+      "guestKind": "ct",
+      "guestId": "ContainerID",
+      "kind": "backup_progress",
+      "detail": {
+        "key": "Progress"
+      },
+      "at": "0001-01-01T00:00:00Z"
+    },
+    "receiveTime": true
+  },
+  {
+    "name": "no progress detail",
+    "envId": "env-1",
+    "frame": {
+      "containerId": "ContainerID"
+    },
+    "event": {
+      "envId": "env-1",
+      "guestKind": "ct",
+      "guestId": "ContainerID",
+      "kind": "backup_progress",
+      "at": "0001-01-01T00:00:00Z"
+    },
+    "receiveTime": true
+  }
+]

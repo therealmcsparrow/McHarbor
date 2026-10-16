@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Docker-daemon informatie en configuratie",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Aangemaakt",
+    "updatedAt": "Bijgewerkt",
+    "groupRegistry": "Registry"
+  },
+  "nav": {
+    "sections": "Docker-secties"
+  },
+  "sectionDescription": {
+    "info": "Daemonversie, hostgegevens en objectaantallen",
+    "registries": "Registerverbindingen en inloggegevens",
+    "resources": "Hostcapaciteit en Docker-schijfgebruik"
+  },
   "tabs": {
-    "info": "Docker Info",
+    "info": "Docker-info",
     "registries": "Registers",
-    "networks": "Netwerken",
     "resources": "Bronnen"
   },
   "info": {
@@ -22,7 +35,7 @@
     "version": "Versie",
     "apiVersion": "API-versie",
     "minApiVersion": "Min API-versie",
-    "gitCommit": "Git Commit",
+    "gitCommit": "Git-commit",
     "goVersion": "Go-versie",
     "os": "Besturingssysteem",
     "architecture": "Architectuur",
@@ -31,8 +44,17 @@
     "serverId": "Server-ID",
     "cpus": "CPU's",
     "memory": "Geheugen",
+    "hardware": "Hardware",
+    "gpu": "GPU",
+    "networkAdapters": "Netwerkadapters",
+    "attachedDevices": "Aangesloten apparaten",
+    "hardwareNone": "Niets gevonden",
+    "hardwareLoading": "Apparaten van de host uitlezen...",
+    "hardwareUnavailable": "Apparaatinventaris van de host is niet beschikbaar op dit platform",
+    "hardwareRemovable": "verwisselbaar",
+    "hardwareScope": "Hardware van de host waarop McHarbor draait, niet van de geselecteerde omgeving.",
     "storageDriver": "Opslagdriver",
-    "dockerRootDir": "Docker Root Dir",
+    "dockerRootDir": "Docker-rootmap",
     "driverStatus": "Driverstatus",
     "cgroupDriver": "Cgroup-driver",
     "cgroupVersion": "Cgroup-versie",
@@ -53,8 +75,7 @@
     "swarmNodeId": "Node-ID",
     "swarmManagers": "Managers",
     "swarmNodes": "Nodes",
-    "isolation": "Isolatie",
-    "status": "Status"
+    "isolation": "Isolatie"
   },
   "registries": {
     "title": "Container Registers",
@@ -75,6 +96,7 @@
     "editTitle": "Register bewerken",
     "editDescription": "Werk register-verbindingsinstellingen bij.",
     "nameLabel": "Naam",
+    "urlPlaceholder": "https://registry.example.com",
     "urlLabel": "URL",
     "usernameLabel": "Gebruikersnaam",
     "passwordLabel": "Wachtwoord",
@@ -93,17 +115,6 @@
       "testSuccess": "Verbindingstest succesvol"
     }
   },
-  "networks": {
-    "title": "Docker Netwerken",
-    "description": "Overzicht van Docker-netwerken in deze omgeving",
-    "viewAll": "Alle netwerken bekijken",
-    "columnName": "Naam",
-    "columnDriver": "Driver",
-    "columnScope": "Bereik",
-    "columnSubnet": "Subnet",
-    "columnContainers": "Containers",
-    "noNetworks": "Geen netwerken gevonden"
-  },
   "resources": {
     "title": "Hostbronnen",
     "description": "Systeembronnen en schijfgebruik",
@@ -118,7 +129,7 @@
     "imagesSize": "Images",
     "containersSize": "Containers",
     "volumesSize": "Volumes",
-    "buildCacheSize": "Build Cache",
+    "buildCacheSize": "Buildcache",
     "totalDisk": "Totaal"
   }
 }

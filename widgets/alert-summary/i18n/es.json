@@ -14,6 +14,8 @@
       "critical": "Crítico",
       "warning": "Advertencia",
       "info": "Información"
-    }
+    },
+    "enabled": "{{count}} activas",
+    "viewRules": "Gestionar reglas"
   }
 }

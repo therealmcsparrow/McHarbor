@@ -49,7 +49,10 @@ func TestHandleIncomingWebhookExecutesWorkflowAndReturnsResponse(t *testing.T) {
 
 func TestExecuteHTTPRequestHitsServer(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
+		body, readErr := io.ReadAll(r.Body)
+		if readErr != nil {
+			t.Errorf("reading request body: %v", readErr)
+		}
 		if r.Method != http.MethodPost {
 			t.Fatalf("expected POST, got %s", r.Method)
 		}

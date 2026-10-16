@@ -1,0 +1,27 @@
+{
+  "label": "Gérer le volume",
+  "description": "Créer, supprimer, sauvegarder ou restaurer un volume Docker",
+  "config": {
+    "environment": "Environnement",
+    "action": "Action",
+    "name": "Nom",
+    "driver": "Conducteur",
+    "labels": "Étiquettes",
+    "force": "Forcer",
+    "volume": "Volume",
+    "backup_path": "Chemin du fichier de backup",
+    "overwrite": "Ecraser les fichiers existants",
+    "helper_image": "Image auxiliaire"
+  },
+  "options": {
+    "action": {
+      "create": "Créer",
+      "remove": "Supprimer",
+      "backup": "Sauvegarder",
+      "restore": "Restaurer"
+    },
+    "driver": {
+      "local": "Local"
+    }
+  }
+}

@@ -4,15 +4,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
-import type {
-  BatchProgressContext,
-  BatchProgressLogLevel,
-} from '@resources/hooks/useBatchProgressOperation';
+import type { BatchProgressContext, BatchProgressLogLevel } from '@resources/hooks/useBatchProgressOperation';
 import { useOperationScans } from '@resources/hooks/useOperationScans';
 import { useReactiveQueryData } from '@resources/hooks/useReactiveQueryData';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import { extractLogTail } from '@resources/utils/log-tail';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { isSelfUpdateTarget, waitForSelfUpdateRecovery, type ContainerOperationTarget } from './container-self-update';
+
+export type { ContainerOperationTarget };
 
 export type ImageUpdateResult = {
   containerId: string;
@@ -24,13 +24,7 @@ export type ImageUpdateResult = {
   error?: string;
 };
 
-export type ContainerOperationMode = 'update' | 'reinstall';
-
-export type ContainerOperationTarget = {
-  id: string;
-  name: string;
-  image: string;
-};
+export type ContainerOperationMode = 'update' | 'recreate';
 
 type RecreateResponse = {
   Id: string;
@@ -50,68 +44,6 @@ type ContainerOperationOptions = {
   scanner?: OperationScanner;
 };
 
-const selfUpdateRecoveryTimeoutMs = 60_000;
-const selfUpdatePollIntervalMs = 2_000;
-
-function isSelfUpdateTarget(target: ContainerOperationTarget) {
-  const normalizedName = target.name.replace(/^\//, '').toLowerCase();
-  const normalizedImage = target.image.toLowerCase();
-
-  return normalizedName === 'mcharbor' || normalizedImage.includes('/mcharbor');
-}
-
-async function delay(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForSelfUpdateRecovery(
-  target: ContainerOperationTarget,
-  envQuery: string,
-  t: (key: string, options?: Record<string, unknown>) => string,
-  log?: BatchProgressContext['log'],
-) {
-  const deadline = Date.now() + selfUpdateRecoveryTimeoutMs;
-  const waitingMessage = t('operations.log.waitingForApiRecovery');
-  log?.(waitingMessage, {
-    detail: waitingMessage,
-  });
-
-  while (Date.now() < deadline) {
-    try {
-      const health = await fetch('/api/health', { credentials: 'include' });
-      if (health.ok) {
-        const containers = await api
-          .get<
-            Array<{
-              Id?: string;
-              ID?: string;
-              Names?: string[];
-              Image?: string;
-            }>
-          >(`/containers${envQuery}${envQuery ? '&' : '?'}all=true`)
-          .then(assertSuccess);
-
-        const match = containers.find((container) => {
-          const names = container.Names ?? [];
-          const byName = names.some(
-            (name) => name.replace(/^\//, '').toLowerCase() === target.name.replace(/^\//, '').toLowerCase(),
-          );
-          const byImage = (container.Image ?? '').toLowerCase() === target.image.toLowerCase();
-          return byName || byImage;
-        });
-
-        return match?.Id ?? match?.ID ?? target.id;
-      }
-    } catch {
-      // The app is expected to be unavailable while the container restarts.
-    }
-
-    await delay(selfUpdatePollIntervalMs);
-  }
-
-  throw new Error(t('operations.log.apiRecoveryTimeout'));
-}
-
 export function useCheckContainerUpdates() {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -122,7 +54,7 @@ export function useCheckContainerUpdates() {
       api
         .post<ImageUpdateResult[]>(
           `/containers/check-updates${envId ? `?env=${envId}` : ''}`,
-          containerIds ? { containerIds } : {}
+          containerIds ? { containerIds } : {},
         )
         .then((r) => r.data ?? []),
     meta: { success: t('updates.checkComplete') },
@@ -155,17 +87,9 @@ export function useContainerOperationActions() {
     log?.(tc('operations.log.preparing'), {
       detail: tc('operations.log.preparing'),
     });
-    log?.(
-      mode === 'update'
-        ? tc('operations.log.pullingLatestImage')
-        : tc('operations.log.usingCurrentImage'),
-      {
-        detail:
-          mode === 'update'
-            ? tc('operations.log.pullingLatestImage')
-            : tc('operations.log.usingCurrentImage'),
-      },
-    );
+    log?.(mode === 'update' ? tc('operations.log.pullingLatestImage') : tc('operations.log.usingCurrentImage'), {
+      detail: mode === 'update' ? tc('operations.log.pullingLatestImage') : tc('operations.log.usingCurrentImage'),
+    });
     log?.(tc('operations.log.recreatingContainer'), {
       detail: tc('operations.log.recreatingContainer'),
     });
@@ -221,33 +145,27 @@ export function useContainerOperationActions() {
     await scanner.runScansForImages([target.image], scanLog);
 
     return {
-      detail: mode === 'update' ? t('toast.updated') : t('toast.reinstalled'),
+      detail: mode === 'update' ? t('toast.updated') : t('toast.recreated'),
       newContainerId: recreated.Id,
       image: target.image,
     };
   }
 
-  async function finalizeOperation(
-    mode: ContainerOperationMode,
-    targets: ContainerOperationTarget[],
-  ) {
+  async function finalizeOperation(mode: ContainerOperationMode, targets: ContainerOperationTarget[]) {
     if (targets.length === 0) {
       return;
     }
 
     if (mode === 'update') {
       const updatedIds = new Set(targets.map((target) => target.id));
-      queryClient.setQueryData<Map<string, ImageUpdateResult> | undefined>(
-        ['container-updates', envId],
-        (current) => {
-          if (!current) return current;
-          const next = new Map(current);
-          for (const id of updatedIds) {
-            next.delete(id);
-          }
-          return next;
-        },
-      );
+      queryClient.setQueryData<Map<string, ImageUpdateResult> | undefined>(['container-updates', envId], (current) => {
+        if (!current) return current;
+        const next = new Map(current);
+        for (const id of updatedIds) {
+          next.delete(id);
+        }
+        return next;
+      });
     }
 
     queryClient.removeQueries({ queryKey: ['stack-updates', envId] });

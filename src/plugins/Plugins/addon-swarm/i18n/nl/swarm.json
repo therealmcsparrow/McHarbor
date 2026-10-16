@@ -1,0 +1,512 @@
+{
+  "title": "Swarm",
+  "overview": {
+    "title": "Swarm",
+    "description": "Clusterstatus, workloads en lidmaatschap.",
+    "identity": {
+      "role": "Dit knooppunt",
+      "clusterId": "Cluster",
+      "nodeId": "Knooppunt",
+      "managers": "Managers",
+      "manageNodes": "Knooppunten beheren"
+    },
+    "stats": {
+      "nodes": "Knooppunten",
+      "nodesDetail": "{{managers}} managers, {{workers}} workers",
+      "services": "Services",
+      "servicesDetail": "{{converged}} compleet, {{degraded}} onvolledig",
+      "tasks": "Taken",
+      "tasksDetail": "{{failed}} mislukt",
+      "networks": "Overlay-netwerken",
+      "networksDetail": "{{stacks}} stacks",
+      "stacks": "Stacks",
+      "secrets": "Secrets",
+      "configs": "Configs"
+    },
+    "alerts": {
+      "nodesDown": {
+        "title": "Knooppunten zijn onbereikbaar",
+        "description": "{{count}} knooppunt(en) zijn down of losgekoppeld. Taken daarop worden opnieuw ingepland."
+      }
+    }
+  },
+  "services": {
+    "title": "Services",
+    "description": "{{count}} service(s) in deze Swarm.",
+    "searchPlaceholder": "Services zoeken",
+    "empty": "Er draaien geen services in deze Swarm.",
+    "stackFilter": "Stack: {{name}}"
+  },
+  "tasks": {
+    "title": "Taken",
+    "description": "Elke ingeplande instantie van elke service.",
+    "searchPlaceholder": "Taken zoeken",
+    "empty": "Geen taken."
+  },
+  "nodes": {
+    "title": "Knooppunten",
+    "description": "{{count}} knooppunt(en) in deze Swarm.",
+    "searchPlaceholder": "Knooppunten zoeken",
+    "empty": "Geen knooppunten.",
+    "leader": "Raft-leider",
+    "thisHost": "Deze host",
+    "cannotRemoveSelf": "Deze host kan zichzelf niet uit het cluster verwijderen. Gebruik in plaats daarvan ‚Cluster verlaten’ in het Swarm-overzicht."
+  },
+  "secrets": {
+    "title": "Secrets",
+    "description": "{{count}} secret(s). Waarden zijn alleen-schrijven en worden nooit getoond.",
+    "searchPlaceholder": "Secrets zoeken",
+    "empty": "Geen secrets.",
+    "create": "Secret aanmaken",
+    "unused": "Niet in gebruik"
+  },
+  "configs": {
+    "title": "Configs",
+    "description": "{{count}} configuratie(s).",
+    "searchPlaceholder": "Configs zoeken",
+    "empty": "Geen configs.",
+    "create": "Config aanmaken",
+    "unused": "Niet in gebruik"
+  },
+  "stacks": {
+    "title": "Swarm-stacks",
+    "description": "{{count}} stack(s) uitgerold naar deze Swarm.",
+    "searchPlaceholder": "Stacks zoeken",
+    "empty": "Er zijn geen stacks uitgerold.",
+    "deploy": "Stack uitrollen"
+  },
+  "networks": {
+    "title": "Overlay-netwerken",
+    "description": "{{count}} netwerk(en) met swarm-scope.",
+    "searchPlaceholder": "Netwerken zoeken",
+    "empty": "Geen overlay-netwerken.",
+    "ingress": "Ingress",
+    "attachable": "Koppelbaar",
+    "internal": "Intern"
+  },
+  "columns": {
+    "name": "Naam",
+    "id": "ID",
+    "mode": "Modus",
+    "replicas": "Replica's",
+    "image": "Image",
+    "ports": "Poorten",
+    "rollout": "Uitrol",
+    "task": "Taak",
+    "service": "Service",
+    "node": "Knooppunt",
+    "desiredState": "Gewenst",
+    "currentState": "Status",
+    "message": "Bericht",
+    "hostname": "Hostnaam",
+    "role": "Rol",
+    "state": "Status",
+    "availability": "Beschikbaarheid",
+    "tasks": "Taken",
+    "resources": "Bronnen",
+    "engine": "Engine",
+    "stack": "Stack",
+    "inUseBy": "In gebruik door",
+    "created": "Aangemaakt",
+    "updated": "Bijgewerkt",
+    "size": "Grootte",
+    "services": "Services",
+    "networks": "Netwerken",
+    "subnets": "Subnetten",
+    "driver": "Driver",
+    "flags": "Kenmerken",
+    "labels": "Labels"
+  },
+  "filters": {
+    "all": "Alle",
+    "converged": "Compleet",
+    "degraded": "Onvolledig"
+  },
+  "serviceMode": {
+    "replicated": "Gerepliceerd",
+    "global": "Globaal",
+    "replicated-job": "Gerepliceerde job",
+    "global-job": "Globale job",
+    "unknown": "Onbekend"
+  },
+  "nodeRole": {
+    "manager": "Manager",
+    "worker": "Worker",
+    "unknown": "Niet in een Swarm"
+  },
+  "nodeState": {
+    "ready": "Gereed",
+    "down": "Uit",
+    "disconnected": "Losgekoppeld",
+    "unknown": "Onbekend"
+  },
+  "nodeAvailability": {
+    "active": "Actief",
+    "pause": "Gepauzeerd",
+    "drain": "Wordt geleegd"
+  },
+  "taskState": {
+    "new": "Nieuw",
+    "allocated": "Toegewezen",
+    "pending": "In wachtrij",
+    "assigned": "Toegekend",
+    "accepted": "Geaccepteerd",
+    "preparing": "Voorbereiden",
+    "ready": "Gereed",
+    "starting": "Starten",
+    "running": "Actief",
+    "complete": "Voltooid",
+    "shutdown": "Afgesloten",
+    "failed": "Mislukt",
+    "rejected": "Geweigerd",
+    "remove": "Verwijderen",
+    "orphaned": "Verweesd"
+  },
+  "updateState": {
+    "updating": "Bijwerken",
+    "paused": "Gepauzeerd",
+    "completed": "Voltooid",
+    "rollback_started": "Terugdraaien",
+    "rollback_paused": "Terugdraaien gepauzeerd",
+    "rollback_completed": "Teruggedraaid"
+  },
+  "actions": {
+    "initCluster": "Cluster initialiseren",
+    "joinCluster": "Deelnemen aan cluster",
+    "leaveCluster": "Swarm verlaten",
+    "joinTokens": "Jointokens",
+    "unlockKey": "Ontgrendelsleutel",
+    "rotate": "Roteren",
+    "copy": "Kopiëren",
+    "close": "Sluiten",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "create": "Aanmaken",
+    "deploy": "Uitrollen",
+    "scale": "Schalen",
+    "restart": "Herstarten",
+    "rollback": "Terugdraaien",
+    "remove": "Verwijderen",
+    "view": "Bekijken",
+    "drain": "Legen",
+    "activate": "Activeren",
+    "pause": "Pauzeren",
+    "promote": "Promoveren",
+    "demote": "Degraderen",
+    "editLabels": "Labels bewerken",
+    "addLabel": "Label toevoegen",
+    "removeLabel": "Label verwijderen",
+    "uploadFile": "Bestand uploaden"
+  },
+  "fields": {
+    "name": "Naam",
+    "value": "Waarde",
+    "replicas": "Replica's",
+    "advertiseAddr": "Advertise-adres",
+    "advertiseAddrHint": "Het adres waarop andere knooppunten dit knooppunt bereiken. Laat leeg om Docker te laten kiezen.",
+    "listenAddr": "Luisteradres",
+    "listenAddrHint": "Standaard 0.0.0.0:2377.",
+    "autoLock": "Managers vergrendelen in rust",
+    "autoLockHint": "Versleutelt de raft-opslag. Een vergrendelde manager heeft bij elke herstart de ontgrendelsleutel nodig.",
+    "remoteAddrs": "Manageradressen",
+    "remoteAddrsHint": "Host:poort van een of meer managers, gescheiden door komma's.",
+    "joinToken": "Jointoken",
+    "joinTokenHint": "Neem deze over uit de jointokens van het doelcluster.",
+    "workerToken": "Workertoken",
+    "managerToken": "Managertoken",
+    "unlockKey": "Ontgrendelsleutel",
+    "force": "Forceren",
+    "labelKey": "Sleutel",
+    "labelValue": "Waarde",
+    "stackName": "Stacknaam",
+    "compose": "Compose-bestand",
+    "prune": "Services verwijderen die niet meer in het bestand staan",
+    "pruneHint": "Services met het label van deze stack die het bestand niet definieert, worden verwijderd."
+  },
+  "dialogs": {
+    "init": {
+      "title": "Swarm initialiseren",
+      "description": "Maakt van deze Docker-host een Swarm-manager met één knooppunt."
+    },
+    "join": {
+      "title": "Deelnemen aan een Swarm",
+      "description": "Koppelt deze Docker-host aan een bestaand cluster."
+    },
+    "leave": {
+      "title": "Swarm verlaten?",
+      "description": "Deze host neemt niet langer deel aan het cluster. Services die erop draaien worden elders ingepland.",
+      "lastManagerWarning": "Dit is de laatste bereikbare manager. Verlaten vernietigt de raft-status van het cluster en elke service erin. Forceren is vereist en dit kan niet ongedaan worden gemaakt."
+    },
+    "tokens": {
+      "title": "Jointokens",
+      "description": "Iedereen met het managertoken kan dit cluster overnemen. Roteren maakt het vorige token direct ongeldig."
+    },
+    "unlockKey": {
+      "title": "Ontgrendelsleutel",
+      "description": "Nodig om een vergrendelde manager te starten. Bewaar hem buiten dit cluster.",
+      "notLocked": "Automatische vergrendeling van managers staat uit op dit cluster."
+    },
+    "scale": {
+      "title": "Service schalen",
+      "description": "Wijzig het aantal replicas voor {{name}}.",
+      "zeroHint": "Schalen naar nul stopt elke taak maar behoudt de servicedefinitie."
+    },
+    "removeService": {
+      "title": "Service verwijderen?",
+      "description": "{{name}} en al zijn taken worden verwijderd."
+    },
+    "removeNode": {
+      "title": "Knooppunt verwijderen?",
+      "description": "{{name}} wordt uit het cluster verwijderd."
+    },
+    "nodeLabels": {
+      "title": "Knooppuntlabels",
+      "description": "Labels op {{name}}. Plaatsingsvoorwaarden matchen hierop."
+    },
+    "createSecret": {
+      "title": "Secret aanmaken",
+      "description": "De waarde wordt naar het cluster geschreven en kan nooit worden teruggelezen."
+    },
+    "removeSecret": {
+      "title": "Secret verwijderen?",
+      "description": "{{name}} wordt verwijderd.",
+      "inUse": "{{name}} wordt nog gebruikt door {{services}}. Verwijderen breekt die services."
+    },
+    "createConfig": {
+      "title": "Config aanmaken",
+      "description": "Configs zijn leesbaar. Zet er geen inloggegevens in — gebruik daarvoor een secret."
+    },
+    "configViewer": {
+      "description": "{{size}}"
+    },
+    "removeConfig": {
+      "title": "Config verwijderen?",
+      "description": "{{name}} wordt verwijderd.",
+      "inUse": "{{name}} wordt nog gebruikt door {{services}}. Verwijderen breekt die services."
+    },
+    "deployStack": {
+      "title": "Stack uitrollen",
+      "description": "Het Compose-bestand wordt omgezet naar Swarm-services. Sleutels die alleen voor Compose gelden worden geweigerd in plaats van genegeerd.",
+      "rejectedTitle": "Swarm kan deze sleutels niet toepassen",
+      "reasons": {
+        "build": "build — een clusterknooppunt heeft geen buildcontext; push in plaats daarvan een image",
+        "restart": "restart — gebruik deploy.restart_policy",
+        "depends_on.condition": "depends_on-voorwaarden — Swarm plant elke taak onafhankelijk in",
+        "image": "image is verplicht"
+      }
+    },
+    "removeStack": {
+      "title": "Stack verwijderen?",
+      "description": "{{name}} en zijn {{services}} service(s) worden verwijderd, samen met de netwerken, secrets en configs van de stack."
+    },
+    "taskLogs": {
+      "description": "{{service}} op {{node}}",
+      "empty": "Deze taak heeft geen uitvoer geproduceerd."
+    }
+  },
+  "detail": {
+    "tabsLabel": "Secties",
+    "tabs": {
+      "overview": "Overzicht",
+      "tasks": "Taken",
+      "logs": "Logboeken",
+      "config": "Configuratie",
+      "labels": "Labels"
+    },
+    "panels": {
+      "identity": "Identiteit",
+      "networking": "Netwerk",
+      "resources": "Bronnen",
+      "rollout": "Uitrol",
+      "command": "Commando",
+      "mounts": "Koppelpunten",
+      "secrets": "Secrets en configs",
+      "serviceLabels": "Servicelabels",
+      "containerLabels": "Containerlabels",
+      "nodeLabels": "Knooppuntlabels",
+      "engineLabels": "Enginelabels",
+      "host": "Host"
+    },
+    "fields": {
+      "endpointMode": "Endpoint-modus",
+      "cpuLimit": "CPU-limiet",
+      "memoryLimit": "Geheugenlimiet",
+      "cpuReservation": "CPU-reservering",
+      "memoryReservation": "Geheugenreservering",
+      "constraints": "Voorwaarden",
+      "parallelism": "Parallelliteit",
+      "updateDelay": "Vertraging",
+      "failureAction": "Bij fout",
+      "order": "Volgorde",
+      "restartCondition": "Herstartvoorwaarde",
+      "command": "Commando",
+      "args": "Argumenten",
+      "env": "Omgeving",
+      "mounts": "Koppelpunten",
+      "secrets": "Secrets",
+      "configs": "Configs",
+      "address": "Adres",
+      "reachability": "Bereikbaarheid",
+      "statusMessage": "Statusbericht",
+      "platform": "Platform",
+      "cpus": "CPU's",
+      "memory": "Geheugen"
+    },
+    "serviceNotFound": "Deze service bestaat niet meer.",
+    "backToServices": "Terug naar services",
+    "nodeNotFound": "Dit knooppunt bestaat niet meer.",
+    "backToNodes": "Terug naar knooppunten",
+    "logsEmpty": "Deze service heeft geen uitvoer geproduceerd.",
+    "env": {
+      "reveal": "Waarden tonen",
+      "hide": "Waarden verbergen",
+      "withheld": "Waarden die op inloggegevens lijken zijn verborgen. Om ze te tonen is swarm_services.manage nodig; dit wordt vastgelegd in het auditlogboek."
+    }
+  },
+  "empty": {
+    "notSwarm": {
+      "title": "Deze omgeving is geen Swarm",
+      "description": "Initialiseer een cluster op deze Docker-host, of koppel hem aan een bestaand cluster, om hier services, knooppunten en stacks te beheren."
+    },
+    "worker": {
+      "title": "Dit knooppunt is een Swarm-worker",
+      "description": "Alleen een manager kan namens het cluster antwoorden. Verbind met een manageromgeving om services, knooppunten en stacks te zien."
+    }
+  },
+  "errors": {
+    "overviewFailed": "Kan het Swarm-overzicht niet laden.",
+    "logsFailed": "Kan de logs niet lezen.",
+    "configReadFailed": "Kan de config niet lezen.",
+    "deployFailed": "De stack kon niet worden uitgerold."
+  },
+  "toast": {
+    "initialised": "Swarm geïnitialiseerd",
+    "joined": "Deelgenomen aan de Swarm",
+    "left": "Swarm verlaten",
+    "unlocked": "Manager ontgrendeld",
+    "clusterUpdated": "Cluster bijgewerkt",
+    "tokenRotated": "Jointoken geroteerd",
+    "unlockKeyRotated": "Ontgrendelsleutel geroteerd",
+    "scaled": "Service geschaald",
+    "restarted": "Service herstart",
+    "rolledBack": "Service teruggedraaid",
+    "serviceCreated": "Service aangemaakt",
+    "serviceUpdated": "Service bijgewerkt",
+    "serviceRemoved": "Service verwijderd",
+    "nodeUpdated": "Knooppunt bijgewerkt",
+    "nodeLabelsUpdated": "Knooppuntlabels bijgewerkt",
+    "nodeRemoved": "Knooppunt verwijderd",
+    "secretCreated": "Secret aangemaakt",
+    "secretRemoved": "Secret verwijderd",
+    "configCreated": "Config aangemaakt",
+    "configRemoved": "Config verwijderd",
+    "stackDeployed": "Stack uitgerold",
+    "stackRemoved": "Stack verwijderd"
+  },
+  "nav": {
+    "section": {
+      "swarm": "Swarm"
+    },
+    "swarm": {
+      "overview": "Overzicht",
+      "workloads": "Workloads",
+      "cluster": "Cluster",
+      "config": "Configuratie"
+    }
+  },
+  "reporting": {
+    "category": {
+      "label": "Swarm",
+      "description": "Het cluster in plaats van de host: nodes, services, plaatsing en quorum."
+    },
+    "platform": {
+      "label": "Docker Swarm"
+    },
+    "type": {
+      "capacity-placement": {
+        "name": "Swarm-capaciteit en -plaatsing",
+        "description": "Planbare capaciteit, waar het werk daadwerkelijk terechtkwam en wat het verlies van één node zou kosten."
+      }
+    }
+  },
+  "widgets": {
+    "swarmOverview": {
+      "label": "Swarm-overzicht",
+      "description": "Nodes, services, taken en stacks met een oordeel over het cluster",
+      "title": "Swarm",
+      "allConverged": "Cluster geconvergeerd",
+      "nodesDown": "{{count}} node uitgevallen",
+      "nodesDown_other": "{{count}} nodes uitgevallen",
+      "servicesDegraded": "{{count}} service verslechterd",
+      "servicesDegraded_other": "{{count}} services verslechterd",
+      "tasksFailed": "{{count}} taak mislukt",
+      "tasksFailed_other": "{{count}} taken mislukt",
+      "nodes": "Nodes",
+      "services": "Services",
+      "tasks": "Taken",
+      "stacks": "Stacks",
+      "managersWorkers": "{{managers}} managers, {{workers}} workers",
+      "degraded": "{{count}} verslechterd",
+      "failed": "{{count}} mislukt",
+      "secretsConfigs": "{{secrets}} secrets, {{configs}} configs"
+    },
+    "swarmServices": {
+      "label": "Swarm-services",
+      "description": "Taakconvergentie per service, verslechterde eerst",
+      "title": "Services",
+      "degraded": "{{count}} verslechterd",
+      "allConverged": "Alles geconvergeerd",
+      "none": "Geen services",
+      "viewAll": "Alle services"
+    },
+    "swarmNodes": {
+      "label": "Swarm-nodes",
+      "description": "Lidmaatschap: rol, beschikbaarheid en status per node",
+      "title": "Nodes",
+      "readyOf": "{{ready}} van {{total}} gereed",
+      "none": "Geen nodes",
+      "viewAll": "Alle nodes",
+      "tasks": "{{count}} taken",
+      "role": {
+        "manager": "Manager",
+        "worker": "Worker"
+      }
+    },
+    "common": {
+      "loading": "Swarm lezen…",
+      "notSwarm": "Geen Swarm-omgeving",
+      "notManager": "Deze node is geen manager",
+      "openHint": "Open Docker Swarm om een cluster te initialiseren of eraan deel te nemen",
+      "more": "{{count}} meer"
+    }
+  },
+  "runbook": {
+    "attach": {
+      "swarm_service": "Swarm-service"
+    },
+    "targets": {
+      "swarm_service": "Swarm-service",
+      "swarm_node": "Swarm-node"
+    },
+    "steps": {
+      "swarm_service_scale": "Stel het aantal replica's van de swarm-service in",
+      "swarm_service_restart": "Forceer een update van de swarm-service zodat elke taak wordt vervangen",
+      "swarm_service_state": "De specificatie, replica's en updatestatus van de swarm-service",
+      "swarm_service_tasks": "De taken van de swarm-service, waar ze draaien en waarom ze zijn gestopt",
+      "swarm_service_logs": "De laatste 150 regels van het logboek van de swarm-service",
+      "swarm_node_state": "De rol, beschikbaarheid en status van de swarm-node"
+    }
+  },
+  "estate": {
+    "services": "Swarm-services"
+  },
+  "search": {
+    "group": {
+      "services": "Swarm-services"
+    },
+    "action": {
+      "deployStack": "Swarm-stack uitrollen",
+      "deployStackKeywords": "swarm stack compose uitrollen deployen"
+    }
+  }
+}

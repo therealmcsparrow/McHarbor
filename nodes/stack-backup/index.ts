@@ -19,7 +19,7 @@ export const stackBackup: NodeDefinition = {
     {
       key: 'stack_name',
       label: 'Stack Name',
-      type: 'text',
+      type: 'stack-select',
       required: true,
     },
   ],

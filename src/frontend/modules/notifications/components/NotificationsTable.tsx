@@ -3,21 +3,32 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ColumnDef } from '@tanstack/react-table';
-import { IconCheck, IconExternalLink, IconTrash } from '@tabler/icons-react';
-import { DataGrid, type BatchAction } from '@resources/components/DataGrid';
-import { Badge } from '@resources/components/ui/Badge';
-import { Button } from '@resources/components/ui/Button';
-import { formatDate, timeAgo } from '@resources/utils/format';
+import { IconCheck, IconTrash } from '@tabler/icons-react';
+import { TablePage } from '@resources/layout/TablePage';
+import { Text as TypographyText } from '@resources/components/ui/Typography';
+import { Select } from '@resources/components/ui/Select';
+import type { SearchMode } from '@resources/utils/search-filter';
+import type { InAppNotificationCounts, InAppNotificationFilter } from '@resources/hooks/useInAppNotifications';
+import type { BatchAction } from '@resources/layout/table-page/types';
+import { useNotificationColumns } from './NotificationsColumns';
 import type { InAppNotification } from '@resources/hooks/useInAppNotifications';
-import { notificationsPageSize } from '../hooks/useNotificationsPageState';
-import {
-  getNotificationTarget,
-  getNotificationTypeLabel,
-  notificationLevelVariant,
-} from '../utils';
+
+export type NotificationFilters = {
+  query: string;
+  setQuery: (v: string) => void;
+  mode: NonNullable<InAppNotificationFilter['mode']>;
+  setMode: (v: NonNullable<InAppNotificationFilter['mode']>) => void;
+  status: NonNullable<InAppNotificationFilter['status']>;
+  setStatus: (v: NonNullable<InAppNotificationFilter['status']>) => void;
+  level: string;
+  setLevel: (v: string) => void;
+  counts?: InAppNotificationCounts;
+};
+
+const LEVELS = ['info', 'success', 'warning', 'error'] as const;
 
 type NotificationsTableProps = {
+  filters: NotificationFilters;
   notifications: InAppNotification[];
   loading: boolean;
   emptyMessage: string;
@@ -27,16 +38,19 @@ type NotificationsTableProps = {
   total: number;
   page: number;
   totalPages: number;
+  pageSize: number;
+  pageSizeOptions: readonly number[];
   deletePending: boolean;
   onOpen: (notification: InAppNotification) => void;
   onDelete: (notification: InAppNotification) => void;
   onBatchMarkRead: (notifications: InAppNotification[]) => Promise<void>;
   onBatchDelete: (notifications: InAppNotification[]) => Promise<void>;
-  onPreviousPage: () => void;
-  onNextPage: () => void;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 };
 
 export function NotificationsTable({
+  filters,
   notifications,
   loading,
   emptyMessage,
@@ -46,109 +60,18 @@ export function NotificationsTable({
   total,
   page,
   totalPages,
+  pageSize,
+  pageSizeOptions,
   deletePending,
   onOpen,
   onDelete,
   onBatchMarkRead,
   onBatchDelete,
-  onPreviousPage,
-  onNextPage,
+  onPageChange,
+  onPageSizeChange,
 }: NotificationsTableProps) {
   const { t } = useTranslation('common');
-
-  const columns = useMemo<ColumnDef<InAppNotification, unknown>[]>(
-    () => [
-      {
-        id: 'level',
-        accessorFn: (notification) => notification.level,
-        header: t('notifications.columnLevel'),
-        cell: ({ row }) => (
-          <Badge variant={notificationLevelVariant(row.original.level)}>
-            {t(`notifications.level.${row.original.level}`)}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: 'title',
-        header: t('notifications.columnTitle'),
-        cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
-      },
-      {
-        accessorKey: 'message',
-        header: t('notifications.columnMessage'),
-        cell: ({ row }) => (
-          <span className="line-clamp-2 max-w-2xl text-muted-foreground">{row.original.message}</span>
-        ),
-      },
-      {
-        id: 'type',
-        accessorFn: (notification) => getNotificationTypeLabel(notification, t),
-        header: t('notifications.columnType'),
-        cell: ({ row }) => getNotificationTypeLabel(row.original, t),
-      },
-      {
-        id: 'status',
-        accessorFn: (notification) => (notification.read ? 'read' : 'unread'),
-        header: t('notifications.columnStatus'),
-        cell: ({ row }) => (
-          <Badge variant={row.original.read ? 'secondary' : 'default'}>
-            {row.original.read ? t('notifications.statusRead') : t('notifications.statusUnread')}
-          </Badge>
-        ),
-      },
-      {
-        id: 'createdAt',
-        accessorFn: (notification) => notification.createdAt,
-        header: t('notifications.columnDate'),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground" title={formatDate(row.original.createdAt)}>
-            {timeAgo(row.original.createdAt)}
-          </span>
-        ),
-      },
-      {
-        id: 'actions',
-        header: () => <span className="ml-auto">{t('notifications.columnActions')}</span>,
-        cell: ({ row }) => {
-          const target = getNotificationTarget(row.original);
-
-          return (
-            <div className="flex items-center justify-end gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                title={t('notifications.openItem')}
-                aria-label={t('notifications.openItem')}
-                disabled={!target}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onOpen(row.original);
-                }}
-              >
-                <IconExternalLink className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                title={t('actions.delete')}
-                aria-label={t('actions.delete')}
-                disabled={deletePending}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete(row.original);
-                }}
-              >
-                <IconTrash className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          );
-        },
-      },
-    ],
-    [deletePending, onDelete, onOpen, t],
-  );
+  const columns = useNotificationColumns({ deletePending, onOpen, onDelete });
 
   const batchActions = useMemo<BatchAction[]>(
     () => [
@@ -174,37 +97,78 @@ export function NotificationsTable({
   );
 
   return (
-    <div className="space-y-4">
-      <DataGrid
-        data={notifications}
-        columns={columns}
-        searchKey="title"
-        loading={loading}
-        emptyMessage={emptyMessage}
-        pageSize={notificationsPageSize}
-        selectable
-        batchActions={batchActions}
-        getRowId={(row) => row.id}
-      />
-
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {unreadCount > 0 ? t('notifications.unreadCount', { count: unreadCount }) : t('notifications.allCaughtUp')}
-            </p>
-            <p className="text-sm text-muted-foreground">{t('dataGrid.showing', { from, to, total })}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" disabled={page <= 1} onClick={onPreviousPage}>
-              {t('dataGrid.prev')}
-            </Button>
-            <Button type="button" variant="outline" size="sm" disabled={page >= totalPages} onClick={onNextPage}>
-              {t('dataGrid.next')}
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+    <TablePage
+      id="notifications"
+      // NotificationsPage renders its own PageHeader above this component.
+      header={false}
+      title={t('notifications.columnTitle')}
+      search={{
+        value: filters.query,
+        onChange: filters.setQuery,
+        mode: filters.mode,
+        onModeChange: (m: SearchMode) => filters.setMode(m),
+        placeholder: t('notifications.searchPlaceholder'),
+      }}
+      facets={{
+        items: [
+          { id: 'all', label: t('notifications.filterAll'), count: filters.counts?.total ?? 0 },
+          { id: 'unread', label: t('notifications.statusUnread'), count: filters.counts?.unread ?? 0 },
+          {
+            id: 'read',
+            label: t('notifications.statusRead'),
+            count: Math.max((filters.counts?.total ?? 0) - (filters.counts?.unread ?? 0), 0),
+          },
+        ],
+        value: filters.status,
+        onChange: (v) => filters.setStatus(v as NotificationFilters['status']),
+      }}
+      filters={
+        <Select
+          value={filters.level}
+          onChange={filters.setLevel}
+          ariaLabel={t('notifications.columnLevel')}
+          searchable={false}
+          options={[
+            { value: 'all', label: t('notifications.allLevels') },
+            ...LEVELS.map((l) => ({
+              value: l,
+              label: `${t(`notifications.level.${l}`)} (${filters.counts?.byLevel[l] ?? 0})`,
+            })),
+          ]}
+        />
+      }
+      toolbar={{ columns: true, density: true, export: { filename: 'mcharbor-notifications' } }}
+      columns={columns}
+      data={notifications}
+      loading={loading}
+      empty={{ title: emptyMessage }}
+      selectable
+      batchActions={batchActions}
+      getRowId={(row) => row.id}
+      pagination={
+        total > 0
+          ? {
+              mode: 'server',
+              page,
+              totalPages,
+              pageSize,
+              pageSizeOptions,
+              total,
+              from,
+              to,
+              onPageChange,
+              onPageSizeChange,
+              // Was NotificationsPagination's only real addition.
+              leading: (
+                <TypographyText size="xs" tone="muted">
+                  {unreadCount > 0
+                    ? t('notifications.unreadCount', { count: unreadCount })
+                    : t('notifications.allCaughtUp')}
+                </TypographyText>
+              ),
+            }
+          : { mode: 'none' }
+      }
+    />
   );
 }

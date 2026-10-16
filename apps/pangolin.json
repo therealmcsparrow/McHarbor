@@ -1,0 +1,35 @@
+{
+    "slug":  "pangolin",
+    "name":  "Pangolin",
+    "description":  "Self-hosted tunneled reverse proxy management platform for exposing private services without opening ports.",
+    "category":  "Networking",
+    "image":  "fosrl/pangolin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pangolin.png",
+    "website":  "https://github.com/fosrl/pangolin",
+    "docsUrl":  "https://github.com/fosrl/pangolin",
+    "ports":  [
+                  {
+                      "host":  3002,
+                      "container":  3001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pangolin/config",
+                        "container":  "/app/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

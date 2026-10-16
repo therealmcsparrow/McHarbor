@@ -1,0 +1,407 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-kubernetes"
+# Migrations shipped as `plugin_kubernetes_*` before the plugin joined the
+# addon- family and the table names did not follow the slug. Declared here so
+# uninstall still finds them.
+table_prefix: "plugin_kubernetes_"
+name:     "Kubernetes"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  Manage Kubernetes clusters from McHarbor: pods, deployments and other
+  workloads, services and networking, storage, config, namespaces, nodes and
+  events — with pod logs, deployment scaling and rolling restarts. Cluster
+  connections are owned by the plugin and their kubeconfig and bearer-token
+  credentials are encrypted at rest with the host's own key.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - menu.sidebar.add
+  - i18n.namespace.add:kubernetes
+  - rbac.permission.register
+  - db.migrations.run
+  - audit.emit
+  # Contributes five Kubernetes report types to the Reporting plugin's Report
+  # Studio (backend/reports.go). It costs the host nothing on its own: the
+  # provider registers whether or not Reporting is installed, and the types
+  # only become reachable once it is.
+  - reporting.adapter.register
+  # Contributes seven Kubernetes alert conditions to the host's alert engine
+  # (backend/alerts.go). The engine owns the thresholds, the schedule, the
+  # firing state and the delivery; this plugin only answers "is it true, and
+  # for which pods, deployments and nodes?" when asked.
+  - alerting.adapter.register
+
+# Four keys replace the ten the host used to carry (pods.*, deployments.*,
+# k8s_services.*, namespaces.view). Splitting read access three ways was never
+# enforceable: all of those resources arrive in one /summary response, so a
+# role with pods.view and without k8s_services.view still received the
+# services. One honest `view` key says what the product can actually gate.
+adds_permissions:
+  - key:      "kubernetes.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View Kubernetes"
+    description: "Allows browsing a cluster: workloads, networking, storage, config, namespaces, nodes and events. Reading pod logs needs kubernetes.logs."
+  # Logs get their own key. A pod's stdout routinely carries connection
+  # strings, tokens and customer data, so "may browse the cluster" and "may
+  # read what the cluster is printing" are genuinely different grants. Unlike
+  # the per-resource read split this replaces, this one is enforceable as
+  # written: logs already have their own endpoint.
+  - key:      "kubernetes.logs"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Read Kubernetes pod logs"
+    description: "Allows reading pod logs. Pod output frequently contains secrets, so this is separate from kubernetes.view."
+  - key:      "kubernetes.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage Kubernetes workloads"
+    description: "Allows scaling a deployment and triggering a rolling restart. Deleting workloads needs kubernetes.delete."
+  - key:      "kubernetes.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete Kubernetes workloads"
+    description: "Allows deleting pods and deployments."
+  # Global rather than env-scoped: this key governs the cluster records
+  # themselves, so there is no environment to scope it to yet at the moment it
+  # is exercised.
+  - key:      "kubernetes.clusters.manage"
+    presets:      []
+    scope:    "global"
+    category: "Plugins"
+    label:    "Manage Kubernetes clusters"
+    description: "Allows adding, editing and removing cluster connections, including their kubeconfig and bearer-token credentials."
+
+consumes_permissions: []
+
+contributes:
+  capabilities:
+    - kind: runbook-provider
+      domain: k8s
+      i18n_ns: kubernetes
+      targets:
+        - kind: k8s_cluster
+          label_key: runbook.targets.k8s_cluster
+          empty_label_key: runbook.clusterDefault
+          path: "/api/kubernetes/clusters"
+          id: id
+          name: [name]
+          detail: [serverUrl]
+        - kind: k8s_pod
+          label_key: runbook.targets.k8s_pod
+          path: "/api/kubernetes/summary"
+          query: {cluster: "cluster"}
+          items: pods
+          id_join: [namespace, name]
+          name: [name]
+          detail: [namespace, status]
+        - kind: k8s_deployment
+          label_key: runbook.targets.k8s_deployment
+          path: "/api/kubernetes/summary"
+          query: {cluster: "cluster"}
+          items: deployments
+          id_join: [namespace, name]
+          name: [name]
+          detail: [namespace, ready]
+          attach:
+            kind: k8s_workload
+            label_key: runbook.attach.k8s_workload
+            subject_targets: [k8s_pod, k8s_deployment]
+      steps:
+        - key: k8s.deployment.restart
+          description_key: runbook.steps.k8s_deployment_restart
+          kind: action
+          target: k8s_deployment
+          destructive: true
+          permissions: [kubernetes.manage]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: deployment, type: target, target: k8s_deployment}
+          call:
+            method: POST
+            path: "/api/kubernetes/deployments/{deployment.namespace}/{deployment.name}/restart"
+            query: {cluster: "cluster"}
+        - key: k8s.deployment.scale
+          description_key: runbook.steps.k8s_deployment_scale
+          kind: action
+          target: k8s_deployment
+          destructive: true
+          permissions: [kubernetes.manage]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: deployment, type: target, target: k8s_deployment}
+            - {name: replicas, type: int, min: 0, max: 1000, required: true}
+          call:
+            method: POST
+            path: "/api/kubernetes/deployments/{deployment.namespace}/{deployment.name}/scale"
+            query: {cluster: "cluster"}
+            body: [{json: replicas, param: replicas, type: int}]
+        - key: k8s.pod.delete
+          description_key: runbook.steps.k8s_pod_delete
+          kind: action
+          target: k8s_pod
+          destructive: true
+          permissions: [kubernetes.delete]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: pod, type: target, target: k8s_pod}
+          call:
+            method: DELETE
+            path: "/api/kubernetes/pods/{pod.namespace}/{pod.name}"
+            query: {cluster: "cluster"}
+        - key: k8s.pod.state
+          description_key: runbook.steps.k8s_pod_state
+          kind: diagnostic
+          target: k8s_pod
+          permissions: [kubernetes.view]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: pod, type: target, target: k8s_pod}
+          call:
+            method: GET
+            path: "/api/kubernetes/pods/{pod.namespace}/{pod.name}"
+            query: {cluster: "cluster"}
+        - key: k8s.pod.logs
+          description_key: runbook.steps.k8s_pod_logs
+          kind: diagnostic
+          target: k8s_pod
+          permissions: [kubernetes.logs]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: pod, type: target, target: k8s_pod}
+          call:
+            method: GET
+            path: "/api/kubernetes/pods/{pod.namespace}/{pod.name}/logs"
+            query: {cluster: "cluster", tail: "=150"}
+        - key: k8s.deployment.state
+          description_key: runbook.steps.k8s_deployment_state
+          kind: diagnostic
+          target: k8s_deployment
+          permissions: [kubernetes.view]
+          params:
+            - {name: cluster, type: target, target: k8s_cluster}
+            - {name: deployment, type: target, target: k8s_deployment}
+          call:
+            method: GET
+            path: "/api/kubernetes/deployments/{deployment.namespace}/{deployment.name}"
+            query: {cluster: "cluster"}
+    - kind: picker-source
+      target: k8s_deployment
+    - kind: picker-source
+      target: k8s_pod
+    - kind: search-source
+      i18n_ns: kubernetes
+      sources:
+        - key: deployment
+          label_key: search.group.deployments
+          path: "/api/kubernetes/summary"
+          items: deployments
+          id: name
+          name: [name]
+          detail: [namespace, ready]
+          link: "/plugins/addon-kubernetes/deployments/{namespace}/{name}?cluster={cluster}"
+          icon: box-multiple
+          fan_out:
+            path: "/api/kubernetes/clusters"
+            id: id
+            param: cluster
+            label: name
+        - key: pod
+          label_key: search.group.pods
+          path: "/api/kubernetes/summary"
+          items: pods
+          id: name
+          name: [name]
+          detail: [namespace, status]
+          link: "/plugins/addon-kubernetes/pods/{namespace}/{name}?cluster={cluster}"
+          icon: box
+          fan_out:
+            path: "/api/kubernetes/clusters"
+            id: id
+            param: cluster
+            label: name
+    - kind: estate-source
+      metric: kubernetes_clusters
+      path: "/api/kubernetes/clusters"
+      environment_field: environmentId
+      label_key: estate.clusters
+      i18n_ns: kubernetes
+      icon: cloud-network
+      link: "/plugins/addon-kubernetes/clusters"
+    - kind: search-action
+      i18n_ns: kubernetes
+      actions:
+        - key: k8s.cluster.add
+          label_key: search.action.addCluster
+          keywords_key: search.action.addClusterKeywords
+          icon: cloud-network
+          link: "/plugins/addon-kubernetes/clusters?action=create"
+          permission: kubernetes.clusters.manage
+  routes:
+    # The cluster listing is gated on `view`, not `clusters.manage`, because
+    # every page's cluster picker reads it. The response carries names and
+    # ids — never a kubeconfig, a bearer token or a CA cert, which are
+    # write-only fields on this API.
+    - method: GET
+      path: "/api/kubernetes/clusters"
+      requires_permission: "kubernetes.view"
+    - method: POST
+      path: "/api/kubernetes/clusters"
+      requires_permission: "kubernetes.clusters.manage"
+      audit_required: true
+      audit_action: "plugin.kubernetes.cluster.created"
+      audit_entity_type: "kubernetes_cluster"
+    - method: GET
+      path: "/api/kubernetes/clusters/{id}"
+      requires_permission: "kubernetes.clusters.manage"
+    - method: PUT
+      path: "/api/kubernetes/clusters/{id}"
+      requires_permission: "kubernetes.clusters.manage"
+      audit_required: true
+      audit_action: "plugin.kubernetes.cluster.updated"
+      audit_entity_type: "kubernetes_cluster"
+    - method: DELETE
+      path: "/api/kubernetes/clusters/{id}"
+      requires_permission: "kubernetes.clusters.manage"
+      audit_required: true
+      audit_action: "plugin.kubernetes.cluster.deleted"
+      audit_entity_type: "kubernetes_cluster"
+
+    # One call backs every read tab, which is why there is a single `view`
+    # key rather than one per resource kind.
+    - method: GET
+      path: "/api/kubernetes/summary"
+      requires_permission: "kubernetes.view"
+
+    - method: GET
+      path: "/api/kubernetes/pods/{namespace}/{name}"
+      requires_permission: "kubernetes.view"
+    # Logs are a read, but a privileged one — a pod's stdout routinely
+    # carries connection strings and tokens — so they take their own key
+    # rather than riding along with kubernetes.view.
+    - method: GET
+      path: "/api/kubernetes/pods/{namespace}/{name}/logs"
+      requires_permission: "kubernetes.logs"
+    - method: DELETE
+      path: "/api/kubernetes/pods/{namespace}/{name}"
+      requires_permission: "kubernetes.delete"
+      audit_required: true
+      audit_action: "plugin.kubernetes.pod.deleted"
+      audit_entity_type: "kubernetes_pod"
+
+    - method: GET
+      path: "/api/kubernetes/deployments/{namespace}/{name}"
+      requires_permission: "kubernetes.view"
+    - method: POST
+      path: "/api/kubernetes/deployments/{namespace}/{name}/scale"
+      requires_permission: "kubernetes.manage"
+      audit_required: true
+      audit_action: "plugin.kubernetes.deployment.scaled"
+      audit_entity_type: "kubernetes_deployment"
+    - method: POST
+      path: "/api/kubernetes/deployments/{namespace}/{name}/restart"
+      requires_permission: "kubernetes.manage"
+      audit_required: true
+      audit_action: "plugin.kubernetes.deployment.restarted"
+      audit_entity_type: "kubernetes_deployment"
+    - method: DELETE
+      path: "/api/kubernetes/deployments/{namespace}/{name}"
+      requires_permission: "kubernetes.delete"
+      audit_required: true
+      audit_action: "plugin.kubernetes.deployment.deleted"
+      audit_entity_type: "kubernetes_deployment"
+
+  # `parent` is the sidebar section id, so all seven entries render as one
+  # "Kubernetes" section rather than seven loose entries under Plugins. The
+  # section label resolves from this plugin's namespace as
+  # `nav.section.kubernetes`.
+  #
+  # The six groups are the ones the core section used, and for the same
+  # reason: the split the Kubernetes Dashboard, Lens and Rancher agree on —
+  # group by the job a resource does for an application, not by API group.
+  #
+  # `icon` is a Tabler *component name*, not an asset filename:
+  # `resolvePluginIcon` looks the string up in a registry of imported
+  # components and falls back to IconPuzzle for anything it does not know.
+  menu:
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.overview"
+      path: "/plugins/addon-kubernetes"
+      icon: "IconTopologyStar3"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.workloads"
+      path: "/plugins/addon-kubernetes/pods"
+      icon: "IconBoxMultiple"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.network"
+      path: "/plugins/addon-kubernetes/services"
+      icon: "IconRoute"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.storage"
+      path: "/plugins/addon-kubernetes/storage"
+      icon: "IconDeviceFloppy"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.config"
+      path: "/plugins/addon-kubernetes/config"
+      icon: "IconAdjustments"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.cluster"
+      path: "/plugins/addon-kubernetes/nodes"
+      icon: "IconServer2"
+      required_permission: "kubernetes.view"
+    - parent: "kubernetes"
+      label_ns: "kubernetes"
+      label_key: "nav.clusters"
+      path: "/plugins/addon-kubernetes/clusters"
+      icon: "IconCloudNetwork"
+      required_permission: "kubernetes.clusters.manage"
+
+  # Dashboard widgets (backend/main.go RegisterWidgets; frontend/src/widgets).
+  # The host exposes them in the picker as plugin:addon-kubernetes:<key>.
+  widgets:
+    - "cluster-health"
+    - "workloads"
+    - "events"
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host
+  # exposes them on the canvas as plugin:addon-kubernetes:<key>.
+  nodes:
+    - "kubernetes-scale-deployment"
+    - "kubernetes-deployment-action"
+    - "kubernetes-delete-pod"
+    - "kubernetes-pod-logs"
+    - "kubernetes-summary"
+    - "kubernetes-event"
+
+  migrations:
+    - "migrations/0001_init.sql"
+
+  i18n_namespaces:
+    - "kubernetes"
+
+signature: ""
+checksum:  ""

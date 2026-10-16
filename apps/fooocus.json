@@ -1,0 +1,40 @@
+{
+    "slug":  "fooocus",
+    "name":  "Fooocus",
+    "description":  "Simplified Stable Diffusion image generator focused on prompt quality with minimal manual configuration; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/ai-dock/fooocus:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/lllyasviel/Fooocus",
+    "docsUrl":  "https://github.com/lllyasviel/Fooocus/blob/main/docker.md",
+    "ports":  [
+                  {
+                      "host":  7865,
+                      "container":  7865,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fooocus/models",
+                        "container":  "/opt/Fooocus/models"
+                    },
+                    {
+                        "host":  "/opt/appdata/fooocus/outputs",
+                        "container":  "/opt/Fooocus/outputs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "6GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "slug":  "dokuwiki",
+    "name":  "DokuWiki",
+    "description":  "Simple file-based wiki that needs no database, used for documentation of any kind.",
+    "category":  "Documents",
+    "image":  "lscr.io/linuxserver/dokuwiki:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dokuwiki.png",
+    "website":  "https://www.dokuwiki.org",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-dokuwiki/",
+    "ports":  [
+                  {
+                      "host":  8097,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dokuwiki/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

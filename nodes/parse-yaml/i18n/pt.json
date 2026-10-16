@@ -1,7 +1,0 @@
-{
-  "label": "Analisar YAML",
-  "description": "Analisar YAML em um objeto aninhado",
-  "config": {
-    "property": "Propriedade"
-  }
-}

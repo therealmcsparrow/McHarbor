@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Capaciteitsruimte",
+      "description": "Wanneer elk bestandssysteem en elke opslagbestemming zonder ruimte komt te zitten"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Capaciteitsruimte",
+    "fullOn": "Vol op {{date}} — {{days}} dagen",
+    "noProjection": "{{percent}}% gebruikt, nog geen projectie",
+    "noData": "Nog geen capaciteitsgeschiedenis"
+  }
+}

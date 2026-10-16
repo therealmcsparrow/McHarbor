@@ -1,0 +1,75 @@
+{
+  "config": {
+    "bot_token": { "help": "Jeton de l'API Bot émis par @BotFather sur Telegram. Format : <bot_id>:<token>. Stocké chiffré au repos." },
+    "parse_mode": { "help": "Facultatif. Markdown ou HTML pour activer la mise en forme enrichie dans Titre + Message. Laissez vide pour du texte brut. L'hôte n'échappe pas les caractères spéciaux au préalable : passez au texte brut si vos messages contiennent des caractères réservés par Telegram." },
+    "disable_notification": { "help": "Facultatif. Si activé, le message est envoyé sans son de notification sur l'appareil du destinataire. Utile pour les alertes de faible priorité." }
+  },
+  "page": {
+    "title": "Telegrams",
+    "subtitle": "Achemine les événements de workflow, d'alerte et de sauvegarde vers une discussion Telegram via l'API Bot. Le plugin gère Test (vérification de vie getMe) et Send (sendMessage) — il n'y a pas de flux OAuth car les bots utilisent un jeton Bearer de longue durée.",
+    "registerHint": "Ajoutez un canal depuis la page Notifications > Canaux de l'hôte et choisissez « Telegram » comme channel_type."
+  },
+  "fields": {
+    "name": "Nom du canal",
+    "botToken": "Jeton du bot",
+    "chatId": "ID de discussion",
+    "parseMode": "Mode d'analyse",
+    "disableNotification": "Envoi silencieux"
+  },
+  "help": {
+    "name": "Comment ce canal apparaît dans les listes McHarbor et les règles d'alerte.",
+    "botToken": "Jeton de l'API Bot de @BotFather sur Telegram. Format : <bot_id>:<token>. Chiffré au repos.",
+    "chatId": "Identifiant de la discussion destinataire : ID numérique d'utilisateur/groupe ou @nomducanal. Utilisez getUpdates pour découvrir un chat_id pour les discussions privées.",
+    "parseMode": "Markdown ou HTML active la mise en forme enrichie dans Titre + Message. Le texte brut transmet les caractères tels quels.",
+    "disableNotification": "Lorsque activé, envoie sans son de notification sur l'appareil du destinataire. Utile pour les alertes de faible priorité."
+  },
+  "toast": {
+    "registered": "Canal Telegram enregistré.",
+    "testPassed": "Le test de connexion Telegram a réussi.",
+    "testFailed": "Le test de connexion Telegram a échoué : {{error}}"
+  },
+  "error": {
+    "required": "Obligatoire",
+    "noBotToken": "Le jeton du bot est obligatoire. Obtenez-en un auprès de @BotFather sur Telegram.",
+    "noChatId": "L'ID de discussion est obligatoire. Utilisez getUpdates pour les discussions privées ou @nomducanal pour les canaux publics.",
+    "sendFailed": "Le sendMessage Telegram a échoué : {{error}}"
+  },
+  "title": "API Bot Telegram",
+  "subtitle": "Géré par le plugin",
+  "description": "Enregistrez ce canal, puis utilisez Tester la connexion pour vérifier le jeton du bot et l'ID de discussion. L'hôte n'envoie jamais de message pendant le test ; getMe confirme seulement que le jeton est actif.",
+  "placeholder": {
+    "name": "Telegram Opérations"
+  },
+  "parseMode": {
+    "plain": "Texte brut",
+    "markdown": "Markdown",
+    "html": "HTML"
+  },
+  "silent": {
+    "off": "Non (son activé)",
+    "on": "Oui (envoi silencieux)",
+    "title": "Envoi silencieux",
+    "help": "Désactiver la notification",
+    "description": "Lorsque Envoi silencieux est activé, Telegram livre le message sans son et sans réveiller l'écran. Utile pour les alertes de routine où l'opérateur n'a pas besoin d'être interrompu."
+  },
+  "tips": {
+    "title": "Conseils sur le mode d'analyse",
+    "help": "Markdown ou HTML",
+    "markdown": "Échappez les caractères réservés",
+    "markdownSuffix": "avec une barre oblique inverse initiale.",
+    "html": "Échapper",
+    "plain": "Titre + Message sont envoyés tels quels. Aucun échappement requis."
+  },
+  "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+  "guide": {
+    "title": "Guide de configuration de Telegram",
+    "step1": "Ouvrez Telegram et démarrez une conversation avec <code>@BotFather</code>. Envoyez <code>/newbot</code> et suivez les instructions (nom d'affichage + nom d'utilisateur unique se terminant par \"bot\"). BotFather répond avec le jeton du bot au format <code><bot_id>:<token></code>. Collez-le dans le champ <b>Jeton du bot</b> à gauche.",
+    "step2": "Démarrez une conversation avec votre bot (recherchez le @nom_d'utilisateur que vous venez de créer) et envoyez un message quelconque. Le bot a besoin d'au moins un message entrant avant de pouvoir écrire dans cette conversation : Telegram bloque tout contact initié par un bot tant que l'utilisateur n'a pas écrit en premier.",
+    "step3": "Pour une conversation privée, obtenez le <code>chat_id</code> en appelant <code>https://api.telegram.org/bot<your_token>/getUpdates</code> après l'étape 2 : la réponse inclut <code>\"chat\":{\"id\": <chat_id>}</code>. Pour un canal public, utilisez <code>@channelname</code> (le @ fait partie de l'identifiant).",
+    "step4": "Pour les groupes : ajoutez le bot comme membre, puis donnez-lui le droit <b>Post Messages</b> dans les autorisations du groupe. Sans ce droit, <code>sendMessage</code> renvoie <code>403 Forbidden</code>.",
+    "step5": "Pour les canaux : ajoutez le bot comme administrateur avec l'autorisation <b>Post Messages</b>. Les simples membres ne peuvent pas publier ; le bot doit être administrateur.",
+    "step6": "Collez le <code>chat_id</code> (ou <code>@channelname</code>) dans le champ <b>ID du chat</b> à gauche. Laissez <b>Mode d'analyse</b> vide, sauf si vos messages ne contiennent qu'une mise en forme compatible avec Telegram. Activez <b>Envoi silencieux</b> pour les alertes de faible priorité, comme la fin d'une sauvegarde.",
+    "step7": "Cliquez sur <b>Enregistrer et tester la connexion</b>. Le plugin exécute un <code>getMe</code> sur l'API Bot pour confirmer que le jeton est actif. L'hôte <warn>n'envoie PAS de message de test</warn> : <code>getMe</code> renvoie simplement l'identité du bot. Si <code>getMe</code> renvoie <code>401</code>, vérifiez à nouveau le jeton du bot.",
+    "step8": "Une fois le canal enregistré, acheminez-y les événements de workflow ou d'alerte depuis <b>Paramètres > Notifications > Règles</b>. La livraison Telegram est de type fire-and-forget : un envoi échoué est consigné dans le journal d'audit et affiché dans le toast de l'hôte, mais l'hôte ne réessaie pas."
+  }
+}

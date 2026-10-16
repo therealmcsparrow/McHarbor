@@ -11,8 +11,8 @@
   },
   "options": {
     "logic": {
-      "and": "AND",
-      "or": "OR"
+      "and": "ET",
+      "or": "OU"
     }
   }
 }

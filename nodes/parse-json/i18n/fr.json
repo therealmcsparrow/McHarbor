@@ -1,7 +1,0 @@
-{
-  "label": "Analyser JSON",
-  "description": "Analyser une chaîne JSON dans un objet ou un tableau",
-  "config": {
-    "property": "Propriété"
-  }
-}

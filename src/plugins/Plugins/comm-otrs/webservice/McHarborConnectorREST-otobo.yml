@@ -1,0 +1,88 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+Debugger:
+  DebugThreshold: error
+  TestMode: '0'
+Description: McHarbor incident connector (REST, OTOBO). Provider for ticket lifecycle, requester for state changes.
+FrameworkVersion: 11.0.x
+Provider:
+  Operation:
+    SessionCreate:
+      Description: Create a session for the McHarbor agent
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Session::SessionCreate
+    TicketCreate:
+      Description: Create a ticket for a firing McHarbor alert
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketCreate
+    TicketGet:
+      Description: Read ticket state and the dedup field
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketGet
+    TicketSearch:
+      Description: Find the open ticket for a dedup key
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketSearch
+    TicketUpdate:
+      Description: Add notes and close on recovery
+      MappingInbound: {}
+      MappingOutbound: {}
+      Type: Ticket::TicketUpdate
+  Transport:
+    Config:
+      KeepAlive: ''
+      MaxLength: '10000000'
+      RouteOperationMapping:
+        SessionCreate:
+          RequestMethod:
+          - POST
+          Route: /Session
+        TicketCreate:
+          RequestMethod:
+          - POST
+          Route: /Ticket
+        TicketGet:
+          RequestMethod:
+          - POST
+          Route: /TicketGet
+        TicketSearch:
+          RequestMethod:
+          - POST
+          Route: /TicketSearch
+        TicketUpdate:
+          RequestMethod:
+          - PATCH
+          Route: /Ticket/:TicketID
+    Type: HTTP::REST
+RemoteSystem: McHarbor
+Requester:
+  Invoker:
+    McHarborStateChanged:
+      Description: Push ticket state changes to McHarbor
+      Events:
+      - Asynchronous: '1'
+        Event: TicketStateUpdate
+      MappingInbound: {}
+      MappingOutbound: {}
+      RequestTicketFields:
+      - State
+      - Owner
+      - DynamicField
+      Type: Ticket::TicketUpdate
+  Transport:
+    Config:
+      AdditionalHeaders:
+        X-McHarbor-Webhook-Secret: REPLACE_WITH_SECRET_FROM_MCHARBOR
+      DefaultCommand: POST
+      Host: https://mcharbor.example.com
+      InvokerControllerMapping:
+        McHarborStateChanged:
+          Command: POST
+          Controller: /api/incident-webhooks/REPLACE_WITH_TOKEN
+      SSLNoHostnameVerification: '0'
+      Timeout: '30'
+    Type: HTTP::REST

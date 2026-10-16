@@ -4,7 +4,7 @@
     "description":  "Modern workflow orchestration for data pipelines with dynamic scheduling, retries, and observability.",
     "category":  "Databases",
     "image":  "prefecthq/prefect:latest",
-    "logo":  "https://icon.horse/icon/www.prefect.io",
+    "logo":  "https://cdn.simpleicons.org/prefect",
     "website":  "https://www.prefect.io",
     "docsUrl":  "https://docs.prefect.io/latest/guides/self-hosted/",
     "ports":  [
@@ -43,5 +43,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

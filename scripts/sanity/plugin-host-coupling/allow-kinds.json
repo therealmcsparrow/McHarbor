@@ -1,0 +1,39 @@
+{
+  "exemptions": [
+    {
+      "file": "src/backend/modules/agent/prereq.go",
+      "literal": "vm",
+      "reason": "ScopeVM is the agent deploy probe's own scope: which host prerequisites (KVM, QEMU, OVMF, swtpm) to check over SSH. It is the agent's compute prerequisite, not a plugin guest kind."
+    },
+    {
+      "file": "src/frontend/modules/environments/hooks/useAgentDeploy.ts",
+      "literal": "vm",
+      "reason": "The scope field of the agent deploy probe request and report, the frontend mirror of ProbeScope in modules/agent/prereq.go."
+    },
+    {
+      "file": "src/frontend/modules/environments/components/AgentHostChecksPanel.tsx",
+      "literal": "vm",
+      "reason": "HostCheckScope runs the agent deploy probe with ProbeScope vm (modules/agent/prereq.go) and keys its result by it."
+    },
+    {
+      "file": "src/backend/modules/system/host_reboot_sequence.go",
+      "literal": "swarm_worker",
+      "reason": "A host reboot refusal code for a Docker Swarm mode worker running tasks; Docker's own Swarm, read through the Docker SDK, not a plugin target kind."
+    },
+    {
+      "file": "src/backend/modules/system/host_reboot_sequence.go",
+      "literal": "swarm_pause_failed",
+      "reason": "A host reboot refusal code for a Docker Swarm mode node that could not be paused through the Docker SDK; not a plugin target kind."
+    },
+    {
+      "file": "src/frontend/resources/hooks/useHostReboot.ts",
+      "literal": "swarm_worker",
+      "reason": "Frontend mirror of RebootReasonSwarmWorker in modules/system/host_reboot_sequence.go, Docker's own Swarm mode."
+    },
+    {
+      "file": "src/frontend/resources/hooks/useHostReboot.ts",
+      "literal": "swarm_pause_failed",
+      "reason": "Frontend mirror of RebootReasonSwarmPause in modules/system/host_reboot_sequence.go, Docker's own Swarm mode."
+    }
+  ]
+}

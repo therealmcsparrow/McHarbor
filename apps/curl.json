@@ -4,7 +4,7 @@
     "description":  "cURL command-line tool and library for transferring data with URLs.",
     "category":  "Utilities",
     "image":  "curlimages/curl:latest",
-    "logo":  "https://icon.horse/icon/curl.se",
+    "logo":  "https://cdn.simpleicons.org/curl",
     "website":  "https://curl.se",
     "docsUrl":  "https://hub.docker.com/r/curlimages/curl",
     "ports":  [
@@ -23,5 +23,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

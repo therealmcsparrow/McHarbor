@@ -1,0 +1,42 @@
+{
+  "extends": "../../../../frontend/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom/vitest"
+    ],
+    "typeRoots": [
+      "./node_modules",
+      "../../../../frontend/node_modules/@types",
+      "../../../../frontend/node_modules"
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@core/*": ["../../../../frontend/core/*"],
+      "@resources/*": ["../../../../frontend/resources/*"],
+      "@modules/*": ["../../../../frontend/modules/*"],
+      "@widgets/*": ["../../../../../widgets/*"],
+      "@nodes/*": ["../../../../../nodes/*"],
+      "vitest": ["../../../../frontend/node_modules/vitest"],
+      "vitest/*": ["../../../../frontend/node_modules/vitest/*"],
+      "@testing-library/*": ["../../../../frontend/node_modules/@testing-library/*"],
+      "@tabler/icons-react": ["../../../../frontend/node_modules/@tabler/icons-react"],
+      "@tanstack/react-query": ["../../../../frontend/node_modules/@tanstack/react-query"],
+      "react": ["../../../../frontend/node_modules/@types/react"],
+      "react/jsx-runtime": ["../../../../frontend/node_modules/@types/react/jsx-runtime"],
+      "react-dom/*": ["../../../../frontend/node_modules/@types/react-dom/*"],
+      "i18next": ["../../../../frontend/node_modules/i18next"],
+      "react-i18next": ["../../../../frontend/node_modules/react-i18next"],
+      "react-router": ["../../../../frontend/node_modules/react-router/dist/production/index.d.ts"],
+      "recharts": ["../../../../frontend/node_modules/recharts"],
+      "sonner": ["../../../../frontend/node_modules/sonner"],
+      "zod": ["../../../../frontend/node_modules/zod"]
+    }
+  },
+  "include": [
+    "src",
+    "test-setup.ts"
+  ]
+}

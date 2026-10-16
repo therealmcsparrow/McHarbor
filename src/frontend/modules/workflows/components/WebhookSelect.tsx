@@ -1,13 +1,13 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { IconChevronDown } from "@tabler/icons-react";
-import { Button } from "@resources/components/ui/Button";
-import { cn } from "@resources/utils/cn";
-import { api, type PaginatedData } from "@core/api/client";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { IconChevronDown } from '@tabler/icons-react';
+import { Button } from '@resources/components/ui/Button';
+import { cn } from '@resources/utils/cn';
+import { api, type PaginatedData } from '@core/api/client';
 
 type WebhookItem = {
   id: string;
@@ -22,25 +22,21 @@ interface WebhookSelectProps {
 }
 
 export function WebhookSelect({ value, onChange }: WebhookSelectProps) {
-  const { t } = useTranslation("common");
-  const [open, setOpen] = useState(false);
+  const { t } = useTranslation('common');
+  const [isOpen, setOpen] = useState(false);
 
   const { data: webhooks } = useQuery({
-    queryKey: ["webhooks-select"],
+    queryKey: ['webhooks-select'],
     queryFn: () =>
       api
-        .get<PaginatedData<WebhookItem>>("/webhooks", { per_page: "100" })
+        .get<PaginatedData<WebhookItem>>('/webhooks', { per_page: '100' })
         .then((r) => (r.data?.items ?? []).filter((webhook) => webhook.isActive)),
     staleTime: 30_000,
   });
 
   const selected = webhooks?.find((webhook) => webhook.id === value);
-  const placeholder = t("workflows.selectWebhook", {
-    defaultValue: "Select webhook...",
-  });
-  const emptyLabel = t("workflows.noWebhooksFound", {
-    defaultValue: "No active webhooks found",
-  });
+  const placeholder = t('workflows.selectWebhook');
+  const emptyLabel = t('workflows.noWebhooksFound');
 
   return (
     <div className="relative">
@@ -50,19 +46,17 @@ export function WebhookSelect({ value, onChange }: WebhookSelectProps) {
         aria-label={placeholder}
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          "flex h-8 w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          !value && "text-muted-foreground",
+          'flex w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          !value && 'text-muted-foreground',
         )}
       >
         <span className="truncate">{selected?.name ?? placeholder}</span>
         <IconChevronDown className="size-3 shrink-0 text-muted-foreground" />
       </Button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
+      {isOpen && (
+        <div className="absolute top-full right-0 left-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
           {!webhooks || webhooks.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">
-              {emptyLabel}
-            </p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{emptyLabel}</p>
           ) : (
             webhooks.map((webhook) => (
               <Button
@@ -74,16 +68,12 @@ export function WebhookSelect({ value, onChange }: WebhookSelectProps) {
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full flex-col gap-0.5 px-3 py-1.5 text-left hover:bg-muted/50 transition-colors",
-                  webhook.id === value && "bg-muted/50",
+                  'flex h-auto w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-muted/50',
+                  webhook.id === value && 'bg-muted/50',
                 )}
               >
-                <span className="truncate text-xs font-semibold text-foreground">
-                  {webhook.name}
-                </span>
-                <span className="truncate text-[10px] text-muted-foreground">
-                  {webhook.url}
-                </span>
+                <span className="truncate text-xs font-semibold text-foreground">{webhook.name}</span>
+                <span className="truncate text-[10px] text-muted-foreground">{webhook.url}</span>
               </Button>
             ))
           )}

@@ -4,8 +4,8 @@
 package git
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,15 +13,15 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/git", func(r chi.Router) {
-			r.Get("/", h.HandleListRepos)
-			r.Post("/", h.HandleCreateRepo)
-			r.Get("/{id}", h.HandleGetRepo)
-			r.Put("/{id}", h.HandleUpdateRepo)
-			r.Delete("/{id}", h.HandleDeleteRepo)
-			r.Post("/{id}/sync", h.HandleSync)
-			r.Get("/{id}/deployments", h.HandleListDeployments)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/git", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitView)).Get("/", h.HandleListRepos, apispec.Paginated())
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitManage)).Post("/", h.HandleCreateRepo, apispec.Request(CreateRepoInput{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitView)).Get("/{id}", h.HandleGetRepo)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitManage)).Put("/{id}", h.HandleUpdateRepo, apispec.Request(UpdateRepoInput{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitManage)).Delete("/{id}", h.HandleDeleteRepo)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitManage)).Post("/{id}/sync", h.HandleSync)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermGitView)).Get("/{id}/deployments", h.HandleListDeployments, apispec.Paginated())
 		})
 	})
 }

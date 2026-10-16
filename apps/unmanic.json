@@ -1,0 +1,54 @@
+{
+  "slug": "unmanic",
+  "name": "Unmanic",
+  "description": "Library optimiser that transcodes and cleans up media files automatically with plugin-based workflows.",
+  "category": "Media",
+  "image": "josh5/unmanic:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/unmanic.png",
+  "website": "https://docs.unmanic.app",
+  "docsUrl": "https://docs.unmanic.app/docs/installation/docker",
+  "ports": [
+    {
+      "host": 8888,
+      "container": 8888,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/unmanic/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/unmanic/library",
+      "container": "/library"
+    },
+    {
+      "host": "/opt/appdata/unmanic/cache",
+      "container": "/tmp/unmanic"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

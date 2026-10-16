@@ -4,7 +4,7 @@
     "description":  "Universal artifact repository manager for binaries, containers, and build outputs.",
     "category":  "Developer Tools",
     "image":  "sonatype/nexus3:latest",
-    "logo":  "https://icon.horse/icon/www.sonatype.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/sonatype-nexus-repository.svg",
     "website":  "https://www.sonatype.com/products/nexus-repository",
     "docsUrl":  "https://hub.docker.com/r/sonatype/nexus3/",
     "ports":  [
@@ -28,5 +28,9 @@
                     }
                 ],
     "minMemory":  "4GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

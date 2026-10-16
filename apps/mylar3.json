@@ -1,0 +1,53 @@
+{
+  "slug": "mylar3",
+  "name": "Mylar3",
+  "description": "Automated comic book downloader and library manager for NZB and torrent users.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/mylar3:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mylar.png",
+  "website": "https://github.com/mylar3/mylar3",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-mylar3/",
+  "ports": [
+    {
+      "host": 8090,
+      "container": 8090,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mylar3/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/mylar3/comics",
+      "container": "/comics"
+    },
+    {
+      "host": "/opt/appdata/mylar3/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

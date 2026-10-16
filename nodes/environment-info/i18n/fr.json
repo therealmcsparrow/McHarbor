@@ -1,0 +1,15 @@
+{
+  "label": "Infos environnement",
+  "description": "Lire les informations du démon Docker, de l'hôte ou de joignabilité d'un environnement",
+  "config": {
+    "environment": "Environnement",
+    "scope": "Informations"
+  },
+  "options": {
+    "scope": {
+      "docker": "Démon Docker",
+      "host": "Hôte",
+      "status": "Joignabilité"
+    }
+  }
+}

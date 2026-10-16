@@ -1,10 +1,12 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package volumes serves the Docker volume list, create, inspect and remove routes.
 package volumes
 
 import (
 	"errors"
+	cerrdefs "github.com/containerd/errdefs"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +17,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	"github.com/therealmcsparrow/mcharbor/core/selfguard"
 )
 
 // Handler holds dependencies for volume HTTP handlers.
@@ -52,7 +55,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	volumes, err := h.svc.List(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("list volumes failed", "env", envID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrVolumeListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrVolumeListFailed, err)
 		return
 	}
 
@@ -71,7 +74,7 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	var req CreateRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -82,8 +85,15 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	vol, err := h.svc.Create(r.Context(), envID, req)
 	if err != nil {
+		var ref *selfguard.Refusal
+		if errors.As(err, &ref) {
+			selfguard.Refuse(w, r, h.app.AuditLog, ref, audit.Entry{
+				EntityType: "volume", EntityName: req.Name, EnvironmentID: envID, Details: "op=create",
+			})
+			return
+		}
 		h.app.Logger.Error("create volume failed", "env", envID, "name", req.Name, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrVolumeCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrVolumeCreateFailed, err)
 		return
 	}
 
@@ -110,8 +120,12 @@ func (h *Handler) HandleInspect(w http.ResponseWriter, r *http.Request) {
 
 	vol, err := h.svc.Inspect(r.Context(), envID, name)
 	if err != nil {
+		if cerrdefs.IsNotFound(err) {
+			response.NotFoundCode(w, r, i18n.ErrVolumeNotFound)
+			return
+		}
 		h.app.Logger.Error("inspect volume failed", "env", envID, "name", name, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrVolumeInspectFailed)
+		response.InternalErrorCause(w, r, i18n.ErrVolumeInspectFailed, err)
 		return
 	}
 
@@ -134,8 +148,12 @@ func (h *Handler) HandleRemove(w http.ResponseWriter, r *http.Request) {
 		if writeProtectedError(w, r, err) {
 			return
 		}
+		if cerrdefs.IsNotFound(err) {
+			response.NotFoundCode(w, r, i18n.ErrVolumeNotFound)
+			return
+		}
 		h.app.Logger.Error("remove volume failed", "env", envID, "name", name, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrVolumeRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrVolumeRemoveFailed, err)
 		return
 	}
 
@@ -163,7 +181,7 @@ func (h *Handler) HandlePrune(w http.ResponseWriter, r *http.Request) {
 	report, err := h.svc.Prune(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("prune volumes failed", "env", envID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrVolumePruneFailed)
+		response.InternalErrorCause(w, r, i18n.ErrVolumePruneFailed, err)
 		return
 	}
 

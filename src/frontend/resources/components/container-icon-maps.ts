@@ -161,7 +161,10 @@ export const IMAGE_LOGO_MAP: Record<string, string> = {
 /** Fallback: regex to Tabler icon for images without a logo */
 export const IMAGE_ICON_MAP: [RegExp, TablerIcon][] = [
   [/nginx|apache|httpd|caddy|traefik|haproxy|envoy|litespeed/i, IconWorld],
-  [/postgres|mysql|mariadb|mongo|redis|memcache|influx|cassandra|couchdb|neo4j|cockroach|timescale|clickhouse|sqlite|valkey|dragonfly|keydb/i, IconDatabase],
+  [
+    /postgres|mysql|mariadb|mongo|redis|memcache|influx|cassandra|couchdb|neo4j|cockroach|timescale|clickhouse|sqlite|valkey|dragonfly|keydb/i,
+    IconDatabase,
+  ],
   [/elastic|opensearch|kibana|logstash|meilisearch|typesense|solr/i, IconSearch],
   [/rabbitmq|kafka|nats|mosquitto|emqx|pulsar|activemq|zeromq/i, IconMessage],
   [/grafana|prometheus|loki|tempo|jaeger|zipkin|datadog|zabbix|uptime-kuma|netdata/i, IconChartBar],

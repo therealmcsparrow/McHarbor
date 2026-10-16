@@ -1,0 +1,40 @@
+{
+    "slug":  "pydio-cells",
+    "name":  "Pydio Cells",
+    "description":  "Self-hosted file sharing and sync platform with workspaces, collaborative editing, and access rules.",
+    "category":  "Photos & Files",
+    "image":  "pydio/cells:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pydio.png",
+    "website":  "https://pydio.com",
+    "docsUrl":  "https://pydio.com/en/docs/cells/v4/installation-docker",
+    "ports":  [
+                  {
+                      "host":  8112,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pydio-cells/data",
+                        "container":  "/var/cells/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/pydio-cells/services",
+                        "container":  "/var/cells/services"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

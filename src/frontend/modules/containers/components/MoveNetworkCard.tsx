@@ -61,7 +61,7 @@ export function MoveNetworkCard({
             <Label>{t('moveDialog.subnet')}</Label>
             <Input
               value={ipam.Subnet ?? ''}
-              onChange={(event) => updateNetwork(network.sourceName, updateIpam(network, 'Subnet', event.target.value))}
+              onChange={(evt2) => updateNetwork(network.sourceName, updateIpam(network, 'Subnet', evt2.target.value))}
               placeholder="172.20.0.0/16"
             />
           </div>
@@ -69,7 +69,7 @@ export function MoveNetworkCard({
             <Label>{t('moveDialog.gateway')}</Label>
             <Input
               value={ipam.Gateway ?? ''}
-              onChange={(event) => updateNetwork(network.sourceName, updateIpam(network, 'Gateway', event.target.value))}
+              onChange={(evt2) => updateNetwork(network.sourceName, updateIpam(network, 'Gateway', evt2.target.value))}
               placeholder="172.20.0.1"
             />
           </div>
@@ -77,7 +77,7 @@ export function MoveNetworkCard({
             <Label>{t('moveDialog.ipRange')}</Label>
             <Input
               value={ipam.IPRange ?? ''}
-              onChange={(event) => updateNetwork(network.sourceName, updateIpam(network, 'IPRange', event.target.value))}
+              onChange={(evt2) => updateNetwork(network.sourceName, updateIpam(network, 'IPRange', evt2.target.value))}
               placeholder="172.20.5.0/24"
             />
           </div>
@@ -90,14 +90,14 @@ export function MoveNetworkCard({
             <Label>{t('moveDialog.aliases')}</Label>
             <Input
               value={csv(network.aliases)}
-              onChange={(event) => updateNetwork(network.sourceName, { aliases: splitCsv(event.target.value) })}
+              onChange={(evt2) => updateNetwork(network.sourceName, { aliases: splitCsv(evt2.target.value) })}
             />
           </div>
           <div className="space-y-1.5">
             <Label>{t('moveDialog.targetIp')}</Label>
             <Input
               value={network.ipAddress ?? ''}
-              onChange={(event) => updateNetwork(network.sourceName, { ipAddress: event.target.value })}
+              onChange={(changeEvent) => updateNetwork(network.sourceName, { ipAddress: changeEvent.target.value })}
               placeholder={source?.ipAddress}
             />
           </div>
@@ -105,7 +105,7 @@ export function MoveNetworkCard({
             <Label>{t('moveDialog.targetMac')}</Label>
             <Input
               value={network.macAddress ?? ''}
-              onChange={(event) => updateNetwork(network.sourceName, { macAddress: event.target.value })}
+              onChange={(evt) => updateNetwork(network.sourceName, { macAddress: evt.target.value })}
               placeholder={source?.macAddress}
             />
           </div>

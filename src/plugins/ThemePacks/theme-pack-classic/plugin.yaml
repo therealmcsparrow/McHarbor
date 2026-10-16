@@ -1,0 +1,157 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+slug: "theme-pack-classic"
+name: "Classic Theme Pack"
+version: "1.0.0"
+author: "McSparrow <support@mcsparrow.eu>"
+license: "McHarbor"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Installable collection of McHarbor's bundled editor-inspired themes."
+mcharbor: ">=2.1.0 <3.0.0"
+go: "1.26"
+
+permissions: []
+
+contributes:
+  themes:
+    - id: "github"
+      name: "GitHub"
+      description: "Classic neutral grays with GitHub blue."
+      css_path: "themes/github.css"
+      swatch_hue: 252
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "solarized"
+      name: "Solarized"
+      description: "Ethan Schoonover's iconic, low-contrast palette."
+      css_path: "themes/solarized.css"
+      swatch_hue: 195
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "dracula"
+      name: "Dracula"
+      description: "Vibrant pink, purple, and yellow on slate gray."
+      css_path: "themes/dracula.css"
+      swatch_hue: 25
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "nord"
+      name: "Nord"
+      description: "Arctic, north-bluish calm palette."
+      css_path: "themes/nord.css"
+      swatch_hue: 220
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "monokai"
+      name: "Monokai"
+      description: "Warm classic with vibrant yellow and pink."
+      css_path: "themes/monokai.css"
+      swatch_hue: 30
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "catppuccin"
+      name: "Catppuccin Mocha"
+      description: "Warm pastel, easy on the eyes."
+      css_path: "themes/catppuccin.css"
+      swatch_hue: 350
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "catppuccin-frappe"
+      name: "Catppuccin Frappe"
+      description: "Softer Catppuccin variant with muted pastels."
+      css_path: "themes/catppuccin-mocha.css"
+      swatch_hue: 350
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "catppuccin-latte"
+      name: "Catppuccin Latte"
+      description: "Catppuccin's official light theme with warm cream tones."
+      css_path: "themes/catppuccin-latte.css"
+      swatch_hue: 0
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "one-dark"
+      name: "One Dark"
+      description: "Atom-inspired developer theme with vibrant syntax."
+      css_path: "themes/one-dark.css"
+      swatch_hue: 220
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "synthwave"
+      name: "Synthwave '84"
+      description: "Retro neon magenta and cyan on dark."
+      css_path: "themes/synthwave.css"
+      swatch_hue: 330
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "ayu"
+      name: "Ayu"
+      description: "Warm, easy on the eyes for long reading sessions."
+      css_path: "themes/ayu.css"
+      swatch_hue: 35
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "tokyo-night"
+      name: "Tokyo Night"
+      description: "Popular IDE-inspired dark theme with cool blues and pinks."
+      css_path: "themes/tokyo-night.css"
+      swatch_hue: 240
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "kanagawa"
+      name: "Kanagawa"
+      description: "Japanese-inspired calm earth tones."
+      css_path: "themes/kanagawa.css"
+      swatch_hue: 30
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+    - id: "gruvbox"
+      name: "Gruvbox"
+      description: "Retro groove with warm earth tones and high contrast."
+      css_path: "themes/gruvbox.css"
+      swatch_hue: 30
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "rose-pine"
+      name: "Rose Pine"
+      description: "Pine, rose, foam. Natural and soft palette."
+      css_path: "themes/rose-pine.css"
+      swatch_hue: 340
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "everforest"
+      name: "Everforest"
+      description: "Forest greens for long sessions."
+      css_path: "themes/everforest.css"
+      swatch_hue: 130
+      default_variant: "light"
+      has_dark: true
+      has_light: true
+    - id: "midnight"
+      name: "Midnight"
+      description: "Classic deep blue dark theme with high contrast."
+      css_path: "themes/midnight.css"
+      swatch_hue: 250
+      default_variant: "dark"
+      has_dark: true
+      has_light: true
+
+signature: ""
+checksum: ""

@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Clair",
+    "description": "Red Hat's Clair v4: image indexing and CVE matching against an external Clair server."
+  },
+  "settings": {
+    "title": "Clair",
+    "subtitle": "Red Hat's Clair v4: image indexing and CVE matching against an external Clair server."
+  }
+}

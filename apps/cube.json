@@ -1,0 +1,56 @@
+{
+    "slug":  "cube",
+    "name":  "Cube",
+    "description":  "Semantic layer and API that serves consistent, cached analytics data to dashboards, notebooks, and applications.",
+    "category":  "Analytics",
+    "image":  "cubejs/cube:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=cube.dev\u0026sz=128",
+    "website":  "https://cube.dev",
+    "docsUrl":  "https://cube.dev/docs/product/deployment/platforms/docker",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3001,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cube/schema",
+                        "container":  "/cube/conf/schema"
+                    },
+                    {
+                        "host":  "/opt/appdata/cube/conf",
+                        "container":  "/cube/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CUBEJS_DB_TYPE",
+                        "default":  "postgres",
+                        "description":  "Database driver Cube connects to for analytics queries"
+                    },
+                    {
+                        "key":  "CUBEJS_API_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret used to sign API tokens issued by Cube",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

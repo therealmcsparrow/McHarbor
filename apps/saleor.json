@@ -4,7 +4,7 @@
     "description":  "GraphQL-first, headless e-commerce platform built with Python and React for high-performance online stores.",
     "category":  "Web Apps",
     "image":  "ghcr.io/saleor/saleor:latest",
-    "logo":  "https://icon.horse/icon/saleor.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=saleor.io\u0026sz=128",
     "website":  "https://saleor.io",
     "docsUrl":  "https://docs.saleor.io",
     "ports":  [
@@ -69,5 +69,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

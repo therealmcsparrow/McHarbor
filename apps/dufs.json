@@ -1,0 +1,35 @@
+{
+    "slug":  "dufs",
+    "name":  "Dufs",
+    "description":  "Minimal static file server with upload, search, and WebDAV support for quick file sharing.",
+    "category":  "Storage",
+    "image":  "sigoden/dufs:latest",
+    "logo":  "https://github.com/sigoden.png",
+    "website":  "https://github.com/sigoden/dufs",
+    "docsUrl":  "https://github.com/sigoden/dufs#docker",
+    "ports":  [
+                  {
+                      "host":  8119,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dufs/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

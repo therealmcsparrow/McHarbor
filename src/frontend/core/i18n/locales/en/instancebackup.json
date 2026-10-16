@@ -1,0 +1,266 @@
+{
+  "panel": {
+    "title": "Instance backup",
+    "intro": "One encrypted file with everything that makes this instance itself: roles and policies, environments and their agent tokens, workflows, schedules, the secrets vault, plugin settings, and the certificate authority your agents trust.",
+    "twoBackups": "This is not a container backup. Container data is backed up separately under Storage; you need both.",
+    "keyWarning": "The key is never stored. Keep it somewhere other than this host: an export whose only key is on the machine it backs up cannot be restored when that machine is lost.",
+    "create": "Create export"
+  },
+  "destinations": {
+    "uploading": "Copying",
+    "success": "Copied",
+    "failure": "Not copied",
+    "errorTitle": "Why the copy failed",
+    "hostOnly": "This host only"
+  },
+  "table": {
+    "copies": "Copies",
+    "created": "Created",
+    "status": "Status",
+    "size": "Size",
+    "key": "Key",
+    "createdBy": "Created by",
+    "note": "Note",
+    "actions": "Actions",
+    "verified": "Verified",
+    "trigger": "Trigger",
+    "fileName": "File name",
+    "search": "Search exports..."
+  },
+  "trigger": {
+    "all": "Any trigger",
+    "manual": "Manual",
+    "schedule": "Schedule"
+  },
+  "status": {
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed",
+    "title": "Last restore",
+    "by": "by {{actor}}, {{date}}",
+    "errorTitle": "Why the restore stopped",
+    "restarting": "McHarbor is restarting to load the restored keys and data. This page reconnects on its own.",
+    "reconciling": "Reinstalling the export's plugins at their recorded versions.",
+    "result": "{{rows}} rows restored in {{tables}} tables.",
+    "anchor": "Audit history was restored; the chain continues through a restore anchor.",
+    "pluginErrorTitle": "Why {{slug}} was not reinstalled",
+    "pluginsFailed_one": "{{count}} plugin could not be reinstalled. Install it from the Plugin Store.",
+    "pluginsFailed_other": "{{count}} plugins could not be reinstalled. Install them from the Plugin Store."
+  },
+  "keyKind": {
+    "passphrase": "Passphrase",
+    "keyfile": "Key file"
+  },
+  "progress": "{{done}} of {{total}} rows",
+  "errorTitle": "Why the export failed",
+  "actions": {
+    "download": "Download",
+    "delete": "Delete",
+    "restore": "Restore",
+    "verify": "Verify"
+  },
+  "empty": {
+    "title": "No exports yet",
+    "description": "Create the first export and store it, with its key, away from this host."
+  },
+  "create": {
+    "title": "Create an instance export",
+    "description": "The export is encrypted as a whole. Choose how it is locked; you will need the same passphrase or key file to restore it.",
+    "keyKind": "Lock with",
+    "passphraseOption": "A passphrase",
+    "keyFileOption": "A generated key file",
+    "passphrase": "Passphrase",
+    "passphraseHint": "At least 12 characters. It is stretched with Argon2id and never stored.",
+    "confirm": "Repeat the passphrase",
+    "mismatch": "The passphrases do not match.",
+    "generate": "Generate a key file",
+    "saveKeyFile": "Save the key file",
+    "keyFileReady": "A key file was generated. Save it now: it is shown once and cannot be recovered.",
+    "keyFileSaved": "I have saved the key file somewhere other than this host",
+    "metrics": "Include metrics history",
+    "metricsHelp": "Off by default: metrics regenerate on their own and usually make up most of an export's size.",
+    "note": "Note",
+    "notePlaceholder": "For example: before upgrading to the next release",
+    "submit": "Create export"
+  },
+  "reasons": {
+    "key_required": "Enter a passphrase or generate a key file.",
+    "key_both": "Use a passphrase or a key file, not both.",
+    "passphrase_too_short": "The passphrase must be at least 12 characters.",
+    "key_file_invalid": "That is not a McHarbor instance key file.",
+    "note_too_long": "The note can be at most 500 characters.",
+    "busy": "An export is already running. Wait for it to finish."
+  },
+  "download": {
+    "title": "Download instance export",
+    "description": "This file holds every secret in the instance. Confirm it is you before downloading.",
+    "password": "Your password",
+    "totp": "Authenticator code",
+    "totpHint": "Use the code from your authenticator app if your account has one.",
+    "submit": "Confirm and download",
+    "warning": "Store the file encrypted and away from this host. Anyone with the file and its key owns this instance."
+  },
+  "delete": {
+    "title": "Delete this export?",
+    "description": "The file {{name}} is removed from this host. Copies you downloaded are not affected.",
+    "confirm": "Delete export"
+  },
+  "restoreState": {
+    "running": "Restoring",
+    "restarting": "Restarting",
+    "reconciling": "Reinstalling plugins",
+    "done": "Restored",
+    "failed": "Failed"
+  },
+  "pluginAction": {
+    "kept": "Already installed",
+    "installed": "Installed",
+    "updated": "Reinstalled at the recorded version",
+    "failed": "Failed"
+  },
+  "categories": {
+    "access": "Users, roles and policies",
+    "environments": "Environments and registries",
+    "automation": "Workflows, schedules and alerts",
+    "stacks": "Stacks",
+    "secrets": "Secrets vault",
+    "settings": "Settings and integrations",
+    "plugins": "Plugin settings and data",
+    "audit": "Audit history",
+    "other": "Everything else"
+  },
+  "restore": {
+    "open": "Restore",
+    "title": "Restore an instance export",
+    "description": "Choose the export and its key. The whole file is checked before anything is changed.",
+    "planDescription": "This is what the restore changes. Nothing has been written yet.",
+    "source": "Export",
+    "uploadOption": "Upload an export file",
+    "file": "Export file (.mchx)",
+    "keyKind": "Unlock with",
+    "keyFile": "Key file",
+    "mode": "What to restore",
+    "modes": {
+      "full": {
+        "label": "Everything (disaster recovery)",
+        "description": "Replaces this instance with the export: data, keys, certificate authority and files."
+      },
+      "migration": {
+        "label": "Everything, onto new hardware or another database",
+        "description": "The same as a full restore, for moving an instance."
+      },
+      "selective": {
+        "label": "Only some categories",
+        "description": "Recover, for example, deleted workflows or a damaged role set, and leave the rest alone."
+      }
+    },
+    "conflict": "Rows that already exist",
+    "conflicts": {
+      "replace": "Replace the whole category with the export's",
+      "keep": "Keep them and add only what is missing"
+    },
+    "includeAudit": "Also restore audit history",
+    "includeAuditHelp": "Replaces the audit log with the export's. The chain continues through a restore anchor that records what was replaced.",
+    "auditApproval": "Restoring audit history needs instance_backup.restore_audit through an approved elevation request, at the time you restore.",
+    "check": "Check export",
+    "submit": "Restore now",
+    "reasons": {
+      "key_required": "Enter the passphrase or choose the key file.",
+      "key_both": "Use a passphrase or a key file, not both.",
+      "wrong_key": "That passphrase or key file does not open this export.",
+      "unreadable": "The export cannot be read.",
+      "not_export": "This file is not a McHarbor instance export.",
+      "format": "This export was made by a newer McHarbor and cannot be read here. Upgrade first, then restore.",
+      "incomplete": "The export is incomplete: it ends before everything it lists. Copy it again from the source.",
+      "damaged": "The export is damaged or was altered after it was made.",
+      "key_kind": "This export was sealed with the other kind of secret. Use its passphrase or key file instead.",
+      "bad_key_file": "That key file is not a readable McHarbor instance key file.",
+      "no_categories": "Choose at least one category.",
+      "bad_category": "That category does not exist.",
+      "bad_conflict": "Choose how to treat rows that already exist.",
+      "bad_mode": "Choose what to restore.",
+      "approval_required": "Restoring audit history needs an approved elevation for instance_backup.restore_audit. Request one under Security, then try again.",
+      "busy": "A restore is already running."
+    }
+  },
+  "plan": {
+    "from": "Export from {{host}}, McHarbor {{version}} on {{backend}}, taken {{date}} by {{user}}.",
+    "category": "Category",
+    "restored": "Restored",
+    "now": "Rows now",
+    "fromExport": "Rows in the export",
+    "yes": "Restored",
+    "no": "Left as it is",
+    "restoresKeys": "The instance encryption key is replaced with the export's.",
+    "restoresSecret": "The audit signing secret is replaced with the export's.",
+    "restoresFiles": "The certificate authority, stack files and custom nodes are replaced; remote agents keep trusting the restored authority.",
+    "plugins_one": "{{count}} plugin is reinstalled at its recorded version after the restart.",
+    "plugins_other": "{{count}} plugins are reinstalled at their recorded versions after the restart.",
+    "restart": "McHarbor restarts when the restore is written.",
+    "confirm": "Type {{word}} to confirm",
+    "refusals": {
+      "newer_schema": "This export comes from a newer McHarbor. Upgrade this instance first.",
+      "key_pinned": "ENCRYPTION_KEY is set in this server's environment, so the export's key cannot take its place. Remove it or set it to the export's key, then restart.",
+      "secret_pinned": "MCHARBOR_SECRET is set in this server's environment, so the export's audit secret cannot take its place.",
+      "nothing_selected": "Nothing would be restored. Choose at least one category.",
+      "bad_mode": "Choose what to restore.",
+      "postgres_cascade": "On PostgreSQL without superuser rights a selective replace would cascade into other categories. Choose to keep existing rows instead."
+    },
+    "warnings": {
+      "different_key": "This export was made on an instance with a different key. Encrypted values are converted to this instance's key as they are restored.",
+      "metrics_excluded": "Metrics history is not in this export and starts again from empty.",
+      "sessions_end": "Everyone is signed out."
+    }
+  },
+  "verify": {
+    "title": "Verify this export",
+    "description": "The export is restored into a throwaway database and checked: every table against its manifest, and the audit chain. This instance is not touched.",
+    "submit": "Verify",
+    "running": "Verifying",
+    "passed": "Passed",
+    "failed": "Failed",
+    "errorTitle": "Why the verification failed"
+  },
+  "schedules": {
+    "title": "Schedules",
+    "add": "Add schedule",
+    "empty": "No scheduled exports. An export made only by hand is an export made too rarely.",
+    "name": "Name",
+    "when": "When",
+    "next": "Next run",
+    "last": "Last run",
+    "disabled": "Off",
+    "search": "Search schedules...",
+    "facets": {
+      "failing": "Last run failed"
+    },
+    "runNow": "Run now",
+    "edit": "Edit schedule",
+    "errorTitle": "Why the last run failed",
+    "deleteTitle": "Delete this schedule?",
+    "deleteDescription": "{{name}} stops running. Exports it already made are kept.",
+    "deleteConfirm": "Delete schedule",
+    "createTitle": "Schedule instance exports",
+    "editTitle": "Edit export schedule",
+    "dialogDescription": "Exports run unattended, so their key is stored on this instance, encrypted. Keep the same key somewhere else too, or the exports cannot be restored after losing this host.",
+    "key": "Lock exports with",
+    "replaceKey": "Replace the key (leave empty to keep it)",
+    "keyHint": "A passphrase of at least 12 characters, or a key file you generated.",
+    "location": "Also copy to",
+    "hostOnly": "Keep on this host only",
+    "keepCount": "Keep this many",
+    "keepDays": "Keep for days (0 = no limit)",
+    "verifyAfter": "Rehearse a restore after each export",
+    "enabled": "Enabled",
+    "reasons": {
+      "bad_name": "Give the schedule a name of at most 100 characters.",
+      "bad_cron": "That schedule is not valid.",
+      "bad_retention": "Keep between 0 and 1000 exports, for at most 3650 days.",
+      "no_retention": "Set how many exports to keep, or for how many days.",
+      "key_required": "Enter a passphrase or choose a key file.",
+      "key_both": "Use a passphrase or a key file, not both.",
+      "passphrase_too_short": "The passphrase must be at least 12 characters.",
+      "key_file_invalid": "That is not a McHarbor instance key file."
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+    "slug":  "nessie",
+    "name":  "Project Nessie",
+    "description":  "Transactional metastore for data lakes that adds Git-like branching and tagging to Iceberg tables.",
+    "category":  "Analytics",
+    "image":  "ghcr.io/projectnessie/nessie:latest",
+    "logo":  "https://github.com/projectnessie.png",
+    "website":  "https://projectnessie.org",
+    "docsUrl":  "https://projectnessie.org/guides/docker/",
+    "ports":  [
+                  {
+                      "host":  19120,
+                      "container":  19120,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nessie/data",
+                        "container":  "/nessie-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NESSIE_VERSION_STORE_TYPE",
+                        "default":  "IN_MEMORY",
+                        "description":  "Backing store type for commit history"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "widgets": {
+    "instanceBackupStatus": {
+      "label": "Copia de seguridad de la instancia",
+      "description": "Cuándo se exportó esta instancia por última vez y cuándo se comprobó por última vez que se puede restaurar, y la última ejecución de cada programación de exportación"
+    }
+  },
+  "instanceBackupWidget": {
+    "title": "Copia de seguridad de la instancia",
+    "open": "Copia de seguridad de la instancia",
+    "noAccess": "Requiere el permiso instance_backup.view",
+    "unavailable": "No se puede leer el historial de exportaciones",
+    "lastExport": "Última exportación {{when}}",
+    "never": "Nunca exportada",
+    "lastVerified": "Última verificación {{when}}",
+    "neverVerified": "Nunca verificada con un ensayo de restauración",
+    "failed": "La última ejecución falló",
+    "ran": "Se ejecutó {{when}}",
+    "notRun": "Aún no se ha ejecutado"
+  }
+}

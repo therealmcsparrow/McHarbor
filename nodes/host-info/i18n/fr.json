@@ -1,7 +1,0 @@
-{
-  "label": "Informations sur l'hôte",
-  "description": "Lire les informations sur l'hôte à partir d'un environnement Docker",
-  "config": {
-    "environment": "Environnement"
-  }
-}

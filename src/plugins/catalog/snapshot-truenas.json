@@ -1,0 +1,16 @@
+{
+  "slug": "snapshot-truenas",
+  "name": "TrueNAS",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "TrueNAS SCALE / CORE snapshot repository via the middleware API. Filesystem-level ZFS snapshots without `docker pause`.",
+  "category": "Snapshots",
+  "icon": "IconDatabase",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/snapshot-truenas-1.0.0.tar.gz"
+    }
+  ]
+}

@@ -1,9 +1,11 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package groups manages user groups, their members and their role assignments.
 package groups
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -34,10 +36,10 @@ func NewHandler(app *router.AppDeps) *Handler {
 
 // HandleList returns all groups with member counts.
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
-	items, err := h.svc.List()
+	items, err := h.svc.List(r.Context())
 	if err != nil {
 		h.app.Logger.Error("groups: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrGroupListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrGroupListFailed, err)
 		return
 	}
 
@@ -48,10 +50,10 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	group, err := h.svc.Get(id)
+	group, err := h.svc.Get(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("groups: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if group == nil {
@@ -66,7 +68,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateGroupInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -75,10 +77,10 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := h.svc.NameExists(input.Name, "")
+	exists, err := h.svc.NameExists(r.Context(), input.Name, "")
 	if err != nil {
 		h.app.Logger.Error("groups: name check error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if exists {
@@ -86,19 +88,25 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := h.svc.Create(&input)
+	group, err := h.svc.Create(r.Context(), &input)
 	if err != nil {
 		h.app.Logger.Error("groups: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrGroupCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrGroupCreateFailed, err)
 		return
 	}
 
-	h.app.AuditLog.Log(r, audit.Entry{
+	entry := audit.Entry{
 		Action:     "create",
 		EntityType: "group",
 		EntityID:   group.ID,
 		EntityName: input.Name,
-	})
+	}
+	if diffEntry, diffErr := entry.WithDiff(nil, group); diffErr == nil {
+		entry = diffEntry
+	} else {
+		h.app.Logger.Error("groups: audit diff error", "error", diffErr, "id", group.ID)
+	}
+	h.app.AuditLog.Log(r, entry)
 
 	response.Created(w, group)
 }
@@ -107,10 +115,10 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	isSys, err := h.svc.IsSystem(id)
+	isSys, err := h.svc.IsSystem(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("groups: system check error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if isSys {
@@ -120,7 +128,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateGroupInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -130,10 +138,10 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.Name != nil {
-		exists, err := h.svc.NameExists(*input.Name, id)
+		exists, err := h.svc.NameExists(r.Context(), *input.Name, id)
 		if err != nil {
 			h.app.Logger.Error("groups: name check error", "error", err)
-			response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+			response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 			return
 		}
 		if exists {
@@ -142,10 +150,21 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	group, err := h.svc.Update(id, &input)
+	existing, err := h.svc.Get(r.Context(), id)
+	if err != nil {
+		h.app.Logger.Error("groups: get before update error", "error", err, "id", id)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
+		return
+	}
+	if existing == nil {
+		response.NotFoundCode(w, r, i18n.ErrGroupNotFound)
+		return
+	}
+
+	group, err := h.svc.Update(r.Context(), id, &input)
 	if err != nil {
 		h.app.Logger.Error("groups: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrGroupUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrGroupUpdateFailed, err)
 		return
 	}
 	if group == nil {
@@ -153,12 +172,18 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.app.AuditLog.Log(r, audit.Entry{
+	entry := audit.Entry{
 		Action:     "update",
 		EntityType: "group",
 		EntityID:   id,
 		EntityName: group.Name,
-	})
+	}
+	if diffEntry, diffErr := entry.WithDiff(existing, group); diffErr == nil {
+		entry = diffEntry
+	} else {
+		h.app.Logger.Error("groups: audit diff error", "error", diffErr, "id", id)
+	}
+	h.app.AuditLog.Log(r, entry)
 
 	response.OK(w, group)
 }
@@ -167,10 +192,10 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	isSys, err := h.svc.IsSystem(id)
+	isSys, err := h.svc.IsSystem(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("groups: system check error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if isSys {
@@ -178,10 +203,10 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := h.svc.Get(id)
+	existing, err := h.svc.Get(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("groups: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if existing == nil {
@@ -189,22 +214,39 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.Delete(id); err != nil {
+	if err := h.svc.Delete(r.Context(), id); err != nil {
 		h.app.Logger.Error("groups: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrGroupRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrGroupRemoveFailed, err)
 		return
 	}
 
 	h.rbac.InvalidateCache("")
 
-	h.app.AuditLog.Log(r, audit.Entry{
+	entry := audit.Entry{
 		Action:     "delete",
 		EntityType: "group",
 		EntityID:   id,
 		EntityName: existing.Name,
-	})
+	}
+	if diffEntry, diffErr := entry.WithDiff(existing, nil); diffErr == nil {
+		entry = diffEntry
+	} else {
+		h.app.Logger.Error("groups: audit diff error", "error", diffErr, "id", id)
+	}
+	h.app.AuditLog.Log(r, entry)
 
 	response.NoContent(w)
+}
+
+// auditGroupName resolves a group id to its name for the audit trail, empty
+// when the lookup fails: a row naming a since-deleted group only by id is
+// unreadable, but it is still worth writing.
+func (h *Handler) auditGroupName(ctx context.Context, id string) string {
+	g, err := h.svc.Get(ctx, id)
+	if err != nil || g == nil {
+		return ""
+	}
+	return g.Name
 }
 
 // HandleAddMember adds a user to a group.
@@ -213,7 +255,7 @@ func (h *Handler) HandleAddMember(w http.ResponseWriter, r *http.Request) {
 
 	var input AddMemberInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -222,10 +264,10 @@ func (h *Handler) HandleAddMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := h.svc.MemberExists(groupID, input.UserID)
+	exists, err := h.svc.MemberExists(r.Context(), groupID, input.UserID)
 	if err != nil {
 		h.app.Logger.Error("groups: member check error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if exists {
@@ -233,9 +275,9 @@ func (h *Handler) HandleAddMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.AddMember(groupID, input.UserID); err != nil {
+	if err := h.svc.AddMember(r.Context(), groupID, input.UserID); err != nil {
 		h.app.Logger.Error("groups: add member error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -245,6 +287,7 @@ func (h *Handler) HandleAddMember(w http.ResponseWriter, r *http.Request) {
 		Action:     "add_member",
 		EntityType: "group",
 		EntityID:   groupID,
+		EntityName: h.auditGroupName(r.Context(), groupID),
 		Details:    "user " + input.UserID + " added",
 	})
 
@@ -256,9 +299,9 @@ func (h *Handler) HandleRemoveMember(w http.ResponseWriter, r *http.Request) {
 	groupID := chi.URLParam(r, "id")
 	userID := chi.URLParam(r, "userId")
 
-	if err := h.svc.RemoveMember(groupID, userID); err != nil {
+	if err := h.svc.RemoveMember(r.Context(), groupID, userID); err != nil {
 		h.app.Logger.Error("groups: remove member error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -268,6 +311,7 @@ func (h *Handler) HandleRemoveMember(w http.ResponseWriter, r *http.Request) {
 		Action:     "remove_member",
 		EntityType: "group",
 		EntityID:   groupID,
+		EntityName: h.auditGroupName(r.Context(), groupID),
 		Details:    "user " + userID + " removed",
 	})
 
@@ -280,7 +324,7 @@ func (h *Handler) HandleAssignRole(w http.ResponseWriter, r *http.Request) {
 
 	var input AssignRoleInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -295,20 +339,43 @@ func (h *Handler) HandleAssignRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := h.svc.AssignRole(groupID, input); err != nil {
+	before, err := h.svc.Get(r.Context(), groupID)
+	if err != nil {
+		h.app.Logger.Error("groups: get before assign role error", "error", err, "id", groupID)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
+		return
+	}
+	if before == nil {
+		response.NotFoundCode(w, r, i18n.ErrGroupNotFound)
+		return
+	}
+
+	if _, err := h.svc.AssignRole(r.Context(), groupID, input); err != nil {
 		h.app.Logger.Error("groups: assign role error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	h.rbac.InvalidateCache("")
 
-	h.app.AuditLog.Log(r, audit.Entry{
+	after, err := h.svc.Get(r.Context(), groupID)
+	if err != nil {
+		h.app.Logger.Error("groups: get after assign role error", "error", err, "id", groupID)
+		after = before
+	}
+	entry := audit.Entry{
 		Action:     "assign_role",
 		EntityType: "group",
 		EntityID:   groupID,
+		EntityName: before.Name,
 		Details:    "role " + input.RoleID + " assigned",
-	})
+	}
+	if diffEntry, diffErr := entry.WithDiff(before, after); diffErr == nil {
+		entry = diffEntry
+	} else {
+		h.app.Logger.Error("groups: audit diff error", "error", diffErr, "id", groupID)
+	}
+	h.app.AuditLog.Log(r, entry)
 
 	response.OKMsg(w, r, i18n.MsgGroupRoleAssigned)
 }
@@ -316,21 +383,44 @@ func (h *Handler) HandleAssignRole(w http.ResponseWriter, r *http.Request) {
 // HandleUnassignRole unassigns a role from a group.
 func (h *Handler) HandleUnassignRole(w http.ResponseWriter, r *http.Request) {
 	assignmentID := chi.URLParam(r, "assignmentId")
+	groupID := chi.URLParam(r, "id")
+	before, err := h.svc.Get(r.Context(), groupID)
+	if err != nil {
+		h.app.Logger.Error("groups: get before unassign role error", "error", err, "id", groupID)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
+		return
+	}
+	if before == nil {
+		response.NotFoundCode(w, r, i18n.ErrGroupNotFound)
+		return
+	}
 
-	if err := h.svc.UnassignRole(assignmentID); err != nil {
+	if err := h.svc.UnassignRole(r.Context(), assignmentID); err != nil {
 		h.app.Logger.Error("groups: unassign role error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	h.rbac.InvalidateCache("")
 
-	h.app.AuditLog.Log(r, audit.Entry{
+	after, err := h.svc.Get(r.Context(), groupID)
+	if err != nil {
+		h.app.Logger.Error("groups: get after unassign role error", "error", err, "id", groupID)
+		after = before
+	}
+	entry := audit.Entry{
 		Action:     "unassign_role",
 		EntityType: "group",
-		EntityID:   chi.URLParam(r, "id"),
+		EntityID:   groupID,
+		EntityName: before.Name,
 		Details:    "assignment " + assignmentID + " removed",
-	})
+	}
+	if diffEntry, diffErr := entry.WithDiff(before, after); diffErr == nil {
+		entry = diffEntry
+	} else {
+		h.app.Logger.Error("groups: audit diff error", "error", diffErr, "id", groupID)
+	}
+	h.app.AuditLog.Log(r, entry)
 
 	response.OKMsg(w, r, i18n.MsgGroupRoleUnassigned)
 }

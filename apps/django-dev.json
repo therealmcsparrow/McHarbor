@@ -38,5 +38,9 @@
       "secret": true
     }
   ],
-  "version": "3.12-slim"
+  "version":  "3.12-slim",
+  "latest":  {
+      "version":  "3.12-slim",
+      "release_date":  "2026-09-10"
+  }
 }

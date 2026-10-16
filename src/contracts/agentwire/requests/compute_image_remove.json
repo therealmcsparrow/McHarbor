@@ -1,0 +1,11 @@
+{
+  "envId": "env-1",
+  "args": [
+    "ImageID"
+  ],
+  "wire": {
+    "operation": "remove",
+    "envId": "env-1",
+    "imageId": "ImageID"
+  }
+}

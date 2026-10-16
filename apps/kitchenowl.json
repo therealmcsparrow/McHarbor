@@ -1,0 +1,41 @@
+{
+  "slug": "kitchenowl",
+  "name": "KitchenOwl",
+  "description": "Shared grocery lists, recipes, meal planning and expense tracking for households.",
+  "category": "Productivity",
+  "image": "tombursch/kitchenowl:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kitchenowl.png",
+  "website": "https://kitchenowl.org",
+  "docsUrl": "https://docs.kitchenowl.org/latest/self-hosting/",
+  "ports": [
+    {
+      "host": 8104,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kitchenowl/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "JWT_SECRET_KEY",
+      "default": "change-me-to-a-long-random-string",
+      "description": "Secret used to sign sessions",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

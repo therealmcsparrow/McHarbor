@@ -3,7 +3,7 @@
 
 import type { TFunction } from 'i18next';
 import { getNodeDocumentation } from '../nodes';
-import type { ConfigFieldType } from '../types';
+export { describeFieldType } from './help-tab-field-types';
 
 export type MarkdownSection = {
   title: string;
@@ -31,7 +31,10 @@ export function parseMarkdownSections(markdown?: string): MarkdownSection[] {
     : [normalized];
 
   for (const chunk of chunks) {
-    const lines = chunk.split('\n').map((line) => line.trim()).filter(Boolean);
+    const lines = chunk
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
     if (lines.length === 0) {
       continue;
     }
@@ -75,225 +78,61 @@ export function parseMarkdownSections(markdown?: string): MarkdownSection[] {
 export function getRequirementMessage(kind: NodeRequirementKind, t: TFunction<'common'>) {
   switch (kind) {
     case 'email-server':
-      return t('workflows.nodeRequiresEmailServer', {
-        defaultValue:
-          'This node only works when at least one enabled email server is configured in Settings.',
-      });
+      return t('workflows.nodeRequiresEmailServer');
     case 'communication-channel':
-      return t('workflows.nodeRequiresCommunicationChannel', {
-        defaultValue:
-          'This node only works when at least one enabled communication channel is configured in Settings.',
-      });
+      return t('workflows.nodeRequiresCommunicationChannel');
     case 'environment':
-      return t('workflows.nodeRequiresEnvironment', {
-        defaultValue:
-          'This node only works when at least one compatible environment is configured in McHarbor.',
-      });
+      return t('workflows.nodeRequiresEnvironment');
     default:
-      return t('workflows.nodeUnavailable', {
-        defaultValue:
-          'This node requires a service that is not yet configured. Set it up in Settings first.',
-      });
+      return t('workflows.nodeUnavailable');
   }
 }
 
 export function getBehaviorSummary(category: string, t: TFunction<'common'>): string[] {
   switch (category) {
     case 'trigger':
-      return [
-        t('workflows.helpTriggerBehavior1', {
-          defaultValue:
-            'Trigger nodes start a new workflow run and create the first msg object for the flow.',
-        }),
-        t('workflows.helpTriggerBehavior2', {
-          defaultValue:
-            'Use trigger nodes at the beginning of a chain. They do not wait for an incoming message from another node.',
-        }),
-      ];
+      return [t('workflows.helpTriggerBehavior1'), t('workflows.helpTriggerBehavior2')];
     case 'logic':
-      return [
-        t('workflows.helpLogicBehavior1', {
-          defaultValue:
-            'Logic nodes inspect the current msg and decide which path should run next.',
-        }),
-        t('workflows.helpLogicBehavior2', {
-          defaultValue:
-            'They are best used for branching, filtering, matching, or routing without performing an external side effect.',
-        }),
-      ];
+      return [t('workflows.helpLogicBehavior1'), t('workflows.helpLogicBehavior2')];
     case 'utility':
-      return [
-        t('workflows.helpUtilityBehavior1', {
-          defaultValue:
-            'Utility nodes help inspect, reshape, or annotate the msg while keeping the workflow readable.',
-        }),
-        t('workflows.helpUtilityBehavior2', {
-          defaultValue:
-            'They usually pass the message along after performing a small internal operation or side effect.',
-        }),
-      ];
+      return [t('workflows.helpUtilityBehavior1'), t('workflows.helpUtilityBehavior2')];
     case 'integration':
-      return [
-        t('workflows.helpIntegrationBehavior1', {
-          defaultValue:
-            'Integration nodes call an external system or a configured transport and then continue with the result.',
-        }),
-        t('workflows.helpIntegrationBehavior2', {
-          defaultValue:
-            'Use the error output when you want failures to branch into recovery, retries, or alerts.',
-        }),
-      ];
+      return [t('workflows.helpIntegrationBehavior1'), t('workflows.helpIntegrationBehavior2')];
     default:
-      return [
-        t('workflows.helpActionBehavior1', {
-          defaultValue:
-            'Action nodes receive the current msg, perform work, and usually pass an updated msg to the next step.',
-        }),
-        t('workflows.helpActionBehavior2', {
-          defaultValue:
-            'They are the main building blocks for changing state, calling APIs, or transforming workflow data.',
-        }),
-      ];
+      return [t('workflows.helpActionBehavior1'), t('workflows.helpActionBehavior2')];
   }
 }
 
-export function describePort(
-  port: string,
-  direction: 'input' | 'output',
-  t: TFunction<'common'>,
-): string {
+export function describePort(port: string, direction: 'input' | 'output', t: TFunction<'common'>): string {
   if (direction === 'output') {
     switch (port) {
       case 'output':
-        return t('workflows.primarySuccessPath', {
-          defaultValue: 'Primary success path. Messages continue here when the node completes normally.',
-        });
+        return t('workflows.primarySuccessPath');
       case 'error':
-        return t('workflows.errorPath', {
-          defaultValue: 'Failure path. Messages route here when the node returns an error.',
-        });
+        return t('workflows.errorPath');
       case 'true':
-        return t('workflows.conditionTruePath', {
-          defaultValue: 'Used when the condition evaluates to true.',
-        });
+        return t('workflows.conditionTruePath');
       case 'false':
       case 'else':
-        return t('workflows.conditionFalsePath', {
-          defaultValue: 'Used when the condition does not match the primary branch.',
-        });
+        return t('workflows.conditionFalsePath');
       case 'default':
-        return t('workflows.defaultPath', {
-          defaultValue: 'Fallback path for values that did not match any explicit case.',
-        });
+        return t('workflows.defaultPath');
     }
   }
 
   if (port.startsWith('condition_')) {
-    return t('workflows.extraConditionPath', {
-      defaultValue: 'Routes messages for this extra condition branch.',
-    });
+    return t('workflows.extraConditionPath');
   }
 
   if (port.startsWith('case_')) {
-    return t('workflows.switchCasePath', {
-      defaultValue: 'Routes messages for this configured switch case.',
-    });
+    return t('workflows.switchCasePath');
   }
 
   if (port.startsWith('input_')) {
-    return t('workflows.multiInputPath', {
-      defaultValue: 'One of the multiple input lanes handled by this node.',
-    });
+    return t('workflows.multiInputPath');
   }
 
-  return direction === 'input'
-    ? t('workflows.genericInputPath', {
-        defaultValue: 'Receives the incoming msg on this port.',
-      })
-    : t('workflows.genericOutputPath', {
-        defaultValue: 'Sends the outgoing msg on this port.',
-      });
-}
-
-export function describeFieldType(type: ConfigFieldType, t: TFunction<'common'>): string {
-  switch (type) {
-    case 'textarea':
-      return t('workflows.fieldTypeTextarea', {
-        defaultValue: 'Multi-line text. Useful for message bodies, templates, or longer expressions.',
-      });
-    case 'number':
-      return t('workflows.fieldTypeNumber', {
-        defaultValue: 'Numeric value. Use whole numbers or decimals as expected by the node.',
-      });
-    case 'select':
-      return t('workflows.fieldTypeSelect', {
-        defaultValue: 'Choose one of the built-in options provided by this node.',
-      });
-    case 'toggle':
-      return t('workflows.fieldTypeToggle', {
-        defaultValue: 'Turns a node feature on or off.',
-      });
-    case 'json':
-      return t('workflows.fieldTypeJson', {
-        defaultValue: 'Enter valid JSON. Objects and arrays are kept as structured data.',
-      });
-    case 'key-value':
-      return t('workflows.fieldTypeKeyValue', {
-        defaultValue: 'Build an object as key/value pairs.',
-      });
-    case 'expression':
-      return t('workflows.fieldTypeExpression', {
-        defaultValue: 'Evaluated against the current msg, flow, and global values.',
-      });
-    case 'cron':
-      return t('workflows.fieldTypeCron', {
-        defaultValue: 'Cron expression used to schedule when the trigger should fire.',
-      });
-    case 'container-select':
-      return t('workflows.fieldTypeContainerSelect', {
-        defaultValue: 'Selects a container from the active environment.',
-      });
-    case 'environment-select':
-      return t('workflows.fieldTypeEnvironmentSelect', {
-        defaultValue: 'Selects one of the configured McHarbor environments.',
-      });
-    case 'metric-conditions':
-      return t('workflows.fieldTypeMetricConditions', {
-        defaultValue: 'Define one or more threshold rules for metric-based triggers.',
-      });
-    case 'code':
-      return t('workflows.fieldTypeCode', {
-        defaultValue: 'Code or script content interpreted by the node.',
-      });
-    case 'link-output-select':
-      return t('workflows.fieldTypeLinkOutputSelect', {
-        defaultValue: 'Select the matching Link Out target inside this workflow.',
-      });
-    case 'email-server-select':
-      return t('workflows.fieldTypeEmailServerSelect', {
-        defaultValue:
-          'Uses a configured email server. Leave it empty to fall back to the default enabled server.',
-      });
-    case 'communication-channel-select':
-      return t('workflows.fieldTypeCommunicationChannelSelect', {
-        defaultValue:
-          'Uses a configured communication channel. Leave it empty to fall back to the default enabled channel.',
-      });
-    case 'webhook-select':
-      return t('workflows.fieldTypeWebhookSelect', {
-        defaultValue: 'Selects an active configured outbound webhook.',
-      });
-    case 'registry-select':
-      return t('workflows.fieldTypeRegistrySelect', {
-        defaultValue:
-          'Uses a configured registry. Leave it empty to fall back to the default registry.',
-      });
-    case 'text':
-    default:
-      return t('workflows.fieldTypeText', {
-        defaultValue: 'Single-line text value.',
-      });
-  }
+  return direction === 'input' ? t('workflows.genericInputPath') : t('workflows.genericOutputPath');
 }
 
 export function formatDefaultValue(value: unknown): string {

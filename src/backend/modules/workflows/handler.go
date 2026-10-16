@@ -10,11 +10,15 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/therealmcsparrow/mcharbor/core/audit"
+	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
@@ -29,7 +33,8 @@ type Handler struct {
 
 // NewHandler creates a new workflows handler.
 func NewHandler(app *router.AppDeps, hub *Hub) *Handler {
-	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption), app.Config.DataDir, app.BackupCrypto)
+	dispatcher := corenotify.NewDispatcher(app.DB, app.Encryption).SetPluginRuntime(app.PluginAdapters)
+	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, dispatcher, app.Config.DataDir, app.BackupCrypto)
 	return &Handler{
 		app:         app,
 		hub:         hub,
@@ -43,10 +48,10 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	page, perPage := response.ParsePagination(r)
 	status := r.URL.Query().Get("status")
 
-	items, total, err := h.service.List(status, page, perPage)
+	items, total, err := h.service.List(r.Context(), status, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("workflows: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -57,10 +62,10 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	wf, err := h.service.Get(id)
+	wf, err := h.service.Get(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("workflows: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if wf == nil {
@@ -71,23 +76,41 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, wf)
 }
 
+// maxWorkflowNameLength mirrors the frontend's 120-character limit on a workflow name.
+const maxWorkflowNameLength = 120
+
+// validWorkflowName trims name and reports the i18n code for an empty or
+// over-length result, so create and update enforce the identical rule.
+func validWorkflowName(name string) (string, i18n.MsgCode, bool) {
+	trimmed := strings.TrimSpace(name)
+	if trimmed == "" {
+		return "", i18n.ErrWorkflowNameRequired, false
+	}
+	if utf8.RuneCountInString(trimmed) > maxWorkflowNameLength {
+		return "", i18n.ErrInvalidBody, false
+	}
+	return trimmed, "", true
+}
+
 // HandleCreate creates a new workflow.
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
-	if input.Name == "" {
-		response.BadRequestCode(w, r, i18n.ErrWorkflowNameRequired)
+	trimmed, code, ok := validWorkflowName(input.Name)
+	if !ok {
+		response.BadRequestCode(w, r, code)
 		return
 	}
+	input.Name = trimmed
 
-	wf, err := h.service.Create(input)
+	wf, err := h.service.Create(r.Context(), input)
 	if err != nil {
 		h.app.Logger.Error("workflows: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -100,14 +123,30 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
-	wf, err := h.service.Update(id, input)
+	if input.Name != nil {
+		trimmed, code, ok := validWorkflowName(*input.Name)
+		if !ok {
+			response.BadRequestCode(w, r, code)
+			return
+		}
+		input.Name = &trimmed
+	}
+	if input.CanvasData != nil && !h.mayUseITSMNodes(r, *input.CanvasData) {
+		response.ForbiddenCode(w, r, i18n.ErrForbidden)
+		return
+	}
+
+	wf, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
+		if h.refuseWorkflowSave(w, r, id, "update", err) {
+			return
+		}
 		h.app.Logger.Error("workflows: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if wf == nil {
@@ -122,10 +161,10 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	deleted, err := h.service.Delete(id)
+	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("workflows: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if !deleted {
@@ -140,15 +179,24 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleExport(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	exportData, err := h.service.Export(id)
+	exportData, err := h.service.Export(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("workflows: export error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if exportData == nil {
 		response.NotFoundCode(w, r, i18n.ErrWorkflowNotFound)
 		return
+	}
+	if user := auth.RequireAuth(r); user != nil {
+		h.app.AuditLog.LogWithUser(r, user.ID, user.Username, audit.Entry{
+			Action:     "workflow.exported",
+			Severity:   "success",
+			EntityType: "workflow",
+			EntityID:   id,
+			EntityName: exportData.Workflow.Name,
+		})
 	}
 
 	filename := safeWorkflowExportFilename(exportData.Workflow.Name)
@@ -165,18 +213,25 @@ func (h *Handler) HandleImport(w http.ResponseWriter, r *http.Request) {
 
 	var input WorkflowExport
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+	if !h.mayUseITSMNodes(r, input.Workflow.CanvasData) {
+		response.ForbiddenCode(w, r, i18n.ErrForbidden)
 		return
 	}
 
-	wf, err := h.service.Import(input)
+	wf, err := h.service.Import(r.Context(), input)
 	if err != nil {
 		if errors.Is(err, ErrInvalidWorkflowExport) {
 			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 			return
 		}
+		if h.refuseWorkflowSave(w, r, input.Workflow.OriginalID, "import", err) {
+			return
+		}
 		h.app.Logger.Error("workflows: import error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -189,7 +244,7 @@ func (h *Handler) HandleExecute(w http.ResponseWriter, r *http.Request) {
 
 	var input ExecuteInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -199,10 +254,10 @@ func (h *Handler) HandleExecute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the workflow
-	wf, err := h.service.Get(id)
+	wf, err := h.service.Get(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("workflows: execute get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if wf == nil {
@@ -218,7 +273,7 @@ func (h *Handler) HandleExecute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rc := http.NewResponseController(w)
-	_ = rc.SetWriteDeadline(time.Time{})
+	h.clearWriteDeadline(rc)
 
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -227,18 +282,26 @@ func (h *Handler) HandleExecute(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	sendEvent := func(event string, data interface{}) {
-		payload, _ := json.Marshal(data) // safe: all callers pass simple structs
-		fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, string(payload))
+		payload, err := json.Marshal(data)
+		if err != nil {
+			h.app.Logger.Error("workflows: marshal SSE event", "event", event, "error", err)
+		}
+		h.writeSSE(w, "event: %s\ndata: %s\n\n", event, string(payload))
 		flusher.Flush()
 	}
 
+	runUserID := ""
+	if runUser := auth.RequireAuth(r); runUser != nil {
+		runUserID = runUser.ID
+	}
 	result := h.service.ExecuteWorkflow(r.Context(), wf, workflowRunOptions{
 		WorkflowID:  id,
+		UserID:      runUserID,
 		Trigger:     "manual",
 		StartNodeID: input.TriggerNodeID,
 	}, sendEvent)
 
-	h.service.RecordRun(id, "manual", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
+	h.service.RecordRun(r.Context(), id, "manual", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
 }
 
 // HandleLiveEvents streams background execution events for a workflow via SSE.
@@ -252,7 +315,7 @@ func (h *Handler) HandleLiveEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rc := http.NewResponseController(w)
-	_ = rc.SetWriteDeadline(time.Time{})
+	h.clearWriteDeadline(rc)
 
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -260,7 +323,7 @@ func (h *Handler) HandleLiveEvents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Accel-Buffering", "no")
 	w.WriteHeader(http.StatusOK)
 
-	fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n")
+	h.writeSSE(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n")
 	flusher.Flush()
 
 	ch := h.hub.Subscribe(id)
@@ -275,7 +338,7 @@ func (h *Handler) HandleLiveEvents(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", evt.Event, string(evt.Data))
+			h.writeSSE(w, "event: %s\ndata: %s\n\n", evt.Event, string(evt.Data))
 			flusher.Flush()
 		}
 	}
@@ -286,10 +349,10 @@ func (h *Handler) HandleListRuns(w http.ResponseWriter, r *http.Request) {
 	page, perPage := response.ParsePagination(r)
 	workflowID := r.URL.Query().Get("workflow_id")
 
-	runs, total, err := h.service.ListRuns(workflowID, page, perPage)
+	runs, total, err := h.service.ListRuns(r.Context(), workflowID, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("workflows: list runs error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -298,10 +361,10 @@ func (h *Handler) HandleListRuns(w http.ResponseWriter, r *http.Request) {
 
 // HandleListLinkOutputs returns all link-out nodes across workflows.
 func (h *Handler) HandleListLinkOutputs(w http.ResponseWriter, r *http.Request) {
-	outputs, err := h.service.ListLinkOutputs()
+	outputs, err := h.service.ListLinkOutputs(r.Context())
 	if err != nil {
 		h.app.Logger.Error("workflows: list link outputs error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrLinkOutputListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrLinkOutputListFailed, err)
 		return
 	}
 
@@ -382,4 +445,37 @@ func emitDebugNodeEvent(sendEvent func(string, interface{}), node *CanvasNode, o
 		Data:    data,
 		Source:  "debug-node",
 	})
+}
+
+// mayUseITSMNodes refuses a canvas with ticket action nodes to a caller
+// without alerts.manage: the run opens real tickets as the system, so the
+// check belongs to whoever puts the node there.
+func (h *Handler) mayUseITSMNodes(r *http.Request, canvas string) bool {
+	if !canvasHasITSMActions(canvas) {
+		return true
+	}
+	user := auth.RequireAuth(r)
+	if user == nil || h.app.RBACService == nil {
+		return false
+	}
+	ok, err := h.app.RBACService.HasPermission(r.Context(), user.ID, "", rbac.PermAlertsManage)
+	if err != nil {
+		h.app.Logger.Error("workflows: permission check failed", "error", err)
+		return false
+	}
+	return ok
+}
+
+// clearWriteDeadline lifts the server write deadline so a long-lived SSE stream is not cut off; a writer that cannot do so is only logged.
+func (h *Handler) clearWriteDeadline(rc *http.ResponseController) {
+	if err := rc.SetWriteDeadline(time.Time{}); err != nil {
+		h.app.Logger.Debug("workflows: cannot clear write deadline", "error", err)
+	}
+}
+
+// writeSSE writes one SSE frame and logs a failed write, since a disconnected client is expected and has no one to report to.
+func (h *Handler) writeSSE(w http.ResponseWriter, format string, args ...any) {
+	if _, err := fmt.Fprintf(w, format, args...); err != nil {
+		h.app.Logger.Debug("workflows: SSE write failed", "error", err)
+	}
 }

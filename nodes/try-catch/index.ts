@@ -4,25 +4,20 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const tryCatch: NodeDefinition = {
-  "key": "try-catch",
-  "label": "Try Catch",
-  "category": "logic",
-  "description": "Guard downstream execution and route failures into a catch branch",
-  "icon": "IconShieldCheck",
-  "configSchema": [
+  key: 'try-catch',
+  label: 'Try Catch',
+  category: 'logic',
+  description: 'Guard downstream execution and route failures into a catch branch',
+  icon: 'IconShieldCheck',
+  configSchema: [
     {
-      "key": "error_property",
-      "label": "Error Property",
-      "type": "expression",
-      "required": false,
-      "default": "error"
-    }
+      key: 'error_property',
+      label: 'Error Property',
+      type: 'expression',
+      required: false,
+      default: 'error',
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "catch"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'catch'],
 };

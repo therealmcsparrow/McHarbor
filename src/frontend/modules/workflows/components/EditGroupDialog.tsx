@@ -1,21 +1,22 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useTranslation } from "react-i18next";
-import { cn } from "@resources/utils/cn";
-import { Button } from "@resources/components/ui/Button";
-import { ct } from "../canvas-theme";
-import type { EditGroupDialogState } from "./useCanvasContextMenus";
+import { cssVars } from '@resources/utils/cssVars';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@resources/utils/cn';
+import { Button } from '@resources/components/ui/Button';
+import { ct } from '../canvas-theme';
+import type { EditGroupDialogState } from './useCanvasContextMenus';
 
 const GROUP_COLORS = [
-  "#3b82f6",
-  "#8b5cf6",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
-  "#ec4899",
-  "#06b6d4",
-  "#f97316",
+  'var(--chart-5)',
+  'var(--chart-3)',
+  'var(--chart-2)',
+  'var(--chart-4)',
+  'var(--chart-6)',
+  'var(--chart-7)',
+  'var(--chart-1)',
+  'var(--chart-8)',
 ];
 
 interface EditGroupDialogProps {
@@ -26,43 +27,30 @@ interface EditGroupDialogProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
-export function EditGroupDialog({
-  dialog,
-  onChange,
-  onCommit,
-  onCancel,
-  inputRef,
-}: EditGroupDialogProps) {
-  const { t } = useTranslation("common");
+export function EditGroupDialog({ dialog, onChange, onCommit, onCancel, inputRef }: EditGroupDialogProps) {
+  const { t } = useTranslation('common');
 
   return (
-    <div
-      className={`absolute inset-0 z-50 flex items-center justify-center ${ct.backdrop}`}
-    >
+    <div className={`absolute inset-0 z-50 flex items-center justify-center ${ct.backdrop}`}>
       <div
         className="w-72 rounded-lg border border-border bg-card p-4 shadow-xl"
+        role="presentation"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <p className="mb-3 text-xs font-medium text-foreground">
-          {t("workflows.editGroup")}
-        </p>
-        <label className="mb-1 block text-[10px] text-muted-foreground">
-          {t("workflows.groupNameLabel")}
-        </label>
+        <p className="mb-3 text-xs font-medium text-foreground">{t('workflows.editGroup')}</p>
+        <label className="mb-1 block text-[10px] text-muted-foreground">{t('workflows.groupNameLabel')}</label>
         <input
           ref={inputRef}
           value={dialog.name}
           onChange={(e) => onChange({ ...dialog, name: e.target.value })}
           onKeyDown={(e) => {
-            if (e.key === "Enter") onCommit();
-            if (e.key === "Escape") onCancel();
+            if (e.key === 'Enter') onCommit();
+            if (e.key === 'Escape') onCancel();
           }}
-          placeholder={t("workflows.groupName")}
-          className="mb-3 h-8 w-full rounded-md border border-input bg-transparent px-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
+          placeholder={t('workflows.groupName')}
+          className="mc-control mb-3 w-full rounded-md border border-input bg-transparent px-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
         />
-        <label className="mb-1.5 block text-[10px] text-muted-foreground">
-          {t("workflows.groupColorLabel")}
-        </label>
+        <label className="mb-1.5 block text-[10px] text-muted-foreground">{t('workflows.groupColorLabel')}</label>
         <div className="mb-4 flex flex-wrap gap-1.5">
           {GROUP_COLORS.map((c) => (
             <Button
@@ -70,24 +58,22 @@ export function EditGroupDialog({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={t("workflows.selectColor", { color: c })}
+              aria-label={t('workflows.selectColor', { color: c })}
               onClick={() => onChange({ ...dialog, color: c })}
               className={cn(
-                "size-6 rounded-md border-2 transition-all",
-                dialog.color === c
-                  ? `${ct.pickerBorder} scale-110`
-                  : `border-transparent ${ct.pickerBorderHover}`,
+                'size-6 rounded-md border-2 bg-(--swatch) transition-all',
+                dialog.color === c ? `${ct.pickerBorder} scale-110` : `border-transparent ${ct.pickerBorderHover}`,
               )}
-              style={{ backgroundColor: c }}
+              style={cssVars({ swatch: c })}
             />
           ))}
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onCancel}>
-            {t("actions.cancel")}
+            {t('actions.cancel')}
           </Button>
           <Button size="sm" onClick={onCommit}>
-            {t("actions.save")}
+            {t('actions.save')}
           </Button>
         </div>
       </div>

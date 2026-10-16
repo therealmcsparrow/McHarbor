@@ -1,0 +1,16 @@
+{
+  "slug": "comm-alertmanager-webhook",
+  "name": "Alertmanager webhook",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Generic on-call channel. Sends McHarbor alerts as Prometheus Alertmanager webhook v4 payloads, one group per condition, to any receiver that ingests Alertmanager: Grafana Cloud IRM, Squadcast, Zenduty, Keep and others.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-alertmanager-webhook-2026.09.01.tar.gz"
+    }
+  ]
+}

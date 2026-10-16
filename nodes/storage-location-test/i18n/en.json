@@ -1,0 +1,9 @@
+{
+  "label": "Storage Location Test",
+  "description": "Run the connection test for a storage location and optionally read its capacity",
+  "config": {
+    "storage_location_id": "Storage Location",
+    "include_usage": "Include Usage",
+    "fail_on_warn": "Fail On Warning"
+  }
+}

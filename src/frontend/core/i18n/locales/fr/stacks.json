@@ -7,6 +7,28 @@
   "tableView": "Vue tableau",
   "cardView": "Vue carte",
   "columns": {
+    "id": "ID",
+    "type": "Type",
+    "orchestrator": "Orchestrateur",
+    "createdAt": "Créé",
+    "updatedAt": "Mis à jour",
+    "protected": "Protégée",
+    "environment": "Environnement",
+    "containerIds": "ID des conteneurs",
+    "owner": "Propriétaire",
+    "groupOwner": "Propriétaire",
+    "groupStack": "Stack",
+    "groupEnvironment": "Environnement",
+    "groupContainers": "Conteneurs",
+    "containerName": "Nom du conteneur",
+    "statusText": "Statut",
+    "imageId": "ID de l'image",
+    "command": "Commande",
+    "networks": "Réseaux",
+    "ipAddresses": "Adresses IP",
+    "volumes": "Volumes",
+    "labels": "Labels",
+    "groupContainer": "Conteneur",
     "name": "Nom",
     "status": "Statut",
     "services": "Services",
@@ -16,8 +38,8 @@
     "created": "Créé"
   },
   "badges": {
-    "managed": "géré",
-    "discovered": "découvert"
+    "managed": "Géré",
+    "discovered": "Découvert"
   },
   "actions": {
     "view": "Afficher les détails",
@@ -92,6 +114,8 @@
     "composeFile": "Fichier Compose",
     "editCompose": "Modifier",
     "saveCompose": "Sauvegarder",
+    "revealComposeValues": "Révéler les valeurs",
+    "hideComposeValues": "Masquer les valeurs",
     "readOnly": "Lecture seule (pile découverte)",
     "envVars": "Variables d'environnement",
     "noEnvVars": "Aucune variable d'environnement configurée.",
@@ -107,7 +131,10 @@
     "loadingLayers": "Chargement des calques...",
     "webhooks": "Webhooks",
     "editMode": "Modifier",
-    "descriptionPlaceholder": "Description de la pile..."
+    "descriptionPlaceholder": "Description de la pile...",
+    "tabs": {
+      "ariaLabel": "Sections du stack"
+    }
   },
   "webhooks": {
     "title": "Webhooks",
@@ -117,7 +144,7 @@
     "secret": "Secrète",
     "events": "Événements",
     "active": "Actif",
-    "test": "Test",
+    "test": "Tester",
     "testing": "Essai...",
     "testSuccess": "Webhook livré avec succès",
     "testFailed": "Échec de la livraison du webhook",
@@ -138,19 +165,21 @@
     "button": "Tailler les orphelins",
     "pruning": "Taille...",
     "noOrphans": "Aucun service orphelin trouvé",
-    "removed": "Service(s) orphelin(s) {{count}} supprimé"
+    "removed_one": "Service orphelin {{count}} supprimé",
+    "removed_other": "Services orphelins {{count}} supprimé"
   },
   "editStack": {
     "editStack": "Modifier la pile",
     "saveStack": "Sauvegarder",
     "saving": "Économie...",
-    "cancel": "Annuler",
-    "envVarsSaved": "Variables d'environnement enregistrées"
+    "cancel": "Annuler"
   },
   "confirm": {
     "removeTitle": "Supprimer la pile",
     "removeDescription": "Cela arrêtera et supprimera tous les conteneurs dans \"{{name}}\" et le supprimera définitivement.",
-    "removeLabel": "Retirer"
+    "removeLabel": "Retirer",
+    "downTitle": "Arrêter et retirer la stack",
+    "downDescription": "Cela arrête et supprime tous les conteneurs et réseaux de « {{name}} ». Les volumes et la définition de la stack sont conservés."
   },
   "takeOver": {
     "title": "Reprendre la gestion",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Réinstaller toutes les piles",
-      "reinstallAllDescription": "Forcer la recréation des piles gérées {{count}} avec leurs images actuelles. Cela peut interrompre brièvement les services en cours d'exécution."
+      "reinstallAllDescription_one": "Forcer la recréation de {{count}} pile gérée avec ses images actuelles. Cela peut interrompre brièvement les services en cours d'exécution.",
+      "reinstallAllDescription_other": "Forcer la recréation de {{count}} piles gérées avec leurs images actuelles. Cela peut interrompre brièvement les services en cours d'exécution."
     }
   },
   "toast": {
@@ -216,6 +246,13 @@
     "webhookUpdated": "Webhook mis à jour",
     "webhookDeleted": "Webhook supprimé",
     "envVarsSaved": "Variables d'environnement enregistrées",
-    "pruned": "Service(s) orphelin(s) {{count}} élagué(s)"
+    "pruned_one": "Service orphelin {{count}} élagué",
+    "pruned_other": "Services orphelins {{count}} élagués"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "En attente du retour en ligne de l'API McHarbor...",
+      "apiRecoveryTimeout": "L'API McHarbor n'est pas revenue en ligne à temps."
+    }
   }
 }

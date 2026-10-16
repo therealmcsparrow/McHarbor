@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "golang-error-handling": {
+      "source": "samber/cc-skills-golang",
+      "sourceType": "github",
+      "skillPath": "skills/golang-error-handling/SKILL.md",
+      "computedHash": "70b03b07e53337211b721207dc2ce3121454de13aad02e808325c25e80ff2312"
+    },
+    "golang-lint": {
+      "source": "samber/cc-skills-golang",
+      "sourceType": "github",
+      "skillPath": "skills/golang-lint/SKILL.md",
+      "computedHash": "de0a45cd53e3abeabb448ce98fa4ca823a2ecd26ff288fa4c80dbf93fced6b08"
+    },
+    "golang-security": {
+      "source": "samber/cc-skills-golang",
+      "sourceType": "github",
+      "skillPath": "skills/golang-security/SKILL.md",
+      "computedHash": "29b81afb21c8c63d4d2f8e1673d6bac9a423a283158e816c58b67240a0137ef6"
+    }
+  }
+}

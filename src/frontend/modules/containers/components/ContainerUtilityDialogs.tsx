@@ -14,11 +14,11 @@ import {
 } from '@resources/components/ui/Dialog';
 import type { ContainerInfo } from '@core/types/docker';
 import type { BatchProgressDialogState } from '@resources/hooks/useBatchProgressOperation';
-import { LogsModal } from './LogsModal';
+import { LogsPanel } from './LogsPanel';
 import { MoveContainerDialog } from './MoveContainerDialog';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
 import { RenameContainerDialog } from './RenameContainerDialog';
-import { TerminalModal } from './TerminalModal';
+import { TerminalPanel } from './TerminalPanel';
 
 type ContainerUtilityDialogsProps = {
   removeTarget: ContainerInfo | null;
@@ -67,7 +67,7 @@ export function ContainerUtilityDialogs({
             : null
         }
         open={renameTarget !== null}
-        onOpenChange={(open) => !open && setRenameTarget(null)}
+        onOpenChange={(isOpen2) => !isOpen2 && setRenameTarget(null)}
       />
 
       <RemoveContainerDialog
@@ -83,7 +83,7 @@ export function ContainerUtilityDialogs({
             : null
         }
         open={removeTarget !== null}
-        onOpenChange={(open) => !open && setRemoveTarget(null)}
+        onOpenChange={(isOpen2) => !isOpen2 && setRemoveTarget(null)}
       />
 
       <MoveContainerDialog
@@ -98,38 +98,38 @@ export function ContainerUtilityDialogs({
             : null
         }
         open={moveTarget !== null}
-        onOpenChange={(open) => !open && setMoveTarget(null)}
+        onOpenChange={(isOpen2) => !isOpen2 && setMoveTarget(null)}
       />
 
-      <Dialog open={terminalTarget !== null} onOpenChange={(open) => !open && setTerminalTarget(null)}>
+      <Dialog open={terminalTarget !== null} onOpenChange={(isOpen2) => !isOpen2 && setTerminalTarget(null)}>
         <DialogContent className="max-w-4xl p-0">
           <DialogHeader className="px-4 py-3">
             <DialogTitle className="flex items-center gap-2 text-sm">
-              <IconTerminal2 className="h-4 w-4 text-violet-400" />
+              <IconTerminal2 className="h-4 w-4 text-chart-3" />
               {t('terminal.title', { name: terminalTarget?.Names?.[0]?.replace(/^\//, '') ?? '' })}
             </DialogTitle>
             <DialogDescription className="sr-only">{t('terminal.description')}</DialogDescription>
           </DialogHeader>
           {terminalTarget && (
             <DialogBody className="p-0">
-              <TerminalModal containerId={terminalTarget.Id} />
+              <TerminalPanel containerId={terminalTarget.Id} />
             </DialogBody>
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={logsTarget !== null} onOpenChange={(open) => !open && setLogsTarget(null)}>
+      <Dialog open={logsTarget !== null} onOpenChange={(dialogOpen) => !dialogOpen && setLogsTarget(null)}>
         <DialogContent className="max-w-4xl p-0">
           <DialogHeader className="px-4 py-3">
             <DialogTitle className="flex items-center gap-2 text-sm">
-              <IconFileText className="h-4 w-4 text-cyan-400" />
+              <IconFileText className="h-4 w-4 text-chart-1" />
               {t('logs.title', { name: logsTarget?.Names?.[0]?.replace(/^\//, '') ?? '' })}
             </DialogTitle>
             <DialogDescription className="sr-only">{t('logs.description')}</DialogDescription>
           </DialogHeader>
           {logsTarget && (
             <DialogBody className="p-0">
-              <LogsModal containerId={logsTarget.Id} isRunning={logsTarget.State === 'running'} />
+              <LogsPanel containerId={logsTarget.Id} isRunning={logsTarget.State === 'running'} />
             </DialogBody>
           )}
         </DialogContent>
@@ -137,7 +137,7 @@ export function ContainerUtilityDialogs({
 
       <TakeOverDialog
         open={takeOverTarget !== null}
-        onOpenChange={(open) => !open && setTakeOverTarget(null)}
+        onOpenChange={(isOpen) => !isOpen && setTakeOverTarget(null)}
         containerId={takeOverTarget?.Id}
         containerName={takeOverTarget?.Names?.[0]?.replace(/^\//, '')}
       />

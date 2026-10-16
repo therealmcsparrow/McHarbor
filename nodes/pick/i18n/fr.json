@@ -1,8 +1,0 @@
-{
-  "label": "Prendre",
-  "description": "Conserver uniquement les champs sélectionnés sur un objet",
-  "config": {
-    "property": "Propriété",
-    "fields": "Champs"
-  }
-}

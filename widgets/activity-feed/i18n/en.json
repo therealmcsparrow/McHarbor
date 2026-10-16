@@ -8,6 +8,9 @@
   "activityFeedWidget": {
     "title": "Activity Feed",
     "loadingActivity": "Loading activity...",
-    "noRecentActivity": "No recent activity"
+    "noRecentActivity": "No recent activity",
+    "more": "{{count}} more",
+    "viewAll": "View activity",
+    "justNow": "just now"
   }
 }

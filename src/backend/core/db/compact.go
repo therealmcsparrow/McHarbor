@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package db opens the database, applies migrations and hides the SQLite, Postgres, MySQL and SQL Server differences from callers.
 package db
 
 import (
@@ -42,10 +43,10 @@ func NewCompactManager(db *sql.DB, logger *slog.Logger) *CompactManager {
 
 // VacuumState describes the current state of the background vacuum.
 type VacuumState struct {
-	Running     bool      `json:"running"`
-	LastRunAt   time.Time `json:"lastRunAt"`
-	LastBytes   int64     `json:"lastBytes"`
-	StartedAt   time.Time `json:"startedAt,omitempty"`
+	Running   bool      `json:"running"`
+	LastRunAt time.Time `json:"lastRunAt"`
+	LastBytes int64     `json:"lastBytes"`
+	StartedAt time.Time `json:"startedAt,omitempty"`
 }
 
 // State returns a snapshot of the vacuum state for status endpoints.
@@ -79,6 +80,12 @@ func (c *CompactManager) CheckpointAndVacuum(ctx context.Context) VacuumState {
 	startedAt := time.Now()
 	c.mu.Unlock()
 
+	// The VACUUM outlives the request that triggered it, so it keeps the request's values but not its cancellation.
+	bg := context.WithoutCancel(ctx)
+
+	// goroutine lifecycle: one VACUUM, then done. The deferred block clears
+	// `running` on every path including a panic, so a failed vacuum cannot
+	// leave the compactor permanently marked busy.
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -91,14 +98,18 @@ func (c *CompactManager) CheckpointAndVacuum(ctx context.Context) VacuumState {
 		}()
 
 		c.logger.Info("starting database vacuum", "started_at", startedAt)
-		if _, err := c.db.Exec("VACUUM"); err != nil {
+		if _, err := c.db.ExecContext(bg, "VACUUM"); err != nil {
 			c.logger.Error("vacuum failed", "error", err, "duration", time.Since(startedAt))
 			return
 		}
 
 		var pageSize, pageCount int64
-		_ = c.db.QueryRow("PRAGMA page_size").Scan(&pageSize)
-		_ = c.db.QueryRow("PRAGMA page_count").Scan(&pageCount)
+		if err := c.db.QueryRowContext(bg, "PRAGMA page_size").Scan(&pageSize); err != nil {
+			c.logger.Warn("reading page size failed", "error", err)
+		}
+		if err := c.db.QueryRowContext(bg, "PRAGMA page_count").Scan(&pageCount); err != nil {
+			c.logger.Warn("reading page count failed", "error", err)
+		}
 		size := pageSize * pageCount
 		c.mu.Lock()
 		c.lastSize = size

@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": { "help": "Display name for this Gotify communication channel." },
+    "server_url": { "help": "Base URL of the Gotify server." },
+    "token": { "help": "Gotify application token. Stored encrypted at rest." },
+    "priority": { "help": "Optional Gotify priority integer." }
+  },
+  "title": "Gotify notification delivery",
+  "subtitle": "Plugin-owned",
+  "description": "This plugin owns the Gotify. It stores Gotify connection settings on the channel itself and dispatches notifications through the plugin runtime.",
+  "nameLabel": "Channel name",
+  "namePlaceholder": "Operations Gotify",
+  "serverUrlLabel": "Server URL",
+  "tokenLabel": "Application token",
+  "priorityLabel": "Priority",
+  "securityTitle": "Security",
+  "securityHelp": "Encrypted application token",
+  "securityDescription": "The Gotify application token is stored encrypted at rest. Use a dedicated application token for McHarbor so it can be rotated independently.",
+  "testTitle": "Test connection",
+  "testHelp": "Sends message",
+  "testDescription": "The host test action posts a real message to the configured Gotify application. Use a test application first if the token notifies production devices.",
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "requiredField": "Required",
+  "setupGuideTitle": "Gotify communication channel setup guide",
+  "guide": {
+    "step1": { "body": "Open your Gotify server and create a dedicated application for McHarbor notifications." },
+    "step2": { "body": "Copy the application token and paste it into this channel configuration. McHarbor stores it encrypted at rest and redacts it from API responses." },
+    "step3": { "body": "Set <b>Server URL</b> to the Gotify base URL, for example <code>https://gotify.example.com</code>, without the <code>/message</code> path." },
+    "step4": { "body": "Optionally set <b>Priority</b> as an integer if your Gotify clients use priority-based notification rules." },
+    "step5": { "body": "Save the channel and click <b>Test connection</b>. The plugin posts a real test message through the same path used for live workflow, alert, and backup events." },
+    "step6": { "body": "If Test fails, verify the server URL, application token, reverse proxy path, and TLS certificate trust." }
+  }
+}

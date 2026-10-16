@@ -2,6 +2,7 @@
   "label": "Déclencheur de planification",
   "description": "Exécuter un flux de travail selon une planification basée sur cron",
   "config": {
-    "cron": "Expression Cron"
+    "cron": "Expression Cron",
+    "timezone": "Fuseau horaire"
   }
 }

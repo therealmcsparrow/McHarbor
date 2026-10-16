@@ -6,6 +6,8 @@ package alerts
 import (
 	"errors"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -16,60 +18,35 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-// Alert represents an alert rule.
-type Alert struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Severity  string `json:"severity"`
-	Type      string `json:"type"`      // cpu, memory, disk, container_down, image_update
-	Condition string `json:"condition"` // threshold expression, e.g. "> 80%"
-	Target    string `json:"target"`    // container name/pattern, or "*" for all
-	ChannelID string `json:"channelId"` // notification channel to fire
-	SendInApp bool   `json:"sendInApp"`
-	Enabled   bool   `json:"enabled"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
-}
-
-// CreateAlertInput is the request body for creating an alert rule.
-type CreateAlertInput struct {
-	Name      string `json:"name"`
-	Severity  string `json:"severity"`
-	Type      string `json:"type"`
-	Condition string `json:"condition"`
-	Target    string `json:"target"`
-	ChannelID string `json:"channelId"`
-	SendInApp bool   `json:"sendInApp"`
-}
-
-// UpdateAlertInput is the request body for updating an alert rule.
-type UpdateAlertInput struct {
-	Name      *string `json:"name"`
-	Severity  *string `json:"severity"`
-	Type      *string `json:"type"`
-	Condition *string `json:"condition"`
-	Target    *string `json:"target"`
-	ChannelID *string `json:"channelId"`
-	SendInApp *bool   `json:"sendInApp"`
-	Enabled   *bool   `json:"enabled"`
-}
-
-var validAlertSeverities = map[string]bool{
-	"critical": true,
-	"warning":  true,
-	"info":     true,
-}
-
 // Handler holds dependencies for alert HTTP handlers.
 type Handler struct {
-	app     *router.AppDeps
-	service *Service
+	app      *router.AppDeps
+	service  *Service
+	notifier *notifier
 }
 
 // NewHandler creates a new alerts handler.
 func NewHandler(app *router.AppDeps) *Handler {
-	svc := NewService(app.DB)
-	return &Handler{app: app, service: svc}
+	return &Handler{
+		app:      app,
+		service:  NewService(app.DB),
+		notifier: newNotifier(app.DB, app.Encryption, app.Logger),
+	}
+}
+
+// HandleConditions returns every condition that can be alerted on.
+//
+// The catalog is assembled at request time rather than cached: a
+// plugin installed a minute ago should show its conditions without a
+// restart, and the assembly is a walk over a handful of in-memory
+// specs.
+func (h *Handler) HandleConditions(w http.ResponseWriter, r *http.Request) {
+	if user := coreauth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	response.OK(w, registry.catalog())
 }
 
 // HandleList returns a paginated list of alert rules.
@@ -84,7 +61,31 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	items, total, err := h.service.List(r.Context(), page, perPage)
 	if err != nil {
 		h.app.Logger.Error("alerts: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrAlertListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrAlertListFailed, err)
+		return
+	}
+
+	response.Paginated(w, items, total, page, perPage)
+}
+
+// HandleEvents returns a paginated slice of alert history.
+func (h *Handler) HandleEvents(w http.ResponseWriter, r *http.Request) {
+	if user := coreauth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	page, perPage := response.ParsePagination(r)
+	filter := EventFilter{
+		AlertID:  r.URL.Query().Get("alertId"),
+		State:    r.URL.Query().Get("state"),
+		Severity: r.URL.Query().Get("severity"),
+	}
+
+	items, total, err := h.service.Events(r.Context(), filter, page, perPage)
+	if err != nil {
+		h.app.Logger.Error("alerts: event list error", "error", err)
+		response.InternalErrorCause(w, r, i18n.ErrAlertEventListFailed, err)
 		return
 	}
 
@@ -100,15 +101,15 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	var input CreateAlertInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
-	if input.Name == "" {
+	if strings.TrimSpace(input.Name) == "" {
 		response.BadRequestCode(w, r, i18n.ErrAlertNameRequired)
 		return
 	}
-	if input.Type == "" {
+	if strings.TrimSpace(input.ConditionKey) == "" || strings.TrimSpace(input.SourceType) == "" {
 		response.BadRequestCode(w, r, i18n.ErrAlertTypeRequired)
 		return
 	}
@@ -119,12 +120,12 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	alert, err := h.service.Create(r.Context(), input)
 	if err != nil {
-		if errors.Is(err, errAlertDestinationRequired) {
-			response.BadRequestCode(w, r, i18n.ErrAlertDestinationRequired)
+		if code, ok := alertErrorCode(err); ok {
+			response.BadRequestCode(w, r, code)
 			return
 		}
 		h.app.Logger.Error("alerts: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrAlertCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrAlertCreateFailed, err)
 		return
 	}
 
@@ -149,7 +150,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateAlertInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if input.Severity != nil && *input.Severity != "" && !validAlertSeverities[*input.Severity] {
@@ -159,12 +160,12 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	alert, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
-		if errors.Is(err, errAlertDestinationRequired) {
-			response.BadRequestCode(w, r, i18n.ErrAlertDestinationRequired)
+		if code, ok := alertErrorCode(err); ok {
+			response.BadRequestCode(w, r, code)
 			return
 		}
 		h.app.Logger.Error("alerts: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrAlertUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrAlertUpdateFailed, err)
 		return
 	}
 	if alert == nil {
@@ -191,10 +192,16 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
+	// Read before the delete: afterwards there is no row left to name.
+	name := ""
+	if alert, alertErr := h.service.ByID(r.Context(), id); alertErr == nil && alert != nil {
+		name = alert.Name
+	}
+
 	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("alerts: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrAlertRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrAlertRemoveFailed, err)
 		return
 	}
 
@@ -207,7 +214,119 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		Action:     "alert.deleted",
 		EntityType: "alert",
 		EntityID:   id,
+		EntityName: name,
 	})
 
 	response.NoContent(w)
+}
+
+// HandleTest fires a sample alert through a rule's real destinations.
+//
+// It deliberately goes through the same notifier the engine uses,
+// severity filtering included: a test that took a shortcut would prove
+// the channel works while saying nothing about whether this rule would
+// ever reach it.
+func (h *Handler) HandleTest(w http.ResponseWriter, r *http.Request) {
+	if user := coreauth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+
+	alert, err := h.service.ByID(r.Context(), id)
+	if err != nil {
+		h.app.Logger.Error("alerts: test lookup error", "error", err, "id", id)
+		response.InternalErrorCause(w, r, i18n.ErrAlertTestFailed, err)
+		return
+	}
+	if alert == nil {
+		response.NotFoundCode(w, r, i18n.ErrAlertNotFound)
+		return
+	}
+
+	decl, ok := registry.condition(alert.SourceType, alert.ConditionKey)
+	if !ok {
+		response.BadRequestCode(w, r, i18n.ErrAlertConditionUnknown)
+		return
+	}
+
+	message := renderMessage(alert.MessageTemplate, messageContext{
+		AlertName:       alert.Name,
+		Severity:        alert.Severity,
+		State:           EventStateFiring,
+		ConditionName:   decl.DisplayName,
+		ConditionRule:   conditionDisplay(alert.Condition, decl),
+		EnvironmentName: "test",
+		SubjectName:     "test-subject",
+		ValueLabel:      "sample value",
+		Threshold:       formatFloat(alert.Condition.Threshold) + alert.Condition.Unit,
+		AlertID:         alert.ID,
+		SubjectID:       "test-subject",
+		Operator:        alert.Condition.Operator,
+		Now:             time.Now(),
+	})
+
+	deliveries := h.notifier.deliver(r.Context(), *alert, deliveryInput{Title: alertTitle(*alert, EventStateFiring), Message: message, State: EventStateFiring})
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "alert.tested",
+		EntityType: "alert",
+		EntityID:   alert.ID,
+		EntityName: alert.Name,
+	})
+
+	response.OK(w, map[string]any{
+		"deliveries": deliveries,
+		"message":    message,
+	})
+}
+
+// alertErrorCode maps the service's sentinel errors onto client-safe
+// i18n codes. Anything unmapped is a server error the caller should
+// not be told the details of.
+func alertErrorCode(err error) (i18n.MsgCode, bool) {
+	switch {
+	case errors.Is(err, errAlertDestinationRequired):
+		return i18n.ErrAlertDestinationRequired, true
+	case errors.Is(err, errAlertConditionUnknown):
+		return i18n.ErrAlertConditionUnknown, true
+	case errors.Is(err, errConditionInvalid):
+		return i18n.ErrAlertConditionInvalid, true
+	default:
+		return "", false
+	}
+}
+
+// HandleTemplateReference returns the variables, the chosen condition's context
+// keys and example templates for the rule editor's reference panel.
+func (h *Handler) HandleTemplateReference(w http.ResponseWriter, r *http.Request) {
+	if user := coreauth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	q := r.URL.Query()
+	response.OK(w, Reference(q.Get("source"), q.Get("condition")))
+}
+
+// HandleTemplatePreview renders a draft template with sample values; it stores
+// and sends nothing.
+func (h *Handler) HandleTemplatePreview(w http.ResponseWriter, r *http.Request) {
+	if user := coreauth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	var in TemplatePreviewInput
+	if err := response.DecodeBody(r, &in); err != nil || len(in.Template) > 4000 {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	conditionName, unit := "", in.Condition.Unit
+	if decl, ok := registry.condition(in.SourceType, in.ConditionKey); ok {
+		conditionName = decl.DisplayName
+		if unit == "" {
+			unit = decl.Unit
+		}
+	}
+	response.OK(w, Preview(in, conditionName, unit))
 }

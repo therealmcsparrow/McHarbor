@@ -4,7 +4,7 @@
     "description":  "Worker that executes pipeline steps for a Woodpecker CI server.",
     "category":  "Developer Tools",
     "image":  "woodpeckerci/woodpecker-agent:latest",
-    "logo":  "https://icon.horse/icon/woodpecker-ci.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=woodpecker-ci.org\u0026sz=128",
     "website":  "https://woodpecker-ci.org",
     "docsUrl":  "https://woodpecker-ci.org/docs/intro",
     "ports":  [
@@ -42,5 +42,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

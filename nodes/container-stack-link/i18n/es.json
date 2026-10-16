@@ -1,10 +1,10 @@
 {
-  "label": "Link Container To Stack",
-  "description": "Create or replace the manual stack link for a container",
+  "label": "Vincular contenedor a stack",
+  "description": "Crea o reemplaza el vínculo manual de un contenedor con un stack",
   "config": {
-    "environment": "Environment",
-    "container": "Container",
-    "stack_name": "Stack Name",
-    "service_name": "Service Name"
+    "environment": "Entorno",
+    "container": "Contenedor",
+    "stack_name": "Nombre del stack",
+    "service_name": "Nombre del servicio"
   }
 }

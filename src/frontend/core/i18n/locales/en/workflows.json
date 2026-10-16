@@ -1,0 +1,20 @@
+{
+  "sniffer": {
+    "defaultName": "Sniffer"
+  },
+  "containerSelect": {
+    "idLabel": "ID: {{id}}"
+  },
+  "debugTab": {
+    "durationMs": "{{ms}}ms"
+  },
+  "linkOutputSelect": {
+    "unnamed": "Unnamed"
+  },
+  "edgeLabel": {
+    "placeholder": "label"
+  },
+  "configField": {
+    "keyValuePlaceholder": "{\"key\": \"value\"}"
+  }
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "microcks",
+    "name":  "Microcks",
+    "description":  "API mocking and testing tool that turns OpenAPI, AsyncAPI, and gRPC contracts into live mocks.",
+    "category":  "Developer Tools",
+    "image":  "microcks/microcks-uber:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=microcks.io\u0026sz=128",
+    "website":  "https://microcks.io",
+    "docsUrl":  "https://microcks.io/documentation/guides/installation/docker-compose/",
+    "ports":  [
+                  {
+                      "host":  8092,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/microcks/data",
+                        "container":  "/deployments/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KEYCLOAK_ENABLED",
+                        "default":  "false",
+                        "description":  "Disable the bundled Keycloak auth requirement for a simple first boot"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

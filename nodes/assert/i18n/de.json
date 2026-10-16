@@ -1,6 +1,6 @@
 {
   "label": "Assert",
-  "description": "Assert that a condition is true and branch on the result",
+  "description": "Prüft, ob eine Bedingung wahr ist, und verzweigt anhand des Ergebnisses",
   "config": {
     "field": "Feld",
     "operator": "Operator",
@@ -11,7 +11,7 @@
     "operator": {
       "==": "Gleich",
       "!=": "Ungleich",
-      "contains": "Contains",
+      "contains": "Enthält",
       "regex": "Entspricht Regex",
       "is_empty": "Ist leer",
       "is_not_empty": "Ist nicht leer"

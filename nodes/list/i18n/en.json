@@ -1,0 +1,20 @@
+{
+  "label": "List",
+  "description": "List containers, images, networks, volumes or stacks in an environment",
+  "config": {
+    "environment": "Environment",
+    "resource": "Resource",
+    "show_all": "Show All",
+    "name_filter": "Name Filter",
+    "filter_dangling": "Only Dangling"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Network",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

@@ -12,10 +12,12 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"sync"
 
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
+	"github.com/therealmcsparrow/mcharbor-agent/internal/errlog"
 )
 
 // hostTerminalSession tracks a live PTY-backed shell on the agent host.
@@ -71,10 +73,20 @@ type hostTerminalRegistry struct {
 
 var hostTerminals = &hostTerminalRegistry{sessions: make(map[string]*hostTerminalSession)}
 
-// handleHostTerminalStart spawns /bin/sh (or bash if available) under a PTY
-// and pipes its stdout/stderr to the WebSocket until the session ends.
+// hostUserPattern bounds the account name the server may ask us to become.
+// The server allowlists it too; this is the second half of that check,
+// because a compromised or simply older server must not be able to turn a
+// user name into extra arguments for runuser or su.
+var hostUserPattern = regexp.MustCompile(`^[a-z_][a-z0-9_-]{0,31}$`)
+
+// handleHostTerminalStart spawns a shell under a PTY and pipes its
+// stdout/stderr to the WebSocket until the session ends.
+//
+// Shell, User and WorkingDir are honoured when the payload carries them and
+// ignored when it does not, so an older server talking to this agent gets
+// exactly the previous behaviour.
 func (a *Agent) handleHostTerminalStart(ctx context.Context, conn *websocket.Conn, reqID string, payload HostTerminalStartPayload) {
-	shellPath, err := detectShell()
+	shellPath, err := resolveHostShell(payload.Shell)
 	if err != nil {
 		a.sendHostTerminalError(ctx, conn, reqID, err)
 		return
@@ -82,9 +94,26 @@ func (a *Agent) handleHostTerminalStart(ctx context.Context, conn *websocket.Con
 
 	id := "host-term-" + randHex(8)
 
-	cmd := exec.Command(shellPath)
+	cmd, err := buildHostShellCommand(ctx, shellPath, payload.User)
+	if err != nil {
+		a.sendHostTerminalError(ctx, conn, reqID, err)
+		return
+	}
+	if payload.WorkingDir != "" {
+		// An unusable directory would make exec fail with a message the
+		// operator cannot act on, so check it here and say which path.
+		info, statErr := os.Stat(payload.WorkingDir)
+		if statErr != nil || !info.IsDir() {
+			a.sendHostTerminalError(ctx, conn, reqID,
+				fmt.Errorf("working directory %s is not a directory on this host", payload.WorkingDir))
+			return
+		}
+		cmd.Dir = payload.WorkingDir
+	}
 	cmd.Env = append(os.Environ(),
 		"TERM=xterm-256color",
+		// The 24-bit hint, to match the two Docker-backed paths.
+		"COLORTERM=truecolor",
 		"MCHARBOR_HOST_TERMINAL=1",
 	)
 	winSize := pty.Winsize{Rows: 24, Cols: 80}
@@ -136,13 +165,13 @@ func (a *Agent) pumpHostTerminal(ctx context.Context, conn *websocket.Conn, reqI
 		hostTerminals.mu.Lock()
 		delete(hostTerminals.sessions, sess.id)
 		hostTerminals.mu.Unlock()
-		_ = sess.pty.Close()
+		errlog.Close(sess.pty)
 		if sess.cmd.Process != nil {
-			_ = sess.cmd.Process.Kill()
+			errlog.Log(sess.cmd.Process.Kill())
 		}
-		_ = sess.cmd.Wait()
+		errlog.Log(sess.cmd.Wait())
 		writeMu.Lock()
-		_ = conn.WriteJSON(WSMessage{Type: MsgHostTerminalEnd, ID: reqID})
+		errlog.Log(conn.WriteJSON(WSMessage{Type: MsgHostTerminalEnd, ID: reqID}))
 		writeMu.Unlock()
 	}()
 
@@ -222,6 +251,48 @@ func closeHostTerminal(id string) {
 }
 
 // detectShell picks a shell binary that exists on the agent host.
+// resolveHostShell returns the shell to start. A requested path is used only
+// when it exists and is executable - falling back to detection rather than
+// failing, because "the host does not have zsh" is not worth refusing a
+// session over, and detectShell is never wrong.
+func resolveHostShell(requested string) (string, error) {
+	if requested != "" {
+		if info, err := os.Stat(requested); err == nil && !info.IsDir() && info.Mode()&0o111 != 0 {
+			return requested, nil
+		}
+	}
+	return detectShell()
+}
+
+// buildHostShellCommand builds the command that starts the shell, switching
+// user when one was requested.
+//
+// runuser is preferred over su: it is the util-linux tool meant for exactly
+// this, skips PAM's password prompt when the caller is root, and takes the
+// command after a -- separator so a user name can never become an option.
+// su is the fallback for hosts without util-linux (BusyBox, mainly).
+func buildHostShellCommand(ctx context.Context, shellPath, user string) (*exec.Cmd, error) {
+	// The shell outlives the request that opened it and is torn down by the
+	// session, so the command gets the request values but not its cancellation.
+	ctx = context.WithoutCancel(ctx)
+	if user == "" {
+		return exec.CommandContext(ctx, shellPath), nil
+	}
+	if !hostUserPattern.MatchString(user) {
+		return nil, fmt.Errorf("invalid host user name")
+	}
+	if runuser, err := exec.LookPath("runuser"); err == nil {
+		return exec.CommandContext(ctx, runuser, "-u", user, "--", shellPath), nil
+	}
+	su, err := exec.LookPath("su")
+	if err != nil {
+		return nil, fmt.Errorf("cannot switch to user %s: neither runuser nor su is available on this host", user)
+	}
+	// Deliberately not `su -`: a login shell would cd to the account's home
+	// and discard the working directory the operator asked for.
+	return exec.CommandContext(ctx, su, "-s", shellPath, user), nil
+}
+
 func detectShell() (string, error) {
 	for _, candidate := range []string{"/bin/bash", "/usr/bin/bash", "/bin/sh", "/usr/bin/sh"} {
 		if info, err := os.Stat(candidate); err == nil && info.Mode()&0o111 != 0 {
@@ -235,10 +306,10 @@ func detectShell() (string, error) {
 func (a *Agent) sendHostTerminalError(ctx context.Context, conn *websocket.Conn, reqID string, err error) {
 	writeMu.Lock()
 	defer writeMu.Unlock()
-	_ = conn.WriteJSON(WSMessage{
+	errlog.Log(conn.WriteJSON(WSMessage{
 		Type:        MsgHostTerminalOutput,
 		ID:          reqID,
 		StreamChunk: &WSStreamChunk{Data: []byte("MCHARBOR_ERROR=" + err.Error() + "\n")},
-	})
-	_ = conn.WriteJSON(WSMessage{Type: MsgHostTerminalEnd, ID: reqID})
+	}))
+	errlog.Log(conn.WriteJSON(WSMessage{Type: MsgHostTerminalEnd, ID: reqID}))
 }

@@ -1,0 +1,35 @@
+{
+    "slug":  "apt-cacher-ng",
+    "name":  "apt-cacher-ng",
+    "description":  "Caching proxy for Debian and Ubuntu package repositories to speed up repeated apt installs.",
+    "category":  "Storage",
+    "image":  "sameersbn/apt-cacher-ng:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.unix-ag.uni-kl.de\u0026sz=128",
+    "website":  "https://www.unix-ag.uni-kl.de/~bloch/acng/",
+    "docsUrl":  "https://github.com/sameersbn/docker-apt-cacher-ng",
+    "ports":  [
+                  {
+                      "host":  3142,
+                      "container":  3142,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apt-cacher-ng/cache",
+                        "container":  "/var/cache/apt-cacher-ng"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

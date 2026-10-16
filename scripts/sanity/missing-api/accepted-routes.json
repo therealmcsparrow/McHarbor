@@ -1,0 +1,212 @@
+[
+  {
+    "path": "/host-services/*/*",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "unitPath(target, unit) composes the unit path and the verb from a base variable, so no literal names the route."
+  },
+  {
+    "path": "/host-services/*/override",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "unitPath(target, unit) composes the unit path and the override suffix from a base variable."
+  },
+  {
+    "path": "/host-services/daemon-reload",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "basePath(target) supplies /host-services, so the literal daemon-reload suffix is never a whole path."
+  },
+  {
+    "path": "/host-services/self/daemon-reload",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "basePath(target) supplies /host-services/self for the McHarbor host, so the literal daemon-reload suffix is never a whole path."
+  },
+  {
+    "path": "/system/os-reboot",
+    "caller": "src/frontend/resources/hooks/useHostReboot.ts",
+    "reason": "hostTargetPath(target, '/os-reboot') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-reboot/inventory",
+    "caller": "src/frontend/resources/hooks/useHostReboot.ts",
+    "reason": "hostTargetPath(target, '/os-reboot/inventory') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-reboot",
+    "caller": "src/frontend/resources/hooks/useHostReboot.ts",
+    "reason": "hostTargetPath(target, '/os-reboot') prefixes /system/self for the McHarbor host."
+  },
+  {
+    "path": "/system/self/os-reboot/inventory",
+    "caller": "src/frontend/resources/hooks/useHostReboot.ts",
+    "reason": "hostTargetPath(target, '/os-reboot/inventory') prefixes /system/self for the McHarbor host."
+  },
+  {
+    "path": "/system/os-info",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-info') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-updates/state",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/state') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-updates/check",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/check') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-updates/schedule",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/schedule') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-updates/apply",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/apply') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/os-updates/stream",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/stream') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-info",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-info') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-updates/state",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/state') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-updates/check",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/check') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-updates/schedule",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/schedule') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-updates/apply",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/apply') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/system/self/os-updates/stream",
+    "caller": "src/frontend/resources/hooks/useHostUpdates.ts",
+    "reason": "hostTargetPath(target, '/os-updates/stream') prefixes /system or /system/self at call time."
+  },
+  {
+    "path": "/table-views/*/layout",
+    "caller": "src/frontend/resources/layout/table-page/useTableViewApi.ts",
+    "reason": "base(tableId) supplies /table-views/{id}; the layout suffix is a separate literal."
+  },
+  {
+    "path": "/table-views/*/filters",
+    "caller": "src/frontend/resources/layout/table-page/useTableViewApi.ts",
+    "reason": "base(tableId) supplies /table-views/{id}; the filters suffix is a separate literal."
+  },
+  {
+    "path": "/table-views/*/filters/*",
+    "caller": "src/frontend/resources/layout/table-page/useTableViewApi.ts",
+    "reason": "base(tableId) supplies /table-views/{id}; filters/{filterId} is composed from it."
+  },
+  {
+    "path": "/auth/sessions",
+    "caller": "src/frontend/resources/hooks/useSessions.ts",
+    "reason": "A ternary picks '/auth/sessions' or the admin path, so the call is not a bare literal at the api.get site."
+  },
+  {
+    "path": "/approvals",
+    "caller": "src/frontend/modules/security/hooks/useApprovals.ts",
+    "reason": "A ternary on scope picks '/approvals' or '/approvals/mine'."
+  },
+  {
+    "path": "/approvals/mine",
+    "caller": "src/frontend/modules/security/hooks/useApprovals.ts",
+    "reason": "A ternary on scope picks '/approvals' or '/approvals/mine'."
+  },
+  {
+    "path": "/scim/endpoints",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; every call interpolates the base."
+  },
+  {
+    "path": "/scim/endpoints/*",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; every call interpolates the base."
+  },
+  {
+    "path": "/scim/endpoints/*/dry-run",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/scim/endpoints/*/history",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/scim/endpoints/*/rotate-token",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/scim/endpoints/*/sync-now",
+    "caller": "src/frontend/resources/hooks/useScimEndpoints.ts",
+    "reason": "const base = '/scim/endpoints'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/rbac/policies",
+    "caller": "src/frontend/resources/hooks/usePolicies.ts",
+    "reason": "const base = '/rbac/policies'; every call interpolates the base."
+  },
+  {
+    "path": "/rbac/policies/*",
+    "caller": "src/frontend/resources/hooks/usePolicies.ts",
+    "reason": "const base = '/rbac/policies'; every call interpolates the base."
+  },
+  {
+    "path": "/rbac/policies/*/enable",
+    "caller": "src/frontend/resources/hooks/usePolicies.ts",
+    "reason": "const base = '/rbac/policies'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/rbac/policies/*/test",
+    "caller": "src/frontend/resources/hooks/usePolicies.ts",
+    "reason": "const base = '/rbac/policies'; the suffix is appended to the interpolated base."
+  },
+  {
+    "path": "/host-services",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "basePath(target) supplies /host-services, so no literal names the route."
+  },
+  {
+    "path": "/host-services/self",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "basePath(target) supplies /host-services/self for the McHarbor host."
+  },
+  {
+    "path": "/host-services/self/*/*",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "unitPath(target, unit) composes the unit path and the verb from a base variable."
+  },
+  {
+    "path": "/host-services/self/*/override",
+    "caller": "src/frontend/resources/hooks/useHostServices.ts",
+    "reason": "unitPath(target, unit) composes the unit path and the override suffix from a base variable."
+  },
+  {
+    "path": "/terminal/ws",
+    "caller": "src/frontend/resources/components/XTermPanel.tsx",
+    "reason": "The WebSocket URL is a template that interpolates window.location.host before /api/terminal/ws."
+  },
+  {
+    "path": "/system/host-terminal/ws",
+    "caller": "src/frontend/modules/environments/hooks/useHostTerminalSession.ts",
+    "reason": "The WebSocket URL is a template that interpolates window.location.host before /api/system/host-terminal/ws."
+  }
+]

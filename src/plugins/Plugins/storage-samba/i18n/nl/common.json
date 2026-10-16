@@ -1,0 +1,98 @@
+{
+  "page": {
+    "title": "Samba / SMB-bestemming",
+    "subtitle": "Back-upsnapshots worden gestreamd naar een SMB/CIFS-share op de geconfigureerde server. Ondersteunt anonieme gast, eenvoudige gebruikersnaam/wachtwoord en NTLMv2-domeinauthenticatie.",
+    "registerHint": "Deze plugin beheert één LocationType: samba. Kies een authenticatiemethode — guest voor openbare shares, basic voor werkgroepauthenticatie, domain voor Active Directory."
+  },
+  "fields": {
+    "server": "Server",
+    "share": "Share",
+    "path": "Pad",
+    "authMethod": "Authenticatie",
+    "username": "Gebruikersnaam",
+    "password": "Wachtwoord",
+    "domain": "Domein",
+    "guestUser": "Gastgebruiker",
+    "guestPassword": "Gastwachtwoord"
+  },
+  "help": {
+    "server": "Hostnaam of IP van de Samba-server (bijv. `nas.local` of `192.168.1.10`).",
+    "share": "De sharenaam zoals geëxporteerd in smb.conf. Dezelfde naam die je zou gebruiken met `smbclient //server/<share>`.",
+    "path": "Submap binnen de share. Standaard de hoofdmap van de share (`/`). Snapshots worden rechtstreeks onder dit pad geschreven.",
+    "authMethod": "Hoe de plugin zich bij de share authenticeert. Guest gebruikt een geconfigureerde gastgebruiker; basic is NTLMv2 gebruikersnaam/wachtwoord tegen de werkgroep; domain is NTLMv2 met een expliciet Windows-domein.",
+    "username": "Samba- of AD-account. Voor domeinauthenticatie de kale gebruikersnaam (geen `DOMAIN\\`-voorvoegsel — gebruik het veld Domein).",
+    "password": "Accountwachtwoord. Versleuteld opgeslagen in de cfg-map van de bestemming.",
+    "domain": "Windows- / Active Directory-domein. Gebruikt als authenticatierealm voor NTLMv2.",
+    "guestUser": "Accountnaam die voor gasttoegang over de lijn wordt verzonden. Standaard `nobody` — laat dit overeenkomen met je Samba-directive `guest account =`.",
+    "guestPassword": "Wachtwoord voor het gastaccount. Meestal leeg; sommige configuraties vereisen een letterlijk wachtwoord."
+  },
+  "auth": {
+    "guest": "Gast (geen wachtwoord)",
+    "basic": "Basic (gebruikersnaam + wachtwoord)",
+    "domain": "Domein (NTLMv2)"
+  },
+  "setup": {
+    "title": "Samba / SMB-installatiegids",
+    "subtitle": "De onderstaande stappen zijn afgestemd op de gekozen authenticatiemethode. Wissel het veld auth_method om alternatieve sporen te zien.",
+    "common": {
+      "step1": {
+        "title": "Controleer of TCP 445 bereikbaar is",
+        "body": "Voer vanaf de host waarop McHarbor draait `Test-NetConnection nas.local -Port 445` (PowerShell) of `nc -zv nas.local 445` (bash) uit. SMB/CIFS gebruikt TCP 445; NetBIOS-poort 139 is verouderd en wordt door moderne Samba zelden gebruikt."
+      },
+      "step2": {
+        "title": "Kies of maak een share",
+        "body": "Als je al een share hebt met bijv. de naam `backups`, noteer dan de naam. Om er een te maken, voeg je toe aan /etc/samba/smb.conf op de server: `[backups] path = /srv/backups browseable = yes read only = no` en daarna `sudo systemctl restart smbd`."
+      },
+      "step3": {
+        "title": "Sla de bestemming op",
+        "body": "Vul in McHarbor Server (hostnaam of IP), Share en Pad (standaard de hoofdmap van de share) in. Kies de authenticatiemethode die past bij je sharebeleid en sla op."
+      }
+    },
+    "guest": {
+      "step1": {
+        "title": "Schakel gasttoegang in op de share",
+        "body": "Voeg in smb.conf `guest ok = yes` toe aan het shareblok en stel globaal `map to guest = bad user` in. Standaard gebruikt Samba `nobody` als gastgebruiker; overschrijf met `guest account = ...` als je een eigen account hebt."
+      },
+      "step2": {
+        "title": "Test vanaf een andere host",
+        "body": "Probeer `smbclient //nas.local/backups -U nobody%\"\"` vanaf een Linux-machine om te bevestigen dat gasttoegang werkt. De McHarbor-plugin verstuurt dezelfde inloggegevens."
+      }
+    },
+    "basic": {
+      "step1": {
+        "title": "Maak een lokale Samba-gebruiker aan",
+        "body": "Voer `sudo smbpasswd -a backup-user` uit op de server. Het wachtwoord dat je instelt is wat de beheerder in McHarbor typt — zowel Samba als het systeemaccount slaan dezelfde hash op."
+      },
+      "step2": {
+        "title": "Geef de gebruiker schrijftoegang tot het sharepad",
+        "body": "Stel de bestandssysteemeigendom in: `sudo chown -R backup-user:backup-user /srv/backups`. De McHarbor-plugin draait als de geconfigureerde gebruiker, dus lezen + schrijven op OS-niveau is vereist, ook als smb.conf de gebruiker toestaat."
+      }
+    },
+    "domain": {
+      "step1": {
+        "title": "Voeg de Samba-server toe aan het AD-domein",
+        "body": "Gebruik `net ads join -U administrator` (of `samba-tool domain join`) op de Samba-host. Controleer of `wbinfo -u` domeingebruikers toont. De McHarbor-plugin heeft nodig dat de Samba-server NTLMv2 valideert tegen AD, niet tegen de lokale SAM."
+      },
+      "step2": {
+        "title": "Geef de back-upgebruiker toegang tot de share",
+        "body": "Stel in smb.conf `valid users = @CORP\\backup-users` (of specifieke UPN's) in op het shareblok. De McHarbor-plugin verstuurt de gebruikersnaam in de vorm die je hier configureert — `DOMAIN\\user` wordt NIET ondersteund; gebruik de kale gebruikersnaam + het veld Domein."
+      }
+    },
+    "footer": "go-smb2 v1.x onderhandelt niet over SMB3-versleuteling. Gebruik een privé-lan/vpn voor de share, of zet er een TLS-tunnel voor (stunnel, wireguard) als schrijven via internet vereist is."
+  },
+  "toast": {
+    "registered": "Samba-bestemming geregistreerd.",
+    "testPassed": "SMB-verbinding geslaagd.",
+    "testFailed": "SMB-verbinding mislukt.",
+    "authMethodChanged": "Authenticatiemethode bijgewerkt."
+  },
+  "error": {
+    "noServer": "Server is vereist.",
+    "noShare": "Share is vereist.",
+    "noUsername": "Gebruikersnaam is vereist voor deze authenticatiemethode.",
+    "noPassword": "Wachtwoord is vereist voor deze authenticatiemethode.",
+    "noDomain": "Domein is vereist voor domeinauthenticatie.",
+    "mountFailed": "Kon de share niet koppelen. Controleer server, sharenaam en inloggegevens.",
+    "permissionDenied": "De SMB-server weigerde de bewerking. Controleer de schrijfmachtiging van de gebruiker op de share."
+  }
+}

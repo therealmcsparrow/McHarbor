@@ -1,0 +1,45 @@
+{
+    "slug":  "fireshare",
+    "name":  "Fireshare",
+    "description":  "Self-hosted video clip sharing platform for uploading and sharing short recordings privately.",
+    "category":  "Media",
+    "image":  "shaneisrael/fireshare:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/fireshare.png",
+    "website":  "https://github.com/ShaneIsrael/fireshare",
+    "docsUrl":  "https://github.com/ShaneIsrael/fireshare#docker-compose",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fireshare/videos",
+                        "container":  "/data/videos"
+                    },
+                    {
+                        "host":  "/opt/appdata/fireshare/db",
+                        "container":  "/data/db"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Admin account password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -4,7 +4,7 @@
   "description": "FRP client for connecting local services to a remote FRP server.",
   "category": "Networking",
   "image": "snowdreamtech/frpc:latest",
-  "logo": "https://github.com/fatedier/frp/raw/master/doc/pic/modal.png",
+  "logo": "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
   "website": "https://github.com/fatedier/frp",
   "docsUrl": "https://github.com/fatedier/frp/blob/master/README.md",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "FRP server address"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

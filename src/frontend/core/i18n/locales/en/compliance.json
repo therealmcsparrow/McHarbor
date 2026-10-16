@@ -1,0 +1,186 @@
+{
+  "title": "Compliance",
+  "description": "Operational posture for auditors: retention, keys, backups, TLS, identity, plugin trust and high availability, measured on this instance.",
+  "generatedAt": "Measured {{time}}",
+  "refresh": "Refresh",
+  "openSettings": "Open",
+  "downloadReport": "Download report",
+  "summary": {
+    "pass": "Passing",
+    "warn": "Needs attention",
+    "fail": "Failing",
+    "info": "Informational",
+    "unknown": "Unknown"
+  },
+  "status": {
+    "pass": "Pass",
+    "warn": "Attention",
+    "fail": "Fail",
+    "info": "Info",
+    "unknown": "Unknown"
+  },
+  "values": {
+    "yes": "Yes",
+    "no": "No",
+    "none": "—",
+    "noLimit": "No limit",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "percent": "{{value}}%",
+    "redacted": "Redacted"
+  },
+  "sections": {
+    "audit": {
+      "title": "Audit retention and forwarding",
+      "description": "How long the audit trail is kept and whether it leaves the box."
+    },
+    "keys": {
+      "title": "Encryption keys",
+      "description": "Where the at-rest encryption key comes from and whether backups are encrypted."
+    },
+    "instanceBackup": {
+      "title": "Instance backup",
+      "description": "Schedules and the last successful export of McHarbor itself."
+    },
+    "tls": {
+      "title": "TLS",
+      "description": "The certificate this node serves and when it expires."
+    },
+    "passwords": {
+      "title": "Password policy",
+      "description": "Rules every local password must meet."
+    },
+    "mfa": {
+      "title": "Multi-factor authentication",
+      "description": "Share of active local accounts with MFA enrolled. Accounts from an identity provider use that provider's MFA."
+    },
+    "identitySync": {
+      "title": "Identity and provisioning",
+      "description": "Enabled identity providers and SCIM provisioning health."
+    },
+    "plugins": {
+      "title": "Plugin signing",
+      "description": "Installed plugins without a valid signature from a trusted key."
+    },
+    "ha": {
+      "title": "High availability",
+      "description": "Deployment mode and this node's readiness."
+    },
+    "selfEnvAccess": {
+      "title": "Container access to McHarbor's host",
+      "description": "Roles holding containers.manage on the environment McHarbor itself runs on. There it reaches McHarbor's keys and database through a container that mounts the Docker socket or the host, so it is admin-equivalent unless the role also holds host_self.manage."
+    },
+    "supplyChain": {
+      "title": "SBOM and image signing",
+      "description": "Release images carry an SPDX SBOM and are signed with cosign keyless signing. Verify them with the commands in Getting started → Verifying releases."
+    }
+  },
+  "facts": {
+    "retentionDays": "Audit retention",
+    "retentionPreset": "Retention preset",
+    "forwardersEnabled": "Enabled forwarders",
+    "encryptionKeySource": "Encryption key source",
+    "backupKeyConfigured": "Backup key configured",
+    "backupKeyId": "Backup key ID",
+    "schedulesEnabled": "Enabled schedules",
+    "lastSuccessAt": "Last successful export",
+    "lastRunStatus": "Last run status",
+    "lastRunAt": "Last run",
+    "lastVerifyStatus": "Last verification",
+    "enabled": "Enabled",
+    "source": "Certificate source",
+    "minVersion": "Minimum TLS version",
+    "notAfter": "Expires",
+    "subject": "Subject",
+    "daysRemaining": "Days remaining",
+    "minLength": "Minimum length",
+    "requireUpper": "Requires uppercase",
+    "requireLower": "Requires lowercase",
+    "requireDigit": "Requires a digit",
+    "requireSymbol": "Requires a symbol",
+    "maxAgeDays": "Maximum age",
+    "historySize": "Password history",
+    "localUsers": "Active local accounts",
+    "localUsersWithMfa": "With MFA enrolled",
+    "mfaAdoption": "MFA adoption",
+    "externalUsers": "Accounts from identity providers",
+    "providersEnabled": "Enabled identity providers",
+    "scimEndpoints": "Enabled SCIM endpoints",
+    "scimFailing": "SCIM endpoints failing",
+    "scimLastSyncAt": "Last SCIM sync",
+    "installed": "Installed plugins",
+    "unsigned": "Unsigned plugins",
+    "mode": "Mode",
+    "databaseDriver": "Database",
+    "pluginStore": "Plugin package store",
+    "role": "This node's role",
+    "ready": "Ready for traffic",
+    "nodeId": "Node ID",
+    "sbomFormat": "SBOM format",
+    "signing": "Signing",
+    "selfEnvironments": "Environments McHarbor runs on",
+    "containersManageRoles": "Roles holding containers.manage there",
+    "adminEquivalentRoles": "Admin-equivalent roles (no host_self.manage)",
+    "containersManageUsers": "Users granted containers.manage there directly",
+    "adminEquivalentUsers": "Admin-equivalent users (direct grant, no host_self.manage)"
+  },
+  "reasons": {
+    "sourceUnavailable": "The data behind this section could not be read. The server log names the cause.",
+    "retentionShort": "Audit rows are deleted after less than a year.",
+    "noForwarding": "No audit log forwarder is enabled, so the trail exists only on this instance.",
+    "encryptionKeyGenerated": "ENCRYPTION_KEY is not set; the key was generated into the data directory and is lost with it.",
+    "encryptionKeyGeneratedShared": "ENCRYPTION_KEY is not set on a shared database; every node must use the same key.",
+    "noBackupKey": "No backup encryption key is configured.",
+    "noBackupSchedule": "No instance backup schedule is enabled.",
+    "noSuccessfulBackup": "No instance backup has ever completed.",
+    "backupStale": "The last successful instance backup is more than seven days old.",
+    "lastBackupFailed": "The most recent instance backup failed.",
+    "verifyFailed": "The most recent backup verification failed.",
+    "tlsDisabled": "TLS is off on this listener. That is only acceptable behind a TLS-terminating proxy on a private network.",
+    "certUnreadable": "The served certificate could not be read.",
+    "certExpired": "The served certificate has expired.",
+    "certExpiringSoon": "The served certificate expires within 30 days.",
+    "selfSigned": "The served certificate is self-signed.",
+    "minLengthTooShort": "The minimum password length is below 8 characters.",
+    "minLengthShort": "The minimum password length is below 12 characters.",
+    "noPasswordHistory": "Password reuse is not prevented.",
+    "noLocalUsers": "There are no active local accounts.",
+    "mfaNone": "No active local account has MFA enrolled.",
+    "mfaPartial": "Some active local accounts have no MFA enrolled.",
+    "noIdentityProvider": "No identity provider or SCIM endpoint is enabled.",
+    "scimSyncFailing": "At least one SCIM endpoint's last sync failed.",
+    "unsignedPlugins": "Some installed plugins were accepted without a valid signature.",
+    "singleNode": "This is a single-node deployment.",
+    "pluginStoreLocal": "Active/passive with a local plugin store: a promoted node may be missing plugin packages.",
+    "releaseArtifacts": "Published with every release; not measured on this instance.",
+    "selfEnvironmentNotFound": "No environment could be matched to the Docker daemon McHarbor runs on, so no role is flagged.",
+    "containersManageIsAdmin": "A role holds containers.manage on the environment McHarbor runs on without host_self.manage. On that environment it can start a container that mounts the Docker socket or the host and read McHarbor's keys and database, which makes it admin-equivalent. Grant it on other environments only, or treat the role as an administrator role.",
+    "containersManageOverrideIsAdmin": "A user holds a direct containers.manage grant on the environment McHarbor runs on without host_self.manage. A role review does not show this grant, yet it reaches McHarbor's keys and database the same way. Remove the override, scope it to another environment, or grant host_self.manage deliberately."
+  },
+  "report": {
+    "title": "Download compliance report",
+    "description": "Choose the sections, the format and whether to redact identifying values.",
+    "sections": "Sections",
+    "selectAll": "Select all",
+    "format": "Format",
+    "formatJson": "JSON",
+    "formatDocx": "Word document (.docx)",
+    "formatPdf": "PDF document (.pdf)",
+    "redact": "Redact identifying values",
+    "redactHint": "Replaces key IDs, node IDs and certificate subjects with [redacted]. Secrets are never included either way.",
+    "preview": "Will be redacted",
+    "previewNone": "Nothing in the selected sections is redacted.",
+    "download": "Download",
+    "failed": "The report could not be generated.",
+    "noSections": "Select at least one section.",
+    "htmlTitle": "McHarbor compliance report",
+    "htmlVersion": "Version {{version}} (build {{build}})",
+    "htmlGenerated": "Generated {{time}}",
+    "htmlRedacted": "Identifying values are redacted.",
+    "htmlNotRedacted": "This report is not redacted.",
+    "htmlFact": "Fact",
+    "htmlValue": "Value",
+    "htmlFindings": "Findings",
+    "htmlStatus": "Status"
+  }
+}

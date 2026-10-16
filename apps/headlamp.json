@@ -1,0 +1,36 @@
+{
+    "slug":  "headlamp",
+    "name":  "Headlamp",
+    "description":  "Extensible Kubernetes web UI for browsing, editing and troubleshooting cluster resources.",
+    "category":  "CI/CD",
+    "image":  "ghcr.io/headlamp-k8s/headlamp:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/headlamp.png",
+    "website":  "https://headlamp.dev",
+    "docsUrl":  "https://headlamp.dev/docs/latest/installation/",
+    "ports":  [
+                  {
+                      "host":  4466,
+                      "container":  4466,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/headlamp/kubeconfig",
+                        "container":  "/home/headlamp/.kube",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

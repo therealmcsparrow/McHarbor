@@ -16,15 +16,17 @@ import {
 } from '@resources/components/ui/Dialog';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { api } from '@core/api/client';
+import { PERM } from '@core/auth/permissionKeys';
 
 type CreateStackDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function CreateStackDialog({ open, onOpenChange }: CreateStackDialogProps) {
+export function CreateStackDialog({ open: isOpen, onOpenChange }: CreateStackDialogProps) {
   const { t } = useTranslation('stacks');
   const { t: tc } = useTranslation('common');
+  const cancelLabel = tc('actions.cancel');
 
   const [stackName, setStackName] = useState('');
   const [composeFile, setComposeFile] = useState('');
@@ -33,7 +35,7 @@ export function CreateStackDialog({ open, onOpenChange }: CreateStackDialogProps
   const handleCreate = () => {
     if (!stackName.trim() || !composeFile.trim()) return;
     const envId = useEnvironmentStore.getState().currentId;
-    api
+    void api
       .post('/stacks' + (envId ? `?env=${envId}` : ''), {
         name: stackName.trim(),
         compose: composeFile,
@@ -49,7 +51,7 @@ export function CreateStackDialog({ open, onOpenChange }: CreateStackDialogProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('create.title')}</DialogTitle>
@@ -81,15 +83,19 @@ export function CreateStackDialog({ open, onOpenChange }: CreateStackDialogProps
               onChange={(e) => setComposeFile(e.target.value)}
               placeholder={`services:\n  web:\n    image: nginx:latest\n    ports:\n      - '80:80'`}
               rows={12}
-              className="py-2.5 px-4 block w-full bg-card border border-border rounded-lg font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
+              className="block w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {cancelLabel}
           </Button>
-          <Button onClick={handleCreate} disabled={!stackName.trim() || !composeFile.trim()}>
+          <Button
+            permission={PERM.STACKS_MANAGE}
+            onClick={handleCreate}
+            disabled={!stackName.trim() || !composeFile.trim()}
+          >
             {t('create.submit')}
           </Button>
         </DialogFooter>

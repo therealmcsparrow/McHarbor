@@ -4,7 +4,7 @@
     "description":  "Build automation framework master that schedules builds across workers.",
     "category":  "Developer Tools",
     "image":  "buildbot/buildbot-master:latest",
-    "logo":  "https://icon.horse/icon/buildbot.net",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/buildbot.svg",
     "website":  "https://buildbot.net",
     "docsUrl":  "https://docs.buildbot.net/current/tutorial/docker.html",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Name of the Buildbot master"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

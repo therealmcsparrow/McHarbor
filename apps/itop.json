@@ -1,0 +1,46 @@
+{
+    "slug":  "itop",
+    "name":  "iTop",
+    "description":  "IT service management and CMDB platform for tracking assets, tickets, and configuration items.",
+    "category":  "Business & ERP",
+    "image":  "vbkunin/itop:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/itop.png",
+    "website":  "https://www.combodo.com/itop",
+    "docsUrl":  "https://github.com/vbkunin/itop-docker",
+    "ports":  [
+                  {
+                      "host":  8099,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/itop/data",
+                        "container":  "/var/www/html/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/itop/mysql",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Bundled MySQL root password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

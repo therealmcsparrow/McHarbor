@@ -8,16 +8,29 @@
   "pruneUnused": "Tailler inutilisé",
   "pruneDescription": "Supprimez les volumes qui ne sont attachés à aucun conteneur.",
   "columns": {
+    "scope": "Portée",
+    "labels": "Étiquettes",
+    "options": "Options",
+    "status": "Statut",
+    "size": "Taille",
+    "refCount": "Références",
+    "stack": "Stack",
+    "protected": "Protégé",
+    "groupVolume": "Volume",
+    "usedBy": "Utilisé par",
+    "groupRelations": "Relations",
+    "groupStack": "Stack",
     "name": "Nom",
     "driver": "Conducteur",
-    "usage": "Usage",
+    "usage": "Utilisation",
     "mountpoint": "Point de montage",
     "created": "Créé",
     "actions": "Actes"
   },
   "badges": {
     "inUse": "utilisé",
-    "unused": "inutilisé"
+    "unused": "Inutilisé",
+    "inUseCount": "{{count}} en cours d'utilisation"
   },
   "create": {
     "title": "Créer un volume",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Supprimer le volume",
     "removeDescription": "Cela supprimera définitivement ce volume et toutes ses données."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Sections du volume",
+      "overview": "Aperçu",
+      "containers": "Conteneurs",
+      "configuration": "Configuration"
+    },
+    "notFound": "Volume introuvable",
+    "backToVolumes": "Retour aux volumes",
+    "general": "Général",
+    "name": "Nom",
+    "driver": "Pilote",
+    "scope": "Portée",
+    "mountpoint": "Point de montage",
+    "created": "Créé",
+    "usage": "Utilisation",
+    "status": "Statut",
+    "size": "Taille",
+    "sizeUnknown": "Non communiqué",
+    "sizeDescription": "Le démon Docker ne communique la taille que lorsqu'il a collecté des données d'utilisation pour ce volume.",
+    "mountedBy": "Monté par",
+    "mountedByContainers": "Conteneurs utilisant ce volume",
+    "noContainers": "Aucun conteneur ne monte actuellement ce volume.",
+    "containerName": "Conteneur",
+    "containerId": "ID du conteneur",
+    "mountPath": "Chemin de montage",
+    "access": "Accès",
+    "readWrite": "lecture-écriture",
+    "readOnly": "lecture seule",
+    "options": "Options",
+    "labels": "Libellés",
+    "noConfiguration": "Ce volume ne porte aucune option ni aucun libellé personnalisé.",
+    "protectedCannotRemove": "Ce volume est protégé et ne peut pas être supprimé.",
+    "inUseCannotRemove": "Un conteneur monte encore ce volume. Supprimez-le ou arrêtez-le d'abord."
   }
 }

@@ -4,7 +4,7 @@
     "description":  "Erlang 26 on Alpine, concurrent fault-tolerant language for distributed real-time systems.",
     "category":  "Developer Tools",
     "image":  "erlang:26-alpine",
-    "logo":  "https://icon.horse/icon/www.erlang.org",
+    "logo":  "https://cdn.simpleicons.org/erlang",
     "website":  "https://www.erlang.org",
     "docsUrl":  "https://www.erlang.org/doc.html",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "26-alpine"
+    "version":  "26-alpine",
+    "latest":  {
+        "version":  "26-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,26 @@
+schema: "mcharbor.plugin/v1"
+slug: "storage-box"
+name: "Box"
+version: "2026.10.01"
+description: "Backup destination backed by Box (box.com). OAuth 2.0 refresh-token flow + chunked upload session."
+author: "Maintainer Name <maintainer@example.com>"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+
+mcharbor: ">=2026.10.01"
+go: ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+i18n_namespaces:
+  - "storage-box"
+
+contributes:
+  forms:
+    - resource: storage_location
+      kind: config_form
+      key: box
+    - resource: storage_location
+      kind: setup_guide
+      key: box

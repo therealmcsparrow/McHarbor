@@ -46,6 +46,7 @@ func readHostStats() (HostStatsPayload, bool) {
 		out.FSTotal = fsTotal
 		out.FSUsed = fsUsed
 	}
+	out.IO = readHostIO("/proc", "/sys")
 	out.Supported = true
 	return out, true
 }
@@ -64,7 +65,7 @@ func readCPUPercent() (float64, bool) {
 	}
 	totalDelta := second.total - first.total
 	idleDelta := second.idle - first.idle
-	if totalDelta <= 0 || idleDelta < 0 {
+	if totalDelta <= 0 {
 		return 0, true
 	}
 	busy := totalDelta - idleDelta

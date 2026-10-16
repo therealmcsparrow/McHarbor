@@ -1,0 +1,37 @@
+{
+  "label": "Opslagobject",
+  "description": "Objecten op een opslaglocatie weergeven, uploaden, downloaden of verwijderen via de adapter",
+  "config": {
+    "storage_location_id": "Opslaglocatie",
+    "action": "Actie",
+    "prefix": "Voorvoegsel",
+    "key": "Objectsleutel",
+    "source_mode": "Bron",
+    "property": "Broneigenschap",
+    "content_encoding": "Broncodering",
+    "content": "Inhoud",
+    "output_encoding": "Uitvoercodering",
+    "output_property": "Uitvoereigenschap"
+  },
+  "options": {
+    "action": {
+      "list": "Weergeven",
+      "upload": "Uploaden",
+      "download": "Downloaden",
+      "delete": "Verwijderen"
+    },
+    "source_mode": {
+      "property": "Berichteigenschap",
+      "text": "Inline tekst"
+    },
+    "content_encoding": {
+      "auto": "Automatisch (tekst of JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Tekst",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

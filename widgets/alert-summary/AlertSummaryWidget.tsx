@@ -2,72 +2,86 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+import { IconBell, IconBellOff } from '@tabler/icons-react';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
-import { useAlerts } from '@modules/settings/hooks/useAlerts';
+import { useAlerts } from '@resources/hooks/useAlerts';
+import {
+  WidgetBadge,
+  WidgetEmpty,
+  WidgetFooterLink,
+  WidgetFrame,
+  WidgetTile,
+  type Tone,
+} from '@modules/dashboard/components/widget-kit';
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-500/15 text-red-400 border-red-500/20',
-  warning: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20',
-  info: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-};
-
-const SEVERITIES = ['critical', 'warning', 'info'] as const;
+const SEVERITIES: { key: string; tone: Tone }[] = [
+  { key: 'critical', tone: 'danger' },
+  { key: 'warning', tone: 'warning' },
+  { key: 'info', tone: 'info' },
+];
 
 export default function AlertSummaryWidget({ typeId: _typeId }: { colSpan: number; typeId: WidgetTypeId }) {
   const { t } = useTranslation('dashboard');
+  const navigate = useNavigate();
   const { data: alertsPage, isError } = useAlerts({ refetchInterval: 30_000 });
 
   const grouped: Record<string, number> = {};
   let disabledCount = 0;
-  for (const alert of alertsPage?.items ?? []) {
-    if (!alert.enabled) {
+  for (const rule of alertsPage?.items ?? []) {
+    if (!rule.enabled) {
       disabledCount += 1;
       continue;
     }
-    grouped[alert.severity] = (grouped[alert.severity] ?? 0) + 1;
+    grouped[rule.severity] = (grouped[rule.severity] ?? 0) + 1;
   }
+  const total = Object.values(grouped).reduce((sum, count) => sum + count, 0);
+  const goToRules = () => navigate('/settings?tab=alerts');
 
   if (isError) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('alertSummaryWidget.notConfigured')}
-      </div>
+      <WidgetFrame title={t('alertSummaryWidget.title')}>
+        <WidgetEmpty
+          icon={<IconBellOff className="size-5" aria-hidden="true" />}
+          title={t('alertSummaryWidget.notConfigured')}
+        />
+      </WidgetFrame>
     );
   }
 
-  const total = Object.values(grouped).reduce((sum, count) => sum + count, 0);
-
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h3 className="shrink-0 px-4 pb-2 pt-3 text-sm font-semibold text-foreground">
-        {t('alertSummaryWidget.title')}
-      </h3>
+    <WidgetFrame
+      title={t('alertSummaryWidget.title')}
+      badge={total > 0 ? <WidgetBadge>{t('alertSummaryWidget.enabled', { count: total })}</WidgetBadge> : undefined}
+      footer={
+        <>
+          <span>{disabledCount > 0 ? t('alertSummaryWidget.disabledRules', { count: disabledCount }) : null}</span>
+          <WidgetFooterLink label={t('alertSummaryWidget.viewRules')} onClick={goToRules} />
+        </>
+      }
+    >
       {total === 0 ? (
-        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          {t('alertSummaryWidget.noAlerts')}
-        </div>
+        <WidgetEmpty
+          icon={<IconBell className="size-5" aria-hidden="true" />}
+          title={t('alertSummaryWidget.noAlerts')}
+        />
       ) : (
-        <div className="flex flex-1 flex-wrap content-start gap-2 px-4 pb-3">
-          {SEVERITIES.map((severity) => {
-            const count = grouped[severity] ?? 0;
-            if (count === 0) return null;
+        <div className="grid min-h-0 flex-1 grid-cols-3 gap-2 px-4 pb-3">
+          {SEVERITIES.map(({ key, tone }) => {
+            const count = grouped[key] ?? 0;
             return (
-              <div
-                key={severity}
-                className={`flex flex-col items-center rounded-lg border px-4 py-3 ${SEVERITY_COLORS[severity] ?? 'border-border bg-muted text-muted-foreground'}`}
-              >
-                <span className="text-2xl font-semibold">{count}</span>
-                <span className="text-[10px]">{t(`alertSummaryWidget.severity.${severity}`)}</span>
-              </div>
+              <WidgetTile
+                key={key}
+                label={t(`alertSummaryWidget.severity.${key}`)}
+                value={count}
+                tone={count > 0 ? tone : 'neutral'}
+                share={total > 0 ? count / total : 0}
+                onClick={goToRules}
+              />
             );
           })}
         </div>
       )}
-      {disabledCount > 0 ? (
-        <p className="shrink-0 px-4 pb-3 text-xs text-muted-foreground">
-          {t('alertSummaryWidget.disabledRules', { count: disabledCount })}
-        </p>
-      ) : null}
-    </div>
+    </WidgetFrame>
   );
 }

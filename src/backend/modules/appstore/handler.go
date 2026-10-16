@@ -5,7 +5,6 @@ package appstore
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -41,10 +40,10 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 	page, perPage := response.ParsePagination(r)
 
-	apps, total, err := h.service.List(category, search, page, perPage)
+	apps, total, err := h.service.List(r.Context(), category, search, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("failed to list app store catalog", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -60,10 +59,10 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slug := chi.URLParam(r, "slug")
-	app, err := h.service.BySlug(slug)
+	app, err := h.service.BySlug(r.Context(), slug)
 	if err != nil {
 		h.app.Logger.Error("failed to get app", "slug", slug, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if app == nil {
@@ -82,44 +81,14 @@ func (h *Handler) HandleCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cats, err := h.service.Categories()
+	cats, err := h.service.Categories(r.Context())
 	if err != nil {
 		h.app.Logger.Error("failed to get categories", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	response.OK(w, cats)
-}
-
-// HandleInstall installs an app from the catalog by creating a Stack.
-func (h *Handler) HandleInstall(w http.ResponseWriter, r *http.Request) {
-	user := auth.RequireAuth(r)
-	if user == nil {
-		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
-		return
-	}
-
-	var req InstallRequest
-	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
-		return
-	}
-
-	if req.Slug == "" {
-		response.BadRequestCode(w, r, i18n.ErrAppStoreSlugRequired)
-		return
-	}
-
-	result, err := h.service.Install(r.Context(), req)
-	if err != nil {
-		h.app.Logger.Error("failed to install app", "slug", req.Slug, "error", err)
-		response.BadRequestCode(w, r, i18n.ErrAppStoreInstallFailed)
-		return
-	}
-
-	h.app.Logger.Info("app installed", "slug", req.Slug, "stack", result.StackName, "user", user.Username)
-	response.Created(w, result)
 }
 
 // HandleInstallStream streams install progress via Server-Sent Events.
@@ -132,7 +101,7 @@ func (h *Handler) HandleInstallStream(w http.ResponseWriter, r *http.Request) {
 
 	var req InstallRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -166,8 +135,7 @@ func (h *Handler) HandleInstallStream(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			data, _ := json.Marshal(event) // safe: simple struct
-			fmt.Fprintf(w, "data: %s\n\n", data)
+			h.writeSSE(w, event)
 			flusher.Flush()
 
 			if event.Status == "done" {
@@ -180,7 +148,7 @@ func (h *Handler) HandleInstallStream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleSync triggers a remote catalog sync.
+// HandleSync reloads enabled Docker application catalogs.
 func (h *Handler) HandleSync(w http.ResponseWriter, r *http.Request) {
 	user := auth.RequireAuth(r)
 	if user == nil {
@@ -188,15 +156,14 @@ func (h *Handler) HandleSync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	catalogURL := h.app.Config.AppStoreCatalogURL
-	if err := h.service.SyncRemoteCatalog(catalogURL); err != nil {
+	if err := h.service.SyncCatalogs(r.Context()); err != nil {
 		h.app.Logger.Error("failed to sync catalog", "error", err)
-		response.BadRequestCode(w, r, i18n.ErrAppStoreInstallFailed)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	h.app.Logger.Info("catalog sync triggered", "user", user.Username)
-	response.OK(w, map[string]string{"status": "syncing"})
+	response.OK(w, map[string]string{"status": "synced"})
 }
 
 // HandleSyncStatus returns the latest sync status.
@@ -207,68 +174,14 @@ func (h *Handler) HandleSyncStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.service.SyncStatus()
+	status, err := h.service.SyncStatus(r.Context())
 	if err != nil {
 		h.app.Logger.Error("failed to get sync status", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	response.OK(w, status)
-}
-
-// HandleInstalled returns all installed apps with stack status.
-func (h *Handler) HandleInstalled(w http.ResponseWriter, r *http.Request) {
-	user := auth.RequireAuth(r)
-	if user == nil {
-		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
-		return
-	}
-
-	apps, err := h.service.InstalledApps()
-	if err != nil {
-		h.app.Logger.Error("failed to list installed apps", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
-		return
-	}
-
-	response.OK(w, apps)
-}
-
-// HandleUninstall removes one app installation by tearing down its stack.
-func (h *Handler) HandleUninstall(w http.ResponseWriter, r *http.Request) {
-	user := auth.RequireAuth(r)
-	if user == nil {
-		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
-		return
-	}
-
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
-		return
-	}
-
-	install, err := h.service.Uninstall(r.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrInstallationNotFound) {
-			response.NotFoundCode(w, r, i18n.ErrAppStoreNotFound)
-			return
-		}
-		h.app.Logger.Error("failed to uninstall app", "installation", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrAppStoreUninstallFailed)
-		return
-	}
-
-	h.app.AuditLog.Log(r, audit.Entry{
-		Action:     "uninstall",
-		EntityType: "app",
-		EntityID:   install.ID,
-		EntityName: install.StackName,
-	})
-
-	h.app.Logger.Info("app uninstalled", "installation", id, "stack", install.StackName, "user", user.Username)
-	response.NoContent(w)
 }
 
 // HandleUninstallStream streams uninstall progress for one app installation.
@@ -309,8 +222,7 @@ func (h *Handler) HandleUninstallStream(w http.ResponseWriter, r *http.Request) 
 			if !ok {
 				return
 			}
-			data, _ := json.Marshal(event) // safe: simple struct
-			fmt.Fprintf(w, "data: %s\n\n", data)
+			h.writeSSE(w, event)
 			flusher.Flush()
 
 			if event.Status == "done" {
@@ -326,5 +238,17 @@ func (h *Handler) HandleUninstallStream(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
+	}
+}
+
+// writeSSE writes one server-sent event and only logs a failure: the install or uninstall keeps running and must still be audited when the client has gone.
+func (h *Handler) writeSSE(w http.ResponseWriter, event any) {
+	data, err := json.Marshal(event)
+	if err != nil {
+		h.app.Logger.Error("app store: encoding stream event failed", "error", err)
+		return
+	}
+	if _, err := fmt.Fprintf(w, "data: %s\n\n", data); err != nil {
+		h.app.Logger.Debug("app store: stream client went away", "error", err)
 	}
 }

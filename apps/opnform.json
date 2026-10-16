@@ -1,0 +1,41 @@
+{
+    "slug":  "opnform",
+    "name":  "OpnForm",
+    "description":  "Open source form builder for creating surveys, quizzes, and lead-generation forms.",
+    "category":  "Productivity",
+    "image":  "jhumanj/opnform:latest",
+    "logo":  "https://opnform.com/favicon.ico",
+    "website":  "https://opnform.com",
+    "docsUrl":  "https://docs.opnform.com/self-hosting/docker",
+    "ports":  [
+                  {
+                      "host":  8126,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opnform/storage",
+                        "container":  "/var/www/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APP_KEY",
+                        "default":  "change-me",
+                        "description":  "Application encryption key",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

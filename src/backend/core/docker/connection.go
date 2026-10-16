@@ -4,22 +4,24 @@
 package docker
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"github.com/therealmcsparrow/mcharbor/core/demo"
 	"os"
 	"strings"
 
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 )
 
 // Connection represents a resolved Docker connection configuration.
 type Connection struct {
-	Type       string // socket, tcp, tls, ssh, podman
-	Host       string // Docker host URL (e.g., unix:///var/run/docker.sock, tcp://host:2375)
-	TLSCa     string
-	TLSCert   string
-	TLSKey    string
-	Runtime   string // docker or podman
+	Type    string // socket, tcp, tls, ssh
+	Host    string // Docker host URL (e.g., unix:///var/run/docker.sock, tcp://host:2375)
+	TLSCa   string
+	TLSCert string
+	TLSKey  string
+	Runtime string // docker
 }
 
 var commonDockerSockets = []string{
@@ -27,11 +29,6 @@ var commonDockerSockets = []string{
 	"/run/docker.sock",
 	"/Users/.docker/run/docker.sock",
 	"/home/.docker/run/docker.sock",
-}
-
-var commonPodmanSockets = []string{
-	"/var/run/podman/podman.sock",
-	"/run/podman/podman.sock",
 }
 
 // DetectDockerSocket tries to find a Docker socket on the system.
@@ -52,49 +49,16 @@ func DetectDockerSocket() string {
 	return ""
 }
 
-// DetectPodmanSocket tries to find a Podman socket on the system.
-func DetectPodmanSocket() string {
-	envHost := os.Getenv("CONTAINER_HOST")
-	if envHost == "" {
-		envHost = os.Getenv("DOCKER_HOST")
-	}
-	if envHost != "" && strings.HasPrefix(envHost, "unix://") {
-		path := strings.TrimPrefix(envHost, "unix://")
-		if fileExists(path) && strings.Contains(path, "podman") {
-			return path
-		}
-	}
-
-	xdg := os.Getenv("XDG_RUNTIME_DIR")
-	if xdg == "" {
-		xdg = "/run/user/1000"
-	}
-	podmanUserSocket := xdg + "/podman/podman.sock"
-	if fileExists(podmanUserSocket) {
-		return podmanUserSocket
-	}
-
-	for _, path := range commonPodmanSockets {
-		if fileExists(path) {
-			return path
-		}
-	}
-	return ""
-}
-
-// DetectAnySocket returns the first found Docker or Podman socket.
+// DetectAnySocket returns the first found Docker socket.
 func DetectAnySocket() (path string, runtime string) {
 	if p := DetectDockerSocket(); p != "" {
 		return p, "docker"
-	}
-	if p := DetectPodmanSocket(); p != "" {
-		return p, "podman"
 	}
 	return "", ""
 }
 
 // resolveConnection resolves the Docker connection for the given environment ID.
-func (p *ClientPool) resolveConnection(envID string) (*Connection, error) {
+func (p *ClientPool) resolveConnection(ctx context.Context, envID string) (*Connection, error) {
 	if envID == "default" || envID == "" {
 		return p.resolveDefault()
 	}
@@ -103,7 +67,7 @@ func (p *ClientPool) resolveConnection(envID string) (*Connection, error) {
 	var connType, socketPath, host, tlsCa, tlsCert, tlsKey, sshHost, sshUser, sshKey sql.NullString
 	var port, sshPort sql.NullInt64
 
-	err := p.db.QueryRow(
+	err := p.db.QueryRowContext(ctx,
 		`SELECT connection_type, socket_path, host, port, tls_ca, tls_cert, tls_key,
 		        ssh_host, ssh_port, ssh_user, ssh_key
 		 FROM environments WHERE id = ?`, envID,
@@ -117,28 +81,23 @@ func (p *ClientPool) resolveConnection(envID string) (*Connection, error) {
 	}
 
 	ct := connType.String
+	// Demo mode runs every environment through an in-process simulated agent;
+	// any other connection type would reach a real daemon, so it is refused.
+	if demo.Active() && ct != "agent" {
+		return nil, fmt.Errorf("environment %s is not a demo environment", envID)
+	}
 	conn := &Connection{Type: ct, Runtime: "docker"}
 
 	switch ct {
-	case "socket", "podman":
+	case "socket":
 		sock := socketPath.String
 		if sock == "" {
-			if ct == "podman" {
-				sock = DetectPodmanSocket()
-				if sock == "" {
-					sock = "/var/run/podman/podman.sock"
-				}
-			} else {
-				sock = DetectDockerSocket()
-				if sock == "" {
-					sock = "/var/run/docker.sock"
-				}
+			sock = DetectDockerSocket()
+			if sock == "" {
+				sock = "/var/run/docker.sock"
 			}
 		}
 		conn.Host = "unix://" + sock
-		if ct == "podman" {
-			conn.Runtime = "podman"
-		}
 
 	case "tcp":
 		h := host.String
@@ -181,6 +140,9 @@ func (p *ClientPool) resolveConnection(envID string) (*Connection, error) {
 // resolveDefault falls back to local socket auto-detection.
 // DB-based default resolution is handled by resolveDefaultEnvID in client.go.
 func (p *ClientPool) resolveDefault() (*Connection, error) {
+	if demo.Active() {
+		return nil, fmt.Errorf("no demo environment is available")
+	}
 	path, runtime := DetectAnySocket()
 	if path != "" {
 		return &Connection{
@@ -190,14 +152,12 @@ func (p *ClientPool) resolveDefault() (*Connection, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("no Docker or Podman connection available; configure an environment or ensure a container socket is accessible")
+	return nil, fmt.Errorf("no Docker connection available; configure an environment or ensure a container socket is accessible")
 }
 
 // createClient creates a Docker SDK client from the connection config.
 func (c *Connection) createClient() (*client.Client, error) {
-	opts := []client.Opt{
-		client.WithAPIVersionNegotiation(),
-	}
+	var opts []client.Opt
 
 	if c.Host != "" {
 		opts = append(opts, client.WithHost(c.Host))
@@ -209,7 +169,7 @@ func (c *Connection) createClient() (*client.Client, error) {
 		opts = append(opts, client.WithHost(c.Host))
 	}
 
-	return client.NewClientWithOpts(opts...)
+	return client.New(opts...)
 }
 
 func fileExists(path string) bool {

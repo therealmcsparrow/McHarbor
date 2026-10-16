@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, type PaginatedData } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { downloadFile, slugForFilename } from '@resources/utils/download';
 import type { Workflow } from '../types';
 
 export type WorkflowRun = {
@@ -24,7 +25,10 @@ export function useWorkflows() {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
     queryKey: ['workflows', envId],
-    queryFn: () => api.get<PaginatedData<Workflow>>('/workflows', { per_page: '100', ...(envId ? { env: envId } : {}) }).then((r) => r.data?.items ?? []),
+    queryFn: () =>
+      api
+        .get<PaginatedData<Workflow>>('/workflows', { per_page: '100', ...(envId ? { env: envId } : {}) })
+        .then((r) => assertSuccess(r)?.items ?? []),
   });
 }
 
@@ -32,7 +36,7 @@ export function useWorkflow(id: string) {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
     queryKey: ['workflows', envId, id],
-    queryFn: () => api.get<Workflow>(`/workflows/${id}`, envId ? { env: envId } : {}).then((r) => r.data),
+    queryFn: () => api.get<Workflow>(`/workflows/${id}`, envId ? { env: envId } : {}).then(assertSuccess),
     enabled: !!id,
   });
 }
@@ -48,7 +52,7 @@ export function useWorkflowRuns(workflowId?: string) {
       if (envId) params.env = envId;
       return api
         .get<PaginatedData<WorkflowRun>>('/workflows/runs', params)
-        .then((response) => response.data?.items ?? []);
+        .then((response) => assertSuccess(response)?.items ?? []);
     },
     refetchInterval: 10_000,
   });
@@ -58,20 +62,30 @@ export function useCreateWorkflow() {
   const { t } = useTranslation('common');
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string }) => api.post<Workflow>('/workflows', data).then(assertSuccess),
+    mutationFn: (data: { name: string; description?: string }) =>
+      api.post<Workflow>('/workflows', data).then(assertSuccess),
     meta: { success: t('workflows.mutationCreated') },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] }),
   });
 }
 
-export function useUpdateWorkflow() {
+export function useUpdateWorkflow(options?: { meta?: { success?: string; error?: string } }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name?: string; description?: string; status?: string; canvasData?: string }) =>
-      api.put<Workflow>(`/workflows/${id}`, data).then(assertSuccess),
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+      name?: string;
+      description?: string;
+      status?: string;
+      canvasData?: string;
+    }) => api.put<Workflow>(`/workflows/${id}`, data).then(assertSuccess),
+    meta: options?.meta,
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
-      queryClient.invalidateQueries({ queryKey: ['workflows', vars.id] });
+      void queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      void queryClient.invalidateQueries({ queryKey: ['workflows', vars.id] });
     },
   });
 }
@@ -86,49 +100,17 @@ export function useDeleteWorkflow() {
   });
 }
 
-function currentLanguage() {
-  const stored = localStorage.getItem('mcharbor-language');
-  if (!stored) return 'en';
-  try {
-    return JSON.parse(stored)?.state?.language || 'en';
-  } catch {
-    return stored;
-  }
-}
-
-function filenameFromDisposition(disposition: string | null, fallback: string) {
-  const match = disposition?.match(/filename="([^"]+)"/);
-  return match?.[1] || fallback;
-}
-
-function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
 export function useExportWorkflow() {
   const { t } = useTranslation('common');
   const envId = useEnvironmentStore((s) => s.currentId);
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+    mutationFn: async ({ id, name: workflowName }: { id: string; name: string }) => {
       const params = envId ? `?${new URLSearchParams({ env: envId }).toString()}` : '';
-      const response = await fetch(`/api/workflows/${id}/export${params}`, {
-        credentials: 'include',
-        headers: { 'Accept-Language': currentLanguage() },
-      });
-      if (!response.ok) {
-        throw new Error(`export failed with status ${response.status}`);
-      }
-      const blob = await response.blob();
-      const fallback = `${name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workflow'}.mcharbor-workflow.json`;
-      saveBlob(blob, filenameFromDisposition(response.headers.get('content-disposition'), fallback));
+      await downloadFile(
+        `/api/workflows/${id}/export${params}`,
+        `${slugForFilename(workflowName, 'workflow')}.mcharbor-workflow.json`,
+      );
     },
     meta: {
       success: t('workflows.mutationExported'),
@@ -154,4 +136,3 @@ export function useImportWorkflow() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] }),
   });
 }
-

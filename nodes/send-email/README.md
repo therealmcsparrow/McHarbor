@@ -23,7 +23,7 @@ Use a configured email server from Settings, or switch Delivery to Other and pro
 ## Configuration Guide
 
 - `Delivery` (select, required): Choose a configured email server or custom SMTP settings. Default: `configured`. Options: Configured Email Server, Other.
-- `Email Server` (email-server-select, optional): Select a configured email server, or leave it empty to use the default enabled server.
+- `Email Server` (email-server-select, optional): Select a communication channel whose plugin declares it can send email (an `email-channel` capability), or leave it empty to use the default among those channels. Disabled when no such plugin is installed.
 - `SMTP Host` (text, required): Custom SMTP host when Delivery is Other.
 - `SMTP Port` (number, required): Custom SMTP port when Delivery is Other. Default: `587`.
 - `Encryption` (select, optional): SMTP encryption mode. Default: `starttls`. Options: None, STARTTLS, SSL/TLS.
@@ -32,7 +32,7 @@ Use a configured email server from Settings, or switch Delivery to Other and pro
 - `Password` (text, optional): Custom SMTP password.
 - `From Address` (text, required): Sender address for custom SMTP.
 - `From Name` (text, optional): Sender display name for custom SMTP.
-- `To` (text, required): Single-line text value.
+- `To` (multiselect, optional): Recipient addresses. With a configured server, leave it empty to send to the recipients saved on the channel; filled, it replaces them for this send only. Required with Other (custom SMTP).
 - `Subject` (text, optional): Single-line text value.
 - `Body` (textarea, required): Multi-line text value for bodies, templates, or larger content.
 

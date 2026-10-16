@@ -11,7 +11,7 @@ export function StatsAreaChartImpl({
   secondaryDataKey,
   xAxisKey = 'timestamp',
   color = 'var(--primary)',
-  secondaryColor = 'hsl(30 80% 55%)',
+  secondaryColor = 'var(--chart-2)',
   formatValue,
   label,
   secondaryLabel,
@@ -34,12 +34,7 @@ export function StatsAreaChartImpl({
             )}
           </defs>
           {!compact && (
-            <XAxis
-              dataKey={xAxisKey}
-              tick={false}
-              axisLine={{ stroke: 'var(--border)' }}
-              tickLine={false}
-            />
+            <XAxis dataKey={xAxisKey} tick={false} axisLine={{ stroke: 'var(--border)' }} tickLine={false} />
           )}
           <Tooltip
             contentStyle={{
@@ -49,9 +44,13 @@ export function StatsAreaChartImpl({
               color: 'var(--foreground)',
               fontSize: '0.75rem',
             }}
-            formatter={(value, name) => [
+            formatter={(value, itemName) => [
               formatValue ? formatValue(Number(value ?? 0)) : (value ?? 0),
-              label && name === dataKey ? label : secondaryLabel && name === secondaryDataKey ? secondaryLabel : name,
+              label && itemName === dataKey
+                ? label
+                : secondaryLabel && itemName === secondaryDataKey
+                  ? secondaryLabel
+                  : itemName,
             ]}
           />
           <Area

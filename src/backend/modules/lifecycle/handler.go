@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
@@ -37,12 +36,12 @@ func NewHandler(app *router.AppDeps) *Handler {
 // filtering. The same query backs the Logging tab in the Docker
 // menu and the per-environment / per-subject dropdowns on it.
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page < 1 {
+	page, pageErr := strconv.Atoi(r.URL.Query().Get("page"))
+	if pageErr != nil || page < 1 {
 		page = 1
 	}
-	perPage, _ := strconv.Atoi(r.URL.Query().Get("perPage"))
-	if perPage < 1 {
+	perPage, perPageErr := strconv.Atoi(r.URL.Query().Get("perPage"))
+	if perPageErr != nil || perPage < 1 {
 		perPage = 50
 	}
 
@@ -66,14 +65,14 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	items, total, err := h.service.List(r.Context(), page, perPage, f)
 	if err != nil {
 		h.app.Logger.Error("lifecycle: list events failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
 	response.OK(w, map[string]any{
-		"items": items,
-		"total": total,
-		"page": page,
+		"items":   items,
+		"total":   total,
+		"page":    page,
 		"perPage": perPage,
 	})
 }
@@ -81,26 +80,26 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 // HandleRecent returns the last N events without filters. The
 // dashboard's "what just happened" panel uses this.
 func (h *Handler) HandleRecent(w http.ResponseWriter, r *http.Request) {
-	n, _ := strconv.Atoi(r.URL.Query().Get("n"))
-	if n < 1 {
+	n, nErr := strconv.Atoi(r.URL.Query().Get("n"))
+	if nErr != nil || n < 1 {
 		n = 10
 	}
 	items, err := h.service.Recent(r.Context(), n)
 	if err != nil {
 		h.app.Logger.Error("lifecycle: recent events failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	response.OK(w, map[string]any{"items": items})
 }
 
 // HandleInsert lets other modules (stack deploys, image updates,
-// backup migrations) record an event. Admin-only; protected by
-// the standard RBAC permission.
+// backup migrations) record an event. Gated by settings.manage at
+// global scope in Mount, the same key its sibling purge route carries.
 func (h *Handler) HandleInsert(w http.ResponseWriter, r *http.Request) {
 	var ev LifecycleEvent
 	if err := response.DecodeBody(r, &ev); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if ev.SubjectType == "" || ev.SubjectID == "" || ev.EventType == "" || ev.Action == "" {
@@ -109,7 +108,7 @@ func (h *Handler) HandleInsert(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.service.Insert(r.Context(), ev); err != nil {
 		h.app.Logger.Error("lifecycle: insert event failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	response.OK(w, ev)
@@ -129,7 +128,7 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 	deleted, days, err := h.service.PurgeByRetention(r.Context())
 	if err != nil {
 		h.app.Logger.Error("lifecycle: purge failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if user != nil {
@@ -152,15 +151,24 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 }
 
 // Mount registers lifecycle module routes. All protected.
+//
+// The two reads stay ungated: the feed is what the Docker logging tab
+// and the dashboard "what just happened" panel render, for every
+// signed-in user.
+//
+// Writing and purging are both settings.manage at global scope. Insert
+// carried a doc comment calling itself admin-only while no middleware
+// enforced it, which left any authenticated account able to write
+// arbitrary lifecycle events into the record other people read.
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/lifecycle", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Get("/recent", h.HandleRecent)
-			r.Post("/", h.HandleInsert)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/lifecycle", func(r *apispec.Router) {
+			r.Get("/", h.HandleList, apispec.Query("envId", ""), apispec.Query("from", ""), apispec.Query("perPage", ""), apispec.Query("search", ""), apispec.Query("severity", ""), apispec.Query("subjectType", ""), apispec.Query("until", ""))
+			r.Get("/recent", h.HandleRecent, apispec.Query("n", ""))
+			r.With(rbac.RequireGlobalPermission(app.RBACService, rbac.PermSettingsManage)).Post("/", h.HandleInsert, apispec.Request(LifecycleEvent{}))
+			r.With(rbac.RequireGlobalPermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge, apispec.Query("vacuum", ""))
 		})
 	})
 }

@@ -1,0 +1,50 @@
+{
+    "slug":  "shibboleth-idp",
+    "name":  "Shibboleth IdP",
+    "description":  "SAML identity provider widely used by universities and research institutions for federated single sign-on.",
+    "category":  "Identity & SSO",
+    "image":  "unicon/shibboleth-idp:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.shibboleth.net\u0026sz=128",
+    "website":  "https://www.shibboleth.net",
+    "docsUrl":  "https://github.com/Unicon/shib-idp-dockerized",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/shibboleth-idp/credentials",
+                        "container":  "/opt/shib-idp/credentials"
+                    },
+                    {
+                        "host":  "/opt/appdata/shibboleth-idp/conf",
+                        "container":  "/opt/shib-idp/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JETTY_MAX_HEAP",
+                        "default":  "512m",
+                        "description":  "Maximum JVM heap size for the embedded Jetty server"
+                    },
+                    {
+                        "key":  "IDP_SCOPE",
+                        "default":  "example.org",
+                        "description":  "SAML scope value used to sign released attributes"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "slug":  "booksonic",
+    "name":  "Booksonic",
+    "description":  "Subsonic-based audiobook and podcast streaming server.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/booksonic-air:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/booksonic.png",
+    "website":  "https://booksonic.org",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-booksonic-air",
+    "ports":  [
+                  {
+                      "host":  4049,
+                      "container":  4040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/booksonic/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/booksonic/audiobooks",
+                        "container":  "/music"
+                    },
+                    {
+                        "host":  "/opt/appdata/booksonic/podcasts",
+                        "container":  "/podcasts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,225 @@
+{
+  "loading": "Loading…",
+  "installed": {
+    "title": "Installed Plugins",
+    "empty": "No plugins installed yet. The hello-world plugin lives under src/plugins/Plugins/hello-world/.",
+    "update_badge": "Update available",
+    "update_to_version": "Update to v{{version}}",
+    "update_action": "Update to v{{version}}",
+    "update_action_short": "Update",
+    "empty_description": "Browse the catalog tabs on the right to install a plugin."
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "not_loaded": "Not loaded"
+  },
+  "actions": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "uninstall": "Uninstall",
+    "refresh": "Refresh",
+    "retry": "Retry"
+  },
+  "confirm": {
+    "uninstall": "Uninstall {{slug}}? This runs the 7-step gate chain and is irreversible.",
+    "uninstall_title": "Uninstall {{name}}?",
+    "uninstall_warning": "All saved data will be permanently lost. This includes configuration, plugin data tables, ABAC rules, the plugin's bundle files, and any widget or workflow-node instances. This cannot be undone and there is no automatic backup.",
+    "uninstall_button": "Uninstall",
+    "preview_loading": "Loading impact summary…",
+    "preview_error": "Could not load impact summary. Uninstall will still proceed.",
+    "impact_title": "This will remove:",
+    "impact_empty": "No contributions found — uninstall will remove only the bundle files.",
+    "impact": {
+      "routes": "routes",
+      "menu": "menu items",
+      "topbar": "topbar items",
+      "context_menus": "context menu items",
+      "tabs": "tabs",
+      "widgets": "widgets",
+      "nodes": "workflow nodes",
+      "abac_rules": "ABAC rules",
+      "data_tables": "plugin data tables",
+      "config_keys": "configuration keys",
+      "permissions_claimed": "Permissions claimed",
+      "permissions_referenced": "Granted in roles (grants will be removed)"
+    },
+    "data_loss_warning": "This plugin stores data of its own, and uninstalling deletes it permanently. If the plugin offers an export, use it before continuing.",
+    "roles_strip_warning_one": "{{count}} role still grants this plugin's permissions: {{roles}}. Uninstalling removes those grants from the role.",
+    "roles_strip_warning_other": "{{count}} roles still grant this plugin's permissions: {{roles}}. Uninstalling removes those grants from the roles.",
+    "purge_label": "Also clear this plugin’s stored data",
+    "purge_help": "Removes the plugin’s saved settings and secrets, and any catalog source left behind for a category no other plugin provides. Leave unticked to keep them, so reinstalling finds its configuration intact."
+  },
+  "errors": {
+    "load_failed": "Failed to load installed plugins.",
+    "not_loaded": "Plugin {{slug}} is not loaded yet. Restart McHarbor after install/enable to load it.",
+    "unknown_slug": "Plugin {{slug}} is not installed.",
+    "bundle_load_failed": "Failed to download the plugin bundle.",
+    "no_mount": "Plugin {{slug}} bundle did not register a mount function.",
+    "widget_load_failed": "Plugin {{slug}} could not load its dashboard widget {{widget}}.",
+    "bundle_failed": "Failed to download plugin {{slug}} bundle."
+  },
+  "store": {
+    "search": "Search plugins…",
+    "count_one": "{{count}} plugin",
+    "count_other": "{{count}} plugins",
+    "empty": "No plugins are available in the catalog.",
+    "no_results": "No plugins match your search.",
+    "installing": "Installing…",
+    "updating": "Updating…",
+    "update_action": "Update to v{{version}}",
+    "update_short": "Update v{{version}}",
+    "updateAvailable": "Update",
+    "updateAction": "Update",
+    "updateAllAction_one": "Update {{count}} plugin",
+    "updateAllAction_other": "Update all {{count}} plugins",
+    "updateAllDialogTitle": "Update plugins",
+    "updateAllDialogDescription": "Plugins are updated one at a time. A plugin that fails is marked on its row and the run continues with the next one.",
+    "updateAllActionLabel": "Update",
+    "installedVersion": "installed: v{{version}}",
+    "not_installed": "Not installed"
+  },
+  "iframe": {
+    "title": "Plugin sandbox",
+    "bridge_unavailable": "Embedded plugin is offline. Reload the page to retry."
+  },
+  "catalog": {
+    "title": "Available Plugins",
+    "installedOnly": "Installed only",
+    "count_one": "{{count}} available",
+    "count_other": "{{count}} available",
+    "empty": "No plugins are available in the catalog. The catalog directory is empty or not configured — set MCHARBOR_PLUGIN_CATALOG_DIR or mount a directory of *.json plugin entries.",
+    "error": "Failed to load the plugin catalog.",
+    "install": "Install",
+    "installed": "Installed",
+    "installed_badge": "Installed",
+    "install_action_label": "Install {{name}}",
+    "no_description": "No description provided.",
+    "no_homepage": "No homepage",
+    "update_available_badge": "Update to v{{version}}",
+    "update_action": "Update to v{{version}}",
+    "update_action_label": "Update {{name}} to v{{version}}"
+  },
+  "toast": {
+    "enabled": "Plugin enabled",
+    "disabled": "Plugin disabled",
+    "uninstalled": "Plugin uninstalled",
+    "installed": "Plugin installed",
+    "updated": "Plugin updated",
+    "uninstall_failed": "Failed to uninstall plugin",
+    "uninstalled_roles_stripped": "Plugin uninstalled. Its permissions were removed from: {{roles}}"
+  },
+  "empty": {
+    "not_installed": {
+      "description": "{{purpose}}. The plugin is provided as a separate package and must be installed.",
+      "title": "{{name}} plugin not installed",
+      "body": "This page is a host compatibility shim. The full {{name}} UI ships inside the plugin bundle and is not available in this build. Install the plugin to enable the feature.",
+      "cta_browse": "Browse AppStore",
+      "cta_status": "Plugin status"
+    },
+    "installed_redirect": {
+      "description": "{{purpose}}. The plugin UI is mounted under /plugins/{{slug}}.",
+      "body": "Open the plugin page to use {{name}}.",
+      "cta": "Open plugin"
+    }
+  },
+  "install": {
+    "title": "Install {{name}}",
+    "update_title": "Update {{name}}",
+    "description": "The plugin bundle is being downloaded, verified, and registered. This dialog will close automatically when the operation finishes.",
+    "starting": "Starting…",
+    "network_error": "Network error",
+    "connect_failed": "Connection failed",
+    "failure": "Operation failed",
+    "cancel": "Cancel",
+    "done": "Done",
+    "close": "Close",
+    "phases": {
+      "download": "Download",
+      "verify": "Verify",
+      "extract": "Extract",
+      "migrate": "Migrate",
+      "persist": "Persist",
+      "starting": "Starting",
+      "done": "Done",
+      "error": "Error",
+      "dependency": "Dependencies",
+      "uninstall": "Uninstall"
+    }
+  },
+  "tabs": {
+    "updates_available": "Updates available",
+    "installed": "Installed",
+    "extensions": "Extensions",
+    "ai": "AI providers",
+    "communication": "Communication providers",
+    "identity": "Identity providers",
+    "storage": "Storage providers",
+    "snapshots": "Snapshot providers",
+    "themes": "Themes",
+    "updates": "Updates",
+    "all": "All",
+    "addons": "Add-ons",
+    "logging": "Audit log forwarders",
+    "scanners": "Vulnerability scanners"
+  },
+  "updates": {
+    "empty": "All installed plugins are up to date.",
+    "banner_one": "{{count}} update available",
+    "banner_other": "{{count}} updates available"
+  },
+  "page": {
+    "title": "Plugins",
+    "subtitle": "Manage installed plugins and browse the catalog by category."
+  },
+  "filters": {
+    "installed_only": "Installed only",
+    "updates_only": "Pending updates"
+  },
+  "categories": {
+    "ai": "AI providers",
+    "communication": "Communication",
+    "identity": "Identity",
+    "storage": "Storage",
+    "snapshots": "Snapshot providers",
+    "other": "Other",
+    "scanners": "Vulnerability scanners"
+  },
+  "plugins": {
+    "catalog": {
+      "pickerHint": "Pick a version to install. The latest is the default; pick an older release to pin or downgrade.",
+      "versionLabel": "Version",
+      "latestLabel": "latest",
+      "versionSelectorLabel": "Plugin version"
+    }
+  },
+  "unsigned": {
+    "title": "This plugin is not signed",
+    "description": "McHarbor could not verify this plugin against a trusted signing key. It can run backend code, read your Docker and Kubernetes environments, and add pages to this UI. Install it only if you trust where it came from.",
+    "acknowledge": "I understand the risk and want to install this unsigned plugin.",
+    "hostPrivileges": "{{name}} runs as native code inside the McHarbor process, with the same access to this host as McHarbor itself.",
+    "serverUnverified": "The server could not verify this release against a trusted signing key, and will not install it until you confirm.",
+    "installAnyway": "Install unsigned plugin",
+    "badge": "Unsigned"
+  },
+  "signature": {
+    "signedTooltip": "Verified against a trusted signing key.",
+    "unsignedTooltip": "No verified signature from a trusted key. Install at your own risk."
+  },
+  "repair": {
+    "needed": "Needs repair",
+    "explanation": "Built for McHarbor {{builtFor}}, this install is {{current}}.",
+    "action": "Repair",
+    "reconcile": "Reconcile",
+    "reconcileHint": "Pin this plugin to catalog version {{version}}. The host keeps, moves or reinstalls it so the record, files and binary agree; role grants are kept.",
+    "reconciled": "{{slug}} reconciled at {{version}}: {{outcome}}.",
+    "reconciledKept": "already at this version",
+    "reconciledInstalled": "installed",
+    "reconciledUpdated": "moved to this version",
+    "failed": "Repair failed"
+  },
+  "card": {
+    "createdBy": "Created by",
+    "readOnlyShort": "ro"
+  }
+}

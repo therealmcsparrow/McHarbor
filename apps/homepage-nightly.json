@@ -1,0 +1,40 @@
+{
+    "slug":  "homepage-nightly",
+    "name":  "Homepage (Nightly)",
+    "description":  "Nightly channel build of Homepage. Modern application dashboard for homelab services.",
+    "category":  "Dashboards",
+    "image":  "ghcr.io/gethomepage/homepage:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homepage.png",
+    "website":  "https://gethomepage.dev",
+    "docsUrl":  "https://gethomepage.dev",
+    "ports":  [
+                  {
+                      "host":  4004,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/homepage-nightly/config",
+                        "container":  "/app/config"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

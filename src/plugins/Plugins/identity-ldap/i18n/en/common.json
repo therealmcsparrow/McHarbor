@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "LDAP / Active Directory",
+    "subtitle": "Federate McHarbor login to any LDAP v3 directory or Active Directory. The plugin handles the search-then-rebind authentication flow against the configured directory and provisions users on first successful bind.",
+    "registerHint": "Add a provider from the host's Settings > Security > Identity Providers page and pick \"LDAP\" as the provider_type."
+  },
+  "fields": {
+    "url":              "LDAP Server URL",
+    "bind_dn":          "Bind DN",
+    "bind_password":    "Bind Password",
+    "user_base_dn":     "User Base DN",
+    "user_filter":      "User Search Filter",
+    "user_attr":        "Username Attribute",
+    "email_attr":       "Email Attribute",
+    "name_attr":        "Display Name Attribute",
+    "start_tls":        "Use StartTLS",
+    "skip_tls_verify":  "Skip TLS Verification",
+    "group_base_dn":    "Group Base DN",
+    "group_filter":     "Group Filter",
+    "group_attr":       "Group Name Attribute"
+  },
+  "help": {
+    "url":              "LDAP server URL. Use ldaps://host:636 for implicit TLS, or ldap://host:389 for plain (then enable StartTLS below to upgrade).",
+    "bind_dn":          "DN of the service account used for searches. Empty = anonymous bind (most directories refuse to return user entries anonymously). Example: cn=mcharbor-svc,ou=service,dc=example,dc=com.",
+    "bind_password":    "Password for the service account. Stored encrypted at rest (AES-256-GCM).",
+    "user_base_dn":     "Base DN under which user entries live. The plugin scopes user searches to this subtree. Example: ou=users,dc=example,dc=com.",
+    "user_filter":      "LDAP filter template for looking up a user by their login name. The placeholder %s is replaced with the escaped username. Default: (uid=%s) for OpenLDAP. For Active Directory: (sAMAccountName=%s) or (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)).",
+    "user_attr":        "Attribute that contains the login name. Default: uid (OpenLDAP). Active Directory: sAMAccountName.",
+    "email_attr":       "Attribute that contains the user's email. Default: mail. Used for provisioning and notification routing.",
+    "name_attr":        "Attribute that contains the user's display name. Default: cn. Used for audit log entries and the user dropdown.",
+    "start_tls":        "Upgrade a plain ldap:// connection to TLS via the StartTLS extended operation. Has no effect when the URL is already ldaps://.",
+    "skip_tls_verify":  "Skip certificate verification. Test/development only — do NOT enable in production.",
+    "group_base_dn":    "Base DN for group searches. Defaults to User Base DN when empty. Example: ou=groups,dc=example,dc=com.",
+    "group_filter":     "Filter template for fetching the groups a user belongs to. The %s placeholder is replaced with the user's full DN. Default: (|(member=%s)(uniqueMember=%s)) works for OpenLDAP posixGroup and groupOfUniqueNames. Active Directory: (member:1.2.840.113556.1.4.1941:=<userDN>) needs an LDAP server that supports the memberOf overlay.",
+    "group_attr":       "Attribute used as the group name in McHarbor's group mapper. Default: cn. Active Directory: sAMAccountName if your groups are security principals."
+  },
+  "guide": {
+    "title":    "Set up LDAP / Active Directory sign-in in McHarbor",
+    "subtitle": "Create a read-only service account, point McHarbor at your directory, and map the user + group attributes to the claims the host expects.",
+    "step1": {
+      "title": "Create a read-only service account",
+      "body":  "Most directories refuse to return user entries to anonymous binds. Create a dedicated service account with read access to user objects in your directory: OpenLDAP — add a posixAccount entry under ou=service,dc=example,dc=com with a hashed userPassword; Active Directory — create a user under a service-accounts OU and disable interactive logon + password expiry. Note the full DN and password — they go into the Bind DN / Bind Password fields on the provider form."
+    },
+    "step2": {
+      "title": "Locate the user base DN",
+      "body":  "Pick the subtree under which all user entries live. For a typical flat layout this is ou=users,dc=example,dc=com. For a deep tree spanning multiple OUs (Active Directory) this is usually the domain NC: dc=example,dc=com. The plugin scopes every user search to this DN, so making it too broad hurts performance; making it too narrow causes \"user not found\" for users living outside the subtree."
+    },
+    "step3": {
+      "title": "Set the user filter and username attribute",
+      "body":  "The default filter (uid=%s) targets the uid attribute on OpenLDAP posixAccount entries. Active Directory uses sAMAccountName; change the filter to (sAMAccountName=%s) and the Username Attribute to sAMAccountName. For AD forests with multiple domains in the same tree, a stricter filter like (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)) is safer."
+    },
+    "step4": {
+      "title": "Set the email and display-name attributes",
+      "body":  "Default is mail and cn, which match OpenLDAP and AD out of the box. If your directory uses a different schema (mail vs userPrincipalName, displayName vs cn), change the Email Attribute and Display Name Attribute accordingly. The plugin reads these attributes once per login; a missing value leaves the corresponding claim blank but does not block authentication."
+    },
+    "step5": {
+      "title": "Configure TLS",
+      "body":  "LDAPS (ldaps://host:636) is the simplest path — the TLS handshake is part of the connection. StartTLS (ldap://host:389 + StartTLS toggle on) is the alternative for directories that listen on a single port. If the server certificate is self-signed or issued by an internal CA, leave Skip TLS Verification OFF in production and import the CA chain into the host's trust store instead."
+    },
+    "step6": {
+      "title": "Configure group search (optional)",
+      "body":  "Leave Group Base DN + Group Filter blank if you only need user authentication. To map directory groups to McHarbor roles, fill in the base DN (defaults to User Base DN) and a filter template that matches your group's membership attribute. Default (|(member=%s)(uniqueMember=%s)) works for OpenLDAP. For Active Directory, change the filter to (member:1.2.840.113556.1.4.1941:=<userDN>) and ensure the directory supports the memberOf overlay."
+    },
+    "step7": {
+      "title": "Test the connection",
+      "body":  "Click \"Test connection\" on the provider form. A green result means the bind succeeded, the user base DN resolved, and the filter syntax was accepted. Sign out and use the LDAP login form on the login page; on first successful bind a McHarbor user record is auto-provisioned and the session cookie is issued."
+    }
+  }
+}

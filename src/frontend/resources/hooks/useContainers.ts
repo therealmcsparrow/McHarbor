@@ -6,6 +6,7 @@ import { api } from '@core/api/client';
 import type { ContainerInfo } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
+import { assertSuccess } from '@resources/utils/api-mutation';
 
 export function useContainers(all = true) {
   const envId = useEnvironmentStore((state) => state.currentId);
@@ -19,7 +20,7 @@ export function useContainers(all = true) {
           all: String(all),
           ...(envId ? { env: envId } : {}),
         })
-        .then((response) => response.data ?? []),
+        .then(assertSuccess),
     refetchInterval: uploadActive ? false : 10_000,
     enabled: !uploadActive,
   });

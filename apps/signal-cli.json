@@ -1,25 +1,40 @@
 {
-    "slug": "signal-cli",
-    "name": "Signal CLI",
-    "description": "Unofficial command-line client for Signal Messenger. Send and receive Signal messages programmatically from your McHarbor workflows.",
-    "category": "Communications",
-    "image": "asamk/signal-cli:latest",
-    "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/signal.png",
-    "website": "https://github.com/AsamK/signal-cli",
-    "docsUrl": "https://github.com/AsamK/signal-cli#readme",
-    "ports": [],
-    "volumes": [
-        {
-            "host": "/var/lib/signal-cli",
-            "container": "/root/.local/share/signal-cli"
-        }
-    ],
-    "envVars": [
-        {
-            "key": "TZ",
-            "default": "UTC",
-            "description": "Timezone for the container"
-        }
-    ],
-    "version": "latest"
+    "slug":  "signal-cli",
+    "name":  "Signal CLI REST API",
+    "description":  "REST and JSON-RPC API in front of signal-cli, for sending and receiving Signal messages from scripts and workflows.",
+    "category":  "Communications",
+    "image":  "bbernhard/signal-cli-rest-api:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/signal.png",
+    "website":  "https://github.com/bbernhard/signal-cli-rest-api",
+    "docsUrl":  "https://github.com/bbernhard/signal-cli-rest-api#usage",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/signal-cli/config",
+                        "container":  "/home/.local/share/signal-cli"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MODE",
+                        "default":  "normal",
+                        "description":  "Run mode: normal, native or json-rpc"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
 }

@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Generisches OpenID Connect",
+    "subtitle": "Verbindet die McHarbor-Anmeldung mit jedem konformen OpenID-Connect-Anbieter — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP und viele mehr. Das Plugin ruft zur Laufzeit <issuer>/.well-known/openid-configuration ab, um die Authorization- und Token-Endpunkte zu ermitteln, und führt dann den Standard-OIDC-Authorization-Code-Flow aus.",
+    "registerHint": "Fügen Sie auf der Seite Einstellungen > Sicherheit > Identitätsanbieter des Hosts einen Anbieter hinzu und wählen Sie „Generic OpenID Connect“ als provider_type."
+  },
+  "fields": {
+    "issuer_url":    "Issuer-URL",
+    "client_id":     "Client-ID",
+    "client_secret": "Client-Secret",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "issuer_url":    "Die OIDC-Issuer-URL — in der Regel die Basis-URL des benutzerseitigen Portals Ihres Identitätsanbieters (zum Beispiel https://login.example.com oder https://your-tenant.auth0.com/). Das Plugin hängt /.well-known/openid-configuration an, um Authorization-Endpunkt, Token-Endpunkt und JWKS-URI zu ermitteln.",
+    "client_id":     "Von Ihrem IdP für die McHarbor-Anwendung vergebene OAuth-Client-ID. Kopieren Sie sie aus dem Anwendungs-/Client-Konfigurationsbildschirm Ihres IdP.",
+    "client_secret": "Von Ihrem IdP ausgestelltes OAuth-Client-Secret. Im Ruhezustand verschlüsselt gespeichert (AES-256-GCM).",
+    "scopes":        "Durch Leerzeichen getrennte OAuth-Scopes. Standardmäßig 'openid profile email', was die Standard-OIDC-Identitäts-Claims abdeckt. Fügen Sie 'groups' hinzu, wenn Ihr IdP einen Gruppen-Claim unter diesem Namen bereitstellt (der Gruppenzuordnungs-Assistent des Hosts liest den vom OIDC bestätigten Claim 'groups')."
+  },
+  "guide": {
+    "title":    "Generisches OpenID Connect in McHarbor einrichten",
+    "subtitle": "Registrieren Sie einen vertraulichen OAuth-Client in Ihrem IdP und gewähren Sie ihm das Recht, grundlegende Profil-Claims (und optional Gruppen) zu lesen.",
+    "step1": {
+      "title": "Anwendungsregistrierung Ihres IdP öffnen",
+      "body":  "Navigieren Sie in der Admin-Konsole Ihres Identitätsanbieters zu Applications (oder Clients / API Clients, je nach Produkt) und erstellen Sie eine neue vertrauliche Webanwendung. Wählen Sie einen Namen wie „McHarbor SSO“ und den Anwendungstyp Web."
+    },
+    "step2": {
+      "title": "Redirect-URI festlegen",
+      "body":  "Fügen Sie unter Allowed Callback URLs / Redirect URIs die auf der Bearbeitungsseite des Anbieters angezeigte McHarbor-Callback-URL hinzu. Der Host hängt /api/identity-providers/callback an Ihre McHarbor-Basis-URL an — kopieren Sie sie exakt, um unbemerkte Auth-Code-Abweichungen zu vermeiden."
+    },
+    "step3": {
+      "title": "Client-Secret erstellen",
+      "body":  "Erzeugen Sie ein neues Client-Secret. Wählen Sie eine sinnvolle Gültigkeit (90 oder 180 Tage) und setzen Sie eine Kalendererinnerung. Kopieren Sie den Secret-WERT (nicht die Secret-ID) in das Feld Client-Secret im Anbieterformular. McHarbor speichert es mit AES-256-GCM verschlüsselt."
+    },
+    "step4": {
+      "title": "Client-ID kopieren",
+      "body":  "Kopieren Sie aus der Anwendungsübersicht die Client-ID in das Feld Client-ID im Anbieterformular."
+    },
+    "step5": {
+      "title": "Issuer-URL kopieren",
+      "body":  "Die Issuer-URL ist die Basis-URL Ihres IdP — dieselbe URL, die Ihre Benutzer bei der Anmeldung aufrufen. Übliche Formen: https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Fügen Sie sie in das Feld Issuer-URL ein. Das Plugin ruft <issuer>/.well-known/openid-configuration ab, um die Konfiguration zu prüfen."
+    },
+    "step6": {
+      "title": "Verbindung testen",
+      "body":  "Klicken Sie in McHarbor im Anbieterformular auf „Verbindung testen“. Ein grünes Ergebnis bedeutet, dass das OIDC-Discovery-Dokument aufgelöst wurde und der IdP Ihre Anmeldedaten akzeptiert hat. Sie können den Anbieter jetzt aktivieren und „Mit <Ihr IdP> anmelden“ auf der Anmeldeseite verwenden."
+    }
+  }
+}

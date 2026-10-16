@@ -4,7 +4,7 @@
     "description":  "Interactive documentation for OpenAPI specifications served in the browser.",
     "category":  "Developer Tools",
     "image":  "swaggerapi/swagger-ui:latest",
-    "logo":  "https://icon.horse/icon/swagger.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/swagger.svg",
     "website":  "https://swagger.io",
     "docsUrl":  "https://swagger.io/docs/specification/about/",
     "ports":  [
@@ -34,5 +34,9 @@
                         "description":  "Base URL under which Swagger UI is served"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

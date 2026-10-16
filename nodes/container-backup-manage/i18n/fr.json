@@ -1,0 +1,28 @@
+{
+  "label": "Gérer les sauvegardes de conteneur",
+  "description": "Liste les plans ou exécutions de sauvegarde, ou récupère, annule et supprime une exécution",
+  "config": {
+    "environment": "Environnement",
+    "action": "Action",
+    "container": "Conteneur (filtre)",
+    "status": "Statut",
+    "limit": "Limite",
+    "run_id": "Exécution de sauvegarde"
+  },
+  "options": {
+    "action": {
+      "list_plans": "Lister les plans",
+      "list_runs": "Lister les exécutions",
+      "get_run": "Récupérer l'exécution",
+      "cancel_run": "Annuler l'exécution",
+      "delete_run": "Supprimer l'exécution"
+    },
+    "status": {
+      "all": "Tous",
+      "completed": "Terminée",
+      "running": "En cours",
+      "failed": "Échouée",
+      "cancelled": "Annulée"
+    }
+  }
+}

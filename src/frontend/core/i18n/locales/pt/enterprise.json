@@ -1,0 +1,461 @@
+{
+  "title": "Visão geral do Enterprise",
+  "description": "Avalie a prontidão empresarial em identidade, auditoria, backup, plugins, armazenamento e fundações de HA.",
+  "actions": {
+    "open": "Abrir"
+  },
+  "values": {
+    "ready": "Pronto",
+    "enabled": "Ativado",
+    "disabled": "Desativado"
+  },
+  "status": {
+    "success": "Configurado",
+    "warning": "Requer atenção",
+    "secondary": "Verificando"
+  },
+  "sections": {
+    "surfaces": "Áreas do Enterprise"
+  },
+  "cards": {
+    "ha": {
+      "title": "Alta disponibilidade",
+      "description": "Modo do banco de dados e status da coordenação do cluster."
+    },
+    "identity": {
+      "title": "Provedores de identidade",
+      "description": "Provedores SSO/OIDC/SAML/LDAP configurados."
+    },
+    "scim": {
+      "title": "Provisionamento SCIM",
+      "description": "Endpoints de provisionamento e estado da sincronização."
+    },
+    "audit": {
+      "title": "Eventos de auditoria",
+      "description": "Trilha pesquisável de ações privilegiadas."
+    },
+    "auditExport": {
+      "title": "Exportação de auditoria assinada",
+      "description": "Exportação CSV/JSON filtrada com metadados de checksum."
+    },
+    "siem": {
+      "title": "Encaminhamento de logs de auditoria",
+      "description": "Envie a trilha de auditoria para fora do host com um plugin de logs."
+    },
+    "backups": {
+      "title": "Atividade de backup",
+      "description": "Histórico das operações de backup e restauração."
+    },
+    "storage": {
+      "title": "Locais de armazenamento",
+      "description": "Destinos configurados para backups e artefatos."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Contribuições carregadas do runtime de plugins."
+    },
+    "apiKeys": {
+      "title": "Chaves de API",
+      "description": "Credenciais de automação com escopo limitado."
+    }
+  },
+  "links": {
+    "security": {
+      "title": "Segurança",
+      "description": "Usuários, funções, TLS, identidade e endurecimento."
+    },
+    "identity": {
+      "title": "Provedores de identidade",
+      "description": "Configure e teste os provedores de login corporativo."
+    },
+    "scim": {
+      "title": "SCIM",
+      "description": "Provisione usuários e grupos a partir de diretórios externos."
+    },
+    "policies": {
+      "title": "Funções e políticas",
+      "description": "Revise o comportamento das políticas RBAC e ABAC."
+    },
+    "audit": {
+      "title": "Central de auditoria",
+      "description": "Rastreie ações privilegiadas e negações."
+    },
+    "auditExport": {
+      "title": "Exportação de auditoria assinada",
+      "description": "Baixe evidências de auditoria verificáveis."
+    },
+    "siem": {
+      "title": "Encaminhamento de logs de auditoria",
+      "description": "Configure o encaminhamento de logs de auditoria e o historico de entregas."
+    },
+    "apiKeys": {
+      "title": "Chaves de API",
+      "description": "Gerencie credenciais de API com escopo limitado."
+    },
+    "backups": {
+      "title": "Backups",
+      "description": "Revise as execuções de backup e a prontidão para restaurar."
+    },
+    "storage": {
+      "title": "Armazenamento",
+      "description": "Gerencie destinos de backup externos."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Instale e inspecione extensões corporativas."
+    },
+    "ha": {
+      "title": "Fundações de HA",
+      "description": "Nó atual, banco de dados e liderança singleton."
+    },
+    "license": {
+      "title": "Licença",
+      "description": "Tipo de licença, o que cobre e quanto está a ser usado."
+    }
+  },
+  "haWizard": {
+    "title": "Assistente de migração para HA",
+    "description": "Alterne entre SQLite singleton e HA ativo-ativo com uma lista de verificação controlada pelo operador.",
+    "errorTitle": "Não foi possível carregar o plano de migração para HA",
+    "mode": {
+      "singleton": "Singleton",
+      "ha": "Alta disponibilidade"
+    },
+    "summary": {
+      "database": "Banco de dados",
+      "node": "Nó",
+      "target": "Destino recomendado"
+    },
+    "direction": {
+      "toHA": "De singleton para HA",
+      "toSingleton": "De HA para singleton"
+    },
+    "resources": {
+      "title": "Recursos para o operador",
+      "composeTemplate": {
+        "title": "Modelo de compose para HA",
+        "description": "Valide ou inicie o exemplo de HA com dois nós PostgreSQL incluído antes de adaptá-lo para produção."
+      },
+      "envExample": {
+        "title": "Modelo de ambiente",
+        "description": "Copie este arquivo de exemplo para ha.env e preencha os segredos reais, as credenciais do banco e os valores específicos de cada nó."
+      },
+      "backupKey": {
+        "title": "Chave de backup compartilhada",
+        "description": "Gere uma única chave de criptografia de backup e monte o mesmo arquivo em cada nó do McHarbor."
+      },
+      "documentation": {
+        "title": "Documentação da migração",
+        "description": "Siga o guia completo de banco compartilhado, arquivo compartilhado, reversão e endurecimento para produção."
+      },
+      "postgresImport": {
+        "title": "Comandos de importação do PostgreSQL",
+        "description": "Use estes comandos como ponto de partida para uma importação de teste e um dump de reversão quando o PostgreSQL for o banco de HA."
+      },
+      "mysqlImport": {
+        "title": "Comandos de importação do MySQL/MariaDB",
+        "description": "Use estes comandos como ponto de partida para uma importação de teste e um dump de reversão quando o MySQL ou o MariaDB for o banco de HA."
+      }
+    },
+    "actions": {
+      "previous": "Anterior",
+      "next": "Próximo",
+      "copyCommand": "Copiar o comando",
+      "copyValue": "Copiar o valor",
+      "copied": "Copiado para a área de transferência",
+      "manualCopy": "Cópia manual"
+    },
+    "checkStatus": {
+      "pass": "Pronto",
+      "attention": "Requer atenção"
+    },
+    "checks": {
+      "title": "Verificações de prontidão",
+      "database": {
+        "title": "Banco de dados externo",
+        "detail": "Use PostgreSQL, MySQL/MariaDB ou SQL Server com MCHARBOR_DB_DSN em cada nó de HA."
+      },
+      "nodeId": {
+        "title": "ID de nó estável",
+        "detail": "Defina MCHARBOR_NODE_ID por nó para ter logs e status de cluster legíveis."
+      },
+      "sharedSecret": {
+        "title": "Segredo de sessão compartilhado",
+        "detail": "Use o mesmo MCHARBOR_SECRET em cada nó para que as sessões sobrevivam a um failover."
+      },
+      "encryptionKey": {
+        "title": "Chave de criptografia compartilhada",
+        "detail": "Defina a mesma ENCRYPTION_KEY em todos os nós; um nó cuja chave não corresponde ao banco de dados se recusa a iniciar."
+      },
+      "backupKey": {
+        "title": "Chave de backup compartilhada",
+        "detail": "Monte o mesmo segredo de criptografia de backup em cada nó antes de restaurar entre nós."
+      },
+      "databaseReachable": {
+        "title": "Banco de dados acessível",
+        "detail": "O banco de dados atual precisa responder antes da migração ou reversão."
+      }
+    },
+    "steps": {
+      "progress": "Etapa {{current}} de {{total}}",
+      "prepare": {
+        "badge": "Planejar",
+        "title": "Preparar os serviços compartilhados",
+        "description": "Crie um banco PostgreSQL ou MySQL, escolha um destino de arquivo compartilhado, gere segredos estáveis e valide o docker-compose.ha.yml antes de parar o nó singleton."
+      },
+      "snapshot": {
+        "badge": "Backup",
+        "title": "Snapshot do singleton",
+        "description": "Pare as gravações, faça backup do banco SQLite e preserve o diretório de dados antes de exportar qualquer coisa."
+      },
+      "import": {
+        "badge": "Importar",
+        "title": "Importar no banco de dados compartilhado",
+        "description": "Carregue o dump do SQLite primeiro em um banco de testes PostgreSQL ou MySQL/MariaDB e deixe o McHarbor executar as migrações pendentes no primeiro boot de HA."
+      },
+      "configure": {
+        "badge": "Configurar",
+        "title": "Configurar cada nó",
+        "description": "Defina MCHARBOR_DB_DRIVER, MCHARBOR_DB_DSN, MCHARBOR_NODE_ID, MCHARBOR_SECRET e a chave de backup compartilhada em cada nó do McHarbor."
+      },
+      "start": {
+        "badge": "Iniciar",
+        "title": "Iniciar atrás do balanceador de carga",
+        "description": "Inicie primeiro um nó, confirme que o status do cluster está saudável e depois adicione os demais nós ao balanceador de carga."
+      },
+      "drain": {
+        "badge": "Drenar",
+        "title": "Drenar o tráfego de HA",
+        "description": "Remova todos os nós menos um do balanceador e pause as gravações agendadas durante a janela de reversão."
+      },
+      "export": {
+        "badge": "Exportar",
+        "title": "Exportar o banco de dados compartilhado",
+        "description": "Faça o dump do banco PostgreSQL ou MySQL/MariaDB e converta-o de volta para SQL compatível com SQLite, ou restaure o snapshot do SQLite anterior ao HA se nenhuma gravação de HA deva ser mantida."
+      },
+      "restore": {
+        "badge": "Restaurar",
+        "title": "Restaurar os dados do SQLite",
+        "description": "Coloque o banco SQLite restaurado sob DATA_DIR e mantenha o destino de arquivo compartilhado montado se os arquivos de backup ficarem fora do nó."
+      },
+      "singleNodeEnv": {
+        "badge": "Iniciar",
+        "title": "Reverter o ambiente",
+        "description": "Remova MCHARBOR_DB_DRIVER e MCHARBOR_DB_DSN, mantenha MCHARBOR_SECRET estável e então inicie o nó singleton."
+      }
+    },
+    "gaps": {
+      "title": "Lacunas do roadmap",
+      "agentRouting": {
+        "title": "Agentes em mais de um nó ativo",
+        "description": "Um agente remoto mantém uma conexão com um nó. Em active/active, toda chamada do Docker e toda sessão de terminal, console e log é retransmitida para esse nó. Uma sessão aberta termina quando o agente reconecta a outro nó e precisa ser reaberta, e a autoatualização do agente age apenas a partir do nó que o mantém."
+      },
+      "mysqlRuntime": {
+        "title": "MySQL e MariaDB em tempo de execução",
+        "description": "PostgreSQL, MySQL 8.4 e MariaDB 11 executam a aplicação inteira; as instruções em tempo de execução são traduzidas no driver. Algumas instruções de migração exclusivas do SQLite (índices únicos parciais, gatilhos WORM de auditoria) não têm equivalente no MySQL e são ignoradas, então o PostgreSQL continua sendo a escolha mais completa."
+      }
+    }
+  },
+  "ha": {
+    "title": "Alta disponibilidade",
+    "description": "Todos os nós do McHarbor, qual está ativo, se cada um está pronto para tráfego e os controles para transferir ou esvaziar.",
+    "singleNode": "Esta instância roda em SQLite, que não pode ser compartilhado entre nós. Alta disponibilidade exige PostgreSQL, MySQL/MariaDB ou SQL Server em todos os nós.",
+    "facts": {
+      "mode": "Modo",
+      "thisNode": "Este nó",
+      "database": "Banco de dados",
+      "readiness": "Prontidão",
+      "pluginStore": "Pacotes de plugins"
+    },
+    "mode": {
+      "peer": "Pares",
+      "active-passive": "Ativo/passivo"
+    },
+    "role": {
+      "peer": "Par",
+      "active": "Ativo",
+      "standby": "Em espera"
+    },
+    "state": {
+      "running": "Em execução",
+      "draining": "Esvaziando",
+      "stopped": "Parado"
+    },
+    "check": {
+      "database": "Banco de dados responde",
+      "coordinator": "Sessão de lock ativa",
+      "accepting": "Não está esvaziando",
+      "serving": "Não é standby"
+    },
+    "reachable": "Acessível",
+    "unreachable": "Inacessível",
+    "ready": "Pronto",
+    "notReady": "Não pronto",
+    "thisNode": "Este nó",
+    "notResponding": "Sem resposta",
+    "nodesTitle": "Nós",
+    "searchPlaceholder": "Pesquisar nós, hosts, versões...",
+    "empty": "Nenhum nó se reportou ainda.",
+    "health": {
+      "up": "Ativo",
+      "degraded": "Degradado",
+      "down": "Fora do ar"
+    },
+    "facet": {
+      "drift": "Divergência de versão"
+    },
+    "filter": {
+      "allRoles": "Todas as funções"
+    },
+    "columns": {
+      "health": "Saúde",
+      "advertiseUrl": "URL anunciada",
+      "started": "Iniciado",
+      "node": "Nó",
+      "role": "Função",
+      "state": "Estado",
+      "heartbeat": "Último heartbeat",
+      "version": "Versão",
+      "agents": "Agentes",
+      "actions": "Ações"
+    },
+    "actions": {
+      "makeActive": "Tornar ativo",
+      "drain": "Esvaziar",
+      "resume": "Retomar"
+    },
+    "confirm": {
+      "failover": {
+        "title": "Tornar {{node}} o nó ativo?",
+        "description": "O nó ativo libera seu lock e todos os jobs singleton, e {{node}} assume em segundos. Usuários e agentes reconectam pelo balanceador de carga.",
+        "confirm": "Tornar ativo"
+      },
+      "drain": {
+        "title": "Esvaziar {{node}}?",
+        "description": "{{node}} deixa de se reportar pronto, então o balanceador de carga não envia novo tráfego a ele. Um nó ativo transfere primeiro.",
+        "confirm": "Esvaziar"
+      },
+      "resume": {
+        "title": "Retomar {{node}}?",
+        "description": "{{node}} volta a se reportar pronto e pode receber tráfego ou se tornar ativo.",
+        "confirm": "Retomar"
+      }
+    },
+    "splitBrain": {
+      "title": "Mais de um nó afirma estar ativo",
+      "description": "Os nós {{nodes}} reportam a função ativa. Failover e esvaziamento ficam desativados até restar apenas um; verifique a conexão de banco de dados de cada nó."
+    },
+    "jobsTitle": "Jobs singleton neste nó",
+    "jobsDescription": "Jobs que devem ser executados exatamente uma vez em todos os nós, e quais deles este nó executa atualmente.",
+    "jobsNone": "Este nó não executa nenhum deles.",
+    "banner": {
+      "title": "Este é um nó standby",
+      "description": "{{node}} é um standby: ele atende leituras, e alterações são recusadas até que ele se torne ativo. Use o endereço do balanceador de carga para fazer alterações."
+    },
+    "pluginStore": {
+      "local": "Somente este nó",
+      "database": "Banco de dados compartilhado",
+      "shared-fs": "Sistema de arquivos compartilhado",
+      "object": "Local de armazenamento"
+    },
+    "pluginStoreLocal": "Os pacotes de plugins são mantidos apenas em cada nó. Um standby não pode carregar um plugin instalado enquanto não estava ativo; defina MCHARBOR_PLUGIN_STORE como database, shared-fs:<path> ou object:<storage location id> em todos os nós.",
+    "readiness": {
+      "title": "Prontidão para HA",
+      "description": "Verifica este cluster em relação a um modo de destino. Uma verificação com falha bloqueia o destino; um aviso não.",
+      "targetLabel": "Modo de destino",
+      "target": {
+        "active-active": "Ativo/ativo",
+        "active-passive": "Ativo/passivo"
+      },
+      "status": {
+        "pass": "Aprovado",
+        "warn": "Aviso",
+        "fail": "Falha"
+      },
+      "verdict": {
+        "ready": "Todas as verificações passam para este destino.",
+        "notReady": "Pelo menos uma verificação falha para este destino."
+      },
+      "activeActiveDisabled": "Active/active permanece desativado enquanto uma verificação falha. Corrija todas as verificações com falha abaixo e depois defina MCHARBOR_HA_MODE=active-active em cada nó; avisos não o bloqueiam.",
+      "routing": {
+        "check": "Comprovar o roteamento entre nós",
+        "proven": "Uma chamada ao ambiente {{env}} foi executada pelo nó {{node}}, então o encaminhamento funciona a partir daqui.",
+        "failed": "A última chamada entre nós falhou: {{error}}",
+        "unproven_one": "{{nodes}} nó mantém agentes que este nó não mantém. Nada foi encaminhado ainda.",
+        "unproven_other": "{{nodes}} nós mantêm agentes que este nó não mantém. Nada foi encaminhado ainda.",
+        "nothingToRoute": "Nenhum agente é mantido por outro nó, então não há nada a encaminhar nem a comprovar."
+      },
+      "gate": {
+        "externalDatabase": {
+          "title": "Banco de dados compartilhado",
+          "pass": "PostgreSQL, MySQL ou MariaDB está configurado e responde a partir deste nó.",
+          "fail": "O SQLite não pode ser compartilhado, ou o banco de dados compartilhado não responde. Defina MCHARBOR_DB_DRIVER e MCHARBOR_DB_DSN em todos os nós."
+        },
+        "encryptionKey": {
+          "title": "Mesma chave de criptografia em todos os nós",
+          "pass": "A chave vem de ENCRYPTION_KEY e corresponde à verificação de chave que todos os nós fazem na inicialização.",
+          "fail": "A chave é gerada por nó ou não corresponde ao banco de dados. Defina a mesma ENCRYPTION_KEY em todos os nós."
+        },
+        "pluginStore": {
+          "title": "Repositório compartilhado de pacotes de plugins",
+          "pass": "Todos os nós podem obter os pacotes de plugins instalados.",
+          "fail": "Os pacotes de plugins ficam apenas no nó que os instalou. Defina MCHARBOR_PLUGIN_STORE como um repositório compartilhado."
+        },
+        "sameVersion": {
+          "title": "Mesma versão e build",
+          "pass": "Todos os nós ativos executam a mesma versão e build.",
+          "warn": "Não foi possível ler o registro de nós, então as versões são desconhecidas.",
+          "fail": "Os nós ativos executam versões ou builds diferentes. Atualize todos os nós para a mesma imagem."
+        },
+        "agentRouting": {
+          "title": "Roteamento de agentes remotos",
+          "pass": "Toda chamada de agente alcança o nó que mantém o agente. Com um nó ativo, todo agente reconecta a ele; em active/active, as chamadas do Docker e o relay de sessões para terminais, console do convidado, logs do host e mensagens do agente foram ambos comprovados por uma chamada que retornou.",
+          "warn": "As chamadas da API do Docker são encaminhadas ao nó que mantém o agente, mas o relay de sessões que transporta o exec de terminal, o terminal do host, o console do convidado, os logs do host e as mensagens do agente não foi comprovado a partir deste nó, ou sua última tentativa falhou. Execute a verificação de roteamento; até que ela passe, essas sessões alcançam apenas esse nó.",
+          "fail": "Um agente mantido por outro nó não pode ser alcançado daqui: o salto entre nós não está configurado, ou sua última chamada real falhou. Defina o mesmo MCHARBOR_SECRET e um MCHARBOR_ADVERTISE_URL acessível em todos os nós."
+        },
+        "nodeLinkTransport": {
+          "title": "Chamadas criptografadas entre nós",
+          "pass": "Chamadas assinadas entre nós nunca cruzam a rede sem criptografia: só há um nó ativo, ou todos os nós ativos anunciam um endereço https.",
+          "warn": "As chamadas entre nós usam TLS enfraquecido: MCHARBOR_NODE_LINK_ALLOW_HTTP=1 permite que alcancem nós que anunciam http simples, ou MCHARBOR_NODE_LINK_SKIP_VERIFY=1 aceita qualquer certificado de par. Qualquer pessoa no caminho pode então lê-las e forjar corpos de requisição em streaming, respostas de agentes e sessões retransmitidas de terminal, console e log, que só o TLS protege. Fixe a CA dos nós com MCHARBOR_NODE_LINK_CA_FILE ou mantenha isto apenas em uma rede privada confiável.",
+          "fail": "As chamadas entre nós são recusadas: alguns nós ativos anunciam um endereço que não é https, ou MCHARBOR_NODE_LINK_CA_FILE neste nó não pode ser carregado. Dê a esses nós um MCHARBOR_ADVERTISE_URL https (ou defina MCHARBOR_NODE_LINK_ALLOW_HTTP=1 em todos os nós para uma rede privada confiável) e aponte MCHARBOR_NODE_LINK_CA_FILE para um certificado PEM legível ou remova a definição."
+        },
+        "sessions": {
+          "title": "Sessões",
+          "pass": "As sessões ficam no banco de dados compartilhado, então sessões fixas (sticky) não são necessárias."
+        },
+        "perNodeState": {
+          "title": "Tickets de console e limites de taxa",
+          "pass": "Um nó atende, então tickets e limites de taxa em memória se comportam como em um único nó.",
+          "warn": "Os tickets de console estão no banco de dados compartilhado, então qualquer nó pode resgatar um ticket emitido por qualquer nó. Os contadores de limite de taxa e o limite de visualizadores do console permanecem por nó por design: o limite efetivo é o configurado vezes o número de nós.",
+          "fail": "A tabela de tickets de console não respondeu a partir deste nó, então um console aberto aqui não poderia ser resgatado em outro lugar."
+        },
+        "coordinator": {
+          "title": "Lock do coordenador",
+          "pass": "A sessão de lock que elege o nó ativo e os jobs singleton responde.",
+          "fail": "A sessão de lock não está disponível. Ela exige um banco de dados externo."
+        }
+      }
+    },
+    "startup": {
+      "title": "Saúde na inicialização",
+      "description": "O que este nó encontrou ao iniciar ({{time}}).",
+      "haModeRefused": "MCHARBOR_HA_MODE=active-active foi solicitado e recusado porque suas verificações de prontidão falham; este nó executa active/passive.",
+      "database": "Banco de dados",
+      "dataDir": "Diretório de dados",
+      "writable": "Gravável",
+      "notWritable": "Não gravável",
+      "free": "{{size}} livres",
+      "keySource": "Chave de criptografia",
+      "key": {
+        "env": "De ENCRYPTION_KEY",
+        "file": "Gerada no diretório de dados"
+      },
+      "tls": "TLS",
+      "tlsMode": {
+        "off": "Desativado",
+        "https": "HTTPS",
+        "https-only": "Somente HTTPS"
+      }
+    }
+  }
+}

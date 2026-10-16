@@ -1,0 +1,186 @@
+{
+  "title": "Compliance",
+  "description": "Betriebslage für Prüfer: Aufbewahrung, Schlüssel, Backups, TLS, Identität, Plugin-Vertrauen und Hochverfügbarkeit, gemessen an dieser Instanz.",
+  "generatedAt": "Gemessen {{time}}",
+  "refresh": "Aktualisieren",
+  "openSettings": "Öffnen",
+  "downloadReport": "Bericht herunterladen",
+  "summary": {
+    "pass": "Bestanden",
+    "warn": "Erfordert Aufmerksamkeit",
+    "fail": "Fehlgeschlagen",
+    "info": "Informativ",
+    "unknown": "Unbekannt"
+  },
+  "status": {
+    "pass": "Bestanden",
+    "warn": "Achtung",
+    "fail": "Fehlgeschlagen",
+    "info": "Info",
+    "unknown": "Unbekannt"
+  },
+  "values": {
+    "yes": "Ja",
+    "no": "Nein",
+    "none": "—",
+    "noLimit": "Kein Limit",
+    "days_one": "{{count}} Tag",
+    "days_other": "{{count}} Tage",
+    "percent": "{{value}}%",
+    "redacted": "Geschwärzt"
+  },
+  "sections": {
+    "audit": {
+      "title": "Audit-Aufbewahrung und -Weiterleitung",
+      "description": "Wie lange der Audit-Verlauf aufbewahrt wird und ob er das System verlässt."
+    },
+    "keys": {
+      "title": "Verschlüsselungsschlüssel",
+      "description": "Woher der Verschlüsselungsschlüssel für ruhende Daten stammt und ob Backups verschlüsselt sind."
+    },
+    "instanceBackup": {
+      "title": "Instanz-Backup",
+      "description": "Zeitpläne und der letzte erfolgreiche Export von McHarbor selbst."
+    },
+    "tls": {
+      "title": "TLS",
+      "description": "Das Zertifikat, das dieser Knoten ausliefert, und wann es abläuft."
+    },
+    "passwords": {
+      "title": "Passwortrichtlinie",
+      "description": "Regeln, die jedes lokale Passwort erfüllen muss."
+    },
+    "mfa": {
+      "title": "Multi-Faktor-Authentifizierung",
+      "description": "Anteil aktiver lokaler Konten mit registrierter MFA. Konten von einem Identitätsanbieter nutzen dessen MFA."
+    },
+    "identitySync": {
+      "title": "Identität und Bereitstellung",
+      "description": "Aktivierte Identitätsanbieter und Zustand der SCIM-Bereitstellung."
+    },
+    "plugins": {
+      "title": "Plugin-Signierung",
+      "description": "Installierte Plugins ohne gültige Signatur eines vertrauenswürdigen Schlüssels."
+    },
+    "ha": {
+      "title": "Hochverfügbarkeit",
+      "description": "Bereitstellungsmodus und Bereitschaft dieses Knotens."
+    },
+    "selfEnvAccess": {
+      "title": "Container-Zugriff auf den Host von McHarbor",
+      "description": "Rollen mit containers.manage in der Umgebung, auf der McHarbor selbst läuft. Dort erreicht die Rolle über einen Container, der den Docker-Socket oder den Host einbindet, die Schlüssel und die Datenbank von McHarbor und ist damit Administratoren gleichgestellt, sofern die Rolle nicht auch host_self.manage besitzt."
+    },
+    "supplyChain": {
+      "title": "SBOM und Image-Signierung",
+      "description": "Release-Images tragen eine SPDX-SBOM und sind mit cosign-Keyless-Signierung signiert. Verifizieren Sie sie mit den Befehlen unter Erste Schritte → Releases verifizieren."
+    }
+  },
+  "facts": {
+    "retentionDays": "Audit-Aufbewahrung",
+    "retentionPreset": "Aufbewahrungsvorgabe",
+    "forwardersEnabled": "Aktivierte Weiterleitungen",
+    "encryptionKeySource": "Quelle des Verschlüsselungsschlüssels",
+    "backupKeyConfigured": "Backup-Schlüssel konfiguriert",
+    "backupKeyId": "Backup-Schlüssel-ID",
+    "schedulesEnabled": "Aktivierte Zeitpläne",
+    "lastSuccessAt": "Letzter erfolgreicher Export",
+    "lastRunStatus": "Status des letzten Laufs",
+    "lastRunAt": "Letzter Lauf",
+    "lastVerifyStatus": "Letzte Verifizierung",
+    "enabled": "Aktiviert",
+    "source": "Zertifikatsquelle",
+    "minVersion": "Minimale TLS-Version",
+    "notAfter": "Läuft ab",
+    "subject": "Antragsteller",
+    "daysRemaining": "Verbleibende Tage",
+    "minLength": "Mindestlänge",
+    "requireUpper": "Erfordert Großbuchstaben",
+    "requireLower": "Erfordert Kleinbuchstaben",
+    "requireDigit": "Erfordert eine Ziffer",
+    "requireSymbol": "Erfordert ein Sonderzeichen",
+    "maxAgeDays": "Maximales Alter",
+    "historySize": "Passwortverlauf",
+    "localUsers": "Aktive lokale Konten",
+    "localUsersWithMfa": "Mit registrierter MFA",
+    "mfaAdoption": "MFA-Verbreitung",
+    "externalUsers": "Konten von Identitätsanbietern",
+    "providersEnabled": "Aktivierte Identitätsanbieter",
+    "scimEndpoints": "Aktivierte SCIM-Endpunkte",
+    "scimFailing": "Fehlerhafte SCIM-Endpunkte",
+    "scimLastSyncAt": "Letzte SCIM-Synchronisierung",
+    "installed": "Installierte Plugins",
+    "unsigned": "Unsignierte Plugins",
+    "mode": "Modus",
+    "databaseDriver": "Datenbank",
+    "pluginStore": "Plugin-Paketspeicher",
+    "role": "Rolle dieses Knotens",
+    "ready": "Bereit für Datenverkehr",
+    "nodeId": "Knoten-ID",
+    "sbomFormat": "SBOM-Format",
+    "signing": "Signierung",
+    "selfEnvironments": "Umgebungen, auf denen McHarbor läuft",
+    "containersManageRoles": "Rollen mit containers.manage dort",
+    "adminEquivalentRoles": "Administratorgleiche Rollen (ohne host_self.manage)",
+    "containersManageUsers": "Benutzer mit direkter containers.manage-Berechtigung dort",
+    "adminEquivalentUsers": "Administratorgleiche Benutzer (direkte Berechtigung, ohne host_self.manage)"
+  },
+  "reasons": {
+    "sourceUnavailable": "Die Daten hinter diesem Abschnitt konnten nicht gelesen werden. Das Serverprotokoll nennt die Ursache.",
+    "retentionShort": "Audit-Zeilen werden nach weniger als einem Jahr gelöscht.",
+    "noForwarding": "Es ist keine Audit-Log-Weiterleitung aktiviert, daher existiert der Verlauf nur auf dieser Instanz.",
+    "encryptionKeyGenerated": "ENCRYPTION_KEY ist nicht gesetzt; der Schlüssel wurde im Datenverzeichnis erzeugt und geht mit ihm verloren.",
+    "encryptionKeyGeneratedShared": "ENCRYPTION_KEY ist bei einer gemeinsam genutzten Datenbank nicht gesetzt; jeder Knoten muss denselben Schlüssel verwenden.",
+    "noBackupKey": "Es ist kein Backup-Verschlüsselungsschlüssel konfiguriert.",
+    "noBackupSchedule": "Es ist kein Instanz-Backup-Zeitplan aktiviert.",
+    "noSuccessfulBackup": "Es wurde noch nie ein Instanz-Backup abgeschlossen.",
+    "backupStale": "Das letzte erfolgreiche Instanz-Backup ist älter als sieben Tage.",
+    "lastBackupFailed": "Das jüngste Instanz-Backup ist fehlgeschlagen.",
+    "verifyFailed": "Die jüngste Backup-Verifizierung ist fehlgeschlagen.",
+    "tlsDisabled": "TLS ist an diesem Listener deaktiviert. Das ist nur hinter einem TLS-terminierenden Proxy in einem privaten Netzwerk akzeptabel.",
+    "certUnreadable": "Das ausgelieferte Zertifikat konnte nicht gelesen werden.",
+    "certExpired": "Das ausgelieferte Zertifikat ist abgelaufen.",
+    "certExpiringSoon": "Das ausgelieferte Zertifikat läuft innerhalb von 30 Tagen ab.",
+    "selfSigned": "Das ausgelieferte Zertifikat ist selbstsigniert.",
+    "minLengthTooShort": "Die minimale Passwortlänge liegt unter 8 Zeichen.",
+    "minLengthShort": "Die minimale Passwortlänge liegt unter 12 Zeichen.",
+    "noPasswordHistory": "Die Wiederverwendung von Passwörtern wird nicht verhindert.",
+    "noLocalUsers": "Es gibt keine aktiven lokalen Konten.",
+    "mfaNone": "Bei keinem aktiven lokalen Konto ist MFA registriert.",
+    "mfaPartial": "Bei einigen aktiven lokalen Konten ist keine MFA registriert.",
+    "noIdentityProvider": "Es ist kein Identitätsanbieter und kein SCIM-Endpunkt aktiviert.",
+    "scimSyncFailing": "Die letzte Synchronisierung mindestens eines SCIM-Endpunkts ist fehlgeschlagen.",
+    "unsignedPlugins": "Einige installierte Plugins wurden ohne gültige Signatur akzeptiert.",
+    "singleNode": "Dies ist eine Einzelknoten-Bereitstellung.",
+    "pluginStoreLocal": "Active/Passive mit lokalem Plugin-Store: Einem hochgestuften Knoten können Plugin-Pakete fehlen.",
+    "releaseArtifacts": "Wird mit jedem Release veröffentlicht; nicht an dieser Instanz gemessen.",
+    "selfEnvironmentNotFound": "Es konnte keine Umgebung dem Docker-Daemon zugeordnet werden, auf dem McHarbor läuft, daher wird keine Rolle markiert.",
+    "containersManageIsAdmin": "Eine Rolle besitzt containers.manage in der Umgebung, auf der McHarbor läuft, ohne host_self.manage. In dieser Umgebung kann sie einen Container starten, der den Docker-Socket oder den Host einbindet, und die Schlüssel und die Datenbank von McHarbor lesen; sie ist damit Administratoren gleichgestellt. Erteilen Sie sie nur in anderen Umgebungen oder behandeln Sie die Rolle als Administratorrolle.",
+    "containersManageOverrideIsAdmin": "Ein Benutzer besitzt eine direkte containers.manage-Berechtigung in der Umgebung, auf der McHarbor läuft, ohne host_self.manage. Eine Rollenprüfung zeigt diese Berechtigung nicht an, dennoch erreicht sie die Schlüssel und die Datenbank von McHarbor auf dieselbe Weise. Entfernen Sie die Ausnahme, beschränken Sie sie auf eine andere Umgebung oder erteilen Sie host_self.manage bewusst."
+  },
+  "report": {
+    "title": "Compliance-Bericht herunterladen",
+    "description": "Wählen Sie die Abschnitte, das Format und ob identifizierende Werte geschwärzt werden sollen.",
+    "sections": "Abschnitte",
+    "selectAll": "Alle auswählen",
+    "format": "Format",
+    "formatJson": "JSON",
+    "formatDocx": "Word-Dokument (.docx)",
+    "formatPdf": "PDF-Dokument (.pdf)",
+    "redact": "Identifizierende Werte schwärzen",
+    "redactHint": "Ersetzt Schlüssel-IDs, Knoten-IDs und Zertifikatsantragsteller durch [redacted]. Secrets sind in keinem Fall enthalten.",
+    "preview": "Wird geschwärzt",
+    "previewNone": "In den ausgewählten Abschnitten wird nichts geschwärzt.",
+    "download": "Herunterladen",
+    "failed": "Der Bericht konnte nicht erzeugt werden.",
+    "noSections": "Wählen Sie mindestens einen Abschnitt aus.",
+    "htmlTitle": "McHarbor-Compliance-Bericht",
+    "htmlVersion": "Version {{version}} (Build {{build}})",
+    "htmlGenerated": "Erzeugt {{time}}",
+    "htmlRedacted": "Identifizierende Werte sind geschwärzt.",
+    "htmlNotRedacted": "Dieser Bericht ist nicht geschwärzt.",
+    "htmlFact": "Fakt",
+    "htmlValue": "Wert",
+    "htmlFindings": "Feststellungen",
+    "htmlStatus": "Status"
+  }
+}

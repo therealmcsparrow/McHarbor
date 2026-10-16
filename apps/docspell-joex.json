@@ -4,7 +4,7 @@
     "description":  "Job executor component for Docspell, handling OCR and asynchronous processing tasks.",
     "category":  "Documents",
     "image":  "docspell/joex:latest",
-    "logo":  "https://icon.horse/icon/docspell.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/docspell.svg",
     "website":  "https://docspell.org",
     "docsUrl":  "https://docspell.org/docs",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Database JDBC URL"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

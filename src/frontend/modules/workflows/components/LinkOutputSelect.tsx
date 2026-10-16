@@ -1,12 +1,12 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@resources/components/ui/Button";
-import { cn } from "@resources/utils/cn";
-import { api } from "@core/api/client";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@resources/components/ui/Button';
+import { cn } from '@resources/utils/cn';
+import { api } from '@core/api/client';
 
 type LinkOutputInfo = {
   workflowId: string;
@@ -21,46 +21,38 @@ interface LinkOutputSelectProps {
 }
 
 export function LinkOutputSelect({ value, onChange }: LinkOutputSelectProps) {
-  const { t } = useTranslation("common");
-  const [open, setOpen] = useState(false);
+  const { t } = useTranslation('common');
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: outputs } = useQuery({
-    queryKey: ["workflow-link-outputs"],
-    queryFn: () =>
-      api
-        .get<LinkOutputInfo[]>("/workflows/link-outputs")
-        .then((r) => r.data ?? []),
+    queryKey: ['workflow-link-outputs'],
+    queryFn: () => api.get<LinkOutputInfo[]>('/workflows/link-outputs').then((r) => r.data ?? []),
     staleTime: 30_000,
   });
 
   // Group by workflow
-  const grouped = (outputs ?? []).reduce<Record<string, LinkOutputInfo[]>>(
-    (acc, item) => {
-      const key = item.workflowId;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
-      return acc;
-    },
-    {},
-  );
+  const grouped = (outputs ?? []).reduce<Record<string, LinkOutputInfo[]>>((acc, item) => {
+    const key = item.workflowId;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
 
-  const selected = outputs?.find(
-    (o) => `${o.workflowId}:${o.nodeId}` === value,
-  );
+  const selected = outputs?.find((o) => `${o.workflowId}:${o.nodeId}` === value);
   const displayName = selected
-    ? `${selected.name || "Unnamed"} (${selected.workflowName})`
-    : value || t("workflows.selectLinkOutput");
+    ? `${selected.name || t('linkOutputSelect.unnamed', { ns: 'workflows' })} (${selected.workflowName})`
+    : value || t('workflows.selectLinkOutput');
 
   return (
     <div className="relative">
       <Button
         type="button"
         variant="ghost"
-        aria-label={t("workflows.selectLinkOutput")}
-        onClick={() => setOpen(!open)}
+        aria-label={t('workflows.selectLinkOutput')}
+        onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-8 w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          !value && "text-muted-foreground",
+          'flex w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          !value && 'text-muted-foreground',
         )}
       >
         <span className="truncate">{displayName}</span>
@@ -74,18 +66,16 @@ export function LinkOutputSelect({ value, onChange }: LinkOutputSelectProps) {
           <path d="M3 4.5L6 7.5L9 4.5" />
         </svg>
       </Button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
+      {isOpen && (
+        <div className="absolute top-full right-0 left-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
           {!outputs || outputs.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">
-              {t("workflows.noLinkOutputsFound")}
-            </p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{t('workflows.noLinkOutputsFound')}</p>
           ) : (
             Object.entries(grouped).map(([wfId, items]) => {
               const groupName = items[0]?.workflowName ?? wfId;
               return (
                 <div key={wfId}>
-                  <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <p className="px-3 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                     {groupName}
                   </p>
                   {items.map((item) => {
@@ -98,15 +88,15 @@ export function LinkOutputSelect({ value, onChange }: LinkOutputSelectProps) {
                         variant="ghost"
                         onClick={() => {
                           onChange(compositeKey);
-                          setOpen(false);
+                          setIsOpen(false);
                         }}
                         className={cn(
-                          "flex w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-muted/50",
-                          isSelected && "bg-muted/50",
+                          'flex h-auto w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-muted/50',
+                          isSelected && 'bg-muted/50',
                         )}
                       >
                         <span className="text-xs font-semibold text-foreground">
-                          {item.name || "Unnamed"}
+                          {item.name || t('linkOutputSelect.unnamed', { ns: 'workflows' })}
                         </span>
                       </Button>
                     );

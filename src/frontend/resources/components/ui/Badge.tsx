@@ -4,25 +4,29 @@
 import { type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@resources/utils/cn';
+import { STATUS_COLORS } from '@resources/theme/status-palette';
 
-export const badgeVariants = cva(
-  'inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary/10 text-primary',
-        secondary: 'bg-muted text-muted-foreground',
-        destructive: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400',
-        outline: 'border border-border text-foreground',
-        success: 'bg-teal-100 text-teal-800 dark:bg-teal-500/20 dark:text-teal-400',
-        warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400',
-      },
+// The status variants route through `status-palette.ts` rather than
+// spelling their own class chains. That file is the single place a tone is
+// defined, so a badge, a button and a status dot agree by construction
+// instead of by three people remembering the same values.
+export const badgeVariants = cva('inline-flex items-center gap-x-1.5 px-3 py-1.5 text-xs font-medium', {
+  variants: {
+    variant: {
+      default: 'bg-primary/10 text-primary',
+      secondary: 'bg-muted text-muted-foreground',
+      neutral: 'bg-muted text-foreground',
+      destructive: STATUS_COLORS.danger.soft,
+      outline: 'border border-border text-foreground',
+      success: STATUS_COLORS.success.soft,
+      warning: STATUS_COLORS.warning.soft,
+      info: STATUS_COLORS.info.soft,
     },
-    defaultVariants: {
-      variant: 'default',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
 
 type BadgeProps = HTMLAttributes<HTMLDivElement> & VariantProps<typeof badgeVariants>;
 

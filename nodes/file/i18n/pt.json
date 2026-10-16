@@ -1,0 +1,26 @@
+{
+  "label": "Arquivo",
+  "description": "Ler ou gravar um arquivo no diretório de dados do fluxo",
+  "config": {
+    "operation": "Operação",
+    "path": "Caminho",
+    "encoding": "Codificação",
+    "output_property": "Propriedade de saída",
+    "property": "Propriedade",
+    "mode": "Modo"
+  },
+  "options": {
+    "operation": {
+      "read": "Ler",
+      "write": "Gravar"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Substituir",
+      "append": "Acrescentar"
+    }
+  }
+}

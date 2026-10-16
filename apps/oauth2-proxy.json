@@ -4,7 +4,7 @@
   "description": "Reverse proxy that provides authentication as a service for OIDC and OAuth providers.",
   "category": "Networking",
   "image": "quay.io/oauth2-proxy/oauth2-proxy:latest",
-  "logo": "https://oauth2-proxy.github.io/oauth2-proxy/images/logos/OAuth2_Proxy_horizontal.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/oauth2-proxy.svg",
   "website": "https://oauth2-proxy.github.io/oauth2-proxy/",
   "docsUrl": "https://oauth2-proxy.github.io/oauth2-proxy/docs/",
   "ports": [
@@ -44,5 +44,9 @@
       "secret": true
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

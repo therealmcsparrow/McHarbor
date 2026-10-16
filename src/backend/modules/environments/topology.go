@@ -8,13 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/volume"
 	"github.com/go-chi/chi/v5"
+	"github.com/moby/moby/client"
 
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
@@ -37,26 +33,20 @@ func (h *Handler) HandleTopology(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	env, err := h.service.ByID(envID)
+	env, err := h.service.ByID(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("topology: get environment failed", "env", envID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	if env == nil {
 		response.NotFoundCode(w, r, i18n.ErrEnvNotFound)
 		return
 	}
-	if env.OrchestratorType != "docker" {
-		// Topology is a Docker concept for v1.
-		response.OK(w, TopologyResponse{EnvID: envID, Nodes: []TopologyNode{}, Edges: []TopologyEdge{}})
-		return
-	}
-
 	resp, err := buildDockerTopology(r.Context(), h.app.DockerPool, envID)
 	if err != nil {
 		h.app.Logger.Error("topology: build failed", "env", envID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	resp.EnvID = envID
@@ -64,28 +54,31 @@ func (h *Handler) HandleTopology(w http.ResponseWriter, r *http.Request) {
 }
 
 func buildDockerTopology(ctx context.Context, pool *coredocker.ClientPool, envID string) (*TopologyResponse, error) {
-	cli, err := pool.Get(envID)
+	cli, err := pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting docker client: %w", err)
 	}
 
-	listCtx, listCancel := context.WithTimeout(ctx, 30*time.Second)
+	listCtx, listCancel := context.WithTimeout(ctx, coredocker.CallTimeout)
 	defer listCancel()
-	containers, err := cli.ContainerList(listCtx, container.ListOptions{All: true})
+	containersRes, err := cli.ContainerList(listCtx, client.ContainerListOptions{All: true})
+	containers := containersRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing containers: %w", err)
 	}
 
-	netCtx, netCancel := context.WithTimeout(ctx, 30*time.Second)
+	netCtx, netCancel := context.WithTimeout(ctx, coredocker.CallTimeout)
 	defer netCancel()
-	networks, err := cli.NetworkList(netCtx, network.ListOptions{})
+	networksRes, err := cli.NetworkList(netCtx, client.NetworkListOptions{})
+	networks := networksRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing networks: %w", err)
 	}
 
-	volCtx, volCancel := context.WithTimeout(ctx, 30*time.Second)
+	volCtx, volCancel := context.WithTimeout(ctx, coredocker.CallTimeout)
 	defer volCancel()
-	volumes, err := cli.VolumeList(volCtx, volume.ListOptions{Filters: filters.Args{}})
+	volumesRes, err := cli.VolumeList(volCtx, client.VolumeListOptions{Filters: client.Filters{}})
+	volumes := volumesRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing volumes: %w", err)
 	}
@@ -100,8 +93,8 @@ func buildDockerTopology(ctx context.Context, pool *coredocker.ClientPool, envID
 		}
 		networkSet[n.Name] = true
 		subnet := ""
-		if len(n.IPAM.Config) > 0 {
-			subnet = n.IPAM.Config[0].Subnet
+		if len(n.IPAM.Config) > 0 && n.IPAM.Config[0].Subnet.IsValid() {
+			subnet = n.IPAM.Config[0].Subnet.String()
 		}
 		netNodes = append(netNodes, TopologyNode{
 			ID:     "net:" + n.ID,
@@ -112,8 +105,8 @@ func buildDockerTopology(ctx context.Context, pool *coredocker.ClientPool, envID
 	}
 
 	volumeSet := make(map[string]bool)
-	volNodes := make([]TopologyNode, 0, len(volumes.Volumes))
-	for _, v := range volumes.Volumes {
+	volNodes := make([]TopologyNode, 0, len(volumes))
+	for _, v := range volumes {
 		if v.Name == "" {
 			continue
 		}
@@ -141,7 +134,7 @@ func buildDockerTopology(ctx context.Context, pool *coredocker.ClientPool, envID
 			ID:        "ctr:" + c.ID,
 			Kind:      "container",
 			Label:     name,
-			State:     c.State,
+			State:     string(c.State),
 			StackName: stackName,
 		})
 
@@ -172,7 +165,9 @@ func buildDockerTopology(ctx context.Context, pool *coredocker.ClientPool, envID
 		}
 	}
 
-	nodes := append(containerNodes, netNodes...)
+	nodes := make([]TopologyNode, 0, len(containerNodes)+len(netNodes)+len(volNodes))
+	nodes = append(nodes, containerNodes...)
+	nodes = append(nodes, netNodes...)
 	nodes = append(nodes, volNodes...)
 	return &TopologyResponse{Nodes: nodes, Edges: edges}, nil
 }

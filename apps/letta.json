@@ -1,0 +1,53 @@
+{
+    "slug":  "letta",
+    "name":  "Letta",
+    "description":  "Server for building and running stateful AI agents with persistent memory, formerly known as MemGPT.",
+    "category":  "AI & Voice",
+    "image":  "letta/letta:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.letta.com\u0026sz=128",
+    "website":  "https://www.letta.com",
+    "docsUrl":  "https://docs.letta.com/quickstart/docker",
+    "ports":  [
+                  {
+                      "host":  8283,
+                      "container":  8283,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/letta/data",
+                        "container":  "/root/.letta"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OPENAI_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key for the default OpenAI model provider",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SECURE",
+                        "default":  "true",
+                        "description":  "Require an API password to reach the server"
+                    },
+                    {
+                        "key":  "LETTA_SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to authenticate with the server",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

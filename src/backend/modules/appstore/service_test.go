@@ -4,6 +4,7 @@
 package appstore
 
 import (
+	"context"
 	"database/sql"
 	"io"
 	"log/slog"
@@ -25,7 +26,7 @@ func TestListIncludesAllInstallationsWithoutDuplicatingCatalogRows(t *testing.T)
 
 	svc := newAppStoreTestService(db)
 
-	apps, total, err := svc.List("", "", 1, 10)
+	apps, total, err := svc.List(context.Background(), "", "", 1, 10)
 	if err != nil {
 		t.Fatalf("List returned error: %v", err)
 	}
@@ -70,7 +71,7 @@ func TestBySlugIncludesInstallationLocations(t *testing.T) {
 
 	svc := newAppStoreTestService(db)
 
-	app, err := svc.BySlug("whoami")
+	app, err := svc.BySlug(context.Background(), "whoami")
 	if err != nil {
 		t.Fatalf("BySlug returned error: %v", err)
 	}
@@ -103,7 +104,11 @@ func openAppStoreTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("sql.Open returned error: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("close sqlite: %v", err)
+		}
+	})
 
 	return db
 }
@@ -129,8 +134,22 @@ CREATE TABLE appstore_catalog (
 	min_memory TEXT NOT NULL DEFAULT '',
 	source TEXT NOT NULL DEFAULT 'bundled',
 	version TEXT NOT NULL DEFAULT '',
+	latest_version TEXT NOT NULL DEFAULT '',
+	latest_release_date TEXT NOT NULL DEFAULT '',
 	created_at TEXT NOT NULL,
 	updated_at TEXT NOT NULL
+);
+
+CREATE TABLE settings_catalogs (
+	id TEXT PRIMARY KEY,
+	name TEXT NOT NULL,
+	url TEXT NOT NULL,
+	kind TEXT NOT NULL,
+	enabled INTEGER NOT NULL DEFAULT 1,
+	readonly INTEGER NOT NULL DEFAULT 0,
+	created_at TEXT NOT NULL,
+	updated_at TEXT NOT NULL,
+	UNIQUE(kind, url)
 );
 
 CREATE TABLE appstore_installed (
@@ -155,6 +174,16 @@ CREATE TABLE stacks (
 );
 `); err != nil {
 		t.Fatalf("creating app store test tables: %v", err)
+	}
+
+	// Every catalog read is gated on an enabled docker_app source, which
+	// SeedDefaults writes at boot. Without the row the service reports the
+	// catalog as switched off and returns nothing.
+	if _, err := db.Exec(`
+		INSERT INTO settings_catalogs (id, name, url, kind, enabled, readonly, created_at, updated_at)
+		VALUES ('catalog-1', 'McHarbor Apps', '/mnt/app-catalog', 'docker_app', 1, 1, '2026-03-17T08:00:00Z', '2026-03-17T08:00:00Z')
+	`); err != nil {
+		t.Fatalf("seeding settings_catalogs: %v", err)
 	}
 }
 

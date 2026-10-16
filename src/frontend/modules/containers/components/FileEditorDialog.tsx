@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
+import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { CodeEditor } from '@resources/components/CodeEditor';
 import { useFileContent, useSaveFile } from '../hooks/useContainerFiles';
@@ -30,24 +31,22 @@ function detectLanguage(path: string): 'yaml' | 'javascript' | 'typescript' {
   return 'yaml';
 }
 
-export function FileEditorDialog({
-  open,
-  onOpenChange,
-  containerId,
-  filePath,
-}: FileEditorDialogProps) {
+export function FileEditorDialog({ open: isOpen, onOpenChange, containerId, filePath }: FileEditorDialogProps) {
   const { t } = useTranslation('containers');
-  const { data: content, isLoading } = useFileContent(containerId, filePath, open);
+  const { data: content, isLoading } = useFileContent(containerId, filePath, isOpen);
   const saveMutation = useSaveFile(containerId);
-  const [editedContent, setEditedContent] = useState('');
+  const [editedContent, setEditedContent] = useState(content ?? '');
   const [hasChanges, setHasChanges] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  useEffect(() => {
+  const [appliedContent, setAppliedContent] = useState(content);
+  if (appliedContent !== content) {
+    setAppliedContent(content);
     if (content !== undefined) {
       setEditedContent(content);
       setHasChanges(false);
     }
-  }, [content]);
+  }
 
   const handleChange = (value: string) => {
     setEditedContent(value);
@@ -55,15 +54,13 @@ export function FileEditorDialog({
   };
 
   const handleSave = () => {
-    saveMutation.mutate(
-      { path: filePath, content: editedContent },
-      { onSuccess: () => setHasChanges(false) }
-    );
+    saveMutation.mutate({ path: filePath, content: editedContent }, { onSuccess: () => setHasChanges(false) });
   };
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen && hasChanges) {
-      if (!window.confirm(t('files.unsavedChanges'))) return;
+      setConfirmDiscard(true);
+      return;
     }
     onOpenChange(nextOpen);
   };
@@ -71,12 +68,12 @@ export function FileEditorDialog({
   const fileName = filePath.split('/').pop() ?? filePath;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-mono text-sm">
             {fileName}
-            {hasChanges && <span className="ml-2 text-xs text-yellow-500">*</span>}
+            {hasChanges && <span className="ml-2 text-xs text-warning">*</span>}
           </DialogTitle>
         </DialogHeader>
         <DialogBody>
@@ -84,16 +81,14 @@ export function FileEditorDialog({
             <div className="flex h-48 items-center justify-center">
               <Spinner size="md" />
             </div>
-          ) : (
-            open ? (
-              <CodeEditor
-                value={editedContent}
-                onChange={handleChange}
-                language={detectLanguage(filePath)}
-                minHeight="300px"
-              />
-            ) : null
-          )}
+          ) : isOpen ? (
+            <CodeEditor
+              value={editedContent}
+              onChange={handleChange}
+              language={detectLanguage(filePath)}
+              minHeight="300px"
+            />
+          ) : null}
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={() => handleClose(false)}>
@@ -104,6 +99,18 @@ export function FileEditorDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title={t('files.discardTitle')}
+        description={t('files.unsavedChanges')}
+        confirmLabel={t('files.discardConfirm')}
+        onConfirm={() => {
+          setConfirmDiscard(false);
+          setHasChanges(false);
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }

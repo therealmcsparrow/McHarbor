@@ -4,7 +4,7 @@
     "description":  "Open-source HTTP mock server that generates responses from OpenAPI specifications.",
     "category":  "Developer Tools",
     "image":  "stoplight/prism:latest",
-    "logo":  "https://icon.horse/icon/stoplight.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=stoplight.io\u0026sz=128",
     "website":  "https://stoplight.io/open-source/prism",
     "docsUrl":  "https://meta.stoplight.io/docs/prism/",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "URL of the OpenAPI spec"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

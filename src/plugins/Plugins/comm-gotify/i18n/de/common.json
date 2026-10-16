@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": { "help": "Anzeigename für diesen Gotify-Kommunikationskanal." },
+    "server_url": { "help": "Basis-URL des Gotify-Servers." },
+    "token": { "help": "Gotify-Anwendungstoken. Wird im Ruhezustand verschlüsselt gespeichert." },
+    "priority": { "help": "Optionale Gotify-Priorität als ganze Zahl." }
+  },
+  "title": "Gotify-Benachrichtigungszustellung",
+  "subtitle": "Vom Plugin verwaltet",
+  "description": "Dieses Plugin verwaltet Gotify. Es speichert Gotify-Verbindungseinstellungen im Kanal selbst und sendet Benachrichtigungen über die Plugin-Laufzeit.",
+  "nameLabel": "Kanalname",
+  "namePlaceholder": "Betriebs-Gotify",
+  "serverUrlLabel": "Server-URL",
+  "tokenLabel": "Anwendungstoken",
+  "priorityLabel": "Priorität",
+  "securityTitle": "Sicherheit",
+  "securityHelp": "Verschlüsselter Anwendungstoken",
+  "securityDescription": "Der Gotify-Anwendungstoken wird im Ruhezustand verschlüsselt gespeichert. Verwenden Sie einen eigenen Anwendungstoken für McHarbor, damit er unabhängig rotiert werden kann.",
+  "testTitle": "Verbindung testen",
+  "testHelp": "Sendet eine Nachricht",
+  "testDescription": "Die Testaktion des Hosts sendet eine echte Nachricht an die konfigurierte Gotify-Anwendung. Verwenden Sie zuerst eine Testanwendung, wenn der Token Produktivgeräte benachrichtigt.",
+  "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+  "requiredField": "Erforderlich",
+  "setupGuideTitle": "Einrichtungsanleitung für den Gotify-Kommunikationskanal",
+  "guide": {
+    "step1": { "body": "Öffnen Sie Ihren Gotify-Server und erstellen Sie eine eigene Anwendung für McHarbor-Benachrichtigungen." },
+    "step2": { "body": "Kopieren Sie das Anwendungstoken und fügen Sie es in diese Kanalkonfiguration ein. McHarbor speichert es verschlüsselt und blendet es in API-Antworten aus." },
+    "step3": { "body": "Setzen Sie <b>Server-URL</b> auf die Gotify-Basis-URL, zum Beispiel <code>https://gotify.example.com</code>, ohne den Pfad <code>/message</code>." },
+    "step4": { "body": "Legen Sie optional <b>Priorität</b> als ganze Zahl fest, wenn Ihre Gotify-Clients prioritätsbasierte Benachrichtigungsregeln verwenden." },
+    "step5": { "body": "Speichern Sie den Kanal und klicken Sie auf <b>Verbindung testen</b>. Das Plugin sendet eine echte Testnachricht über denselben Pfad, der für Live-Workflow-, Alarm- und Backup-Ereignisse genutzt wird." },
+    "step6": { "body": "Schlägt der Test fehl, prüfen Sie Server-URL, Anwendungstoken, Reverse-Proxy-Pfad und die Vertrauenswürdigkeit des TLS-Zertifikats." }
+  }
+}

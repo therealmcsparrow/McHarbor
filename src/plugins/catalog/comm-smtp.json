@@ -1,0 +1,16 @@
+{
+  "slug": "comm-smtp",
+  "name": "SMTP",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Adds SMTP email as a communication channel for workflow, alert, and backup notifications. This is a channel adapter, not an email-server adapter.",
+  "category": "Communication channels",
+  "icon": "IconMail",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-smtp-1.0.0.tar.gz"
+    }
+  ]
+}

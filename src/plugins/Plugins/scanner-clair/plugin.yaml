@@ -1,0 +1,71 @@
+# plugin.yaml — manifest for the scanner-clair plugin.
+#
+# Image vulnerability scanner backed by an external Clair v4 server.
+# Submits an index report to the indexer API and reads the matched CVEs
+# back from the matcher API.
+#
+# Family: scanner-* (image vulnerability scanners). Siblings are
+# scanner-trivy and scanner-grype, which wrap local CLIs. This is the
+# only first-party scanner that depends on a service outside the
+# container, which is why it is the only one with a required config
+# field (`server_url`) and a stored secret (`auth_token`).
+#
+# Because a scanner is a named instance rather than a singleton, an
+# operator can configure two Clairs — a production server and a staging
+# one — from this single plugin. That was impossible under the old
+# model, which had exactly one global `scanner_clair_url` setting.
+#
+# Not auto-installed on upgrade: Clair was off by default before the
+# engines became plugins, so an install that never configured a server
+# has nothing to preserve. Migration 080 does carry an existing Clair
+# URL across for an install that did.
+#
+# Database: owns nothing. The host stores the scan rows and the
+# findings, so uninstalling this plugin takes no scan history with it.
+#
+# RBAC: declares no permissions. The Security > Scanners tab that
+# configures this plugin is gated by the host's settings.manage, and
+# running a scan is gated by scans.manage. Same reasoning as the
+# storage-adapter family.
+schema: "mcharbor.plugin/v1"
+
+slug:     "scanner-clair"
+name:     "Clair"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Scan container images against a Clair v4 server. Indexes the image through Clair's indexer API and reports matched CVEs from its matcher API, with an optional bearer token stored encrypted. Configure it in Security > Scanners."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   scanner.adapter.register  required — register ImageScannerAdapterSpec
+#   encryption.handle.read    required — the bearer token is a `secret`
+#                             ConfigFieldDecl the host encrypts at rest
+#                             and decrypts before each call
+#   audit.emit                required — every plugin should audit
+#
+# No db.migrations.run: this plugin owns no tables.
+permissions:
+  - scanner.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+# No adds_permissions — see the RBAC note in the header.
+# No consumes_permissions — this plugin reads no host table.
+
+contributes:
+  routes: []
+  # No `menu:` and no `forms:` — the host's Scanners tab renders this
+  # adapter's declared ConfigSchema generically.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "scanner-clair"
+  migrations: []
+
+signature: ""
+checksum:  ""

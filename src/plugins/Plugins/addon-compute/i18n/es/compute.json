@@ -1,0 +1,872 @@
+{
+  "title": "Cómputo",
+  "description": "Ejecute máquinas virtuales y contenedores de sistema en sus propios hosts. Esta sección reúne lo que ambos necesitan: qué puede ejecutar cada host, dónde se guardan los discos de los invitados, a qué red se conectan los invitados y qué imágenes están disponibles.",
+  "nav": {
+    "overview": "Resumen",
+    "images": "Imágenes",
+    "pools": "Pools de almacenamiento",
+    "networks": "Redes",
+    "section": {
+      "compute": "Cómputo"
+    }
+  },
+  "actions": {
+    "refresh": "Actualizar",
+    "probe": "Comprobar este host de nuevo",
+    "enable": "Habilitar cómputo",
+    "disable": "Deshabilitar cómputo",
+    "createPool": "Crear pool",
+    "createNetwork": "Añadir red",
+    "addImage": "Añadir imagen",
+    "download": "Descargar",
+    "cancel": "Cancelar",
+    "evict": "Quitar del host",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "setDefault": "Establecer como predeterminado",
+    "runWizard": "Configurar cómputo",
+    "copyCommand": "Copiar comando",
+    "viewLeases": "Ver concesiones",
+    "probing": "Comprobando este host…"
+  },
+  "overview": {
+    "title": "Resumen de cómputo",
+    "subtitle": "Todos los hosts, con lo que pueden ejecutar. Un host debe tener el cómputo habilitado, un pool de almacenamiento y una red antes de poder ejecutar invitados.",
+    "empty": {
+      "title": "Todavía no hay ningún host configurado para cómputo",
+      "body": "Las máquinas virtuales y los contenedores de sistema se ejecutan en una máquina con el agente de McHarbor instalado, no dentro del propio McHarbor. Elija abajo un host con agente y ejecute la configuración para prepararlo.",
+      "action": "Configurar un host"
+    },
+    "setupComplete": "Listo para invitados",
+    "setupIncomplete": "Configuración sin terminar",
+    "needsPool": "Aún no hay pool de almacenamiento",
+    "needsNetwork": "Aún no hay red",
+    "guestCounts": "{{running}} en ejecución de {{total}}",
+    "cachedImages_one": "{{count}} imagen en este host",
+    "cachedImages_other": "{{count}} imágenes en este host",
+    "tableView": "Vista de tabla",
+    "cardView": "Vista de tarjeta",
+    "searchPlaceholder": "Buscar hosts…",
+    "noMatches": "Ningún host coincide con esa búsqueda.",
+    "poolCount_one": "{{count}} pool",
+    "poolCount_other": "{{count}} pools",
+    "columns": {
+      "host": "Host",
+      "status": "Estado",
+      "platform": "Plataforma",
+      "pools": "Almacenamiento",
+      "networks": "Redes",
+      "images": "Imágenes"
+    },
+    "status": {
+      "ready": "Listo para invitados",
+      "incomplete": "Configuración sin terminar",
+      "disabled": "Cómputo desactivado",
+      "offline": "Agente sin conexión",
+      "tooOld": "Agente demasiado antiguo",
+      "notAgent": "No es un host con agente"
+    },
+    "sharedLibrary": "Biblioteca de imágenes compartida",
+    "sharedLibraryOn": "Las imágenes descargadas una vez ya están aquí.",
+    "sharedLibraryOff": "Este host descarga su propia copia de cada imagen.",
+    "sharedLibraryHint": "Active esto solo cuando el agente de este host monte el directorio de la biblioteca compartida en {{path}}. McHarbor no puede comprobarlo desde aquí, así que se fía de su palabra."
+  },
+  "capability": {
+    "title": "Qué puede ejecutar este host",
+    "subtitle": "Comprobado directamente en el host. Todo lo que falte indica exactamente qué instalar o cambiar.",
+    "neverProbed": "Este host aún no se ha comprobado.",
+    "probedAt": "Comprobado {{when}}",
+    "canRunVms": "Puede ejecutar máquinas virtuales",
+    "cannotRunVms": "No puede ejecutar máquinas virtuales",
+    "canRunContainers": "Puede ejecutar contenedores de sistema",
+    "cannotRunContainers": "No puede ejecutar contenedores de sistema",
+    "blocks": {
+      "vm": "Bloquea las máquinas virtuales",
+      "ct": "Bloquea los contenedores de sistema",
+      "both": "Bloquea ambos tipos de invitado"
+    },
+    "unsupported": {
+      "title": "Este host no puede ejecutar invitados",
+      "body": "El cómputo necesita un host Linux. KVM es un módulo del kernel de Linux y los contenedores de sistema usan espacios de nombres y cgroups de Linux, por lo que no hay equivalente en esta plataforma. Instale el agente en una máquina Linux para ejecutar invitados allí."
+    },
+    "seccompOff": {
+      "title": "Este agente no tiene filtro de llamadas al sistema",
+      "body": "Se compiló sin compatibilidad con seccomp, así que los contenedores de sistema se ejecutan sin filtrado de llamadas al sistema. El aislamiento de espacios de nombres de usuario sigue aplicándose (root dentro de un contenedor sigue siendo un usuario sin privilegios en el host), pero falta la restricción adicional de llamadas al sistema. Instale una compilación del agente con seccomp para obtenerla."
+    },
+    "supervisor": {
+      "dbus": "Los invitados se supervisan a través del bus del sistema de systemd, por lo que un fallo se notifica en el mismo momento en que ocurre.",
+      "systemd-run": "El bus del sistema no es accesible, así que los invitados se supervisan mediante systemd-run. Siguen sobreviviendo al reinicio de un agente, pero un invitado que falla se detecta en la siguiente comprobación y no de inmediato."
+    },
+    "items": {
+      "kvm_device": "Dispositivo de virtualización por hardware",
+      "cpu_virt": "Compatibilidad de virtualización de la CPU",
+      "qemu": "QEMU",
+      "qemu_img": "qemu-img",
+      "ovmf": "Firmware UEFI",
+      "swtpm": "TPM por software",
+      "cgroup2": "cgroup v2",
+      "userns": "Espacios de nombres de usuario",
+      "subuid": "ID de usuario subordinados",
+      "idmapped_mounts": "Montajes con idmap",
+      "systemd": "systemd",
+      "dbus": "Bus de mensajes del sistema",
+      "seccomp": "Filtrado de llamadas al sistema",
+      "iommu": "IOMMU (paso directo de dispositivos)",
+      "host_network": "Acceso a la red del host"
+    },
+    "remediation": "Cómo solucionarlo",
+    "present": "Disponible",
+    "missing": "Falta",
+    "critical": "Obligatorio",
+    "probeFailed": "La comprobación no terminó",
+    "probeFailedRetry": "El host no respondió a la comprobación. Inténtelo de nuevo y, si sigue fallando, el registro del servidor tiene los detalles.",
+    "installButton": "Instalar",
+    "installTitle": "¿Instalar {{item}}?",
+    "installDescription": "El agente del host instala los paquetes de {{item}} con el gestor de paquetes del host, como root. La comprobación sugirió este comando:",
+    "installConfirm": "Instalar",
+    "installDone": "{{item}} instalado ({{packages}}).",
+    "installFailed": "La instalación no terminó."
+  },
+  "agent": {
+    "required": {
+      "title": "Los invitados se ejecutan en un host con agente",
+      "body": "Este entorno se comunica con Docker directamente y no a través de un agente, por lo que no puede alojar invitados. Una máquina virtual iniciada desde dentro de McHarbor sería terminada por el siguiente despliegue del propio McHarbor, y su red quedaría detrás del NAT de Docker en lugar de en su LAN. Instale el agente en la máquina que deba alojar invitados y añádala como entorno."
+    },
+    "offline": {
+      "title": "El agente de este host está sin conexión",
+      "body": "Los comandos de cómputo nunca se ponen en cola para más tarde: un «iniciar esta VM» reproducido veinte minutos después de que usted desistiera sería peor que un fallo. Reconecte el agente e inténtelo de nuevo."
+    },
+    "tooOld": {
+      "title": "Este agente es demasiado antiguo para el cómputo",
+      "body": "Ejecutar invitados requiere el agente {{required}} o posterior; este host está en {{current}}.",
+      "action": "Actualizar este agente"
+    }
+  },
+  "pools": {
+    "state": {
+      "unknown": "Desconocido",
+      "ready": "Listo",
+      "error": "Error"
+    },
+    "detail": {
+      "back": "Volver a los pools",
+      "instant": "Clones instantáneos",
+      "instantYes": "Compatible",
+      "instantNo": "No compatible",
+      "tabs": {
+        "overview": "Resumen",
+        "files": "Archivos"
+      },
+      "missing": {
+        "title": "Pool no encontrado",
+        "description": "Este pool ya no está en el host, o se eliminó mientras esta página estaba abierta."
+      }
+    },
+    "files": {
+      "up": "Subir una carpeta",
+      "breadcrumb": "Carpetas del pool",
+      "refresh": "Actualizar listado",
+      "newFolder": "Nueva carpeta",
+      "edit": "Editar archivo",
+      "rename": "Renombrar",
+      "delete": "Eliminar",
+      "column": {
+        "name": "Nombre",
+        "size": "Tamaño",
+        "mode": "Modo",
+        "modified": "Modificado",
+        "actions": "Acciones"
+      },
+      "empty": {
+        "title": "Esta carpeta está vacía",
+        "description": "Todavía no se ha escrito nada aquí."
+      },
+      "dialog": {
+        "newFolderTitle": "Nueva carpeta",
+        "renameTitle": "Renombrar",
+        "namePlaceholder": "Nombre",
+        "deleteTitle": "¿Eliminar esta entrada?",
+        "deleteDescription": "{{name}} se eliminará del pool. Una carpeta se elimina con todo su contenido."
+      },
+      "toast": {
+        "saved": "Archivo guardado",
+        "saveFailed": "No se pudo guardar el archivo",
+        "created": "Carpeta creada",
+        "createFailed": "No se pudo crear la carpeta",
+        "renamed": "Renombrado",
+        "renameFailed": "No se pudo renombrar",
+        "deleted": "Eliminado",
+        "deleteFailed": "No se pudo eliminar"
+      },
+      "notBrowsable": {
+        "title": "Este pool no tiene archivos que explorar",
+        "description": "Un pool LVM thin guarda sus volúmenes como dispositivos de bloque, por lo que no hay un árbol de carpetas que abrir."
+      },
+      "denied": {
+        "title": "No puede explorar este pool",
+        "description": "Explorar un pool requiere el permiso compute.pools.browse."
+      }
+    },
+    "title": "Pools de almacenamiento",
+    "subtitle": "Un pool es un lugar en un host donde residen los discos de los invitados y los sistemas de archivos de los contenedores.",
+    "empty": {
+      "title": "Todavía no hay pools de almacenamiento",
+      "body": "Los invitados necesitan un lugar donde guardar sus discos. Cree un pool en un host para empezar.",
+      "action": "Crear el primer pool"
+    },
+    "columns": {
+      "name": "Nombre",
+      "host": "Host",
+      "backend": "Tipo",
+      "target": "Ubicación",
+      "capacity": "Capacidad",
+      "volumes": "Volúmenes de invitados",
+      "state": "Estado",
+      "used": "Usado",
+      "allocated": "Asignado"
+    },
+    "backend": {
+      "dir": "Directorio",
+      "zfs": "ZFS",
+      "lvm": "LVM thin",
+      "btrfs": "Btrfs"
+    },
+    "instant": {
+      "label": "Clones instantáneos",
+      "tooltip": "En este tipo, las instantáneas y los clones son operaciones de metadatos: terminan de inmediato sea cual sea el tamaño del disco. Crear diez contenedores a partir de una plantilla tarda menos de un segundo."
+    },
+    "slowClones": {
+      "label": "Clones por copia",
+      "tooltip": "Un pool de directorio copia los datos para clonar y encadena archivos de instantáneas. Funciona en todas partes y no necesita nada instalado, pero los clones tardan tanto como grandes sean los datos y las cadenas largas de instantáneas ralentizan las lecturas."
+    },
+    "create": {
+      "title": "Crear un pool de almacenamiento",
+      "environment": "Host",
+      "name": "Nombre del pool",
+      "backend": "Tipo de almacenamiento",
+      "target": "Ubicación",
+      "targetHint": {
+        "dir": "Una ruta absoluta en el host, por ejemplo /var/lib/mcharbor/compute.",
+        "zfs": "Un dataset de ZFS, por ejemplo tank/mcharbor.",
+        "lvm": "Un grupo de volúmenes y un thin pool, por ejemplo vg0/mcharbor.",
+        "btrfs": "Una ruta absoluta en un sistema de archivos btrfs montado."
+      },
+      "recommended": "Recomendado",
+      "recommendedWhy": "Este host tiene {{backend}}, donde las instantáneas y los clones de los invitados terminan de inmediato sin importar el tamaño.",
+      "unavailable": "No disponible en este host",
+      "makeDefault": "Usar este pool de forma predeterminada para los nuevos invitados",
+      "submit": "Crear pool"
+    },
+    "delete": {
+      "title": "¿Eliminar {{name}}?",
+      "body": "El pool se desvincula de McHarbor. No se elimina nada del host a menos que lo fuerce más abajo.",
+      "inUse": "Este pool aún contiene volúmenes de invitados: {{volumes}}. Elimine o mueva primero esos invitados.",
+      "force": "Eliminar también todos los volúmenes de invitados de este pool",
+      "forceWarning": "Esto destruye los discos de los invitados de forma permanente. No se puede deshacer.",
+      "confirmName": "Escriba {{name}} para confirmar",
+      "submit": "Eliminar pool"
+    },
+    "capacityWarning": "Este pool está lleno al {{percent}}%. Un pool que se llena pausa todos los invitados que contiene.",
+    "overcommit": "Los invitados de este pool están aprovisionados con {{allocated}} frente a {{capacity}} de espacio real. Es aceptable mientras sigan siendo thin, pero el pool pausa todos los invitados si realmente se llena.",
+    "searchPlaceholder": "Buscar pools…",
+    "move": {
+      "title": "Mover los datos de {{name}}",
+      "body": "El pool guarda los discos de sus invitados en un solo directorio. Al moverlo, se copian a la nueva ubicación, se redirigen todas las filas que los nombran y se reescriben las rutas escritas dentro de las imágenes.",
+      "target": "Nueva ubicación",
+      "current": "Ahora en {{path}}",
+      "check": "Comprobar",
+      "planning": "Preguntando al host qué hay allí...",
+      "footprint": "{{entries}} archivos, {{size}}.",
+      "progress": "{{percent}}% - {{moved}} de {{total}}",
+      "finished": "Listo. Se movieron {{count}} elementos.",
+      "failed": "Falló el movimiento.",
+      "stopped": "Se apagaron {{count}} invitado(s) por este motivo. Vuelva a iniciarlos desde la lista de máquinas.",
+      "submit": "Mover los datos",
+      "repair": "Reparar vínculos",
+      "repairHint": "Úselo cuando los datos se hayan movido pero los invitados no arranquen: reescribe las rutas escritas dentro de las imágenes de disco y de los manifiestos de instantáneas. No se copia nada ni se detiene ningún invitado.",
+      "repaired": "{{count}} referencia(s) reparada(s).",
+      "willStop": {
+        "title": "Se apagarán {{count}} invitado(s)",
+        "body": "Un invitado no puede seguir ejecutándose mientras se mueve su disco. Se apagan de forma ordenada antes del movimiento y no se vuelven a iniciar después, así que inícielos desde la lista de máquinas cuando termine."
+      },
+      "action": "Mover datos"
+    }
+  },
+  "networks": {
+    "title": "Redes de invitados",
+    "subtitle": "Cómo acceden los invitados a la red. Tanto las máquinas virtuales como los contenedores de sistema usan las mismas redes.",
+    "empty": {
+      "title": "Todavía no hay redes de invitados",
+      "body": "Los invitados necesitan una red a la que conectarse. La opción más sencilla es un puente que ya tenga en el host.",
+      "action": "Añadir una red"
+    },
+    "columns": {
+      "name": "Nombre",
+      "host": "Host",
+      "mode": "Modo",
+      "bridge": "Puente",
+      "subnet": "Subred",
+      "guests": "Invitados",
+      "state": "Estado",
+      "attachment": "Conexión",
+      "hostInterface": "Interfaz del host"
+    },
+    "mode": {
+      "bridged": "Con puente",
+      "managed": "Administrada",
+      "bridgedHint": "Los invitados se unen a un puente que ya tiene y obtienen direcciones de su propio servidor DHCP. McHarbor solo crea la interfaz propia del invitado y nunca toca el puente ni el enlace físico.",
+      "managedHint": "McHarbor crea su propio puente junto a sus adaptadores, reparte direcciones en él y aplica masquerade al tráfico de los invitados hacia fuera por la interfaz que elija. Sus adaptadores no se modifican ni se conectan a nada. Úselo cuando el host tenga una sola interfaz de red y ningún puente configurado.",
+      "external": "Externa (compartir un adaptador)",
+      "externalHint": "McHarbor conecta uno de los adaptadores del host a un puente y traslada la dirección del host a él, de modo que los invitados quedan en su LAN y obtienen direcciones de su propio servidor DHCP. Es la misma idea que un conmutador externo en Hyper-V o la red en puente de VMware. Reconfigura el adaptador y revierte por sí solo si el host deja de responder.",
+      "macvlan": "macvlan (directo en un adaptador)",
+      "macvlanHint": "Cada invitado obtiene su propia dirección MAC y queda directamente en su LAN, tomando su dirección de su propio servidor DHCP. El adaptador en sí no se reconfigura y el host sigue funcionando en él. Tenga en cuenta que el host no puede acceder a sus propios invitados en esta red a menos que active el acceso del host más abajo."
+    },
+    "create": {
+      "title": "Añadir una red de invitados",
+      "environment": "Host",
+      "name": "Nombre de la red",
+      "mode": "Modo",
+      "bridge": "Puente",
+      "bridgePlaceholder": "Seleccione un puente de este host",
+      "noBridges": "Este host no tiene puentes. Cree uno en el host o use una red administrada.",
+      "vlan": "Etiqueta VLAN",
+      "vlanHint": "Déjelo vacío a menos que los invitados deban estar en una VLAN concreta. Los invitados no necesitan saberlo.",
+      "subnet": "Subred",
+      "gateway": "Dirección de la puerta de enlace",
+      "dhcp": "Repartir direcciones en esta red",
+      "dhcpRange": "Rango de direcciones",
+      "nat": "Enrutar el tráfico de los invitados hacia fuera a través del host",
+      "uplink": "Interfaz de salida",
+      "submit": "Añadir red",
+      "noHostNetwork": "Este agente no puede ver la red del host. Se ejecuta en su propio espacio de nombres de red (lo más habitual, un contenedor sin red del host), por lo que no es accesible desde aquí ningún puente ni interfaz de salida del host. Ejecute el agente con red del host y NET_ADMIN e inténtelo de nuevo.",
+      "noUplinks": "Este host no tiene ninguna interfaz física, agregada o VLAN por la que enrutar el tráfico de los invitados hacia fuera.",
+      "uplinkPlaceholder": "Seleccione la interfaz por la que sale el tráfico de los invitados",
+      "uplinkDefaultRoute": "{{link}} (ruta predeterminada de este host)",
+      "uplinkHint": "El tráfico de los invitados sale con masquerade por esta interfaz. La interfaz en sí no se modifica, no se conecta al puente y conserva su propia dirección; lo normal es elegir la que lleva la ruta predeterminada del host.",
+      "adapter": "Adaptador que compartir",
+      "adapterPlaceholder": "Seleccione un adaptador",
+      "adapterHint": "El adaptador se une a un puente que crea McHarbor, y la dirección y las rutas del propio host pasan a ese puente. Los invitados quedan entonces directamente en la misma red que el host, con direcciones de su propio servidor DHCP.",
+      "acceptExternal": "Entiendo que esto reconfigura el adaptador del host",
+      "adapterBusy": "{{link}} ya lleva {{interfaces}}. El host no creará un puente con un adaptador que tenga otras interfaces encima; quítelas primero o elija otro adaptador.",
+      "adapterBusyOption": "{{link}} (en uso)",
+      "parent": "Interfaz padre",
+      "parentPlaceholder": "Elija un adaptador",
+      "parentHint": "El adaptador sobre el que se apilan los invitados. No se reconfigura: su dirección, sus rutas y el tráfico del host en él se dejan exactamente como están.",
+      "linkMode": "Modo",
+      "directVlanHint": "Déjelo vacío para una red sin etiquetar. Con una etiqueta, McHarbor coloca a los invitados en esa VLAN creando una subinterfaz en {{parent}} y apilándolos sobre ella.",
+      "hostAccess": "Permitir que este host acceda a sus invitados",
+      "hostAccessPassthru": "passthru entrega el adaptador a un único invitado, por lo que el host no puede tener también una dirección en él.",
+      "hostAccessIp": "Dirección para este host",
+      "hostAccessIpHint": "Una dirección y un prefijo en la subred de los invitados, como 192.168.1.9/24. Déjelo vacío para activar la interfaz sin dirección y dejar que el host la reclame por sí mismo.",
+      "ipv6": "IPv6",
+      "ipv6Hint": "Da a la interfaz de este host también IPv6. Sin una dirección abajo, se configura sola mediante anuncios de router (SLAAC).",
+      "hostLinkName": "Nombre de la interfaz del host",
+      "hostLinkNameAuto": "Generado automáticamente, como mcharbor-h1a2b3",
+      "hostLinkNameHint": "Esto se convierte en una interfaz de red real en el host, así que el nombre aparece en ip link y puede usarse en las reglas de firewall del host. Hasta 15 letras, dígitos, puntos, guiones o guiones bajos. Los nombres que empiezan por mcharbor-, mcht, mchv o mchd están reservados.",
+      "hostAccessIpv6": "Dirección IPv6 para este host",
+      "hostAccessIpv6Hint": "Una dirección IPv6 con prefijo, como fd00::9/64. Déjelo vacío para que el host se configure solo mediante anuncios de router (SLAAC)."
+    },
+    "delete": {
+      "title": "¿Eliminar {{name}}?",
+      "bridgedBody": "Esto elimina la red de McHarbor. El puente en sí es suyo y no se toca.",
+      "managedBody": "Esto elimina el puente que McHarbor creó para esta red, junto con su direccionamiento y su enrutamiento.",
+      "submit": "Eliminar red",
+      "externalBody": "Esto devuelve el adaptador al host: sale del puente de McHarbor y su dirección y sus rutas vuelven a él. Se elimina el puente que McHarbor creó.",
+      "macvlanBody": "Esto elimina la red de McHarbor. La interfaz padre y cualquier enlace macvlan que ya exista sobre ella no se tocan."
+    },
+    "leases": {
+      "title": "Direcciones repartidas",
+      "empty": "Todavía no se ha repartido ninguna dirección en esta red.",
+      "columns": {
+        "ip": "Dirección",
+        "mac": "Dirección de hardware",
+        "hostname": "Nombre informado",
+        "guest": "Invitado",
+        "expires": "Caduca"
+      },
+      "hostnameNote": "El nombre informado proviene del propio invitado y se muestra como texto sin formato."
+    },
+    "externalWarning": "{{link}} se conectará a un puente de McHarbor y su dirección se trasladará a ese puente. Si deja de funcionar, McHarbor lo restaura automáticamente tras 45 segundos: el host solo queda modificado una vez que McHarbor ha confirmado que aún puede acceder a este agente.",
+    "externalWarningDefaultRoute": "{{link}} lleva la ruta predeterminada de este host, así que esto reconfigura la conexión que está usando ahora mismo. La dirección y la ruta predeterminada pasan juntas al puente de McHarbor; si algo sale mal, el agente las devuelve tras 45 segundos sin necesitar que usted acceda al host.",
+    "searchPlaceholder": "Buscar redes…",
+    "plan": {
+      "title": "Qué hace esto en este host",
+      "stepsTitle": "Al añadir esta red",
+      "removeTitle": "Al quitar esta red",
+      "cautionTitle": "Conviene saber antes de hacerlo",
+      "bridgedCreatesNothing": "No se reconfigura nada en el host. {{bridge}} conserva su dirección, sus rutas y su MTU, y no se toca ningún adaptador físico.",
+      "bridgedTap": "Cada vez que un invitado arranca, se crea para él una interfaz tap o veth llamada mcht… / mchv… y se conecta a {{bridge}}. Se elimina de nuevo cuando el invitado se detiene.",
+      "bridgedVlan": "El puerto propio del invitado se etiqueta con la VLAN {{vlan}}. {{bridge}} en sí no se reetiqueta.",
+      "bridgedRemove": "No ocurre nada en el host. El puente es suyo; solo se elimina el registro de McHarbor.",
+      "managedBridge": "Se crea y se activa un nuevo puente llamado mcharbor-brN. Ninguno de los adaptadores existentes se conecta a él.",
+      "managedAddress": "{{gateway}} se asigna a ese puente, de modo que el host responde como puerta de enlace de {{subnet}}.",
+      "managedDhcp": "Un servidor DHCP dentro del agente empieza a responder en ese puente y reparte direcciones de {{subnet}}. Ningún tráfico DHCP llega al resto de su red.",
+      "managedNat": "Se activa net.ipv4.ip_forward y se añaden reglas de iptables: un MASQUERADE en nat/POSTROUTING para {{subnet}} saliendo por {{uplink}}, más dos FORWARD accept porque un host Docker establece esa cadena en DROP. Cada regla se etiqueta con esta red para que la eliminación encuentre exactamente estas.",
+      "managedUplinkUntouched": "{{uplink}} no se conecta al puente, no cambia de dirección y no se reconfigura. Solo se nombra como la interfaz por la que sale el tráfico con masquerade.",
+      "managedTap": "Cada invitado en ejecución obtiene un tap o veth conectado al nuevo puente, que se elimina de nuevo cuando el invitado se detiene.",
+      "managedRemove": "El servidor DHCP se detiene, las reglas de iptables etiquetadas se eliminan y el puente se quita. ip_forward se deja activado.",
+      "externalBridge": "Se crea un nuevo puente llamado mcharbor-brN con la misma MTU que {{adapter}}, para que las tramas grandes no empiecen a desaparecer.",
+      "externalEnslave": "{{adapter}} se esclaviza a ese puente. El puente asume su dirección MAC y los invitados quedan directamente en la misma red que el host.",
+      "externalAddresses": "Todas las direcciones IPv4 de {{adapter}} se añaden primero al puente y solo después se quitan del adaptador, de modo que nunca hay un momento en que el host no tenga dirección.",
+      "externalRoutes": "Todas las rutas que apuntaban a {{adapter}}, incluida la ruta predeterminada, se redirigen al puente.",
+      "externalRollback": "Se arma una reversión de 45 segundos antes de que el agente responda. McHarbor solo la cancela después de que el agente responda por la misma conexión, así que si el cambio dejó al host incomunicado nada lo confirma y el agente devuelve el adaptador, sus direcciones y sus rutas sin que usted tenga que acceder al host.",
+      "externalFailure": "Cualquier fallo a mitad de camino se deshace de inmediato y el puente creado por McHarbor se elimina de nuevo.",
+      "externalRemove": "{{adapter}} se desconecta del puente, sus direcciones y rutas vuelven a él y el puente creado por McHarbor se elimina.",
+      "externalCaveatIpv6": "Solo se trasladan las direcciones y rutas IPv4. Una dirección IPv6 de {{adapter}} permanece en el adaptador y no seguirá al host hacia el puente.",
+      "externalCaveatManager": "Lo que configure {{adapter}} en el host (NetworkManager, systemd-networkd, un cliente DHCP) sigue apuntando al adaptador, no al puente. Puede recuperar la dirección o dejar caducar la concesión, que es el motivo habitual por el que un adaptador adoptado se queda en silencio uno o dos minutos después y el agente se desconecta.",
+      "externalCaveatStack": "{{adapter}} no debe estar ya esclavizado ni llevar ninguna VLAN, macvlan ni shim macvlan de Docker. El kernel se niega a crear un puente con un adaptador que tenga interfaces apiladas encima.",
+      "externalCaveatSession": "Si {{adapter}} es el que usa este agente para comunicarse con McHarbor, la conexión se interrumpe brevemente mientras la dirección se traslada. Es lo esperado; una desconexión que dura es lo que activa la reversión.",
+      "directUntouched": "{{parent}} se deja exactamente como está: no se traslada ninguna dirección, no se esclaviza nada y el host sigue funcionando en él.",
+      "directVlan": "Crear una subinterfaz VLAN {{vlan}} en {{parent}} sobre la que apilar los invitados.",
+      "directChild": {
+        "macvlan": "Dar a cada invitado su propia interfaz y dirección MAC apiladas sobre {{parent}}, creadas cuando el invitado arranca y eliminadas cuando se detiene."
+      },
+      "directUpstream": "No ejecutar DHCP ni NAT: los invitados toman sus direcciones de la LAN, exactamente como cualquier otra máquina de ella.",
+      "directShim": "Añadir una interfaz más para este host, de modo que pueda acceder a sus propios invitados.",
+      "directShimAddress": "Añadir una interfaz más para este host en {{address}}, de modo que pueda acceder a sus propios invitados.",
+      "directShimNamed": "Llamar a esa interfaz {{name}} en el host y marcarla como de McHarbor, para que se elimine junto con la red.",
+      "directShimIpv6": "Dar a esa interfaz la dirección IPv6 {{address}}.",
+      "directShimSlaac": "Dejar que esa interfaz configure su dirección IPv6 mediante anuncios de router (SLAAC).",
+      "directRemove": "Al quitar esta red se elimina la interfaz propia del host en ella y, si McHarbor creó una, la subinterfaz VLAN. {{parent}} en sí nunca se toca.",
+      "directCaveatHost": "Sin acceso del host, los invitados de esta red no pueden acceder a este host, ni este host a ellos. No es un error de configuración, sino cómo funcionan {{parent}} y sus hijos.",
+      "directCaveatIsolation": "En este modo, los invitados de este host no pueden acceder directamente entre sí. Elija el modo puente si lo necesitan."
+    },
+    "edit": {
+      "title": "Editar {{name}}",
+      "subtitle": "Cambie cómo se conecta esta red. El host se reconfigura al guardar.",
+      "submit": "Guardar cambios",
+      "modeLocked": "El modo decide qué posee esta red en el host y no se puede cambiar. Elimínela y cree una nueva para cambiarlo.",
+      "guestsWarning": "Los invitados ya conectados conservan el puente o adaptador que se les dio. Vuelva a conectar su interfaz, o recree el invitado, para pasarlos al nuevo."
+    },
+    "directHostWarning": "Los invitados de esta red pueden acceder a toda su LAN, pero no a este host: el kernel nunca reenvía entre {{parent}} y los hijos apilados sobre él. Active el acceso del host más abajo si el host ejecuta algo que los invitados necesitan.",
+    "linkMode": {
+      "macvlan": {
+        "bridge": "bridge: los invitados pueden comunicarse entre sí",
+        "bridgeHint": "La opción habitual. Los invitados de este host se alcanzan directamente y acceden a la LAN a través del adaptador.",
+        "vepa": "vepa: todo sale hacia el conmutador",
+        "vepaHint": "Los invitados solo se alcanzan entre sí si el conmutador refleja el tráfico de vuelta (modo hairpin). Sin eso, los invitados de este host no pueden verse en absoluto.",
+        "private": "private: los invitados están aislados",
+        "privateHint": "Los invitados de este host nunca pueden alcanzarse entre sí, ni siquiera a través del conmutador. Siguen accediendo al resto de la LAN.",
+        "passthru": "passthru: un invitado posee el adaptador",
+        "passthruHint": "Un único invitado toma el adaptador, incluida la capacidad de cambiar su MAC. Ningún segundo invitado ni dirección del host puede compartirlo."
+      }
+    }
+  },
+  "images": {
+    "title": "Imágenes",
+    "subtitle": "Imágenes de disco para máquinas virtuales y archivos de sistema de archivos para contenedores de sistema. Las imágenes del catálogo se descargan directamente de la distribución a su host; las imágenes que suba las conserva McHarbor y se copian a un host cuando las pone a disposición allí.",
+    "empty": {
+      "title": "Todavía no se ha descargado ninguna imagen",
+      "body": "Elija una distribución abajo y descárguela en un host, o suba una imagen propia. En cualquier caso, solo tiene que llegar una vez a cada host.",
+      "action": "Explorar imágenes"
+    },
+    "kind": {
+      "cloud_image": "Imagen de máquina virtual",
+      "rootfs": "Sistema de archivos de contenedor",
+      "iso": "Disco de instalación",
+      "all": "Todos los tipos"
+    },
+    "columns": {
+      "name": "Nombre",
+      "kind": "Tipo",
+      "arch": "Arquitectura",
+      "size": "Tamaño",
+      "state": "En este host"
+    },
+    "state": {
+      "absent": "No está en este host",
+      "pending": "En espera",
+      "downloading": "Descargando",
+      "ready": "Listo",
+      "failed": "Fallido"
+    },
+    "verified": "Suma de comprobación verificada",
+    "signed": "Firma verificada",
+    "verifiedTooltip": "La descarga se comprobó con la suma de comprobación que publica la distribución.",
+    "signedTooltip": "El archivo de sumas de comprobación de la distribución también se verificó con una clave de firma incluida en el agente.",
+    "unsigned": {
+      "title": "Sin firmar",
+      "body": "La distribución no publica ninguna firma para esta imagen, por lo que solo se comprueba su suma de verificación, y esa suma proviene del mismo espejo que la imagen. Aun así se descarga."
+    },
+    "builtin": "Integrada",
+    "downloadTo": "Poner a disposición en",
+    "downloading": "Descargando {{percent}}%",
+    "add": {
+      "title": "Añadir una imagen",
+      "kind": "Tipo",
+      "displayName": "Nombre",
+      "distro": "Distribución",
+      "release": "Versión",
+      "arch": "Arquitectura",
+      "sourceUrl": "Dirección de descarga",
+      "sourceUrlHint": "Debe ser una dirección https. El host descarga directamente de ella.",
+      "checksumUrl": "Dirección del archivo de sumas de comprobación",
+      "checksumUrlHint": "El archivo de sumas de comprobación publicado por la distribución. Muy recomendable: sin él no hay forma de saber si lo que llegó es lo que se publicó.",
+      "checksum": "Suma de comprobación",
+      "signatureUrl": "Dirección del archivo de firma",
+      "initSystem": "Sistema de arranque",
+      "submit": "Añadir imagen"
+    },
+    "unverified": {
+      "title": "Este origen no publica ninguna suma de comprobación",
+      "body": "No hay forma de saber si lo que llega es lo que pretendía el editor. Esta imagen se convierte en el disco de arranque de un invitado, así que trátela como trataría un programa sin firmar.",
+      "acknowledge": "Descargar de todos modos",
+      "recorded": "Su decisión queda registrada en el registro de auditoría."
+    },
+    "evict": {
+      "title": "¿Quitar {{name}} de este host?",
+      "body": "La copia descargada se elimina del host. La entrada del catálogo permanece, por lo que se puede volver a descargar.",
+      "inUse": "Esta imagen es el disco de un invitado en ejecución y no se puede quitar.",
+      "submit": "Quitar del host"
+    },
+    "deleteBuiltin": "Las entradas integradas del catálogo no se pueden eliminar. Quite en su lugar la copia descargada.",
+    "sizeApproximate": "Tamaño de descarga aproximado según el catálogo. El tamaño exacto se registra cuando está en el host.",
+    "upload": {
+      "action": "Subir imagen",
+      "title": "Subir una imagen",
+      "body": "Añada una imagen de disco, un archivo de sistema de archivos o un disco de instalación propios. Se sube una vez y McHarbor la conserva, y luego se copia a un host la primera vez que la pone a disposición allí.",
+      "file": "Archivo de imagen",
+      "fileHint": "qcow2, img, raw, iso, vmdk, vhd, vhdx o un archivo comprimido.",
+      "selected": "Seleccionado: {{size}}",
+      "kind": "Tipo",
+      "displayName": "Nombre",
+      "distro": "Distribución",
+      "release": "Versión",
+      "arch": "Arquitectura",
+      "initSystem": "Sistema de arranque",
+      "initSystemPlaceholder": "Elija un sistema de arranque",
+      "initSystemHint": "Qué init usa un sistema de archivos de contenedor, para que se elija automáticamente el perfil adecuado.",
+      "progress": "Subiendo {{percent}}%",
+      "submit": "Subir"
+    },
+    "library": {
+      "title": "Biblioteca de imágenes compartida",
+      "path": "McHarbor escribe en {{path}}",
+      "agentMount": "Opcional: un host que monte {{path}} usa el archivo en su sitio en lugar de copiarlo",
+      "usage": "{{count}} archivos · {{size}}",
+      "unwritable": "No se puede escribir en el directorio de la biblioteca de imágenes. Las subidas fallarán hasta que se corrija."
+    },
+    "origin": {
+      "upload": "Subida",
+      "library": "Biblioteca compartida",
+      "send": "Poner a disposición"
+    },
+    "searchPlaceholder": "Buscar imágenes…",
+    "catalog": {
+      "reload": "Recargar catálogo"
+    },
+    "downloadEverywhere": "Poner a disposición en todos los hosts",
+    "sharedLibraryNote": "{{count}} host(s) comparten una biblioteca ({{hosts}}), así que una descarga los cubre.",
+    "filter": {
+      "os": "Sistema operativo",
+      "allOs": "Todos los sistemas operativos"
+    },
+    "phase": {
+      "downloading": "Descargando",
+      "verifying": "Verificando la suma de comprobación",
+      "decompressing": "Descomprimiendo",
+      "installing": "Instalando"
+    }
+  },
+  "hosts": {
+    "roots": {
+      "title": "Ubicaciones de almacenamiento",
+      "hint": "Dónde guarda este host el estado de las máquinas virtuales, los árboles rootfs de los contenedores y las imágenes en caché. Deje un campo vacío para heredar.",
+      "vmPath": "Estado de las máquinas virtuales",
+      "diskPath": "Árboles rootfs de contenedores",
+      "imagePath": "Caché de imágenes",
+      "inherited": "Heredado",
+      "notApplied": "No aplicado en el host",
+      "save": "Guardar ubicaciones",
+      "reset": "Borrar sobrescritura",
+      "retry": "Reintentar en el host",
+      "source": {
+        "global": "Predeterminado de McHarbor",
+        "environment": "Definido para este host",
+        "agent": "Predeterminado del agente"
+      }
+    },
+    "detail": {
+      "open": "Detalles del host",
+      "back": "Volver a los hosts",
+      "missing": {
+        "title": "Este host no está aquí",
+        "description": "Puede haberse eliminado, o quizá nunca se activó el cómputo para él."
+      },
+      "tabs": {
+        "overview": "Resumen",
+        "settings": "Ajustes",
+        "tests": "Pruebas",
+        "logs": "Registros"
+      }
+    },
+    "overview": {
+      "os": "Sistema operativo",
+      "arch": "Arquitectura",
+      "kernel": "Kernel",
+      "agentVersion": "Versión del agente",
+      "probedAt": "Última comprobación",
+      "unknown": "No informado",
+      "unsupported": "Este host no puede ejecutar invitados:"
+    },
+    "settings": {
+      "general": "Host",
+      "computeEnabled": "Cómputo habilitado",
+      "computeEnabledHint": "Al desactivarlo se ocultan los pools, redes e imágenes de este host sin eliminarlos.",
+      "sharedLibrary": "Biblioteca de imágenes compartida",
+      "sharedLibraryHint": "Active esto solo cuando este host monte la biblioteca de imágenes de McHarbor en /var/lib/mcharbor/compute/images.",
+      "defaultPool": "Pool de almacenamiento predeterminado",
+      "defaultPoolHint": "Los nuevos discos de invitados se colocan aquí a menos que se elija otro pool.",
+      "defaultNetwork": "Red predeterminada",
+      "defaultNetworkHint": "Los nuevos invitados se conectan aquí a menos que se elija otra red.",
+      "nonePicked": "Sin definir",
+      "movePool": "Mover pool",
+      "noPools": {
+        "title": "Todavía no hay pool de almacenamiento",
+        "description": "Un pool es donde residen los discos de los invitados. Este host no puede alojar invitados hasta que tenga uno."
+      },
+      "noNetworks": {
+        "title": "Todavía no hay red",
+        "description": "Una red es a lo que se conectan los invitados. Añada una antes de crear un invitado en este host."
+      }
+    },
+    "tests": {
+      "checklist": "Preparación",
+      "checklistHint": "Lo que aún necesita este host antes de poder alojar un invitado.",
+      "state": {
+        "pass": "Listo",
+        "warn": "Conviene revisar",
+        "fail": "Bloqueante"
+      },
+      "rows": {
+        "agent": "Agente accesible",
+        "probed": "Host comprobado",
+        "supported": "Host compatible",
+        "vms": "Puede ejecutar máquinas virtuales",
+        "containers": "Puede ejecutar contenedores de sistema",
+        "pool": "Pool de almacenamiento presente",
+        "network": "Red presente",
+        "sharedLibrary": "Biblioteca de imágenes compartida montada"
+      }
+    },
+    "logs": {
+      "sourceLabel": "Origen del registro",
+      "tailLabel": "Líneas que leer",
+      "guestLabel": "Invitado",
+      "empty": "No se leyó nada de este origen.",
+      "denied": "Leer los registros del sistema operativo de este host requiere el permiso logs.view.",
+      "readFailed": "No se pudo leer este registro:",
+      "pickGuest": "Elija un invitado para leer su registro.",
+      "noGuests": "No hay invitados en este host",
+      "sources": {
+        "activity": "Actividad de cómputo",
+        "system": "Sistema",
+        "kernel": "Kernel",
+        "auth": "Autenticación",
+        "docker": "Docker",
+        "libvirt": "libvirt",
+        "agent": "Agente de McHarbor",
+        "qemu": "Invitado (QEMU)"
+      },
+      "notices": {
+        "permission_denied": "El agente no pudo leer uno de los archivos de registro de este host. Necesita permiso para leerlos.",
+        "no_supported_log_source": "Este host no guarda ningún registro donde McHarbor buscó, y journalctl no está disponible.",
+        "no_var_log_dir": "Este host no tiene un directorio /var/log.",
+        "no_journalctl": "journalctl no está instalado en este host.",
+        "journalctl_failed": "journalctl se ejecutó pero no devolvió nada utilizable.",
+        "no_guests": "Este host aún no ejecuta invitados de McHarbor, así que no hay registro de invitado que leer.",
+        "unknown": "El agente informó: {{code}}"
+      }
+    }
+  },
+  "wizard": {
+    "title": "Configurar cómputo",
+    "subtitle": "Cuatro pasos para dejar un host listo para invitados.",
+    "steps": {
+      "host": "Elegir un host",
+      "capability": "Comprobar el host",
+      "pool": "Almacenamiento",
+      "network": "Red",
+      "image": "Primera imagen",
+      "summary": "Resumen"
+    },
+    "host": {
+      "title": "¿Qué host debe ejecutar invitados?",
+      "body": "Los invitados se ejecutan en una máquina con el agente de McHarbor instalado. Si la máquina que desea no aparece, instale primero el agente en ella y añádala como entorno.",
+      "noAgentHosts": "No hay hosts con agente conectados. Instale el agente en la máquina que deba ejecutar invitados."
+    },
+    "capability": {
+      "title": "Qué puede ejecutar este host",
+      "body": "Todo lo de abajo se comprobó en el propio host. Los elementos marcados como obligatorios deben corregirse antes de que los invitados se ejecuten.",
+      "allGood": "Este host está listo.",
+      "blockers_one": "Falta {{count}} elemento obligatorio.",
+      "blockers_other": "Faltan {{count}} elementos obligatorios."
+    },
+    "pool": {
+      "title": "¿Dónde deben residir los discos de los invitados?",
+      "body": "Elija un tipo de almacenamiento. Si este host tiene ZFS o Btrfs, úselo: las instantáneas y los clones terminan de inmediato en lugar de copiar los datos."
+    },
+    "network": {
+      "title": "¿Cómo deben acceder los invitados a la red?",
+      "body": "Si este host ya tiene un puente, conectar los invitados a él es la opción más sencilla y segura: no cambia nada de la red del propio host."
+    },
+    "image": {
+      "title": "Descargar una primera imagen",
+      "body": "Opcional, y se puede hacer más tarde. Descargar una ahora permite crear el primer invitado de inmediato."
+    },
+    "summary": {
+      "title": "Listo",
+      "body": "Este host ya puede ejecutar invitados. Instale Máquinas virtuales o Contenedores de sistema para crear algunos.",
+      "installKvm": "Instalar Máquinas virtuales",
+      "installLxc": "Instalar Contenedores de sistema"
+    },
+    "finish": "Finalizar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "skip": "Omitir este paso",
+    "close": "Cerrar"
+  },
+  "widgets": {
+    "computeCapacity": {
+      "label": "Capacidad de cómputo",
+      "description": "Uso de los pools de almacenamiento en sus hosts de cómputo, con los más llenos primero."
+    },
+    "computeHosts": {
+      "label": "Hosts de cómputo",
+      "description": "Qué hosts pueden ejecutar invitados y qué impide hacerlo a los que no pueden."
+    },
+    "computeImages": {
+      "label": "Biblioteca de imágenes",
+      "description": "Cuánto disco ocupan las imágenes de invitados en caché y dónde están en caché.",
+      "cached_one": "{{count}} imagen en caché",
+      "cached_other": "{{count}} imágenes en caché",
+      "onHost_one": "{{count}} imagen",
+      "onHost_other": "{{count}} imágenes"
+    },
+    "computeNetworks": {
+      "label": "Redes de invitados",
+      "description": "Las redes a las que cada host de cómputo puede conectar un invitado.",
+      "total": "redes",
+      "missing_one": "{{count}} host no tiene ninguna",
+      "missing_other": "{{count}} hosts no tienen ninguna"
+    }
+  },
+  "err": {
+    "compute": {
+      "unauthorized": "No ha iniciado sesión.",
+      "invalid_request": "Algo de ese formulario no era válido.",
+      "not_found": "Eso ya no existe.",
+      "name_taken": "Ese nombre ya está en uso en este host.",
+      "agent_required": "Los invitados se ejecutan en un host con agente. Este entorno no está conectado mediante un agente.",
+      "agent_failed": "El host no pudo completar eso:",
+      "pool_in_use": "Este pool aún contiene volúmenes de invitados.",
+      "pool_browse_unavailable": "Este McHarbor es demasiado antiguo para explorar los archivos del pool. Actualice el host e inténtelo de nuevo.",
+      "pool_not_browsable": "Un pool LVM thin guarda sus volúmenes como dispositivos de bloque, por lo que no tiene archivos que explorar.",
+      "invalid_target": "Esa ubicación no se puede usar para un pool de almacenamiento.",
+      "image_unverified": "Este origen no publica ninguna suma de comprobación, por lo que se rechazó la descarga.",
+      "image_builtin": "Las entradas integradas del catálogo no se pueden eliminar.",
+      "not_ready": "Esta sección aún se está iniciando. Inténtelo de nuevo en un momento.",
+      "library_unavailable": "No se puede escribir en el directorio de la biblioteca de imágenes. Los detalles están en el registro del servidor.",
+      "upload_empty": "No se subió ningún archivo.",
+      "upload_too_large": "Ese archivo supera el límite de subida.",
+      "upload_extension": "Esa extensión de archivo no es un formato de imagen compatible.",
+      "upload_failed": "La subida no se completó.",
+      "agent_outdated": "El agente de este host es demasiado antiguo para eso. Las redes administradas y compartidas necesitan el agente 3.4.0 o posterior: actualice el agente e inténtelo de nuevo.",
+      "agent_offline": "Ahora mismo no hay ningún agente conectado para este host, por lo que no se puede modificar. Reconecte el agente e inténtelo de nuevo.",
+      "uplink_busy": "Ese adaptador no se puede usar. Ya lleva otras interfaces (una VLAN, o el shim que deja una red macvlan de Docker) y el host se niega a crear un puente con él hasta que se quiten. Elija otro adaptador o cree una red administrada.",
+      "host_link_invalid": "Ese ajuste de la interfaz del host no se puede usar. Use hasta 15 letras, dígitos, puntos, guiones o guiones bajos, evite los prefijos reservados e indique una dirección IPv6 solo con IPv6 y el acceso del host activados.",
+      "host_link_name_taken": "Ya existe en el host una interfaz con ese nombre que no creó McHarbor. Elija otro nombre.",
+      "host_link_parent_not_found": "La interfaz principal ya no existe en el host. Elija un adaptador presente e inténtelo de nuevo.",
+      "host_link_permission_denied": "El agente no tiene permiso para crear interfaces de red en este host. Necesita la capability NET_ADMIN e iproute2 instalado.",
+      "image_fetch_failed": "Falló la descarga de la imagen al host: {{error}}",
+      "image_fetch_failed_unknown": "Falló la descarga de la imagen al host.",
+      "invalid_path": "Esa ubicación debe ser una ruta absoluta y no puede ser un directorio del sistema.",
+      "locations_not_applied": "Las ubicaciones se guardaron, pero este host no las aplicó:"
+    }
+  },
+  "msg": {
+    "compute": {
+      "environment_saved": "Ajustes del host guardados.",
+      "pool_created": "Pool de almacenamiento creado.",
+      "pool_deleted": "Pool de almacenamiento eliminado.",
+      "network_created": "Red añadida.",
+      "network_deleted": "Red eliminada.",
+      "image_added": "Imagen añadida al catálogo.",
+      "image_fetched": "Imagen descargada al host.",
+      "image_evicted": "Imagen quitada del host.",
+      "image_deleted": "Imagen eliminada del catálogo.",
+      "image_uploaded": "Imagen subida a la biblioteca compartida.",
+      "catalog_reloaded": "Catálogo de imágenes recargado.",
+      "fetch_started_all": "Descargas iniciadas en todos los hosts que lo necesitaban.",
+      "fetch_started": "Se inició la descarga de la imagen al host.",
+      "locations_saved": "Ubicaciones de cómputo guardadas.",
+      "locations_removed": "Sobrescritura eliminada.",
+      "locations_applied": "Ubicaciones aplicadas al host."
+    }
+  },
+  "reports": {
+    "platform": "Cómputo",
+    "readiness": {
+      "label": "Preparación de los hosts de cómputo",
+      "description": "Qué puede ejecutar cada host y qué impide hacerlo exactamente a los que no pueden, con la solución para la distribución de cada host."
+    },
+    "hygiene": {
+      "label": "Higiene de imágenes y concesiones de cómputo",
+      "description": "Descargas de imágenes por host que fallaron o se atascaron, imágenes que ningún host conserva y concesiones DHCP obsoletas, caducadas o huérfanas."
+    },
+    "options": {
+      "includeRemediation": "Incluir cómo solucionar cada bloqueo",
+      "aiSummary": "Añadir una evaluación escrita (usa su proveedor de IA configurado)",
+      "onlyIssues": "Solo hosts, imágenes y entradas que requieren atención"
+    }
+  },
+  "nodes": {
+    "hostCapability": {
+      "label": "Capacidad del host",
+      "description": "Lee qué puede ejecutar un host de cómputo. Se dirige al puerto de error cuando el host no puede ejecutar el tipo de invitado consultado."
+    },
+    "poolCapacity": {
+      "label": "Capacidad del pool",
+      "description": "Toma una muestra de un pool de almacenamiento y ramifica según lo lleno que esté. Úselo antes de asignar un disco de invitado."
+    },
+    "ensureImage": {
+      "label": "Asegurar imagen",
+      "description": "Se asegura de que una imagen del catálogo esté descargada en un host antes de ejecutar un paso de creación."
+    }
+  },
+  "alerts": {
+    "poolNearFull": "Pool de almacenamiento casi lleno",
+    "poolOvercommitted": "Pool de almacenamiento sobreasignado",
+    "hostLostKvm": "El host perdió la virtualización por hardware",
+    "hostUnreachable": "Host de cómputo inaccesible",
+    "imageFetchFailed": "Falló la descarga de la imagen"
+  },
+  "badges": {
+    "default": "Predeterminado"
+  },
+  "runbook": {
+    "targets": {
+      "compute_pool": "Pool de almacenamiento"
+    },
+    "steps": {
+      "compute_capability_probe": "Vuelve a comprobar si el host de este entorno admite KVM, QEMU y LXC",
+      "compute_pool_state": "El backend, la capacidad y el uso del pool de almacenamiento",
+      "compute_capability": "Qué puede ejecutar el host de este entorno: KVM, QEMU, LXC y por qué no"
+    }
+  },
+  "search": {
+    "group": {
+      "hosts": "Hosts de cómputo",
+      "pools": "Pools de almacenamiento",
+      "images": "Imágenes de cómputo"
+    },
+    "action": {
+      "setupHost": "Configurar un host de cómputo",
+      "setupHostKeywords": "activar cómputo host asistente kvm lxc",
+      "createPool": "Crear pool de almacenamiento",
+      "createPoolKeywords": "nuevo pool almacenamiento disco zfs lvm btrfs",
+      "uploadImage": "Subir imagen de cómputo",
+      "uploadImageKeywords": "subir iso qcow2 imagen cloud"
+    }
+  }
+}

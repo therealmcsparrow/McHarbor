@@ -1,0 +1,36 @@
+{
+    "slug":  "tracee",
+    "name":  "Tracee",
+    "description":  "eBPF-based runtime security tool that traces syscalls and detects suspicious container and host behavior.",
+    "category":  "Security",
+    "image":  "aquasec/tracee:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=aquasec.com\u0026sz=128",
+    "website":  "https://aquasecurity.github.io/tracee/latest/",
+    "docsUrl":  "https://aquasecurity.github.io/tracee/latest/docs/getting-started/container/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    },
+                    {
+                        "host":  "/opt/appdata/tracee/data",
+                        "container":  "/tracee"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

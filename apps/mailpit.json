@@ -1,0 +1,46 @@
+{
+    "slug":  "mailpit",
+    "name":  "Mailpit",
+    "description":  "Disposable SMTP testing server with a web UI to capture and inspect outgoing email during development.",
+    "category":  "Communications",
+    "image":  "axllent/mailpit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mailpit.png",
+    "website":  "https://mailpit.axllent.org",
+    "docsUrl":  "https://mailpit.axllent.org/docs/install/docker/",
+    "ports":  [
+                  {
+                      "host":  8025,
+                      "container":  8025,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1025,
+                      "container":  1025,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mailpit/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MP_MAX_MESSAGES",
+                        "default":  "5000",
+                        "description":  "Maximum number of messages kept in storage"
+                    }
+                ],
+    "minMemory":  "128MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

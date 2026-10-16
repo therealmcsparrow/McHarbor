@@ -1,0 +1,44 @@
+# plugin.yaml — manifest for the storage-opencloud plugin.
+#
+# OpenCloud is a Nextcloud fork by the OpenCloud GmbH team. It
+# exposes the same WebDAV surface as Nextcloud (the OpenCloud
+# server is a Go re-implementation of the Nextcloud protocol
+# surface) so the plugin uses the same WebDAV paths and Basic
+# auth flow as the storage-google-drive / storage-nextcloud
+# plugins. Operators authenticate with an app password from
+# OpenCloud's Personal settings → Security → App passwords (or
+# via OAuth 2.0 client credentials).
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-opencloud"
+name:     "OpenCloud"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Back up containers to an OpenCloud instance via WebDAV (RFC 4918). OpenCloud is a Nextcloud-compatible server (same protocol surface) so the plugin uses the Nextcloud WebDAV paths (/remote.php/dav/files/{user}/). Two auth modes: OAuth 2.0 refresh-token flow or direct app-password authentication. Chunked uploads use Content-Range PUT, supported server-side by OpenCloud's WebDAV. Same Test round-trip shape (write / change / delete) as the SharePoint, Google Drive, and Nextcloud plugins."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-opencloud"
+  forms:
+    - resource: "storage_location"
+      kind: "config_form"
+      key: "opencloud"
+    - resource: "storage_location"
+      kind: "setup_guide"
+      key: "opencloud"
+
+signature: ""
+checksum:  ""

@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "lifecycleFeed": {
+      "label": "Lebenszyklus-Feed",
+      "description": "Aktuelle Erstellungs-, Aktualisierungs- und Löschereignisse über alle Ressourcen"
+    }
+  },
+  "lifecycleFeedWidget": {
+    "title": "Lebenszyklus-Feed",
+    "loading": "Lebenszyklusereignisse werden geladen...",
+    "empty": "Keine aktuellen Lebenszyklusereignisse",
+    "more": "{{count}} weitere",
+    "viewAll": "Alle anzeigen",
+    "justNow": "gerade eben"
+  }
+}

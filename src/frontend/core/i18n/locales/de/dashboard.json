@@ -1,13 +1,29 @@
 {
   "title": "Dashboard",
   "description": "Übersicht über Ihre Docker-Umgebung",
+  "summary": {
+    "environments_one": "{{count}} Umgebung",
+    "environments_other": "{{count}} Umgebungen",
+    "containers_one": "{{count}} Container",
+    "containers_other": "{{count}} Container",
+    "acrossStacks_one": "in {{count}} Stack",
+    "acrossStacks_other": "in {{count}} Stacks",
+    "vms_one": "{{count}} virtuelle Maschine",
+    "vms_other": "{{count}} virtuelle Maschinen",
+    "acrossEnvironments_one": "in {{count}} Umgebung",
+    "acrossEnvironments_other": "in {{count}} Umgebungen",
+    "agentsBehind_one": "{{count}} Agent eine Version hinterher",
+    "agentsBehind_other": "{{count}} Agenten eine Version hinterher",
+    "scansNeedReview_one": "{{count}} Scan muss geprüft werden",
+    "scansNeedReview_other": "{{count}} Scans müssen geprüft werden",
+    "unreachable_one": "{{count}} Host nicht erreichbar",
+    "unreachable_other": "{{count}} Hosts nicht erreichbar"
+  },
   "addWidget": "Widget hinzufügen",
-  "editDashboard": "Dashboard bearbeiten",
-  "doneEditing": "Bearbeitung abschließen",
   "edit": "Bearbeiten",
   "done": "Fertig",
   "reset": "Zurücksetzen",
-  "loading": "Laden...",
+  "loading": "Wird geladen...",
   "addWidgets": "Widgets hinzufügen",
   "addWidgetsDescription": "Wählen Sie Widgets aus, um sie Ihrem Dashboard hinzuzufügen",
   "categories": {
@@ -15,12 +31,45 @@
     "host": "Host",
     "metrics": "Metriken",
     "monitoring": "Überwachung",
-    "operations": "Operationen",
-    "kubernetes": "Kubernetes"
+    "operations": "Betrieb",
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Widget entfernen",
     "decreaseHeight": "Höhe verringern",
-    "increaseHeight": "Höhe erhöhen"
+    "increaseHeight": "Höhe erhöhen",
+    "failed": "{{title}} konnte nicht angezeigt werden",
+    "retry": "Erneut versuchen",
+    "size": "Größe",
+    "width": "Breite",
+    "height": "Höhe"
+  },
+  "template": {
+    "pickerLabel": "Dashboard-Layouts",
+    "wizardPrompt": "Mit einem Layout starten"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "Was läuft, worauf, und die Schnellaktionen, die Sie am häufigsten nutzen"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Workflow-Läufe, Alarme und Schwachstellen im Vordergrund"
+      },
+      "production": {
+        "name": "Produktion",
+        "description": "Kapazität, Alarme, Schwachstellen und Speicher auf einen Blick"
+      },
+      "monitoring": {
+        "name": "Überwachung",
+        "description": "Zeitreihen und Top-Verbraucher, um Trends zu beobachten"
+      },
+      "starter": {
+        "name": "Einstieg",
+        "description": "Die Gesamtbewertung und Ihre Container — alles Weitere fügen Sie bei Bedarf hinzu"
+      }
+    }
   }
 }

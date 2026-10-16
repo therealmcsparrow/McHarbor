@@ -4,31 +4,26 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const nodeScript: NodeDefinition = {
-  "key": "node-script",
-  "label": "Node Script",
-  "category": "utility",
-  "description": "Run custom JavaScript against the current workflow message",
-  "icon": "IconBrandJavascript",
-  "configSchema": [
+  key: 'node-script',
+  label: 'Node Script',
+  category: 'utility',
+  description: 'Run custom JavaScript against the current workflow message',
+  icon: 'IconBrandJavascript',
+  configSchema: [
     {
-      "key": "code",
-      "label": "Code",
-      "type": "code",
-      "required": true
+      key: 'code',
+      label: 'Code',
+      type: 'code',
+      required: true,
     },
     {
-      "key": "timeout",
-      "label": "Timeout (seconds)",
-      "type": "number",
-      "required": false,
-      "default": 10
-    }
+      key: 'timeout',
+      label: 'Timeout (seconds)',
+      type: 'number',
+      required: false,
+      default: 10,
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

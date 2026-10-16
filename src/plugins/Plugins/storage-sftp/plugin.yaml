@@ -1,0 +1,83 @@
+# plugin.yaml — manifest for the storage-sftp plugin.
+#
+# SFTP (SSH File Transfer Protocol, draft-ietf-secsh-filexfer)
+# backup destination. Talks SSH at the transport layer; the
+# plugin owns the auth-method matrix and the underlying
+# ssh.ClientConfig + sftp.Client pair.
+#
+# Auth methods (one per destination row):
+#   - password             Plain SSH password over the
+#                          encrypted channel. Stored encrypted
+#                          at rest via AES-256-GCM.
+#   - publickey            SSH keypair. The host reads the
+#                          private key from disk and unlocks
+#                          it with an optional passphrase
+#                          (RFC 4253 §6.6).
+#   - keyboard_interactive Multi-round prompt/response
+#                          challenge (RFC 4256). Used for
+#                          two-factor gateways (Duo, Okta,
+#                          RSA SecurID, …) and PAM stacks.
+#   - agent                Local SSH agent socket (Unix
+#                          ssh-agent). Lets operators
+#                          re-use keys that are already
+#                          loaded on the host.
+#
+# RBAC is intentionally bypassed — see
+# mcharbor-storage-plugins-no-rbac. The host's
+# storage_locations admin UI is already gated by
+# settings.manage / settings.view; this plugin does not
+# register any new permission keys and the menu entry has
+# no required_permission. RegisterPermissions is implemented
+# as a no-op.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-sftp"
+name:     "SFTP"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "SFTP (SSH File Transfer Protocol) backup destination. Auth methods: password, publickey (private key + optional passphrase), keyboard-interactive, and SSH agent. Uses github.com/pkg/sftp over golang.org/x/crypto/ssh."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host. Bootstrap
+# permissions only — see mcharbor-storage-plugins-no-rbac.
+# No menu.sidebar.add because this plugin does not register
+# a sidemenu entry — SFTP destinations are managed from
+# /settings/storage-locations.
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+# No adds_permissions — see mcharbor-storage-plugins-no-rbac.
+# No consumes_permissions — see mcharbor-storage-plugins-no-rbac.
+
+contributes:
+  routes: []
+  # No `menu:` block — the plugin does not add a sidemenu
+  # entry; destinations are managed from the host's
+  # /settings/storage-locations page.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-sftp"
+  # Form slots this plugin owns. The host loads the
+  # frontend UMD bundle via
+  # /api/plugins/loader/bundle?slug=<slug> (which looks up
+  # <dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs)
+  # and mounts it into the matching host slot at edit /
+  # setup-guide time.
+  forms:
+    - resource: "storage_location"
+      kind:     "config_form"
+      key:      "sftp"
+    - resource: "storage_location"
+      kind:     "setup_guide"
+      key:      "sftp"
+
+signature: ""
+checksum:  ""

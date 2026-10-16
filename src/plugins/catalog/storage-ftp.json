@@ -1,0 +1,16 @@
+{
+  "slug": "storage-ftp",
+  "name": "FTP/FTPS",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "McHarbor",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Backup destination backed by an FTP (RFC 959) or FTPS (RFC 4217) server. Auth methods: anonymous, password, FTPS-explicit (AUTH TLS), FTPS-implicit (port 990), and client-certificate (mTLS).",
+  "category": "Storage destinations",
+  "icon": "IconFolder",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-ftp-1.0.1.tar.gz"
+    }
+  ]
+}

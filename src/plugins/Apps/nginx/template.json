@@ -1,0 +1,27 @@
+{
+  "id": "nginx-1.27.0",
+  "slug": "nginx",
+  "name": "NGINX",
+  "description": "High-performance HTTP server, reverse proxy, and TLS terminator.",
+  "category": "Web servers",
+  "image": "nginx:1.27.0",
+  "logo": "Apps/icons/nginx.svg",
+  "website": "https://nginx.org",
+  "docsUrl": "https://docs.nginx.com",
+  "version": "1.27.0",
+  "updatedAt": "2026-08-01T00:00:00Z",
+  "source": "https://github.com/therealmcsparrow/McHarbor-AddOns/tree/main/Apps/nginx",
+  "minMemory": "64Mi",
+  "ports": [
+    { "host": 80, "container": 80, "protocol": "tcp" },
+    { "host": 443, "container": 443, "protocol": "tcp" }
+  ],
+  "volumes": [
+    { "host": "/data/nginx/conf.d", "container": "/etc/nginx/conf.d", "readOnly": false },
+    { "host": "/data/nginx/html",   "container": "/usr/share/nginx/html", "readOnly": false },
+    { "host": "/data/nginx/certs",  "container": "/etc/nginx/certs", "readOnly": true }
+  ],
+  "envVars": [
+    { "key": "TZ", "default": "UTC", "description": "Container timezone." }
+  ]
+}

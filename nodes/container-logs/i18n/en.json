@@ -6,5 +6,15 @@
     "container": "Container",
     "tail": "Tail Lines",
     "since": "Since"
+  },
+  "options": {
+    "since": {
+      "5m": "Last 5 minutes",
+      "15m": "Last 15 minutes",
+      "1h": "Last hour",
+      "6h": "Last 6 hours",
+      "24h": "Last 24 hours",
+      "168h": "Last 7 days"
+    }
   }
 }

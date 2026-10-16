@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Destino de Box",
+    "subtitle": "Las instantáneas de copia de seguridad se escriben en el ID de carpeta de Box que especifique. Use folder_id \"0\" para la raíz de la cuenta.",
+    "registerHint": "Este plugin gestiona un LocationType: box. Para cambiar la carpeta más adelante, guarde el destino y ábralo de nuevo."
+  },
+  "fields": {
+    "clientId": "ID de cliente",
+    "clientSecret": "Secreto de cliente",
+    "folderId": "ID de carpeta",
+    "refreshToken": "Token de actualización"
+  },
+  "form": {
+    "help": {
+      "clientId": "ID de cliente de la Box Developer Console para tu aplicación (Custom App o Server Authentication).",
+      "clientSecret": "Client Secret de la Box Developer Console. Se trata como un secreto de solo escritura; el plugin nunca lo registra de vuelta.",
+      "folderId": "ID de la carpeta de Box donde se guardan las copias de seguridad. Usa \"0\" para la raíz de la cuenta.",
+      "refreshToken": "Refresh token de larga duración emitido tras el flujo de consentimiento OAuth. Déjalo vacío hasta que hayas ejecutado Conectar con Box."
+    }
+  },
+  "help": {
+    "clientId": "De la Box Developer Console: App → Configuration → OAuth 2.0.",
+    "clientSecret": "El secreto de cliente se muestra una sola vez al crear la aplicación: cópielo ahora.",
+    "folderId": "ID numérico de carpeta de Box. \"0\" = la raíz de la cuenta. Encuentre el ID de una carpeta en la URL de la interfaz web de Box.",
+    "refreshToken": "Se rellena automáticamente con el flujo Conectar con Box. No lo edite manualmente.",
+    "oauthHint": "Tras guardar, haga clic en \"Conectar con Box\" para conceder el consentimiento al plugin y almacenar un token de actualización. Sin un token de actualización, el plugin recurre al grant client_credentials (requiere Server Authentication configurado en la aplicación de Box)."
+  },
+  "setup": {
+    "title": "Guía de configuración de Box",
+    "subtitle": "Conecte una aplicación de desarrollador de Box a su instancia de McHarbor en seis pasos breves. Unos 5 minutos.",
+    "step1": {
+      "title": "Cree una aplicación de Box",
+      "body": "Abra la Box Developer Console (developer.box.com) y cree una aplicación nueva. Elija \"Custom App\" para autenticación delegada de usuario o \"Server Authentication\" si prefiere tokens solo de aplicación (sin consentimiento por usuario)."
+    },
+    "step2": {
+      "title": "Configurar OAuth 2.0",
+      "body": "En los ajustes de la aplicación, elija OAuth 2.0. Añada la URI de redirección que sirve su instancia de McHarbor (Ajustes → Almacenamiento → Conectar con Box la mostrará). Por ahora elija un único entorno principal (desarrollo o producción)."
+    },
+    "step3": {
+      "title": "Solicite los scopes",
+      "body": "En \"Application Scopes\", habilite file_readwrite (lectura/escritura completa de todos los archivos y carpetas a los que el usuario puede acceder). Las aplicaciones más antiguas aún pueden usar root_readwrite: ambos funcionan con este plugin."
+    },
+    "step4": {
+      "title": "Envíe la aplicación para su autorización",
+      "body": "Las Custom Apps requieren que un administrador de Box autorice la aplicación antes de que los usuarios puedan dar su consentimiento. Pida a su administrador de Box que haga clic en el botón \"Authorize\" de la Developer Console y luego apruebe los scopes solicitados."
+    },
+    "step5": {
+      "title": "Copie client_id + client_secret",
+      "body": "De vuelta en McHarbor, pegue el ID de cliente y el secreto de cliente de la Box Developer Console en el formulario del destino. Guarde el destino antes de continuar."
+    },
+    "step6": {
+      "title": "Conecte para conceder el consentimiento",
+      "body": "Abra el destino guardado y haga clic en \"Conectar con Box\". El plugin lanza el flujo de consentimiento OAuth contra Box; tras el consentimiento, Box redirige de vuelta con un código de autorización que el host intercambia por un token de actualización de larga duración (almacenado cifrado en el destino)."
+    },
+    "footer": "¿Necesita un ámbito a nivel de carpeta en lugar de toda la cuenta? Use una cuenta de servicio limitada a una carpeta de Box y pegue las credenciales de la cuenta de servicio en el formulario del destino. El plugin usa las credenciales que haya presentes en tiempo de ejecución."
+  },
+  "toast": {
+    "registered": "Destino de Box registrado.",
+    "testPassed": "La conexión con Box tuvo éxito.",
+    "testFailed": "La conexión con Box falló.",
+    "oauthGranted": "Cuenta de Box conectada. Token de actualización almacenado.",
+    "oauthDenied": "Autorización de Box denegada. Conecte de nuevo para reintentar."
+  },
+  "error": {
+    "noClientId": "El ID de cliente es obligatorio.",
+    "noClientSecret": "El secreto de cliente es obligatorio.",
+    "invalidFolderId": "El ID de carpeta debe ser numérico.",
+    "tokenFailed": "No se pudieron intercambiar las credenciales por un token de acceso de Box. Verifique client_id + client_secret e inténtelo de nuevo."
+  }
+}

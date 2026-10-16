@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "main.tsx",
+    "core/pwa/sw.ts",
+    "**/*.{test,spec,stories}.{ts,tsx}",
+    "tests/**/*.ts",
+    "test/**/*.ts",
+    "knip-external-consumers.ts",
+    "playwright.csp.config.ts",
+    "playwright.visual.config.ts"
+  ],
+  "project": ["**/*.{ts,tsx}"],
+  "ignoreExportsUsedInFile": true
+}

@@ -1,0 +1,35 @@
+{
+    "slug":  "oxidized",
+    "name":  "Oxidized",
+    "description":  "Collects and version-controls configuration backups from network devices.",
+    "category":  "Networking",
+    "image":  "oxidized/oxidized:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/ytti/oxidized",
+    "docsUrl":  "https://github.com/ytti/oxidized",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/oxidized/config",
+                        "container":  "/home/oxidized/.config/oxidized"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

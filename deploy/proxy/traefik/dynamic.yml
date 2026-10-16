@@ -1,0 +1,38 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+http:
+  routers:
+    mcharbor:
+      rule: Host(`mcharbor.example.com`)
+      entryPoints:
+        - websecure
+      service: mcharbor
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    mcharbor:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: mcharbor-upstream
+        responseForwarding:
+          flushInterval: 100ms
+        healthCheck:
+          path: /api/readyz
+          scheme: https
+          interval: 5s
+          timeout: 3s
+          status: 200
+        servers:
+          - url: https://mcharbor-node-1:8705
+          - url: https://mcharbor-node-2:8705
+
+  serversTransports:
+    mcharbor-upstream:
+      insecureSkipVerify: true
+      maxIdleConnsPerHost: 32
+      forwardingTimeouts:
+        dialTimeout: 5s
+        responseHeaderTimeout: 0s
+        idleConnTimeout: 90s

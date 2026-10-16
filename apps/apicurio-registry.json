@@ -4,7 +4,7 @@
   "description": "Shared schema and API artifact registry for Kafka, Avro, Protobuf, JSON Schema, and OpenAPI.",
   "category": "Databases",
   "image": "apicurio/apicurio-registry:latest",
-  "logo": "https://www.apicur.io/images/registry_logo.png",
+  "logo": "https://www.google.com/s2/favicons?domain=www.apicur.io\u0026sz=128",
   "website": "https://www.apicur.io",
   "docsUrl": "https://www.apicur.io/registry/docs/getting-started/assembly-installing-registry-docker.html",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

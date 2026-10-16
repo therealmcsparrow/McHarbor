@@ -5,32 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { Badge } from '@resources/components/ui/Badge';
 import { useDockerInfo } from '@resources/hooks/useDockerInfo';
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
-}
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between py-2 border-b border-border last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm text-foreground text-right max-w-[60%] break-all">{value}</span>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-foreground mb-2">{title}</h3>
-      <div className="rounded-lg border border-border bg-muted/30 px-4">{children}</div>
-    </div>
-  );
-}
+import { HostHardwareRows } from './HostHardwareRows';
+import { InfoRow, Section, formatBytes } from './docker-info-primitives';
 
 export function DockerInfoTab() {
   const { t } = useTranslation('docker');
@@ -47,7 +23,7 @@ export function DockerInfoTab() {
   if (!info) return null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Section title={t('info.server')}>
         <InfoRow label={t('info.version')} value={info.serverVersion} />
         <InfoRow label={t('info.apiVersion')} value={info.apiVersion} />
@@ -64,6 +40,10 @@ export function DockerInfoTab() {
       <Section title={t('info.resources')}>
         <InfoRow label={t('info.cpus')} value={info.ncpu} />
         <InfoRow label={t('info.memory')} value={formatBytes(info.memTotal)} />
+        {/* Capacity is only half of "resources" — the other half is what
+            hardware is actually in the machine. Docker's /info carries
+            none of it, so this reads the host directly. */}
+        <HostHardwareRows />
       </Section>
 
       <Section title={t('info.counts')}>
@@ -90,9 +70,11 @@ export function DockerInfoTab() {
         <InfoRow
           label={t('info.runtimes')}
           value={
-            <div className="flex flex-wrap gap-1 justify-end">
+            <div className="flex flex-wrap justify-end gap-1">
               {info.runtimes.map((r) => (
-                <Badge key={r} variant="secondary">{r}</Badge>
+                <Badge key={r} variant="secondary">
+                  {r}
+                </Badge>
               ))}
             </div>
           }
@@ -107,18 +89,9 @@ export function DockerInfoTab() {
       </Section>
 
       <Section title={t('info.plugins')}>
-        <InfoRow
-          label={t('info.volumePlugins')}
-          value={info.pluginsVolume.join(', ') || '-'}
-        />
-        <InfoRow
-          label={t('info.networkPlugins')}
-          value={info.pluginsNetwork.join(', ') || '-'}
-        />
-        <InfoRow
-          label={t('info.logPlugins')}
-          value={info.pluginsLog.join(', ') || '-'}
-        />
+        <InfoRow label={t('info.volumePlugins')} value={info.pluginsVolume.join(', ') || '-'} />
+        <InfoRow label={t('info.networkPlugins')} value={info.pluginsNetwork.join(', ') || '-'} />
+        <InfoRow label={t('info.logPlugins')} value={info.pluginsLog.join(', ') || '-'} />
       </Section>
 
       <Section title={t('info.swarm')}>

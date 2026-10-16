@@ -3,218 +3,220 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconActivity, IconEye } from '@tabler/icons-react';
+import { IconActivity } from '@tabler/icons-react';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { Badge } from '@resources/components/ui/Badge';
-import { Spinner } from '@resources/components/ui/Spinner';
-import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
-import { DateRangeFilter, DEFAULT_DATE_RANGE_VALUE, type DateRangeFilterValue } from '@resources/components/DateRangeFilter';
-import { useInfiniteScrollSentinel } from '@resources/hooks/useInfiniteScrollSentinel';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
+import { TablePage } from '@resources/layout/TablePage';
 import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@resources/components/ui/Dialog';
-import { Button } from '@resources/components/ui/Button';
+  DateRangeFilter,
+  DEFAULT_DATE_RANGE_VALUE,
+  type DateRangeFilterValue,
+} from '@resources/components/DateRangeFilter';
 import { formatDate, truncateId } from '@resources/utils/format';
-import { resolveDateRange } from '@resources/utils/date-range';
-import { useSavedSearchFilters } from '@resources/hooks/useSavedSearchFilters';
+import { DATE_RANGE_PRESETS, resolveDateRange } from '@resources/utils/date-range';
+import type { ActiveFilterChip } from '@resources/layout/table-page/types';
+import { useUrlNumberState, useUrlSearchState } from '@resources/hooks/useUrlSearchState';
+import { EnvironmentScopeFilter } from '@resources/components/EnvironmentScopeFilter';
+import { tableDefaultPageSize } from '@resources/components/TablePagination';
+import { DegradedStateBanner } from '@resources/components/DegradedStateBanner';
 import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
-import {
-  type ContainerEvent,
-  EventDetails,
-  parseMeta,
-  ACTION_VARIANTS,
-} from '../components/EventDetails';
-import { useEvents } from '../hooks/useEvents';
+import { ViewModeToggle } from '@resources/components/ViewModeToggle';
+import { type ContainerEvent, parseMeta } from '../components/EventDetails';
+import { ActivityEventDialog } from '../components/ActivityEventDialog';
+import { ActivityTimelineView } from '../components/ActivityTimelineView';
+import { useActivityViewStore } from '../stores/activity-view';
+import { useActivityColumns } from '../components/ActivityColumns';
+import { useEventsPage } from '../hooks/useEvents';
+
+const searchModes = ['contains', 'exact', 'regex'] as const;
 
 export default function ActivityPage() {
   const { t } = useTranslation('common');
   const [dateRange, setDateRange] = useState<DateRangeFilterValue>(DEFAULT_DATE_RANGE_VALUE);
   const resolvedRange = useMemo(() => resolveDateRange(dateRange.preset, dateRange.custom), [dateRange]);
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useEvents(resolvedRange);
-  const events = useMemo(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
-    [data],
-  );
+  const [page, setPage] = useUrlNumberState(1);
+  const [pageSize, setPageSize] = useState<number>(tableDefaultPageSize);
+
   const environments = useEnvironmentStore((s) => s.environments);
+  const viewMode = useActivityViewStore((s) => s.viewMode);
+  const setViewMode = useActivityViewStore((s) => s.setViewMode);
   const [selected, setSelected] = useState<ContainerEvent | null>(null);
-  const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('contains');
+  const [query, setQuery] = useUrlSearchState<string>('');
+  const [mode, setMode] = useUrlSearchState<SearchMode>('contains', {
+    param: 'mode',
+    allowed: searchModes,
+  });
+  const [scopeEnvId, setScopeEnvId] = useUrlSearchState<string>('', { param: 'scope' });
   const matcher = useMemo(() => createSearchMatcher(query, mode), [mode, query]);
-  const savedFilters = useSavedSearchFilters<{ query: string; mode: SearchMode }>('mcharbor-activity-filters');
 
-  const envName = useCallback((id: string | null) => {
-    if (!id) return 'Local';
-    return environments.find((e) => e.id === id)?.name ?? truncateId(id);
-  }, [environments]);
-
-  const filteredEvents = useMemo(
-    () =>
-      events.filter((event) =>
-        matchesSearchFields(query, mode, [
-          formatDate(event.timestamp),
-          envName(event.environmentId),
-          event.action,
-          event.containerName,
-          event.containerId,
-          parseMeta(event.metadata).image,
-        ]).matched),
-    [envName, events, mode, query],
-  );
-
-  const sentinelRef = useInfiniteScrollSentinel({
-    enabled: hasNextPage,
-    loading: isFetchingNextPage,
-    onIntersect: () => void fetchNextPage(),
+  // `contains` and `exact` are matched by the API, so the row count below is
+  // the real number of matches. `regex` has no portable SQL equivalent, so it
+  // alone still narrows the page in hand.
+  const { data, isLoading, isFetching, error, failureCount, errorUpdatedAt, refetch } = useEventsPage({
+    page,
+    perPage: pageSize,
+    range: resolvedRange,
+    search: query,
+    mode,
+    envId: scopeEnvId,
   });
 
-  const handleSaveFilter = () => {
-    const label = window.prompt(t('filters.savePrompt'));
-    if (!label) {
-      return;
-    }
+  const events = useMemo(() => data?.items ?? [], [data]);
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(data?.total_pages ?? 1, 1);
+  const rangeFrom = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeTo = events.length === 0 ? 0 : rangeFrom + events.length - 1;
 
-    savedFilters.savePreset(label, { query, mode });
-  };
+  const envName = useCallback(
+    (id: string | null) => {
+      if (!id) return t('audit.local');
+      return environments.find((e) => e.id === id)?.name ?? truncateId(id);
+    },
+    [environments, t],
+  );
+
+  // The API already applied `contains` and `exact`, so only `regex` is left to
+  // narrow here — and it can only see the page it was handed.
+  const filteredEvents = useMemo(() => {
+    if (mode !== 'regex' || !query.trim()) return events;
+    return events.filter(
+      (eventItem) =>
+        matchesSearchFields(query, mode, [
+          formatDate(eventItem.timestamp),
+          envName(eventItem.environmentId),
+          eventItem.action,
+          eventItem.containerName,
+          eventItem.containerId,
+          parseMeta(eventItem.metadata).image,
+        ]).matched,
+    );
+  }, [envName, events, mode, query]);
+
+  const columns = useActivityColumns(envName, setSelected);
+
+  const chips = useMemo<ActiveFilterChip[]>(() => {
+    if (dateRange.preset === DEFAULT_DATE_RANGE_VALUE.preset) return [];
+    const preset = DATE_RANGE_PRESETS.find((entry) => entry.id === dateRange.preset);
+    return [
+      {
+        id: 'range',
+        label: preset ? t(preset.i18nKey.replace(/^[^:]+:/, '')) : dateRange.preset,
+        onRemove: () => setDateRange(DEFAULT_DATE_RANGE_VALUE),
+      },
+    ];
+  }, [dateRange.preset, t]);
+
+  const clearAll = useCallback(() => {
+    setDateRange(DEFAULT_DATE_RANGE_VALUE);
+    setQuery('');
+    setPage(1);
+  }, [setPage, setQuery]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader title={t('activity.title')} description={t('activity.description')} />
-      <SearchFilterToolbar
-        query={query}
-        onQueryChange={setQuery}
-        mode={mode}
-        onModeChange={setMode}
-        placeholder={t('activity.searchPlaceholder')}
-        regexError={matcher.error !== null}
-        savedFilters={savedFilters.presets.map((preset) => ({ value: preset.id, label: preset.label }))}
-        selectedSavedFilterId={savedFilters.selectedPresetId}
-        onSavedFilterSelect={(value) => {
-          savedFilters.setSelectedPresetId(value);
-          const preset = savedFilters.presets.find((entry) => entry.id === value);
-          if (!preset) {
-            return;
-          }
-          setQuery(preset.state.query);
-          setMode(preset.state.mode);
-        }}
-        onSaveFilter={handleSaveFilter}
-        onDeleteSavedFilter={savedFilters.deleteSelectedPreset}
-        extraControls={
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
-            <div className="text-xs text-muted-foreground">{t('filters.matchCount', { count: filteredEvents.length })}</div>
-          </div>
+    <>
+      <TablePage
+        id="activity"
+        title={t('activity.title')}
+        description={t('activity.description')}
+        actions={<ViewModeToggle value={viewMode} onChange={setViewMode} />}
+        banner={
+          <DegradedStateBanner
+            error={error}
+            failureCount={failureCount}
+            updatedAt={errorUpdatedAt}
+            onRetry={() => void refetch()}
+          />
         }
+        search={{
+          value: query,
+          onChange: (value) => {
+            setQuery(value);
+            setPage(1);
+          },
+          mode,
+          onModeChange: (value) => {
+            setMode(value);
+            setPage(1);
+          },
+          placeholder: t('activity.searchPlaceholder'),
+          error: matcher.error !== null,
+        }}
+        savedFilters={{
+          // `id` "activity" derives `mcharbor-activity-filters` — the key this
+          // page already used, so presets saved earlier still load.
+          state: { query, mode, scope: scopeEnvId },
+          onRestore: (state) => {
+            setQuery(typeof state.query === 'string' ? state.query : '');
+            setMode((state.mode as SearchMode) ?? 'contains');
+            setScopeEnvId(typeof state.scope === 'string' ? state.scope : '');
+          },
+          pristine: !query && mode === 'contains' && !scopeEnvId,
+          defaults: { query: '', mode: 'contains', scope: '' },
+        }}
+        filters={
+          <>
+            <EnvironmentScopeFilter
+              value={scopeEnvId}
+              onChange={(value) => {
+                setScopeEnvId(value);
+                setPage(1);
+              }}
+            />
+            <DateRangeFilter
+              value={dateRange}
+              onChange={(value) => {
+                setDateRange(value);
+                setPage(1);
+              }}
+            />
+          </>
+        }
+        toolbar={{
+          // Column and density controls act on the table; the timeline has
+          // neither columns nor row height to steer.
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-activity' },
+          chips: { items: chips, onClear: clearAll },
+        }}
+        columns={columns}
+        data={filteredEvents}
+        loading={isLoading}
+        error={error}
+        onRetry={() => void refetch()}
+        empty={{
+          icon: <IconActivity className="size-8" />,
+          title: query.trim() ? t('filters.noMatches') : t('activity.noEvents'),
+        }}
+        getRowId={(evt) => evt.id}
+        body={
+          viewMode === 'table' ? undefined : (
+            <ActivityTimelineView
+              events={filteredEvents}
+              loading={isLoading}
+              envName={envName}
+              onSelect={setSelected}
+              emptyTitle={query.trim() ? t('filters.noMatches') : t('activity.noEvents')}
+            />
+          )
+        }
+        pagination={{
+          mode: 'server',
+          page,
+          totalPages,
+          pageSize,
+          total,
+          from: rangeFrom,
+          to: rangeTo,
+          onPageChange: (next) => setPage(Math.min(Math.max(Math.trunc(next), 1), totalPages)),
+          onPageSizeChange: (next) => {
+            setPageSize(next);
+            setPage(1);
+          },
+        }}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        {isLoading ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner size="lg" />
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center py-16 text-muted-foreground">
-            <IconActivity className="mb-2 h-8 w-8" />
-            <p>{query.trim() ? t('filters.noMatches') : t('activity.noEvents')}</p>
-          </div>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-muted">
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnTimestamp')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnEnvironment')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnAction')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnContainer')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnImage')}</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnExitCode')}</th>
-                    <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">{t('activity.columnActions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEvents.map((event) => {
-                    const meta = parseMeta(event.metadata);
-                    const image = meta.image ?? null;
-                    const exitCode = meta.exitCode ?? null;
-
-                    return (
-                      <tr key={event.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                        <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(event.timestamp)}</td>
-                        <td className="px-4 py-2.5 text-foreground">{envName(event.environmentId)}</td>
-                        <td className="px-4 py-2.5">
-                          <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'}>{event.action}</Badge>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-foreground truncate max-w-48">{event.containerName ?? truncateId(event.containerId)}</span>
-                            <span className="font-mono text-xs text-muted-foreground">{truncateId(event.containerId)}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs truncate max-w-48">{image ?? '-'}</td>
-                        <td className="px-4 py-2.5">
-                          {exitCode != null ? (
-                            <Badge variant={exitCode === '0' ? 'secondary' : 'destructive'}>{exitCode}</Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5 text-right">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="icon-sm" onClick={() => setSelected(event)} aria-label={t('activity.viewDetails')}>
-                                <IconEye className="size-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>{t('activity.viewDetails')}</TooltipContent>
-                          </Tooltip>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div ref={sentinelRef} className="flex h-12 shrink-0 items-center justify-center text-xs text-muted-foreground">
-              {isFetchingNextPage && (
-                <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  {t('common:list.loadingMore')}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-2xl p-0">
-          <DialogHeader>
-            <DialogTitle>{t('activity.detailsTitle')}</DialogTitle>
-            <DialogDescription>
-              {selected?.containerName ?? truncateId(selected?.containerId)} — {selected?.action}
-            </DialogDescription>
-          </DialogHeader>
-          {selected && (
-            <DialogBody className="p-0">
-              <EventDetails event={selected} envName={envName} />
-            </DialogBody>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      <ActivityEventDialog selected={selected} onClose={() => setSelected(null)} envName={envName} />
+    </>
   );
 }

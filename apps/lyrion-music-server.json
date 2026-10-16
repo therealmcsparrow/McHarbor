@@ -1,0 +1,75 @@
+{
+  "slug": "lyrion-music-server",
+  "name": "Lyrion Music Server",
+  "description": "Streaming audio server for Squeezebox players, formerly Logitech Media Server, with a huge plugin library.",
+  "category": "Media",
+  "image": "lmscommunity/lyrionmusicserver:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/png/lyrion-music-server.png",
+  "website": "https://lyrion.org",
+  "docsUrl": "https://lyrion.org/getting-started/docker/",
+  "ports": [
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9090,
+      "container": 9090,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3483,
+      "container": 3483,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3483,
+      "container": 3483,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/lyrion-music-server/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/lyrion-music-server/music",
+      "container": "/music",
+      "readOnly": true
+    },
+    {
+      "host": "/opt/appdata/lyrion-music-server/playlist",
+      "container": "/playlist"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "HTTP_PORT",
+      "default": "9000",
+      "description": "Web interface port inside the container"
+    },
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,0 +1,60 @@
+{
+    "slug":  "maddy",
+    "name":  "Maddy Mail Server",
+    "description":  "Composable mail server handling SMTP, IMAP and authentication in one lightweight binary.",
+    "category":  "Communications",
+    "image":  "ghcr.io/foxcpp/maddy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/maddy.png",
+    "website":  "https://maddy.email",
+    "docsUrl":  "https://maddy.email/docker/",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  587,
+                      "container":  587,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  993,
+                      "container":  993,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/maddy/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/maddy/config",
+                        "container":  "/etc/maddy"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MADDY_HOSTNAME",
+                        "default":  "mail.example.com",
+                        "description":  "Fully qualified hostname the server presents"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "slug": "ai-provider-mistral",
+  "name": "Mistral",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Routes McHarbor AI chat completions through Mistral's API for Mistral and Mixtral models.",
+  "category": "AI providers",
+  "icon": "IconWind",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/ai-provider-mistral-1.0.0.tar.gz"
+    }
+  ]
+}

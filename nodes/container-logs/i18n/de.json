@@ -1,10 +1,20 @@
 {
-  "label": "Container Logs",
-  "description": "Read recent logs from a container",
+  "label": "Container-Logs",
+  "description": "Aktuelle Logs eines Containers lesen",
   "config": {
     "environment": "Umgebung",
     "container": "Container",
     "tail": "Letzte Zeilen",
     "since": "Seit"
+  },
+  "options": {
+    "since": {
+      "5m": "Letzte 5 Minuten",
+      "15m": "Letzte 15 Minuten",
+      "1h": "Letzte Stunde",
+      "6h": "Letzte 6 Stunden",
+      "24h": "Letzte 24 Stunden",
+      "168h": "Letzte 7 Tage"
+    }
   }
 }

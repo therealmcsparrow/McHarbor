@@ -1,0 +1,43 @@
+{
+  "slug": "kapowarr",
+  "name": "Kapowarr",
+  "description": "Comic library manager in the style of Sonarr, with direct download support.",
+  "category": "Media",
+  "image": "mrcas/kapowarr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kapowarr.png",
+  "website": "https://casvt.github.io/Kapowarr/",
+  "docsUrl": "https://casvt.github.io/Kapowarr/installation/docker/",
+  "ports": [
+    {
+      "host": 5656,
+      "container": 5656,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kapowarr/db",
+      "container": "/app/db"
+    },
+    {
+      "host": "/opt/appdata/kapowarr/temp-downloads",
+      "container": "/app/temp_downloads"
+    },
+    {
+      "host": "/opt/appdata/kapowarr/comics",
+      "container": "/comics-1"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

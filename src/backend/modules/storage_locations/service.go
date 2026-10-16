@@ -8,23 +8,47 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
+	"github.com/therealmcsparrow/mcharbor/core/storageconfig"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
-// ErrLocalStorageProtected means local backup storage cannot be disabled, deleted, or changed to a different type.
+// ErrLocalStorageProtected means the built-in local location cannot be disabled, deleted, or changed to a
+// different type; every backup falls back to it, so it must always exist.
 var ErrLocalStorageProtected = errors.New("local backup storage is protected")
+
+// DefaultLocalLocationID is the built-in location migrations 050/051 seed. Only it is protected: an extra
+// local location an operator adds is an ordinary location and can be disabled or deleted.
+const DefaultLocalLocationID = "default-local-backup"
 
 // Service handles storage location persistence.
 type Service struct {
 	db  *sql.DB
 	enc *encryption.Service
+	// pluginRuntime is the host's loaded plugin runtime, set by
+	// SetPluginRuntime after both modules finish wiring. Held as
+	// `any` to avoid an import cycle between modules/storage_locations
+	// and the plugin runtime; plugin_test_dispatch.go does the
+	// type assertion to plugin.StorageAdapterSource.
+	pluginRuntime any
+	// vault reads the nine operator-typed credentials through the secrets
+	// vault once Phase 5b's backfill has adopted them, and falls back to the
+	// legacy columns until then. The OAuth columns beside them —
+	// access_token, refresh_token, token — are deliberately not adopted and
+	// keep their own path: they rotate hourly, and versioning them would
+	// write secret_versions rows continuously for values no human reads.
+	vault *secrets.Service
 }
 
 type storageOAuthState struct {
@@ -40,11 +64,33 @@ type storageOAuthCredentials struct {
 	TenantID     string
 	ClientID     string
 	ClientSecret string
+	// Config is the decrypted per-row plugin config map.
+	Config map[string]string
 }
 
 // NewService creates a new storage location service.
 func NewService(database *sql.DB, enc *encryption.Service) *Service {
-	return &Service{db: database, enc: enc}
+	svc := &Service{db: database, enc: enc}
+	if database != nil && enc != nil {
+		svc.vault = secrets.NewService(database, enc, nil)
+	}
+	return svc
+}
+
+// readAdopted reads one adopted storage credential through the vault, falling
+// back to the legacy column. Excluded columns must not call it.
+func (s *Service) readAdopted(ctx context.Context, secretID sql.NullString, legacy string) (string, error) {
+	if s.vault == nil {
+		return s.enc.Decrypt(legacy)
+	}
+	return s.vault.ReadThrough(ctx, secretID, legacy)
+}
+
+// SetPluginRuntime injects the loaded plugin runtime into the service.
+// The runtime is held as `any` to avoid the import cycle; the
+// dispatcher does the type assertion to plugin.StorageAdapterSource.
+func (s *Service) SetPluginRuntime(runtime any) {
+	s.pluginRuntime = runtime
 }
 
 // List returns all configured storage locations.
@@ -60,7 +106,7 @@ func (s *Service) List(ctx context.Context) ([]StorageLocation, error) {
 	if err != nil {
 		return nil, fmt.Errorf("listing storage locations: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	items := []StorageLocation{}
 	for rows.Next() {
@@ -97,7 +143,7 @@ func (s *Service) ByID(ctx context.Context, id string) (*StorageLocation, error)
 	).Scan(&item.ID, &item.Name, &item.LocationType, &enabled, &host, &port, &basePath,
 		&region, &bucket, &endpoint, &tenantID, &siteURL, &driveID, &shareName,
 		&domain, &username, &authMethod, &tlsMode, &passiveMode, &item.CreatedAt, &item.UpdatedAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -128,6 +174,12 @@ func (s *Service) ByID(ctx context.Context, id string) (*StorageLocation, error)
 func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) (*StorageLocation, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
+	applyConfigToCreateInput(&input)
+
+	configValue, err := s.encodeConfig(input.Config)
+	if err != nil {
+		return nil, err
+	}
 
 	secrets, err := s.encryptSecrets(storageSecrets{
 		password:        input.Password,
@@ -147,9 +199,9 @@ func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) 
 		return nil, err
 	}
 
-	enabled := input.Enabled
-	if !enabled {
-		enabled = true
+	enabled := true
+	if input.Enabled != nil {
+		enabled = *input.Enabled
 	}
 
 	_, err = s.db.ExecContext(ctx, `
@@ -159,9 +211,9 @@ func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) 
 			auth_method, tls_mode, passive_mode, password, private_key, passphrase,
 			ca_certificate, client_certificate, client_key,
 			access_key_id, secret_access_key, client_id, client_secret,
-			refresh_token, token, created_at, updated_at
+			refresh_token, token, config, created_at, updated_at
 		)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, input.Name, input.LocationType, enabled, nullStr(input.Host), nullInt(input.Port),
 		nullStr(input.BasePath), nullStr(input.Region), nullStr(input.Bucket), nullStr(input.Endpoint),
 		nullStr(input.TenantID), nullStr(input.SiteURL), nullStr(input.DriveID), nullStr(input.ShareName),
@@ -169,7 +221,7 @@ func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) 
 		input.PassiveMode, nullStr(secrets.password), nullStr(secrets.privateKey), nullStr(secrets.passphrase),
 		nullStr(secrets.caCertificate), nullStr(secrets.clientCert), nullStr(secrets.clientKey),
 		nullStr(secrets.accessKeyID), nullStr(secrets.secretAccessKey), nullStr(secrets.clientID),
-		nullStr(secrets.clientSecret), nullStr(secrets.refreshToken), nullStr(secrets.token), now, now,
+		nullStr(secrets.clientSecret), nullStr(secrets.refreshToken), nullStr(secrets.token), configValue, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("inserting storage location: %w", err)
@@ -181,12 +233,12 @@ func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) 
 // Update applies partial updates to a storage location.
 func (s *Service) Update(ctx context.Context, id string, input UpdateStorageLocationInput) (*StorageLocation, error) {
 	var existsID, existingType string
-	if err := s.db.QueryRowContext(ctx, "SELECT id, location_type FROM storage_locations WHERE id = ?", id).Scan(&existsID, &existingType); err == sql.ErrNoRows {
+	if err := s.db.QueryRowContext(ctx, "SELECT id, location_type FROM storage_locations WHERE id = ?", id).Scan(&existsID, &existingType); errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("checking storage location existence: %w", err)
 	}
-	if existingType == "local" {
+	if existsID == DefaultLocalLocationID {
 		if input.Enabled != nil && !*input.Enabled {
 			return nil, ErrLocalStorageProtected
 		}
@@ -195,12 +247,24 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateStorageLoca
 		}
 	}
 
+	applyConfigToUpdateInput(&input)
+
 	now := time.Now().UTC().Format(time.RFC3339)
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer closeutil.Rollback(tx)
+
+	if input.Config != nil {
+		configValue, err := s.encodeConfig(input.Config)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := tx.ExecContext(ctx, "UPDATE storage_locations SET config = ?, updated_at = ? WHERE id = ?", configValue, now, id); err != nil {
+			return nil, fmt.Errorf("updating storage location config: %w", err)
+		}
+	}
 
 	if err := updateText(ctx, tx, id, "name", input.Name, now); err != nil {
 		return nil, err
@@ -280,12 +344,12 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateStorageLoca
 // Delete removes a storage location.
 func (s *Service) Delete(ctx context.Context, id string) (bool, error) {
 	var locationType string
-	if err := s.db.QueryRowContext(ctx, "SELECT location_type FROM storage_locations WHERE id = ?", id).Scan(&locationType); err == sql.ErrNoRows {
+	if err := s.db.QueryRowContext(ctx, "SELECT location_type FROM storage_locations WHERE id = ?", id).Scan(&locationType); errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	} else if err != nil {
 		return false, fmt.Errorf("checking storage location type: %w", err)
 	}
-	if locationType == "local" {
+	if id == DefaultLocalLocationID {
 		return false, ErrLocalStorageProtected
 	}
 
@@ -331,7 +395,7 @@ func (s *Service) OAuthState(ctx context.Context, state string) (*storageOAuthSt
 		FROM storage_location_oauth_states
 		WHERE state = ?`, state,
 	).Scan(&item.State, &item.LocationID, &item.Provider, &item.ExpiresAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -358,13 +422,13 @@ func (s *Service) DeleteOAuthState(ctx context.Context, state string) error {
 // OAuthCredentials decrypts the client credentials needed to start consent.
 func (s *Service) OAuthCredentials(ctx context.Context, locationID string) (*storageOAuthCredentials, error) {
 	var item storageOAuthCredentials
-	var tenantID, clientID, clientSecret sql.NullString
+	var tenantID, clientID, clientSecret, configJSON sql.NullString
 	err := s.db.QueryRowContext(ctx, `
-		SELECT id, location_type, tenant_id, client_id, client_secret
+		SELECT id, location_type, tenant_id, client_id, client_secret, config
 		FROM storage_locations
 		WHERE id = ?`, locationID,
-	).Scan(&item.LocationID, &item.LocationType, &tenantID, &clientID, &clientSecret)
-	if err == sql.ErrNoRows {
+	).Scan(&item.LocationID, &item.LocationType, &tenantID, &clientID, &clientSecret, &configJSON)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -387,6 +451,11 @@ func (s *Service) OAuthCredentials(ctx context.Context, locationID string) (*sto
 		}
 		item.ClientSecret = decrypted
 	}
+	cfg, err := DecodeConfig(s.enc, configJSON.String)
+	if err != nil {
+		return nil, err
+	}
+	item.Config = cfg
 	return &item, nil
 }
 
@@ -412,6 +481,138 @@ func (s *Service) StoreOAuthToken(ctx context.Context, locationID, accessToken, 
 		}
 	}
 	return nil
+}
+
+// DecryptedSecrets returns the decrypted credential columns for a
+// single storage location. The endpoint is permission-gated by
+// the route handler (settings.manage) so only operators who can
+// edit the destination can see the secrets. The plugin's ConfigForm
+// relies on this to populate fields on edit — the host's GET
+// response deliberately omits credentials by design, so without
+// this dedicated endpoint the operator would have to re-enter
+// every credential every time they edited a working destination.
+//
+// The transport is HTTPS. The secrets stay encrypted at rest in
+// the database; the AES-256-GCM layer decrypts at the moment of
+// the API response.
+func (s *Service) DecryptedSecrets(ctx context.Context, locationID string) (*StorageLocationSecrets, error) {
+	if s.enc == nil {
+		return nil, fmt.Errorf("storage credential encryption service is not configured")
+	}
+
+	var clientID, clientSecret, refreshToken, token sql.NullString
+	var username, password, privateKey, passphrase sql.NullString
+	var accessKeyID, secretAccessKey sql.NullString
+	var configJSON sql.NullString
+	// The adopted columns' vault pointers. `username`, `client_id`,
+	// `refresh_token` and `token` have none: the first two are not
+	// credentials and the last two are machine-rotated (§5.11).
+	var clientSecretID, passwordID, privateKeyID, passphraseID sql.NullString
+	var accessKeyIDID, secretAccessKeyID sql.NullString
+	err := s.db.QueryRowContext(ctx, `
+		SELECT client_id, client_secret, refresh_token, token,
+		       username, password, private_key, passphrase,
+		       access_key_id, secret_access_key, config,
+		       client_secret_secret_id, password_secret_id, private_key_secret_id,
+		       passphrase_secret_id, access_key_id_secret_id, secret_access_key_secret_id
+		FROM storage_locations
+		WHERE id = ?`, locationID,
+	).Scan(
+		&clientID, &clientSecret, &refreshToken, &token,
+		&username, &password, &privateKey, &passphrase,
+		&accessKeyID, &secretAccessKey, &configJSON,
+		&clientSecretID, &passwordID, &privateKeyID,
+		&passphraseID, &accessKeyIDID, &secretAccessKeyID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("loading storage location secrets: %w", err)
+	}
+
+	out := &StorageLocationSecrets{}
+
+	if clientID.Valid && strings.TrimSpace(clientID.String) != "" {
+		d, err := s.enc.Decrypt(clientID.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting client id: %w", err)
+		}
+		out.ClientID = d
+	}
+	if (clientSecret.Valid && strings.TrimSpace(clientSecret.String) != "") || clientSecretID.String != "" {
+		d, err := s.readAdopted(ctx, clientSecretID, clientSecret.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting client secret: %w", err)
+		}
+		out.ClientSecret = d
+	}
+	if refreshToken.Valid && strings.TrimSpace(refreshToken.String) != "" {
+		d, err := s.enc.Decrypt(refreshToken.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting refresh token: %w", err)
+		}
+		out.RefreshToken = d
+	}
+	if token.Valid && strings.TrimSpace(token.String) != "" {
+		d, err := s.enc.Decrypt(token.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting access token: %w", err)
+		}
+		out.Token = d
+	}
+	if username.Valid && strings.TrimSpace(username.String) != "" {
+		d, err := s.enc.Decrypt(username.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting username: %w", err)
+		}
+		out.Username = d
+	}
+	if (password.Valid && strings.TrimSpace(password.String) != "") || passwordID.String != "" {
+		d, err := s.readAdopted(ctx, passwordID, password.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting password: %w", err)
+		}
+		out.Password = d
+	}
+	if (privateKey.Valid && strings.TrimSpace(privateKey.String) != "") || privateKeyID.String != "" {
+		d, err := s.readAdopted(ctx, privateKeyID, privateKey.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting private key: %w", err)
+		}
+		out.PrivateKey = d
+	}
+	if (passphrase.Valid && strings.TrimSpace(passphrase.String) != "") || passphraseID.String != "" {
+		d, err := s.readAdopted(ctx, passphraseID, passphrase.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting passphrase: %w", err)
+		}
+		out.Passphrase = d
+	}
+	if (accessKeyID.Valid && strings.TrimSpace(accessKeyID.String) != "") || accessKeyIDID.String != "" {
+		d, err := s.readAdopted(ctx, accessKeyIDID, accessKeyID.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting access key id: %w", err)
+		}
+		out.AccessKeyID = d
+	}
+	if (secretAccessKey.Valid && strings.TrimSpace(secretAccessKey.String) != "") || secretAccessKeyID.String != "" {
+		d, err := s.readAdopted(ctx, secretAccessKeyID, secretAccessKey.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting secret access key: %w", err)
+		}
+		out.SecretAccessKey = d
+	}
+
+	// The per-row Config JSON map carries plugin-specific fields
+	// (tenant_id, drive_id, upn, site_id, ...). Decode and inline so
+	// the dialog can feed the plugin's ConfigForm without a second pass.
+	extra, err := DecodeConfig(s.enc, configJSON.String)
+	if err != nil {
+		return nil, err
+	}
+	if len(extra) > 0 {
+		out.Extra = extra
+	}
+
+	return out, nil
 }
 
 type storageSecrets struct {
@@ -551,25 +752,43 @@ func storageLocationTextUpdateStatement(column string) string {
 func storageLocationSecretUpdateStatement(column string) string {
 	switch column {
 	case "password":
-		return "UPDATE storage_locations SET password = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET password = ?, password_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "private_key":
-		return "UPDATE storage_locations SET private_key = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET private_key = ?, private_key_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "passphrase":
-		return "UPDATE storage_locations SET passphrase = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET passphrase = ?, passphrase_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "ca_certificate":
-		return "UPDATE storage_locations SET ca_certificate = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET ca_certificate = ?, ca_certificate_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "client_certificate":
-		return "UPDATE storage_locations SET client_certificate = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET client_certificate = ?, client_certificate_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "client_key":
-		return "UPDATE storage_locations SET client_key = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET client_key = ?, client_key_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "access_key_id":
-		return "UPDATE storage_locations SET access_key_id = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET access_key_id = ?, access_key_id_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "secret_access_key":
-		return "UPDATE storage_locations SET secret_access_key = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET secret_access_key = ?, secret_access_key_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "client_id":
 		return "UPDATE storage_locations SET client_id = ?, updated_at = ? WHERE id = ?"
 	case "client_secret":
-		return "UPDATE storage_locations SET client_secret = ?, updated_at = ? WHERE id = ?"
+		// The pointer is cleared alongside the value so an adopted copy can
+		// never shadow a freshly typed credential; the next boot re-adopts it.
+		return "UPDATE storage_locations SET client_secret = ?, client_secret_secret_id = NULL, updated_at = ? WHERE id = ?"
 	case "refresh_token":
 		return "UPDATE storage_locations SET refresh_token = ?, updated_at = ? WHERE id = ?"
 	case "token":
@@ -599,4 +818,116 @@ func randomState() (string, error) {
 		return "", fmt.Errorf("generating storage oauth state: %w", err)
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+// encodeConfig serialises the plugin config map and encrypts it for
+// the storage_locations.config column. Plugin forms routinely put
+// client secrets and tokens in this map, so it is never stored as
+// plaintext. An empty map is stored as the literal "{}" the column
+// defaults to.
+func (s *Service) encodeConfig(cfg map[string]string) (string, error) {
+	clean := make(map[string]string, len(cfg))
+	for k, v := range cfg {
+		if k = strings.TrimSpace(k); k == "" || strings.TrimSpace(v) == "" {
+			continue
+		}
+		clean[k] = v
+	}
+	if len(clean) == 0 {
+		return "{}", nil
+	}
+	raw, err := json.Marshal(clean)
+	if err != nil {
+		return "", fmt.Errorf("encoding storage location config: %w", err)
+	}
+	if s.enc == nil {
+		return "", fmt.Errorf("storage credential encryption service is not configured")
+	}
+	encrypted, err := s.enc.Encrypt(string(raw))
+	if err != nil {
+		return "", fmt.Errorf("encrypting storage location config: %w", err)
+	}
+	return encrypted, nil
+}
+
+// DecodeConfig turns the storage_locations.config column back into a map.
+// The decoding itself lives in core/encryption so other modules can read
+// such a column without importing this one.
+func DecodeConfig(enc *encryption.Service, raw string) (map[string]string, error) {
+	return storageconfig.Decode(enc, raw)
+}
+
+// configColumnKeys maps the snake_case keys plugin ConfigForms emit to
+// the first-class columns the host relies on (OAuth readiness checks
+// client_id / client_secret, the list view shows tenant_id, ...).
+type configColumnBinding struct {
+	key string
+	get func(*CreateStorageLocationInput) *string
+	ptr func(*UpdateStorageLocationInput) **string
+}
+
+var configColumnBindings = []configColumnBinding{
+	{"host", func(i *CreateStorageLocationInput) *string { return &i.Host }, func(i *UpdateStorageLocationInput) **string { return &i.Host }},
+	{"base_path", func(i *CreateStorageLocationInput) *string { return &i.BasePath }, func(i *UpdateStorageLocationInput) **string { return &i.BasePath }},
+	{"region", func(i *CreateStorageLocationInput) *string { return &i.Region }, func(i *UpdateStorageLocationInput) **string { return &i.Region }},
+	{"bucket", func(i *CreateStorageLocationInput) *string { return &i.Bucket }, func(i *UpdateStorageLocationInput) **string { return &i.Bucket }},
+	{"endpoint", func(i *CreateStorageLocationInput) *string { return &i.Endpoint }, func(i *UpdateStorageLocationInput) **string { return &i.Endpoint }},
+	{"tenant_id", func(i *CreateStorageLocationInput) *string { return &i.TenantID }, func(i *UpdateStorageLocationInput) **string { return &i.TenantID }},
+	{"site_url", func(i *CreateStorageLocationInput) *string { return &i.SiteURL }, func(i *UpdateStorageLocationInput) **string { return &i.SiteURL }},
+	{"drive_id", func(i *CreateStorageLocationInput) *string { return &i.DriveID }, func(i *UpdateStorageLocationInput) **string { return &i.DriveID }},
+	{"share_name", func(i *CreateStorageLocationInput) *string { return &i.ShareName }, func(i *UpdateStorageLocationInput) **string { return &i.ShareName }},
+	{"domain", func(i *CreateStorageLocationInput) *string { return &i.Domain }, func(i *UpdateStorageLocationInput) **string { return &i.Domain }},
+	{"username", func(i *CreateStorageLocationInput) *string { return &i.Username }, func(i *UpdateStorageLocationInput) **string { return &i.Username }},
+	{"password", func(i *CreateStorageLocationInput) *string { return &i.Password }, func(i *UpdateStorageLocationInput) **string { return &i.Password }},
+	{"private_key", func(i *CreateStorageLocationInput) *string { return &i.PrivateKey }, func(i *UpdateStorageLocationInput) **string { return &i.PrivateKey }},
+	{"passphrase", func(i *CreateStorageLocationInput) *string { return &i.Passphrase }, func(i *UpdateStorageLocationInput) **string { return &i.Passphrase }},
+	{"access_key_id", func(i *CreateStorageLocationInput) *string { return &i.AccessKeyID }, func(i *UpdateStorageLocationInput) **string { return &i.AccessKeyID }},
+	{"secret_access_key", func(i *CreateStorageLocationInput) *string { return &i.SecretAccessKey }, func(i *UpdateStorageLocationInput) **string { return &i.SecretAccessKey }},
+	{"client_id", func(i *CreateStorageLocationInput) *string { return &i.ClientID }, func(i *UpdateStorageLocationInput) **string { return &i.ClientID }},
+	{"client_secret", func(i *CreateStorageLocationInput) *string { return &i.ClientSecret }, func(i *UpdateStorageLocationInput) **string { return &i.ClientSecret }},
+	{"refresh_token", func(i *CreateStorageLocationInput) *string { return &i.RefreshToken }, func(i *UpdateStorageLocationInput) **string { return &i.RefreshToken }},
+	{"token", func(i *CreateStorageLocationInput) *string { return &i.Token }, func(i *UpdateStorageLocationInput) **string { return &i.Token }},
+}
+
+// applyConfigToCreateInput mirrors well-known snake_case keys from a
+// plugin's config map into the first-class columns. Explicit
+// top-level values win over the config map.
+func applyConfigToCreateInput(in *CreateStorageLocationInput) {
+	if len(in.Config) == 0 {
+		return
+	}
+	for _, b := range configColumnBindings {
+		dst := b.get(in)
+		if *dst == "" {
+			if v := strings.TrimSpace(in.Config[b.key]); v != "" {
+				*dst = v
+			}
+		}
+	}
+	if in.Port == 0 {
+		if p, err := strconv.Atoi(strings.TrimSpace(in.Config["port"])); err == nil && p > 0 {
+			in.Port = p
+		}
+	}
+}
+
+// applyConfigToUpdateInput is the Update twin of applyConfigToCreateInput.
+func applyConfigToUpdateInput(in *UpdateStorageLocationInput) {
+	if len(in.Config) == 0 {
+		return
+	}
+	for _, b := range configColumnBindings {
+		dst := b.ptr(in)
+		if *dst == nil {
+			if v := strings.TrimSpace(in.Config[b.key]); v != "" {
+				value := v
+				*dst = &value
+			}
+		}
+	}
+	if in.Port == nil {
+		if p, err := strconv.Atoi(strings.TrimSpace(in.Config["port"])); err == nil && p > 0 {
+			in.Port = &p
+		}
+	}
 }

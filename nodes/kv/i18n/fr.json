@@ -1,0 +1,19 @@
+{
+  "label": "Stockage KV",
+  "description": "Lire, écrire ou supprimer une valeur dans le stockage clé-valeur du workflow",
+  "config": {
+    "operation": "Opération",
+    "key": "Clé",
+    "output_property": "Propriété de sortie",
+    "default_value": "Valeur par défaut",
+    "property": "Propriété",
+    "ttl": "TTL (secondes)"
+  },
+  "options": {
+    "operation": {
+      "get": "Lire",
+      "set": "Écrire",
+      "delete": "Supprimer"
+    }
+  }
+}

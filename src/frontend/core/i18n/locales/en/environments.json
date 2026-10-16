@@ -1,6 +1,6 @@
 {
   "title": "Environments",
-  "description": "Manage Docker and Kubernetes connections",
+  "description": "Manage Docker connections",
   "searchPlaceholder": "Search environments...",
   "addEnvironment": "Add Environment",
   "tableView": "Table view",
@@ -11,17 +11,54 @@
     "platform": "Platform",
     "connection": "Connection",
     "endpoint": "Endpoint",
+    "hostIp": "Host IP",
     "version": "Version",
     "status": "Status",
     "actions": "Actions",
-    "type": "Type"
+    "type": "Type",
+    "id": "ID",
+    "stackCount": "Stacks",
+    "isActive": "Active",
+    "lastConnected": "Last connected",
+    "timezone": "Timezone",
+    "agentStatus": "Agent status",
+    "agentBuild": "Agent build",
+    "agentPlatform": "Agent platform",
+    "agentLastSeen": "Agent last seen",
+    "agentInstallKind": "Agent install",
+    "ssh": "SSH",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "logRetentionDays": "Log retention (days)",
+    "metricRetentionHours": "Metric retention (hours)",
+    "autoUpdateWindow": "Auto-update window",
+    "containerPruneEnabled": "Container pruning",
+    "containerPruneStoppedDays": "Prune after (days)",
+    "imagePruneDanglingOnly": "Prune dangling images only",
+    "automaticImagePruning": "Automatic image pruning",
+    "groupEnvironment": "Environment",
+    "groupAgent": "Agent",
+    "groupConnection": "Connection",
+    "groupMaintenance": "Maintenance",
+    "groupLogEntry": "Log entry",
+    "attrs": "Attributes",
+    "entryId": "Entry ID"
   },
   "badges": {
     "default": "Default"
   },
   "platform": {
-    "docker": "Docker",
-    "kubernetes": "Kubernetes"
+    "docker": "Docker"
+  },
+  "tls": {
+    "title": "Agent transport",
+    "mode": {
+      "pinned": "Encrypted (TLS) — server certificate pinned",
+      "verified": "Encrypted (TLS) — server certificate verified",
+      "encrypted": "Encrypted (TLS) — certificate verification unknown",
+      "insecure": "Encrypted (TLS) — certificate verification disabled",
+      "plaintext": "Not encrypted — the agent connects over plain HTTP"
+    }
   },
   "waitingForAgent": "Waiting for agent...",
   "versions": {
@@ -34,7 +71,7 @@
     "tcp": "TCP",
     "tls": "TLS",
     "ssh": "SSH",
-    "agent": "Remote Agent",
+    "agent": "Agent",
     "podman": "Podman"
   },
   "card": {
@@ -46,18 +83,27 @@
     "restarting": "Restarting",
     "killed": "Killed",
     "needsUpdates": "Needs updates",
+    "estateRunning": "{{running}} of {{total}} running",
     "loadingMetrics": "Loading metrics...",
     "unavailable": "Unavailable",
     "versionUnknown": "Version unknown",
     "open": "Open environment",
     "noMatches": "No environments match your search"
   },
+  "edit": {
+      "title": "Edit Environment",
+      "description": "Change the name and connection details for this environment.",
+      "action": "Edit environment",
+      "setDefault": "Default environment",
+      "setDefaultHint": "New sessions open on this environment.",
+      "active": "Active",
+      "activeHint": "Inactive environments are kept but not polled."
+  },
   "create": {
     "title": "Add Environment",
-    "description": "Connect to a Docker host or Kubernetes cluster.",
+    "description": "Connect to a Docker host.",
     "name": "Name",
     "namePlaceholderDocker": "My Docker Host",
-    "namePlaceholderK8s": "My K8s Cluster",
     "platformLabel": "Platform",
     "connectionType": "Connection Type",
     "connectionMethod": "Connection Method",
@@ -71,9 +117,8 @@
     "defaultNamespace": "Default Namespace",
     "agentDescription": "A lightweight agent binary runs on the remote machine and connects outbound to McHarbor via WebSocket. No ports need to be opened on the remote host. After creating the environment, you'll receive a token to configure the agent.",
     "deployMethod": "Deployment Method",
-    "deployManual": "Manual (copy commands)",
-    "deploySSH": "Automated via SSH",
-    "deployScript": "Install script URL",
+    "deployManual": "Manual",
+    "deploySSH": "Automatic (SSH)",
     "sshHost": "SSH Host",
     "sshPort": "SSH Port",
     "sshUser": "SSH User",
@@ -85,19 +130,73 @@
     "sshAuthPassword": "Password (less secure)",
     "sshKey": "SSH Private Key",
     "sshPassword": "SSH Password",
+    "sshKeyPlaceholder": "-----BEGIN OPENSSH PRIVATE KEY-----",
+    "socketPathPlaceholder": "/var/run/docker.sock",
     "sshPasswordWarning": "Password authentication is less secure than key-based authentication. Consider using an SSH key instead.",
     "deployAs": "Deploy As",
     "deployAsDocker": "Docker container",
     "deployAsBinary": "System binary",
-    "scriptDescription": "After creating the environment, you'll receive a one-time install URL. Run it on the remote machine to auto-install the agent. The URL expires after 24 hours.",
     "adding": "Adding...",
     "submit": "Add Environment",
-    "orchestratorType": "Orchestrator",
-    "docker": "Docker",
-    "kubernetes": "Kubernetes",
     "tlsCa": "CA Certificate",
     "tlsCert": "Client Certificate",
-    "tlsKey": "Client Key"
+    "tlsKey": "Client Key",
+    "useExistingToken": "Use existing agent token",
+    "useExistingTokenDescription": "Paste the token already issued by another McHarbor host that this agent connects back to. Leave unchecked to generate a fresh token.",
+    "existingTokenLabel": "Agent token",
+    "existingTokenPlaceholder": "agt_<64 hex chars>",
+    "existingTokenHelp": "Find the token under → Identity & access on the originating host. Format: agt_ followed by 64 hex characters.",
+    "useExistingTokenImported": "Imported existing agent token",
+    "caCert": "CA Certificate",
+    "caCertHelp": "Required when the API server uses a self-signed certificate. Leave empty if its certificate is publicly trusted.",
+    "serverUrlPlaceholder": "https://10.0.0.1:6443",
+    "bearerTokenPlaceholder": "eyJhbGciOi...",
+    "caCertPlaceholder": "-----BEGIN CERTIFICATE-----",
+    "saveCredentials": "Remember these details for updates",
+    "saveCredentialsHelp": "The host, user and method are stored on the environment. The key or password goes into the secrets vault, and McHarbor keeps only a reference to it — so updating the agent later is one click and no re-typing.",
+    "hostChecks": {
+      "title": "Host checks",
+      "body": "Ask this host what it already has, before the agent goes on it.",
+      "docker": "Check Docker",
+      "vm": "Check VM readiness",
+      "hint": "Fill in the SSH host, user and host key fingerprint first.",
+      "failed": "The host check failed.",
+      "blocks": "\u2014 missing",
+      "dockerReady": "Docker is installed on this host.",
+      "dockerNotReady": "Docker is not installed on this host.",
+      "vmReady": "This host is ready to run virtual machines.",
+      "vmNotReady": "This host cannot run virtual machines yet.",
+      "vmNote": "Virtual machines also need the agent installed as a binary under systemd. A containerised agent cannot host them."
+    },
+    "prereq": {
+      "title": "Prerequisites",
+      "body": "Check what this host already has before deploying.",
+      "check": "Check host",
+      "notChecked": "Not checked yet. Fill in the SSH details and check.",
+      "ready": "Ready to continue. Nothing required is missing.",
+      "blockedMissing": "Something this deploy method needs is missing. Tick it for install, or install it by hand and check again.",
+      "blockedEscalation": "The ticked packages cannot be installed: this host offers no way to run privileged commands. Enter the root password or fix sudo.",
+      "detected": "Detected {{os}} on {{arch}} ({{distro}})",
+      "required": "— required for this method",
+      "noRemediation": "No install command is known for this distribution. Install it by hand.",
+      "failed": "Host check failed.",
+      "installTitle": "Install the missing ones",
+      "installBody": "Only what you tick is installed, and only on this host. Nothing is installed unless you ask.",
+      "install": "Install selected",
+      "installing": "Installing...",
+      "outputTitle": "Install output",
+      "escalationNote": "Runs over SSH using the escalation detected above.",
+      "rootPassword": "Root password",
+      "rootPasswordHelp": "This host has no sudo, so installing uses su. The password is used for this run only and is never stored.",
+      "escalation": {
+        "label": "Privileged commands run:",
+        "none": "directly — already root",
+        "sudo": "through passwordless sudo",
+        "sudo_password": "through sudo, with the SSH password",
+        "su": "through su, with the root password",
+        "unavailable": "not at all — no root, no sudo, no root password"
+      }
+    }
   },
   "detail": {
     "notFound": "Environment Not Found",
@@ -114,16 +213,32 @@
     "agentInfo": "Agent Info",
     "regenerateToken": "Regenerate Token",
     "hostname": "Hostname",
+    "hostIp": "Host IP",
     "os": "OS",
     "architecture": "Architecture",
     "agentVersion": "Agent Version",
     "lastSeen": "Last Seen",
+    "agentLog": {
+      "exportName": "agent-log-{{env}}",
+      "columnTime": "Time",
+      "columnLevel": "Level",
+      "columnMessage": "Message",
+      "title": "Agent Log",
+      "description": "Lines the agent recorded while it could not reach McHarbor, replayed after it reconnected.",
+      "refresh": "Refresh agent log",
+      "emptyTitle": "No buffered log lines",
+      "emptyDescription": "The agent has not been offline since it last connected, or nothing has been replayed yet.",
+      "pageOf": "Page {{page}} of {{totalPages}} · {{total}} lines",
+      "previous": "Previous page",
+      "next": "Next page"
+    },
     "cpuCores": "CPU Cores",
     "cores": "cores",
     "totalMemory": "Total Memory",
     "dockerVersionStat": "Docker Version",
-    "diskUsage": "Disk Usage",
-    "imagesVolumes": "Images: {{images}}, Volumes: {{volumes}}",
+    "diskIo": "Disk I/O",
+    "diskIoSplit": "Read {{read}} · Write {{write}}",
+    "diskIoUnavailable": "No disk samples yet",
     "running": "Running",
     "stopped": "Stopped",
     "paused": "Paused",
@@ -147,7 +262,10 @@
       "docker": "Docker",
       "processes": "Processes",
       "terminal": "Terminal",
-      "logs": "Logs"
+      "logs": "Logs",
+      "access": "Access",
+      "updates": "Updates",
+      "services": "Services"
     },
     "activity": {
       "title": "Activity Settings",
@@ -166,7 +284,6 @@
       "diskCapacityNote": "Threshold alerts use the Docker storage driver capacity reported by the engine when it is available.",
       "diskUsageExceededTitle": "{{name}} disk usage threshold exceeded",
       "diskUsageExceededDescription": "Docker storage is at {{percent}}% of capacity (threshold: {{threshold}}%, current usage: {{total}}).",
-      "kubernetesNote": "These activity settings apply to Docker environments. You can still test the connection for this environment.",
       "connectionTestInProgress": "Testing connection",
       "connectionTestSuccessful": "Connection successful",
       "connectionTestFailed": "Connection failed",
@@ -187,14 +304,12 @@
       "prunePreviewLabel": "Automatic image pruning preview",
       "timezoneLabel": "Timezone",
       "timezoneDescription": "Used for scheduling auto-updates, git syncs, and image pruning.",
-      "kubernetesNote": "Update checks and image pruning apply to Docker environments. You can still set the timezone for scheduling.",
       "statusOn": "ON",
       "statusOff": "OFF"
     },
     "retention": {
       "title": "Retention & Pruning",
       "description": "Configure log retention, automatic container pruning, the auto-update maintenance window, and metric retention for this environment.",
-      "kubernetesNote": "Retention and pruning apply to Docker environments. The auto-update window is informational and used by future automation.",
       "logRetentionTitle": "Container log retention",
       "logRetentionDescription": "How long container log history is retained before being pruned.",
       "logRetentionLabel": "Retention period",
@@ -351,6 +466,9 @@
       "searchPlaceholder": "Search processes...",
       "empty": "No running process metrics available.",
       "columns": {
+        "memLimit": "Memory limit",
+        "containerId": "Container ID",
+        "groupContainer": "Container",
         "name": "Name",
         "cpu": "CPU",
         "memory": "Memory",
@@ -368,7 +486,173 @@
       "connected": "Connected",
       "disconnected": "Disconnected",
       "warning": "This session has full host-level access. Run commands only when you understand the impact.",
-      "connectError": "Could not connect to the host terminal."
+      "connectError": "Could not connect to the host terminal.",
+      "userDefault": "Host default (root)",
+      "userCustom": "Custom…",
+      "userPlaceholder": "Host account name"
+    },
+    "access": {
+        "title": "SSH access",
+        "description": "How McHarbor reaches this host to install or update the agent. The credential itself lives in the secrets vault and is never shown here.",
+        "loading": "Reading the access settings…",
+        "configured": "Configured",
+        "notConfigured": "No SSH access has been saved for this environment yet.",
+        "lastDeployed": "Last deployed {{when}}",
+        "forget": "Forget access",
+        "saved": "Access settings saved",
+        "host": "Host",
+        "port": "Port",
+        "user": "User",
+        "method": "Install method",
+        "methodBinary": "Native binary",
+        "methodDocker": "Docker container",
+        "fingerprint": "Host key fingerprint",
+        "fingerprintHelp": "The SHA256 fingerprint McHarbor pins when connecting. Leave as saved unless the host key changed.",
+        "credentialTitle": "Credential",
+        "authType": "Authentication",
+        "authKey": "SSH key",
+        "authPassword": "Password",
+        "secret": "Vault secret",
+        "secretNone": "None selected",
+        "secretHelp": "Pick a secret already in the vault, or enter a new key or password below to file one.",
+        "newKey": "New private key",
+        "newPassword": "New password",
+        "credentialHelp": "A key or password entered here is written to the secrets vault and never returned to the browser again. Leave both blank to keep the stored credential."
+      },
+    "hostUpdates": {
+      "unavailable": "The host operating system could not be read, so nothing here can be changed.",
+        "title": "Host OS updates",
+        "osTitle": "Host operating system",
+        "lastChecked": "Last checked {{when}}",
+        "neverChecked": "Not checked yet",
+        "checkNow": "Check now",
+        "updateNow": "Update host",
+        "loading": "Reading the update status…",
+        "checkFailed": "The update check did not complete.",
+        "osFailed": "The host operating system could not be read.",
+        "upToDate": "The host has no pending package updates.",
+        "pending_one": "{{count}} package update",
+        "pending_other": "{{count}} package updates",
+        "os": "Operating system",
+        "osVersion": "Version",
+        "kernel": "Kernel",
+        "architecture": "Architecture",
+        "hostname": "Hostname",
+        "packageManager": "Package manager",
+        "virtualization": "Virtualisation",
+        "uptime": "Uptime",
+        "rebootRequired": "Reboot required",
+        "uptimeDays": "{{days}}d {{hours}}h",
+        "uptimeHours": "{{hours}}h {{minutes}}m",
+        "uptimeMinutes": "{{minutes}}m",
+        "progressTitle": "Update progress",
+        "progressWaiting": "Waiting for the package manager…",
+        "running_one": "Running · {{count}} line",
+        "running_other": "Running · {{count}} lines",
+        "finished": "Completed",
+        "failed": "Failed",
+        "scheduleTitle": "Automatic check",
+        "scheduleDescription": "McHarbor checks for pending host packages on this schedule. It never installs them on its own.",
+        "scheduleEnabled": "Check for host updates automatically",
+        "scheduleTime": "Time",
+        "scheduleDays": "Days",
+        "newPackages": "Install new packages when required",
+        "newPackagesDescription": "Lets an upgrade pull in packages it does not already have. Without this, a kernel update is reported as “kept back” and never applies, because a new kernel ABI needs new image and header packages. Nothing is ever removed.",
+        "skipUnavailable": "Skip unavailable packages",
+        "skipUnavailableDescription": "Carries on when a mirror no longer serves a package, instead of failing the whole upgrade. apt uses --fix-missing, dnf uses --skip-broken with skip_if_unavailable, and yum uses --skip-broken. zypper, apk and pacman have no safe equivalent and ignore it.",
+        "removeUnused": "Remove unused packages",
+        "removeUnusedDescription": "After a successful upgrade, removes packages that were installed as dependencies and are no longer needed, including old kernels on Debian and Ubuntu. apt, dnf and yum use autoremove, pacman removes orphans; apk and zypper have no safe equivalent, so the option is ignored there.",
+        "refreshNote": "The package lists are always refreshed before an upgrade, and a failed download is retried once after a fresh refresh.",
+        "recoveryUnsupported": "This environment's agent predates Skip unavailable packages and the automatic retry, and ignores both. Update the agent from Settings → Updates.",
+        "applyTitle": "Update the host?",
+        "applyDescription_one": "Installs {{count}} pending package update on this host. The output streams into the page.",
+        "applyDescription_other": "Installs {{count}} pending package updates on this host. The output streams into the page.",
+        "applyDefaultsNote": "These start from the environment's saved defaults on the Automatic check card, and apply to this run only.",
+        "hintSkipUnavailable": "Some packages could not be downloaded, even after the package lists were refreshed and the upgrade retried once. Turn on Skip unavailable packages and run the update again to install everything else."
+      },
+    "hostReboot": {
+      "title": "Reboot",
+      "requiredDescription": "The host reports that a reboot is required to finish installing updates.",
+      "idleDescription": "The last reboot McHarbor ran on this host.",
+      "rebootMachine": "Reboot machine",
+      "cancel": "Cancel reboot",
+      "scheduledFor": "Scheduled for {{when}}",
+      "requestedBy": "Requested by {{user}}",
+      "finishedAt": "Finished {{when}}",
+      "demoBlocked": "Demo mode never reboots a host.",
+      "errorTitle": "Reboot details",
+      "status": {
+        "scheduled": "Scheduled",
+        "running": "Starting",
+        "stopping_workloads": "Stopping workloads",
+        "rebooting": "Rebooting",
+        "done": "Completed",
+        "failed": "Failed"
+      },
+      "phase": {
+        "detect": "Detecting workloads",
+        "swarm": "Pausing the Swarm node",
+        "guests": "Shutting down virtual machines and LXC containers",
+        "containers": "Stopping Docker containers",
+        "reboot": "Waiting for the host to come back"
+      },
+      "reason": {
+        "demo_mode": "Demo mode never reboots a host.",
+        "reboot_in_progress": "A reboot of this host is already in progress.",
+        "invalid_time": "Choose a date and time in the future, at most 90 days ahead.",
+        "not_confirmed": "The reboot was not confirmed.",
+        "not_scheduled": "There is no scheduled reboot to cancel.",
+        "host_unreachable": "The host could not be reached, so nothing was stopped.",
+        "kubernetes_node": "This host is a Kubernetes node that was not confirmed as drained, so nothing was stopped.",
+        "swarm_worker": "This host is a Swarm worker running service tasks that was not confirmed as drained, so nothing was stopped.",
+        "swarm_pause_failed": "The Swarm node could not be paused, so nothing was stopped.",
+        "guest_not_graceful": "A virtual machine or LXC container cannot be shut down gracefully, so nothing was stopped.",
+        "guest_shutdown_failed": "A virtual machine or LXC container refused the shutdown request. The reboot was cancelled.",
+        "guest_timeout": "A virtual machine or LXC container did not shut down in time. It was left running and the reboot was cancelled.",
+        "container_stop_failed": "A Docker container could not be sent its stop signal. The reboot was cancelled.",
+        "container_timeout": "A Docker container did not stop in time. It was left running and the reboot was cancelled.",
+        "reboot_command_failed": "The host refused the reboot command. The containers McHarbor stopped were started again.",
+        "host_not_back": "The host has not come back after the reboot.",
+        "host_did_not_restart": "The host is reachable but did not restart.",
+        "interrupted": "McHarbor stopped while the reboot was stopping workloads, so the host was not rebooted.",
+        "restore_partial": "The host rebooted, but not everything could be started again."
+      },
+      "dialog": {
+        "title": "Reboot this machine?",
+        "description": "McHarbor stops everything on the host gracefully, then asks systemd to reboot. Nothing is killed: if a workload does not stop in time, the reboot is refused and the host keeps running.",
+        "when": "When",
+        "now": "Now",
+        "later": "At a date and time",
+        "dateTime": "Date and time",
+        "dateTimeHint": "In your browser's time zone. McHarbor runs the reboot once, at this moment.",
+        "disclaimersTitle": "What happens on this host",
+        "detecting": "Detecting what runs on this host…",
+        "drainedLabel": "I have cordoned and drained this node",
+        "drainedDescription": "Required for a Kubernetes node or a Swarm worker: McHarbor cannot move those workloads for you and refuses the reboot without this confirmation."
+      },
+      "disclaimer": {
+        "containersTitle": "Docker containers",
+        "containers": "Each container receives its own stop signal (SIGTERM unless configured otherwise) and gets up to 10 minutes to exit. None is killed. Containers with the restart policy always or unless-stopped are started again once the host is back.",
+        "containersDetected": "Detected on this host: {{total}} running, {{returning}} started again afterwards.",
+        "vmsTitle": "Virtual machines (KVM)",
+        "vms": "Each VM gets an ACPI shutdown request and up to 10 minutes to power off. There is no forced power-off. A VM starts again after the reboot only if autostart is on.",
+        "lxcTitle": "LXC containers",
+        "lxc": "Each container is sent its init system's halt signal and waited for the same way, never killed. It starts again after the reboot only if autostart is on.",
+        "guestsDetected": "Detected on this host: {{guests}} guests running (virtual machines and system containers).",
+        "guestBlockers": "These cannot be shut down gracefully and block the reboot: {{names}}",
+        "kubernetesTitle": "Kubernetes",
+        "kubernetes": "McHarbor does not cordon or drain Kubernetes nodes. Drain the node first (kubectl drain), otherwise the kubelet stops its pods during shutdown.",
+        "kubernetesDetected": "Kubernetes detected on this host ({{names}}). Confirm below that the node is drained.",
+        "swarmTitle": "Docker Swarm",
+        "swarm": "A manager node is paused so its service tasks move to other nodes as they stop, and set back to active after the reboot. A worker cannot pause itself: drain it from a manager first.",
+        "swarmManager": "This host is a Swarm manager and is paused during the reboot.",
+        "swarmWorker": "This host is a Swarm worker running {{tasks}} service tasks. Drain it from a manager and confirm below.",
+        "mcharborTitle": "McHarbor",
+        "mcharbor": "McHarbor itself runs on this machine and is offline until the machine is back. The reboot is finished, and stopped containers are started again, when McHarbor starts up.",
+        "notDetected": "None detected on this host.",
+        "unknown": "Could not be detected on this host.",
+        "refused": "If anything does not stop in time, McHarbor refuses the reboot instead of forcing it, starts the Docker containers it stopped again, and shows the reason on this card."
+      }
     },
     "hostLogs": {
       "title": "Host logs",
@@ -384,10 +668,15 @@
         "auth": "Authentication",
         "docker": "Docker"
       },
+      "availableFilesLabel": "Log files found on this host",
+      "fallbackNote": "None of the expected log files were present, so the largest log on this host was read instead: {{file}}",
       "notices": {
-        "generic": "The log source returned a non-fatal notice.",
         "permission_denied": "A host log file exists but McHarbor does not have permission to read it. A fallback source was tried.",
-        "no_supported_log_source": "No readable file log or supported journal source was found for this host."
+        "no_supported_log_source": "No readable file log or supported journal source was found for this host.",
+        "no_var_log_dir": "The host has no /var/log directory, so no file-based logs could be read.",
+        "no_journalctl": "journalctl is not installed on this host, so journal logs could not be read.",
+        "journalctl_failed": "journalctl returned an error. Any output shown below may be incomplete.",
+        "unknown": "Host log diagnostic: {{code}}"
       }
     },
     "hostLogPreview": {
@@ -398,7 +687,76 @@
       "empty": "No log lines available on the host. Try a different source or check the host's log directory.",
       "lineCount": "{{count}} lines",
       "tailNote": "Showing the last {{tail}} lines"
-    }
+    },
+    "group": {
+      "overview": "Overview",
+      "settings": "Settings",
+      "host": "Host"
+    },
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "error": "Error"
+    },
+    "agentHealth": {
+      "title": "Agent health",
+      "state": {
+        "healthy": "Healthy",
+        "degraded": "Degraded",
+        "unhealthy": "Unhealthy",
+        "unknown": "Unknown"
+      },
+      "summaryNoSamples": "No samples recorded yet. The strip fills in as McHarbor observes the agent's keepalive.",
+      "summaryNeverConnected": "This agent has never connected, so there is nothing to judge yet. Install it on the remote host and it will dial in on its own.",
+      "summaryDisconnected": "The agent is not connected. It was last seen at {{time}}; until it dials back in, nothing on this environment can be managed.",
+      "summaryDegraded": "{{degraded}} of the last {{total}} samples were degraded — the agent answered its keepalive late or not at all. The ping runs every {{interval}} s.",
+      "summaryHealthy": "The agent answered all {{total}} recorded keepalives. The ping runs every {{interval}} s and the last round trip took {{latency}} ms.",
+      "sample": "{{time}} — {{health}}",
+      "stripLabel": "Agent health history: {{total}} samples, {{degraded}} degraded, {{down}} disconnected",
+      "footer": "{{count}} samples · {{interval}} s interval",
+      "latency": "Round trip",
+      "latencyCounts": "{{avg}} ms average · {{max}} ms peak",
+      "latencyUnavailable": "No round trip measured",
+      "ms": "{{value}} ms"
+    },
+    "agentUptime": {
+      "title": "Agent uptime",
+      "percent": "{{percent}}% up",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "summaryNoSamples": "No samples recorded yet. The strip fills in as McHarbor observes the agent.",
+      "summaryAllUp": "The agent was connected for all {{total}} recorded samples.",
+      "summaryWithDowntime": "The agent was disconnected for {{down}} of the last {{total}} samples — {{percent}}% up, across {{outages}} outages.",
+      "sample": "{{time}} — {{state}}",
+      "stripLabel": "Agent uptime history: {{total}} samples, {{up}} connected, {{down}} disconnected",
+      "footer": "{{count}} samples · {{interval}} s interval",
+      "counts": "{{up}} up · {{down}} down · {{outages}} outages"
+    },
+    "statsPath": {
+      "title": "Container stats",
+      "lastBatch": "Last batch {{time}}",
+      "mode": {
+        "push": "Pushed by the agent every {{seconds}} s",
+        "pull": "Pulled one container at a time",
+        "direct": "Read directly from the Docker connection",
+        "off": "Not collected"
+      },
+      "reason": {
+        "agent_too_old": "Agent {{version}} (build {{build}}) cannot push stats. Build {{requiredBuild}} of {{requiredVersion}} or newer can.",
+        "awaiting_first_batch": "The agent was asked to push and its first batch has not arrived yet.",
+        "agent_disconnected": "The agent is not connected.",
+        "agent_metrics_disabled": "Agent metrics are turned off in Settings → System → Agent."
+      }
+    },
+    "installKind": "Agent install",
+    "installKindUnknown": "Unknown (agent older than 3.5.0)",
+    "installKindValue": {
+      "native": "Native (host)",
+      "container": "Container"
+    },
+    "updateAgent": "Update agent",
+    "updateAgentHelp": "Re-runs the saved SSH deployment to install the current agent. Needs deployment details to have been remembered.",
+    "agentBuild": "Agent build"
   },
   "agentToken": {
     "title": "Agent Token Created",
@@ -409,12 +767,39 @@
     "copyToken": "Copy token",
     "runWithDocker": "Run with Docker",
     "runAsBinary": "Run as binary",
-    "installScript": "One-line install (run on remote host)",
+    "binaryIntro": "A native install — the binary under systemd. It is the only install that can host virtual machines or system containers.",
+    "binaryDownload": "Download the binary (run as root)",
+    "copyBinaryDownload": "Copy download command",
+    "binaryDownloadNote": "Takes the agent this McHarbor was built with, so the two versions match.",
+    "binaryForegroundNote": "Runs in the foreground, for a quick check. It does not survive a reboot — install the service below for a permanent agent.",
+    "runAsService": "Install as a systemd service (run as root)",
+    "copyServiceCommand": "Copy service install command",
+    "serviceNote": "The token is written into the unit file, which is why the file is kept root-readable only. Follow the start with journalctl -u mcharbor-agent -f.",
+    "serviceOtherPlatforms": "No systemd on this host? Wire the binary into whatever init it uses. McHarbor ships no service installer for Windows or macOS.",
+    "installUrlDocker": "Install URL — container (Docker)",
+    "installUrlBinary": "Install URL — binary (systemd)",
+    "installUrlNote": "Run on the remote host. Forces the container install and fails if Docker is not usable there.",
     "copyScript": "Copy install command",
     "copyDockerCommand": "Copy Docker command",
     "copyBinaryCommand": "Copy binary command",
     "scriptExpiry": "This URL expires after 24 hours and can only be used once.",
-    "done": "Done"
+    "done": "Done",
+    "wssHint": "Connection uses wss:// — make sure the remote host trusts the McHarbor certificate.",
+    "forceTlsLabel": "MCHARBOR_FORCE_TLS=1",
+    "transferHttpsHint": "File transfers are pushed to https://<agent-host>:8788 — the agent must trust the McHarbor certificate.",
+    "methodLabel": "Installation method",
+    "methods": {
+      "script": "Install script",
+      "compose": "Compose",
+      "docker": "Docker run",
+      "binary": "Binary"
+    },
+    "runWithCompose": "docker-compose.yml",
+    "copyComposeFile": "Copy the Compose file",
+    "composeNote": "Save as docker-compose.yml on the remote host and run docker compose up -d.",
+    "composeLoadNote": "Run the first two lines of the Docker command first, to load the agent image from McHarbor. Then save this as docker-compose.yml on the remote host and run docker compose up -d.",
+    "insecureTls": "Server uses a self-signed certificate",
+    "insecureTlsHint": "On by default because a stock McHarbor signs its own. The agent is then pinned to this server's certificate authority with MCHARBOR_PIN, so it trusts that one CA and nothing else. Turn it off when yours is signed by a CA the remote host already trusts."
   },
   "toast": {
     "created": "Environment created",
@@ -451,7 +836,8 @@
     "agentDeployed": "Agent deployment initiated",
     "agentDeployFailed": "Agent deployment failed",
     "copiedToClipboard": "Copied to clipboard",
-    "copyFailed": "Could not copy to clipboard"
+    "copyFailed": "Could not copy to clipboard",
+    "agentRedeployed": "Agent updated"
   },
   "confirm": {
     "removeTitle": "Remove Environment",
@@ -466,8 +852,195 @@
       "resultFail": "Fail",
       "resultWarn": "Warning",
       "resultSkip": "Skipped",
+      "dockerVersion": "Docker v{{version}}",
       "noSteps": "No test steps were executed.",
-      "overallStatus": "Overall status"
+      "overallStatus": "Overall status",
+      "status": {
+        "pass": "Pass",
+        "warn": "Warning",
+        "fail": "Fail",
+        "skip": "Skipped"
+      },
+      "steps": {
+        "load": "Load environment",
+        "reset": "Reset cached client",
+        "connect": "Acquire client",
+        "ping": "Ping daemon",
+        "version": "Read server version",
+        "persist": "Persist result"
+      }
+    }
+  },
+  "placeholders": {
+    "sshUser": "root"
+  },
+  "migrate": {
+    "action": "Migrate connection",
+    "title": "Migrate connection",
+    "description": "Change how McHarbor reaches this host. The environment keeps its id, so its stacks, metrics, activity and compute resources come with it.",
+    "targetType": "Migrate to",
+    "existingToken": "Existing agent token",
+    "existingTokenPlaceholder": "agt_…",
+    "existingTokenHint": "Leave empty to have McHarbor issue a new token. Paste one only when the agent is already deployed and holds it.",
+    "immediate": "Switch immediately",
+    "immediateHint": "The environment switches now and stops working until the agent connects.",
+    "gracefulHint": "The environment keeps using its current connection until the agent connects with the new token.",
+    "revokeWarning": "The current agent token is revoked and the connected agent is disconnected. It cannot reconnect unless you migrate back and issue a new token.",
+    "submit": "Migrate",
+    "cancel": "Cancel migration",
+    "pendingNotice": "Waiting for an agent to connect. This environment switches to {{target}} the moment it does, and keeps working until then.",
+    "toast": {
+      "cancelled": "Connection migration cancelled"
+    },
+    "deployAgent": "Install the agent for me",
+    "deployAgentHint": "McHarbor deploys the agent container on this host through the connection it already has, and the environment switches over on its own once it connects.",
+    "deployAgentOffHint": "You get a token and install the agent yourself. The environment keeps working until it connects.",
+    "insecureTls": "Server uses a self-signed certificate",
+    "insecureTlsHint": "On by default because a stock McHarbor signs its own certificate. Turn it off if yours is signed by a CA the host trusts.",
+    "deployFailed": "The agent could not be installed",
+    "deployFailedHint": "Nothing was changed — the environment is back on its previous connection and the token has been revoked.",
+    "pendingFailsafe": "If it has not connected within 15 minutes McHarbor puts this environment back the way it was, removes the agent it deployed, and revokes the token."
+  },
+  "merge": {
+    "action": "Merge duplicate",
+    "title": "Merge environments",
+    "description": "Fold another environment into {{target}} and delete it.",
+    "source": "Environment to merge in",
+    "sourceHint": "Everything attached to it is re-pointed at this environment, and the row is then deleted.",
+    "warning": "This cannot be undone. Rows the kept environment already has an equivalent of — a pool of the same name, the same settings row — are discarded rather than duplicated.",
+    "planning": "Working out what would move…",
+    "planTitle": "{{count}} rows would move",
+    "planEmpty": "Nothing is attached to that environment.",
+    "defaultMoved": "The default-environment flag moves with it.",
+    "submit": "Merge and delete",
+    "columns": {
+      "table": "Table",
+      "rows": "Rows"
+    }
+  },
+  "duplicates": {
+    "title": "Another environment reaches this same machine ({{hostname}})",
+    "thisHost": "same Docker daemon",
+    "body": "Both this environment and {{others}} report the same Docker daemon. Two environments on one host double its polling cost and count it twice in reporting."
+  },
+  "hostServices": {
+    "title": "Services",
+    "searchPlaceholder": "Search services",
+    "empty": "No services reported by this host",
+    "truncated": "The host reported more services than McHarbor shows at once; the list is cut short.",
+    "failureTitle": "Why {{unit}} failed",
+    "column": {
+      "unit": "Unit",
+      "description": "Description",
+      "state": "State",
+      "enabled": "Enabled",
+      "pid": "Main PID",
+      "load": "Load"
+    },
+    "facet": {
+      "running": "Running",
+      "failed": "Failed",
+      "inactive": "Inactive",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "action": {
+      "revert": "Revert",
+      "daemonReload": "Reload systemd"
+    },
+    "row": {
+      "start": "Start {{unit}}",
+      "stop": "Stop {{unit}}",
+      "restart": "Restart {{unit}}",
+      "enable": "Enable {{unit}}",
+      "disable": "Disable {{unit}}",
+      "edit": "Edit configuration of {{unit}}"
+    },
+    "protected": {
+      "agent": "Protected: this is the McHarbor agent itself. It can be restarted, not stopped or disabled.",
+      "ssh": "Protected: stopping SSH could lock you out of the host.",
+      "systemd": "Protected: a core systemd component.",
+      "dbus": "Protected: the system message bus that systemd and most services depend on.",
+      "runtime": "Protected: the container runtime the McHarbor agent drives.",
+      "mcharbor": "Protected: this runs McHarbor itself. It can be restarted, not stopped or disabled.",
+      "self_runtime": "Protected: the container runtime McHarbor itself runs on. It can be restarted, not stopped or disabled."
+    },
+    "toast": {
+      "start": "{{unit}} started",
+      "stop": "{{unit}} stopped",
+      "restart": "{{unit}} restarted",
+      "enable": "{{unit}} enabled",
+      "disable": "{{unit}} disabled",
+      "agentRestarting": "The agent is restarting; it will reconnect in a few seconds",
+      "overrideSaved": "Override for {{unit}} saved",
+      "overrideReverted": "Override for {{unit}} removed",
+      "reloaded": "systemd configuration reloaded",
+      "mcharborRestarting": "{{unit}} is restarting; McHarbor is unavailable until it is back"
+    },
+    "confirm": {
+      "stop": {
+        "title": "Stop {{unit}}?",
+        "description": "The service stops now. It starts again at the next boot if it is enabled."
+      },
+      "restart": {
+        "title": "Restart {{unit}}?",
+        "description": "The service stops and starts again. Anything connected to it is interrupted."
+      },
+      "disable": {
+        "title": "Disable {{unit}}?",
+        "description": "The service no longer starts at boot. Whether it is running now does not change."
+      },
+      "revert": {
+        "title": "Revert {{unit}} to its vendor configuration?",
+        "description": "The McHarbor override is deleted and systemd is reloaded. Its content cannot be recovered."
+      },
+      "reload": {
+        "title": "Reload systemd?",
+        "description": "Runs systemctl daemon-reload: systemd rereads every unit file and drop-in. Running services are not restarted."
+      },
+      "agentRestartWarning": "This is the McHarbor agent. Restarting it drops the connection to this host until the agent reconnects, usually within a few seconds.",
+      "mcharborRestartWarning": "Restarting {{unit}} takes McHarbor down with it. This page stops responding until McHarbor is back, usually within a minute."
+    },
+    "override": {
+      "title": "Configuration of {{unit}}",
+      "description": "Changes go into a drop-in override, as systemctl edit does. The vendor unit file is never modified.",
+      "loadFailed": "The unit's configuration could not be read",
+      "effective": "Effective configuration (systemctl cat)",
+      "editor": "Override: {{path}}",
+      "notYetCreated": "No override exists yet; saving creates it.",
+      "reload": "Reload systemd after saving",
+      "verify": "Check with systemd-analyze verify",
+      "verifyWarning": "Saved. systemd-analyze verify reported:"
+    },
+    "unavailable": {
+      "not_agent": {
+        "title": "Services need an agent",
+        "description": "Only a host with a McHarbor agent installed natively can have its services managed."
+      },
+      "not_native": {
+        "title": "Services need a native agent",
+        "description": "This agent runs in a container, which cannot reach the host's systemd. Install the agent as a binary under systemd to manage services."
+      },
+      "offline": {
+        "title": "The agent is not connected",
+        "description": "Services can be managed again as soon as the agent reconnects."
+      },
+      "agent_outdated": {
+        "title": "Update the agent to use Services",
+        "description": "This agent is {{version}} build {{build}}. Services need {{minVersion}} build {{minBuild}} or newer. Update it from Settings → Updates → Agents."
+      },
+      "no_systemd": {
+        "title": "This host does not run systemd",
+        "description": "The agent found no systemd on this host, so there are no services to manage."
+      },
+      "self_unreachable": {
+        "title": "McHarbor cannot reach the machine it is installed on",
+        "description": "{{detail}}"
+      },
+      "self_no_systemd": {
+        "title": "This machine does not run systemd",
+        "description": "The machine McHarbor is installed on does not run systemd, so there are no services to manage."
+      }
     }
   }
 }

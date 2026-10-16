@@ -1,0 +1,28 @@
+{
+  "label": "Container-Aktion",
+  "description": "Container starten, stoppen, neu starten, entfernen, umbenennen oder auf ihn warten",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "action": "Aktion",
+    "timeout": "Timeout (Sekunden)",
+    "new_name": "Neuer Name",
+    "unlock_protected": "Geschuetzten Container entsperren",
+    "condition": "Bedingung"
+  },
+  "options": {
+    "action": {
+      "start": "Starten",
+      "stop": "Stoppen",
+      "restart": "Neu starten",
+      "remove": "Entfernen",
+      "rename": "Umbenennen",
+      "wait": "Warten"
+    },
+    "condition": {
+      "not-running": "Läuft nicht",
+      "next-exit": "Nächstes Beenden",
+      "removed": "Entfernt"
+    }
+  }
+}

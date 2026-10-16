@@ -1,0 +1,49 @@
+{
+    "slug":  "domoticz-beta",
+    "name":  "Domoticz (Beta)",
+    "description":  "Beta channel build of Domoticz. Lightweight home automation system with web UI and broad device support.",
+    "category":  "Home Automation",
+    "image":  "domoticz/domoticz:beta",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/domoticz.png",
+    "website":  "https://www.domoticz.com",
+    "docsUrl":  "https://www.domoticz.com/wiki/Domoticz_and_Docker",
+    "ports":  [
+                  {
+                      "host":  9080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7144,
+                      "container":  6144,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2443,
+                      "container":  1443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/domoticz-beta/config",
+                        "container":  "/opt/domoticz/userdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/domoticz-beta/scripts",
+                        "container":  "/opt/domoticz/scripts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

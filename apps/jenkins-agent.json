@@ -1,0 +1,47 @@
+{
+    "slug":  "jenkins-agent",
+    "name":  "Jenkins Inbound Agent",
+    "description":  "JNLP build agent that connects outbound to an existing Jenkins controller to run its jobs.",
+    "category":  "CI/CD",
+    "image":  "jenkins/inbound-agent:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jenkins.png",
+    "website":  "https://www.jenkins.io",
+    "docsUrl":  "https://github.com/jenkinsci/docker-inbound-agent",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jenkins-agent/work",
+                        "container":  "/home/jenkins/agent"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JENKINS_URL",
+                        "default":  "http://jenkins:8080",
+                        "description":  "URL of the Jenkins controller to connect to"
+                    },
+                    {
+                        "key":  "JENKINS_AGENT_NAME",
+                        "default":  "agent1",
+                        "description":  "Name this agent registers under"
+                    },
+                    {
+                        "key":  "JENKINS_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret token issued by the controller for this agent",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

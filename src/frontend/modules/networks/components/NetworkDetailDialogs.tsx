@@ -4,19 +4,20 @@
 import type { ContainerInfo, NetworkInfo } from '@core/types/docker';
 import { isBuiltInNetwork } from '@core/utils/network';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { RemoveNetworkDialog } from './RemoveNetworkDialog';
 import { Select } from '@resources/components/ui/Select';
 
 type Translation = (key: string) => string;
 
 type NetworkDetailDialogsProps = {
   network: NetworkInfo;
+  removeId: string;
   removeDialogOpen: boolean;
   recreateDialogOpen: boolean;
   disconnectTarget: string | null;
   connectDialogOpen: boolean;
   connectPending: boolean;
   disconnectPending: boolean;
-  removePending: boolean;
   saving: boolean;
   selectedContainer: string;
   availableContainers: ContainerInfo[];
@@ -26,7 +27,7 @@ type NetworkDetailDialogsProps = {
   onDisconnectDialogChange: (open: boolean) => void;
   onConnectDialogChange: (open: boolean) => void;
   onSelectedContainerChange: (value: string) => void;
-  onConfirmRemove: () => void;
+  onRemoved: () => void;
   onConfirmRecreate: () => void;
   onConfirmDisconnect: () => void;
   onConfirmConnect: () => void;
@@ -34,13 +35,13 @@ type NetworkDetailDialogsProps = {
 
 export function NetworkDetailDialogs({
   network,
+  removeId,
   removeDialogOpen,
   recreateDialogOpen,
   disconnectTarget,
   connectDialogOpen,
   connectPending,
   disconnectPending,
-  removePending,
   saving,
   selectedContainer,
   availableContainers,
@@ -50,25 +51,19 @@ export function NetworkDetailDialogs({
   onDisconnectDialogChange,
   onConnectDialogChange,
   onSelectedContainerChange,
-  onConfirmRemove,
+  onRemoved,
   onConfirmRecreate,
   onConfirmDisconnect,
   onConfirmConnect,
 }: NetworkDetailDialogsProps) {
   const builtIn = isBuiltInNetwork(network);
-  const removeTitle = builtIn ? t('confirm.builtInRemoveTitle') : t('confirm.removeTitle');
-  const removeDescription = builtIn
-    ? t('confirm.builtInRemoveDescription')
-    : t('confirm.removeDescription');
   return (
     <>
-      <ConfirmDialog
-        open={removeDialogOpen}
+      <RemoveNetworkDialog
+        networkId={removeDialogOpen ? removeId : null}
+        builtIn={builtIn}
         onOpenChange={onRemoveDialogChange}
-        title={removeTitle}
-        description={removeDescription}
-        onConfirm={onConfirmRemove}
-        loading={removePending}
+        onSuccess={onRemoved}
       />
 
       <ConfirmDialog

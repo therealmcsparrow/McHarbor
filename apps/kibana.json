@@ -1,0 +1,40 @@
+{
+    "slug":  "kibana",
+    "name":  "Kibana",
+    "description":  "Visualization and analytics UI for Elasticsearch data, including dashboards, discover, and dev tools.",
+    "category":  "Analytics",
+    "image":  "docker.elastic.co/kibana/kibana:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kibana.png",
+    "website":  "https://www.elastic.co/kibana",
+    "docsUrl":  "https://www.elastic.co/guide/en/kibana/current/docker.html",
+    "ports":  [
+                  {
+                      "host":  5602,
+                      "container":  5601,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kibana/data",
+                        "container":  "/usr/share/kibana/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOSTS",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "URL of the Elasticsearch cluster to connect to"
+                    }
+                ],
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

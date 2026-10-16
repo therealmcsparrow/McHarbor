@@ -1,0 +1,42 @@
+{
+    "slug":  "nextcloud-talk-hpb",
+    "name":  "Nextcloud Talk High Performance Backend",
+    "description":  "Standalone signaling server that offloads Nextcloud Talk calls for larger conferences and lower latency.",
+    "category":  "Communications",
+    "image":  "strukturag/nextcloud-spreed-signaling:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nextcloud.png",
+    "website":  "https://nextcloud.com/talk",
+    "docsUrl":  "https://github.com/strukturag/nextcloud-spreed-signaling/blob/master/docker/README.md",
+    "ports":  [
+                  {
+                      "host":  8049,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nextcloud-talk-hpb/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SIGNALING_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret between Nextcloud Talk and the signaling server",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "redlib",
+  "name": "Redlib",
+  "description": "Private, ad-free front end for Reddit with no tracking or JavaScript required.",
+  "category": "Web Apps",
+  "image": "quay.io/redlib/redlib:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/redlib.png",
+  "website": "https://github.com/redlib-org/redlib",
+  "docsUrl": "https://github.com/redlib-org/redlib#docker",
+  "ports": [
+    {
+      "host": 8110,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "REDLIB_DEFAULT_THEME",
+      "default": "dark",
+      "description": "Default theme for visitors"
+    },
+    {
+      "key": "REDLIB_ROBOTS_DISABLE_INDEXING",
+      "default": "on",
+      "description": "Ask search engines not to index this instance"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

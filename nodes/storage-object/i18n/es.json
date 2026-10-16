@@ -1,0 +1,37 @@
+{
+  "label": "Objeto de almacenamiento",
+  "description": "Listar, subir, descargar o eliminar objetos en una ubicación de almacenamiento a través de su adaptador",
+  "config": {
+    "storage_location_id": "Ubicación de almacenamiento",
+    "action": "Acción",
+    "prefix": "Prefijo",
+    "key": "Clave del objeto",
+    "source_mode": "Origen",
+    "property": "Propiedad de origen",
+    "content_encoding": "Codificación de origen",
+    "content": "Contenido",
+    "output_encoding": "Codificación de salida",
+    "output_property": "Propiedad de salida"
+  },
+  "options": {
+    "action": {
+      "list": "Listar",
+      "upload": "Subir",
+      "download": "Descargar",
+      "delete": "Eliminar"
+    },
+    "source_mode": {
+      "property": "Propiedad del mensaje",
+      "text": "Texto en línea"
+    },
+    "content_encoding": {
+      "auto": "Automático (texto o JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Texto",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

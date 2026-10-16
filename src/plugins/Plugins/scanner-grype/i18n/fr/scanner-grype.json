@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Grype",
+    "description": "Grype d'Anchore : vulnérabilités des paquets système et de langage, analysées localement."
+  },
+  "settings": {
+    "title": "Grype",
+    "subtitle": "Grype d'Anchore : vulnérabilités des paquets système et de langage, analysées localement."
+  }
+}

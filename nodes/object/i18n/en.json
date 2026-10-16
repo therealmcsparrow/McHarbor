@@ -1,0 +1,17 @@
+{
+  "label": "Object",
+  "description": "Pick or omit fields, or map an object to a new shape",
+  "config": {
+    "operation": "Operation",
+    "property": "Property",
+    "fields": "Fields",
+    "mapping": "Mapping"
+  },
+  "options": {
+    "operation": {
+      "pick": "Pick",
+      "omit": "Omit",
+      "map": "Map"
+    }
+  }
+}

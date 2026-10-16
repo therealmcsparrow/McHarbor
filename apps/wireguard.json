@@ -47,5 +47,9 @@
       "description": "Number of VPN peers to generate configs for"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

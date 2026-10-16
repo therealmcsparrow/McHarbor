@@ -1,0 +1,31 @@
+{
+    "slug":  "grype",
+    "name":  "Grype",
+    "description":  "Vulnerability scanner for container images and filesystems that matches installed packages against CVE feeds.",
+    "category":  "Security",
+    "image":  "anchore/grype:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grype.png",
+    "website":  "https://github.com/anchore/grype",
+    "docsUrl":  "https://github.com/anchore/grype#getting-started",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/grype/cache",
+                        "container":  "/root/.cache/grype"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

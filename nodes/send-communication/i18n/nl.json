@@ -1,0 +1,10 @@
+{
+  "label": "Bericht versturen",
+  "description": "Verstuur een bericht via een geconfigureerd communicatiekanaal",
+  "config": {
+    "channel_id": "Communicatiekanaal",
+    "recipient": "Ontvanger",
+    "title": "Titel",
+    "message": "Bericht"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "label": "Gestionar imagen",
+  "description": "Descargar, subir, etiquetar o eliminar una imagen Docker",
+  "config": {
+    "environment": "Entorno",
+    "action": "Acción",
+    "registry_mode": "Registro",
+    "registry_id": "Registro",
+    "registry_url": "URL del registro",
+    "registry_username": "Usuario del registro",
+    "registry_password": "Contraseña del registro",
+    "image": "Imagen",
+    "source": "Imagen de origen",
+    "target": "Imagen de destino",
+    "force": "Fuerza",
+    "prune_children": "Podar niños"
+  },
+  "options": {
+    "action": {
+      "pull": "Descargar (pull)",
+      "push": "Subir (push)",
+      "tag": "Etiquetar",
+      "remove": "Eliminar"
+    },
+    "registry_mode": {
+      "configured": "Registro configurado",
+      "custom": "Otro"
+    }
+  }
+}

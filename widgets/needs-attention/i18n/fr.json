@@ -1,0 +1,23 @@
+{
+  "widgets": {
+    "needsAttention": {
+      "label": "Requiert une attention",
+      "description": "Les quelques éléments qui demandent vraiment un humain, par gravité"
+    }
+  },
+  "needsAttentionWidget": {
+    "title": "Requiert une attention",
+    "empty": "Rien ne requiert votre attention",
+    "unavailable": "Impossible de lire l’état des conteneurs",
+    "more": "{{count}} de plus",
+    "reason": {
+      "unhealthy": "contrôle de santé en échec",
+      "restarting": "boucle de redémarrage",
+      "dead": "mort",
+      "exited": "arrêté",
+      "snapshotOverdue": "sauvegarde en retard",
+      "snapshotNever": "jamais sauvegardé"
+    },
+    "viewAll": "Tout afficher"
+  }
+}

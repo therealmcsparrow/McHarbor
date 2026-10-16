@@ -38,5 +38,9 @@
       "description": "Default database name"
     }
   ],
-  "version": "7"
+  "version":  "7",
+  "latest":  {
+      "version":  "7",
+      "release_date":  "2026-09-10"
+  }
 }

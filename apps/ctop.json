@@ -4,7 +4,7 @@
     "description":  "Top-like interface for monitoring Docker container metrics in real time.",
     "category":  "Developer Tools",
     "image":  "quay.io/vektorlab/ctop:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/bcicen/ctop",
     "docsUrl":  "https://github.com/bcicen/ctop#readme",
     "ports":  [
@@ -24,5 +24,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

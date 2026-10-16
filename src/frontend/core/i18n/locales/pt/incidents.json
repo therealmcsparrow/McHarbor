@@ -1,0 +1,180 @@
+{
+  "title": "Incidentes",
+  "description": "Contêineres que entraram em crash loop, saíram repetidamente, ficaram sem memória, tornaram-se não saudáveis ou dispararam um alerta — com tudo o que o McHarbor sabe sobre eles em um só lugar.",
+  "empty": "Nenhum incidente.",
+  "notFound": "Este incidente não existe.",
+  "columns": {
+    "container": "Contêiner",
+    "signal": "Sinal",
+    "signals": "Sinais",
+    "status": "Status",
+    "narrative": "Narrativa",
+    "started": "Iniciado",
+    "last": "Último sinal",
+    "subject": "Assunto"
+  },
+  "signal": {
+    "crash_loop": "Loop de falhas",
+    "exit_nonzero": "Saída com falha repetida",
+    "oom": "Sem memória",
+    "unhealthy": "Não saudável",
+    "alert": "Alerta disparado"
+  },
+  "status": {
+    "open": "Aberto",
+    "resolved": "Resolvido",
+    "all": "Todos"
+  },
+  "narrativeStatus": {
+    "none": "Não narrado",
+    "pending": "Narrando…",
+    "ready": "Narrado",
+    "failed": "Falhou",
+    "refused": "Recusado"
+  },
+  "confidence": {
+    "low": "Confiança baixa",
+    "medium": "Confiança média",
+    "high": "Confiança alta"
+  },
+  "detail": {
+    "description": "{{signal}} · {{count}} sinais · primeiro {{first}} · último {{last}}",
+    "refresh": "Atualizar evidências",
+    "resolve": "Resolver",
+    "resolveTitle": "Resolver este incidente?",
+    "resolveDescription": "Feche agora o incidente de {{name}} e monte sua linha do tempo. Um novo sinal abre um novo incidente.",
+    "resolveConfirm": "Resolver incidente"
+  },
+  "narrative": {
+    "title": "O que aconteceu",
+    "explain": "Explicar isto",
+    "again": "Explicar novamente",
+    "working": "Consultando o modelo…",
+    "none": "Ainda sem narrativa. Explicar isto envia as evidências abaixo ao modelo de IA configurado no McHarbor.",
+    "lastFailed": "A última narração falhou.",
+    "failedTitle": "Por que a narração falhou",
+    "undetermined": "O modelo não conseguiu determinar uma causa a partir das evidências disponíveis. O que ele examinou está abaixo.",
+    "changes": "Alterado pouco antes",
+    "causes": "Causas prováveis",
+    "attribution": "Escrito por {{model}} via {{connection}} ({{provider}}) para {{who}} em {{time}}.",
+    "attributionProactive": "Escrito automaticamente por {{model}} via {{connection}} ({{provider}}) em {{time}}.",
+    "shown": "O que foi mostrado ao modelo",
+    "shownHint": "O texto exato, com dados sensíveis removidos, que foi enviado. Impressão digital {{hash}}."
+  },
+  "refusal": {
+    "not_opted_in": "A narração está desativada para este ambiente. Ative-a primeiro nas configurações de narração; nada foi enviado.",
+    "no_model": "Nenhum modelo de IA está configurado e ativado. Adicione um nas configurações do assistente de IA; nada foi enviado.",
+    "in_progress": "Já existe uma narração em andamento para este incidente.",
+    "cap_reached": "O limite horário de narrações deste ambiente foi atingido.",
+    "not_resolved": "Somente um incidente resolvido tem uma linha do tempo para resumir.",
+    "model_failed": "O modelo não respondeu. O motivo está no incidente.",
+    "not_open": "Este incidente já foi resolvido."
+  },
+  "evidence": {
+    "title": "Evidências",
+    "window": "De {{from}} até {{to}}",
+    "truncated": "Reduzido ao tamanho permitido",
+    "pending": "As evidências estão sendo coletadas.",
+    "nothing": "Nada registrado neste período.",
+    "image": "Imagem",
+    "state": "Estado",
+    "exitCode": "Código de saída",
+    "restarts": "Reinícios",
+    "health": "Integridade",
+    "oomKilled": "Sem memória",
+    "yes": "Sim",
+    "no": "Não",
+    "exit": "saída {{code}}",
+    "events": "Eventos do contêiner",
+    "logs": "Últimas linhas de log",
+    "imageChanges": "Alterações de imagem",
+    "audit": "Quem alterou o quê",
+    "deploys": "Deploys neste ambiente",
+    "alerts": "Alertas",
+    "drift": "Divergência do estado desejado",
+    "metrics": "Métricas",
+    "peakContainerCpu": "Pico de CPU do contêiner",
+    "peakContainerMem": "Pico de memória do contêiner",
+    "peakHostCpu": "Pico de CPU do host",
+    "peakHostMem": "Pico de memória do host",
+    "pluginNote": {
+      "plugin_unloaded": "O plugin que gerou este incidente não está carregado, então suas evidências não puderam ser lidas.",
+      "plugin_unavailable": "O plugin que gerou este incidente não respondeu a tempo."
+    }
+  },
+  "logsNote": {
+    "unavailable": "Os logs não estão disponíveis aqui.",
+    "unreachable": "Não foi possível acessar o ambiente para obter os logs.",
+    "not_found": "O contêiner não existe mais, portanto não há logs.",
+    "logs_unavailable": "Não foi possível ler os logs."
+  },
+  "timeline": {
+    "title": "Linha do tempo",
+    "summarise": "Resumir",
+    "kind": {
+      "symptom": "Primeiro sintoma",
+      "event": "Evento",
+      "action": "Ação",
+      "alert": "Alerta",
+      "change": "Última alteração",
+      "resolved": "Resolvido"
+    }
+  },
+  "settings": {
+    "open": "Configurações de narração",
+    "title": "Narração para este ambiente",
+    "description": "Define se os incidentes deste ambiente podem ser explicados pelo modelo de IA e com que frequência.",
+    "noModel": "Nenhum modelo de IA está configurado e ativado, então nada pode ser enviado. Configure um nas configurações do assistente de IA.",
+    "destinationLocal": "As evidências seriam enviadas para {{connection}}: {{provider}} executando {{model}} em {{url}}, um modelo auto-hospedado.",
+    "destinationRemote": "As evidências sairiam desta rede: seriam enviadas para {{connection}}, {{provider}} executando {{model}} em {{url}}.",
+    "whatIsSent": "O que é enviado: os eventos e linhas de log recentes do contêiner, alterações de imagem, entradas de auditoria e deploys que o afetam, alertas, divergências e métricas — com senhas, tokens, credenciais, endereços e endpoints do Docker removidos antes. As variáveis de ambiente nunca são enviadas.",
+    "optIn": "Permitir narração neste ambiente",
+    "acknowledge": "Entendo que as evidências de incidentes deste ambiente serão enviadas ao modelo indicado acima.",
+    "proactive": "Narrar novos incidentes automaticamente",
+    "hourlyCap": "Narrações automáticas por hora",
+    "hourlyCapHint": "A narração automática é pausada quando essa quantidade de narrações foi executada na última hora. Explicar um incidente manualmente nunca é recusado por causa disso.",
+    "save": "Salvar"
+  },
+  "snippet": {
+    "title": "Narrativa do incidente",
+    "pending": "Há um incidente aberto para este alerta; ainda não há narrativa.",
+    "open": "Abrir o incidente"
+  },
+  "findings": {
+    "open": "Comportamento",
+    "title": "Achados de comportamento",
+    "description": "Padrões encontrados no histórico registrado por regras fixas. Os números são medidos; um modelo só pode explicá-los.",
+    "back": "Voltar aos incidentes",
+    "empty": "Nenhum achado.",
+    "explain": "Explicar este achado",
+    "dismiss": "Dispensar",
+    "explainedBy": "Explicado por {{model}} para {{who}}.",
+    "columns": {
+      "kind": "Padrão",
+      "subject": "Onde",
+      "numbers": "O que os números dizem",
+      "explanation": "Explicação",
+      "lastSeen": "Visto por último",
+      "actions": "Ações"
+    },
+    "kind": {
+      "memory_climb": "Memória crescendo",
+      "host_memory_forecast": "Memória do host se esgotando",
+      "scheduled_restarts": "Reinícios agendados",
+      "post_deploy_failures": "Falhas após um deploy",
+    "host_disk_forecast": "Disco do host se esgotando",
+    "storage_location_forecast": "Destino de armazenamento se esgotando"
+    },
+    "says": {
+      "memory_climb": "A memória cresceu {{growth}}% em {{days}} dias, cerca de {{perDay}} por dia (ajuste {{r2}}).",
+      "host_memory_forecast": "Em {{current}}% e subindo {{perDay}} pontos por dia, a memória se esgota em cerca de {{days}} dias.",
+      "scheduled_restarts": "Reinícios por volta de {{time}} UTC em {{days}} dias diferentes.",
+      "post_deploy_failures": "{{after}} saídas com falha no dia após um deploy, contra {{before}} no dia anterior.",
+    "host_disk_forecast": "Em {{current}}% e subindo {{perDay}} pontos por dia, este sistema de arquivos chega a {{ceiling}}% em cerca de {{days}} dias (ajuste {{r2}}).",
+    "storage_location_forecast": "Em {{current}}% e subindo {{perDay}} pontos por dia, este destino chega a {{ceiling}}% em cerca de {{days}} dias (ajuste {{r2}})."
+    }
+  },
+  "subjectType": {
+    "container": "Contêiner"
+  }
+}

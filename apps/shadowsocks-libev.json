@@ -1,0 +1,51 @@
+{
+    "slug":  "shadowsocks-libev",
+    "name":  "Shadowsocks-libev",
+    "description":  "Lightweight encrypted SOCKS5 proxy used to bypass network restrictions.",
+    "category":  "Networking",
+    "image":  "shadowsocks/shadowsocks-libev:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/shadowsocks.png",
+    "website":  "https://shadowsocks.org/",
+    "docsUrl":  "https://github.com/shadowsocks/shadowsocks-libev",
+    "ports":  [
+                  {
+                      "host":  8388,
+                      "container":  8388,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8388,
+                      "container":  8388,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/shadowsocks-libev/config",
+                        "container":  "/etc/shadowsocks-libev"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SS_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Shadowsocks connection password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SS_METHOD",
+                        "default":  "aes-256-gcm",
+                        "description":  "Encryption method"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

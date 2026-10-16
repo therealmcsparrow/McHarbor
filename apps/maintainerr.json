@@ -1,0 +1,35 @@
+{
+  "slug": "maintainerr",
+  "name": "Maintainerr",
+  "description": "Rule-based cleanup for Plex and Jellyfin that removes unwatched media and tidies Sonarr and Radarr.",
+  "category": "Media",
+  "image": "ghcr.io/maintainerr/maintainerr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/maintainerr.png",
+  "website": "https://maintainerr.info",
+  "docsUrl": "https://docs.maintainerr.info/latest/Installation",
+  "ports": [
+    {
+      "host": 6246,
+      "container": 6246,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/maintainerr/data",
+      "container": "/opt/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

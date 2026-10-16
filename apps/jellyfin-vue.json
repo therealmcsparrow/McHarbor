@@ -1,0 +1,37 @@
+{
+    "slug":  "jellyfin-vue",
+    "name":  "Jellyfin Vue",
+    "description":  "Alternative web client for Jellyfin media servers built with Vue.",
+    "category":  "Media",
+    "image":  "ghcr.io/jellyfin/jellyfin-vue:unstable",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyfin-vue.png",
+    "website":  "https://jellyfin.org",
+    "docsUrl":  "https://github.com/jellyfin/jellyfin-vue",
+    "ports":  [
+                  {
+                      "host":  4043,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DEFAULT_SERVERS",
+                        "default":  "https://jellyfin.example.com",
+                        "description":  "Jellyfin server URL to connect to on first load"
+                    }
+                ],
+    "version":  "unstable",
+    "latest":  {
+        "version":  "unstable",
+        "release_date":  "2026-09-29"
+    }
+}

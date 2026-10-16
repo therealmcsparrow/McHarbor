@@ -1,20 +1,22 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package docker owns the per-environment Docker client pool and the host-side helpers (protection, secret volumes, self-update) built on it.
 package docker
 
 import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/client"
+	cerrdefs "github.com/containerd/errdefs"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/client"
 )
 
 const hostPathHelperImage = "alpine:3.20"
@@ -60,28 +62,32 @@ func EnsureBindMountPaths(ctx context.Context, cli *client.Client, paths []strin
 		cmds = append(cmds, "mkdir -p -- "+shellQuote("/host"+p))
 	}
 
-	body, err := cli.ContainerCreate(opCtx, &container.Config{
-		Image:        hostPathHelperImage,
-		Cmd:          []string{"sh", "-lc", strings.Join(cmds, " && ")},
-		AttachStdout: true,
-		AttachStderr: true,
-	}, &container.HostConfig{
-		Binds:      []string{"/:/host:rw"},
-		AutoRemove: false,
-		Privileged: true,
-	}, nil, nil, "")
+	body, err := cli.ContainerCreate(opCtx, client.ContainerCreateOptions{
+		Config: &container.Config{
+			Image:        hostPathHelperImage,
+			Cmd:          []string{"sh", "-lc", strings.Join(cmds, " && ")},
+			AttachStdout: true,
+			AttachStderr: true,
+			Labels:       map[string]string{HelperLabel: "bind-path"},
+		},
+		HostConfig: &container.HostConfig{
+			Binds:      []string{"/:/host:rw"},
+			AutoRemove: false,
+			Privileged: true,
+		},
+	})
 	if err != nil {
 		return fmt.Errorf("creating bind path helper container: %w", err)
 	}
 	defer removeHelperContainer(ctx, cli, body.ID)
 
-	if err := cli.ContainerStart(opCtx, body.ID, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(opCtx, body.ID, client.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("starting bind path helper container: %w", err)
 	}
 
-	statusCh, errCh := cli.ContainerWait(opCtx, body.ID, container.WaitConditionNotRunning)
+	wait := cli.ContainerWait(opCtx, body.ID, client.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
 	select {
-	case status := <-statusCh:
+	case status := <-wait.Result:
 		if status.StatusCode != 0 {
 			output, readErr := helperContainerLogs(opCtx, cli, body.ID)
 			if readErr != nil {
@@ -89,7 +95,7 @@ func EnsureBindMountPaths(ctx context.Context, cli *client.Client, paths []strin
 			}
 			return fmt.Errorf("bind path helper exited with status %d: %s", status.StatusCode, strings.TrimSpace(output))
 		}
-	case err := <-errCh:
+	case err := <-wait.Error:
 		if err != nil {
 			return fmt.Errorf("waiting for bind path helper container: %w", err)
 		}
@@ -119,14 +125,14 @@ func cleanHostPaths(paths []string) []string {
 }
 
 func ensureHostPathHelperImage(ctx context.Context, cli *client.Client) error {
-	if _, _, err := cli.ImageInspectWithRaw(ctx, hostPathHelperImage); err == nil {
+	if _, err := cli.ImageInspect(ctx, hostPathHelperImage); err == nil {
 		return nil
 	}
-	reader, err := cli.ImagePull(ctx, hostPathHelperImage, image.PullOptions{})
+	reader, err := cli.ImagePull(ctx, hostPathHelperImage, client.ImagePullOptions{})
 	if err != nil {
 		return fmt.Errorf("pulling bind path helper image: %w", err)
 	}
-	defer reader.Close()
+	defer closeQuietly(reader, "image pull stream")
 	if _, err := io.Copy(io.Discard, reader); err != nil {
 		return fmt.Errorf("draining bind path helper image pull: %w", err)
 	}
@@ -134,11 +140,11 @@ func ensureHostPathHelperImage(ctx context.Context, cli *client.Client) error {
 }
 
 func helperContainerLogs(ctx context.Context, cli *client.Client, id string) (string, error) {
-	reader, err := cli.ContainerLogs(ctx, id, container.LogsOptions{ShowStdout: true, ShowStderr: true})
+	reader, err := cli.ContainerLogs(ctx, id, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		return "", err
 	}
-	defer reader.Close()
+	defer closeQuietly(reader, "helper container logs")
 	output, err := io.ReadAll(io.LimitReader(reader, 4096))
 	if err != nil {
 		return "", err
@@ -147,9 +153,9 @@ func helperContainerLogs(ctx context.Context, cli *client.Client, id string) (st
 }
 
 func removeHelperContainer(ctx context.Context, cli *client.Client, id string) {
-	rmCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	rmCtx, cancel := context.WithTimeout(ctx, CallTimeout)
 	defer cancel()
-	if err := cli.ContainerRemove(rmCtx, id, container.RemoveOptions{Force: true}); err != nil && !client.IsErrNotFound(err) {
+	if _, err := cli.ContainerRemove(rmCtx, id, client.ContainerRemoveOptions{Force: true}); err != nil && !cerrdefs.IsNotFound(err) {
 		return
 	}
 }
@@ -185,10 +191,10 @@ func RemoveBindMounts(ctx context.Context, cli *client.Client, paths []string) {
 	var mounts []mount.Mount
 	var cmds []string
 	for i, p := range clean {
-		target := "/mnt/cleanup_" + strings.Replace(strings.Trim(p, "/"), "/", "_", -1)
+		target := "/mnt/cleanup_" + strings.ReplaceAll(strings.Trim(p, "/"), "/", "_")
 		// Avoid overly long target names.
 		if len(target) > 120 {
-			target = "/mnt/cleanup_" + strings.Trim(strings.Replace(p, "/", "_", -1), "_")[:60]
+			target = "/mnt/cleanup_" + strings.Trim(strings.ReplaceAll(p, "/", "_"), "_")[:60]
 		}
 		_ = i
 		mounts = append(mounts, mount.Mount{
@@ -199,28 +205,41 @@ func RemoveBindMounts(ctx context.Context, cli *client.Client, paths []string) {
 		cmds = append(cmds, "rm -rf "+target+"/*", "rm -rf "+target)
 	}
 
-	createCtx, createCancel := context.WithTimeout(ctx, 30*time.Second)
+	createCtx, createCancel := context.WithTimeout(ctx, CallTimeout)
 	defer createCancel()
-	body, err := cli.ContainerCreate(createCtx, &container.Config{
-		Image: "alpine:latest",
-		Cmd:   []string{"sh", "-c", strings.Join(cmds, " ; ")},
-	}, &container.HostConfig{
-		Mounts:     mounts,
-		AutoRemove: true,
-	}, nil, nil, "")
+	body, err := cli.ContainerCreate(createCtx, client.ContainerCreateOptions{
+		Config: &container.Config{
+			Image:  "alpine:latest",
+			Cmd:    []string{"sh", "-c", strings.Join(cmds, " ; ")},
+			Labels: map[string]string{HelperLabel: "bind-cleanup"},
+		},
+		HostConfig: &container.HostConfig{
+			Mounts:     mounts,
+			AutoRemove: true,
+		},
+	})
 	if err != nil {
 		return
 	}
 
-	startCtx, startCancel := context.WithTimeout(ctx, 30*time.Second)
+	startCtx, startCancel := context.WithTimeout(ctx, CallTimeout)
 	defer startCancel()
-	if err := cli.ContainerStart(startCtx, body.ID, container.StartOptions{}); err != nil {
-		rmCtx, rmCancel := context.WithTimeout(ctx, 30*time.Second)
+	if _, err := cli.ContainerStart(startCtx, body.ID, client.ContainerStartOptions{}); err != nil {
+		rmCtx, rmCancel := context.WithTimeout(ctx, CallTimeout)
 		defer rmCancel()
-		cli.ContainerRemove(rmCtx, body.ID, container.RemoveOptions{Force: true})
+		if _, rmErr := cli.ContainerRemove(rmCtx, body.ID, client.ContainerRemoveOptions{Force: true}); rmErr != nil {
+			slog.Warn("removing bind path cleanup container failed", "container", body.ID, "error", rmErr)
+		}
 		return
 	}
 
 	// Wait for the cleanup container to finish (AutoRemove handles removal).
-	cli.ContainerWait(ctx, body.ID, container.WaitConditionNotRunning)
+	cli.ContainerWait(ctx, body.ID, client.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
+}
+
+// closeQuietly closes c on a read-only path where a close failure cannot change the result, logging it so it is not lost.
+func closeQuietly(c io.Closer, what string) {
+	if err := c.Close(); err != nil {
+		slog.Warn("closing "+what+" failed", "error", err)
+	}
 }

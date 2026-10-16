@@ -6,6 +6,7 @@ import {
   IconPlayerPlay,
   IconPlayerStop,
   IconRotate,
+  IconBlocks,
   IconTrash,
   IconExternalLink,
   IconTerminal2,
@@ -16,7 +17,9 @@ import {
 } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
 import { isProtectedContainer } from '@core/utils/protection';
-import { ActionButton } from './ActionButton';
+import { ActionButton } from '@resources/components/ui/ActionButton';
+import { PERM } from '@core/auth/permissionKeys';
+import { useHostSelfGate } from '../hooks/useHostSelfGate';
 import { getContainerWebUrl } from './container-utils';
 
 type ContainerActionsCellProps = {
@@ -26,6 +29,7 @@ type ContainerActionsCellProps = {
   onLogs: (c: ContainerInfo) => void;
   onRename: (c: ContainerInfo) => void;
   onMove: (c: ContainerInfo) => void;
+  onRecreate: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
 };
 
@@ -36,19 +40,20 @@ export function ContainerActionsCell({
   onLogs,
   onRename,
   onMove,
+  onRecreate,
   onRemove,
 }: ContainerActionsCellProps) {
   const { t } = useTranslation('containers');
-  const { t: tc } = useTranslation('common');
   const isRunning = c.State === 'running';
   const locked = isProtectedContainer(c);
+  const gate = useHostSelfGate(c);
   const webUrl = isRunning ? getContainerWebUrl(c.Ports) : null;
 
   return (
     <div className="flex items-center justify-end">
       {locked && (
         <ActionButton
-          label={tc('actions.locked')}
+          label={t('actions.locked', { ns: 'common' })}
           onClick={() => undefined}
           disabled
           icon={<IconLock className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -57,48 +62,61 @@ export function ContainerActionsCell({
       {isRunning ? (
         <ActionButton
           label={t('actions.stop')}
+          permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
           onClick={() => onAction({ id: c.Id, action: 'stop' })}
           disabled={locked}
-          icon={<IconPlayerStop className="h-3.5 w-3.5 text-amber-500" />}
+          icon={<IconPlayerStop className="h-3.5 w-3.5 text-warning" />}
         />
       ) : (
         <ActionButton
           label={t('actions.start')}
+          permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
           onClick={() => onAction({ id: c.Id, action: 'start' })}
           disabled={locked}
-          icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
+          icon={<IconPlayerPlay className="h-3.5 w-3.5 text-success" />}
         />
       )}
       <ActionButton
         label={t('actions.restart')}
+        permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
         onClick={() => onAction({ id: c.Id, action: 'restart' })}
         disabled={locked}
-        icon={<IconRotate className="h-3.5 w-3.5 text-blue-400" />}
+        icon={<IconRotate className="h-3.5 w-3.5 text-info" />}
+      />
+      <ActionButton
+        label={t('actions.recreate')}
+        permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
+        onClick={() => onRecreate(c)}
+        disabled={locked}
+        icon={<IconBlocks className="h-3.5 w-3.5 text-chart-5" />}
       />
       <ActionButton
         label={t('actions.rename')}
+        permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
         onClick={() => onRename(c)}
         disabled={locked}
-        icon={<IconTag className="h-3.5 w-3.5 text-lime-400" />}
+        icon={<IconTag className="h-3.5 w-3.5 text-chart-8" />}
       />
       <ActionButton
         label={t('actions.move')}
+        permission={gate.lifecycle(PERM.CONTAINERS_MANAGE)}
         onClick={() => onMove(c)}
         disabled={locked}
-        icon={<IconArrowsExchange className="h-3.5 w-3.5 text-orange-400" />}
+        icon={<IconArrowsExchange className="h-3.5 w-3.5 text-chart-2" />}
       />
       {isRunning && (
         <ActionButton
           label={t('actions.terminal')}
+          permission={gate.exec(PERM.TERMINAL_ACCESS)}
           onClick={() => onTerminal(c)}
           disabled={locked}
-          icon={<IconTerminal2 className="h-3.5 w-3.5 text-violet-400" />}
+          icon={<IconTerminal2 className="h-3.5 w-3.5 text-chart-3" />}
         />
       )}
       <ActionButton
         label={t('actions.logs')}
         onClick={() => onLogs(c)}
-        icon={<IconFileText className="h-3.5 w-3.5 text-cyan-400" />}
+        icon={<IconFileText className="h-3.5 w-3.5 text-chart-1" />}
       />
       {webUrl && (
         <ActionButton
@@ -109,6 +127,7 @@ export function ContainerActionsCell({
       )}
       <ActionButton
         label={t('actions.remove')}
+        permission={gate.lifecycle(PERM.CONTAINERS_DELETE)}
         onClick={() => onRemove(c)}
         disabled={locked}
         icon={<IconTrash className="h-3.5 w-3.5 text-destructive" />}

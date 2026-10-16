@@ -1,0 +1,16 @@
+{
+  "slug": "comm-ntfy",
+  "name": "ntfy",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "ntfy.sh or self-hosted ntfy notification channel. POSTs Title + Message to <server_url>/<topic> with optional Priority + Tags headers, plus HTTP Basic or Bearer-token auth. Install this plugin to add 'ntfy' as a channel_type in Settings > Notifications > Channels.",
+  "category": "Communication channels",
+  "icon": "IconSend2",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-ntfy-1.0.0.tar.gz"
+    }
+  ]
+}

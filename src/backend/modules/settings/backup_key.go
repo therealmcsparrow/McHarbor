@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package settings serves the settings API: key-value settings, typed setting groups, TLS material and the backup encryption key.
 package settings
 
 import (
@@ -10,22 +11,24 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
+	"github.com/therealmcsparrow/mcharbor/core/procenv"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
 const (
@@ -33,7 +36,7 @@ const (
 	backupSecretRelativeDir = "secrets"
 	backupSecretRelativeKey = "secrets/mcharbor_backup_key"
 	backupProjectMount      = "/mcharbor-project"
-	backupSecretTarget      = "/run/secrets/mcharbor_backup_key"
+	backupSecretTarget      = "/run/secrets/mcharbor_backup_key" //nolint:gosec // G101: a container path to the secret file, not a credential
 
 	backupSecretEnvContainerID = "MCHARBOR_BACKUP_SECRET_CONTAINER_ID"
 	backupSecretEnvContainer   = "MCHARBOR_BACKUP_SECRET_CONTAINER"
@@ -47,7 +50,7 @@ type BackupKeyInstallRequest struct {
 	Key string `json:"key"`
 	// ProjectPath overrides the auto-detected Compose project working
 	// directory. Required when McHarbor runs outside Compose (plain
-	// `docker run`, Kubernetes, Podman, etc.) where the
+	// `docker run`, systemd, etc.) where the
 	// `com.docker.compose.project.working_dir` label is missing.
 	ProjectPath string `json:"projectPath"`
 }
@@ -66,12 +69,16 @@ type BackupKeyStatusResponse struct {
 	Readable   bool   `json:"readable"`
 	KeyID      string `json:"keyId,omitempty"`
 	Path       string `json:"path"`
+	// Native is true when McHarbor runs directly on its host, where the key is a file under the
+	// data directory rather than a Docker secret.
+	Native bool `json:"native"`
 }
 
 // BackupKeyStatus checks the runtime backup encryption key without returning key material.
 func (s *Service) BackupKeyStatus(keyPath string) BackupKeyStatusResponse {
 	keyPath = strings.TrimSpace(keyPath)
-	status := BackupKeyStatusResponse{Path: keyPath}
+	_, _, native := nativeHostConfig()
+	status := BackupKeyStatusResponse{Path: keyPath, Native: native}
 	if keyPath == "" {
 		return status
 	}
@@ -98,7 +105,7 @@ func (s *Service) InstallBackupKey(ctx context.Context, key string) (BackupKeyIn
 // InstallBackupKeyWithPath is the same as InstallBackupKey but lets
 // the caller override the Compose project path. The override is
 // useful for installations where McHarbor runs outside Compose
-// (plain `docker run`, Kubernetes, Podman, etc.) and the
+// (plain `docker run`, systemd, etc.) and the
 // `com.docker.compose.project.working_dir` label is missing.
 func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPathOverride string) (BackupKeyInstallResponse, error) {
 	key = strings.TrimSpace(key)
@@ -109,12 +116,17 @@ func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPath
 			Code:    i18n.ErrSettingsBackupKeyInvalid,
 		}
 	}
+	// A native McHarbor has no container to recreate; looking for one could only find
+	// someone else's McHarbor-looking container.
+	if dataDir, restart, native := nativeHostConfig(); native {
+		return s.installBackupKeyNative(ctx, key, dataDir, restart)
+	}
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv)
 	if err != nil {
 		return BackupKeyInstallResponse{}, fmt.Errorf("creating local docker client: %w", err)
 	}
-	defer cli.Close()
+	defer func() { closeutil.Report(cli.Close(), "cli") }()
 
 	opCtx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
@@ -146,12 +158,12 @@ func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPath
 
 	helperName := "mcharbor-backup-secret-helper-" + xid.New().String()
 	containerName := strings.TrimPrefix(current.Name, "/")
-	resp, err := cli.ContainerCreate(opCtx, &container.Config{
+	resp, err := cli.ContainerCreate(opCtx, client.ContainerCreateOptions{Config: &container.Config{
 		Image:      current.Config.Image,
 		Entrypoint: []string{"./mcharbor"},
 		Cmd:        []string{"backup-secret-helper"},
 		WorkingDir: "/app",
-		Env: helperEnv(os.Environ(), map[string]string{
+		Env: helperEnv(procenv.WithoutRootOfTrust(os.Environ()), map[string]string{
 			backupSecretEnvContainerID: current.ID,
 			backupSecretEnvContainer:   containerName,
 			backupSecretEnvHostFile:    filepath.Join(projectPath, backupSecretRelativeKey),
@@ -159,7 +171,7 @@ func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPath
 		Labels: map[string]string{
 			"com.mcharbor.helper": "backup-secret",
 		},
-	}, &container.HostConfig{
+	}, HostConfig: &container.HostConfig{
 		AutoRemove: true,
 		Mounts: []mount.Mount{
 			socketMount,
@@ -170,7 +182,7 @@ func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPath
 				ReadOnly: false,
 			},
 		},
-	}, nil, nil, helperName)
+	}, Name: helperName})
 	if err != nil {
 		return BackupKeyInstallResponse{}, fmt.Errorf("creating backup secret helper container: %w", err)
 	}
@@ -180,7 +192,7 @@ func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPath
 		return BackupKeyInstallResponse{}, err
 	}
 
-	if err := cli.ContainerStart(opCtx, resp.ID, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(opCtx, resp.ID, client.ContainerStartOptions{}); err != nil {
 		removeHelperContainer(context.WithoutCancel(ctx), cli, resp.ID)
 		return BackupKeyInstallResponse{}, fmt.Errorf("starting backup secret helper container: %w", err)
 	}
@@ -213,47 +225,44 @@ func RunBackupSecretHelper(ctx context.Context) error {
 		return fmt.Errorf("missing %s", backupSecretEnvHostFile)
 	}
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv)
 	if err != nil {
 		return fmt.Errorf("creating Docker client: %w", err)
 	}
-	defer cli.Close()
+	defer func() { closeutil.Report(cli.Close(), "cli") }()
 
 	opCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
-	current, err := cli.ContainerInspect(opCtx, containerID)
+	currentRes, err := cli.ContainerInspect(opCtx, containerID, client.ContainerInspectOptions{})
+	current := currentRes.Container
 	if err != nil {
 		return fmt.Errorf("inspecting current container: %w", err)
 	}
 	cfg, hostCfg, netCfg := cloneBackupSecretContainerConfig(current, hostSecretFile)
 
 	timeout := 10
-	if err := cli.ContainerStop(opCtx, current.ID, container.StopOptions{Timeout: &timeout}); err != nil {
+	if _, err := cli.ContainerStop(opCtx, current.ID, client.ContainerStopOptions{Timeout: &timeout}); err != nil {
 		return fmt.Errorf("stopping current container: %w", err)
 	}
-	if err := cli.ContainerRemove(opCtx, current.ID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+	if _, err := cli.ContainerRemove(opCtx, current.ID, client.ContainerRemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
 		return fmt.Errorf("removing current container: %w", err)
 	}
-	created, err := cli.ContainerCreate(opCtx, cfg, hostCfg, netCfg, nil, containerName)
+	created, err := cli.ContainerCreate(opCtx, client.ContainerCreateOptions{Config: cfg, HostConfig: hostCfg, NetworkingConfig: netCfg, Name: containerName})
 	if err != nil {
 		return fmt.Errorf("creating replacement container: %w", err)
 	}
-	if err := cli.ContainerStart(opCtx, created.ID, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(opCtx, created.ID, client.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("starting replacement container: %w", err)
 	}
 	return waitForBackupSecretContainerRunning(opCtx, cli, created.ID, 3*time.Second)
 }
 
-func inspectCurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.ContainerJSON, error) {
+func inspectCurrentMcHarborContainer(ctx context.Context, cli *client.Client) (container.InspectResponse, error) {
 	return coredocker.CurrentMcHarborContainer(ctx, cli)
 }
 
-func currentContainerInspectCandidates() []string {
-	return coredocker.CurrentMcHarborContainerCandidates()
-}
-
-func helperMountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {
+func helperMountForDestination(mounts []container.MountPoint, destination string) (mount.Mount, bool) {
 	return coredocker.MountForDestination(mounts, destination)
 }
 
@@ -364,10 +373,11 @@ func waitForBackupSecretContainerRunning(ctx context.Context, cli *client.Client
 	defer ticker.Stop()
 
 	for {
-		inspect, err := cli.ContainerInspect(ctx, containerID)
+		inspectRes, err := cli.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
 		if err != nil {
 			return fmt.Errorf("inspecting replacement container: %w", err)
 		}
+		inspect := inspectRes.Container
 		if inspect.State == nil {
 			return fmt.Errorf("replacement container has no state")
 		}
@@ -414,7 +424,7 @@ func copyBackupKeyToHelper(ctx context.Context, cli *client.Client, containerID,
 		return fmt.Errorf("closing backup secret archive: %w", err)
 	}
 
-	if err := cli.CopyToContainer(ctx, containerID, backupProjectMount, io.NopCloser(&buf), container.CopyToContainerOptions{}); err != nil {
+	if _, err := cli.CopyToContainer(ctx, containerID, client.CopyToContainerOptions{DestinationPath: backupProjectMount, Content: io.NopCloser(&buf)}); err != nil {
 		return fmt.Errorf("copying backup secret into helper project mount: %w", err)
 	}
 	return nil
@@ -423,5 +433,7 @@ func copyBackupKeyToHelper(ctx context.Context, cli *client.Client, containerID,
 func removeHelperContainer(ctx context.Context, cli *client.Client, containerID string) {
 	rmCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	_ = cli.ContainerRemove(rmCtx, containerID, container.RemoveOptions{Force: true, RemoveVolumes: false})
+	if _, err := cli.ContainerRemove(rmCtx, containerID, client.ContainerRemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+		slog.Warn("removing backup key helper container failed", "container", containerID, "error", err)
+	}
 }

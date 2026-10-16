@@ -4,7 +4,7 @@
     "description":  "Identity server with login, registration, account recovery, and profile management.",
     "category":  "Security",
     "image":  "oryd/kratos:latest",
-    "logo":  "https://icon.horse/icon/www.ory.sh",
+    "logo":  "https://cdn.simpleicons.org/ory",
     "website":  "https://www.ory.sh/kratos",
     "docsUrl":  "https://www.ory.sh/kratos/docs",
     "ports":  [
@@ -49,5 +49,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

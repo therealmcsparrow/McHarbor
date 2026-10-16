@@ -32,39 +32,49 @@ type TopologyResponse struct {
 
 // Environment represents a container environment/host connection stored in the DB.
 type Environment struct {
-	ID               string  `json:"id"`
-	Name             string  `json:"name"`
-	OrchestratorType string  `json:"orchestratorType"`
-	ConnectionType   string  `json:"connectionType"`
-	SocketPath       *string `json:"socketPath,omitempty"`
-	Host             *string `json:"host,omitempty"`
-	Port             *int    `json:"port,omitempty"`
-	TLSCa            *string `json:"tlsCa,omitempty"`
-	TLSCert          *string `json:"tlsCert,omitempty"`
-	TLSKey           *string `json:"tlsKey,omitempty"`
-	SSHHost          *string `json:"sshHost,omitempty"`
-	SSHPort          *int    `json:"sshPort,omitempty"`
-	SSHUser          *string `json:"sshUser,omitempty"`
-	SSHKey           *string `json:"sshKey,omitempty"`
-	IsDefault        bool    `json:"isDefault"`
-	IsActive         bool    `json:"isActive"`
-	DockerVersion    *string `json:"dockerVersion,omitempty"`
-	LastConnected    *string `json:"lastConnected,omitempty"`
-	// Kubernetes fields
-	Kubeconfig     *string `json:"kubeconfig,omitempty"`
-	K8sNamespace   *string `json:"k8sNamespace,omitempty"`
-	K8sServerURL   *string `json:"k8sServerUrl,omitempty"`
-	K8sBearerToken *string `json:"k8sBearerToken,omitempty"`
-	K8sCACert      *string `json:"k8sCaCert,omitempty"`
-	K8sVersion     *string `json:"k8sVersion,omitempty"`
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	ConnectionType string  `json:"connectionType"`
+	SocketPath     *string `json:"socketPath,omitempty"`
+	Host           *string `json:"host,omitempty"`
+	Port           *int    `json:"port,omitempty"`
+	TLSCa          *string `json:"tlsCa,omitempty"`
+	TLSCert        *string `json:"tlsCert,omitempty"`
+	TLSKey         *string `json:"tlsKey,omitempty"`
+	SSHHost        *string `json:"sshHost,omitempty"`
+	SSHPort        *int    `json:"sshPort,omitempty"`
+	SSHUser        *string `json:"sshUser,omitempty"`
+	SSHKey         *string `json:"sshKey,omitempty"`
+	IsDefault      bool    `json:"isDefault"`
+	IsActive       bool    `json:"isActive"`
+	DockerVersion  *string `json:"dockerVersion,omitempty"`
+	LastConnected  *string `json:"lastConnected,omitempty"`
 	// Agent fields
-	AgentToken                          *string `json:"agentToken,omitempty"`
-	AgentStatus                         *string `json:"agentStatus,omitempty"`
-	AgentVersion                        *string `json:"agentVersion,omitempty"`
-	AgentHostname                       *string `json:"agentHostname,omitempty"`
-	AgentOS                             *string `json:"agentOs,omitempty"`
-	AgentArch                           *string `json:"agentArch,omitempty"`
-	AgentLastSeen                       *string `json:"agentLastSeen,omitempty"`
+	AgentToken    *string `json:"agentToken,omitempty"`
+	AgentStatus   *string `json:"agentStatus,omitempty"`
+	AgentVersion  *string `json:"agentVersion,omitempty"`
+	AgentHostname *string `json:"agentHostname,omitempty"`
+	// AgentHostIP and AgentBuild come from the live connection, like the fields
+	// above them: neither is stored, and a remembered copy would keep describing
+	// an agent that has since moved or gone.
+	AgentHostIP   *string `json:"agentHostIp,omitempty"`
+	AgentBuild    *string `json:"agentBuild,omitempty"`
+	AgentOS       *string `json:"agentOs,omitempty"`
+	AgentArch     *string `json:"agentArch,omitempty"`
+	AgentLastSeen *string `json:"agentLastSeen,omitempty"`
+	// AgentInstallKind is "native" or "container", and nil for an agent older
+	// than 3.5.0. Only a native agent can host guests, which is why it is on
+	// the environment rather than buried in the capability probe.
+	AgentInstallKind *string `json:"agentInstallKind,omitempty"`
+	// AgentTLSMode is how the live agent secured its control channel, and is
+	// nil for anything that is not a connected agent environment.
+	AgentTLSMode *string `json:"agentTlsMode,omitempty"`
+	// PendingConnectionType is the type this environment is being migrated to.
+	// The row still reads as its current type until the new connection proves
+	// itself, so nothing breaks while an agent is being installed.
+	PendingConnectionType               *string `json:"pendingConnectionType,omitempty"`
+	PendingMigrationStartedAt           *string `json:"pendingMigrationStartedAt,omitempty"`
+	MigrationRevertTo                   *string `json:"migrationRevertTo,omitempty"`
 	ScheduledUpdateCheckEnabled         bool    `json:"scheduledUpdateCheckEnabled"`
 	AutomaticImagePruningEnabled        bool    `json:"automaticImagePruningEnabled"`
 	TrackContainerEventsEnabled         bool    `json:"trackContainerEventsEnabled"`
@@ -85,55 +95,55 @@ type Environment struct {
 	MetricRetentionHours                int     `json:"metricRetentionHours"`
 	CreatedAt                           string  `json:"createdAt"`
 	UpdatedAt                           string  `json:"updatedAt"`
+	// StackCount is the number of managed stacks in this environment,
+	// counted in List only — ByID leaves it nil.
+	StackCount *int `json:"stackCount,omitempty"`
 }
 
 // CreateRequest is the JSON body for POST /environments.
 type CreateRequest struct {
-	Name             string  `json:"name"`
-	OrchestratorType string  `json:"orchestratorType"`
-	ConnectionType   string  `json:"connectionType"`
-	SocketPath       *string `json:"socketPath,omitempty"`
-	Host             *string `json:"host,omitempty"`
-	Port             *int    `json:"port,omitempty"`
-	TLSCa            *string `json:"tlsCa,omitempty"`
-	TLSCert          *string `json:"tlsCert,omitempty"`
-	TLSKey           *string `json:"tlsKey,omitempty"`
-	SSHHost          *string `json:"sshHost,omitempty"`
-	SSHPort          *int    `json:"sshPort,omitempty"`
-	SSHUser          *string `json:"sshUser,omitempty"`
-	SSHKey           *string `json:"sshKey,omitempty"`
-	IsDefault        bool    `json:"isDefault"`
-	// Kubernetes fields
-	Kubeconfig     *string `json:"kubeconfig,omitempty"`
-	K8sNamespace   *string `json:"k8sNamespace,omitempty"`
-	K8sServerURL   *string `json:"k8sServerUrl,omitempty"`
-	K8sBearerToken *string `json:"k8sBearerToken,omitempty"`
-	K8sCACert      *string `json:"k8sCaCert,omitempty"`
+	Name           string  `json:"name"`
+	ConnectionType string  `json:"connectionType"`
+	SocketPath     *string `json:"socketPath,omitempty"`
+	Host           *string `json:"host,omitempty"`
+	Port           *int    `json:"port,omitempty"`
+	TLSCa          *string `json:"tlsCa,omitempty"`
+	TLSCert        *string `json:"tlsCert,omitempty"`
+	TLSKey         *string `json:"tlsKey,omitempty"`
+	SSHHost        *string `json:"sshHost,omitempty"`
+	SSHPort        *int    `json:"sshPort,omitempty"`
+	SSHUser        *string `json:"sshUser,omitempty"`
+	SSHKey         *string `json:"sshKey,omitempty"`
+	IsDefault      bool    `json:"isDefault"`
+	// Agent fields — AgentToken is the existing token issued by another
+	// McHarbor host when an agent is already running and this install
+	// needs to accept its incoming WebSocket connection. When set,
+	// the host skips the "show token once" dialog (the user already
+	// has the token) and only validates + hashes + stores the value.
+	AgentToken *string `json:"agentToken,omitempty"`
 }
 
 // UpdateRequest is the JSON body for PUT /environments/{id}.
+//
+// ConnectionType is accepted but no longer applied: changing it needs a token
+// minted or revoked, agent metadata cleared and a live connection dropped, none
+// of which a field edit does. POST /environments/{id}/migrate is the one path
+// that does all of it. See migration.go.
 type UpdateRequest struct {
-	Name             *string `json:"name,omitempty"`
-	OrchestratorType *string `json:"orchestratorType,omitempty"`
-	ConnectionType   *string `json:"connectionType,omitempty"`
-	SocketPath       *string `json:"socketPath,omitempty"`
-	Host             *string `json:"host,omitempty"`
-	Port             *int    `json:"port,omitempty"`
-	TLSCa            *string `json:"tlsCa,omitempty"`
-	TLSCert          *string `json:"tlsCert,omitempty"`
-	TLSKey           *string `json:"tlsKey,omitempty"`
-	SSHHost          *string `json:"sshHost,omitempty"`
-	SSHPort          *int    `json:"sshPort,omitempty"`
-	SSHUser          *string `json:"sshUser,omitempty"`
-	SSHKey           *string `json:"sshKey,omitempty"`
-	IsDefault        *bool   `json:"isDefault,omitempty"`
-	IsActive         *bool   `json:"isActive,omitempty"`
-	// Kubernetes fields
-	Kubeconfig                          *string `json:"kubeconfig,omitempty"`
-	K8sNamespace                        *string `json:"k8sNamespace,omitempty"`
-	K8sServerURL                        *string `json:"k8sServerUrl,omitempty"`
-	K8sBearerToken                      *string `json:"k8sBearerToken,omitempty"`
-	K8sCACert                           *string `json:"k8sCaCert,omitempty"`
+	Name                                *string `json:"name,omitempty"`
+	ConnectionType                      *string `json:"connectionType,omitempty"`
+	SocketPath                          *string `json:"socketPath,omitempty"`
+	Host                                *string `json:"host,omitempty"`
+	Port                                *int    `json:"port,omitempty"`
+	TLSCa                               *string `json:"tlsCa,omitempty"`
+	TLSCert                             *string `json:"tlsCert,omitempty"`
+	TLSKey                              *string `json:"tlsKey,omitempty"`
+	SSHHost                             *string `json:"sshHost,omitempty"`
+	SSHPort                             *int    `json:"sshPort,omitempty"`
+	SSHUser                             *string `json:"sshUser,omitempty"`
+	SSHKey                              *string `json:"sshKey,omitempty"`
+	IsDefault                           *bool   `json:"isDefault,omitempty"`
+	IsActive                            *bool   `json:"isActive,omitempty"`
 	ScheduledUpdateCheckEnabled         *bool   `json:"scheduledUpdateCheckEnabled,omitempty"`
 	AutomaticImagePruningEnabled        *bool   `json:"automaticImagePruningEnabled,omitempty"`
 	TrackContainerEventsEnabled         *bool   `json:"trackContainerEventsEnabled,omitempty"`
@@ -154,7 +164,7 @@ type UpdateRequest struct {
 	MetricRetentionHours                *int    `json:"metricRetentionHours,omitempty"`
 }
 
-// DetectedSocket represents an auto-detected Docker or Podman socket.
+// DetectedSocket represents an auto-detected Docker socket.
 type DetectedSocket struct {
 	Path    string `json:"path"`
 	Runtime string `json:"runtime"`
@@ -164,7 +174,6 @@ type DetectedSocket struct {
 type TestResult struct {
 	Success       bool    `json:"success"`
 	DockerVersion *string `json:"dockerVersion,omitempty"`
-	K8sVersion    *string `json:"k8sVersion,omitempty"`
 	Error         string  `json:"error,omitempty"`
 }
 
@@ -190,7 +199,6 @@ type EnvTestResult struct {
 	Overall       string        `json:"overall"`
 	Steps         []EnvTestStep `json:"steps"`
 	DockerVersion *string       `json:"dockerVersion,omitempty"`
-	K8sVersion    *string       `json:"k8sVersion,omitempty"`
 	Duration      string        `json:"duration"`
 	StartedAt     string        `json:"startedAt"`
 	CompletedAt   string        `json:"completedAt"`

@@ -4,7 +4,7 @@
     "description":  "Free, open-source forum software with plugin and theme support, designed for ease of use and extensibility.",
     "category":  "Web Apps",
     "image":  "mybb/mybb:latest",
-    "logo":  "https://icon.horse/icon/mybb.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=mybb.com\u0026sz=128",
     "website":  "https://mybb.com",
     "docsUrl":  "https://docs.mybb.com",
     "ports":  [
@@ -53,5 +53,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

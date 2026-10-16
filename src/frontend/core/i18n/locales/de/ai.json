@@ -1,0 +1,127 @@
+{
+  "aiAssistant": {
+    "fab": {
+      "tooltip": "KI fragen",
+      "tooltipScoped": "KI zu {{name}} fragen"
+    },
+    "title": "KI-Assistent",
+    "description": "Stellen Sie Fragen zur ausgewahlten McHarbor-Umgebung.",
+    "menuItem": "KI-Chat",
+    "footer": "Antworten verwenden den aktiven McHarbor-Kontext und den konfigurierten Standard-KI-Anbieter.",
+    "backendUnavailable": "Der KI-Anbieter ist nicht verfugbar. Prufen Sie Einstellungen > KI und testen Sie die Standardverbindung.",
+    "rateLimited": "Der KI-Anbieter hat sein Limit erreicht. Warten Sie kurz und fragen Sie erneut oder wechseln Sie den Anbieter unter Einstellungen > KI.",
+    "settings": {
+      "title": "KI-Einstellungen"
+    },
+    "reset": "Zurucksetzen",
+    "focusedOn": "Fokus auf {{name}}",
+    "providersActive_one": "{{count}} Kontextanbieter",
+    "providersActive_other": "{{count}} Kontextanbieter",
+    "thinking": "Verarbeitung...",
+    "capabilities": "Vorgeschlagene Aktionen",
+    "actionDone": "Aktion abgeschlossen.",
+    "actions": {
+      "title": "Ausstehende KI-Aktion",
+      "description": "Prufen Sie den Testlaufplan, bevor McHarbor etwas andert.",
+      "approveAndRun": "Genehmigen und ausfuhren",
+      "run": "Ausfuhren",
+      "deny": "Ablehnen",
+      "awaitingApproval": "Warten auf Freigabe",
+      "review": "Prüfen",
+      "plan": "Testlauf-Plan",
+      "queuePosition": "{{index}} von {{total}}",
+      "feedback": {
+        "executed": "{{tool}} ausgeführt.",
+        "denied": "{{tool}} abgelehnt.",
+        "failed": "{{tool}} fehlgeschlagen: {{error}}",
+        "error": "{{tool}} konnte nicht abgeschlossen werden.",
+        "unknownError": "unbekannter Fehler"
+      },
+      "status": {
+        "pending": "Ausstehend",
+        "approved": "Genehmigt",
+        "executed": "Ausgefuhrt",
+        "failed": "Fehlgeschlagen",
+        "denied": "Abgelehnt",
+        "expired": "Abgelaufen"
+      }
+    },
+    "providerLabel": "KI-Anbieter",
+    "placeholder": "KI fragen...",
+    "send": "Senden",
+    "userMessageLabel": "Sie",
+    "assistantMessageLabel": "KI-Assistent",
+    "askAbout": "Zu {{name}} fragen",
+    "seed": {
+      "withSummary": "{{summary}}",
+      "withResource": "Über {{kind}} \"{{name}}\" ({{facts}}): ",
+      "kind": {
+        "container": "Container",
+        "image": "Image",
+        "stack": "Stack",
+        "volume": "Volume",
+        "network": "Netzwerk",
+        "environment": "Umgebung",
+        "general": "Seite",
+        "workflow": "Workflow",
+        "log": "Protokoll",
+        "plugin": "Plugin"
+      }
+    },
+    "providerDefault": "Standardanbieter",
+    "providerDefaultNamed": "Standard ({{name}})"
+  },
+  "fab": {
+    "prompts": {
+      "container": "Erklare diesen Container und aktuelle Fehler.",
+      "stack": "Fasse diesen Stack und Bereitstellungsfehler zusammen.",
+      "image": "Erklare dieses Image und bekannte Probleme.",
+      "volume": "Erklare dieses Volume und seine Container-Abhangigkeiten.",
+      "network": "Erklare dieses Netzwerk und Verbindungsprobleme.",
+      "pod": "Erklare diesen Pod und aktuelle Fehler.",
+      "deployment": "Fasse dieses Deployment und Rollout-Probleme zusammen.",
+      "workflow": "Erklare den letzten Workflow-Fehler.",
+      "environment": "Gib einen Uberblick uber diese Umgebung.",
+      "fallback": "Gib einen Uberblick uber die aktuelle McHarbor-Installation."
+    }
+  },
+  "capability": {
+    "confirmTitle": "Aktion bestatigen",
+    "confirmBody": "Die KI mochte \"{{label}}\" ausfuhren. Fortfahren?",
+    "cancel": "Abbrechen",
+    "confirm": "Ausfuhren",
+    "done": "Fertig."
+  },
+  "oauth": {
+    "connect": "Mit Ihrem Konto verbinden",
+    "connectHelp": "Melden Sie sich bei Ihrem Anbieter an.",
+    "githubHint": "GitHub Models verwendet Ihr vorhandenes GitHub-Konto.",
+    "anthropicHint": "Anthropic verwendet derzeit API-Schlussel.",
+    "notConnected": "Nicht verbunden",
+    "connectedAs": "Angemeldet als {{account}}",
+    "disconnect": "Trennen",
+    "beginTitle": "Mit {{provider}} verbinden",
+    "beginHelp": "Offnen Sie die URL, geben Sie den Code ein und genehmigen Sie den Zugriff.",
+    "copyCode": "Code kopieren",
+    "openBrowser": "{{provider}} offnen",
+    "pollHint": "Warten auf Genehmigung...",
+    "errorGeneric": "Verbindung fehlgeschlagen."
+  },
+  "description": "KI-Konfiguration fur McHarbor.",
+  "sections": {
+    "provider": "Anbieter",
+    "credentials": "Zugangsdaten",
+    "parameters": "Parameter",
+    "advanced": "Erweitert"
+  },
+  "fields": {
+    "provider": "KI-Anbieter",
+    "model": "Modell",
+    "baseUrl": "API-Basis-URL",
+    "apiKey": "API-Schlussel",
+    "maxTokens": "Maximale Tokens",
+    "temperature": "Temperatur",
+    "systemPrompt": "Systemanweisung"
+  },
+  "test": "Verbindung testen"
+}

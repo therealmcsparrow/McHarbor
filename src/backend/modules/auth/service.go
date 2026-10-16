@@ -4,18 +4,18 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"time"
+	"log/slog"
 
-	"github.com/rs/xid"
-
-	"github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/permcatalog"
 )
 
 // Service handles auth-adjacent persistence concerns for the auth module.
 type Service struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *slog.Logger
 }
 
 // OIDCProvider is the minimal provider payload exposed on the public auth status endpoint.
@@ -25,28 +25,34 @@ type OIDCProvider struct {
 	ProviderType string `json:"providerType"`
 }
 
-// LocalEnvironmentResult describes the outcome of setup-time local environment detection.
-type LocalEnvironmentResult struct {
-	ID         string
-	SocketPath string
-	Runtime    string
-	Created    bool
-}
+// PermissionCatalogEntry is the permission metadata exposed to the frontend; it
+// is core/permcatalog's Entry, shared with access reviews.
+type PermissionCatalogEntry = permcatalog.Entry
 
 // NewService creates a new auth service.
-func NewService(db *sql.DB) *Service {
-	return &Service{db: db}
+func NewService(db *sql.DB, logger *slog.Logger) *Service {
+	return &Service{db: db, logger: logger}
+}
+
+// PermissionCatalog returns the canonical permission metadata used by role
+// editors: the host's own permissions plus the ones installed plugins declared.
+func (s *Service) PermissionCatalog(ctx context.Context) []PermissionCatalogEntry {
+	return permcatalog.Load(ctx, s.db, s.logger)
 }
 
 // EnabledOIDCProviders returns all enabled identity providers for the login screen.
-func (s *Service) EnabledOIDCProviders() ([]OIDCProvider, error) {
-	rows, err := s.db.Query(
+func (s *Service) EnabledOIDCProviders(ctx context.Context) ([]OIDCProvider, error) {
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, name, provider_type FROM identity_providers WHERE enabled = 1 ORDER BY name LIMIT 100`,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("querying enabled identity providers: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("closing identity provider rows failed", "error", err)
+		}
+	}()
 
 	var providers []OIDCProvider
 	for rows.Next() {
@@ -61,57 +67,4 @@ func (s *Service) EnabledOIDCProviders() ([]OIDCProvider, error) {
 	}
 
 	return providers, rows.Err()
-}
-
-// EnsureLocalEnvironment auto-creates a local Docker environment during first-run setup.
-func (s *Service) EnsureLocalEnvironment() (*LocalEnvironmentResult, error) {
-	socketPath, runtime := docker.DetectAnySocket()
-	if socketPath == "" {
-		return nil, nil
-	}
-
-	var existingID string
-	err := s.db.QueryRow(
-		`SELECT id FROM environments WHERE socket_path = ? LIMIT 1`,
-		socketPath,
-	).Scan(&existingID)
-	switch err {
-	case nil:
-		return &LocalEnvironmentResult{
-			ID:         existingID,
-			SocketPath: socketPath,
-			Runtime:    runtime,
-			Created:    false,
-		}, nil
-	case sql.ErrNoRows:
-	default:
-		return nil, fmt.Errorf("querying local environment: %w", err)
-	}
-
-	if _, err := s.db.Exec(`UPDATE environments SET is_default = 0 WHERE is_default = 1`); err != nil {
-		return nil, fmt.Errorf("clearing default environments: %w", err)
-	}
-
-	connectionType := "socket"
-	if runtime == "podman" {
-		connectionType = "podman"
-	}
-
-	id := xid.New().String()
-	now := time.Now().UTC().Format(time.RFC3339)
-	if _, err := s.db.Exec(
-		`INSERT INTO environments (
-			id, name, orchestrator_type, connection_type, socket_path, is_default, is_active, created_at, updated_at
-		) VALUES (?, ?, 'docker', ?, ?, 1, 1, ?, ?)`,
-		id, "Local", connectionType, socketPath, now, now,
-	); err != nil {
-		return nil, fmt.Errorf("inserting local environment: %w", err)
-	}
-
-	return &LocalEnvironmentResult{
-		ID:         id,
-		SocketPath: socketPath,
-		Runtime:    runtime,
-		Created:    true,
-	}, nil
 }

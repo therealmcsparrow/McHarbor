@@ -6,11 +6,14 @@ import { api } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
 
+import { assertSuccess } from '@resources/utils/api-mutation';
+
 export type DashboardStats = {
   containers: { total: number; running: number; stopped: number; paused: number };
   images: number;
   volumes: number;
   networks: number;
+  stacks: number;
   cpuHistory?: Array<{ timestamp: string; value: number }>;
   memoryHistory?: Array<{ timestamp: string; value: number }>;
   networkRxHistory?: Array<{ timestamp: string; value: number }>;
@@ -24,10 +27,7 @@ export function useDashboardStats() {
   const { collectContainerMetricsEnabled } = useCurrentEnvironmentActivitySettings();
   return useQuery({
     queryKey: ['dashboard-stats', envId],
-    queryFn: () =>
-      api
-        .get<DashboardStats>('/dashboard/stats', envId ? { env: envId } : {})
-        .then((r) => r.data),
+    queryFn: () => api.get<DashboardStats>('/dashboard/stats', envId ? { env: envId } : {}).then(assertSuccess),
     refetchInterval: collectContainerMetricsEnabled ? 15_000 : false,
     enabled: collectContainerMetricsEnabled,
   });

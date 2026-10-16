@@ -9,6 +9,16 @@
   "pruneUnused": "Tailler inutilisé",
   "pruneDescription": "Supprimez les images inutilisées qui ne sont pas référencées par les conteneurs.",
   "columns": {
+    "allTags": "Tous les tags",
+    "digests": "Digests",
+    "parentId": "ID parent",
+    "sharedSize": "Taille partagée",
+    "labels": "Étiquettes",
+    "containerCount": "Conteneurs",
+    "protected": "Protégée",
+    "usedBy": "Utilisée par",
+    "groupRelations": "Relations",
+    "groupImage": "Image",
     "repoTag": "Référentiel : balise",
     "status": "Statut",
     "repository": "Dépôt",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "utilisé",
-    "unused": "inutilisé"
+    "unused": "Inutilisé"
   },
   "pull": {
     "title": "Extraire l'image",
@@ -64,6 +74,10 @@
     "noLayerHistory": "Pas d'historique des couches",
     "noLabels": "Pas d'étiquettes",
     "noEnvVars": "Aucune variable d'environnement",
+    "revealValues": "Révéler les valeurs",
+    "hideValues": "Masquer les valeurs",
+    "envWithheld": "Les valeurs ressemblant à des identifiants sont masquées. Les révéler est consigné dans le journal d'audit.",
+    "historyWithheld": "Les valeurs d'ENV et d'arguments de build ressemblant à des identifiants sont masquées. Les révéler est consigné dans le journal d'audit.",
     "fields": {
       "id": "ID",
       "tags": "Balises",
@@ -78,7 +92,7 @@
       "entrypoint": "Point d'entrée",
       "workingDir": "Directeur de travail",
       "user": "Utilisateur",
-      "stopSignal": "Arrêtez Signal",
+      "stopSignal": "Signal d'arrêt",
       "exposedPorts": "Ports exposés",
       "volumes": "Volumes",
       "environment": "Environnement"
@@ -87,6 +101,17 @@
       "instruction": "Instruction",
       "size": "Taille",
       "created": "Créé"
+    },
+    "tabs": {
+      "ariaLabel": "Sections de l'image",
+      "overview": "Aperçu",
+      "config": "Configuration",
+      "labels": "Libellés",
+      "history": "Historique"
+    },
+    "badges": {
+      "tagged": "Taguée",
+      "dangling": "Orpheline"
     }
   }
 }

@@ -28,4 +28,7 @@ type ImageSummary struct {
 	Containers  int64             `json:"Containers"`
 	Labels      map[string]string `json:"Labels"`
 	Protected   bool              `json:"Protected"`
+	// UsedBy names the containers (running or stopped) currently using
+	// this image, leading "/" trimmed, alongside Containers' count.
+	UsedBy []string `json:"UsedBy,omitempty"`
 }

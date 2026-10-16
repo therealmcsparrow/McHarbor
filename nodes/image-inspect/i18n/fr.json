@@ -1,8 +1,0 @@
-{
-  "label": "Inspecter l’image",
-  "description": "Inspecter une image Docker",
-  "config": {
-    "environment": "Environnement",
-    "image": "Image"
-  }
-}

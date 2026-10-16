@@ -1,11 +1,11 @@
 {
-  "label": "HTTP Request",
-  "description": "Send an HTTP request and store the response on the message",
+  "label": "HTTP-verzoek",
+  "description": "Verstuur een HTTP-verzoek en sla het antwoord op het bericht op",
   "config": {
     "url": "URL",
     "method": "Methode",
     "headers": "Headers",
-    "body_source": "Body Source"
+    "body_source": "Bron van de body"
   },
   "options": {
     "method": {

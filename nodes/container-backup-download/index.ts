@@ -10,7 +10,9 @@ export const containerBackupDownload: NodeDefinition = {
   description: 'Validate a completed backup run and return its download metadata',
   icon: 'IconFileDownload',
   configSchema: [
-    { key: 'run_id', label: 'Run ID', type: 'text', required: true },
+    { key: 'environment', label: 'Environment', type: 'environment-select', required: true },
+    { key: 'container', label: 'Container (filter)', type: 'container-select', required: false },
+    { key: 'run_id', label: 'Backup Run', type: 'backup-run-select', required: true },
   ],
   inputPorts: ['input'],
   outputPorts: ['output', 'error'],

@@ -1,0 +1,27 @@
+{
+  "label": "Gerenciar volume",
+  "description": "Criar, remover, fazer backup ou restaurar um volume Docker",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Ação",
+    "name": "Nome",
+    "driver": "Motorista",
+    "labels": "Etiquetas",
+    "force": "Vigor",
+    "volume": "Volume",
+    "backup_path": "Caminho do arquivo de backup",
+    "overwrite": "Sobrescrever arquivos existentes",
+    "helper_image": "Image auxiliar"
+  },
+  "options": {
+    "action": {
+      "create": "Criar",
+      "remove": "Remover",
+      "backup": "Backup",
+      "restore": "Restaurar"
+    },
+    "driver": {
+      "local": "Local"
+    }
+  }
+}

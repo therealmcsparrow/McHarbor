@@ -1,0 +1,41 @@
+{
+    "slug":  "jfrog-artifactory",
+    "name":  "JFrog Artifactory",
+    "description":  "Universal binary artifact repository manager for hosting and proxying build artifacts and packages.",
+    "category":  "CI/CD",
+    "image":  "releases-docker.jfrog.io/jfrog/artifactory-oss:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/artifactory.png",
+    "website":  "https://jfrog.com/artifactory",
+    "docsUrl":  "https://jfrog.com/help/r/jfrog-installation-setup-documentation/run-the-artifactory-docker-container",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8082,
+                      "container":  8082,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jfrog-artifactory/data",
+                        "container":  "/var/opt/jfrog/artifactory"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

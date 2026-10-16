@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Aprobación de la revisión de accesos",
+    "description": "Registre que la revisión de accesos se realizó y que su resultado fue aceptado. Los permisos calculados a continuación son la entrada de la revisión; la aprobación es su registro."
+  },
+  "effective": {
+    "title": "Acceso efectivo",
+    "description": "Elija un usuario y un ámbito para ver todos los permisos que tiene allí y de dónde procede cada uno.",
+    "user": "Usuario",
+    "userPlaceholder": "Seleccione un usuario",
+    "environment": "Entorno",
+    "allEnvironments": "Global (sin entorno)",
+    "stack": "Stack",
+    "noStack": "Entorno completo",
+    "filter": "Filtrar permisos",
+    "showAll": "Mostrar los permisos que el usuario no tiene",
+    "empty": "Elija un usuario para ver sus permisos efectivos.",
+    "noMatches": "Ningún permiso coincide con este filtro.",
+    "noSource": "Sin concesión",
+    "wildcard": "{{username}} tiene un rol comodín, que concede todos los permisos, incluidos los que se añadan más adelante.",
+    "breakGlass": "{{username}} tiene una sesión break-glass abierta: se conceden todos los permisos hasta que termine.",
+    "abac": "Las políticas de atributos se aplican en esta instalación y aún pueden denegar una solicitud que estos roles permiten.",
+    "overridesNote": "Concedidos son los permisos que aplican las puertas de ruta: roles, elevaciones aprobadas y break-glass. Con excepciones aplica las excepciones de concesión y denegación por usuario tal como lo hace el motor de políticas; las puertas de ruta hoy no leen las excepciones.",
+    "summary": "{{held}} de {{total}} permisos concedidos",
+    "held": "Concedido",
+    "notHeld": "No concedido",
+    "columns": {
+      "permission": "Permiso",
+      "held": "Concedido",
+      "authorize": "Con excepciones",
+      "sources": "Concedido por"
+    },
+    "source": {
+      "roleDirect": "Rol {{role}}",
+      "roleGroup": "Rol {{role}} mediante el grupo {{group}}",
+      "wildcard": "comodín",
+      "scopeGlobal": "global",
+      "scopeEnvironment": "en {{environment}}",
+      "scopeStack": "en el stack {{stack}}",
+      "elevation": "Elevación hasta {{until}}",
+      "breakGlass": "Sesión break-glass",
+      "overrideGrant": "Excepción de concesión",
+      "overrideDeny": "Excepción de denegación",
+      "conditional": "solo para {{resource}}",
+      "expires": "caduca {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Exportar catálogo (CSV)",
+    "exportJson": "Exportar catálogo (JSON)",
+    "exportFailed": "No se pudo exportar el catálogo de permisos.",
+    "exported": "Catálogo de permisos exportado"
+  },
+  "endpoints": {
+    "title": "Direcciones que registrar en el proveedor de identidad",
+    "intro": "Registre estas direcciones en el proveedor de identidad. Siguen la dirección pública con la que se accede a McHarbor.",
+    "oidcRedirect": "URI de redirección (OIDC)",
+    "oidcRedirectHint": "Compartida por todos los proveedores OpenID Connect de esta instalación.",
+    "acs": "URL del Assertion Consumer Service (SAML)",
+    "spMetadata": "URL de metadatos del proveedor de servicio (SAML)",
+    "login": "URL de inicio de sesión directo",
+    "samlAfterSave": "Las URL de ACS y de metadatos de SAML contienen el ID del proveedor, por lo que aparecen una vez guardado el proveedor."
+  },
+  "metadata": {
+    "title": "Importar metadatos del IdP",
+    "description": "Pegue la URL de metadatos SAML del proveedor de identidad o el XML. McHarbor lo lee, rellena los campos que acepta este plugin y muestra el resto para que los revise.",
+    "url": "URL de metadatos",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "O pegue el XML de metadatos",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Leer metadatos",
+    "prefillReady": "{{count}} campo se puede rellenar a partir de estos metadatos.",
+    "applyPrefill": "Rellenar el formulario",
+    "copyManually": "Este plugin no tiene un campo para estos valores, así que cópielos donde el plugin los solicite.",
+    "entityId": "ID de entidad del IdP",
+    "sso": "URL de inicio de sesión único ({{binding}})",
+    "slo": "URL de cierre de sesión único ({{binding}})",
+    "certificate": "Huella del certificado, SHA-256 ({{use}})",
+    "anyUse": "cualquier uso",
+    "expires": "caduca {{date}}",
+    "nameIdFormats": "Formatos de NameID: {{formats}}",
+    "reason": {
+      "invalid_url": "La URL de metadatos debe ser una dirección http o https.",
+      "fetch_failed": "No se pudo obtener la URL de metadatos. Compruebe que McHarbor pueda acceder a ella; el registro del servidor tiene los detalles.",
+      "not_saml_metadata": "Este no es un documento de metadatos SAML.",
+      "no_idp_descriptor": "Los metadatos no describen ningún proveedor de identidad (no hay IDPSSODescriptor).",
+      "input_missing": "Introduzca una URL de metadatos o pegue el XML."
+    }
+  },
+  "preview": {
+    "title": "Vista previa de la asignación de grupos",
+    "description": "Introduzca los grupos con los que iniciaría sesión un usuario para ver qué grupos y roles de McHarbor obtendría.",
+    "sampleGroups": "Grupos del proveedor, uno por línea",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Usar los {{count}} grupos de la prueba de conexión",
+    "run": "Vista previa",
+    "groupsJoined": "Grupos a los que se une",
+    "noGroups": "Estos grupos no conducen a ningún grupo de McHarbor.",
+    "newGroup": "se crea en el primer inicio de sesión",
+    "from": "de {{groups}}",
+    "noRoles": "Este grupo no tiene roles.",
+    "defaultRole": "Un usuario recién aprovisionado también recibe el rol predeterminado {{role}}.",
+    "unmapped": "Sin asignar: {{groups}}",
+    "scopeGlobal": "global",
+    "scopeEnvironment": "entorno {{environment}}",
+    "scopeStack": "stack {{stack}}",
+    "loadGroups": "Cargar grupos del proveedor"
+  },
+  "impact": {
+    "title": "Quién gana o pierde roles",
+    "summary": "{{evaluated}} usuarios evaluados según su último inicio de sesión: {{changed}} cambiarían, {{unchanged}} no.",
+    "users": "Usuarios afectados",
+    "legend_one": "{{gained}} rol ganado, {{lost}} perdido",
+    "legend_other": "{{gained}} roles ganados, {{lost}} perdidos",
+    "joined": "Se une a: {{groups}}",
+    "left": "Sale de: {{groups}}",
+    "unknown": "No evaluados, sin inicio de sesión registrado desde que se rastrean las reclamaciones de grupo: {{users}}",
+    "confirmTitle": "¿Aplicar la nueva asignación de grupos?",
+    "confirmDescription": "Estos cambios surten efecto para cada usuario en su próximo inicio de sesión.",
+    "nextSignIn": "Eliminar una asignación no elimina las pertenencias que ya creó; solo los grupos que una asignación aún nombra se mantienen sincronizados con el proveedor.",
+    "confirm": "Guardar asignación"
+  },
+  "wizard": {
+    "progress": "Progreso de la configuración",
+    "steps": {
+      "type": "Elegir un proveedor",
+      "configure": "Configurar",
+      "access": "Acceso y grupos",
+      "review": "Revisar y guardar",
+      "done": "Proveedor guardado"
+    },
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "defaultRole": "Rol predeterminado para usuarios nuevos",
+    "defaultRoleHint": "Se asigna a las cuentas creadas mediante aprovisionamiento automático.",
+    "noDefaultRole": "Sin rol predeterminado",
+    "fetchGroupsAfterSave": "Este proveedor puede listar sus grupos. Una vez guardado, el diálogo de edición puede obtenerlos para la asignación.",
+    "review": {
+      "description": "Compruebe la configuración antes de guardar el proveedor.",
+      "name": "Nombre",
+      "type": "Tipo",
+      "fields": "Campos configurados",
+      "autoProvision": "Aprovisionamiento automático",
+      "defaultRole": "Rol predeterminado",
+      "autoImport": "Importar grupos por nombre",
+      "mappings": "Asignaciones de grupos",
+      "yes": "Sí",
+      "no": "No",
+      "none": "Ninguno",
+      "disabledNote": "El proveedor se guarda deshabilitado, por lo que nadie podrá iniciar sesión con él hasta que lo habilite."
+    },
+    "done": {
+      "title": "{{name}} se ha guardado",
+      "description": "Registre las direcciones siguientes en el proveedor de identidad y, después, habilite y pruebe la conexión.",
+      "enable": "Habilitar proveedor",
+      "enableFirst": "Habilite el proveedor para probar la conexión.",
+      "test": "Probar conexión",
+      "previewHint": "Previsualice la asignación con grupos reales: ejecute la prueba de conexión o cargue los grupos del proveedor."
+    }
+  }
+}

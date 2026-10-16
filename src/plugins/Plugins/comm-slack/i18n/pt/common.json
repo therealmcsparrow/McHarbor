@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Nome de exibição deste canal de comunicação do Slack." },
+    "webhook_url": { "help": "URL do webhook de entrada do Slack. Armazenada criptografada em repouso." }
+  },
+  "title": "Entrega de notificações do Slack",
+  "subtitle": "Pertencente ao plugin",
+  "description": "Este plugin é dono do Slack. Ele armazena a URL do webhook do Slack no próprio canal e despacha as notificações pelo runtime do plugin.",
+  "nameLabel": "Nome do canal",
+  "namePlaceholder": "Slack de operações",
+  "webhookUrlLabel": "URL do webhook",
+  "securityTitle": "Segurança",
+  "securityHelp": "URL do webhook criptografada",
+  "securityDescription": "A URL do webhook é armazenada criptografada em repouso. Crie um webhook de entrada dedicado para o McHarbor para que possa ser rotacionado de forma independente.",
+  "testTitle": "Testar conexão",
+  "testHelp": "Envia mensagem",
+  "testDescription": "A ação de teste do host publica uma mensagem real no canal do Slack configurado. Use antes um canal de teste privado se o webhook apontar para uma sala de plantão.",
+  "secretKeepHint": "Deixe em branco para manter o valor armazenado.",
+  "requiredField": "Obrigatório",
+  "setupGuideTitle": "Guia de configuração do canal de comunicação do Slack",
+  "guide": {
+    "step1": { "body": "Abra o workspace do Slack de destino e crie ou escolha o canal que deve receber as notificações do McHarbor." },
+    "step2": { "body": "Crie um aplicativo do Slack, ative <b>Incoming Webhooks</b>, adicione um webhook ao canal de destino e copie a URL do webhook." },
+    "step3": { "body": "Cole a URL do webhook na configuração deste canal. O McHarbor a armazena criptografada e a oculta nas respostas da API." },
+    "step4": { "body": "Salve o canal e clique em <b>Testar conexão</b>. O plugin publica uma mensagem de teste real no Slack pelo mesmo caminho usado nos eventos reais de fluxo de trabalho, alerta e backup." },
+    "step5": { "body": "Se o teste falhar, verifique se o aplicativo ainda tem os webhooks de entrada ativados, se o webhook não foi revogado e se o canal de destino ainda existe." }
+  }
+}

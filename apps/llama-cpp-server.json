@@ -1,0 +1,41 @@
+{
+    "slug":  "llama-cpp-server",
+    "name":  "llama.cpp Server",
+    "description":  "OpenAI-compatible HTTP server for running GGUF language models with llama.cpp; GPU optional, runs well on CPU.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/ggml-org/llama.cpp:server",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/ggml-org/llama.cpp",
+    "docsUrl":  "https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/llama-cpp-server/models",
+                        "container":  "/models"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LLAMA_ARG_MODEL",
+                        "default":  "/models/model.gguf",
+                        "description":  "Path to the GGUF model file to load"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "server",
+    "latest":  {
+        "version":  "server",
+        "release_date":  "2026-09-29"
+    }
+}

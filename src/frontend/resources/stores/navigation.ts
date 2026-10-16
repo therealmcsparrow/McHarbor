@@ -32,10 +32,7 @@ export const useNavigationStore = create<RecentsState>()(
       addRecent: (to, label) => {
         set((s) => {
           const filtered = s.recents.filter((r) => r.to !== to);
-          const next: RecentItem[] = [
-            { to, label, visitedAt: Date.now() },
-            ...filtered,
-          ].slice(0, MAX_RECENTS);
+          const next: RecentItem[] = [{ to, label, visitedAt: Date.now() }, ...filtered].slice(0, MAX_RECENTS);
           return { recents: next };
         });
       },
@@ -56,7 +53,7 @@ export const useNavigationStore = create<RecentsState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
     },
   ),
 );

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +32,11 @@ type restoreTransferEntry struct {
 	RunID     string
 	SecretKey string
 	EntryName string
+	// FilePath serves an already-built tar straight off disk instead of
+	// locating EntryName inside the run's archive. Selective restores filter
+	// an inner tar down to the operator's picks before sending it, so there
+	// is no archive entry that corresponds to what the agent must receive.
+	FilePath  string
 	Size      int64
 	ExpiresAt time.Time
 }
@@ -59,6 +65,33 @@ func (s *restoreTransferStore) create(runID, secretKey, entryName string, size i
 		ExpiresAt: time.Now().UTC().Add(restoreTransferTTL),
 	}
 	if entry.RunID == "" || entry.EntryName == "" || entry.Size < 0 {
+		return restoreTransferEntry{}, fmt.Errorf("invalid restore transfer entry")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cleanupExpiredLocked(time.Now().UTC())
+	s.entries[entry.ID] = entry
+	return entry, nil
+}
+
+// createFile registers a transfer that streams a pre-built file. The caller owns
+// the file and removes it once the transfer completes.
+func (s *restoreTransferStore) createFile(runID, secretKey, filePath string, size int64) (restoreTransferEntry, error) {
+	token, err := randomRestoreTransferToken()
+	if err != nil {
+		return restoreTransferEntry{}, err
+	}
+	entry := restoreTransferEntry{
+		ID:        xid.New().String(),
+		Token:     token,
+		RunID:     strings.TrimSpace(runID),
+		SecretKey: secretKey,
+		FilePath:  strings.TrimSpace(filePath),
+		Size:      size,
+		ExpiresAt: time.Now().UTC().Add(restoreTransferTTL),
+	}
+	if entry.RunID == "" || entry.FilePath == "" || entry.Size < 0 {
 		return restoreTransferEntry{}, fmt.Errorf("invalid restore transfer entry")
 	}
 
@@ -163,6 +196,9 @@ func copyWithContext(ctx context.Context, writer io.Writer, reader io.Reader) (i
 }
 
 func (s *Service) writeRestoreTransferEntry(ctx context.Context, w http.ResponseWriter, entry restoreTransferEntry) error {
+	if entry.FilePath != "" {
+		return s.writeRestoreTransferFile(ctx, w, entry)
+	}
 	run, err := s.runByID(ctx, entry.RunID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrBackupRunNotDownloadable
@@ -178,8 +214,8 @@ func (s *Service) writeRestoreTransferEntry(ctx context.Context, w http.Response
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	defer decrypted.Close()
+	defer closeLogged(file, "backup archive")
+	defer closeLogged(decrypted, "decrypted backup stream")
 
 	tr := tar.NewReader(decrypted)
 	for {
@@ -209,4 +245,38 @@ func (s *Service) writeRestoreTransferEntry(ctx context.Context, w http.Response
 		}
 		return nil
 	}
+}
+
+// writeRestoreTransferFile streams a pre-built subset tar. The file was written
+// by this process into the backup temp directory moments earlier, so it is
+// served as-is; the transfer token remains the only thing gating access.
+func (s *Service) writeRestoreTransferFile(ctx context.Context, w http.ResponseWriter, entry restoreTransferEntry) error {
+	file, err := os.Open(entry.FilePath)
+	if err != nil {
+		return fmt.Errorf("opening restore subset archive: %w", err)
+	}
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && s.logger != nil {
+			s.logger.Warn("closing restore subset archive failed", "path", entry.FilePath, "error", closeErr)
+		}
+	}()
+	info, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("sizing restore subset archive: %w", err)
+	}
+	if entry.Size >= 0 && info.Size() != entry.Size {
+		return fmt.Errorf("restore transfer entry size changed")
+	}
+
+	w.Header().Set("Content-Type", "application/x-tar")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", info.Size()))
+	w.Header().Set("Cache-Control", "no-store")
+	written, err := copyWithContext(ctx, w, file)
+	if err != nil {
+		return fmt.Errorf("streaming restore subset archive: %w", err)
+	}
+	if written != info.Size() {
+		return fmt.Errorf("restore transfer size mismatch")
+	}
+	return nil
 }

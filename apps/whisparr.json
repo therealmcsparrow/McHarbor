@@ -1,0 +1,49 @@
+{
+    "slug":  "whisparr",
+    "name":  "Whisparr",
+    "description":  "Collection manager in the Servarr family that automates downloading and organizing a media library.",
+    "category":  "Media",
+    "image":  "ghcr.io/hotio/whisparr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/whisparr.png",
+    "website":  "https://wiki.servarr.com/whisparr",
+    "docsUrl":  "https://wiki.servarr.com/whisparr/installation/docker",
+    "ports":  [
+                  {
+                      "host":  6969,
+                      "container":  6969,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/whisparr/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/whisparr/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

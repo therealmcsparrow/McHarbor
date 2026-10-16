@@ -3,10 +3,10 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@resources/components/table-features';
 import { IconGitBranch, IconRefresh, IconTrash, IconPlus } from '@tabler/icons-react';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { DataGrid } from '@resources/components/DataGrid';
+import { TablePage } from '@resources/layout/TablePage';
+import type { SearchMode } from '@resources/utils/search-filter';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
@@ -18,23 +18,31 @@ import {
   useCreateRepo,
   useRemoveRepo,
   STATUS_VARIANT,
-} from '../hooks/useGitRepos';
+} from '@resources/hooks/useGitRepos';
+import { textColumn, dateColumn, boolColumn } from '@resources/layout/table-page/optional-columns';
 import { CreateRepoDialog } from '../components/CreateRepoDialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 export default function GitPage() {
   const { t } = useTranslation('common');
-  const { data: repos = [], isLoading } = useGitRepos();
+  const group = t('git.columnsGroup');
+  const { data: repos = [], isLoading, isFetching, refetch } = useGitRepos();
   const syncRepo = useSyncRepo(t);
   const createRepo = useCreateRepo(t);
   const removeRepo = useRemoveRepo(t);
 
-  const statusLabel = useCallback((repo: GitRepo): string => {
-    if (repo.lastSyncError) return t('git.statusError');
-    if (repo.lastSyncAt) return t('git.statusSynced');
-    return t('git.statusPending');
-  }, [t]);
+  const statusLabel = useCallback(
+    (repo: GitRepo): string => {
+      if (repo.lastSyncError) return t('git.statusError');
+      if (repo.lastSyncAt) return t('git.statusSynced');
+      return t('git.statusPending');
+    },
+    [t],
+  );
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
 
   const columns = useMemo<ColumnDef<GitRepo, unknown>[]>(
@@ -52,50 +60,65 @@ export default function GitPage() {
       {
         accessorKey: 'url',
         header: t('git.columnUrl'),
-        cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">{row.original.url}</span>
-        ),
+        cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.url}</span>,
       },
       { accessorKey: 'branch', header: t('git.columnBranch') },
       {
         id: 'status',
         header: t('git.columnStatus'),
-        cell: ({ row }) => (
-          <Badge variant={STATUS_VARIANT(row.original)}>
-            {statusLabel(row.original)}
-          </Badge>
-        ),
+        meta: { sortValue: statusLabel },
+        cell: ({ row }) => <Badge variant={STATUS_VARIANT(row.original)}>{statusLabel(row.original)}</Badge>,
       },
       {
         id: 'lastSynced',
         header: t('git.columnLastSynced'),
-        cell: ({ row }) =>
-          row.original.lastSyncAt ? timeAgo(row.original.lastSyncAt) : t('git.never'),
+        meta: { sortValue: (r: GitRepo) => (r.lastSyncAt ? Date.parse(r.lastSyncAt) : null) },
+        cell: ({ row }) => (row.original.lastSyncAt ? timeAgo(row.original.lastSyncAt) : t('git.never')),
       },
+      boolColumn<GitRepo>('autoSync', t('git.columnAutoSync'), (r) => r.autoSync, { group }),
+      textColumn<GitRepo>('syncInterval', t('git.columnSyncInterval'), (r) => r.syncInterval, { group, width: 'sm' }),
+      textColumn<GitRepo>('authType', t('git.columnAuthType'), (r) => r.authType, { group, width: 'sm' }),
+      dateColumn<GitRepo>('createdAt', t('git.columnCreatedAt'), (r) => r.createdAt, { group }),
+      dateColumn<GitRepo>('updatedAt', t('git.columnUpdatedAt'), (r) => r.updatedAt, { group }),
+      textColumn<GitRepo>('environment', t('git.columnEnvironment'), (r) => r.environmentName, {
+        group: t('git.columnsGroupEnvironment'),
+      }),
+      textColumn<GitRepo>('lastDeployStatus', t('git.columnLastDeployStatus'), (r) => r.lastDeployStatus, {
+        group: t('git.columnsGroupDeployment'),
+      }),
+      textColumn<GitRepo>(
+        'lastDeployCommit',
+        t('git.columnLastDeployCommit'),
+        (r) => r.lastDeployCommit?.slice(0, 12),
+        { group: t('git.columnsGroupDeployment') },
+      ),
       {
         id: 'actions',
         header: () => <span className="ml-auto">{t('git.columnActions')}</span>,
+        meta: { locked: true, noExport: true, label: t('git.columnActions') },
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1">
             <Button
+              permission={PERM.GIT_MANAGE}
               variant="ghost"
               size="icon"
               title={t('git.syncTooltip')}
               aria-label={t('git.syncTooltip')}
-              onClick={(event) => {
-                event.stopPropagation();
+              onClick={(eventItem) => {
+                eventItem.stopPropagation();
                 syncRepo.mutate(row.original.id);
               }}
             >
               <IconRefresh className="h-4 w-4" />
             </Button>
             <Button
+              permission={PERM.GIT_MANAGE}
               variant="ghost"
               size="icon"
               title={t('git.removeTooltip')}
               aria-label={t('git.removeTooltip')}
-              onClick={(event) => {
-                event.stopPropagation();
+              onClick={(evt) => {
+                evt.stopPropagation();
                 setConfirmTarget(row.original.id);
               }}
             >
@@ -105,39 +128,46 @@ export default function GitPage() {
         ),
       },
     ],
-    [syncRepo, t, statusLabel]
+    [syncRepo, t, statusLabel, group],
   );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <>
+      <TablePage
+        id="git"
         title={t('git.title')}
         description={t('git.description')}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button permission={PERM.GIT_MANAGE} onClick={() => setCreateOpen(true)}>
             <IconPlus className="h-4 w-4" /> {t('git.addRepository')}
           </Button>
         }
-      />
-
-      <DataGrid
-        data={repos}
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('git.searchPlaceholder'),
+          fields: (repo) => [repo.name, repo.url, repo.branch, repo.lastSyncError],
+        }}
+        toolbar={{
+          columns: true,
+          density: true,
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-git-repositories' },
+        }}
         columns={columns}
-        searchKey="name"
-        searchPlaceholder={t('git.searchPlaceholder')}
+        data={repos}
         loading={isLoading}
-        emptyMessage={t('git.noRepositories')}
+        empty={{ title: t('git.noRepositories') }}
+        getRowId={(repo) => repo.id}
       />
 
-      <CreateRepoDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        createRepo={createRepo}
-      />
+      <CreateRepoDialog open={createOpen} onOpenChange={setCreateOpen} createRepo={createRepo} />
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onOpenChange={(isOpen) => !isOpen && setConfirmTarget(null)}
         title={t('git.removeTitle')}
         description={t('git.removeDescription')}
         onConfirm={() => {
@@ -146,7 +176,6 @@ export default function GitPage() {
         }}
         loading={removeRepo.isPending}
       />
-    </div>
+    </>
   );
 }
-

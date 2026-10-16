@@ -11,6 +11,9 @@
     "status": "Status",
     "duration": "Duration",
     "when": "When",
-    "noRuns": "No workflow runs yet"
+    "noRuns": "No workflow runs yet",
+    "successRate": "{{percent}}% success",
+    "more": "{{count}} more",
+    "viewAll": "All workflows"
   }
 }

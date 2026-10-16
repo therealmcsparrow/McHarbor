@@ -1,7 +1,0 @@
-{
-  "label": "Umgebungsstatus",
-  "description": "Prueft Erreichbarkeit und Daemon-Metadaten einer Docker-Umgebung",
-  "config": {
-    "environment": "Umgebung"
-  }
-}

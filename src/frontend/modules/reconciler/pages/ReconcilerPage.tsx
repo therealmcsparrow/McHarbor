@@ -1,16 +1,14 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ColumnDef } from '@tanstack/react-table';
-import { IconRefresh, IconSearch, IconAlertTriangle, IconPlus, IconTrash } from '@tabler/icons-react';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { DataGrid } from '@resources/components/DataGrid';
-import { StatusBadge, RECONCILER_STATUS } from '@resources/components/ui/StatusBadge';
+import { IconBrandGit, IconListCheck, IconPlus, IconReportAnalytics, IconSettings } from '@tabler/icons-react';
+import { Link } from 'react-router';
+import { TablePage } from '@resources/layout/TablePage';
+import type { SearchMode } from '@resources/utils/search-filter';
 import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { timeAgo } from '@resources/utils/format';
 import {
   type DesiredState,
   useDesiredStates,
@@ -18,13 +16,23 @@ import {
   useCheckDrift,
   useCreateDesiredState,
   useDeleteDesiredState,
-  deriveStatus,
 } from '../hooks/useReconciler';
 import { CreateDesiredStateDialog } from '../components/CreateDesiredStateDialog';
+import { useReconcilerColumns } from '../components/useReconcilerColumns';
+import { DriftDetailsDialog } from '../components/DriftDetailsDialog';
+import { PERM } from '@core/auth/permissionKeys';
+import { ModeDialog } from '../components/ModeDialog';
+import { ProposalDialog } from '../components/ProposalDialog';
+import { PullRequestDialog } from '../components/PullRequestDialog';
+import { ReconcilerSettingsDialog } from '../components/ReconcilerSettingsDialog';
+import { type Proposal, usePropose } from '../hooks/useProposals';
 
 export default function ReconcilerPage() {
   const { t } = useTranslation('common');
-  const { data: states = [], isLoading } = useDesiredStates();
+  const { t: tr } = useTranslation('reconciler');
+  const { data: states = [], isLoading, isFetching, refetch } = useDesiredStates();
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
   const reconcile = useReconcile(t);
   const checkDrift = useCheckDrift(t);
   const createState = useCreateDesiredState(t);
@@ -33,130 +41,106 @@ export default function ReconcilerPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
 
-  const columns = useMemo<ColumnDef<DesiredState, unknown>[]>(
-    () => [
-      {
-        accessorKey: 'name',
-        header: t('reconciler.columnName'),
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        accessorKey: 'containerName',
-        header: t('reconciler.columnContainer'),
-        cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">{row.original.containerName}</span>
-        ),
-      },
-      {
-        accessorKey: 'imageRef',
-        header: t('reconciler.columnImage'),
-        cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">{row.original.imageRef}</span>
-        ),
-      },
-      {
-        id: 'status',
-        header: t('reconciler.columnStatus'),
-        cell: ({ row }) => (
-          <StatusBadge status={deriveStatus(row.original)} map={RECONCILER_STATUS} />
-        ),
-      },
-      {
-        id: 'lastReconciled',
-        header: t('reconciler.columnLastReconciled'),
-        cell: ({ row }) =>
-          row.original.lastReconcile ? timeAgo(row.original.lastReconcile) : t('reconciler.never'),
-      },
-      {
-        id: 'driftDetected',
-        header: t('reconciler.columnDrift'),
-        cell: ({ row }) =>
-          row.original.driftDetected ? (
-            <div className="flex items-center gap-1 text-yellow-500">
-              <IconAlertTriangle className="h-4 w-4" /> {t('reconciler.driftYes')}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">{t('reconciler.driftNo')}</span>
-          ),
-      },
-      {
-        id: 'actions',
-        header: () => <span className="ml-auto">{t('reconciler.columnActions')}</span>,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              title={t('reconciler.reconcileTooltip')}
-              aria-label={t('reconciler.reconcileTooltip')}
-              onClick={(event) => {
-                event.stopPropagation();
-                reconcile.mutate(row.original.id);
-              }}
-            >
-              <IconRefresh className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              title={t('reconciler.checkDriftTooltip')}
-              aria-label={t('reconciler.checkDriftTooltip')}
-              onClick={(event) => {
-                event.stopPropagation();
-                checkDrift.mutate(row.original.id);
-              }}
-            >
-              <IconSearch className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              title={t('reconciler.deleteTooltip')}
-              aria-label={t('reconciler.deleteTooltip')}
-              onClick={(event) => {
-                event.stopPropagation();
-                setConfirmTarget(row.original.id);
-              }}
-            >
-              <IconTrash className="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [reconcile, checkDrift, t]
+  const [driftOf, setDriftOf] = useState<DesiredState | null>(null);
+  const onDelete = useCallback((id: string) => setConfirmTarget(id), []);
+  const onShowDrift = useCallback((state: DesiredState) => setDriftOf(state), []);
+  const [modeOf, setModeOf] = useState<DesiredState | null>(null);
+  const [prOf, setPrOf] = useState<DesiredState | null>(null);
+  const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const propose = usePropose();
+  const onMode = useCallback((state: DesiredState) => setModeOf(state), []);
+  const onPullRequest = useCallback((state: DesiredState) => setPrOf(state), []);
+  const onPropose = useCallback(
+    (state: DesiredState) => propose.mutate(state.id, { onSuccess: setProposal }),
+    [propose],
   );
+  const columns = useReconcilerColumns({
+    reconcile,
+    checkDrift,
+    onDelete,
+    onShowDrift,
+    onMode,
+    onPropose,
+    onPullRequest,
+  });
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <>
+      <TablePage
+        id="reconciler"
         title={t('reconciler.title')}
         description={t('reconciler.description')}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <IconPlus className="h-4 w-4" /> {t('reconciler.addDesiredState')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/reconciler/report">
+                <IconReportAnalytics className="h-4 w-4" /> {tr('report.open')}
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/reconciler/proposals">
+                <IconListCheck className="h-4 w-4" /> {tr('proposals.open')}
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/reconciler/sources">
+                <IconBrandGit className="h-4 w-4" /> {tr('sources.open')}
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={tr('settings.title')}
+              title={tr('settings.title')}
+              onClick={() => setSettingsOpen(true)}
+            >
+              <IconSettings className="h-4 w-4" />
+            </Button>
+            <Button permission={PERM.RECONCILER_MANAGE} onClick={() => setCreateOpen(true)}>
+              <IconPlus className="h-4 w-4" /> {t('reconciler.addDesiredState')}
+            </Button>
+          </div>
         }
-      />
-
-      <DataGrid
-        data={states}
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('reconciler.searchPlaceholder'),
+          fields: (state) => [
+            state.name,
+            state.description,
+            state.containerName,
+            state.imageRef,
+            state.desiredStatus,
+            state.stackName,
+          ],
+        }}
+        toolbar={{
+          columns: true,
+          density: true,
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-desired-states' },
+        }}
         columns={columns}
-        searchKey="name"
-        searchPlaceholder={t('reconciler.searchPlaceholder')}
+        data={states}
         loading={isLoading}
-        emptyMessage={t('reconciler.noDesiredStates')}
+        empty={{ title: t('reconciler.noDesiredStates') }}
+        getRowId={(state) => state.id}
       />
 
-      <CreateDesiredStateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        createState={createState}
-      />
+      <CreateDesiredStateDialog open={createOpen} onOpenChange={setCreateOpen} createState={createState} />
+
+      <DriftDetailsDialog state={driftOf} onOpenChange={(isOpen2) => !isOpen2 && setDriftOf(null)} />
+      {modeOf && <ModeDialog state={modeOf} onOpenChange={(isOpen2) => !isOpen2 && setModeOf(null)} />}
+      {prOf && <PullRequestDialog state={prOf} onOpenChange={(dialogOpen) => !dialogOpen && setPrOf(null)} />}
+      {proposal && <ProposalDialog proposal={proposal} onOpenChange={(openState) => !openState && setProposal(null)} />}
+      {settingsOpen && <ReconcilerSettingsDialog onOpenChange={setSettingsOpen} />}
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onOpenChange={(isOpen) => !isOpen && setConfirmTarget(null)}
         title={t('reconciler.deleteTitle')}
         description={t('reconciler.deleteDescription')}
         confirmLabel={t('actions.delete')}
@@ -166,7 +150,6 @@ export default function ReconcilerPage() {
         }}
         loading={deleteState.isPending}
       />
-    </div>
+    </>
   );
 }
-

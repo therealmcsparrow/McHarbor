@@ -1,0 +1,53 @@
+{
+    "slug":  "prowlarr-nightly",
+    "name":  "Prowlarr (Nightly)",
+    "description":  "Nightly channel build of Prowlarr. Indexer manager and proxy for the Servarr media automation stack.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/prowlarr:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prowlarr.png",
+    "website":  "https://docs.linuxserver.io/images/docker-prowlarr/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-prowlarr/",
+    "ports":  [
+                  {
+                      "host":  10696,
+                      "container":  9696,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prowlarr-nightly/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

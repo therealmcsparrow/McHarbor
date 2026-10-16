@@ -1,7 +1,0 @@
-{
-  "label": "Environment Status",
-  "description": "Check Docker environment reachability and daemon metadata",
-  "config": {
-    "environment": "Environment"
-  }
-}

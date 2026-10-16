@@ -1,14 +1,20 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconEye, IconEyeOff, IconDeviceFloppy } from '@tabler/icons-react';
-import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
-import { KeyValueEditor } from '@resources/components/KeyValueEditor';
-import { useStackEnvVars, useUpdateStackEnvVars } from '../../hooks/useStacks';
+import {
+  useStack,
+  useStackEnvVars,
+  useStackEnvVarsRevealed,
+  useUpdateStack,
+  useUpdateStackEnvVars,
+} from '@resources/hooks/useStacks';
+import { PromoteToSecretDialog } from '@resources/components/secrets/PromoteToSecretDialog';
+import { EnvironmentVarRow } from './EnvironmentVarRow';
+import { EnvironmentTabEditor } from './EnvironmentTabEditor';
+import { isRedactedValue } from '@resources/utils/env-redaction';
 
 type EnvironmentTabProps = {
   stackName: string;
@@ -20,17 +26,32 @@ export function EnvironmentTab({ stackName, editing, readOnly = false }: Environ
   const { t } = useTranslation('stacks');
   const { data: envVars, isLoading } = useStackEnvVars(stackName);
   const updateEnvVars = useUpdateStackEnvVars();
+  const { data: stack } = useStack(stackName);
+  const updateStack = useUpdateStack();
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  // Values the backend considers credentials arrive as a mask sentinel. The
+  // real ones are fetched only once the user actually asks to see one, and
+  // that request is audit-logged server-side.
+  const wantsReveal = [...visibleKeys].some((key) => isRedactedValue(envVars?.[key]));
+  const { data: revealedVars } = useStackEnvVarsRevealed(stackName, wantsReveal);
+  // "Promote to secret" needs the plaintext to store, so the row has to be
+  // revealed first — which is why the action is only offered on a visible row.
+  const [promoteTarget, setPromoteTarget] = useState<{ key: string; value: string } | null>(null);
   const [editEntries, setEditEntries] = useState<Array<{ key: string; value: string }>>([]);
-
-  useEffect(() => {
+  const [seededFrom, setSeededFrom] = useState<{ envVars: typeof envVars; editing: boolean | undefined }>({
+    envVars: undefined,
+    editing: false,
+  });
+  if (seededFrom.envVars !== envVars || seededFrom.editing !== editing) {
+    setSeededFrom({ envVars, editing });
     if (envVars && editing) {
-      const sorted = Object.entries(envVars)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => ({ key, value }));
-      setEditEntries(sorted);
+      setEditEntries(
+        Object.entries(envVars)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, value]) => ({ key, value })),
+      );
     }
-  }, [envVars, editing]);
+  }
 
   const handleSave = useCallback(() => {
     const vars: Record<string, string> = {};
@@ -64,33 +85,22 @@ export function EnvironmentTab({ stackName, editing, readOnly = false }: Environ
 
   if (editing && !readOnly) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">{t('detail.envVars')}</h3>
-          <Button size="sm" onClick={handleSave} disabled={updateEnvVars.isPending}>
-            <IconDeviceFloppy className="mr-1 size-3.5" />
-            {updateEnvVars.isPending ? t('editStack.saving') : t('editStack.saveStack')}
-          </Button>
-        </div>
-        <KeyValueEditor
-          entries={editEntries}
-          onChange={setEditEntries}
-          keyLabel={t('detail.key')}
-          valueLabel={t('detail.value')}
-          addLabel={t('detail.key')}
-        />
-      </div>
+      <EnvironmentTabEditor
+        entries={editEntries}
+        onEntriesChange={setEditEntries}
+        onSave={handleSave}
+        saving={updateEnvVars.isPending}
+        secretFileMode={stack?.secretFileMode ?? false}
+        secretFileModeDisabled={!stack || updateStack.isPending}
+        onSecretFileModeChange={(secretFileMode) => updateStack.mutate({ name: stackName, secretFileMode })}
+      />
     );
   }
 
   const entries = Object.entries(envVars ?? {}).sort(([a], [b]) => a.localeCompare(b));
 
   if (entries.length === 0) {
-    return (
-      <div className="py-12 text-center text-sm text-muted-foreground">
-        {t('detail.noEnvVars')}
-      </div>
-    );
+    return <div className="py-12 text-center text-sm text-muted-foreground">{t('detail.noEnvVars')}</div>;
   }
 
   return (
@@ -98,49 +108,50 @@ export function EnvironmentTab({ stackName, editing, readOnly = false }: Environ
       <table className="w-full text-sm">
         <thead className="bg-muted">
           <tr className="border-b border-border bg-muted/50">
-            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
-              {t('detail.key')}
+            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('detail.key')}</th>
+            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('detail.value')}</th>
+            <th className="w-12 px-2 py-2.5">
+              <span className="sr-only">{t('columns.actions')}</span>
             </th>
-            <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
-              {t('detail.value')}
-            </th>
-            <th className="w-12 px-2 py-2.5" />
           </tr>
         </thead>
         <tbody>
-          {entries.map(([key, value]) => {
-            const visible = visibleKeys.has(key);
-            return (
-              <tr key={key} className="border-b border-border last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-2.5 font-mono text-xs">{key}</td>
-                <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
-                  {visible ? value : '••••••••'}
-                </td>
-                <td className="px-2 py-2.5">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => toggleVisibility(key)}
-                      >
-                        {visible ? (
-                          <IconEyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                        ) : (
-                          <IconEye className="h-3.5 w-3.5 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {visible ? t('detail.hideValue') : t('detail.showValue')}
-                    </TooltipContent>
-                  </Tooltip>
-                </td>
-              </tr>
-            );
-          })}
+          {entries.map(([key, value]) => (
+            <EnvironmentVarRow
+              key={key}
+              envKey={key}
+              maskedValue={value}
+              revealedValue={revealedVars?.[key]}
+              visible={visibleKeys.has(key)}
+              onToggleVisibility={toggleVisibility}
+              onPromote={(promoteKey, promoteValue) => setPromoteTarget({ key: promoteKey, value: promoteValue })}
+            />
+          ))}
         </tbody>
       </table>
+
+      {promoteTarget && (
+        <PromoteToSecretDialog
+          open
+          onOpenChange={(next) => !next && setPromoteTarget(null)}
+          envKey={promoteTarget.key}
+          value={promoteTarget.value}
+          stackName={stackName}
+          onPromoted={(reference) => {
+            // Write the reference straight back so the editor shows what the
+            // deploy will actually resolve.
+            updateEnvVars.mutate({
+              name: stackName,
+              envVars: Object.fromEntries(
+                entries.map(([entryKey, entryValue]) =>
+                  entryKey === promoteTarget.key ? [entryKey, reference] : [entryKey, entryValue],
+                ),
+              ),
+            });
+            setPromoteTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }

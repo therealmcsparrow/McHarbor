@@ -1,0 +1,44 @@
+{
+    "slug":  "emulatorjs",
+    "name":  "EmulatorJS",
+    "description":  "Browser-based retro game emulator front end for a self-hosted ROM library.",
+    "category":  "Gaming",
+    "image":  "lscr.io/linuxserver/emulatorjs:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/emulatorjs.png",
+    "website":  "https://emulatorjs.org",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-emulatorjs/",
+    "ports":  [
+                  {
+                      "host":  8092,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/emulatorjs/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/emulatorjs/roms",
+                        "container":  "/data/roms"
+                    },
+                    {
+                        "host":  "/opt/appdata/emulatorjs/bios",
+                        "container":  "/data/bios"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

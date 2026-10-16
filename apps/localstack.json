@@ -1,0 +1,45 @@
+{
+    "slug":  "localstack",
+    "name":  "LocalStack",
+    "description":  "Local emulator for AWS cloud services, used to develop and test cloud applications offline.",
+    "category":  "Utilities",
+    "image":  "localstack/localstack:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.localstack.cloud\u0026sz=128",
+    "website":  "https://www.localstack.cloud",
+    "docsUrl":  "https://docs.localstack.cloud/getting-started/installation/#docker",
+    "ports":  [
+                  {
+                      "host":  4566,
+                      "container":  4566,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/localstack/data",
+                        "container":  "/var/lib/localstack"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVICES",
+                        "default":  "s3,sqs,sns,dynamodb,lambda",
+                        "description":  "Comma-separated list of AWS services to emulate"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

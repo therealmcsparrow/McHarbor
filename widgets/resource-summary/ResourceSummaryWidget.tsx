@@ -50,9 +50,7 @@ export default function ResourceSummaryWidget({ typeId }: { colSpan: number; typ
   if (!cfg) return null;
   const Icon = cfg.icon;
 
-  const description = cfg.getDescriptionKey
-    ? t(cfg.getDescriptionKey, cfg.getDescriptionParams?.(stats))
-    : undefined;
+  const description = cfg.getDescriptionKey ? t(cfg.getDescriptionKey, cfg.getDescriptionParams?.(stats)) : undefined;
 
   return (
     <StatCard

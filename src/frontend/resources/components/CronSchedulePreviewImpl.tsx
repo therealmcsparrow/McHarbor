@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CronExpressionParser } from 'cron-parser';
-import { normalizeTimezone } from '@modules/environments/timezones';
+import { normalizeTimezone } from '@resources/utils/timezones';
 
 type CronSchedulePreviewProps = {
   expression: string;
@@ -94,11 +94,12 @@ function describeSchedule(expression: string, t: ReturnType<typeof useTranslatio
   return t('workflows.summaryCustom');
 }
 
-export function CronSchedulePreviewImpl({
-  expression,
-  timezone,
-  className,
-}: CronSchedulePreviewProps) {
+// The preview is anchored to the moment the expression is evaluated, not to mount time.
+function previewStart(): Date {
+  return new Date();
+}
+
+export function CronSchedulePreviewImpl({ expression, timezone, className }: CronSchedulePreviewProps) {
   const { t } = useTranslation('common');
 
   const preview = useMemo(() => {
@@ -107,7 +108,7 @@ export function CronSchedulePreviewImpl({
 
     try {
       const parsed = CronExpressionParser.parse(trimmed, {
-        currentDate: new Date(),
+        currentDate: previewStart(),
         tz: resolvedTimezone,
       });
 
@@ -136,7 +137,7 @@ export function CronSchedulePreviewImpl({
   return (
     <div className={className ?? 'mt-2 rounded-md border border-border/60 bg-muted/30 p-2'}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        <p className="text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
           {t('workflows.nextRuns')}
         </p>
         <p className="text-[10px] text-muted-foreground">
@@ -149,11 +150,11 @@ export function CronSchedulePreviewImpl({
       ) : (
         <div className="mt-1 space-y-1">
           {preview.summary && (
-            <p className="text-xs text-muted-foreground">{t('workflows.scheduleSummary', { summary: preview.summary })}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('workflows.scheduleSummary', { summary: preview.summary })}
+            </p>
           )}
-          {preview.dstWarning && (
-            <p className="text-xs text-amber-500">{preview.dstWarning}</p>
-          )}
+          {preview.dstWarning && <p className="text-xs text-warning">{preview.dstWarning}</p>}
           {preview.runs.map((run) => (
             <div key={run} className="font-mono text-[11px] text-foreground">
               {run}

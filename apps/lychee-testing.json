@@ -1,0 +1,39 @@
+{
+    "slug":  "lychee-testing",
+    "name":  "Lychee (Testing)",
+    "description":  "Testing channel build of Lychee. Self-hosted photo-management system with a clean responsive interface.",
+    "category":  "Photos & Files",
+    "image":  "lycheeorg/lychee:testing",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lychee.png",
+    "website":  "https://lycheeorg.github.io",
+    "docsUrl":  "https://lycheeorg.github.io/docs/",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lychee-testing/config",
+                        "container":  "/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/lychee-testing/uploads",
+                        "container":  "/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "testing",
+    "latest":  {
+        "version":  "testing",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -4,9 +4,12 @@
 package containers
 
 import (
-	"github.com/docker/docker/api/types/container"
-	networkTypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/go-connections/nat"
+	"net/netip"
+
+	"github.com/moby/moby/api/types/container"
+	networkTypes "github.com/moby/moby/api/types/network"
+
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
 // CreateRequest is the JSON body for POST /containers.
@@ -16,7 +19,7 @@ type CreateRequest struct {
 	Cmd           []string                       `json:"cmd,omitempty"`
 	Env           []string                       `json:"env,omitempty"`
 	Labels        map[string]string              `json:"labels,omitempty"`
-	ExposedPorts  nat.PortSet                    `json:"exposedPorts,omitempty"`
+	ExposedPorts  networkTypes.PortSet           `json:"exposedPorts,omitempty"`
 	HostConfig    *container.HostConfig          `json:"hostConfig,omitempty"`
 	NetworkConfig *networkTypes.NetworkingConfig `json:"networkingConfig,omitempty"`
 	Volumes       map[string]struct{}            `json:"volumes,omitempty"`
@@ -27,20 +30,28 @@ type CreateRequest struct {
 	Domainname    string                         `json:"domainname,omitempty"`
 	Tty           bool                           `json:"tty,omitempty"`
 	OpenStdin     bool                           `json:"openStdin,omitempty"`
+	// SecretFileMode delivers every ${secret:NAME} this container references
+	// as a file under /run/secrets, and sets <VAR>_FILE to its path, instead
+	// of putting the value in the environment.
+	//
+	// Opt-in, and off by default: it only works with images that honour the
+	// docker-library `_FILE` convention, and an image that does not will not
+	// see the variable at all.
+	SecretFileMode bool `json:"secretFileMode,omitempty"`
 }
 
 // UpdateRequest is the JSON body for POST /containers/{id}/update.
 type UpdateRequest struct {
-	Memory            int64                    `json:"memory,omitempty"`
-	MemorySwap        int64                    `json:"memorySwap,omitempty"`
-	MemoryReservation int64                    `json:"memoryReservation,omitempty"`
-	NanoCPUs          int64                    `json:"nanoCPUs,omitempty"`
-	CPUShares         int64                    `json:"cpuShares,omitempty"`
-	CPUQuota          int64                    `json:"cpuQuota,omitempty"`
-	CPUPeriod         int64                    `json:"cpuPeriod,omitempty"`
-	CpusetCpus        string                   `json:"cpusetCpus,omitempty"`
-	CpusetMems        string                   `json:"cpusetMems,omitempty"`
-	BlkioWeight       uint16                   `json:"blkioWeight,omitempty"`
+	Memory            *int64                   `json:"memory,omitempty"`
+	MemorySwap        *int64                   `json:"memorySwap,omitempty"`
+	MemoryReservation *int64                   `json:"memoryReservation,omitempty"`
+	NanoCPUs          *int64                   `json:"nanoCPUs,omitempty"`
+	CPUShares         *int64                   `json:"cpuShares,omitempty"`
+	CPUQuota          *int64                   `json:"cpuQuota,omitempty"`
+	CPUPeriod         *int64                   `json:"cpuPeriod,omitempty"`
+	CpusetCpus        *string                  `json:"cpusetCpus,omitempty"`
+	CpusetMems        *string                  `json:"cpusetMems,omitempty"`
+	BlkioWeight       *uint16                  `json:"blkioWeight,omitempty"`
 	RestartPolicy     *container.RestartPolicy `json:"restartPolicy,omitempty"`
 	UnlockProtected   bool                     `json:"unlockProtected,omitempty"`
 }
@@ -52,19 +63,12 @@ type RenameRequest struct {
 }
 
 // PortBindingSpec describes a host binding for a container port.
-type PortBindingSpec struct {
-	HostIP   string `json:"HostIp"`
-	HostPort string `json:"HostPort"`
-}
+// Defined in core/docker so container_backups can build a recreate
+// request without importing this module.
+type PortBindingSpec = coredocker.PortBindingSpec
 
 // HealthcheckSpec mirrors a Docker healthcheck configuration.
-type HealthcheckSpec struct {
-	Test        []string `json:"test"`
-	Interval    int64    `json:"interval,omitempty"` // nanoseconds
-	Timeout     int64    `json:"timeout,omitempty"`  // nanoseconds
-	Retries     int      `json:"retries,omitempty"`
-	StartPeriod int64    `json:"startPeriod,omitempty"` // nanoseconds
-}
+type HealthcheckSpec = coredocker.HealthcheckSpec
 
 // NetworkConnectRequest is the JSON body for POST /containers/{id}/network/connect.
 type NetworkConnectRequest struct {
@@ -83,48 +87,7 @@ type NetworkDisconnectRequest struct {
 }
 
 // RecreateRequest is the JSON body for POST /containers/{id}/recreate.
-type RecreateRequest struct {
-	Image           string                       `json:"image,omitempty"`
-	PullImage       bool                         `json:"pullImage,omitempty"`
-	Env             []string                     `json:"env,omitempty"`
-	Labels          map[string]string            `json:"labels,omitempty"`
-	Cmd             []string                     `json:"cmd,omitempty"`
-	Entrypoint      []string                     `json:"entrypoint,omitempty"`
-	WorkingDir      *string                      `json:"workingDir,omitempty"`
-	Hostname        *string                      `json:"hostname,omitempty"`
-	Domainname      *string                      `json:"domainname,omitempty"`
-	User            *string                      `json:"user,omitempty"`
-	Tty             *bool                        `json:"tty,omitempty"`
-	OpenStdin       *bool                        `json:"openStdin,omitempty"`
-	StopSignal      *string                      `json:"stopSignal,omitempty"`
-	ExposedPorts    map[string]struct{}          `json:"exposedPorts,omitempty"`
-	PortBindings    map[string][]PortBindingSpec `json:"portBindings,omitempty"`
-	NetworkMode     *string                      `json:"networkMode,omitempty"`
-	Privileged      *bool                        `json:"privileged,omitempty"`
-	ReadonlyRootfs  *bool                        `json:"readonlyRootfs,omitempty"`
-	Dns             []string                     `json:"dns,omitempty"`
-	DnsSearch       []string                     `json:"dnsSearch,omitempty"`
-	DnsOptions      []string                     `json:"dnsOptions,omitempty"`
-	ExtraHosts      []string                     `json:"extraHosts,omitempty"`
-	CapAdd          []string                     `json:"capAdd,omitempty"`
-	CapDrop         []string                     `json:"capDrop,omitempty"`
-	SecurityOpt     []string                     `json:"securityOpt,omitempty"`
-	ShmSize         *int64                       `json:"shmSize,omitempty"`
-	PidMode         *string                      `json:"pidMode,omitempty"`
-	Init            *bool                        `json:"init,omitempty"`
-	AutoRemove      *bool                        `json:"autoRemove,omitempty"`
-	OomKillDisable  *bool                        `json:"oomKillDisable,omitempty"`
-	PidsLimit       *int64                       `json:"pidsLimit,omitempty"`
-	Devices         *[]container.DeviceMapping   `json:"devices,omitempty"`
-	DeviceRequests  *[]container.DeviceRequest   `json:"deviceRequests,omitempty"`
-	Memory          *int64                       `json:"memory,omitempty"`
-	NanoCPUs        *int64                       `json:"nanoCPUs,omitempty"`
-	RestartPolicy   *container.RestartPolicy     `json:"restartPolicy,omitempty"`
-	LogDriver       *string                      `json:"logDriver,omitempty"`
-	LogOptions      map[string]string            `json:"logOptions,omitempty"`
-	Healthcheck     *HealthcheckSpec             `json:"healthcheck,omitempty"`
-	UnlockProtected bool                         `json:"unlockProtected,omitempty"`
-}
+type RecreateRequest = coredocker.RecreateRequest
 
 // LogsQuery holds parsed query params for GET /containers/{id}/logs.
 type LogsQuery struct {
@@ -158,6 +121,11 @@ type ContainerSummary struct {
 	NetworkSettings *ContainerNetworkSettings `json:"NetworkSettings,omitempty"`
 	Mounts          []ContainerMountSummary   `json:"Mounts"`
 	Protected       bool                      `json:"Protected"`
+	// SelfTarget is app, helper or protected when acting on the container needs
+	// host_self.manage; HostAccess lists why a container on McHarbor's own environment
+	// reaches its host, which gates a shell or file write into it the same way.
+	SelfTarget string   `json:"SelfTarget,omitempty"`
+	HostAccess []string `json:"HostAccess,omitempty"`
 }
 
 // ContainerNetworkSettings holds network info for the list response.
@@ -228,11 +196,11 @@ type FailedNetworkRemoval struct {
 
 // RemoveExtendedResult reports which resources were removed.
 type RemoveExtendedResult struct {
-	ContainerRemoved   bool                `json:"containerRemoved"`
-	ImageRemoved       bool                `json:"imageRemoved"`
-	StackRemoved       bool                `json:"stackRemoved"`
-	NetworksRemoved    []RemovedNetwork    `json:"networksRemoved"`
-	NetworksFailed     []FailedNetworkRemoval `json:"networksFailed"`
+	ContainerRemoved bool                   `json:"containerRemoved"`
+	ImageRemoved     bool                   `json:"imageRemoved"`
+	StackRemoved     bool                   `json:"stackRemoved"`
+	NetworksRemoved  []RemovedNetwork       `json:"networksRemoved"`
+	NetworksFailed   []FailedNetworkRemoval `json:"networksFailed"`
 }
 
 // MoveContainerPlanRequest is the JSON body for POST /containers/{id}/move/plan.
@@ -412,4 +380,13 @@ type FileEntry struct {
 	IsDir      bool   `json:"isDir"`
 	ModTime    string `json:"modTime"`
 	LinkTarget string `json:"linkTarget,omitempty"`
+}
+
+// addrString renders an IP the way the Docker API used to hand it over: an unset
+// address is the empty string, never netip's "invalid IP".
+func addrString(addr netip.Addr) string {
+	if !addr.IsValid() {
+		return ""
+	}
+	return addr.String()
 }

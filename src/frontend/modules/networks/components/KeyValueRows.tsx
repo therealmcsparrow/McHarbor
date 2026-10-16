@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
+import { useStableListKeys } from '@resources/hooks/useStableListKeys';
 
 interface KeyValuePair {
   key: string;
@@ -29,10 +30,12 @@ export function KeyValueRows({
   addLabel = 'Add',
 }: KeyValueRowsProps) {
   const { t } = useTranslation('networks');
+  // Removable rows: see NetworkIPAMSection for why the index will not do.
+  const rowKeys = useStableListKeys(items);
   return (
     <div className="space-y-2">
       {items.map((item, i) => (
-        <div key={`kv-${i}`} className="flex gap-2">
+        <div key={rowKeys[i]} className="flex gap-2">
           <Input
             variant="outline"
             type="text"
@@ -61,19 +64,14 @@ export function KeyValueRows({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={t("keyValue.removeRow")}
+            aria-label={t('keyValue.removeRow')}
             onClick={() => onChange(items.filter((_, j) => j !== i))}
           >
             <IconTrash className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </div>
       ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onChange([...items, { key: '', value: '' }])}
-      >
+      <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { key: '', value: '' }])}>
         <IconPlus className="h-3.5 w-3.5" /> {addLabel}
       </Button>
     </div>

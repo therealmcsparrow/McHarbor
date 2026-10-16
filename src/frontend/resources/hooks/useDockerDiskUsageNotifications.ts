@@ -87,13 +87,10 @@ function resolveDiskCapacity(info: DockerSystemInfo | undefined, usedBytes: numb
 
 export function useDockerDiskUsageNotifications() {
   const { t } = useTranslation('environments');
-  const {
-    currentId,
-    currentEnvironment,
-    dockerDiskUsageNotificationsEnabled,
-    dockerDiskUsageThresholdPercent,
-  } = useCurrentEnvironmentActivitySettings();
-  const isDockerEnvironment = currentEnvironment?.orchestratorType === 'docker';
+  const { currentId, currentEnvironment, dockerDiskUsageNotificationsEnabled, dockerDiskUsageThresholdPercent } =
+    useCurrentEnvironmentActivitySettings();
+  // Every environment is a Docker host since Kubernetes moved to a plugin.
+  const isDockerEnvironment = currentEnvironment !== undefined;
   const { data: hostMetrics } = useHostMetrics();
   const { data: dockerInfo } = useDockerInfo(Boolean(currentId && isDockerEnvironment));
   const alertedRef = useRef<Record<string, boolean>>({});
@@ -125,16 +122,13 @@ export function useDockerDiskUsageNotifications() {
     const hasAlerted = alertedRef.current[currentId] ?? false;
 
     if (isThresholdExceeded && !hasAlerted) {
-      toast.warning(
-        t('detail.activity.diskUsageExceededTitle', { name: currentEnvironment.name }),
-        {
-          description: t('detail.activity.diskUsageExceededDescription', {
-            percent: usagePercent.toFixed(1),
-            threshold: dockerDiskUsageThresholdPercent,
-            total: formatBytes(hostMetrics?.disk.total ?? 0),
-          }),
-        }
-      );
+      toast.warning(t('detail.activity.diskUsageExceededTitle', { name: currentEnvironment.name }), {
+        description: t('detail.activity.diskUsageExceededDescription', {
+          percent: usagePercent.toFixed(1),
+          threshold: dockerDiskUsageThresholdPercent,
+          total: formatBytes(hostMetrics?.disk.total ?? 0),
+        }),
+      });
       alertedRef.current[currentId] = true;
       return;
     }

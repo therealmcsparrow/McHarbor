@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Google Drive Backup Destinations",
+    "subtitle": "Back up containers to a Google Drive location. The plugin handles OAuth consent, resumable upload (so backups of any size are supported), Download, Delete, and List at backup time via the Drive API v3.",
+    "registerHint": "Install the storage-google-drive plugin from the App Store, then add a destination from the host's Storage Locations page and pick \"Google Drive\" as the type."
+  },
+  "fields": {
+    "clientId":     "OAuth client ID (Google Cloud console)",
+    "clientSecret": "OAuth client secret (Google Cloud console)",
+    "refreshToken": "Refresh token (delivered by the OAuth consent flow)",
+    "folderId":     "Drive folder ID (leave empty to use My Drive root)"
+  },
+  "help": {
+    "clientId":     "From Google Cloud console → APIs & Services → Credentials. Create an OAuth client of type \"Web application\" with the redirect URI set to your McHarbor host's /api/storage-locations/oauth/callback.",
+    "clientSecret": "From the same OAuth client. Stored encrypted at rest by the host's AES-256-GCM service.",
+    "refreshToken": "After saving the destination, click \"Save and connect\" to complete the Google consent flow and store a long-lived refresh token.",
+    "folderId":     "Optional. The tail end of a Drive folder URL after /folders/. Leave empty to upload into My Drive root."
+  },
+  "toast": {
+    "registered": "Google Drive plugin registered.",
+    "testPassed": "Google Drive connection test passed.",
+    "testFailed": "Google Drive connection test failed: {{error}}"
+  },
+  "error": {
+    "noClientId":     "OAuth client ID is required.",
+    "noClientSecret": "OAuth client secret is required.",
+    "noRefreshToken": "Refresh token is required. Run \"Save and connect\" first."
+  },
+  "form": {
+    "introTitle": "Google account consent",
+    "introBody": "Save this location, then use Connect to grant account consent. McHarbor stores the returned refresh token encrypted.",
+    "clientId": {
+      "label": "OAuth Client ID",
+      "help": "Application (client) ID from the Google Cloud console → APIs & Services → Credentials. The OAuth client must be of type \"Web application\" with the redirect URI set to your McHarbor host's /api/storage-locations/oauth/callback."
+    },
+    "clientSecret": {
+      "label": "OAuth Client Secret",
+      "help": "Client secret from the same OAuth client. Stored encrypted at rest by the host's AES-256-GCM service."
+    },
+    "basePath": {
+      "label": "Drive Folder ID",
+      "help": "Optional. ID of the Drive folder where backups should land. Leave blank to use the Drive root. From drive.google.com → open the folder → copy the ID from the URL after /folders/."
+    }
+  },
+  "setup": {
+    "title": "Google Drive setup guide",
+    "steps": {
+      "enableApi": "In the Google Cloud console, open <b>APIs & Services → Library</b>, search for <b>Google Drive API</b>, and enable it for your project.",
+      "createClient": "Open <b>APIs & Services → Credentials → Create credentials → OAuth client ID</b>. Choose <b>Web application</b> as the application type and add your McHarbor host's <code>/api/storage-locations/oauth/callback</code> URL to the authorized redirect URIs.",
+      "copyCredentials": "Copy the OAuth client's <b>Client ID</b> and <b>Client Secret</b> into the form on the left.",
+      "folderId": "Optionally enter a Drive folder ID to pin uploads to a specific folder. Leave blank to use My Drive root.",
+      "connect": "Click <b>Save and connect</b> (or <b>Connect</b> on the storage card). Google will ask you to sign in with the account that owns the target Drive and grant the <code>drive.file</code> scope. McHarbor stores the returned refresh token encrypted and <warn>never shows it again</warn>.",
+      "test": "Click <b>Test connection</b> to round-trip a probe file in the resolved folder."
+    }
+  }
+}

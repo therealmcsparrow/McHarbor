@@ -1,6 +1,6 @@
 {
-  "label": "Range",
-  "description": "Read an array property and attach range metadata",
+  "label": "Bereik",
+  "description": "Lees een array-eigenschap en voeg bereikmetadata toe",
   "config": {
     "property": "Eigenschap"
   }

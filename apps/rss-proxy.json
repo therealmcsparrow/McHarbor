@@ -4,7 +4,7 @@
   "description": "RSS proxy server that lets you subscribe to RSS feeds behind CORS-blocked sources.",
   "category": "Dashboards",
   "image": "damoeb/rss-proxy:latest",
-  "logo": "https://raw.githubusercontent.com/damoeb/rss-proxy/master/logo.png",
+  "logo": "https://cdn.simpleicons.org/rss",
   "website": "https://github.com/damoeb/rss-proxy",
   "docsUrl": "https://github.com/damoeb/rss-proxy",
   "ports": [
@@ -22,5 +22,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

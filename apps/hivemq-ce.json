@@ -4,7 +4,7 @@
     "description":  "Enterprise-grade MQTT broker with native Kafka integration and observability features.",
     "category":  "Databases",
     "image":  "hivemq/hivemq-ce:latest",
-    "logo":  "https://icon.horse/icon/www.hivemq.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/hivemq.svg",
     "website":  "https://www.hivemq.com",
     "docsUrl":  "https://docs.hivemq.com/hivemq-ce/",
     "ports":  [
@@ -36,5 +36,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

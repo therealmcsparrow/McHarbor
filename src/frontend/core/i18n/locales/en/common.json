@@ -1,4 +1,19 @@
-﻿{
+{
+    "errorState":  {
+                       "title":  "Something went wrong",
+                       "description":  "The requested data could not be loaded.",
+                       "retry":  "Try again",
+                       "copyErrorId":  "Copy error ID",
+                       "copied":  "Copied",
+                       "errorIdLabel":  "Error ID"
+                   },
+    "degradedState":  {
+                          "title":  "Connection degraded",
+                          "description":  "Retry attempts: {{count}}. Last attempt: {{time}}.",
+                          "unknownTime":  "unknown",
+                          "chipError":  "Load error",
+                          "chipDegraded":  "Degraded"
+                      },
     "nav":  {
                 "dashboard":  "Dashboard",
                 "containers":  "Containers",
@@ -11,28 +26,60 @@
                 "logging":  "Lifecycle Log",
                 "logs":  "Logs",
                 "environments":  "Environments",
-                "blueprints":  "Blueprints",
                 "git":  "Git",
                 "gitops":  "GitOps",
                 "reconciler":  "Reconciler",
+                "incidents":  "Incidents",
+                "runbooks":  "Runbooks",
                 "workflows":  "Workflows",
                 "store":  "Store",
                 "activity":  "Activity",
                 "audit":  "Audit",
                 "settings":  "Settings",
                 "notifications":  "Notifications",
-                "pods":  "Pods",
-                "deployments":  "Deployments",
-                "services":  "Services",
-                "namespaces":  "Namespaces",
+                "config":  "Config",
+                "storage":  "Storage",
+                "enterprise":  "Enterprise",
+                "enterpriseOverview":  "Overview",
+                "highAvailability":  "High availability",
+                "compliance":  "Compliance",
+                "compliancePacks":  "Compliance packs",
+                "environmentVariables":  "Environment variables",
                 "security":  "Security",
                 "docker":  "Docker",
                 "navigation":  "Navigation",
+                "more":  "More",
                 "collapseSidebar":  "Collapse sidebar",
                 "expandSidebar":  "Expand sidebar",
-                "securityScans":  "Security scans"
+                "securityScans":  "Security scans",
+                "badges":  {
+                               "containersRunning":  "{{count}} containers running",
+                               "containersDown":  "{{count}} containers stopped or paused",
+                               "images":  "{{count}} images",
+                               "volumes":  "{{count}} volumes",
+                               "networks":  "{{count}} networks",
+                               "stacks":  "{{count}} stacks",
+                               "securityScans":  "{{count}} critical or high vulnerabilities",
+                               "notifications":  "{{count}} unread notifications"
+                           },
+                "section":  {
+                                "docker":  "Docker",
+                                "plugins":  "Plugins",
+                                "operate":  "Operate",
+                                "deliver":  "Deliver",
+                                "govern":  "Govern",
+                                "enterprise":  "Enterprise"
+                            },
+                "collapseSection":  "Collapse",
+                "expandSection":  "Expand"
             },
+    "numberInput":  {
+                        "decrease":  "Decrease",
+                        "increase":  "Increase"
+                    },
     "actions":  {
+                    "enterFullscreen":  "Enter fullscreen",
+                    "exitFullscreen":  "Exit fullscreen",
                     "back":  "Back",
                     "cancel":  "Cancel",
                     "confirm":  "Confirm",
@@ -58,8 +105,23 @@
                     "saving":  "Saving...",
                     "deleting":  "Deleting...",
                     "signOut":  "Sign out",
-                    "locked":  "Locked"
+                    "locked":  "Locked",
+                    "apply":  "Apply",
+                    "clear":  "Clear",
+                    "disable":  "Disable"
                 },
+    "tabContext":  {
+                       "switchToTab":  "Switch to {{tab}}",
+                       "reloadTab":  "Reload {{tab}}",
+                       "copyLink":  "Copy tab link",
+                       "openInNewTab":  "Open tab in new tab",
+                       "copySuccess":  "Tab link copied",
+                       "copyFailed":  "Could not copy tab link"
+                   },
+    "pageSidebar":  {
+                        "label":  "Side panel",
+                        "empty":  "This side panel is empty."
+                    },
     "schedule":  {
                      "readableMode":  "Readable",
                      "advancedMode":  "Advanced",
@@ -72,7 +134,7 @@
                                    "day":  "day(s)",
                                    "week":  "week(s)",
                                    "month":  "month(s)",
-                                   "year":  "year"
+                                   "year":  "year(s)"
                                },
                      "weekdays":  {
                                       "0":  "Sunday",
@@ -125,7 +187,12 @@
     "select":  {
                    "placeholder":  "Select...",
                    "searchPlaceholder":  "Search...",
-                   "noResults":  "No results"
+                   "selectedCount_one":  "{{count}} selected",
+                   "selectedCount_other":  "{{count}} selected",
+                   "noResults":  "No results",
+                   "typeToAddPlaceholder":  "Type a value and press Enter...",
+                   "addCustom":  "Add “{{value}}”",
+                   "typeToAdd":  "Type a value to add it"
                },
     "header":  {
                    "allEnvironments":  "All Environments",
@@ -133,6 +200,13 @@
                    "administrator":  "Administrator",
                    "userMenu":  "Open user menu"
                },
+    "sidebar":  {
+                    "environments":  "Environments",
+                    "envDefault":  "Default",
+                    "noEnvironments":  "No environments",
+                    "envSwitcherAria":  "Switch environment (currently {{name}})",
+                    "envLabel":  "Environment"
+                },
     "notifications":  {
                           "title":  "Notifications",
                           "open":  "Open notifications",
@@ -155,50 +229,87 @@
                           "columnType":  "Type",
                           "columnStatus":  "Status",
                           "columnDate":  "Date",
+                          "columnAction":  "Action",
+                          "columnEntityId":  "Entity ID",
+                          "columnReadAt":  "Read At",
+                          "columnsGroup":  "Notification",
                           "columnActions":  "Actions",
                           "statusRead":  "Read",
                           "statusUnread":  "Unread",
+                          "searchPlaceholder":  "Search title and message",
+                          "filterAll":  "All",
+                          "allLevels":  "All levels",
                           "typeAlert":  "Alert",
                           "typeContainer":  "Container",
                           "typeSystem":  "System",
                           "level":  {
                                         "info":  "Info",
                                         "success":  "Success",
-                                        "warning":  "Warning"
+                                        "warning":  "Warning",
+                                        "error":  "Error"
                                     }
                       },
     "dataGrid":  {
-                     "search":  "Search...",
                      "noData":  "No data",
                      "loading":  "Loading...",
                      "showing":  "Showing {{from}} to {{to}} of {{total}}",
-                     "page":  "Page {{current}} of {{total}}",
                      "prev":  "Prev",
                      "next":  "Next",
-                     "selectAll":  "Select all"
+                     "selectAll":  "Select all",
+                     "selectRow":  "Select row",
+                     "rowsPerPage":  "Rows per page",
+                     "goToPage":  "Go to page",
+                     "pageOf":  "of {{total}}",
+                     "expandGroup":  "Expand {{name}}",
+                     "collapseGroup":  "Collapse {{name}}"
                  },
+    "table":  {
+                  "columns":  "Columns",
+                  "columnsLabel":  "Toggle columns",
+                  "columnsAll":  "Show all",
+                  "columnsNone":  "Hide all",
+                  "density":  "Density",
+                  "densityLabel":  "Row density",
+                  "densityCompact":  "Compact",
+                  "densityDefault":  "Default",
+                  "densityComfortable":  "Comfortable",
+                  "refresh":  "Refresh",
+                  "autoRefresh":  "Auto refresh",
+                  "autoRefreshOff":  "Off",
+                  "autoRefreshSeconds":  "{{count}}s",
+                  "export":  "Export",
+                  "exportCsv":  "Export as CSV",
+                  "exportJson":  "Export as JSON",
+                  "exportCurrentPage":  "Current page only",
+                  "activeFilters":  "Active filters",
+                  "removeFilter":  "Remove filter"
+              },
     "batch":  {
-                  "selected":  "{{count}} selected",
                   "start":  "Start",
                   "stop":  "Stop",
                   "restart":  "Restart",
                   "remove":  "Remove",
                   "markRead":  "Mark as Read",
                   "down":  "Down",
-                  "prune":  "Prune Unused",
                   "updateSelected":  "Update Selected",
                   "reinstallSelected":  "Reinstall Selected",
+                  "recreateSelected":  "Recreate Selected",
                   "confirmTitle":  "Confirm Batch Action",
                   "confirmDescription":  "Are you sure you want to {{action}} {{count}} items?",
-                  "confirmPruneDescription":  "Remove unused resources that are no longer referenced.",
-                  "clearSelection":  "Clear selection"
+                  "confirmPruneDescription":  "Remove unused resources that are no longer referenced."
               },
     "errors":  {
                    "somethingWentWrong":  "Something went wrong",
                    "unexpectedError":  "An unexpected error occurred.",
                    "reloadPage":  "Reload Page",
-                   "operationFailed":  "Operation failed"
+                   "operationFailed":  "Operation failed",
+                   "network":  "Could not reach the McHarbor server.",
+                   "nonJson":  "The server answered with HTTP {{status}} instead of an API response."
                },
+    "approvalHeld":  {
+                         "title":  "Sent for approval",
+                         "sent":  "Sent for approval. Another person must approve request {{id}} before it runs; track it under Security → Approvals."
+                     },
     "operations":  {
                        "progress":  "{{completed}} of {{total}} completed",
                        "running":  "{{action}} {{name}}",
@@ -226,7 +337,8 @@
                                    "scanUnavailable":  "Scanner settings are unavailable right now.",
                                    "scanCached":  "Reusing cached scan results for {{image}}.",
                                    "waitingForApiRecovery":  "McHarbor is restarting. Waiting for the API to come back online...",
-                                   "apiRecoveryTimeout":  "McHarbor did not come back online after restarting."
+                                   "apiRecoveryTimeout":  "McHarbor did not come back online after restarting.",
+                                   "systemItem":  "system"
                                },
                        "itemStatus":  {
                                           "pending":  "Pending",
@@ -239,15 +351,19 @@
                                             "running":  "Operation in progress",
                                             "success":  "Completed successfully",
                                             "error":  "Operation failed"
-                                        }
+                                        },
+                       "itemProgress":  "{{done}} of {{total}}"
                    },
-    "commandPalette":  {
-                           "placeholder":  "Type a command or search...",
-                           "noResults":  "No results found."
-                       },
     "globalSearch":  {
+                         "title":  "Global search",
+                         "description":  "Search commands and resources across all environments.",
+                         "actions":  "Actions ({{count}})",
+                         "jumps":  "Page links ({{count}})",
+                         "commands":  "Commands ({{count}})",
                          "placeholder":  "Search everything...",
                          "noResults":  "No results found.",
+                         "searchIn":  "Search in pages",
+                         "searchInPage":  "Search in {{page}}",
                          "navigate":  "Navigate",
                          "open":  "Open",
                          "close":  "Close",
@@ -255,7 +371,10 @@
                          "images":  "Images ({{count}})",
                          "volumes":  "Volumes ({{count}})",
                          "networks":  "Networks ({{count}})",
-                         "stacks":  "Stacks ({{count}})"
+                         "stacks":  "Stacks ({{count}})",
+                         "pluginGroup":  "{{label}} ({{count}})",
+                         "sourcesUnavailable_one":  "{{count}} search source is unavailable, so its results are missing.",
+                         "sourcesUnavailable_other":  "{{count}} search sources are unavailable, so their results are missing."
                      },
     "filters":  {
                     "modeContains":  "Contains",
@@ -264,10 +383,11 @@
                     "savedFilters":  "Saved filters",
                     "saveFilter":  "Save filter",
                     "deleteFilter":  "Delete filter",
-                    "savePrompt":  "Name this filter",
                     "invalidRegex":  "Invalid regular expression",
                     "matchCount":  "{{count}} matches",
-                    "noMatches":  "No items match the current filter."
+                    "noMatches":  "No items match the current filter.",
+                    "facets":  "Filters",
+                    "clear":  "Clear filters"
                 },
     "containerOverview":  {
                               "total":  "{{count}} containers",
@@ -275,7 +395,8 @@
                               "environments":  "{{count}} environments",
                               "navigate":  "Navigate",
                               "open":  "Open",
-                              "close":  "Close"
+                              "close":  "Close",
+                              "emptyMessage":  "No containers match your search."
                           },
     "imageOverview":  {
                           "total":  "{{count}} images",
@@ -317,21 +438,21 @@
                                        "error":  "Error"
                                    },
                       "state":  {
-                                    "running":  "running",
-                                    "stopped":  "stopped",
-                                    "paused":  "paused",
-                                    "created":  "created",
-                                    "restarting":  "restarting",
-                                    "removed":  "removed",
-                                    "exited":  "exited",
-                                    "available":  "available",
+                                    "running":  "Running",
+                                    "stopped":  "Stopped",
+                                    "paused":  "Paused",
+                                    "created":  "Created",
+                                    "restarting":  "Restarting",
+                                    "removed":  "Removed",
+                                    "exited":  "Exited",
+                                    "available":  "Available",
                                     "in_use":  "in use",
-                                    "dangling":  "dangling",
-                                    "tagged":  "tagged",
-                                    "active":  "active",
-                                    "up":  "up",
+                                    "dangling":  "Dangling",
+                                    "tagged":  "Tagged",
+                                    "active":  "Active",
+                                    "up":  "Up",
                                     "partial":  "partially up",
-                                    "errored":  "errored"
+                                    "errored":  "Errored"
                                 },
                       "action":  {
                                      "start":  "started",
@@ -354,7 +475,7 @@
                                      "connect":  "connected",
                                      "disconnect":  "disconnected",
                                      "oom":  "killed (OOM)",
-                                     "failed":  "failed",
+                                     "failed":  "Failed",
                                      "error":  "errored"
                                  },
                       "headerSubject":  "Subject",
@@ -385,7 +506,25 @@
                  "oldestFirst":  "Oldest first",
                  "selectContainerPrompt":  "Select a container to view logs",
                  "export":  "Export",
-                 "searchPlaceholder":  "Filter log lines..."
+                 "searchPlaceholder":  "Filter log lines...",
+                 "filterPlaceholder":  "Filter logs...",
+                 "filterLabel":  "Filter log records",
+                 "regex":  "Regex",
+                 "level":  "Log level",
+                 "levelAll":  "All levels",
+                 "levelDebug":  "Debug",
+                 "levelInfo":  "Info",
+                 "levelWarn":  "Warning",
+                 "levelError":  "Error",
+                 "timeRange":  "Time range",
+                 "allTime":  "All time",
+                 "last5Minutes":  "Last 5 min",
+                 "last15Minutes":  "Last 15 min",
+                 "lastHour":  "Last hour",
+                 "live":  "Live",
+                 "invalidRegex":  "Enter a valid regular expression.",
+                 "visibleLineCount":  "Showing {{count}} log records",
+                 "noMatchingLines":  "No matching log lines."
              },
     "activity":  {
                      "title":  "Activity",
@@ -398,6 +537,10 @@
                      "columnContainer":  "Container",
                      "columnImage":  "Image",
                      "columnExitCode":  "Exit",
+                     "columnEventType":  "Event Type",
+                     "columnContainerId":  "Container ID",
+                     "columnCreatedAt":  "Created At",
+                     "columnsGroup":  "Event",
                      "columnActions":  "Actions",
                      "viewDetails":  "View Details",
                      "detailsTitle":  "Event Details",
@@ -409,27 +552,104 @@
                      "detailContainer":  "Container",
                      "detailImage":  "Image",
                      "detailExitCode":  "Exit Code",
-                     "attributes":  "Attributes"
+                     "attributes":  "Attributes",
+                     "filters":  {
+                                     "environment":  "Environment",
+                                     "action":  "Action",
+                                     "severity":  "Severity",
+                                     "all":  "All",
+                                     "clear":  "Clear filters"
+                                 }
                  },
     "audit":  {
                   "title":  "Audit Log",
                   "description":  "Track all user actions and system events",
                   "columnTimestamp":  "Timestamp",
+                  "columnSeverity":  "Severity",
                   "columnUser":  "User",
                   "columnAction":  "Action",
                   "columnEntity":  "Entity",
+                  "columnEntityId":  "Entity ID",
+                  "columnEntityName":  "Entity Name",
                   "columnEnvironment":  "Environment",
                   "columnIpAddress":  "IP Address",
+                  "columnApiKey":  "API key",
+                  "viaApiKey":  "via API key {{name}}",
                   "columnDetails":  "Details",
+                  "columnUserId":  "User ID",
+                  "columnEntityType":  "Entity Type",
+                  "columnCreatedAt":  "Created At",
+                  "columnsGroupActor":  "Actor",
+                  "columnsGroupEntity":  "Entity",
+                  "columnsGroupGeneral":  "General",
+                  "columnActions":  "Actions",
                   "searchPlaceholder":  "Search audit logs...",
                   "noEntries":  "No audit log entries recorded yet.",
+                  "noAccessEntries":  "No audit access entries recorded yet.",
+                  "eventsTab":  "Events",
+                  "accessLogTab":  "Access Log",
+                  "overviewTab":  "Overview",
                   "filterAction":  "Action",
                   "filterEntityType":  "Entity Type",
                   "allActions":  "All Actions",
                   "allEntityTypes":  "All Types",
+                  "allModules":  "All modules",
+                  "filterModule":  "Module",
+                  "actionBrowserTitle":  "Browse actions",
+                  "actionBrowserDescription":  "Select one or more canonical audit actions to filter the event log.",
+                  "selectedActions":  "{{count}} actions",
+                  "clearActions":  "Clear actions",
+                  "applyActions":  "Apply actions",
+                  "noCatalogActions":  "No catalogued audit actions found.",
+                  "searchActions":  "Search actions",
+                  "noMatchingActions":  "No actions match your search.",
+                  "pluginEventsTitle":  "Plugin events",
+                  "noPluginEvents":  "No plugin audit events recorded yet.",
+                  "pluginLastSeen":  "Last seen: {{time}}",
+                  "coverageTitle":  "Coverage",
+                  "coverageExport":  "Export JSON",
+                  "coverageCovered":  "Covered",
+                  "coverageNeedsWork":  "Needs work",
+                  "coverageRequired":  "Required",
+                  "coverageMapped":  "Mapped",
+                  "coverageEvents":  "Events",
+                  "coverageDescription":  "Mapped routes use canonical actions; fallback middleware covers mutating routes without handler-level audit rows.",
+                  "coverageLoading":  "Loading coverage...",
                   "detailsTitle":  "Audit Entry Details",
                   "viewDetails":  "View Details",
-                  "local":  "Local"
+                  "local":  "Local",
+                  "exportTitle":  "Signed Audit Export",
+                  "exportDescription":  "Download the current audit filters as JSON, JSONL, or CSV with checksum and signature metadata.",
+                  "exportButton":  "Export audit log",
+                  "exportMetadata":  "The response includes X-McHarbor checksum and signature headers; each export embeds a manifest with the same signature metadata.",
+                  "exportSuccess":  "Audit export downloaded",
+                  "exportFailed":  "Audit export failed",
+                  "diffTitle":  "State diff",
+                  "diffNoKeys":  "No changed keys recorded",
+                  "stateBefore":  "Before",
+                  "stateAfter":  "After",
+                  "severity":  {
+                                   "info":  "Info",
+                                   "success":  "Success",
+                                   "warning":  "Warning",
+                                   "error":  "Error"
+                               },
+                  "coverage":  {
+                                   "loading":  "Checking audit coverage...",
+                                   "title":  "Audit coverage",
+                                   "description":  "How much of the route surface that must be audited actually maps to an audit action.",
+                                   "percent":  "{{percent}}% covered",
+                                   "required":  "Routes requiring audit",
+                                   "mapped":  "Mapped to an action",
+                                   "unmapped":  "Unmapped",
+                                   "pluginsTitle":  "Plugin activity",
+                                   "eventCount":  "{{count}} events",
+                                   "uninstalled":  "Uninstalled",
+                                   "export":  "Export",
+                                   "lastSeen":  "Last event {{when}}"
+                               },
+                  "tabEvents":  "Events",
+                  "tabCoverage":  "Coverage"
               },
     "dateRange":  {
                       "label":  "Date range",
@@ -455,32 +675,6 @@
                       "presetLastYear":  "Last year",
                       "presetCustom":  "Custom range"
                   },
-    "blueprints":  {
-                       "title":  "Blueprints",
-                       "description":  "Deploy pre-configured application stacks",
-                       "noBlueprints":  "No blueprints available.",
-                       "noResults":  "No blueprints match your search.",
-                       "searchPlaceholder":  "Search blueprints...",
-                       "create":  "Create Blueprint",
-                       "createTitle":  "Create Blueprint",
-                       "editTitle":  "Edit Blueprint",
-                       "nameLabel":  "Name",
-                       "namePlaceholder":  "My Application",
-                       "descriptionLabel":  "Description",
-                       "descriptionPlaceholder":  "A brief description of this blueprint...",
-                       "categoryLabel":  "Category",
-                       "versionLabel":  "Version",
-                       "composeLabel":  "Docker Compose",
-                       "deployTitle":  "Deploy {{name}}",
-                       "stackNameLabel":  "Stack Name",
-                       "deploying":  "Deploying...",
-                       "mutationSuccess":  "Blueprint deployed",
-                       "createSuccess":  "Blueprint created",
-                       "updateSuccess":  "Blueprint updated",
-                       "deleteSuccess":  "Blueprint deleted",
-                       "deleteTitle":  "Delete Blueprint",
-                       "deleteConfirm":  "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
-                   },
     "git":  {
                 "title":  "Git Repositories",
                 "description":  "Manage Git-linked compose stacks",
@@ -492,6 +686,17 @@
                 "columnBranch":  "Branch",
                 "columnStatus":  "Status",
                 "columnLastSynced":  "Last Synced",
+                "columnAutoSync":  "Auto Sync",
+                "columnSyncInterval":  "Sync Interval",
+                "columnAuthType":  "Auth Type",
+                "columnCreatedAt":  "Created At",
+                "columnUpdatedAt":  "Updated At",
+                "columnEnvironment":  "Environment",
+                "columnLastDeployStatus":  "Last deploy status",
+                "columnLastDeployCommit":  "Last deploy commit",
+                "columnsGroupEnvironment":  "Environment",
+                "columnsGroupDeployment":  "Deployment",
+                "columnsGroup":  "Repository",
                 "columnActions":  "Actions",
                 "statusError":  "error",
                 "statusSynced":  "synced",
@@ -523,6 +728,14 @@
                        "columnStatus":  "Status",
                        "columnLastReconciled":  "Last Reconciled",
                        "columnDrift":  "Drift",
+                       "columnDescription":  "Description",
+                       "columnDesiredStatus":  "Desired Status",
+                       "columnRestartPolicy":  "Restart Policy",
+                       "columnCreatedAt":  "Created At",
+                       "columnUpdatedAt":  "Updated At",
+                       "columnEnvironment":  "Environment",
+                       "columnsGroup":  "State",
+                       "columnsGroupEnvironment":  "Environment",
                        "columnActions":  "Actions",
                        "never":  "Never",
                        "driftYes":  "Yes",
@@ -566,11 +779,6 @@
                       "descriptionLabel":  "Description (optional)",
                       "namePlaceholder":  "My Workflow",
                       "descriptionPlaceholder":  "What does this workflow do?",
-                      "nameRequired":  "Workflow name is required.",
-                      "nameAria":  "Workflow name",
-                      "descriptionAria":  "Workflow description",
-                      "metadataSaved":  "Workflow details saved",
-                      "metadataSaveFailed":  "Failed to save workflow details",
                       "creating":  "Creating...",
                       "deleteTitle":  "Delete Workflow",
                       "deleteDescription":  "This will permanently delete this workflow and all its data.",
@@ -587,14 +795,17 @@
                       "columnDuration":  "Duration",
                       "columnStarted":  "Started",
                       "columnError":  "Error",
+                      "columnRunId":  "Run ID",
+                      "columnFinishedAt":  "Finished At",
+                      "columnsGroupRuns":  "Run",
                       "zoomOut":  "Zoom out",
                       "zoomIn":  "Zoom in",
                       "undo":  "Undo (Ctrl+Z)",
                       "redo":  "Redo (Ctrl+Y)",
                       "saving":  "Saving...",
                       "stopExecution":  "Stop",
-                      "activeTooltip":  "Workflow is active â€” auto-triggers are enabled. Click to deactivate.",
-                      "inactiveTooltip":  "Workflow is inactive â€” auto-triggers are disabled. Click to activate.",
+                      "activeTooltip":  "Workflow is active — auto-triggers are enabled. Click to deactivate.",
+                      "inactiveTooltip":  "Workflow is inactive — auto-triggers are disabled. Click to activate.",
                       "searchNodes":  "Search nodes...",
                       "noNodesMatch":  "No nodes match your search.",
                       "showUnavailableNodes":  "Show unavailable nodes",
@@ -612,6 +823,7 @@
                       "categoryLogic":  "Logic",
                       "categoryUtility":  "Utility",
                       "categoryIntegrations":  "Integrations",
+                      "categoryPlugin":  "Plugins",
                       "selectNodeToConfigure":  "Select a node to configure it.",
                       "settingsTab":  "Settings",
                       "helpTab":  "Help",
@@ -651,9 +863,9 @@
                       "helpZoomInOut":  "Zoom in / out",
                       "helpExpressionVariables":  "Expression Variables",
                       "helpExpressionVariablesDesc":  "Use dot-notation paths to reference data in the msg object passed between nodes.",
-                      "helpMsgPayload":  "Main data container â€” nodes read and write this field",
+                      "helpMsgPayload":  "Main data container — nodes read and write this field",
                       "helpMsgTopic":  "Routing key set by the trigger (e.g. manual-trigger, webhook, schedule)",
-                      "helpMsgId":  "Unique message ID â€” auto-generated at flow start, preserved through the chain",
+                      "helpMsgId":  "Unique message ID — auto-generated at flow start, preserved through the chain",
                       "helpFlowVars":  "Flow-scoped variables (shared within a single execution)",
                       "helpGlobalVars":  "Global-scoped variables (shared across executions)",
                       "inputPorts":  "Input Ports",
@@ -665,7 +877,7 @@
                       "noOutputs":  "This node does not expose downstream outputs.",
                       "noConfig":  "No config",
                       "dragHint":  "Drag nodes from the palette to get started",
-                      "dragHintSub":  "Shift + drag to pan Â· Scroll to zoom",
+                      "dragHintSub":  "Shift + drag to pan · Scroll to zoom",
                       "groupName":  "Group Name",
                       "editGroup":  "Edit Group",
                       "groupNameLabel":  "Name",
@@ -726,10 +938,13 @@
                       "noExtraConditions":  "No extra conditions. Two default outputs: Yes / No.",
                       "removeCondition":  "Remove condition",
                       "field":  "Field",
+                      "operator":  "Operator",
+                      "metric":  "Metric",
                       "value":  "Value",
                       "selectPlaceholder":  "Select...",
                       "operatorContains":  "Contains",
                       "operatorStartsWith":  "Starts with",
+                      "operatorRegex":  "Matches regex",
                       "operatorIsEmpty":  "Is Empty",
                       "operatorIsNotEmpty":  "Is Not Empty",
                       "switchCases":  "Cases",
@@ -761,6 +976,9 @@
                       "mutationExportFailed":  "Workflow export failed",
                       "mutationImported":  "Workflow imported",
                       "mutationImportFailed":  "Workflow import failed",
+                      "selfHostRefusedTitle":  "Save refused",
+                      "selfHostAuthorized":  "Self-host authorized",
+                      "selfHostAuthorizedHint":  "Last saved by someone holding host_self.manage, so its nodes may act on McHarbor's own containers, stacks and host.",
                       "export":  "Export",
                       "defaultTransport":  "Default transport",
                       "useDefaultCommunicationChannel":  "Use default communication channel",
@@ -772,11 +990,49 @@
                       "noCommunicationChannelsFound":  "No communication channels found",
                       "noEmailServersFound":  "No email servers found",
                       "noStorageLocationsFound":  "No storage locations found",
+                      "selectStack":  "Select stack...",
+                      "noStacksFound":  "No stacks found",
+                      "selectImage":  "Select image...",
+                      "noImagesFound":  "No images found",
+                      "selectVolume":  "Select volume...",
+                      "noVolumesFound":  "No volumes found",
+                      "pluginSelectPlaceholder":  "Select...",
+                      "pluginSelectEmpty":  "Nothing to select",
+                      "pluginSelectUnavailable":  "The plugin that provides this list is not installed or not enabled.",
+                      "scannerSelectPlaceholder":  "Select scanner...",
+                      "scannerSelectDefault":  "Use the default scanner",
+                      "scannerSelectUnavailable":  "No scanner plugin is installed and configured. Add one under Security → Scanners.",
+                      "emailChannelUnavailable":  "No installed communication plugin can send email.",
+                      "useDefaultEmailChannel":  "Use the default email channel",
+                      "selectNetwork":  "Select network...",
+                      "noNetworksFound":  "No networks found",
+                      "selectBackupPlan":  "Select backup plan...",
+                      "noBackupPlansFound":  "No backup plans found",
+                      "selectBackupRun":  "Select backup run...",
+                      "noBackupRunsFound":  "No backup runs found",
+                      "selectEnvironmentFirst":  "Select an environment first",
+                      "useCustomValue":  "Enter a custom value...",
+                      "pickFromList":  "Pick",
+                      "services":  "services",
+                      "loadingOptions":  "Loading...",
+                      "protectedBadge":  "Protected",
+                      "builtInBadge":  "Built-in",
+                      "enabledBadge":  "Enabled",
+                      "disabledBadge":  "Disabled",
+                      "fieldTypeStorageLocationSelect":  "Uses a configured storage location. Leave it empty to use local workflow files.",
+                      "fieldTypeStackSelect":  "Selects a Compose stack from the chosen environment.",
+                      "fieldTypeImageSelect":  "Selects a local image from the chosen environment.",
+                      "fieldTypeVolumeSelect":  "Selects a Docker volume from the chosen environment.",
+                      "fieldTypePluginSelect":  "Selects an object from a list an installed plugin provides.",
+                      "fieldTypeScannerSelect":  "Selects one of the vulnerability scanners the installed scanner plugins provide.",
+                      "fieldTypeNetworkSelect":  "Selects a Docker network from the chosen environment.",
+                      "fieldTypeBackupPlanSelect":  "Selects a saved container backup plan from the chosen environment.",
+                      "fieldTypeBackupRunSelect":  "Selects a container backup run from the chosen environment.",
                       "resetZoom":  "Reset zoom",
                       "show":  "Show",
                       "hide":  "Hide",
-                      "showSensitiveField":  "Show sensitive field",
-                      "hideSensitiveField":  "Hide sensitive field",
+                      "showSensitiveField":  "Show {{field}}",
+                      "hideSensitiveField":  "Hide {{field}}",
                       "defaultPath":  "Default path",
                       "primarySuccessPath":  "Primary success path",
                       "errorPath":  "Error path",
@@ -812,7 +1068,30 @@
                       "fieldTypeText":  "Text",
                       "fieldTypeTextarea":  "Textarea",
                       "fieldTypeToggle":  "Toggle",
-                      "multiInputPath":  "Multi-input path"
+                      "multiInputPath":  "Multi-input path",
+                      "selectTimezone":  "Select timezone...",
+                      "selectService":  "Select service...",
+                      "noServicesFound":  "No services found",
+                      "selectStackFirst":  "Select a stack first",
+                      "selectContainerFirst":  "Select a container first",
+                      "noMountsFound":  "No mounts found",
+                      "serviceContainerCount_one":  "{{count}} container",
+                      "serviceContainerCount_other":  "{{count}} containers",
+                      "restoreItemConfig":  "Configuration",
+                      "restoreItemImage":  "Image",
+                      "restoreItemFilesystem":  "Filesystem",
+                      "restoreItemLogs":  "Logs",
+                      "fieldTypeMultiselect":  "Pick one or more values from the list.",
+                      "fieldTypeTimezoneSelect":  "Selects an IANA timezone.",
+                      "fieldTypeContainerMountMultiselect":  "Selects one or more mounts of the chosen container.",
+                      "fieldTypeBackupRestoreItemMultiselect":  "Selects which items of the chosen backup run to restore.",
+                      "fieldTypeStackServiceSelect":  "Selects a Compose service from the chosen stack.",
+                      "editDetailsTitle":  "Edit Workflow Details",
+                      "editDetailsDescription":  "Update the workflow\u0027s name and description.",
+                      "editDetailsAria":  "Edit workflow details",
+                      "noDescription":  "No description",
+                      "mutationUpdated":  "Workflow details updated",
+                      "mutationUpdateFailed":  "Failed to update workflow details"
                   },
     "store":  {
                   "title":  "Store",
@@ -820,12 +1099,15 @@
                   "tabApps":  "Apps",
                   "tabNodes":  "Nodes",
                   "tabWidgets":  "Widgets",
+                  "tabPlugins":  "Plugins",
                   "nodesDescription":  "Browse available workflow node types.",
                   "widgetsDescription":  "Browse available dashboard widget types.",
                   "noNodes":  "No node types available.",
                   "noWidgets":  "No widget types available.",
                   "builtin":  "Built-in",
                   "downloaded":  "Downloaded",
+                  "plugin":  "Plugin",
+                  "pluginNodeFrom":  "Provided by the {{plugin}} plugin.",
                   "category":  "Category",
                   "ports":  "Ports",
                   "size":  "Size",
@@ -836,17 +1118,30 @@
                   "searchNodes":  "Search nodes...",
                   "searchWidgets":  "Search widgets...",
                   "nodesCount":  "Nodes ({{count}})",
-                  "widgetsCount":  "Widgets ({{count}})"
+                  "widgetsCount":  "Widgets ({{count}})",
+                  "widgetCatalogTitle":  "Widget catalog",
+                  "widgetCatalogDescription":  "Signed widget bundles from the plugin catalog. An installed widget runs in every dashboard viewer's browser, so installing one takes its own permission.",
+                  "widgetUnsigned":  "Not signed by a trusted key",
+                  "widgetVersion":  "v{{version}}",
+                  "widgetInstallFailed":  "{{name}} could not be installed",
+                  "widgetRemoveTitle":  "Remove {{name}}",
+                  "widgetRemoveDescription":  "{{name}} is removed from the widget list and from every dashboard that shows it.",
+                  "updateAvailable":  "Update",
+                  "installedVersion":  "installed: v{{version}}",
+                  "installed":  "Installed",
+                  "viewDetails":  "View details",
+                  "details":  "Details",
+                  "updateAction":  "Update",
+                  "searchPlugins":  "Search plugins…",
+                  "emptyCategory":  "No plugins in this category yet.",
+                  "noResults":  "No plugins match your search."
               },
     "appStore":  {
-                     "title":  "Apps",
-                     "description":  "Browse and install popular Docker applications.",
                      "sync":  "Sync",
                      "searchPlaceholder":  "Search apps...",
                      "noApps":  "No apps found.",
                      "noInstalledApps":  "No installed apps found.",
                      "all":  "All",
-                     "installed":  "Installed",
                      "installedOnly":  "Installed only",
                      "install":  "Install",
                      "installedIn":  "Installed",
@@ -856,15 +1151,12 @@
                      "updated":  "Updated",
                      "owner":  "Owner",
                      "distro":  "Distro",
-                     "installed30Days":  "30 days",
-                     "installedEver":  "Ever",
                      "unknown":  "Unknown",
                      "uninstall":  "Uninstall",
                      "uninstallTitle":  "Uninstall app",
                      "uninstallDescription":  "Uninstall \"{{name}}\" from {{environment}}?",
                      "removalProgressTitle":  "Removing {{name}}",
                      "unknownEnvironment":  "Unknown environment",
-                     "stack":  "Stack",
                      "dockerImage":  "Docker Image",
                      "ports":  "Ports",
                      "volumes":  "Volumes",
@@ -916,7 +1208,6 @@
                      "envValue":  "Value",
                      "addEnvVar":  "Add variable",
                      "catalogEnvVars":  "Catalog variables",
-                     "noEnvVars":  "No environment variables for this app.",
                      "notSet":  "(not set)",
                      "reviewName":  "Name",
                      "reviewImage":  "Image",
@@ -934,18 +1225,21 @@
                      "uninstallConnectFailed":  "Failed to connect to removal stream",
                      "networkError":  "Network error during install",
                      "uninstallNetworkError":  "Network error during removal",
-                     "preparing":  "Preparing...",
                      "done":  "Done",
-                     "mutationInstalled":  "App installed",
-                     "mutationUninstalled":  "App uninstalled",
-                     "mutationSynced":  "Catalog synced"
+                     "mutationSynced":  "Catalog synced",
+                     "syncing":  "Syncing...",
+                     "loadMore":  "Load more",
+                     "showingCount":  "Showing {{shown}} of {{total}} apps"
                  },
     "about":  {
                   "menuItem":  "About"
               },
     "footer":  {
                    "documentation":  "Documentation",
-                   "cores":  "cores"
+                   "cores":  "cores",
+                   "connected":  "Connected",
+                   "disconnected":  "Disconnected",
+                   "version":  "McHarbor v{{version}}"
                },
     "customNodes":  {
                         "title":  "Custom Nodes",
@@ -981,7 +1275,9 @@
                    "no":  "No",
                    "all":  "All",
                    "resource":  "Resource",
-                   "optional":  "optional"
+                   "optional":  "optional",
+                   "actions":  "Actions",
+                   "never":  "Never"
                },
     "profile":  {
                     "menuItem":  "Profile",
@@ -1000,7 +1296,20 @@
                                                   "updated":  "Profile updated",
                                                   "updateFailed":  "Failed to update profile"
                                               },
-                                    "idpLockedDescription":  "Display name and email are managed by your identity provider."
+                                    "idpLockedDescription":  "Display name and email are managed by your identity provider.",
+                                    "password":  {
+                                                     "title":  "Change password",
+                                                     "current":  "Current password",
+                                                     "new":  "New password",
+                                                     "confirm":  "Confirm new password",
+                                                     "submit":  "Update password",
+                                                     "changeSuccess":  "Password updated",
+                                                     "changeFailed":  "Failed to update password",
+                                                     "mismatch":  "Passwords do not match",
+                                                     "short":  "Password must be at least 8 characters",
+                                                     "idpLockedDescription":  "Passwords for identity-provider accounts are managed by your IdP."
+                                                 },
+                                    "description":  "Your display name and email address as other McHarbor users see them."
                                 },
                     "preferences":  {
                                         "title":  "Preferences",
@@ -1009,7 +1318,39 @@
                                         "themeDarkDescription":  "Use the dark-first McHarbor interface.",
                                         "themeSystemDescription":  "Follow your browser or operating system setting.",
                                         "languageDescription":  "Language changes apply immediately and are saved to your user profile."
-                                    }
+                                    },
+                    "tabs":  {
+                                 "ariaLabel":  "Profile sections",
+                                 "overview":  "Overview",
+                                 "account":  "Account",
+                                 "appearance":  "Appearance",
+                                 "notifications":  "Notifications",
+                                 "security":  "Security"
+                             },
+                    "badges":  {
+                                   "local":  "Local account",
+                                   "idp":  "Identity provider",
+                                   "system":  "System account",
+                                   "mfaOn":  "2FA on",
+                                   "mfaOff":  "2FA off"
+                               },
+                    "overview":  {
+                                     "quickActions":  "Quick actions",
+                                     "quickActionsDescription":  "Jump straight to whatever this account still needs.",
+                                     "identity":  "Identity",
+                                     "accountType":  "Account type",
+                                     "preferences":  "Preferences",
+                                     "preferencesDescription":  "Change these on the Appearance tab. They are saved to your user profile and apply on every device you sign in from."
+                                 },
+                    "appearance":  {
+                                       "title":  "Appearance"
+                                   },
+                    "security":  {
+                                     "mfaTitle":  "Two-factor authentication",
+                                     "passwordDescription":  "Choose a password of at least 8 characters. You will stay signed in on this device.",
+                                     "sessionsTitle":  "Active sessions",
+                                     "sessionsDescription":  "Every device signed in to your account. Revoking a session signs that device out immediately."
+                                 }
                 },
     "system":  {
                    "menu":  {
@@ -1017,20 +1358,60 @@
                             },
                    "restartDialog":  {
                                          "title":  "Restart McHarbor?",
-                                         "description":  "McHarbor will stop and the Docker daemon will start a new container in its place. You will be disconnected and need to reload the page after it comes back online.",
-                                         "confirm":  "Restart"
+                                         "description":  "McHarbor will stop and start again. This page will track recovery and reload automatically.",
+                                         "confirm":  "Restart",
+                                         "notSupervised":  "McHarbor is not running under systemd, so nothing would start it again. Restart it on the host instead, for example with sudo systemctl restart mcharbor."
                                      },
                    "toast":  {
-                                 "restartScheduled":  "McHarbor restart scheduled"
+                                 "restartScheduled":  "McHarbor restart scheduled",
+                                 "restartFailed":  "McHarbor could not be restarted"
                              }
                },
+    "restartProgress":  {
+                            "title":  "Restarting McHarbor",
+                            "description":  "Keep this page open while McHarbor restarts.",
+                            "progressLabel":  "Restart progress",
+                            "automaticReload":  "This page will reload automatically when McHarbor is ready.",
+                            "reloadNow":  "Reload now",
+                            "phases":  {
+                                           "preparing":  {
+                                                             "title":  "Preparing restart",
+                                                             "description":  "Checking the current McHarbor process."
+                                                         },
+                                           "scheduled":  {
+                                                             "title":  "Restart scheduled",
+                                                             "description":  "The restart request was accepted."
+                                                         },
+                                           "stopping":  {
+                                                            "title":  "Stopping McHarbor",
+                                                            "description":  "Waiting for the current process to stop."
+                                                        },
+                                           "starting":  {
+                                                            "title":  "Starting McHarbor",
+                                                            "description":  "The service is offline while the new process starts."
+                                                        },
+                                           "verifying":  {
+                                                             "title":  "Verifying recovery",
+                                                             "description":  "McHarbor is responding. Confirming it is stable."
+                                                         },
+                                           "ready":  {
+                                                         "title":  "McHarbor is ready",
+                                                         "description":  "Reloading the interface with the restored connection."
+                                                     },
+                                           "error":  {
+                                                         "title":  "Restart could not be confirmed",
+                                                         "description":  "McHarbor did not return before the recovery timeout."
+                                                     }
+                                       }
+                        },
     "clipboard":  {
                       "manualCopyTitle":  "Copy manually",
                       "manualCopyDescription":  "Your browser blocks automatic clipboard writes because this page is served over plain HTTP. Use the field below to copy the value.",
-                      "manualCopyHint":  "The text is already selected â€” press Ctrl+C (Cmd+C on macOS) to copy it.",
+                      "manualCopyHint":  "The text is already selected — press Ctrl+C (Cmd+C on macOS) to copy it.",
                       "selectAndCopy":  "Select \u0026 copy",
                       "copied":  "Copied",
-                      "close":  "Close"
+                      "close":  "Close",
+                      "copy":  "Copy"
                   },
     "common":  {
                    "loading":  "Loading...",
@@ -1052,14 +1433,13 @@
                    "removeCondition":  "Remove condition"
                },
     "settings":  {
-                     "about":  {
-                                   "selfUpdate":  {
-
-                                                  }
-                               },
-                     "toast":  {
-
-                               }
+                     "plugins":  {
+                                     "openAppStore":  "Open App Store",
+                                     "openAppStoreDesc":  "Plugins are managed in the App Store. Install, update, and configure them from one place."
+                                 },
+                     "tabs":  {
+                                  "plugins":  "Plugins"
+                              }
                  },
     "updateCheck":  {
                         "banner":  {
@@ -1072,118 +1452,7 @@
                     },
     "close":  "Close",
     "remove":  "Remove",
-    "wizard":  {
-                   "welcome":  {
-                                   "title":  "Welcome to McHarbor",
-                                   "description":  "Your self-hosted container management platform",
-                                   "body1":  "Welcome to McHarbor â€” your self-hosted container management platform.",
-                                   "body2":  "This quick walkthrough will set up your first environment, install an app, and build a dashboard.",
-                                   "body3":  "Takes about 5 minutes. You can skip any step and come back later."
-                               },
-                   "environment":  {
-                                       "title":  "Add an environment",
-                                       "description":  "Connect McHarbor to a Docker host or Kubernetes cluster",
-                                       "body1":  "An environment is a Docker host or Kubernetes cluster McHarbor manages.",
-                                       "local":  "Local: use the host Docker socket (most common for homelabs).",
-                                       "agent":  "Remote agent: install mcharbor-agent on a remote host (works behind NAT).",
-                                       "kubernetes":  "Kubernetes: paste a kubeconfig or service account token.",
-                                       "cta":  "Add your first environment"
-                                   },
-                   "app":  {
-                               "title":  "Install an app",
-                               "description":  "Pick something useful from the App Store",
-                               "body1":  "The App Store has 630+ one-click apps â€” homepages, dashboards, databases, and more.",
-                               "recommended":  "Recommended for first installs: Homepage (heimdall or homepage) â€” gives you a beautiful dashboard for all your apps.",
-                               "cta":  "Browse the App Store"
-                           },
-                   "dashboard":  {
-                                     "title":  "Customize your dashboard",
-                                     "description":  "Add widgets to see what matters",
-                                     "body1":  "The dashboard shows live container, host, and resource metrics. Add widgets by drag-and-drop.",
-                                     "widget1":  "Container List â€” see what is running and where.",
-                                     "widget2":  "Host Info â€” CPU, RAM, disk, and Docker version.",
-                                     "widget3":  "Resource Summary â€” at-a-glance totals across all environments.",
-                                     "cta":  "Customize your dashboard"
-                                 },
-                   "notifications":  {
-                                         "title":  "Set up notifications (optional)",
-                                         "description":  "Get alerts when things go wrong",
-                                         "body1":  "McHarbor can alert you when containers stop, disk fills up, or images have updates. Pick a channel:",
-                                         "slack":  "Slack, Discord, Teams â€” webhook URLs",
-                                         "email":  "Email (SMTP)",
-                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
-                                         "optional":  "You can configure channels later in Settings â†’ Communications.",
-                                         "cta":  "Set up notifications (optional)"
-                                     },
-                   "finish":  {
-                                  "title":  "You\u0027re all set!",
-                                  "description":  "Welcome aboard.",
-                                  "heading":  "You\u0027re all set!",
-                                  "body1":  "McHarbor is ready to use. Press ? any time to see keyboard shortcuts, or click the help button in the top right of any page."
-                              },
-                   "step":  "Step {{current}} of {{total}}",
-                   "skip":  "Skip setup",
-                   "restart":  "Run setup again"
-               },
-    "help":  {
-                 "title":  "Help",
-                 "description":  "Find documentation and quick tips.",
-                 "open":  "Open help",
-                 "relatedLinks":  "Related links",
-                 "keyboardShortcuts":  "Keyboard shortcuts",
-                 "containers":  {
-                                    "title":  "Containers",
-                                    "description":  "Manage running, stopped, and paused containers. Start, stop, restart, and view logs. Create new containers from images or run stacks from compose files."
-                                },
-                 "images":  {
-                                "title":  "Images",
-                                "description":  "Browse local images, pull from registries, scan for vulnerabilities, and prune unused layers."
-                            },
-                 "volumes":  {
-                                 "title":  "Volumes",
-                                 "description":  "Persistent data storage. Browse, create, remove, and inspect. Bind mounts map host directories into containers."
-                             },
-                 "networks":  {
-                                  "title":  "Networks",
-                                  "description":  "Container networking. Create custom networks, attach containers, and configure DNS."
-                              },
-                 "stacks":  {
-                                "title":  "Stacks",
-                                "description":  "Multi-container deployments from a single compose file. Pull, deploy, update, and link containers to stacks."
-                            },
-                 "environments":  {
-                                      "title":  "Environments",
-                                      "description":  "Connect McHarbor to local Docker, remote agents, or Kubernetes clusters. Each environment is managed independently."
-                                  },
-                 "appstore":  {
-                                  "title":  "App Store",
-                                  "description":  "One-click install 630+ apps. Browse by category, install with a single click, manage installations from the dashboard."
-                              },
-                 "workflows":  {
-                                   "title":  "Workflows",
-                                   "description":  "Build Node-RED-style automations. Trigger on Docker events, schedules, file watches, or webhooks. Add custom JavaScript nodes for advanced logic."
-                               },
-                 "git":  {
-                             "title":  "Git Repositories",
-                             "description":  "Link git repositories for stack deployments. Configure authentication, sync intervals, and per-branch policies."
-                         },
-                 "gitops":  {
-                                "title":  "GitOps Pipelines",
-                                "description":  "Promote commits across dev, staging, and production environments. Configure stages, approval gates, and PR preview environments."
-                            },
-                 "dashboard":  {
-                                   "title":  "Dashboard",
-                                   "description":  "Live metrics for containers, hosts, and resources. Add widgets via drag-and-drop. Customize layout per environment."
-                               },
-                 "settings":  {
-                                  "title":  "Settings",
-                                  "description":  "Application settings: language, theme, notifications, backups, agents, security, and integrations."
-                              }
-             },
     "shortcut":  {
-                     "commandPalette":  "Command palette",
-                     "globalSearch":  "Global search",
-                     "closeDialog":  "Close dialog",
                      "group":  {
                                    "navigation":  "Navigation",
                                    "actions":  "Actions",
@@ -1193,10 +1462,12 @@
                      "cheatsheetDescription":  "Quickly navigate and act using your keyboard."
                  },
     "bulk":  {
+                 "selectAllMatching":  "Select all {{count}} matching",
                  "barLabel":  "Bulk actions",
                  "selected":  "{{selectedCount}} of {{totalCount}} selected",
                  "clear":  "Clear selection",
-                 "progress":  "{{done}} of {{total}} complete ({{success}} succeeded, {{failed}} failed, {{running}} running)"
+                 "progress":  "{{done}} of {{total}} complete ({{success}} succeeded, {{failed}} failed, {{running}} running)",
+                 "clearSelection":  "Clear selection"
              },
     "empty":  {
                   "noResults":  "No results found",
@@ -1208,6 +1479,116 @@
                      "description":  "A quick tour of the latest changes.",
                      "dismiss":  "Dismiss",
                      "gotIt":  "Got it",
+                     "2026_10_01":  {
+                                        "selfProtection":  {
+                                                               "title":  "Acting on McHarbor's own containers needs host_self.manage",
+                                                               "description":  "Containers: on the environment McHarbor runs on, creating a container that mounts the host, joins another namespace or adds devices and capabilities, and restarting, stopping or restoring McHarbor's own containers, now also needs host_self.manage. Background runs on those containers are refused. Review roles that hold containers.manage or stacks.manage there."
+                                        },
+                                        "rbacEnvScope":  {
+                                                               "title":  "A role given on one environment no longer grants global keys",
+                                                               "description":  "Security → Users: a role assigned on one environment carries only that environment's keys, so users.manage, roles.manage, dashboard.view and the other global keys need a global assignment. Review your scoped roles."
+                                        },
+                                        "setupToken":  {
+                                                               "title":  "The installer asks for a setup token",
+                                                               "description":  "First-run installer: copy the one-time setup token into the Setup token field. The native installer prints it; otherwise read it from the McHarbor log (journalctl -u mcharbor on a native install, docker logs mcharbor in a container). It changes every time McHarbor restarts."
+                                        },
+                                        "agentReleases":  {
+                                                               "title":  "Agents update only from McHarbor",
+                                                               "description":  "Agent installs and updates now come only from this McHarbor. Download and verify agent versions under Settings → Updates → Agents and pick the target; hosts never contact GitHub or a registry. Container agents need one reinstall from McHarbor."
+                                                           },
+                                        "csp":  {
+                                                               "title":  "A Content-Security-Policy is now sent",
+                                                               "description":  "McHarbor now sends a Content-Security-Policy. If a third-party plugin misbehaves, set CONTENT_SECURITY_POLICY_REPORT_ONLY=true and check the browser console before relaxing it."
+                                                           },
+                                        "unsignedPlugins":  {
+                                                               "title":  "Unsigned plugins need your explicit consent",
+                                                               "description":  "Installing or updating a plugin that no trusted key verifies now needs an explicit confirmation, and the server enforces it. Unsigned installs carry an Unsigned badge under App Store → Plugins."
+                                                           },
+                                        "gitopsWebhookSecret":  {
+                                                               "title":  "GitOps webhooks now need a secret",
+                                                               "description":  "A pull-request webhook was accepting unauthenticated requests: its signature check never ran. It now verifies an HMAC over the raw body against a per-repository secret, and a repository with no secret is refused. Generate one under GitOps → Repositories and set it on the forge, or deliveries return 401."
+                                                           },
+                                        "instanceBackup":  {
+                                                               "title":  "Instance backup and restore",
+                                                               "description":  "Settings → System → Instance backup exports this whole instance into one encrypted file — roles, environments, secrets, the certificate authority your agents trust — on a schedule, to a storage location, with a restore rehearsal after each one. Restore it after losing the host, onto new hardware or another database, or restore just one category."
+                                                           },
+                                        "incidents":  {
+                                                               "title":  "Incidents and AI narration",
+                                                               "description":  "Incidents gathers a failing container\u0027s events, logs, deploys, audit trail, alerts and metrics on one screen, and the Virtual Machines, System Containers, Kubernetes and Swarm plugins now raise their own; turn on narration per environment under Incidents \u2192 Narration settings to have your AI model explain it, with the evidence for each cause."
+                                                           },
+                                        "reports":  {
+                                                               "title":  "Sixteen more reports",
+                                                               "description":  "Reporting \u2192 Report Studio now covers incidents, drift, instance disaster recovery, high availability, ITSM tickets, approvals, secrets, workflows, webhooks and compliance, and the VM, system container, compute and log-forwarding plugins add reports on their own data."
+                                                           },
+                                        "ha":  {
+                                                               "title":  "Active/passive high availability",
+                                                               "description":  "Run two nodes on PostgreSQL with one active; see every node and hand over or drain under Enterprise \u2192 High availability."
+                                                           },
+                                        "secrets":  {
+                                                        "title":  "Secrets vault",
+                                                        "description":  "Store a credential once under Security → Secrets and reference it as ${secret:NAME} from a stack, a container or a workflow. McHarbor substitutes it server-side when it calls Docker, and file mode keeps the value out of the container environment entirely."
+                                                    },
+                                        "credentialsAtRest":  {
+                                                        "title":  "Stored credentials encrypted at rest",
+                                                        "description":  "On first boot after the upgrade, credentials saved before their column was encrypted — environment keys, agent tokens, registry and storage passwords, Kubernetes kubeconfigs — are encrypted in place. Snapshot driver secrets under Settings → Snapshots are now encrypted too and are no longer shown once saved: leave the field empty to keep the stored value."
+                                                    },
+                                        "database":  {
+                                                         "title":  "PostgreSQL, MySQL and MariaDB",
+                                                         "description":  "SQLite is still the default, but McHarbor now runs on PostgreSQL, MySQL or MariaDB as well. Settings → System → Database copies every row to the new backend and leaves the old one untouched as your rollback."
+                                                     },
+                                        "tls":  {
+                                                         "title":  "HTTPS you can actually trust",
+                                                         "description":  "McHarbor is now its own certificate authority: a ten-year root signs a 90-day certificate and renews it without a restart. Download the root from Settings → Security → HTTPS, install it once per device, and the browser warning is gone. Remote agents pin that root automatically instead of skipping verification. Connections now negotiate TLS 1.3, the preferred floor McHarbor ships with. TLS 1.2 remains the minimum supported — set TLS_MIN_VERSION=1.2 if a client older than 2019 has to reach McHarbor."
+                                                     },
+                                        "hostUpdates":  {
+                                                         "title":  "Host OS updates",
+                                                         "description": "The environment page has an Updates tab: your host's distribution and kernel, a scheduled check for outstanding operating-system updates, and an apply that streams its output into the page. New in this build: “Install new packages when required” lets an upgrade install the image and header packages a kernel update needs — without it your kernel is reported as “kept back” and never applies. It is per environment and off by default, and it never removes a package."
+                                                     },
+                                        "pluginCatalog":  {
+                                                        "title":  "Plugins come from the catalog",
+                                                        "description":  "No plugin ships inside McHarbor any more. The Plugin Store downloads them from mcharbor.eu, which cuts the container image from 3.4 GB to about 760 MB. After this upgrade your installed plugins are re-downloaded automatically; anything that could not be fetched is listed under Settings → Plugins as Needs repair, with a Repair action."
+                                                    },
+                                        "plugins":  {
+                                                        "title":  "Plugin platform",
+                                                        "description":  "Kubernetes, Swarm, storage, communications, identity, scanners, and AI providers now ship as signed plugins you install from the Plugin Store."
+                                                    },
+                                        "compute":  {
+                                                        "title":  "Virtual machines and containers",
+                                                        "description":  "Run KVM virtual machines and full-system LXC containers on your own hosts. Storage pools, host networking, verified guest images, browser consoles, snapshots and clones — with container limits that apply without a restart. Install the Virtual Machines or System Containers plugin to start."
+                                                    },
+                                        "rbac":  {
+                                                     "title":  "Role-based access control",
+                                                     "description":  "Roles, presets, per-environment and per-stack scopes, owner assignment, and temporary elevation gate every action. Denied controls stay visible and explain what is missing."
+                                                 },
+                                        "paletteSearch":  {
+                                                              "title":  "Ctrl+K searches your plugins",
+                                                              "description":  "The command palette now lists the virtual machines, system containers, Swarm services, Kubernetes pods and compute hosts that installed plugins offer, and their actions such as creating a machine or adding a cluster, for the permissions you hold."
+                                                          },
+                                        "hostIo":  {
+                                                               "title":  "Network and disk charts show live throughput",
+                                                               "description":  "Environments → an environment → Overview: Network and Disk I/O show bytes per second across the host's physical interfaces and disks, so traffic from containers, virtual machines and the host itself all counts."
+                                        },
+                                        "vmHistory":  {
+                                                               "title":  "Virtual machine charts open with the last hour",
+                                                               "description":  "Virtual Machines → a machine → Overview: CPU, memory, disk and network charts start from a stored hour of samples and keep updating, and direct (macvlan) interfaces now report their traffic."
+                                        },
+                                        "restoreUploadSelection":  {
+                                                               "title":  "Restore from file lets you choose what to restore",
+                                                               "description":  "Containers → a container → Backups → Restore from file: Read backup opens the archive first, then you pick its layers and files as for any other backup. Before, the whole archive was restored as soon as it was uploaded."
+                                        },
+                                        "vmVaultSecrets":  {
+                                                               "title":  "Take a VM's password and SSH keys from the vault",
+                                                               "description":  "Virtual Machines → Create virtual machine → First-boot setup: From the vault picks the password, and SSH keys from the vault adds keys, by secret name (needs secrets.view). The value is copied once at create; rotating the secret later does not change the machine."
+                                        },
+                                        "containerRestore":  {
+                                                               "title":  "Restore a container with its configuration",
+                                                               "description":  "Containers → a container → Backups → Restore: configuration can now be restored; the container is recreated with it, and the filesystem layer in the same restore is written into the new container. A ticked folder restores everything inside it."
+                                        },
+                                        "accessibility":  {
+                                                               "title":  "Clearer for screen readers and keyboards",
+                                                               "description":  "Status messages, option groups and progress bars are now announced by screen readers, every input is tied to its label, and a disabled button can still be focused so its tooltip tells you which permission it needs."
+                                        }
+                                    },
                      "2_0_7":  {
                                    "firstRun":  {
                                                     "title":  "First-run wizard",
@@ -1231,10 +1612,213 @@
                                             }
                                }
                  },
-    "savedSearch":  {
-                        "save":  "Save search",
-                        "saved":  "Saved",
-                        "apply":  "Apply search: {{name}}",
-                        "remove":  "Remove saved search: {{name}}"
+    "banner":  {
+                   "dock":  "Collapse to toolbar",
+                   "restore":  "Reopen"
+               },
+    "breadcrumb":  {
+                       "label":  "Breadcrumb",
+                       "switchSibling":  "Switch to another item"
+                   },
+    "mfa":  {
+                "title":  "Two-factor authentication",
+                "description":  "Require a one-time code from an authenticator app in addition to your password.",
+                "loading":  "Loading two-factor status…",
+                "enabled":  "Two-factor authentication is on",
+                "disabled":  "Two-factor authentication is off",
+                "disabledHelp":  "Your account is protected by a password only.",
+                "enable":  "Enable",
+                "disable":  "Turn off",
+                "cancel":  "Cancel",
+                "confirm":  "Verify and turn on",
+                "copy":  "Copy",
+                "copied":  "Copied",
+                "copyCodes":  "Copy all codes",
+                "enrolledAt":  "Enabled on {{date}}",
+                "lastUsedAt":  "Last used {{date}}",
+                "recoveryRemaining":  "{{count}} recovery codes left",
+                "disableTitle":  "Turn off two-factor authentication",
+                "confirmDisable":  "Turn off two-factor authentication? Your account will be protected by a password only.",
+                "step1Title":  "1. Scan this code",
+                "step1Help":  "Open your authenticator app and scan the QR code. Can’t scan? Enter the setup key by hand.",
+                "qrAlt":  "QR code for setting up two-factor authentication",
+                "manualEntry":  "Setup key",
+                "step2Title":  "2. Save your recovery codes",
+                "step2Help":  "Each code works once, and only if you lose access to your authenticator. Store them somewhere safe — they are shown only now.",
+                "step3Title":  "3. Enter the code from your app",
+                "step3Help":  "Type the six digits your authenticator is showing right now.",
+                "confirmFailed":  "That code did not match. Check the time on your device and try again.",
+                "beginFailed":  "Could not start setup. Please try again.",
+                "disableFailed":  "Could not turn off two-factor authentication. Please try again.",
+                "footerHelp":  "Losing both your authenticator and your recovery codes means losing access to this account."
+            },
+    "permission":  {
+                       "denied":  "You do not have permission to do this",
+                       "requires":  "Requires the {{permission}} permission"
+                   },
+    "accessDenied":  {
+                         "title":  "Permission required",
+                         "description":  "You do not have permission to view this section."
+                     },
+    "repeater":  {
+                     "removeRowLabel":  "Remove row"
+                 },
+    "password":  {
+                     "requirements":  {
+                                          "title":  "Password requirements",
+                                          "minLength":  "At least {{min}} characters",
+                                          "requireUpper":  "At least one uppercase letter",
+                                          "requireLower":  "At least one lowercase letter",
+                                          "requireDigit":  "At least one number",
+                                          "requireSymbol":  "At least one symbol",
+                                          "noReuse":  "Not one of your last {{history}} passwords"
+                                      },
+                     "policyNotMet":  "This password does not meet the password policy."
+                 },
+    "view":  {
+                 "label":  "View",
+                 "table":  "Table view",
+                 "timeline":  "Timeline view"
+             },
+    "placeholders":  {
+                         "networkName":  "frontend_net",
+                         "networkHostAliases":  "app, app.local",
+                         "ipv6Address":  "fd00::10",
+                         "repoName":  "my-project",
+                         "branch":  "main",
+                         "serviceName":  "my-service",
+                         "containerName":  "nginx-web",
+                         "image":  "nginx:latest"
+                     },
+    "toast":  {
+                  "error":  "Something went wrong"
+              },
+    "accessibility":  {
+                          "skipToMain":  "Skip to main content"
+                      },
+    "severity":  {
+                     "info":  "Info",
+                     "success":  "Success",
+                     "warning":  "Warning",
+                     "error":  "Error",
+                     "critical":  "Critical"
+                 },
+    "brand":  {
+                  "logoAlt":  "McHarbor"
+              },
+    "plugins":  {
+                    "addons":  "Add-ons",
+                    "tabMissing":  {
+                                       "title":  "This add-on tab has nothing to show",
+                                       "body":  "The plugin {{slug}} declares a tab called {{tab}} but its bundle exports no component for it."
+                                   },
+                    "mountFailed":  "The {{slug}} add-on could not display this."
+                },
+    "setupToken":  {
+                       "label":  "Setup token",
+                       "hint":  "Printed in the McHarbor log when it starts: journalctl -u mcharbor on a native install, docker logs mcharbor in a container. The native installer also shows it. It changes every time McHarbor restarts.",
+                       "invalid":  "The setup token is missing or out of date. Copy the current one from the McHarbor log; it changes every time McHarbor restarts."
+                   },
+    "favorites":  {
+                      "add":  "Add {{label}} to favorites",
+                      "remove":  "Remove {{label}} from favorites"
+                  },
+    "statusError":  {
+                        "title":  "Error details",
+                        "view":  "View the error",
+                        "description":  "What the server reported when this failed."
+                    },
+    "errorDetails":  {
+                         "view":  "Details",
+                         "description":  "Everything the server reported about this failure. Quote the request ID when you report it.",
+                         "operation":  "Operation",
+                         "summary":  "Message",
+                         "cause":  "Cause",
+                         "code":  "Error code",
+                         "status":  "HTTP status",
+                         "requestId":  "Request ID",
+                         "time":  "Time",
+                         "copyAll":  "Copy all"
+                     },
+    "tableViews":  {
+                       "addColumn":  "Add {{column}}",
+                       "addColumnButton":  "Add column",
+                       "align":  {
+                                     "auto":  "Default",
+                                     "left":  "Left",
+                                     "center":  "Center",
+                                     "right":  "Right"
+                                 },
+                       "apply":  "Apply",
+                       "available":  "Available",
+                       "cellAlign":  "Content alignment",
+                       "sortable":  "Sortable",
+                       "sortableHint":  "Lets this column's header sort the rows.",
+                       "columnSettings":  "Column settings for {{column}}",
+                       "deleteConfirm":  "Delete the saved filter \"{{name}}\"? This cannot be undone.",
+                       "deleteTitle":  "Delete saved filter",
+                       "editTable":  "Edit table",
+                       "editTableDescription":  "Choose which columns this table shows, in what order and how wide. Only you see this layout.",
+                       "errors":  {
+                                      "saveLayout":  "Could not save the column layout.",
+                                      "resetLayout":  "Could not reset the column layout.",
+                                      "saveFilter":  "Could not save the filter.",
+                                      "deleteFilter":  "Could not delete the filter."
+                                  },
+                       "groupGeneral":  "General",
+                       "headerAlign":  "Title alignment",
+                       "modified":  "The current filter differs from the saved one",
+                       "moveDown":  "Move {{column}} down",
+                       "moveUp":  "Move {{column}} up",
+                       "nameLabel":  "Filter name",
+                       "nameTooLong":  "Use 80 characters or fewer.",
+                       "noAvailable":  "No more columns to add.",
+                       "noSavedFilters":  "No saved filters yet.",
+                       "removeColumn":  "Remove {{column}}",
+                       "rename":  "Rename",
+                       "reset":  "Reset to default",
+                       "resetConfirm":  "This removes your column layout for this table and restores the default columns, order and widths.",
+                       "resizeColumn":  "Resize {{column}}",
+                       "saveCurrent":  "Save current filter…",
+                       "searchColumns":  "Search columns",
+                       "setDefault":  "Set as default",
+                       "shown":  "Shown",
+                       "size":  {
+                                    "auto":  "Auto",
+                                    "xs":  "Extra narrow",
+                                    "sm":  "Narrow",
+                                    "md":  "Medium",
+                                    "lg":  "Wide",
+                                    "xl":  "Extra wide",
+                                    "2xl":  "Very wide",
+                                    "3xl":  "Widest"
+                                },
+                       "toast":  {
+                                     "deleted":  "Filter deleted"
+                                 },
+                       "unavailable":  "Table settings cannot be loaded right now. The default layout is shown.",
+                       "unsetDefault":  "Remove as default",
+                       "updateCurrent":  "Update with current filter",
+                       "useAsDefault":  "Apply this filter when the table opens",
+                       "width":  "Width"
+                   },
+    "avatar":  {
+                   "fallbackAlt":  "User avatar"
+               },
+    "passwordInput":  {
+                          "show":  "Show password",
+                          "hide":  "Hide password"
+                      },
+    "fileUpload":  {
+                       "dropHere":  "Drop files here",
+                       "browse":  "Browse files",
+                       "remove":  "Remove file",
+                       "accepted":  "Accepted: {{accept}}",
+                       "dragAndDrop":  "Drag and drop files here",
+                       "maxSize":  "Max size: {{size}}",
+                       "maxFiles":  "Max files: {{count}}"
+                   },
+    "pluginMount":  {
+                        "failed":  "This plugin view failed to render."
                     }
 }

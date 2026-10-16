@@ -4,8 +4,8 @@
 package events
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,9 +13,10 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/events", func(r chi.Router) {
-			r.Get("/stream", h.HandleStream)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/events", func(r *apispec.Router) {
+			// events.view is granted to every seeded role by migration 098.
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermEventsView)).Get("/stream", h.HandleStream, apispec.SSE(), apispec.Scoped(), apispec.Query("type", ""))
 		})
 	})
 }

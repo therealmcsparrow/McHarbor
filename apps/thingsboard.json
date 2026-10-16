@@ -1,0 +1,55 @@
+{
+    "slug":  "thingsboard",
+    "name":  "ThingsBoard",
+    "description":  "IoT platform for device management, data collection, visualization and rule-chain processing at scale.",
+    "category":  "IoT & Industrial",
+    "image":  "thingsboard/tb-postgres:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/thingsboard.png",
+    "website":  "https://thingsboard.io",
+    "docsUrl":  "https://thingsboard.io/docs/user-guide/install/docker",
+    "ports":  [
+                  {
+                      "host":  9090,
+                      "container":  9090,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1883,
+                      "container":  1883,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7070,
+                      "container":  7070,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5683,
+                      "container":  5683,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/thingsboard/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/thingsboard/logs",
+                        "container":  "/var/log/thingsboard"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

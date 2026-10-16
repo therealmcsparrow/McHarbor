@@ -1,0 +1,54 @@
+{
+  "title": "Variáveis de ambiente",
+  "description": "Todas as variáveis de ambiente que o McHarbor e seu agente leem, geradas a partir do código-fonte e da referência de configuração. Alterar qualquer uma delas exige recriar o contêiner.",
+  "searchPlaceholder": "Pesquisar por nome ou descrição",
+  "searchLabel": "Pesquisar variáveis de ambiente",
+  "count_one": "{{count}} variável",
+  "count_other": "{{count}} variáveis",
+  "empty": "Nenhuma variável corresponde ao filtro.",
+  "filters": {
+    "scope": "Escopo",
+    "allScopes": "Todos",
+    "sensitiveOnly": "Somente sensíveis"
+  },
+  "scope": {
+    "server": "Servidor",
+    "agent": "Agente"
+  },
+  "columns": {
+    "name": "Variável",
+    "default": "Padrão",
+    "description": "O que faz",
+    "flags": "Indicadores"
+  },
+  "flags": {
+    "sensitive": "Sensível",
+    "sensitiveHint": "Contém um segredo. Mantenha-o em um repositório de segredos, nunca em um arquivo Compose versionado.",
+    "restart": "Requer recriação",
+    "restartHint": "Lida na inicialização; uma alteração só se aplica depois que o contêiner é recriado.",
+    "undocumented": "Não documentada",
+    "undocumentedHint": "Lida pelo código, mas não descrita na referência de configuração, geralmente porque o próprio McHarbor a define para um contêiner auxiliar.",
+    "notInCode": "Não lida pelo binário",
+    "notInCodeHint": "Documentada, mas lida pelo entrypoint ou pelo arquivo Compose em vez de pelo binário Go, ou não lida mais."
+  },
+  "copy": "Copiar {{name}}",
+  "copied": "Copiado",
+  "manualCopy": "Copiar nome da variável",
+  "sources": "Lida em {{files}}",
+  "noDescription": "Sem descrição na referência de configuração.",
+  "sections": {
+    "application": "Aplicação",
+    "secrets": "Segredos",
+    "database": "Banco de dados",
+    "docker": "Docker",
+    "tls": "TLS e listeners HTTP",
+    "networkTrust": "Confiança de rede",
+    "agentTransport": "Transporte do agente",
+    "plugins": "Loja de apps e plugins",
+    "nativeInstall": "Instalação nativa",
+    "authentication": "Autenticação",
+    "versionReporting": "Relatório de versão",
+    "agent": "Agente",
+    "other": "Outras"
+  }
+}

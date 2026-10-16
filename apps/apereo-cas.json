@@ -4,7 +4,7 @@
     "description":  "Central Authentication Service single sign-on server for the web.",
     "category":  "Security",
     "image":  "apereo/cas:latest",
-    "logo":  "https://icon.horse/icon/www.apereo.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.apereo.org\u0026sz=128",
     "website":  "https://www.apereo.org/projects/cas",
     "docsUrl":  "https://apereo.github.io/cas",
     "ports":  [
@@ -42,5 +42,9 @@
                     }
                 ],
     "minMemory":  "1GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

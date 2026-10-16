@@ -1,0 +1,83 @@
+{
+    "slug":  "docker-mailserver",
+    "name":  "Docker Mailserver",
+    "description":  "Full Postfix and Dovecot mail server bundled into one container with spam and virus filtering.",
+    "category":  "Communications",
+    "image":  "ghcr.io/docker-mailserver/docker-mailserver:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/docker-mailserver.png",
+    "website":  "https://docker-mailserver.github.io/docker-mailserver/latest/",
+    "docsUrl":  "https://docker-mailserver.github.io/docker-mailserver/latest/quickstart/",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  465,
+                      "container":  465,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  587,
+                      "container":  587,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  993,
+                      "container":  993,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docker-mailserver/mail-data",
+                        "container":  "/var/mail"
+                    },
+                    {
+                        "host":  "/opt/appdata/docker-mailserver/mail-state",
+                        "container":  "/var/mail-state"
+                    },
+                    {
+                        "host":  "/opt/appdata/docker-mailserver/mail-logs",
+                        "container":  "/var/log/mail"
+                    },
+                    {
+                        "host":  "/opt/appdata/docker-mailserver/config",
+                        "container":  "/tmp/docker-mailserver"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OVERRIDE_HOSTNAME",
+                        "default":  "mail.example.com",
+                        "description":  "Fully qualified hostname the server presents"
+                    },
+                    {
+                        "key":  "PERMIT_DOCKER",
+                        "default":  "network",
+                        "description":  "Which Docker networks to trust for relaying"
+                    },
+                    {
+                        "key":  "SSL_TYPE",
+                        "default":  "letsencrypt",
+                        "description":  "TLS certificate provider"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "arize-phoenix",
+    "name":  "Arize Phoenix",
+    "description":  "Open-source LLM observability tool for tracing, evaluation, and prompt experimentation.",
+    "category":  "Developer Tools",
+    "image":  "arizephoenix/phoenix:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=phoenix.arize.com\u0026sz=128",
+    "website":  "https://phoenix.arize.com",
+    "docsUrl":  "https://docs.arize.com/phoenix/deployment/docker",
+    "ports":  [
+                  {
+                      "host":  6006,
+                      "container":  6006,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/arize-phoenix/data",
+                        "container":  "/mnt/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

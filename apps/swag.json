@@ -62,5 +62,9 @@
       "description": "Email for Let's Encrypt notifications"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

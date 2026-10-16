@@ -1,0 +1,60 @@
+{
+    "slug":  "zoneminder",
+    "name":  "ZoneMinder",
+    "description":  "Open-source video surveillance and NVR platform with motion detection and an internal recording database.",
+    "category":  "Home Automation",
+    "image":  "dlandon/zoneminder:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zoneminder.png",
+    "website":  "https://zoneminder.com",
+    "docsUrl":  "https://zoneminder.readthedocs.io/en/latest/installationguide/docker.html",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zoneminder/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/zoneminder/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/zoneminder/logs",
+                        "container":  "/var/log/zm"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZM_WEB_USER",
+                        "default":  "admin",
+                        "description":  "Initial admin username"
+                    },
+                    {
+                        "key":  "ZM_WEB_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

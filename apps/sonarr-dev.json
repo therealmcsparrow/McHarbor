@@ -1,0 +1,53 @@
+{
+    "slug":  "sonarr-dev",
+    "name":  "Sonarr (Dev)",
+    "description":  "Dev channel build of Sonarr. Automatic TV show downloading and management for Usenet and BitTorrent.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/sonarr:develop",
+    "logo":  "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/sonarr-icon.png",
+    "website":  "https://sonarr.tv",
+    "docsUrl":  "https://wiki.servarr.com/sonarr",
+    "ports":  [
+                  {
+                      "host":  9989,
+                      "container":  8989,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sonarr-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/sonarr-dev/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/sonarr-dev/tv",
+                        "container":  "/tv"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

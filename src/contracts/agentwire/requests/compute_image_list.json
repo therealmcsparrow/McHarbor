@@ -1,0 +1,8 @@
+{
+  "envId": "env-1",
+  "args": null,
+  "wire": {
+    "operation": "list",
+    "envId": "env-1"
+  }
+}

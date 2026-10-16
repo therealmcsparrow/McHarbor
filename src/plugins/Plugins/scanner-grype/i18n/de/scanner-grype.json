@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Grype",
+    "description": "Grype von Anchore: Schwachstellen in Betriebssystem- und Sprachpaketen, lokal gescannt."
+  },
+  "settings": {
+    "title": "Grype",
+    "subtitle": "Grype von Anchore: Schwachstellen in Betriebssystem- und Sprachpaketen, lokal gescannt."
+  }
+}

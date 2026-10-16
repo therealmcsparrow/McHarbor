@@ -4,7 +4,7 @@
     "description":  "Open-source vector database built for scalable similarity search and AI applications.",
     "category":  "Databases",
     "image":  "milvusdb/milvus:latest",
-    "logo":  "https://icon.horse/icon/milvus.io",
+    "logo":  "https://cdn.simpleicons.org/milvus",
     "website":  "https://milvus.io",
     "docsUrl":  "https://milvus.io/docs",
     "ports":  [
@@ -33,5 +33,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

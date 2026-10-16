@@ -3,6 +3,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router';
+import { isEditableTarget, isInCaptureZone } from '@resources/utils/keyboardCapture';
 
 export type ShortcutMap = {
   [key: string]: () => void;
@@ -17,7 +18,6 @@ export type ShortcutDefinition = {
 
 const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
   { key: 'mod+k', description: 'Open command palette', group: 'navigation' },
-  { key: 'mod+/', description: 'Open global search', group: 'navigation' },
   { key: 'g d', description: 'Go to Dashboard', group: 'navigation' },
   { key: 'g c', description: 'Go to Containers', group: 'navigation' },
   { key: 'g i', description: 'Go to Images', group: 'navigation' },
@@ -55,22 +55,15 @@ function normalizeEvent(e: KeyboardEvent): string {
   return parts.join('+');
 }
 
-function isInEditableElement(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
-  if (target.isContentEditable) return true;
-  return false;
-}
-
 export function useShortcuts(handlers: ShortcutMap): void {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const isEditable = isInEditableElement(e.target);
+      if (isInCaptureZone(e.target)) return;
+      const isEditable = isEditableTarget(e.target);
       const normalized = normalizeEvent(e);
 
       if (handlers[normalized]) {
-        if (isEditable && !normalized.includes('esc') && !normalized.includes('mod+k') && !normalized.includes('mod+/')) {
+        if (isEditable && !normalized.includes('esc') && !normalized.includes('mod+k')) {
           return;
         }
         e.preventDefault();
@@ -99,12 +92,9 @@ const ROUTES: Record<string, string> = {
   'g l': '/logs',
 };
 
-export function useGlobalShortcuts(options?: {
-  onRefresh?: () => void;
-  onShowShortcuts?: () => void;
-}): void {
+export function useGlobalShortcuts(options?: { onRefresh?: () => void; onShowShortcuts?: () => void }): void {
   const navigate = useNavigate();
-  const location = useLocation();
+  const loc = useLocation();
 
   const handleShortcut = useCallback(
     (key: string) => {
@@ -117,16 +107,17 @@ export function useGlobalShortcuts(options?: {
         return;
       }
       const route = ROUTES[key];
-      if (route && route !== location.pathname) {
-        navigate(route);
+      if (route && route !== loc.pathname) {
+        void navigate(route);
       }
     },
-    [navigate, location.pathname, options],
+    [navigate, loc.pathname, options],
   );
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (isInEditableElement(e.target) && !e.key.startsWith('g')) return;
+      if (isInCaptureZone(e.target)) return;
+      if (isEditableTarget(e.target) && !e.key.startsWith('g')) return;
       const normalized = normalizeEvent(e);
       if (ROUTES[normalized] || normalized === 'g r' || normalized === '?') {
         if (normalized.startsWith('g') || normalized === '?') {

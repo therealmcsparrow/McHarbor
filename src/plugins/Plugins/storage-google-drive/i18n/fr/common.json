@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Destinations de sauvegarde Google Drive",
+    "subtitle": "Sauvegarde des conteneurs vers un emplacement Google Drive. Le plugin gère le consentement OAuth, le téléversement reprenable (les sauvegardes de toute taille sont donc prises en charge), le téléchargement, la suppression et le listage au moment de la sauvegarde via l'API Drive v3.",
+    "registerHint": "Installez le plugin storage-google-drive depuis l'App Store, puis ajoutez une destination depuis la page Emplacements de stockage de l'hôte et choisissez « Google Drive » comme type."
+  },
+  "fields": {
+    "clientId":     "ID client OAuth (console Google Cloud)",
+    "clientSecret": "Secret client OAuth (console Google Cloud)",
+    "refreshToken": "Jeton d'actualisation (fourni par le flux de consentement OAuth)",
+    "folderId":     "ID du dossier Drive (laissez vide pour utiliser la racine de Mon Drive)"
+  },
+  "help": {
+    "clientId":     "Depuis la console Google Cloud → APIs & Services → Credentials. Créez un client OAuth de type « Web application » avec l'URI de redirection définie sur /api/storage-locations/oauth/callback de votre hôte McHarbor.",
+    "clientSecret": "Issu du même client OAuth. Stocké chiffré au repos par le service AES-256-GCM de l'hôte.",
+    "refreshToken": "Après avoir enregistré la destination, cliquez sur « Enregistrer et connecter » pour terminer le flux de consentement Google et stocker un jeton d'actualisation de longue durée.",
+    "folderId":     "Facultatif. La fin d'une URL de dossier Drive après /folders/. Laissez vide pour téléverser à la racine de Mon Drive."
+  },
+  "toast": {
+    "registered": "Plugin Google Drive enregistré.",
+    "testPassed": "Le test de connexion Google Drive a réussi.",
+    "testFailed": "Le test de connexion Google Drive a échoué : {{error}}"
+  },
+  "error": {
+    "noClientId":     "L'ID client OAuth est obligatoire.",
+    "noClientSecret": "Le secret client OAuth est obligatoire.",
+    "noRefreshToken": "Le jeton d'actualisation est obligatoire. Exécutez d'abord « Enregistrer et connecter »."
+  },
+  "form": {
+    "introTitle": "Consentement du compte Google",
+    "introBody": "Enregistrez cet emplacement, puis utilisez Se connecter pour accorder le consentement du compte. McHarbor stocke le refresh token renvoyé chiffré.",
+    "clientId": {
+      "label": "ID client OAuth",
+      "help": "Application (client) ID de la console Google Cloud → APIs & Services → Credentials. Le client OAuth doit être de type « Web application », avec l'URI de redirection définie sur /api/storage-locations/oauth/callback de votre hôte McHarbor."
+    },
+    "clientSecret": {
+      "label": "Secret client OAuth",
+      "help": "Client secret du même client OAuth. Stocké chiffré au repos par le service AES-256-GCM de l'hôte."
+    },
+    "basePath": {
+      "label": "ID du dossier Drive",
+      "help": "Facultatif. ID du dossier Drive où déposer les sauvegardes. Laissez vide pour utiliser la racine de Drive. Sur drive.google.com → ouvrez le dossier → copiez l'ID dans l'URL après /folders/."
+    }
+  },
+  "setup": {
+    "title": "Guide de configuration de Google Drive",
+    "steps": {
+      "enableApi": "Dans la console Google Cloud, ouvrez <b>APIs & Services → Library</b>, recherchez <b>Google Drive API</b> et activez-la pour votre projet.",
+      "createClient": "Ouvrez <b>APIs & Services → Credentials → Create credentials → OAuth client ID</b>. Choisissez <b>Web application</b> comme type d'application et ajoutez l'URL <code>/api/storage-locations/oauth/callback</code> de votre hôte McHarbor aux URI de redirection autorisées.",
+      "copyCredentials": "Copiez le <b>Client ID</b> et le <b>Client Secret</b> du client OAuth dans le formulaire à gauche.",
+      "folderId": "Saisissez éventuellement un ID de dossier Drive pour fixer les envois dans un dossier précis. Laissez vide pour utiliser la racine de Mon Drive.",
+      "connect": "Cliquez sur <b>Save and connect</b> (ou <b>Connect</b> sur la carte de stockage). Google vous demandera de vous connecter avec le compte propriétaire du Drive cible et d'accorder le scope <code>drive.file</code>. McHarbor stocke le refresh token renvoyé chiffré et <warn>ne l'affiche plus jamais</warn>.",
+      "test": "Cliquez sur <b>Test connection</b> pour écrire et relire un fichier de test dans le dossier résolu."
+    }
+  }
+}

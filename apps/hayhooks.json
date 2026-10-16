@@ -1,0 +1,36 @@
+{
+    "slug":  "hayhooks",
+    "name":  "Hayhooks",
+    "description":  "Server that deploys Haystack retrieval-augmented generation pipelines as REST APIs and MCP tools.",
+    "category":  "AI & Voice",
+    "image":  "deepset/hayhooks:main",
+    "logo":  "https://www.google.com/s2/favicons?domain=haystack.deepset.ai\u0026sz=128",
+    "website":  "https://haystack.deepset.ai",
+    "docsUrl":  "https://docs.haystack.deepset.ai/docs/hayhooks",
+    "ports":  [
+                  {
+                      "host":  1416,
+                      "container":  1416,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hayhooks/pipelines",
+                        "container":  "/app/pipelines"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "main",
+    "latest":  {
+        "version":  "main",
+        "release_date":  "2026-09-29"
+    }
+}

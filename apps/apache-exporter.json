@@ -1,0 +1,37 @@
+{
+    "slug":  "apache-exporter",
+    "name":  "Apache Exporter",
+    "description":  "Prometheus exporter that reports Apache HTTP Server metrics from mod_status.",
+    "category":  "Monitoring",
+    "image":  "lusotycoon/apache-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://github.com/Lusitaniae/apache_exporter",
+    "docsUrl":  "https://github.com/Lusitaniae/apache_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9117,
+                      "container":  9117,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SCRAPE_URI",
+                        "default":  "http://apache/server-status?auto",
+                        "description":  "URL of the Apache mod_status endpoint to scrape"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

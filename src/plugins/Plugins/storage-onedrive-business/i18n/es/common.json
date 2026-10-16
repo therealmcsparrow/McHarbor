@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "Destinos de copia de seguridad de OneDrive for Business",
+    "subtitle": "Haga copias de seguridad de contenedores en unidades de OneDrive for Business de un tenant profesional/educativo. El plugin gestiona Probar, Subir, Descargar, Eliminar y Listar en el momento de la copia. Las copias grandes usan la sesión de subida fragmentada de Microsoft, por lo que no hay límite de tamaño.",
+    "registerHint": "Añada un destino desde la página Ubicaciones de almacenamiento del host y elija \"OneDrive for Business\" como tipo."
+  },
+  "fields": {
+    "clientId":     "ID de aplicación (cliente) de Azure AD",
+    "clientSecret": "Secreto de cliente de Azure AD",
+    "refreshToken": "Token de actualización (entregado por el flujo de consentimiento OAuth)",
+    "tenantId":     "ID de tenant de Azure AD",
+    "upn":          "User Principal Name (UPN) de la cuenta de servicio",
+    "driveId":      "ID de unidad (déjelo vacío para usar la unidad de la cuenta de servicio)"
+  },
+  "help": {
+    "clientId":     "Registre una aplicación en https://entra.microsoft.com → App registrations. La aplicación debe tener los permisos delegados Files.ReadWrite.All y User.Read.",
+    "clientSecret": "Genere un secreto de cliente en el registro de la aplicación de Azure AD. El servicio AES-256-GCM del host lo cifra en reposo.",
+    "refreshToken": "Tras guardar el destino, haga clic en \"Guardar y conectar\" para completar el flujo de consentimiento de Microsoft y almacenar un token de actualización de larga duración.",
+    "tenantId":     "Encuentre su ID de tenant en https://entra.microsoft.com → Tenant properties.",
+    "upn":          "El User Principal Name de la cuenta de servicio (p. ej. backups@contoso.onmicrosoft.com). Obligatorio cuando el ID de unidad está vacío.",
+    "driveId":      "Opcional. Déjelo vacío para apuntar a la unidad de la cuenta de servicio."
+  },
+  "toast": {
+    "registered": "Plugin de OneDrive for Business registrado.",
+    "testPassed": "La prueba de conexión de OneDrive for Business se superó.",
+    "testFailed": "La prueba de conexión de OneDrive for Business falló: {{error}}"
+  },
+  "error": {
+    "noClientId":     "El ID de aplicación (cliente) de Azure AD es obligatorio.",
+    "noClientSecret": "El secreto de cliente de Azure AD es obligatorio.",
+    "noRefreshToken": "El token de actualización es obligatorio. Ejecute primero \"Guardar y conectar\".",
+    "noTenantId":     "El ID de tenant de Azure AD es obligatorio para los destinos de OneDrive for Business.",
+    "noUpn":          "El User Principal Name (UPN) es obligatorio cuando no se ha establecido un ID de unidad."
+  },
+  "form": {
+    "intro": {
+      "title": "Consentimiento de Microsoft 365",
+      "body": "Guarda esta ubicación y luego usa Conectar para conceder el consentimiento de la cuenta. McHarbor almacena los tokens devueltos cifrados."
+    },
+    "tenantId": {
+      "label": "ID de tenant",
+      "help": "ID de tenant de Microsoft Entra (GUID). Se encuentra en el centro de administración de Entra > Overview. El flujo de consentimiento OAuth redirige a login.microsoftonline.com/{tenant_id}/…"
+    },
+    "clientId": {
+      "label": "ID de cliente",
+      "help": "Application (client) ID del registro de aplicación de Entra con el permiso delegado Files.ReadWrite y un URI de redirección Web que apunte a este host de McHarbor."
+    },
+    "clientSecret": {
+      "label": "Secreto de cliente",
+      "help": "Valor del client secret del centro de administración de Entra → App registrations → Certificates & secrets. Almacenado cifrado en reposo."
+    },
+    "driveId": {
+      "label": "ID de unidad",
+      "help": "Opcional. Identificador de unidad de Graph totalmente cualificado. Déjalo vacío para usar la unidad de la cuenta de servicio (resuelta mediante UPN o /me/drive)."
+    },
+    "basePath": {
+      "label": "Ruta base",
+      "help": "Opcional. Ruta de Graph dentro de la unidad, p. ej. /Backups/2026. Déjala vacía para usar la raíz de la unidad. No se rellena de forma intencionada."
+    },
+    "upn": {
+      "label": "Nombre principal de usuario (UPN)",
+      "help": "Opcional. UPN de la cuenta de servicio, p. ej. backups@contoso.onmicrosoft.com. Si drive_id también está vacío, las subidas van a /users/{upn}/drive; si upn y drive_id están vacíos, se usa /me/drive (el usuario del refresh token) como alternativa."
+    }
+  },
+  "setup": {
+    "title": "Guía de configuración de OneDrive for Business",
+    "step1": "En el centro de administración de Microsoft Entra, abre <b>App registrations > New registration</b>. Elige <b>Accounts in this organizational directory only</b> como tipo de cuenta compatible y copia el <b>Tenant ID</b> de la página <b>Overview</b>; pégalo en el campo <b>Tenant ID</b> de la izquierda.",
+    "step2": "En <b>Certificates & secrets</b>, crea un nuevo client secret. Copia el <b>Value</b> (no el <b>Secret ID</b>) y pégalo en el campo <b>Client Secret</b> de la izquierda. Copia el <b>Application (client) ID</b> en el campo <b>Client ID</b>.",
+    "step3": "Concede a la aplicación los permisos de aplicación <code>Files.ReadWrite.All</code> y <code>User.Read</code> (se requiere consentimiento del administrador). El flujo OAuth solicitará <code>offline_access</code> en nombre del operador.",
+    "step4": "Establece el <b>UPN</b> de la cuenta de servicio en la que quieres guardar las copias de seguridad. Déjalo vacío para usar el usuario del refresh token (<code>/me/drive</code>). <b>Drive ID</b> es opcional: déjalo vacío para usar la unidad resuelta (la cuenta de servicio si hay UPN; en caso contrario, el usuario del refresh token).",
+    "step5": "Deja <b>Base Path</b> vacío para la raíz de la unidad, o introduce una ruta de Graph explícita como <code>/Backups/2026</code>. El formulario no rellena ningún valor predeterminado.",
+    "step6": "Haz clic en <b>Save and connect</b> (o en <b>Connect</b> en la tarjeta de almacenamiento). Microsoft te pedirá iniciar sesión y conceder los scopes solicitados. McHarbor almacena el refresh token devuelto cifrado y <warn>no lo vuelve a mostrar nunca</warn>.",
+    "step7": "Haz clic en <b>Test connection</b> para escribir y leer un objeto de prueba en la unidad elegida."
+  }
+}

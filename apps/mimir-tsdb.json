@@ -4,7 +4,7 @@
     "description":  "Horizontally scalable, multi-tenant Prometheus-compatible time-series database.",
     "category":  "Databases",
     "image":  "grafana/mimir:latest",
-    "logo":  "https://icon.horse/icon/grafana.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/grafana-mimir.svg",
     "website":  "https://grafana.com/oss/mimir",
     "docsUrl":  "https://grafana.com/docs/mimir/latest/",
     "ports":  [
@@ -31,5 +31,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,39 @@
+{
+    "slug":  "emby-beta",
+    "name":  "Emby (Beta)",
+    "description":  "Beta channel build of Emby. Free media server for streaming movies, TV shows, music, and photos.",
+    "category":  "Media",
+    "image":  "emby/embyserver:beta",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/emby.png",
+    "website":  "https://emby.media",
+    "docsUrl":  "https://emby.media/community/index.php?/wiki/docker/",
+    "ports":  [
+                  {
+                      "host":  9096,
+                      "container":  8096,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/emby-beta/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/emby-beta/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -15,6 +15,6 @@ export const useContainersViewStore = create<ContainersViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-containers-view' }
-  )
+    { name: 'mcharbor-containers-view' },
+  ),
 );

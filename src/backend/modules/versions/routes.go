@@ -4,8 +4,7 @@
 package versions
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
@@ -14,10 +13,10 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/versions", func(r chi.Router) {
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/versions", func(r *apispec.Router) {
 			r.Get("/", h.HandleInfo)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSystemManage)).Post("/self-update", h.HandleSelfUpdate)
+			r.With(rbac.RequireGlobalPermission(app.RBACService, rbac.PermSystemManage)).Post("/self-update", h.HandleSelfUpdate, apispec.Request(SelfUpdateRequest{}))
 		})
 	})
 }

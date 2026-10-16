@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "Cola de actualizaciones",
+      "description": "Contenedores con una actualización de imagen lista y la acción para revisarlos"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "Cola de actualizaciones",
+    "checkNow": "Buscar actualizaciones",
+    "checkAgain": "Volver a buscar",
+    "notChecked": "Aún no se ha comprobado si hay actualizaciones",
+    "upToDate": "Todo está actualizado",
+    "reviewAll": "Revisar {{count}} actualización",
+    "reviewAll_other": "Revisar {{count}} actualizaciones",
+    "more": "{{count}} más"
+  }
+}

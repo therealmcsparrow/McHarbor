@@ -1,0 +1,16 @@
+{
+  "slug": "storage-onedrive-personal",
+  "name": "OneDrive (Personal)",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "OneDrive Personal (consumer endpoint) backup destination. Talks to Microsoft Graph /me/drive for upload/download/delete/list and login.microsoftonline.com/consumers for OAuth tokens. Large uploads use Microsoft's chunked upload session so backups of any size are supported.",
+  "category": "Storage destinations",
+  "icon": "IconBrandOnedrive",
+  "versions": [
+    {
+      "version": "1.0.5",
+      "download_url": "file:///app/ai-plugin-catalog/storage-onedrive-personal-1.0.5.tar.gz"
+    }
+  ]
+}

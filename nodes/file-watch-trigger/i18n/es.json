@@ -5,5 +5,12 @@
     "storage_location_id": "Ubicación de almacenamiento",
     "path": "Camino",
     "event_types": "Tipos de eventos"
+  },
+  "options": {
+    "event_types": {
+      "create": "Creado",
+      "write": "Escrito",
+      "remove": "Eliminado"
+    }
   }
 }

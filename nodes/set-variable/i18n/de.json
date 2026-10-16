@@ -1,8 +1,8 @@
 {
-  "label": "Set Variable",
-  "description": "Store a value on the flow context",
+  "label": "Variable setzen",
+  "description": "Einen Wert im Flow-Kontext speichern",
   "config": {
-    "name": "Variable Name",
+    "name": "Variablenname",
     "value": "Wert"
   }
 }

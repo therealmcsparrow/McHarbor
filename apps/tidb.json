@@ -4,7 +4,7 @@
     "description":  "Distributed MySQL-compatible database with horizontal scalability and strong consistency.",
     "category":  "Databases",
     "image":  "pingcap/tidb:latest",
-    "logo":  "https://icon.horse/icon/www.pingcap.com",
+    "logo":  "https://cdn.simpleicons.org/tidb",
     "website":  "https://www.pingcap.com",
     "docsUrl":  "https://docs.pingcap.com/tidb/stable",
     "ports":  [
@@ -33,5 +33,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

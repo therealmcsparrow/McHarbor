@@ -1,0 +1,39 @@
+{
+    "slug":  "owntone",
+    "name":  "OwnTone",
+    "description":  "Local network media server streaming music to AirPlay, Chromecast, DAAP and MPD clients.",
+    "category":  "Media",
+    "image":  "owntone/owntone:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/owntone.png",
+    "website":  "https://owntone.github.io/owntone-server",
+    "docsUrl":  "https://github.com/owntone/owntone-server/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  3689,
+                      "container":  3689,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/owntone/music",
+                        "container":  "/music"
+                    },
+                    {
+                        "host":  "/opt/appdata/owntone/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

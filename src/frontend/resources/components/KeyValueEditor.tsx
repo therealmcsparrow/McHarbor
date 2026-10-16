@@ -2,6 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { useStableListKeys } from '@resources/hooks/useStableListKeys';
@@ -15,6 +16,7 @@ type KeyValueEditorProps = {
 };
 
 export function KeyValueEditor({ entries, onChange, keyLabel, valueLabel, addLabel }: KeyValueEditorProps) {
+  const { t } = useTranslation('common');
   const entryKeys = useStableListKeys(entries, (entry) => `${entry.key}\u0000${entry.value}`);
 
   const handleChange = useCallback(
@@ -50,23 +52,23 @@ export function KeyValueEditor({ entries, onChange, keyLabel, valueLabel, addLab
           <input
             type="text"
             value={entry.key}
-            onChange={(event) => handleChange(index, 'key', event.target.value)}
-            className="rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
+            onChange={(evt) => handleChange(index, 'key', evt.target.value)}
+            className="mc-control rounded-md border border-border bg-muted px-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
             placeholder={keyLabel}
           />
           <input
             type="text"
             value={entry.value}
-            onChange={(event) => handleChange(index, 'value', event.target.value)}
-            className="rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
+            onChange={(evt) => handleChange(index, 'value', evt.target.value)}
+            className="mc-control rounded-md border border-border bg-muted px-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
             placeholder={valueLabel}
           />
           <Button
             variant="ghost"
             size="icon"
             onClick={() => handleRemove(index)}
-            aria-label="Remove"
-            className="size-7 text-muted-foreground hover:text-red-500"
+            aria-label={t('actions.remove')}
+            className="size-7 text-muted-foreground hover:text-danger"
           >
             <IconTrash className="size-3.5" />
           </Button>

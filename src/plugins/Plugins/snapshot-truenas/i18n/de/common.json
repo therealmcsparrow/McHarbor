@@ -1,0 +1,51 @@
+{
+  "form": {
+    "connectionSection": "TrueNAS-Verbindung",
+    "targetSection": "Snapshot-Ziel",
+    "advancedSection": "Erweitert",
+    "apiUrl": {
+      "label": "API-URL",
+      "help": "Basis-URL der TrueNAS-Middleware-API. Schließen Sie /api/v2.0 ein."
+    },
+    "apiKey": {
+      "label": "API-Schlüssel",
+      "help": "API-Schlüssel, erzeugt unter Credentials → Local Users → <user> → API Keys. Im Ruhezustand vom Verschlüsselungsdienst des Hosts verschlüsselt gespeichert."
+    },
+    "datasetPath": {
+      "label": "Dataset-Pfad",
+      "help": "Pfad des ZFS-Datasets, von dem ein Snapshot erstellt wird. Snapshots werden rekursiv erstellt und umfassen untergeordnete Datasets."
+    },
+    "verifyTls": {
+      "label": "TLS prüfen",
+      "help": "Deaktivieren, um selbstsignierte Zertifikate zu akzeptieren (Standard bei TrueNAS-Installationen). Aus entspricht --insecure."
+    },
+    "recursiveHint": "Snapshots sind rekursiv: Ein Snapshot von tank/backups umfasst tank/backups/child1 und tank/backups/child2. Der Host erstellt pro Backup-Lauf einen Snapshot; untergeordnete Datasets werden nicht einzeln gesnapshottet."
+  },
+  "setup": {
+    "title": "Bevor Sie beginnen",
+    "intro": "snapshot-truenas kommuniziert über HTTPS mit der TrueNAS-Middleware-API. Stellen Sie sicher, dass die API vom Host erreichbar ist, und füllen Sie dann das Formular aus.",
+    "steps": [
+      {
+        "title": "Erreichbarkeit der TrueNAS-Middleware bestätigen",
+        "body": "Prüfen Sie vom Host, auf dem McHarbor läuft, die HTTPS-Verbindung. Ersetzen Sie nas.local durch Ihren TrueNAS-Hostnamen:",
+        "code": "curl -k https://nas.local/api/v2.0/zfs/snapshot"
+      },
+      {
+        "title": "Eigenen Benutzer erstellen (empfohlen)",
+        "body": "Credentials → Local Users → Add. Gewähren Sie nur die Datasets, von denen Snapshots erstellt werden sollen. Die Isolation durch ein Dienstkonto macht den API-Schlüssel später gefahrlos widerrufbar."
+      },
+      {
+        "title": "API-Schlüssel erzeugen",
+        "body": "Credentials → Local Users → <user> → API Keys → Add. Kopieren Sie den erzeugten Schlüssel — TrueNAS zeigt ihn nur einmal an. Fügen Sie ihn in das Feld API-Schlüssel im Formular ein."
+      },
+      {
+        "title": "Dataset ermitteln oder erstellen",
+        "body": "Storage → Pools → ⋮ → Add Dataset. Verwenden Sie ein eigenes Dataset (z. B. tank/backups), damit die Snapshot-Fluktuation die Dataset-Liste nicht aufbläht. Notieren Sie den exakten Pfad — es wird zwischen Groß- und Kleinschreibung unterschieden."
+      },
+      {
+        "title": "Verbindung testen",
+        "body": "Klicken Sie nach dem Speichern der Konfiguration im Reiter Snapshots auf 'Verbindung testen'. Ein grünes Prüfergebnis bestätigt, dass der API-Schlüssel funktioniert und das Dataset auf der TrueNAS-Seite existiert."
+      }
+    ]
+  }
+}

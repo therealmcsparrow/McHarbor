@@ -1,15 +1,17 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { cssVars } from '@resources/utils/cssVars';
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { api } from '@core/api/client';
 import type { ImageHistoryItem } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { formatBytes } from '@resources/utils/format';
 import { Spinner } from '@resources/components/ui/Spinner';
-import type { StackSvc } from '../../hooks/useStacks';
+import type { StackSvc } from '@resources/hooks/useStacks';
 
 type LayersTabProps = {
   stackName: string;
@@ -47,11 +49,7 @@ export function LayersTab({ services }: LayersTabProps) {
   });
 
   if (uniqueImages.length === 0) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">
-        {t('detail.noLayers')}
-      </div>
-    );
+    return <div className="py-12 text-center text-muted-foreground">{t('detail.noLayers')}</div>;
   }
 
   return (
@@ -65,6 +63,7 @@ export function LayersTab({ services }: LayersTabProps) {
             layers={query?.data}
             isLoading={query?.isLoading ?? true}
             isError={query?.isError ?? false}
+            error={query?.error}
             t={t}
           />
         );
@@ -78,28 +77,21 @@ type ImageLayersCardProps = {
   layers: ImageHistoryItem[] | undefined;
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   t: (key: string, opts?: Record<string, string>) => string;
 };
 
-function ImageLayersCard({ image, layers, isLoading, isError, t }: ImageLayersCardProps) {
-  const totalSize = useMemo(
-    () => (layers ?? []).reduce((sum, l) => sum + l.Size, 0),
-    [layers],
-  );
+function ImageLayersCard({ image, layers, isLoading, isError, error, t }: ImageLayersCardProps) {
+  const totalSize = useMemo(() => (layers ?? []).reduce((sum, l) => sum + l.Size, 0), [layers]);
 
-  const maxLayerSize = useMemo(
-    () => Math.max(...(layers ?? []).map((l) => l.Size), 1),
-    [layers],
-  );
+  const maxLayerSize = useMemo(() => Math.max(...(layers ?? []).map((l) => l.Size), 1), [layers]);
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="mc-glass overflow-hidden rounded-xl">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-medium text-foreground truncate">
-          {t('detail.imageLayer', { name: image })}
-        </span>
+        <span className="truncate text-sm font-medium text-foreground">{t('detail.imageLayer', { name: image })}</span>
         {layers && (
-          <span className="text-xs text-muted-foreground ml-3 shrink-0">
+          <span className="ml-3 shrink-0 text-xs text-muted-foreground">
             {t('detail.totalSize', { size: formatBytes(totalSize) })}
           </span>
         )}
@@ -112,11 +104,7 @@ function ImageLayersCard({ image, layers, isLoading, isError, t }: ImageLayersCa
         </div>
       )}
 
-      {isError && (
-        <div className="py-8 text-center text-sm text-muted-foreground">
-          {t('detail.noLayers')}
-        </div>
-      )}
+      {isError && <ErrorState variant="inline" className="m-4" title={t('detail.noLayers')} error={error} />}
 
       {layers && !isLoading && (
         <div className="divide-y divide-border">
@@ -125,20 +113,18 @@ function ImageLayersCard({ image, layers, isLoading, isError, t }: ImageLayersCa
             return (
               <div key={`${layer.Id}-${i}`} className="flex items-center gap-3 px-4 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-mono text-xs text-foreground/80">
-                    {formatInstruction(layer.CreatedBy)}
-                  </p>
+                  <p className="truncate font-mono text-xs text-foreground/80">{formatInstruction(layer.CreatedBy)}</p>
                   <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted">
                     <div
-                      className={`h-full rounded-full transition-all ${
+                      className={`h-full w-(--w) rounded-full transition-all ${
                         layer.Size > 0 ? 'bg-primary' : 'bg-muted-foreground/30'
                       }`}
-                      style={{ width: layer.Size > 0 ? `${Math.max(pct, 1)}%` : '2%' }}
+                      style={cssVars({ w: layer.Size > 0 ? `${Math.max(pct, 1)}%` : '2%' })}
                     />
                   </div>
                 </div>
-                <span className="shrink-0 text-xs tabular-nums text-muted-foreground w-16 text-right">
-                  {layer.Size > 0 ? formatBytes(layer.Size) : '0 B'}
+                <span className="w-16 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                  {formatBytes(Math.max(layer.Size, 0))}
                 </span>
               </div>
             );

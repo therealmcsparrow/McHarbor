@@ -1,0 +1,54 @@
+{
+  "title": "Environment variables",
+  "description": "Every environment variable McHarbor and its agent read, generated from the source and the configuration reference. Changing any of them means recreating the container.",
+  "searchPlaceholder": "Search by name or description",
+  "searchLabel": "Search environment variables",
+  "count_one": "{{count}} variable",
+  "count_other": "{{count}} variables",
+  "empty": "No variable matches the filter.",
+  "filters": {
+    "scope": "Scope",
+    "allScopes": "All",
+    "sensitiveOnly": "Sensitive only"
+  },
+  "scope": {
+    "server": "Server",
+    "agent": "Agent"
+  },
+  "columns": {
+    "name": "Variable",
+    "default": "Default",
+    "description": "What it does",
+    "flags": "Flags"
+  },
+  "flags": {
+    "sensitive": "Sensitive",
+    "sensitiveHint": "Holds a secret. Keep it in a secret store, never in a committed Compose file.",
+    "restart": "Recreate required",
+    "restartHint": "Read at start-up; a change applies only after the container is recreated.",
+    "undocumented": "Undocumented",
+    "undocumentedHint": "Read by the code but not described in the configuration reference, usually because McHarbor sets it itself for a helper container.",
+    "notInCode": "Not read by the binary",
+    "notInCodeHint": "Documented, but read by the entrypoint or Compose file rather than by the Go binary, or no longer read at all."
+  },
+  "copy": "Copy {{name}}",
+  "copied": "Copied",
+  "manualCopy": "Copy variable name",
+  "sources": "Read in {{files}}",
+  "noDescription": "No description in the configuration reference.",
+  "sections": {
+    "application": "Application",
+    "secrets": "Secrets",
+    "database": "Database",
+    "docker": "Docker",
+    "tls": "TLS and HTTP listeners",
+    "networkTrust": "Network trust",
+    "agentTransport": "Agent transport",
+    "plugins": "App Store and plugins",
+    "nativeInstall": "Native install",
+    "authentication": "Authentication",
+    "versionReporting": "Version reporting",
+    "agent": "Agent",
+    "other": "Other"
+  }
+}

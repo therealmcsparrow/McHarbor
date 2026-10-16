@@ -4,6 +4,8 @@
 import { useTranslation } from 'react-i18next';
 import type { AppNetworkSettings, PortMapping, VolumeMount } from '../types';
 
+const DEFAULT_PROTOCOL = 'tcp';
+
 interface EnvironmentOption {
   id: string;
   name: string;
@@ -21,7 +23,7 @@ interface InstallStepReviewProps {
 }
 
 export function InstallStepReview({
-  name,
+  name: itemName,
   image,
   selectedEnvId,
   dockerEnvs,
@@ -31,15 +33,16 @@ export function InstallStepReview({
   envVars,
 }: InstallStepReviewProps) {
   const { t } = useTranslation('common');
-  const networkLabel = network.mode === 'existing'
-    ? (network.name || t('appStore.notSet'))
-    : t(`appStore.networkMode${network.mode.charAt(0).toUpperCase()}${network.mode.slice(1)}`);
+  const networkLabel =
+    network.mode === 'existing'
+      ? network.name || t('appStore.notSet')
+      : t(`appStore.networkMode${network.mode.charAt(0).toUpperCase()}${network.mode.slice(1)}`);
 
   return (
     <div className="space-y-3 text-sm">
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t('appStore.reviewName')}</span>
-        <span className="font-medium text-foreground">{name}</span>
+        <span className="font-medium text-foreground">{itemName}</span>
       </div>
       <div className="flex justify-between">
         <span className="text-muted-foreground">{t('appStore.reviewEnvironment')}</span>
@@ -55,40 +58,41 @@ export function InstallStepReview({
         <span className="text-muted-foreground">{t('appStore.reviewNetwork')}</span>
         <span className="font-medium text-foreground">{networkLabel}</span>
       </div>
-      {network.mode === 'existing' && (network.aliases.length > 0 || network.ipv4Address || network.ipv6Address || network.macAddress) && (
-        <div>
-          <span className="text-muted-foreground">{t('appStore.networkSettings')}</span>
-          <div className="mt-1 space-y-0.5">
-            {network.aliases.length > 0 && (
-              <div className="text-xs text-foreground">
-                {t('appStore.networkAliases')}: {network.aliases.join(', ')}
-              </div>
-            )}
-            {network.ipv4Address && (
-              <div className="text-xs text-foreground">
-                {t('appStore.ipv4Address')}: {network.ipv4Address}
-              </div>
-            )}
-            {network.ipv6Address && (
-              <div className="text-xs text-foreground">
-                {t('appStore.ipv6Address')}: {network.ipv6Address}
-              </div>
-            )}
-            {network.macAddress && (
-              <div className="text-xs text-foreground">
-                {t('appStore.macAddress')}: {network.macAddress}
-              </div>
-            )}
+      {network.mode === 'existing' &&
+        (network.aliases.length > 0 || network.ipv4Address || network.ipv6Address || network.macAddress) && (
+          <div>
+            <span className="text-muted-foreground">{t('appStore.networkSettings')}</span>
+            <div className="mt-1 space-y-0.5">
+              {network.aliases.length > 0 && (
+                <div className="text-xs text-foreground">
+                  {t('appStore.networkAliases')}: {network.aliases.join(', ')}
+                </div>
+              )}
+              {network.ipv4Address && (
+                <div className="text-xs text-foreground">
+                  {t('appStore.ipv4Address')}: {network.ipv4Address}
+                </div>
+              )}
+              {network.ipv6Address && (
+                <div className="text-xs text-foreground">
+                  {t('appStore.ipv6Address')}: {network.ipv6Address}
+                </div>
+              )}
+              {network.macAddress && (
+                <div className="text-xs text-foreground">
+                  {t('appStore.macAddress')}: {network.macAddress}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {ports.length > 0 && (
         <div>
           <span className="text-muted-foreground">{t('appStore.reviewPorts')}</span>
           <div className="mt-1 space-y-0.5">
             {ports.map((p, i) => (
               <div key={`review-port-${p.container}-${i}`} className="text-xs text-foreground">
-                {p.host}:{p.container}/{p.protocol || 'tcp'}
+                {p.host}:{p.container}/{p.protocol || DEFAULT_PROTOCOL}
               </div>
             ))}
           </div>
@@ -121,4 +125,3 @@ export function InstallStepReview({
     </div>
   );
 }
-

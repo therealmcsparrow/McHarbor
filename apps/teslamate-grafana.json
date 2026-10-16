@@ -1,0 +1,51 @@
+{
+    "slug":  "teslamate-grafana",
+    "name":  "TeslaMate Grafana",
+    "description":  "Pre-built Grafana dashboards for visualizing TeslaMate drive, charge and battery data.",
+    "category":  "IoT & Industrial",
+    "image":  "teslamate/grafana:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grafana.png",
+    "website":  "https://docs.teslamate.org",
+    "docsUrl":  "https://docs.teslamate.org/docs/installation/docker",
+    "ports":  [
+                  {
+                      "host":  3001,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/teslamate-grafana/data",
+                        "container":  "/var/lib/grafana"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATABASE_HOST",
+                        "default":  "teslamate-postgres",
+                        "description":  "Hostname of the TeslaMate Postgres database"
+                    },
+                    {
+                        "key":  "DATABASE_USER",
+                        "default":  "teslamate",
+                        "description":  "Username for the TeslaMate database"
+                    },
+                    {
+                        "key":  "DATABASE_PASS",
+                        "default":  "change-me",
+                        "description":  "Password for the TeslaMate database",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

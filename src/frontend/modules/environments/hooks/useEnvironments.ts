@@ -10,13 +10,11 @@ import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 type EnvironmentInfo = {
   id: string;
   name: string;
-  orchestratorType: 'docker' | 'kubernetes';
   connectionType: string;
   socketPath?: string;
   host?: string;
   port?: number;
   dockerVersion: string | null;
-  k8sVersion: string | null;
   isDefault: boolean;
   isActive: boolean;
   lastConnected: string | null;
@@ -43,7 +41,14 @@ type EnvironmentInfo = {
   agentOs?: string;
   agentArch?: string;
   agentVersion?: string;
+  agentBuild?: string;
+  agentHostIp?: string;
+  agentTlsMode?: string;
+  agentInstallKind?: string;
   agentLastSeen?: string;
+  pendingConnectionType?: string;
+  pendingMigrationStartedAt?: string;
+  migrationRevertTo?: string;
 };
 
 type DashboardStats = {
@@ -112,11 +117,10 @@ export type EnvironmentTestStep = {
 export type EnvironmentTestResult = {
   envId: string;
   envName: string;
-  orchestrator: 'docker' | 'kubernetes';
+  orchestrator: 'docker';
   overall: 'pass' | 'fail' | 'warn';
   steps: EnvironmentTestStep[];
   dockerVersion?: string;
-  k8sVersion?: string;
   duration: string;
   startedAt: string;
   completedAt: string;
@@ -125,8 +129,7 @@ export type EnvironmentTestResult = {
 export function useEnvironment(id: string) {
   return useQuery({
     queryKey: ['environments', id],
-    queryFn: () =>
-      api.get<EnvironmentInfo>(`/environments/${id}`).then((r) => r.data),
+    queryFn: () => api.get<EnvironmentInfo>(`/environments/${id}`).then(assertSuccess),
     enabled: !!id,
   });
 }
@@ -135,8 +138,7 @@ export function useEnvironmentMetrics(envId: string, enabled = true) {
   const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['dashboard-stats', envId],
-    queryFn: () =>
-      api.get<DashboardStats>('/dashboard/stats', { env: envId }).then((r) => r.data),
+    queryFn: () => api.get<DashboardStats>('/dashboard/stats', { env: envId }).then(assertSuccess),
     refetchInterval: enabled && !uploadActive ? 15_000 : false,
     enabled: enabled && !!envId && !uploadActive,
   });
@@ -148,10 +150,7 @@ export function useEnvironmentUpdateSummary(envId: string, enabled = true) {
     queryKey: ['environment-update-summary', envId],
     queryFn: async (): Promise<EnvironmentUpdateSummary> => {
       const results = await api
-        .post<EnvironmentImageUpdateResult[]>(
-          `/containers/check-updates?env=${encodeURIComponent(envId)}`,
-          {}
-        )
+        .post<EnvironmentImageUpdateResult[]>(`/containers/check-updates?env=${encodeURIComponent(envId)}`, {})
         .then(assertSuccess);
 
       return {
@@ -172,8 +171,7 @@ export function useEnvironmentHostMetrics(envId: string) {
   const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['host-metrics', envId],
-    queryFn: () =>
-      api.get<HostMetrics>('/metrics/host', { env: envId }).then((r) => r.data),
+    queryFn: () => api.get<HostMetrics>('/metrics/host', { env: envId }).then(assertSuccess),
     refetchInterval: uploadActive ? false : 30_000,
     enabled: !!envId && !uploadActive,
   });
@@ -182,8 +180,7 @@ export function useEnvironmentHostMetrics(envId: string) {
 export function useVersionInfo() {
   return useQuery({
     queryKey: ['versions'],
-    queryFn: () => api.get<VersionInfo>('/versions').then((r) => r.data),
+    queryFn: () => api.get<VersionInfo>('/versions').then(assertSuccess),
     refetchInterval: 30_000,
   });
 }
-

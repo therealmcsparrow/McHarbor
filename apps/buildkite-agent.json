@@ -1,0 +1,41 @@
+{
+    "slug":  "buildkite-agent",
+    "name":  "Buildkite Agent",
+    "description":  "Lightweight build runner that polls Buildkite for jobs and executes pipeline steps on this host.",
+    "category":  "CI/CD",
+    "image":  "buildkite/agent:3",
+    "logo":  "https://cdn.simpleicons.org/buildkite",
+    "website":  "https://buildkite.com",
+    "docsUrl":  "https://buildkite.com/docs/agent/v3/docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/buildkite-agent/hooks",
+                        "container":  "/buildkite/hooks"
+                    },
+                    {
+                        "host":  "/opt/appdata/buildkite-agent/plugins",
+                        "container":  "/buildkite/plugins"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BUILDKITE_AGENT_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Agent registration token from your Buildkite organization",
+                        "secret":  true
+                    }
+                ],
+    "version":  "3",
+    "latest":  {
+        "version":  "3",
+        "release_date":  "2026-09-29"
+    }
+}

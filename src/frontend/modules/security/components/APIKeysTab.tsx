@@ -1,132 +1,157 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
-import { Badge } from '@resources/components/ui/Badge';
+import { IconLock, IconPlus, IconTerminal2 } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
-import { Spinner } from '@resources/components/ui/Spinner';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { useAPIKeys, useRevokeAPIKey, type CreateAPIKeyResult } from '../hooks/useAPIKeys';
-import { timeAgo } from '@resources/utils/format';
-import { CreateAPIKeyDialog, APIKeyTokenDialog } from './CreateAPIKeyDialog';
+import { EmptyState } from '@resources/components/ui/EmptyState';
+import { TablePage } from '@resources/layout/TablePage';
+import type { SearchMode } from '@resources/utils/search-filter';
+import {
+  useAPIKeys,
+  useDeleteAPIKey,
+  useRevokeAPIKey,
+  type APIKey,
+  type CreateAPIKeyResult,
+} from '../hooks/useAPIKeys';
+import { APIKeyFormDialog } from './APIKeyFormDialog';
+import { APIKeyTokenDialog } from './APIKeyTokenDialog';
+import { CLIDownloadDialog } from './CLIDownloadDialog';
+import { useAPIKeyColumns } from './apiKeyColumns';
+import { PERM } from '@core/auth/permissionKeys';
+import { useAnyPermission } from '@core/auth/usePermission';
+import { RotateAPIKeyDialog } from './governance/RotateAPIKeyDialog';
+
+type PendingAction = { id: string; mode: 'revoke' | 'delete' };
 
 export function APIKeysTab() {
   const { t } = useTranslation('security');
-  const { data: keys, isLoading } = useAPIKeys();
-  const [createOpen, setCreateOpen] = useState(false);
-  const [revokeId, setRevokeId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { data: keys = [], isLoading, isFetching, refetch } = useAPIKeys();
+  const [formOpen, setFormOpen] = useState(false);
+  const [cliOpen, setCliOpen] = useState(false);
+  const [editing, setEditing] = useState<APIKey | null>(null);
+  const [pending, setPending] = useState<PendingAction | null>(null);
   const [createdKey, setCreatedKey] = useState<CreateAPIKeyResult | null>(null);
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
   const revokeKey = useRevokeAPIKey();
+  const deleteKey = useDeleteAPIKey();
+  const [rotating, setRotating] = useState<APIKey | null>(null);
+  const canSee = useAnyPermission([PERM.API_KEYS_VIEW, PERM.API_KEYS_MANAGE]);
 
-  if (isLoading) {
+  const onView = useCallback((key: APIKey) => navigate(`/security/api-keys/${key.id}`), [navigate]);
+  const onEdit = useCallback((key: APIKey) => {
+    setEditing(key);
+    setFormOpen(true);
+  }, []);
+  const onRevoke = useCallback((key: APIKey) => setPending({ id: key.id, mode: 'revoke' }), []);
+  const onDelete = useCallback((key: APIKey) => setPending({ id: key.id, mode: 'delete' }), []);
+
+  const columns = useAPIKeyColumns({ onView, onEdit, onRevoke, onDelete, onRotate: setRotating });
+
+  if (!canSee) {
     return (
-      <div className="flex h-32 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
+      <EmptyState
+        icon={<IconLock className="size-6" />}
+        title={t('apiKeys.title')}
+        description={t('apiKeys.noAccess')}
+      />
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{t('apiKeys.description')}</p>
-        <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
-          <IconPlus className="mr-1 size-3.5" />
-          {t('apiKeys.createKey')}
-        </Button>
-      </div>
+    <>
+      <TablePage
+        id="api-keys"
+        // Rendered inside the security settings tabs.
+        header={false}
+        title={t('apiKeys.description')}
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('apiKeys.name'),
+          // Deliberately excludes the key prefix: an API key identifier is not
+          // something to make searchable, and it is never exported either.
+          fields: (key) => [key.name, key.username],
+        }}
+        toolbar={{
+          columns: true,
+          density: true,
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          // No export here. Every column that is not key material is already
+          // visible, and an export of an API-key table is a file of credentials
+          // waiting to be mishandled.
+          actions: (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setCliOpen(true)}>
+                <IconTerminal2 className="mr-1 size-3.5" />
+                {t('cli.button')}
+              </Button>
+              <Button
+                permission={PERM.API_KEYS_MANAGE}
+                size="sm"
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                <IconPlus className="mr-1 size-3.5" />
+                {t('apiKeys.createKey')}
+              </Button>
+            </>
+          ),
+        }}
+        columns={columns}
+        data={keys}
+        loading={isLoading}
+        empty={{ title: t('apiKeys.noKeys') }}
+        getRowId={(key) => key.id}
+      />
 
-      {keys && keys.length > 0 ? (
-        <div className="rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr className="border-b border-border bg-muted/30">
-                <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.name')}</th>
-                <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.key')}</th>
-                <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.expiresAt')}</th>
-                <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.lastUsed')}</th>
-                <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.status')}</th>
-                <th className="px-4 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {keys.map((key) => {
-                const isExpired = key.expiresAt && new Date(key.expiresAt) < new Date();
-                return (
-                  <tr key={key.id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{key.name}</div>
-                      <div className="text-xs text-muted-foreground">{key.username}</div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{key.keyPrefix}</code>
-                    </td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {key.expiresAt ? timeAgo(key.expiresAt) : t('apiKeys.noExpiry')}
-                    </td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {key.lastUsedAt ? timeAgo(key.lastUsedAt) : t('apiKeys.never')}
-                    </td>
-                    <td className="px-4 py-2">
-                      <Badge variant={!key.isActive ? 'destructive' : isExpired ? 'warning' : 'success'}>
-                        {!key.isActive ? t('apiKeys.revoked') : isExpired ? t('apiKeys.expired') : t('apiKeys.active')}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {key.isActive && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setRevokeId(key.id)}
-                          aria-label={t('apiKeys.revokeKey')}
-                        >
-                          <IconTrash className="size-3.5" />
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          {t('apiKeys.noKeys')}
-        </div>
-      )}
+      <CLIDownloadDialog open={cliOpen} onOpenChange={setCliOpen} />
 
-      <CreateAPIKeyDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
+      <APIKeyFormDialog
+        open={formOpen}
+        onOpenChange={(openState) => {
+          setFormOpen(openState);
+          if (!openState) setEditing(null);
+        }}
+        existing={editing}
         onCreated={(result) => {
-          setCreateOpen(false);
+          setFormOpen(false);
+          setEditing(null);
           setCreatedKey(result);
         }}
       />
 
       {createdKey && (
-        <APIKeyTokenDialog
-          open={!!createdKey}
-          onOpenChange={() => setCreatedKey(null)}
-          keyResult={createdKey}
-        />
+        <APIKeyTokenDialog open={!!createdKey} onOpenChange={() => setCreatedKey(null)} keyResult={createdKey} />
       )}
 
-      <ConfirmDialog
-        open={!!revokeId}
-        onOpenChange={() => setRevokeId(null)}
-        title={t('apiKeys.revokeKey')}
-        description={t('apiKeys.revokeKeyConfirm')}
-        onConfirm={() => {
-          if (revokeId) {
-            revokeKey.mutate(revokeId, { onSuccess: () => setRevokeId(null) });
-          }
-        }}
-        loading={revokeKey.isPending}
+      <RotateAPIKeyDialog
+        apiKey={rotating}
+        onOpenChange={(isOpen) => !isOpen && setRotating(null)}
+        onRotated={setCreatedKey}
       />
-    </div>
+
+      <ConfirmDialog
+        open={!!pending}
+        onOpenChange={() => setPending(null)}
+        title={pending?.mode === 'delete' ? t('apiKeys.deleteKey') : t('apiKeys.revokeKey')}
+        description={pending?.mode === 'delete' ? t('apiKeys.deleteKeyConfirm') : t('apiKeys.revokeKeyConfirm')}
+        onConfirm={() => {
+          if (!pending) return;
+          const mutation = pending.mode === 'delete' ? deleteKey : revokeKey;
+          mutation.mutate(pending.id, { onSuccess: () => setPending(null) });
+        }}
+        loading={revokeKey.isPending || deleteKey.isPending}
+      />
+    </>
   );
 }

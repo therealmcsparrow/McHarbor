@@ -1,0 +1,102 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+name: mcharbor
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "5"
+
+services:
+  mcharbor-init:
+    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_VERSION:?set MCHARBOR_VERSION to a pinned release}
+    user: "0:0"
+    entrypoint: ["chown", "-R", "${PUID:-1000}:${PGID:-1000}", "/app/data"]
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_READ_SEARCH
+    volumes:
+      - mcharbor-data:/app/data
+    logging: *logging
+    restart: "no"
+
+  mcharbor:
+    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_VERSION:?set MCHARBOR_VERSION to a pinned release}
+    restart: unless-stopped
+    depends_on:
+      mcharbor-init:
+        condition: service_completed_successfully
+    user: "${PUID:-1000}:${PGID:-1000}"
+    group_add:
+      - "${DOCKER_GID:?set DOCKER_GID to the group id that owns /var/run/docker.sock on this host}"
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=1g
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "${MCHARBOR_BIND_ADDRESS:-0.0.0.0}:${MCHARBOR_PORT:-8705}:8705"
+    environment:
+      PORT: "8705"
+      DATA_DIR: /app/data
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-UTC}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      MCHARBOR_NODE_ID: ${MCHARBOR_NODE_ID:-mcharbor-1}
+      MCHARBOR_SECRET: ${MCHARBOR_SECRET:?set MCHARBOR_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY}
+      BACKUP_ENCRYPTION_KEY_FILE: /run/secrets/mcharbor_backup_key
+      TLS_ENABLED: ${TLS_ENABLED:-true}
+      TLS_MIN_VERSION: ${TLS_MIN_VERSION:-1.3}
+      HTTP_REDIRECT_ADDR: ""
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-0}
+      FORCE_AGENT_TLS: ${FORCE_AGENT_TLS:-true}
+      SELF_SIGNED_SAN_EXTRA: ${SELF_SIGNED_SAN_EXTRA:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?set ALLOWED_ORIGINS to the URL users open McHarbor from}
+      MCHARBOR_TRUSTED_PROXY_CIDRS: ${MCHARBOR_TRUSTED_PROXY_CIDRS:-}
+      SSL_CERT_DIR: /etc/ssl/certs:/etc/mcharbor/ca
+    secrets:
+      - source: mcharbor_backup_key
+        target: mcharbor_backup_key
+    volumes:
+      - type: volume
+        source: mcharbor-data
+        target: /app/data
+        volume:
+          nocopy: true
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${MCHARBOR_BACKUP_PATH:-./backup}:/mnt/backup
+      - ${MCHARBOR_CA_PATH:-./ca}:/etc/mcharbor/ca:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsk https://127.0.0.1:8705/api/livez || curl -fs http://127.0.0.1:8705/api/livez"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: "${MCHARBOR_CPUS:-2}"
+          memory: ${MCHARBOR_MEMORY:-2g}
+          pids: 2048
+        reservations:
+          memory: 512m
+    logging: *logging
+
+secrets:
+  mcharbor_backup_key:
+    file: ${MCHARBOR_BACKUP_KEY_FILE:-./secrets/mcharbor_backup_key}
+
+volumes:
+  mcharbor-data:

@@ -7,6 +7,28 @@
   "tableView": "Vista de tabla",
   "cardView": "Vista de tarjeta",
   "columns": {
+    "id": "ID",
+    "type": "Tipo",
+    "orchestrator": "Orquestador",
+    "createdAt": "Creado",
+    "updatedAt": "Actualizado",
+    "protected": "Protegido",
+    "environment": "Entorno",
+    "containerIds": "ID de contenedores",
+    "owner": "Propietario",
+    "groupOwner": "Propietario",
+    "groupStack": "Stack",
+    "groupEnvironment": "Entorno",
+    "groupContainers": "Contenedores",
+    "containerName": "Nombre del contenedor",
+    "statusText": "Estado",
+    "imageId": "ID de imagen",
+    "command": "Comando",
+    "networks": "Redes",
+    "ipAddresses": "Direcciones IP",
+    "volumes": "Volúmenes",
+    "labels": "Etiquetas",
+    "groupContainer": "Contenedor",
     "name": "Nombre",
     "status": "Estado",
     "services": "Servicios",
@@ -16,8 +38,8 @@
     "created": "Creado"
   },
   "badges": {
-    "managed": "administrado",
-    "discovered": "descubierto"
+    "managed": "Administrado",
+    "discovered": "Descubierto"
   },
   "actions": {
     "view": "Ver detalles",
@@ -92,6 +114,8 @@
     "composeFile": "Archivo Compose",
     "editCompose": "Editar",
     "saveCompose": "Ahorrar",
+    "revealComposeValues": "Mostrar valores",
+    "hideComposeValues": "Ocultar valores",
     "readOnly": "Solo lectura (pila descubierta)",
     "envVars": "Variables de entorno",
     "noEnvVars": "No hay variables de entorno configuradas.",
@@ -107,7 +131,10 @@
     "loadingLayers": "Cargando capas...",
     "webhooks": "Ganchos web",
     "editMode": "Editar",
-    "descriptionPlaceholder": "Descripción de la pila..."
+    "descriptionPlaceholder": "Descripción de la pila...",
+    "tabs": {
+      "ariaLabel": "Secciones del stack"
+    }
   },
   "webhooks": {
     "title": "Ganchos web",
@@ -138,19 +165,21 @@
     "button": "Podar huérfanos",
     "pruning": "Poda...",
     "noOrphans": "No se encontraron servicios huérfanos",
-    "removed": "Se eliminaron los servicios huérfanos {{count}}."
+    "removed_one": "Se eliminaron los servicios huérfanos {{count}}.",
+    "removed_other": "Se eliminaron los servicios huérfanos {{count}}."
   },
   "editStack": {
     "editStack": "Editar pila",
     "saveStack": "Ahorrar",
     "saving": "Ahorro...",
-    "cancel": "Cancelar",
-    "envVarsSaved": "Variables de entorno guardadas"
+    "cancel": "Cancelar"
   },
   "confirm": {
     "removeTitle": "Quitar pila",
     "removeDescription": "Esto detendrá y eliminará todos los contenedores en \"{{name}}\" y lo eliminará permanentemente.",
-    "removeLabel": "Eliminar"
+    "removeLabel": "Eliminar",
+    "downTitle": "Detener stack",
+    "downDescription": "Esto detiene y elimina todos los contenedores y redes de «{{name}}». Los volúmenes y la definición del stack se conservan."
   },
   "takeOver": {
     "title": "Asumir la gestión",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Reinstale todas las pilas",
-      "reinstallAllDescription": "Fuerce la recreación de las pilas administradas de {{count}} con sus imágenes actuales. Esto puede interrumpir brevemente los servicios en ejecución."
+      "reinstallAllDescription_one": "Forzar la recreación de {{count}} pila administrada con sus imágenes actuales. Esto puede interrumpir brevemente los servicios en ejecución.",
+      "reinstallAllDescription_other": "Forzar la recreación de {{count}} pilas administradas con sus imágenes actuales. Esto puede interrumpir brevemente los servicios en ejecución."
     }
   },
   "toast": {
@@ -216,6 +246,13 @@
     "webhookUpdated": "Webhook actualizado",
     "webhookDeleted": "Webhook eliminado",
     "envVarsSaved": "Variables de entorno guardadas",
-    "pruned": "Servicios huérfanos {{count}} podados"
+    "pruned_one": "Servicios huérfanos {{count}} podados",
+    "pruned_other": "Servicios huérfanos {{count}} podados"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Esperando a que la API de McHarbor vuelva a estar en línea...",
+      "apiRecoveryTimeout": "La API de McHarbor no volvió a estar en línea a tiempo."
+    }
   }
 }

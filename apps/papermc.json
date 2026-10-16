@@ -1,0 +1,46 @@
+{
+    "slug":  "papermc",
+    "name":  "PaperMC",
+    "description":  "High-performance Paper server for Minecraft Java Edition, optimized for plugins and large player counts.",
+    "category":  "Gaming",
+    "image":  "papermc/paper:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/papermc.svg",
+    "website":  "https://papermc.io",
+    "docsUrl":  "https://docs.papermc.io/paper/getting-started",
+    "ports":  [
+                  {
+                      "host":  25566,
+                      "container":  25565,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/papermc/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "EULA",
+                        "default":  "TRUE",
+                        "description":  "Accept the Minecraft EULA"
+                    },
+                    {
+                        "key":  "MEMORY",
+                        "default":  "2G",
+                        "description":  "JVM memory allocation"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -3,12 +3,20 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { resolveAnsiPalette, resolveSurfaceTokens } from '@resources/theme/resolveToken';
 
 type UseXTermOptions = {
   /** Auto-connect on mount. Default: false */
   autoConnect?: boolean;
   /** Disconnect when false. Default: true */
   active?: boolean;
+  /** Shell path (e.g. /bin/bash). Empty = auto-detect. */
+  shell?: string;
+  /** User identity (root / nobody / uid / uid:gid). Empty = image USER. */
+  user?: string;
+  /** Initial cwd inside the shell. Empty = shell's default. */
+  workingDir?: string;
+  debugSession?: string;
 };
 
 type XTermInstance = import('@xterm/xterm').Terminal;
@@ -45,7 +53,7 @@ function loadTerminalAssets() {
  * ```
  */
 export function useXTerm(containerId: string, options?: UseXTermOptions) {
-  const { autoConnect = false, active = true } = options ?? {};
+  const { autoConnect = false, active = true, shell, user, workingDir, debugSession } = options ?? {};
   const envId = useEnvironmentStore((s) => s.currentId);
   const [connected, setConnected] = useState(false);
   const termRef = useRef<HTMLDivElement>(null);
@@ -74,11 +82,20 @@ export function useXTerm(containerId: string, options?: UseXTermOptions) {
       return;
     }
 
+    const surface = resolveSurfaceTokens();
+    const ansi = resolveAnsiPalette();
     const term = new Terminal({
       cursorBlink: true,
       fontFamily: 'JetBrains Mono, Fira Code, monospace',
       fontSize: 14,
-      theme: { background: '#0a0a0a', foreground: '#e4e4e7', cursor: '#e4e4e7' },
+      theme: {
+        background: surface.background,
+        foreground: surface.foreground,
+        cursor: surface.cursor,
+        cursorAccent: surface.background,
+        selectionBackground: surface.selection,
+        ...ansi,
+      },
     });
 
     const fit = new FitAddon();
@@ -91,6 +108,10 @@ export function useXTerm(containerId: string, options?: UseXTermOptions) {
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const params = new URLSearchParams({ container: containerId });
+    if (shell && !debugSession) params.set('shell', shell);
+    if (user) params.set('user', user);
+    if (workingDir) params.set('workDir', workingDir);
+    if (debugSession) params.set('debugSession', debugSession);
     if (envId) params.set('env', envId);
     const ws = new WebSocket(`${protocol}//${window.location.host}/api/terminal/ws?${params}`);
     ws.binaryType = 'arraybuffer';
@@ -126,11 +147,12 @@ export function useXTerm(containerId: string, options?: UseXTermOptions) {
         ws.send(JSON.stringify({ type: 'resize', cols, rows }));
       }
     });
-  }, [containerId, envId, disconnect]);
+  }, [containerId, envId, disconnect, shell, user, workingDir, debugSession]);
 
   // Disconnect when inactive
   useEffect(() => {
     if (!active && connected) {
+      // eslint-disable-next-line react/set-state-in-effect -- tears down the external WebSocket and terminal, whose cleanup also resets the connected flag
       disconnect();
     }
   }, [active, connected, disconnect]);

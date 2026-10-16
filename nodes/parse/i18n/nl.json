@@ -1,0 +1,33 @@
+{
+  "label": "Parseren",
+  "description": "Parseer JSON-, YAML-, XML-, CSV- of HTML-tekst naar gestructureerde data",
+  "config": {
+    "format": "Formaat",
+    "property": "Eigenschap",
+    "delimiter": "Scheidingsteken",
+    "has_headers": "Heeft headers",
+    "selector": "Selector",
+    "output_type": "Uitvoertype",
+    "attribute": "Attribuut"
+  },
+  "options": {
+    "format": {
+      "json": "JSON",
+      "yaml": "YAML",
+      "xml": "XML",
+      "csv": "CSV",
+      "html": "HTML"
+    },
+    "output_type": {
+      "text": "Tekst",
+      "html": "HTML",
+      "attribute": "Attribuut"
+    },
+    "delimiter": {
+      ",": "Komma",
+      ";": "Puntkomma",
+      "\\t": "Tab",
+      "|": "Verticale streep"
+    }
+  }
+}

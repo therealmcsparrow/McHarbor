@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Federeer de McHarbor-login naar een Azure AD-tenant. De plugin verzorgt de OIDC-autorisatiecodeflow tegen de v2.0-endpoints op login.microsoftonline.com plus de Microsoft Graph API voor het ophalen van beheerdersgroepen.",
+    "registerHint": "Voeg een provider toe via de pagina Instellingen > Beveiliging > Identiteitsproviders van de host en kies \"Microsoft Entra ID\" als provider_type."
+  },
+  "fields": {
+    "tenant_id":     "Tenant-ID",
+    "client_id":     "Client-ID",
+    "client_secret": "Clientgeheim",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "tenant_id":     "Azure AD-tenant-ID (UUID). Gebruik 'common' voor multi-tenant-apps, 'organizations' voor elk werk- of schoolaccount, of laat 'common' staan om ook persoonlijke accounts toe te staan.",
+    "client_id":     "Applicatie-(client-)ID van de overzichtspagina van de App Registration.",
+    "client_secret": "Waarde van het clientgeheim van de pagina Certificates & secrets van de App Registration. Versleuteld opgeslagen.",
+    "scopes":        "Door spaties gescheiden OAuth-scopes. Standaard openid profile email. Gebruik 'https://graph.microsoft.com/.default' om groepen op te halen via de Graph API."
+  },
+  "guide": {
+    "title":    "Microsoft Entra ID instellen in McHarbor",
+    "subtitle": "Registreer een vertrouwelijke clientapplicatie in je Azure AD-tenant en verleen Microsoft Graph-machtigingen als je het ophalen van beheerdersgroepen wilt inschakelen.",
+    "step1": {
+      "title": "Open het blad App Registration",
+      "body":  "Ga in de Azure-portal naar Microsoft Entra ID > App registrations > New registration. Kies een naam (bijv. \"McHarbor SSO\") en selecteer de accounttypen die je wilt ondersteunen (single-tenant, multi-tenant of persoonlijk)."
+    },
+    "step2": {
+      "title": "Stel de redirect-URI in",
+      "body":  "Kies onder Redirect URI Web en voer de McHarbor-callback-URL in die op de bewerkpagina van de provider staat. De host voegt /api/identity-providers/callback toe aan je McHarbor-basis-URL — kopieer hem exact om stille auth-code-mismatches te voorkomen."
+    },
+    "step3": {
+      "title": "Maak een clientgeheim aan",
+      "body":  "Open Certificates & secrets > New client secret. Kies een redelijke looptijd (90 of 180 dagen) en zet een herinnering in je agenda. Kopieer de WAARDE van het geheim (niet de Secret ID) naar het veld Clientgeheim op het providerformulier. McHarbor slaat het AES-256-GCM-versleuteld op."
+    },
+    "step4": {
+      "title": "Kopieer de Application (client) ID",
+      "body":  "Kopieer op de overzichtspagina van de App Registration de Application (client) ID naar het veld Client-ID op het providerformulier."
+    },
+    "step5": {
+      "title": "Kopieer de Directory (tenant) ID",
+      "body":  "Kopieer nog steeds op de overzichtspagina de Directory (tenant) ID naar het veld Tenant-ID op het providerformulier. Gebruik \"common\" als je de app als multi-tenant hebt geregistreerd."
+    },
+    "step6": {
+      "title": "(Optioneel) Verleen Microsoft Graph Group.Read.All",
+      "body":  "Als je wilt dat de groepsmappingwizard van de beheerdersgroep Entra-groepen vult, open je API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Klik op Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Test de verbinding",
+      "body":  "Klik terug in McHarbor op \"Verbinding testen\" op het providerformulier. Een groen resultaat betekent dat het OIDC-discovery-document is opgelost en dat een client-credentials-tokenuitwisseling bij login.microsoftonline.com is geslaagd — de configuratie is geldig. Je kunt de provider nu inschakelen en \"Aanmelden met Microsoft\" gebruiken op de inlogpagina."
+    }
+  }
+}

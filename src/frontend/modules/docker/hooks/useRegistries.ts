@@ -40,10 +40,7 @@ export type ConnectionTestResult = {
 export function useRegistries() {
   return useQuery({
     queryKey: ['registries'],
-    queryFn: () =>
-      api
-        .get<PaginatedData<Registry>>('/registries')
-        .then((r) => r.data),
+    queryFn: () => api.get<PaginatedData<Registry>>('/registries').then(assertSuccess),
     refetchInterval: 30_000,
   });
 }
@@ -53,11 +50,10 @@ export function useCreateRegistry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateRegistryInput) =>
-      api.post<Registry>('/registries', input).then(assertSuccess),
+    mutationFn: (input: CreateRegistryInput) => api.post<Registry>('/registries', input).then(assertSuccess),
     meta: { success: t('registries.toast.created') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['registries'] });
+      void queryClient.invalidateQueries({ queryKey: ['registries'] });
     },
   });
 }
@@ -71,7 +67,7 @@ export function useUpdateRegistry() {
       api.put<Registry>(`/registries/${id}`, input).then(assertSuccess),
     meta: { success: t('registries.toast.updated') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['registries'] });
+      void queryClient.invalidateQueries({ queryKey: ['registries'] });
     },
   });
 }
@@ -81,11 +77,10 @@ export function useDeleteRegistry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) =>
-      api.del(`/registries/${id}`).then(assertSuccess),
+    mutationFn: (id: string) => api.del(`/registries/${id}`).then(assertSuccess),
     meta: { success: t('registries.toast.deleted') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['registries'] });
+      void queryClient.invalidateQueries({ queryKey: ['registries'] });
     },
   });
 }
@@ -94,8 +89,7 @@ export function useTestRegistry() {
   const { t } = useTranslation('docker');
 
   return useMutation({
-    mutationFn: (id: string) =>
-      api.post<ConnectionTestResult>(`/registries/${id}/test`).then(assertSuccess),
+    mutationFn: (id: string) => api.post<ConnectionTestResult>(`/registries/${id}/test`).then(assertSuccess),
     meta: { success: t('registries.toast.testSuccess') },
   });
 }

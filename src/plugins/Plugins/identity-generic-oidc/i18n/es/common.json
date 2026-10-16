@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "OpenID Connect genérico",
+    "subtitle": "Federe el inicio de sesión de McHarbor con cualquier proveedor compatible de OpenID Connect: Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP y muchos más. El plugin obtiene <issuer>/.well-known/openid-configuration en tiempo de ejecución para descubrir los endpoints de autorización y de token, y luego ejecuta el flujo estándar de código de autorización OIDC.",
+    "registerHint": "Añada un proveedor desde la página Ajustes > Seguridad > Proveedores de identidad del host y elija \"OpenID Connect genérico\" como provider_type."
+  },
+  "fields": {
+    "issuer_url":    "URL del emisor",
+    "client_id":     "ID de cliente",
+    "client_secret": "Secreto de cliente",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "issuer_url":    "La URL del emisor OIDC: normalmente la URL base del portal de cara al usuario de su proveedor de identidad (por ejemplo, https://login.example.com o https://your-tenant.auth0.com/). El plugin añade /.well-known/openid-configuration para descubrir el endpoint de autorización, el endpoint de token y la URI de JWKS.",
+    "client_id":     "ID de cliente OAuth asignado por su IdP a la aplicación McHarbor. Cópielo de la pantalla de configuración de la aplicación/cliente de su IdP.",
+    "client_secret": "Secreto de cliente OAuth emitido por su IdP. Almacenado cifrado en reposo (AES-256-GCM).",
+    "scopes":        "Scopes de OAuth separados por espacios. Por defecto es 'openid profile email', que cubre los claims de identidad estándar de OIDC. Añada 'groups' si su IdP expone un claim de grupos con ese nombre (el asistente de asignación de grupos del host lee el claim 'groups' afirmado por OIDC)."
+  },
+  "guide": {
+    "title":    "Configurar OpenID Connect genérico en McHarbor",
+    "subtitle": "Registre un cliente OAuth confidencial en su IdP y concédale el derecho a leer los claims básicos de perfil (y, opcionalmente, los grupos).",
+    "step1": {
+      "title": "Abra el registro de aplicaciones de su IdP",
+      "body":  "En la consola de administración de su proveedor de identidad, vaya a Applications (o Clients / API Clients según el producto) y cree una nueva aplicación web confidencial. Elija un nombre como \"McHarbor SSO\" y seleccione el tipo Web application."
+    },
+    "step2": {
+      "title": "Establezca la URI de redirección",
+      "body":  "En Allowed Callback URLs / Redirect URIs, añada la URL de callback de McHarbor que aparece en la página de edición del proveedor. El host añade /api/identity-providers/callback a la URL base de su McHarbor; cópiela exactamente para evitar discrepancias silenciosas del código de autorización."
+    },
+    "step3": {
+      "title": "Cree un secreto de cliente",
+      "body":  "Genere un nuevo secreto de cliente. Elija una caducidad razonable (90 o 180 días) y configure un recordatorio en el calendario. Copie el VALOR del secreto (no el ID del secreto) en el campo Secreto de cliente del formulario del proveedor. McHarbor lo almacena cifrado con AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copie el ID de cliente",
+      "body":  "Desde el resumen de la aplicación, copie el ID de cliente en el campo ID de cliente del formulario del proveedor."
+    },
+    "step5": {
+      "title": "Copie la URL del emisor",
+      "body":  "La URL del emisor es la URL base de su IdP: la misma URL a la que acceden sus usuarios cuando inician sesión. Formas habituales: https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Péguela en el campo URL del emisor. El plugin obtendrá <issuer>/.well-known/openid-configuration para validar la configuración."
+    },
+    "step6": {
+      "title": "Pruebe la conexión",
+      "body":  "De vuelta en McHarbor, haga clic en \"Probar la conexión\" en el formulario del proveedor. Un resultado verde significa que el documento de descubrimiento de OIDC se resolvió y que el IdP aceptó sus credenciales. Ahora puede habilitar el proveedor y usar \"Iniciar sesión con <your IdP>\" en la página de inicio de sesión."
+    }
+  }
+}

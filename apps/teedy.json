@@ -1,0 +1,35 @@
+{
+    "slug":  "teedy",
+    "name":  "Teedy",
+    "description":  "Lightweight open source document management system with tagging, full-text search, and access control.",
+    "category":  "Documents",
+    "image":  "sismics/docs:latest",
+    "logo":  "https://github.com/sismics.png",
+    "website":  "https://teedy.io",
+    "docsUrl":  "https://github.com/sismics/docs",
+    "ports":  [
+                  {
+                      "host":  8103,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/teedy/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "slug":  "kavita-canary",
+    "name":  "Kavita (Canary)",
+    "description":  "Canary channel build of Kavita. Reading server for manga, comics, and ebooks.",
+    "category":  "Media",
+    "image":  "jvmilazz0/kavita:canary",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kavita.png",
+    "website":  "https://www.kavitareader.com",
+    "docsUrl":  "https://wiki.kavitareader.com",
+    "ports":  [
+                  {
+                      "host":  6000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kavita-canary/config",
+                        "container":  "/kavita/config"
+                    },
+                    {
+                        "host":  "/srv/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "canary",
+    "latest":  {
+        "version":  "canary",
+        "release_date":  "2026-09-29"
+    }
+}

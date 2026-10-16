@@ -1,0 +1,35 @@
+{
+    "slug":  "octoprint",
+    "name":  "OctoPrint",
+    "description":  "Web interface for controlling and monitoring 3D printers over a serial or USB connection, with webcam support.",
+    "category":  "Home Automation",
+    "image":  "octoprint/octoprint:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/octoprint.png",
+    "website":  "https://octoprint.org",
+    "docsUrl":  "https://docs.octoprint.org/en/master/installation/docker.html",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/octoprint/data",
+                        "container":  "/octoprint"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

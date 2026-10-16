@@ -4,7 +4,7 @@
   "description": "Vector and raster tile server with GL-JS rendering for self-hosted interactive maps from MBTiles.",
   "category": "Databases",
   "image": "maptiler/tileserver-gl:latest",
-  "logo": "https://tileserver.readthedocs.io/en/latest/_static/logo.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=tileserver.readthedocs.io\u0026sz=128",
   "website": "https://tileserver.readthedocs.io",
   "docsUrl": "https://tileserver.readthedocs.io/en/latest/installation.html",
   "ports": [
@@ -37,5 +37,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

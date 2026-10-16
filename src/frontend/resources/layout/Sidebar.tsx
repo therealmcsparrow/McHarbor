@@ -1,225 +1,217 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { NavLink } from 'react-router';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconLayoutDashboard,
-  IconBox,
-  IconPhoto,
-  IconDeviceFloppy,
-  IconNetwork,
-  IconStack2,
-  IconTerminal,
-  IconArchive,
-  IconFileText,
-  IconHistory,
-  IconWorld,
-  IconBook,
-  IconGitBranch,
-  IconActivity,
-  IconClipboardList,
-  IconSettings,
-  IconRefresh,
-  IconApps,
-  IconGitMerge,
-  IconCube,
-  IconRocket,
-  IconServer,
-  IconFolders,
-  IconShieldLock,
-  IconShield,
-  IconBrandDocker,
-  IconBell,
-} from '@tabler/icons-react';
+import { useLocation } from 'react-router';
+import { IconBrandDocker, IconBell, IconShieldLock, IconSettings } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
-import { useEnvironmentStore } from '@resources/stores/environment';
 import { useSidebarStore } from '@resources/stores/sidebar';
+import { useVisibleNavItems } from '@resources/hooks/useVisibleNavItems';
+import { usePluginMenu } from '@core/plugins/loader';
+import {
+  buildSections,
+  dashboardSection,
+  deliverSection,
+  pluginMenuToSections,
+  type NavItem,
+  type NavSection,
+} from '@resources/layout/sidebar-data';
+import { resolveActiveNavPath } from './nav-active';
+import { SidebarSection } from './SidebarSection';
+import { SidebarBottomDock } from './SidebarBottomDock';
+import { SidebarEnvironmentBadge } from './SidebarEnvironmentBadge';
+import { useSidebarStatusBadges } from './useSidebarStatusBadges';
+import { useBrandLogo } from '@resources/hooks/useBranding';
 
-type NavItem = {
-  to: string;
-  labelKey: string;
-  icon: typeof IconLayoutDashboard;
-};
-
-const commonBefore: NavItem[] = [
-  { to: '/dashboard', labelKey: 'nav.dashboard', icon: IconLayoutDashboard },
-];
-
-const dockerItems: NavItem[] = [
-  { to: '/containers', labelKey: 'nav.containers', icon: IconBox },
-  { to: '/images', labelKey: 'nav.images', icon: IconPhoto },
-  { to: '/volumes', labelKey: 'nav.volumes', icon: IconDeviceFloppy },
-  { to: '/stacks', labelKey: 'nav.stacks', icon: IconStack2 },
-  { to: '/networks', labelKey: 'nav.networks', icon: IconNetwork },
-  { to: '/environments', labelKey: 'nav.environments', icon: IconWorld },
-  { to: '/terminal', labelKey: 'nav.terminal', icon: IconTerminal },
-  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
-  { to: '/lifecycle', labelKey: 'nav.logging', icon: IconHistory },
-  { to: '/logs', labelKey: 'nav.logs', icon: IconFileText },
-  { to: '/activity', labelKey: 'nav.activity', icon: IconActivity },
-  { to: '/audit', labelKey: 'nav.audit', icon: IconClipboardList },
-  { to: '/security/scans', labelKey: 'nav.securityScans', icon: IconShield },
-  { to: '/reconciler', labelKey: 'nav.reconciler', icon: IconRefresh },
-  { to: '/workflows', labelKey: 'nav.workflows', icon: IconGitMerge },
-  { to: '/store', labelKey: 'nav.store', icon: IconApps },
-  { to: '/blueprints', labelKey: 'nav.blueprints', icon: IconBook },
-  { to: '/git', labelKey: 'nav.git', icon: IconGitBranch },
-  { to: '/gitops', labelKey: 'nav.gitops', icon: IconRocket },
-];
-
-const k8sItems: NavItem[] = [
-  { to: '/pods', labelKey: 'nav.pods', icon: IconCube },
-  { to: '/deployments', labelKey: 'nav.deployments', icon: IconRocket },
-  { to: '/k8s-services', labelKey: 'nav.services', icon: IconServer },
-  { to: '/namespaces', labelKey: 'nav.namespaces', icon: IconFolders },
-  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
-];
-
-const commonAfter: NavItem[] = [
-  { to: '/environments', labelKey: 'nav.environments', icon: IconWorld },
-  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
-  { to: '/activity', labelKey: 'nav.activity', icon: IconActivity },
-  { to: '/audit', labelKey: 'nav.audit', icon: IconClipboardList },
-  { to: '/reconciler', labelKey: 'nav.reconciler', icon: IconRefresh },
-  { to: '/workflows', labelKey: 'nav.workflows', icon: IconGitMerge },
-  { to: '/store', labelKey: 'nav.store', icon: IconApps },
-  { to: '/blueprints', labelKey: 'nav.blueprints', icon: IconBook },
-  { to: '/git', labelKey: 'nav.git', icon: IconGitBranch },
-  { to: '/gitops', labelKey: 'nav.gitops', icon: IconRocket },
-];
-
-function SidebarLink({
-  item,
-  collapsed,
-  linkClass,
-  label,
-}: {
-  item: NavItem;
-  collapsed: boolean;
-  linkClass: (props: { isActive: boolean }) => string;
-  label: string;
-}) {
-  const [tip, setTip] = useState<{ top: number; left: number } | null>(null);
-
-  function handleEnter(e: React.MouseEvent<HTMLAnchorElement>) {
-    if (!collapsed) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    setTip({ top: rect.top + rect.height / 2, left: rect.right + 12 });
-  }
-
-  return (
-    <>
-      <NavLink
-        to={item.to}
-        end={item.to === '/dashboard'}
-        className={linkClass}
-        onMouseEnter={handleEnter}
-        onMouseLeave={() => setTip(null)}
-      >
-        <item.icon className="size-4 shrink-0" />
-        {!collapsed && label}
-      </NavLink>
-      {tip &&
-        createPortal(
-          <div
-            className="pointer-events-none fixed z-50 whitespace-nowrap rounded-md border border-border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md"
-            style={{ top: tip.top, left: tip.left, transform: 'translateY(-50%)' }}
-          >
-            {label}
-          </div>,
-          document.body
-        )}
-    </>
-  );
-}
+const EMPTY_PLUGIN_MENU: NonNullable<ReturnType<typeof usePluginMenu>> = [];
 
 export function Sidebar() {
   const { t } = useTranslation('common');
-  const environments = useEnvironmentStore((s) => s.environments);
-  const currentId = useEnvironmentStore((s) => s.currentId);
-  const currentEnv = environments.find((e) => e.id === currentId);
-  const isK8s = currentEnv?.orchestratorType === 'kubernetes';
+  const { pathname } = useLocation();
   const collapsed = useSidebarStore((s) => s.collapsed);
-
-  const navItems = isK8s
-    ? [...commonBefore, ...k8sItems, ...commonAfter]
-    : [...commonBefore, ...dockerItems];
+  const expandedSection = useSidebarStore((s) => s.expandedSection);
+  const toggleSection = useSidebarStore((s) => s.toggleSection);
+  const setExpandedSection = useSidebarStore((s) => s.setExpandedSection);
+  // The install's own mark for the active variant, falling back to the
+  // bundled McHarbor one. Both surfaces resolve independently, so an operator
+  // who uploaded only a wordmark keeps the shipped icon on the collapsed rail.
+  const wordmark = useBrandLogo('wide');
+  const icon = useBrandLogo('icon');
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     collapsed
       ? cn(
-          'flex items-center justify-center py-1.5 rounded-lg transition-colors',
+          'flex items-center justify-center border-l-2 py-2 transition-colors',
           isActive
-            ? 'bg-primary/10 text-primary'
-            : 'text-primary/60 hover:text-primary hover:bg-primary/10'
+            ? 'border-primary bg-primary/10 text-primary'
+            : 'border-transparent text-primary/60 hover:bg-accent hover:text-primary',
         )
       : cn(
-          'flex items-center gap-x-3.5 py-1 px-2.5 text-sm rounded-lg transition-colors',
+          'flex items-center justify-between gap-x-3.5 border-l-2 py-2 pr-4 pl-3.5 text-sm transition-colors',
           isActive
-            ? 'bg-primary/10 text-primary font-medium'
-            : 'text-muted-foreground hover:bg-muted/50'
+            ? 'border-primary bg-primary/10 font-semibold text-primary'
+            : 'border-transparent text-sidebar-foreground hover:bg-accent',
         );
 
-  const bottomItems: NavItem[] = [
-    ...(!isK8s ? [{ to: '/docker', labelKey: 'nav.docker', icon: IconBrandDocker }] : []),
+  // Build the full section list once per (mode, plugin menu snapshot).
+  // Dashboard stays label-less so its header is skipped by the renderer.
+  const pluginMenu = usePluginMenu() ?? EMPTY_PLUGIN_MENU;
+  const sections: NavSection[] = useMemo(() => {
+    return [
+      dashboardSection,
+      ...buildSections('docker'),
+      // Plugins that claim a section id get their own named section;
+      // everything else lands in the generic "Plugins" section.
+      ...pluginMenuToSections(pluginMenu),
+      // Deliver closes the sidebar. It is appended here rather than
+      // returned by `buildSections` because "last" has to mean last:
+      // inside that list it would sit above every plugin-owned section,
+      // and installing a plugin would silently move it up the list.
+      deliverSection,
+    ];
+  }, [pluginMenu]);
+
+  // Pre-compute per-section visible items. We need to satisfy rules of
+  // hooks, so we run `useVisibleNavItems` once on the flat list and
+  // group the surviving items back into sections for rendering.
+  const allVisibleItems = useVisibleNavItems(sections.flatMap((s) => s.items));
+  const sectionsWithVisible = useMemo(() => {
+    const byTo = new Map(allVisibleItems.map((it) => [it.to, it]));
+    return (
+      sections
+        .map((s) => ({
+          ...s,
+          items: s.items.map((it) => byTo.get(it.to)).filter((it): it is NavItem => Boolean(it)),
+        }))
+        // A section whose every item was permission-filtered has nothing
+        // left to navigate to, and a header that opens onto an empty list
+        // reads as a broken page rather than as an absent permission. Drop
+        // it entirely: the section is a grouping of destinations, not a
+        // destination itself, so with no destinations it has no meaning.
+        .filter((s) => s.items.length > 0)
+    );
+  }, [sections, allVisibleItems]);
+
+  // Bottom dock stays outside the scroll area; it doesn't fold with
+  // sections and isn't permission-gated beyond `useVisibleNavItems`.
+  //
+  // Four app-level destinations, and nothing here that isn't a page — the
+  // light/dark control moved out to Settings → Theme, where the rest of the
+  // appearance preferences already live. `/security` (access & roles)
+  // resolves to this dock rather than to the Govern section, so it still
+  // appears exactly once in the nav; Govern keeps the scans page.
+  const bottomItems: NavItem[] = useVisibleNavItems([
+    { to: '/docker', labelKey: 'nav.docker', icon: IconBrandDocker },
+    { to: '/notifications', labelKey: 'nav.notifications', icon: IconBell },
     { to: '/security', labelKey: 'nav.security', icon: IconShieldLock },
     { to: '/settings', labelKey: 'nav.settings', icon: IconSettings },
-    { to: '/notifications', labelKey: 'nav.notifications', icon: IconBell },
-  ];
+  ]);
+
+  const visibleItems = useMemo(
+    () => [...sectionsWithVisible.flatMap((section) => section.items), ...bottomItems],
+    [bottomItems, sectionsWithVisible],
+  );
+  const visiblePaths = useMemo(() => visibleItems.map((item) => item.to), [visibleItems]);
+  const badges = useSidebarStatusBadges(visiblePaths);
+
+  // One winner for the whole nav. Resolving centrally (longest match wins)
+  // is what stops a parent route — /plugins/addon-kubernetes under its tabs, or the
+  // reporting plugin's /plugins/addon-reporting under its own sub-pages — from
+  // staying lit once the reader has moved on to a sibling.
+  const activePath = useMemo(() => resolveActiveNavPath(pathname, visibleItems), [pathname, visibleItems]);
+
+  // Sections are an accordion: one open at a time. Navigating into a folded
+  // section opens it, but only on an actual route change, so folding the
+  // section you are standing in stays folded until you navigate again.
+  const lastPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastPathRef.current === pathname) return;
+    lastPathRef.current = pathname;
+    const owner = sectionsWithVisible.find(
+      (section) => section.labelKey && section.items.some((item) => item.to === activePath),
+    );
+    if (owner) setExpandedSection(owner.id);
+  }, [activePath, pathname, sectionsWithVisible, setExpandedSection]);
 
   return (
     <aside
       className={cn(
-        'flex h-full flex-col border-r border-sidebar-border bg-card transition-all duration-200',
-        collapsed ? 'w-14' : 'w-64'
+        'relative z-10 flex h-full flex-col border-r border-border bg-sidebar transition-all duration-200',
+        collapsed ? 'w-14' : 'w-64',
       )}
     >
       <div
         className={cn(
-          'flex h-14 items-center gap-2 border-b border-sidebar-border',
-          collapsed ? 'justify-center px-0' : 'px-5'
+          'flex h-14 items-center justify-center gap-2 border-b border-border',
+          collapsed ? 'px-0' : 'px-5',
         )}
       >
-        <img src="/icon_McSparrow.svg" alt="McHarbor" className="h-6 w-6" />
-        {!collapsed && (
-          <span className="text-lg font-bold text-sidebar-foreground">McHarbor</span>
+        {/* The wordmark when there is room for it; the icon on the 56px rail,
+            where a 3.4:1 lockup cannot fit. Same `alt` either way — the sidebar
+            should not appear to rename itself when it collapses. The aspect
+            ratio is pinned because the source SVG declares width/height 100%,
+            which a height-only rule can resolve to zero width. */}
+        {collapsed ? (
+          <span className="grid size-[30px] shrink-0 place-items-center">
+            <img
+              src={icon.src}
+              alt={t('brand.logoAlt')}
+              className={cn(
+                'h-[17px] w-[17px]',
+                // An uploaded mark is an unknown aspect ratio, so it is
+                // contained in the box rather than stretched to it.
+                icon.isCustom && 'size-auto max-h-[17px] max-w-[17px] object-contain',
+              )}
+            />
+          </span>
+        ) : (
+          <img
+            src={wordmark.src}
+            alt={t('brand.logoAlt')}
+            className={cn(
+              'h-7 w-auto shrink-0',
+              // The bundled SVG declares width/height 100%, which a
+              // height-only rule can resolve to zero width — hence the pinned
+              // ratio. An uploaded file carries its own intrinsic size and
+              // must not inherit it.
+              wordmark.isCustom ? 'max-w-[13rem] object-contain' : '[aspect-ratio:7038/2094]',
+            )}
+          />
         )}
       </div>
 
-      <nav className={cn('flex-1 overflow-y-auto py-4', collapsed ? 'px-1.5' : 'px-3')}>
-        <ul className="space-y-1">
-          {navItems.map((item) => (
-            <li key={item.to}>
-              <SidebarLink
-                item={item}
-                collapsed={collapsed}
-                linkClass={linkClass}
-                label={t(item.labelKey)}
-              />
-            </li>
-          ))}
-        </ul>
+      <div className={cn('shrink-0 border-b border-border', collapsed ? 'flex justify-center py-1.5' : '')}>
+        <SidebarEnvironmentBadge />
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-2">
+        {sectionsWithVisible.map((section) => {
+          const sectionCollapsed = section.id !== expandedSection;
+          return (
+            <SidebarSection
+              key={section.id}
+              section={section}
+              sectionCollapsed={sectionCollapsed}
+              sidebarCollapsed={collapsed}
+              onToggleSection={toggleSection}
+              linkClass={linkClass}
+              activePath={activePath}
+              badges={badges}
+              t={t}
+            />
+          );
+        })}
       </nav>
 
-      {/* Docker + Security + Settings at bottom */}
-      <div className={cn('shrink-0', collapsed ? 'px-1.5' : 'px-3')}>
-        <div className="border-t border-sidebar-border" />
-        <div className="space-y-0.5 py-2">
-          {bottomItems.map((item) => (
-            <SidebarLink
-              key={item.to}
-              item={item}
-              collapsed={collapsed}
-              linkClass={linkClass}
-              label={t(item.labelKey)}
-            />
-          ))}
-        </div>
+      {/* Bottom dock: app-level pages that don't fit a thematic section.
+       * Mobile-app style: horizontal row of icon-only buttons, folding
+       * into a single vertical-dots menu once the rail is collapsed —
+       * see SidebarBottomDock. */}
+      <div className="shrink-0">
+        <div className="border-t border-border" />
+        <SidebarBottomDock items={bottomItems} activePath={activePath} badges={badges} collapsed={collapsed} />
       </div>
     </aside>
   );
 }
-

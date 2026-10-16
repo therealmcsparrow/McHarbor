@@ -1,0 +1,25 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+mode: active-passive
+
+replicaCount: 2
+
+secrets:
+  existingSecret: mcharbor-secrets
+
+externalDatabase:
+  driver: postgres
+  existingSecret: mcharbor-database
+  dsnKey: dsn
+
+ha:
+  pluginStore: database
+  antiAffinity: soft
+  updateStrategy: OnDelete
+
+config:
+  allowedOrigins: https://mcharbor.example.com
+
+persistence:
+  size: 5Gi

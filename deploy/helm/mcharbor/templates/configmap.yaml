@@ -1,0 +1,41 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+{{ include "mcharbor.validate" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mcharbor.fullname" . }}
+  labels:
+    {{- include "mcharbor.labels" . | nindent 4 }}
+data:
+  PORT: "8705"
+  DATA_DIR: /app/data
+  PUID: {{ .Values.podSecurityContext.runAsUser | default 1000 | quote }}
+  PGID: {{ .Values.podSecurityContext.runAsGroup | default 1000 | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  LOG_JSON: {{ .Values.config.logJSON | quote }}
+  TZ: {{ .Values.config.tz | quote }}
+  TLS_ENABLED: {{ .Values.tls.enabled | quote }}
+  TLS_MIN_VERSION: {{ .Values.tls.minVersion | quote }}
+  HTTP_REDIRECT_ADDR: ""
+  HSTS_MAX_AGE: {{ .Values.config.hstsMaxAge | quote }}
+  FORCE_AGENT_TLS: {{ .Values.config.forceAgentTLS | quote }}
+  ALLOWED_ORIGINS: {{ include "mcharbor.allowedOrigins" . | quote }}
+  MCHARBOR_TRUSTED_PROXY_CIDRS: {{ .Values.config.trustedProxyCIDRs | quote }}
+  BACKUP_ENCRYPTION_KEY_FILE: /run/secrets/mcharbor_backup_key
+  {{- if include "mcharbor.externalDB" . }}
+  MCHARBOR_DB_DRIVER: {{ .Values.externalDatabase.driver | quote }}
+  {{- else }}
+  MCHARBOR_DB_DRIVER: sqlite
+  DATABASE_PATH: /app/data/mcharbor.db
+  {{- end }}
+  {{- if include "mcharbor.ha" . }}
+  MCHARBOR_HA_MODE: active-passive
+  MCHARBOR_PLUGIN_STORE: {{ .Values.ha.pluginStore | quote }}
+  {{- end }}
+  {{- if .Values.docker.socket.enabled }}
+  DOCKER_HOST: unix:///var/run/docker.sock
+  {{- end }}
+  {{- if .Values.extraCACerts.existingConfigMap }}
+  SSL_CERT_DIR: /etc/ssl/certs:/etc/mcharbor/ca
+  {{- end }}

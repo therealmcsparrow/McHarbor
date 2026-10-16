@@ -1,9 +1,16 @@
 {
-  "label": "File Watch Trigger",
-  "description": "Start a workflow when a watched file path changes",
+  "label": "Bestandsbewakingstrigger",
+  "description": "Start een workflow wanneer een bewaakt bestandspad verandert",
   "config": {
     "storage_location_id": "Opslaglocatie",
     "path": "Pad",
-    "event_types": "Event Types"
+    "event_types": "Gebeurtenistypen"
+  },
+  "options": {
+    "event_types": {
+      "create": "Aangemaakt",
+      "write": "Geschreven",
+      "remove": "Verwijderd"
+    }
   }
 }

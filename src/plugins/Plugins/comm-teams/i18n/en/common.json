@@ -1,0 +1,74 @@
+{
+  "config": {
+    "theme_color": { "help": "Optional. Hex color (no #) used for the Adaptive Card's left accent stripe. Defaults to Teams brand purple. Useful for color-coding by environment or severity." }
+  },
+  "page": {
+    "title": "Microsoft Teamss",
+    "subtitle": "Route workflow, alert, and backup events to a Microsoft Teams channel via an Adaptive Card posted to an Incoming Webhook connector URL. The plugin handles Test (posts a real Adaptive Card with the configured themeColor) and Send (posts Title + Message as the Adaptive Card body) — there is no OAuth flow because Incoming Webhook connectors are URL-only credentials.",
+    "registerHint": "Add a channel from the host's Notifications > Channels page and pick \"teams\" as the channel_type."
+  },
+  "fields": {
+    "webhookUrl":  "Webhook URL",
+    "themeColor":  "Theme Color"
+  },
+  "help": {
+    "webhookUrl":  "Incoming Webhook connector URL from Microsoft Teams. Channel menu (...) → Connectors → Incoming Webhook → Configure → copy the URL. The UUID in the URL is the auth credential — treat it as a secret.",
+    "themeColor":  "Hex color (no #) used for the Adaptive Card's left accent stripe. Defaults to Teams brand purple (5059C9)."
+  },
+  "toast": {
+    "registered": "Microsoft Teams channel saved.",
+    "testPassed": "Microsoft Teams connection test passed.",
+    "testFailed": "Microsoft Teams connection test failed: {{error}}"
+  },
+  "error": {
+    "noWebhook":   "Webhook URL is required. Paste the Incoming Webhook connector URL from Teams.",
+    "sendFailed":  "Microsoft Teams webhook post failed: {{error}}",
+    "testFailed":  "Microsoft Teams webhook returned {{status}}: {{body}}"
+  },
+  "form": {
+    "webhookTitle": "Microsoft Teams Incoming Webhook",
+    "webhookHelp": "Adaptive Card",
+    "webhookBody": "The plugin posts an **Adaptive Card** to the configured webhook URL. The notification Title becomes a bold TextBlock header (Medium size), the Message becomes a wrapping TextBlock body, and the card carries an optional themeColor on its left accent stripe. Teams renders the card inline in the channel — no install, no app permissions, no consent flow.",
+    "themeTitle": "Theme color",
+    "themeHelp": "Adaptive Card accent stripe",
+    "themeIntro": "Teams renders the configured `themeColor` as a colored stripe along the left edge of every Adaptive Card. Use it to color-code by environment or severity:",
+    "themePurple": "`5059C9` — Teams brand purple (default).",
+    "themeRed": "`DC3545` — red, for production alerts / pager notifications.",
+    "themeGreen": "`28A745` — green, for backup-complete / success notifications.",
+    "themeAmber": "`FFC107` — amber, for warnings / degraded service.",
+    "themeOutro": "Use the 6-character hex form without the leading `#` — Adaptive Cards ignore the `#` and treat it as part of the color name.",
+    "securityTitle": "Webhook URL security",
+    "securityHelp": "The UUID in the URL IS the credential",
+    "securityIntro": "Anyone holding the webhook URL can post to the channel — there is no separate token, no signing key. Treat the URL as a secret:",
+    "securityGit": "Don't commit it to git (even in private repos).",
+    "securityShare": "Don't paste it into Slack, email, or ticket comments where the recipient doesn't need to post to your channel.",
+    "securityRotate": "Rotate by deleting the connector in Teams, creating a new one, and pasting the new URL here. Old URLs fail with a Teams-side 410 Gone the moment the connector is removed.",
+    "testTitle": "Test connection",
+    "testHelp": "What to expect",
+    "testBody": "The Test call posts a real Adaptive Card (`Title: McHarbor test notification`, body `This is a test message from McHarbor.`) to your channel. Teams returns `200 OK` on a working webhook; the plugin translates any non-2xx into a structured error showing the upstream status + first 256 bytes of the response body. The card lands in the channel as a visible message — let subscribers know before clicking Test so it doesn't generate a false-positive alert ticket.",
+    "fields": {
+      "webhook_url": {
+        "label": "Webhook URL",
+        "help": "Incoming Webhook connector URL from Microsoft Teams. Channel menu (...) → Connectors → Incoming Webhook → Configure → copy the URL. The UUID in the URL is the auth credential — treat it as a secret."
+      },
+      "theme_color": {
+        "label": "Theme Color",
+        "help": "Optional. Hex color (no #) used for the Adaptive Card's left accent stripe. Defaults to Teams brand purple. Useful for color-coding by environment or severity."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Microsoft Teams setup guide"
+  },
+  "guide": {
+    "step1": { "body": "Open Microsoft Teams and navigate to the channel you want alerts to land in. Incoming Webhook connectors are scoped to a single channel — repeat the steps below for each channel you want to receive alerts in." },
+    "step2": { "body": "Click the channel menu (••• next to the channel name) → <b>Connectors</b>. Scroll down to <b>Incoming Webhook</b> in the list and click <b>Configure</b>. Give the connector a name (e.g. <code>McHarbor Alerts</code>) and optionally upload an image that will appear next to every card the connector posts." },
+    "step3": { "body": "Click <b>Create</b>. Teams displays the webhook URL — copy it now. The URL contains the connector UUID which is the auth credential; <warn>you will not see it again after closing the dialog</warn>. Paste it into the <b>Webhook URL</b> field on the left." },
+    "step4": { "body": "Click <b>Done</b> to close the configuration dialog. The connector is now active and the channel will start accepting POSTs to the URL. There is no separate \"publish\" step — Teams activates connectors immediately." },
+    "step5": { "body": "Optional: set <b>Theme Color</b> to a 6-character hex (no #) to colour the Adaptive Card's left accent stripe. Defaults to Teams brand purple (<code>5059C9</code>). Useful for visual scanning across multiple environments or alert severities." },
+    "step6": { "body": "Save the channel. Click <b>Test connection</b> — the plugin posts an Adaptive Card with Title \"McHarbor test notification\" and body \"This is a test message from McHarbor.\" to your channel. The card should appear within 1-2 seconds." },
+    "step7": { "body": "If Test returns <code>400</code>, the payload is malformed — double-check you did not modify the Webhook URL (append query parameters, etc.). If <code>404</code>, the connector was deleted in Teams after you copied the URL — re-create it and update the field. If you see a <code>200 OK</code> in the response but no card in Teams, the connector is configured for a different channel than the one you're looking at." },
+    "step8": { "body": "To restrict which channels can post: open the connector's configuration dialog in Teams and use the <b>Restrict to channels</b> option. This is per-connector and is a Teams-side setting; the plugin cannot enforce it." },
+    "step9": { "body": "Once the channel is saved, route workflow or alert events to it from <b>Settings > Notifications > Rules</b>. Teams delivery is fire-and-forget: a failed POST is logged in the audit log and surfaced in the host toast, but the host does not retry." }
+  }
+}

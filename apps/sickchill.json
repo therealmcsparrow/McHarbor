@@ -1,0 +1,53 @@
+{
+    "slug":  "sickchill",
+    "name":  "SickChill",
+    "description":  "TV show download automation tool that tracks shows and fetches new episodes.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/sickchill:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sickchill.png",
+    "website":  "https://sickchill.github.io",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-sickchill",
+    "ports":  [
+                  {
+                      "host":  8083,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sickchill/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/sickchill/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/sickchill/tv",
+                        "container":  "/tv"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

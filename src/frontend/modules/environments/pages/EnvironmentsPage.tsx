@@ -4,14 +4,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconLayoutGrid, IconLayoutList, IconPlus } from '@tabler/icons-react';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { DataGrid } from '@resources/components/DataGrid';
+import { TablePage } from '@resources/layout/TablePage';
+import { matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
 import { Button } from '@resources/components/ui/Button';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { AgentTokenDialog } from '../components/AgentTokenDialog';
-import { CreateEnvironmentDialog } from '../components/CreateEnvironmentDialog';
 import { EnvironmentCardGrid } from '../components/EnvironmentCardGrid';
-import { EnvironmentTestDialog } from '../components/EnvironmentTestDialog';
 import { useEnvironmentColumns } from '../components/EnvironmentsColumns';
 import { useVersionInfo } from '../hooks/useEnvironments';
 import {
@@ -19,19 +15,18 @@ import {
   useTestEnvironment,
   useRemoveEnvironment,
   useCreateInstallToken,
+  type EnvironmentListItem,
 } from '../hooks/useEnvironmentActions';
-import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
+import type { AgentTokenData } from './environments-page-types';
+import { EnvironmentsPageDialogs } from './EnvironmentsPageDialogs';
 import { useEnvironmentsViewStore } from '../stores/environments-view';
-
-type AgentTokenData = {
-  token: string;
-  installScript?: InstallTokenResponse | null;
-  mode?: 'created' | 'installInfo';
-};
+import { PERM } from '@core/auth/permissionKeys';
 
 export default function EnvironmentsPage() {
   const { t } = useTranslation('environments');
-  const { data: environments = [], isLoading } = useEnvironmentList();
+  const { data: environments = [], isLoading, isFetching, refetch } = useEnvironmentList();
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
   const { data: versionInfo } = useVersionInfo();
   const testEnv = useTestEnvironment();
   const removeEnv = useRemoveEnvironment();
@@ -71,6 +66,18 @@ export default function EnvironmentsPage() {
     });
   };
 
+  const searchFields = (env: EnvironmentListItem) => [
+    env.name,
+    env.connectionType,
+    env.host,
+    env.dockerVersion,
+    env.agentStatus,
+    env.agentHostname,
+  ];
+  const cardEnvironments = query.trim()
+    ? environments.filter((env) => matchesSearchFields(query, searchMode, searchFields(env)).matched)
+    : environments;
+
   const handleTestFromCard = (id: string) => {
     const env = environments.find((entry) => entry.id === id);
     setTestTarget({ id, name: env?.name ?? id });
@@ -78,13 +85,14 @@ export default function EnvironmentsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <>
+      <TablePage
+        id="environments"
         title={t('title')}
         description={t('description')}
         actions={
           <>
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button permission={PERM.ENVIRONMENTS_MANAGE} onClick={() => setCreateOpen(true)}>
               <IconPlus className="h-4 w-4" /> {t('addEnvironment')}
             </Button>
             <div className="h-6 w-px bg-border" />
@@ -108,69 +116,58 @@ export default function EnvironmentsPage() {
             </div>
           </>
         }
-      />
-
-      {viewMode === 'table' ? (
-        <DataGrid
-          data={environments}
-          columns={columns}
-          searchKey="name"
-          searchPlaceholder={t('searchPlaceholder')}
-          loading={isLoading}
-          emptyMessage={t('emptyMessage')}
-        />
-      ) : (
-        <EnvironmentCardGrid
-          environments={environments}
-          isLoading={isLoading}
-          mcharborVersion={versionInfo?.mcharbor.version}
-          onTest={handleTestFromCard}
-          onInstall={handleShowInstallInfo}
-          onRemove={setConfirmTarget}
-        />
-      )}
-
-      <CreateEnvironmentDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onAgentToken={(token) => setAgentTokenData((prev) => ({ ...prev, token }))}
-        onInstallScript={(data) => setAgentTokenData((prev) => prev ? { ...prev, installScript: data } : null)}
-      />
-
-      <ConfirmDialog
-        open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
-        title={t('confirm.removeTitle')}
-        description={t('confirm.removeDescription')}
-        onConfirm={() => {
-          if (confirmTarget) removeEnv.mutate(confirmTarget);
-          setConfirmTarget(null);
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('searchPlaceholder'),
+          // Deliberately not socketPath — a socket path is not something to
+          // surface through a search box.
+          fields: searchFields,
         }}
-        loading={removeEnv.isPending}
-      />
-
-      {agentTokenData && (
-        <AgentTokenDialog
-          open={!!agentTokenData}
-          onOpenChange={(open) => !open && setAgentTokenData(null)}
-          token={agentTokenData.token}
-          serverUrl={window.location.origin}
-          installScript={agentTokenData.installScript}
-          mode={agentTokenData.mode}
-        />
-      )}
-
-      <EnvironmentTestDialog
-        open={testTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setTestTarget(null);
-          }
+        toolbar={{
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-environments' },
         }}
-        result={testEnv.data}
-        pending={testEnv.isPending}
-        envName={testTarget?.name ?? ''}
+        columns={columns}
+        data={environments}
+        loading={isLoading}
+        empty={{ title: t('emptyMessage') }}
+        getRowId={(env) => env.id}
+        body={
+          viewMode === 'table' ? undefined : (
+            <div className="min-h-0 flex-1 overflow-auto" data-scroll-exempt>
+              <EnvironmentCardGrid
+                environments={cardEnvironments}
+                hasEnvironments={environments.length > 0}
+                isLoading={isLoading}
+                mcharborVersion={versionInfo?.mcharbor.version}
+                onTest={handleTestFromCard}
+                onInstall={handleShowInstallInfo}
+                onRemove={setConfirmTarget}
+              />
+            </div>
+          )
+        }
       />
-    </div>
+
+      <EnvironmentsPageDialogs
+        createOpen={createOpen}
+        setCreateOpen={setCreateOpen}
+        setAgentTokenData={setAgentTokenData}
+        confirmTarget={confirmTarget}
+        setConfirmTarget={setConfirmTarget}
+        onConfirmRemove={(id) => removeEnv.mutate(id)}
+        removePending={removeEnv.isPending}
+        agentTokenData={agentTokenData}
+        testTarget={testTarget}
+        setTestTarget={setTestTarget}
+        testResult={testEnv.data}
+        testPending={testEnv.isPending}
+      />
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -30,23 +30,25 @@ type RenameContainerDialogProps = {
 
 export function RenameContainerDialog({
   container,
-  open,
+  open: isOpen,
   onOpenChange,
   unlockProtected = false,
 }: RenameContainerDialogProps) {
   const { t } = useTranslation('containers');
-  const { t: tc } = useTranslation('common');
-  const [name, setName] = useState(container?.name ?? '');
+  const [itemName, setName] = useState(container?.name ?? '');
   const renameMutation = useRenameContainer();
-  const trimmedName = name.trim().replace(/^\//, '');
+  const trimmedName = itemName.trim().replace(/^\//, '');
   const currentName = container?.name ?? '';
   const unchanged = trimmedName === currentName;
 
-  useEffect(() => {
-    if (open) {
+  const resetKey = `${isOpen}|${container?.name ?? ''}`;
+  const [appliedResetKey, setAppliedResetKey] = useState(resetKey);
+  if (appliedResetKey !== resetKey) {
+    setAppliedResetKey(resetKey);
+    if (isOpen) {
       setName(container?.name ?? '');
     }
-  }, [container?.name, open]);
+  }
 
   function handleSubmit() {
     if (!container || !trimmedName || unchanged) {
@@ -60,35 +62,29 @@ export function RenameContainerDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('rename.title')}</DialogTitle>
-          <DialogDescription>
-            {t('rename.description', { name: currentName })}
-          </DialogDescription>
+          <DialogDescription>{t('rename.description', { name: currentName })}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2 p-4">
           <Label htmlFor="container-rename-name">{t('rename.nameLabel')}</Label>
           <Input
             id="container-rename-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            onKeyDown={(event) => event.key === 'Enter' && handleSubmit()}
+            value={itemName}
+            onChange={(changeEvent) => setName(changeEvent.target.value)}
+            onKeyDown={(evt) => evt.key === 'Enter' && handleSubmit()}
             placeholder={t('rename.namePlaceholder')}
-            autoFocus
           />
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!trimmedName || unchanged || renameMutation.isPending}
-          >
+          <Button onClick={handleSubmit} disabled={!trimmedName || unchanged || renameMutation.isPending}>
             {renameMutation.isPending ? t('rename.saving') : t('rename.submit')}
           </Button>
         </DialogFooter>

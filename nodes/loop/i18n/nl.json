@@ -1,7 +1,7 @@
 {
-  "label": "Loop",
-  "description": "Iterate over an array from the current message",
+  "label": "Lus",
+  "description": "Doorloop een array uit het huidige bericht",
   "config": {
-    "items_field": "Items Field"
+    "items_field": "Itemsveld"
   }
 }

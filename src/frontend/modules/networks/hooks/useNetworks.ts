@@ -3,6 +3,7 @@
 
 export {
   useNetworks,
+  useHostInterfaces,
   useCreateNetwork,
   useRemoveNetwork,
   useNetworkInspect,
@@ -12,4 +13,6 @@ export {
   type IPAMConfig,
   type IPAMOptions,
   type CreateNetworkRequest,
+  type HostInterface,
 } from '@resources/hooks/useNetworks';
+export { useNetworkHostLink, useApplyHostLink, useNetworkRefusals } from '@resources/hooks/networkHostLink';

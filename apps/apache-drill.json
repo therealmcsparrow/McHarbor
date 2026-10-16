@@ -1,0 +1,36 @@
+{
+    "slug":  "apache-drill",
+    "name":  "Apache Drill",
+    "description":  "Schema-free SQL query engine for exploring data directly in files, HBase and other NoSQL stores.",
+    "category":  "Analytics",
+    "image":  "apache/drill:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://drill.apache.org",
+    "docsUrl":  "https://drill.apache.org/docs/starting-drill-in-embedded-mode/",
+    "ports":  [
+                  {
+                      "host":  8047,
+                      "container":  8047,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apache-drill/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

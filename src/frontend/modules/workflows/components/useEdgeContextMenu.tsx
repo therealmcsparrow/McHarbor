@@ -12,31 +12,37 @@ export function useEdgeContextMenu() {
   const selectEdge = useCanvasStore((s) => s.selectEdge);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null);
 
-  const onEdgeContextMenu = useCallback((edgeId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    selectEdge(edgeId);
-    setContextMenu({ x: e.clientX, y: e.clientY, edgeId });
-  }, [selectEdge]);
+  const onEdgeContextMenu = useCallback(
+    (edgeId: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectEdge(edgeId);
+      setContextMenu({ x: e.clientX, y: e.clientY, edgeId });
+    },
+    [selectEdge],
+  );
 
-  const onContextMenuSelect = useCallback((key: string) => {
-    if (!contextMenu) return;
-    const { edgeId } = contextMenu;
-    const store = useCanvasStore.getState();
+  const onContextMenuSelect = useCallback(
+    (key: string) => {
+      if (!contextMenu) return;
+      const { edgeId } = contextMenu;
+      const store = useCanvasStore.getState();
 
-    switch (key) {
-      case 'add-sniffer':
-        store.updateEdgeSniffer(edgeId, { name: 'Sniffer' });
-        break;
-      case 'remove-sniffer':
-        store.updateEdgeSniffer(edgeId, null);
-        break;
-      case 'delete-edge':
-        store.removeEdge(edgeId);
-        break;
-    }
-    setContextMenu(null);
-  }, [contextMenu]);
+      switch (key) {
+        case 'add-sniffer':
+          store.updateEdgeSniffer(edgeId, { name: 'Sniffer' });
+          break;
+        case 'remove-sniffer':
+          store.updateEdgeSniffer(edgeId, null);
+          break;
+        case 'delete-edge':
+          store.removeEdge(edgeId);
+          break;
+      }
+      setContextMenu(null);
+    },
+    [contextMenu],
+  );
 
   const edgeContextMenuItems = useCallback((): ContextMenuItem[] => {
     if (!contextMenu) return [];
@@ -45,10 +51,20 @@ export function useEdgeContextMenu() {
 
     return [
       edge.sniffer
-        ? { key: 'remove-sniffer', label: t('workflows.contextRemoveSniffer'), icon: <IconZoomCancel className="size-3.5" /> }
+        ? {
+            key: 'remove-sniffer',
+            label: t('workflows.contextRemoveSniffer'),
+            icon: <IconZoomCancel className="size-3.5" />,
+          }
         : { key: 'add-sniffer', label: t('workflows.contextAddSniffer'), icon: <IconZoomScan className="size-3.5" /> },
       { key: 'separator', label: '', separator: true },
-      { key: 'delete-edge', label: t('workflows.contextDeleteConnection'), icon: <IconTrash className="size-3.5" />, danger: true, shortcut: 'Del' },
+      {
+        key: 'delete-edge',
+        label: t('workflows.contextDeleteConnection'),
+        icon: <IconTrash className="size-3.5" />,
+        danger: true,
+        shortcut: 'Del',
+      },
     ];
   }, [contextMenu, t]);
 
@@ -60,4 +76,3 @@ export function useEdgeContextMenu() {
     onEdgeContextMenu,
   };
 }
-

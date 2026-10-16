@@ -1,0 +1,16 @@
+{
+  "slug": "comm-otrs",
+  "name": "OTRS / Znuny / OTOBO",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "OTRS-family ITSM channel. Opens, updates and closes tickets in OTRS, Znuny or OTOBO through a GenericInterface REST web service and reads their state back.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-otrs-2026.09.01.tar.gz"
+    }
+  ]
+}

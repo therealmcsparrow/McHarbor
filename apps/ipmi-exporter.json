@@ -1,0 +1,35 @@
+{
+    "slug":  "ipmi-exporter",
+    "name":  "IPMI Exporter",
+    "description":  "Prometheus exporter that exposes server hardware health metrics gathered over IPMI.",
+    "category":  "Monitoring",
+    "image":  "prometheuscommunity/ipmi-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+    "website":  "https://github.com/prometheus-community/ipmi_exporter",
+    "docsUrl":  "https://github.com/prometheus-community/ipmi_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9290,
+                      "container":  9290,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ipmi-exporter/config",
+                        "container":  "/etc/ipmi_exporter"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

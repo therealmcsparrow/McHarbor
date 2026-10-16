@@ -4,7 +4,7 @@
     "description":  "Fast and lightweight log processor and forwarder with rich input/output plugin ecosystem.",
     "category":  "Monitoring",
     "image":  "fluent/fluent-bit:latest",
-    "logo":  "https://icon.horse/icon/fluentbit.io",
+    "logo":  "https://cdn.simpleicons.org/fluentbit",
     "website":  "https://fluentbit.io",
     "docsUrl":  "https://docs.fluentbit.io/manual/installation/docker",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

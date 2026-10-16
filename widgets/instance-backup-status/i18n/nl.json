@@ -1,0 +1,21 @@
+{
+  "widgets": {
+    "instanceBackupStatus": {
+      "label": "Instantieback-up",
+      "description": "Wanneer deze instantie voor het laatst is geëxporteerd en voor het laatst als herstelbaar is bewezen, en de laatste run van elk exportschema"
+    }
+  },
+  "instanceBackupWidget": {
+    "title": "Instantieback-up",
+    "open": "Instantieback-up",
+    "noAccess": "Vereist de machtiging instance_backup.view",
+    "unavailable": "De exportgeschiedenis kan niet worden gelezen",
+    "lastExport": "Laatste export {{when}}",
+    "never": "Nooit geëxporteerd",
+    "lastVerified": "Laatst geverifieerd {{when}}",
+    "neverVerified": "Nooit geverifieerd met een herstelrepetitie",
+    "failed": "Laatste run mislukt",
+    "ran": "Uitgevoerd {{when}}",
+    "notRun": "Nog niet uitgevoerd"
+  }
+}

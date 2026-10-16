@@ -4,7 +4,7 @@
     "description":  "Eclipse Temurin 21 JDK on Alpine, latest long-term support Java with virtual threads and pattern matching.",
     "category":  "Developer Tools",
     "image":  "eclipse-temurin:21-jdk-alpine",
-    "logo":  "https://icon.horse/icon/adoptium.net",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/java.svg",
     "website":  "https://adoptium.net",
     "docsUrl":  "https://adoptium.net/docs",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Java installation directory"
                     }
                 ],
-    "version":  "21-jdk-alpine"
+    "version":  "21-jdk-alpine",
+    "latest":  {
+        "version":  "21-jdk-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

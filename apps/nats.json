@@ -4,7 +4,7 @@
     "description":  "Lightweight, high-performance cloud-native messaging system with at-most/at-least once delivery.",
     "category":  "Databases",
     "image":  "nats:2-alpine",
-    "logo":  "https://icon.horse/icon/nats.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=nats.io\u0026sz=128",
     "website":  "https://nats.io",
     "docsUrl":  "https://docs.nats.io",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "2-alpine"
+    "version":  "2-alpine",
+    "latest":  {
+        "version":  "2-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

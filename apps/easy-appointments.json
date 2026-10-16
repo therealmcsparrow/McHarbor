@@ -4,7 +4,7 @@
     "description":  "Lightweight appointment scheduler for service businesses with email notifications.",
     "category":  "Productivity",
     "image":  "alextselegidis/easyappointments:latest",
-    "logo":  "https://icon.horse/icon/easyappointments.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/png/easy-appointments.png",
     "website":  "https://easyappointments.org",
     "docsUrl":  "https://easyappointments.org/docs.html",
     "ports":  [
@@ -53,5 +53,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

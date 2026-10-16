@@ -1,0 +1,40 @@
+{
+    "slug":  "net-snmp",
+    "name":  "Net-SNMP",
+    "description":  "SNMP agent that exposes system and network metrics for polling by monitoring tools.",
+    "category":  "Networking",
+    "image":  "polinux/snmpd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/net-snmp.png",
+    "website":  "http://www.net-snmp.org/",
+    "docsUrl":  "http://www.net-snmp.org/",
+    "ports":  [
+                  {
+                      "host":  1610,
+                      "container":  161,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/net-snmp/config",
+                        "container":  "/etc/snmp"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SNMP_COMMUNITY",
+                        "default":  "public",
+                        "description":  "SNMP read-only community string"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

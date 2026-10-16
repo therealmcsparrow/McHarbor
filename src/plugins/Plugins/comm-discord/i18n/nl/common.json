@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Weergavenaam voor dit Discord-communicatiekanaal." },
+    "webhook_url": { "help": "Webhook-URL van het Discord-kanaal. Versleuteld opgeslagen." }
+  },
+  "title": "Discord-meldingsbezorging",
+  "subtitle": "Communicatiekanaal van de plugin",
+  "description": "Deze plugin beheert Discord. Hij slaat de Discord-webhook-URL op in het kanaal zelf en verstuurt meldingen via de pluginruntime.",
+  "nameLabel": "Kanaalnaam",
+  "namePlaceholder": "Operations-Discord",
+  "webhookUrlLabel": "Webhook-URL",
+  "securityTitle": "Beveiliging",
+  "securityHelp": "Versleutelde webhook-URL",
+  "securityDescription": "De webhook-URL wordt versleuteld opgeslagen. Maak een aparte webhook voor McHarbor aan zodat hij onafhankelijk kan worden geroteerd.",
+  "testTitle": "Verbinding testen",
+  "testHelp": "Verstuurt een bericht",
+  "testDescription": "De testactie van de host plaatst een echt bericht in het geconfigureerde Discord-kanaal. Gebruik eerst een privé-testkanaal als de webhook naar een on-callruimte gaat.",
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "requiredField": "Verplicht",
+  "setupGuideTitle": "Installatiehandleiding voor het Discord-communicatiekanaal",
+  "guide": {
+    "step1": { "body": "Open de Discord-server en maak een apart tekstkanaal voor McHarbor-meldingen aan, of kies een bestaand operationskanaal." },
+    "step2": { "body": "Open de kanaalinstellingen, ga naar <b>Integrations</b>, maak een webhook aan en kopieer de webhook-URL." },
+    "step3": { "body": "Plak de webhook-URL in deze kanaalconfiguratie. McHarbor slaat hem versleuteld op en verbergt hem in API-antwoorden." },
+    "step4": { "body": "Sla het kanaal op en klik op <b>Verbinding testen</b>. De plugin plaatst een echt testbericht in Discord via hetzelfde pad dat voor live workflow-, alarm- en back-upgebeurtenissen wordt gebruikt." },
+    "step5": { "body": "Als de test mislukt, controleer dan of de webhook niet is verwijderd, het kanaal nog bestaat en de serverrechten webhookberichten toestaan." }
+  }
+}

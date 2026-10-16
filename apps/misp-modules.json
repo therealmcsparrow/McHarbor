@@ -1,0 +1,38 @@
+{
+    "slug":  "misp-modules",
+    "name":  "MISP Modules",
+    "description":  "Enrichment, import, and export module server that extends a MISP instance with extra intelligence lookups.",
+    "category":  "Security",
+    "image":  "ghcr.io/misp/misp-docker/misp-modules:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/misp.png",
+    "website":  "https://github.com/MISP/misp-modules",
+    "docsUrl":  "https://github.com/MISP/misp-docker",
+    "ports":  [
+                  {
+                      "host":  6666,
+                      "container":  6666,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REDIS_BACKEND",
+                        "default":  "misp-redis",
+                        "description":  "Hostname of the existing MISP Redis instance used for caching"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

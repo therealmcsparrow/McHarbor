@@ -1,14 +1,14 @@
 {
-  "label": "Join",
-  "description": "Join multiple incoming branches into a single message",
+  "label": "Samenvoegen",
+  "description": "Voeg meerdere binnenkomende takken samen tot één bericht",
   "config": {
     "input_count": "Aantal invoeren",
     "combine_mode": "Combinatiemodus"
   },
   "options": {
     "combine_mode": {
-      "last": "Last Message",
-      "merge": "Merge Objects",
+      "last": "Laatste bericht",
+      "merge": "Objecten samenvoegen",
       "array": "Array"
     }
   }

@@ -15,6 +15,6 @@ export const useVolumesViewStore = create<VolumesViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-volumes-view' }
-  )
+    { name: 'mcharbor-volumes-view' },
+  ),
 );

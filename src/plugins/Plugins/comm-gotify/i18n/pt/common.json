@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": { "help": "Nome de exibição deste canal de comunicação do Gotify." },
+    "server_url": { "help": "URL base do servidor Gotify." },
+    "token": { "help": "Token de aplicativo do Gotify. Armazenado criptografado em repouso." },
+    "priority": { "help": "Prioridade opcional do Gotify como número inteiro." }
+  },
+  "title": "Entrega de notificações do Gotify",
+  "subtitle": "Pertencente ao plugin",
+  "description": "Este plugin é dono do Gotify. Ele armazena as configurações de conexão do Gotify no próprio canal e despacha as notificações pelo runtime do plugin.",
+  "nameLabel": "Nome do canal",
+  "namePlaceholder": "Gotify de operações",
+  "serverUrlLabel": "URL do servidor",
+  "tokenLabel": "Token do aplicativo",
+  "priorityLabel": "Prioridade",
+  "securityTitle": "Segurança",
+  "securityHelp": "Token de aplicativo criptografado",
+  "securityDescription": "O token de aplicativo do Gotify é armazenado criptografado em repouso. Use um token de aplicativo dedicado para o McHarbor para que possa ser rotacionado de forma independente.",
+  "testTitle": "Testar conexão",
+  "testHelp": "Envia mensagem",
+  "testDescription": "A ação de teste do host publica uma mensagem real no aplicativo Gotify configurado. Use antes um aplicativo de teste se o token notificar dispositivos de produção.",
+  "secretKeepHint": "Deixe em branco para manter o valor armazenado.",
+  "requiredField": "Obrigatório",
+  "setupGuideTitle": "Guia de configuração do canal de comunicação do Gotify",
+  "guide": {
+    "step1": { "body": "Abra o seu servidor Gotify e crie um aplicativo dedicado às notificações do McHarbor." },
+    "step2": { "body": "Copie o token do aplicativo e cole-o na configuração deste canal. O McHarbor o armazena criptografado e o oculta nas respostas da API." },
+    "step3": { "body": "Defina <b>URL do servidor</b> como a URL base do Gotify, por exemplo <code>https://gotify.example.com</code>, sem o caminho <code>/message</code>." },
+    "step4": { "body": "Se quiser, defina <b>Prioridade</b> como número inteiro se os seus clientes Gotify usarem regras de notificação baseadas em prioridade." },
+    "step5": { "body": "Salve o canal e clique em <b>Testar conexão</b>. O plugin publica uma mensagem de teste real pelo mesmo caminho usado nos eventos reais de fluxo de trabalho, alerta e backup." },
+    "step6": { "body": "Se o teste falhar, verifique a URL do servidor, o token do aplicativo, o caminho do proxy reverso e a confiança no certificado TLS." }
+  }
+}

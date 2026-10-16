@@ -1,0 +1,30 @@
+{
+  "label": "Network Manage",
+  "description": "Create or remove a network, or connect and disconnect containers",
+  "config": {
+    "environment": "Environment",
+    "action": "Action",
+    "name": "Name",
+    "driver": "Driver",
+    "internal": "Internal",
+    "subnet": "Subnet",
+    "network": "Network",
+    "container": "Container"
+  },
+  "options": {
+    "action": {
+      "create": "Create",
+      "remove": "Remove",
+      "connect": "Connect",
+      "disconnect": "Disconnect"
+    },
+    "driver": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "macvlan": "Macvlan",
+      "ipvlan": "IPvlan",
+      "host": "Host",
+      "none": "None"
+    }
+  }
+}

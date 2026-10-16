@@ -1,0 +1,37 @@
+{
+    "slug":  "mongodb-exporter",
+    "name":  "MongoDB Exporter",
+    "description":  "Prometheus exporter that reports MongoDB server, replication, and collection metrics.",
+    "category":  "Monitoring",
+    "image":  "percona/mongodb_exporter:0.44",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mongodb.png",
+    "website":  "https://github.com/percona/mongodb_exporter",
+    "docsUrl":  "https://github.com/percona/mongodb_exporter#usage",
+    "ports":  [
+                  {
+                      "host":  9216,
+                      "container":  9216,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MONGODB_URI",
+                        "default":  "mongodb://mongo:27017",
+                        "description":  "Connection URI of the MongoDB instance to collect metrics from"
+                    }
+                ],
+    "version":  "0.44",
+    "latest":  {
+        "version":  "0.44",
+        "release_date":  "2026-09-29"
+    }
+}

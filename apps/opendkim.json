@@ -1,0 +1,40 @@
+{
+    "slug":  "opendkim",
+    "name":  "OpenDKIM",
+    "description":  "DKIM signing and verification milter that authenticates outgoing mail for a mail server.",
+    "category":  "Communications",
+    "image":  "instrumentisto/opendkim:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/opendkim.png",
+    "website":  "http://www.opendkim.org",
+    "docsUrl":  "https://hub.docker.com/r/instrumentisto/opendkim",
+    "ports":  [
+                  {
+                      "host":  8891,
+                      "container":  8891,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opendkim/keys",
+                        "container":  "/etc/opendkim/keys"
+                    },
+                    {
+                        "host":  "/opt/appdata/opendkim/config",
+                        "container":  "/etc/opendkim"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "128MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

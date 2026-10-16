@@ -5,5 +5,17 @@
     "property": "Property",
     "output_format": "Output Format",
     "timezone": "Timezone"
+  },
+  "options": {
+    "output_format": {
+      "rfc3339": "ISO 8601 / RFC 3339",
+      "rfc1123": "RFC 1123",
+      "date": "Date (YYYY-MM-DD)",
+      "datetime": "Date and time (YYYY-MM-DD HH:MM:SS)",
+      "time": "Time (HH:MM:SS)",
+      "date_eu": "Date (DD-MM-YYYY)",
+      "date_us": "Date (MM/DD/YYYY)",
+      "unix": "Unix timestamp"
+    }
   }
 }

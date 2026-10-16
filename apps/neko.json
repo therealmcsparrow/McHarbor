@@ -1,0 +1,58 @@
+{
+    "slug":  "neko",
+    "name":  "Neko",
+    "description":  "Shared virtual browser that streams a remote Chromium or Firefox session to multiple viewers over WebRTC.",
+    "category":  "Gaming",
+    "image":  "m1k1o/neko:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/neko.png",
+    "website":  "https://neko.m1k1o.io",
+    "docsUrl":  "https://neko.m1k1o.io/docs/v3/quick-start",
+    "ports":  [
+                  {
+                      "host":  8098,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  52000,
+                      "container":  52000,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/neko/downloads",
+                        "container":  "/home/neko/Downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NEKO_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for regular members",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "NEKO_PASSWORD_ADMIN",
+                        "default":  "change-me",
+                        "description":  "Password for admin members",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "NEKO_SCREEN",
+                        "default":  "1920x1080@30",
+                        "description":  "Virtual display resolution and refresh rate"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

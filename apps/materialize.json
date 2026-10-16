@@ -1,0 +1,41 @@
+{
+    "slug":  "materialize",
+    "name":  "Materialize",
+    "description":  "Streaming database that maintains incrementally updated SQL views over real-time data.",
+    "category":  "Analytics",
+    "image":  "materialize/materialized:latest",
+    "logo":  "https://github.com/MaterializeInc.png",
+    "website":  "https://materialize.com",
+    "docsUrl":  "https://materialize.com/docs/self-managed/v25.1/installation/",
+    "ports":  [
+                  {
+                      "host":  6875,
+                      "container":  6875,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6876,
+                      "container":  6876,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/materialize/data",
+                        "container":  "/mzdata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

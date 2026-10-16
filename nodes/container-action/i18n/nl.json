@@ -1,0 +1,28 @@
+{
+  "label": "Containeractie",
+  "description": "Start, stop, herstart, verwijder, hernoem of wacht op een container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "action": "Actie",
+    "timeout": "Timeout (seconden)",
+    "new_name": "Nieuwe naam",
+    "unlock_protected": "Beschermde container ontgrendelen",
+    "condition": "Conditie"
+  },
+  "options": {
+    "action": {
+      "start": "Starten",
+      "stop": "Stoppen",
+      "restart": "Herstarten",
+      "remove": "Verwijderen",
+      "rename": "Hernoemen",
+      "wait": "Wachten"
+    },
+    "condition": {
+      "not-running": "Draait niet",
+      "next-exit": "Volgende exit",
+      "removed": "Verwijderd"
+    }
+  }
+}

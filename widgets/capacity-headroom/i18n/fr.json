@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Marge de capacité",
+      "description": "Quand chaque système de fichiers et destination de stockage sera à court d'espace"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Marge de capacité",
+    "fullOn": "Plein le {{date}} — {{days}} jours",
+    "noProjection": "{{percent}} % utilisé, aucune projection pour l'instant",
+    "noData": "Aucun historique de capacité pour l'instant"
+  }
+}

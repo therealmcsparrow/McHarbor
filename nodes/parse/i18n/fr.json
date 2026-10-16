@@ -1,0 +1,33 @@
+{
+  "label": "Analyser",
+  "description": "Analyser du texte JSON, YAML, XML, CSV ou HTML en données structurées",
+  "config": {
+    "format": "Format",
+    "property": "Propriété",
+    "delimiter": "Délimiteur",
+    "has_headers": "A des en-têtes",
+    "selector": "Sélecteur",
+    "output_type": "Type de sortie",
+    "attribute": "Attribut"
+  },
+  "options": {
+    "format": {
+      "json": "JSON",
+      "yaml": "YAML",
+      "xml": "XML",
+      "csv": "CSV",
+      "html": "HTML"
+    },
+    "output_type": {
+      "text": "Texte",
+      "html": "HTML",
+      "attribute": "Attribut"
+    },
+    "delimiter": {
+      ",": "Virgule",
+      ";": "Point-virgule",
+      "\\t": "Tabulation",
+      "|": "Barre verticale"
+    }
+  }
+}

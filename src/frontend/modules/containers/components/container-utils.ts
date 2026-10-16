@@ -14,18 +14,18 @@ export const STATE_VARIANTS: Record<string, 'success' | 'destructive' | 'warning
 };
 
 export const HEALTH_COLORS: Record<string, string> = {
-  healthy: 'text-emerald-500',
-  unhealthy: 'text-red-500',
-  starting: 'text-amber-500',
+  healthy: 'text-success',
+  unhealthy: 'text-danger',
+  starting: 'text-warning',
 };
 
-export function parseHealth(status: string): string | null {
-  const match = status.match(/\((healthy|unhealthy|starting)\)/);
-  return match ? match[1] ?? null : null;
+export function parseHealth(statusCode: string): string | null {
+  const match = statusCode.match(/\((healthy|unhealthy|starting)\)/);
+  return match ? (match[1] ?? null) : null;
 }
 
-export function parseUptime(status: string): string {
-  const upMatch = status.match(/^Up\s+(.+?)(\s+\(|$)/);
+export function parseUptime(statusValue: string): string {
+  const upMatch = statusValue.match(/^Up\s+(.+?)(\s+\(|$)/);
   if (upMatch?.[1]) {
     const raw = upMatch[1].trim();
     return raw.replace(/^About an?\s+/, '1 ').replace(/Less than a\s+/, '<1 ');
@@ -89,8 +89,6 @@ export function getContainerWebUrl(ports: ContainerInfo['Ports']): string | null
   const webPort = tcpPorts.find((p) => WEB_PORTS.has(p.PrivatePort)) ?? tcpPorts[0];
   if (!webPort?.PublicPort) return null;
   const scheme =
-    webPort.PrivatePort === 443 || webPort.PrivatePort === 8443 || webPort.PrivatePort === 9443
-      ? 'https'
-      : 'http';
+    webPort.PrivatePort === 443 || webPort.PrivatePort === 8443 || webPort.PrivatePort === 9443 ? 'https' : 'http';
   return `${scheme}://${window.location.hostname}:${webPort.PublicPort}`;
 }

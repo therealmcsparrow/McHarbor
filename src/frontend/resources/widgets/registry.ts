@@ -9,4 +9,4 @@ export {
   type WidgetCategory,
   type WidgetProps,
   type WidgetTypeId,
-} from '@modules/dashboard/widgets/catalog';
+} from '@resources/widgets/catalog';

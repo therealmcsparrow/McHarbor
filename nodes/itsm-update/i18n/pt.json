@@ -1,0 +1,9 @@
+{
+  "label": "Atualizar ticket",
+  "description": "Adiciona uma nota ao ticket aberto por uma chave, sem alterar seu estado",
+  "config": {
+    "channel_id": "Canal de tickets",
+    "dedup_key": "Chave do ticket",
+    "message": "Mensagem"
+  }
+}

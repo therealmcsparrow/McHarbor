@@ -1,0 +1,53 @@
+{
+    "slug":  "bazarr-dev",
+    "name":  "Bazarr (Dev)",
+    "description":  "Dev channel build of Bazarr. Subtitle management and automation for Sonarr and Radarr libraries.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/bazarr:development",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bazarr.png",
+    "website":  "https://docs.linuxserver.io/images/docker-bazarr/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-bazarr/",
+    "ports":  [
+                  {
+                      "host":  7767,
+                      "container":  6767,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bazarr-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

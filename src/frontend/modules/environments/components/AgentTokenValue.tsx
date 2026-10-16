@@ -12,13 +12,7 @@ type AgentTokenValueProps = {
   onCopy: (value: string, key: string, label: string) => void;
 };
 
-export function AgentTokenValue({
-  label,
-  token,
-  copiedKey,
-  ariaLabel,
-  onCopy,
-}: AgentTokenValueProps) {
+export function AgentTokenValue({ label, token, copiedKey, ariaLabel, onCopy }: AgentTokenValueProps) {
   return (
     <div>
       <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
@@ -26,17 +20,8 @@ export function AgentTokenValue({
         <code className="flex-1 rounded border border-border bg-muted px-3 py-2 font-mono text-xs break-all">
           {token}
         </code>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onCopy(token, 'token', label)}
-          aria-label={ariaLabel}
-        >
-          {copiedKey === 'token' ? (
-            <IconCheck className="h-4 w-4 text-green-500" />
-          ) : (
-            <IconCopy className="h-4 w-4" />
-          )}
+        <Button variant="outline" size="icon" onClick={() => onCopy(token, 'token', label)} aria-label={ariaLabel}>
+          {copiedKey === 'token' ? <IconCheck className="h-4 w-4 text-success" /> : <IconCopy className="h-4 w-4" />}
         </Button>
       </div>
     </div>

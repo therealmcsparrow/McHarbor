@@ -4,33 +4,45 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const fileWatchTrigger: NodeDefinition = {
-  "key": "file-watch-trigger",
-  "label": "File Watch Trigger",
-  "category": "trigger",
-  "description": "Start a workflow when a watched file path changes",
-  "icon": "IconFileAlert",
-  "configSchema": [
+  key: 'file-watch-trigger',
+  label: 'File Watch Trigger',
+  category: 'trigger',
+  description: 'Start a workflow when a watched file path changes',
+  icon: 'IconFileAlert',
+  configSchema: [
     {
-      "key": "storage_location_id",
-      "label": "Storage Location",
-      "type": "storage-location-select",
-      "required": false
+      key: 'storage_location_id',
+      label: 'Storage Location',
+      type: 'storage-location-select',
+      required: false,
     },
     {
-      "key": "path",
-      "label": "Path",
-      "type": "text",
-      "required": true
+      key: 'path',
+      label: 'Path',
+      type: 'text',
+      required: true,
     },
     {
-      "key": "event_types",
-      "label": "Event Types",
-      "type": "text",
-      "required": false
-    }
+      key: 'event_types',
+      label: 'Event Types',
+      type: 'multiselect',
+      options: [
+        {
+          value: 'create',
+          label: 'Created',
+        },
+        {
+          value: 'write',
+          label: 'Written',
+        },
+        {
+          value: 'remove',
+          label: 'Removed',
+        },
+      ],
+      required: false,
+    },
   ],
-  "inputPorts": [],
-  "outputPorts": [
-    "output"
-  ]
+  inputPorts: [],
+  outputPorts: ['output'],
 };

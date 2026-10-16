@@ -1,0 +1,58 @@
+{
+  "toast": {
+    "pruned": "Pruned"
+  },
+  "capacity": {
+    "title": "Capacity forecast",
+    "description": "When each filesystem and storage destination runs out of space, at the current rate.",
+    "window": "Projected from the last {{window}} days against the {{ceiling}}% line. A subject needs {{required}} days of history before any date is given.",
+    "sentence": "{{subject}} reaches {{ceiling}}% on {{date}} at the current rate — {{days}} days from now.",
+    "evidence": "Now at {{percent}}% ({{used}} of {{total}}), growing {{rate}}% a day. Fit confidence R² {{r2}} over {{observed}} days.",
+    "usedOfTotal": "Now at {{percent}}% ({{used}} of {{total}}).",
+    "usedBadge": "{{percent}}% used",
+    "loadFailed": "The capacity forecast could not be read.",
+    "denied": "You need the {{permission}} permission to see the capacity forecast.",
+    "kind": {
+      "rootfs": "Host filesystem",
+      "storageLocation": "Storage destination"
+    },
+    "refusal": {
+      "no_fit": "Not enough history yet — a projection needs at least two samples.",
+      "short_series": "Not enough history yet — needs {{required}} days, has {{observed}}.",
+      "noisy": "Usage is too variable to project a date from.",
+      "not_rising": "Usage is not growing, so there is no date to give.",
+      "already_over": "Already past the limit — this needs attention now, not a forecast.",
+      "beyond_horizon": "More than 30 days away, which is further than this forecast will guess."
+    },
+    "empty": {
+      "title": "No capacity history yet",
+      "description": "Capacity is sampled once an hour. A projection needs a week of it, so come back in a few days."
+    },
+    "idle": {
+      "title": "Idle resources",
+      "description": "Containers idle for more than {{days}} days. Docker reports {{reclaimable}} reclaimable right now.",
+      "descriptionPlain": "Containers that have been stopped, or running with no CPU and no traffic, long enough to be worth reclaiming.",
+      "loadFailed": "The idle resource list could not be read.",
+      "days": "{{days}} days",
+      "sizesUnavailable": "Writable-layer sizes are not collected for this environment, so what each container holds is unknown here.",
+      "columns": {
+        "container": "Container",
+        "state": "State",
+        "forHowLong": "Idle for",
+        "holds": "Holds"
+      },
+      "reason": {
+        "stopped": "Stopped",
+        "quiet": "No traffic"
+      },
+      "sizeUnknown": {
+        "agent_environment": "Size unknown — not collected for agent environments",
+        "not_sampled": "Size unknown — never sampled"
+      },
+      "empty": {
+        "title": "Nothing idle",
+        "description": "Every container in this environment has run recently."
+      }
+    }
+  }
+}

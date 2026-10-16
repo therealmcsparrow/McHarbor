@@ -14,6 +14,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Input } from '@resources/components/ui/Input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@resources/components/ui/Tabs';
+import { PERM } from '@core/auth/permissionKeys';
 
 type ImageImportDialogProps = {
   open: boolean;
@@ -25,7 +26,7 @@ type ImageImportDialogProps = {
 };
 
 export function ImageImportDialog({
-  open,
+  open: isOpen,
   pullPending,
   importPending,
   onOpenChange,
@@ -37,6 +38,7 @@ export function ImageImportDialog({
   const [tab, setTab] = useState('registry');
   const [imageName, setImageName] = useState('');
   const [importFile, setImportFile] = useState<File | null>(null);
+  const cancelLabel = tc('actions.cancel');
 
   function resetState(nextOpen: boolean) {
     onOpenChange(nextOpen);
@@ -60,7 +62,7 @@ export function ImageImportDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={resetState}>
+    <Dialog open={isOpen} onOpenChange={resetState}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('import.title')}</DialogTitle>
@@ -80,9 +82,9 @@ export function ImageImportDialog({
               variant="outline"
               type="text"
               value={imageName}
-              onChange={(event) => setImageName(event.target.value)}
+              onChange={(e) => setImageName(e.target.value)}
               placeholder={t('pull.placeholder')}
-              onKeyDown={(event) => event.key === 'Enter' && handlePull()}
+              onKeyDown={(e) => e.key === 'Enter' && handlePull()}
             />
           </TabsContent>
           <TabsContent value="file">
@@ -91,7 +93,7 @@ export function ImageImportDialog({
                 type="file"
                 accept=".tar,.tar.gz,.tgz"
                 className="hidden"
-                onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
+                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
               />
               {importFile ? t('import.selectedFile', { name: importFile.name }) : t('import.selectFile')}
             </label>
@@ -99,14 +101,14 @@ export function ImageImportDialog({
         </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => resetState(false)}>
-            {tc('actions.cancel')}
+            {cancelLabel}
           </Button>
           {tab === 'registry' ? (
-            <Button onClick={handlePull} disabled={pullPending || !imageName.trim()}>
+            <Button permission={PERM.IMAGES_MANAGE} onClick={handlePull} disabled={pullPending || !imageName.trim()}>
               {pullPending ? t('pull.pulling') : t('pull.submit')}
             </Button>
           ) : (
-            <Button onClick={handleImport} disabled={importPending || !importFile}>
+            <Button permission={PERM.IMAGES_MANAGE} onClick={handleImport} disabled={importPending || !importFile}>
               {importPending ? t('import.importing') : t('import.submit')}
             </Button>
           )}

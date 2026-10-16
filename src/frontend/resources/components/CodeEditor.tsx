@@ -12,17 +12,12 @@ export type CodeEditorProps = {
   className?: string;
 };
 
-const CodeEditorImpl = lazy(() =>
-  import('./CodeEditorImpl').then((module) => ({ default: module.CodeEditorImpl }))
-);
+const CodeEditorImpl = lazy(() => import('./CodeEditorImpl').then((module) => ({ default: module.CodeEditorImpl })));
 
-function ReadOnlyCodePreview({
-  value,
-  className,
-}: Pick<CodeEditorProps, 'value' | 'className'>) {
+function ReadOnlyCodePreview({ value, className }: Pick<CodeEditorProps, 'value' | 'className'>) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-border bg-card ${className ?? ''}`}>
-      <pre className="min-h-[12rem] overflow-auto p-4 font-mono text-xs leading-5 text-foreground whitespace-pre-wrap break-words">
+    <div className={`mc-glass overflow-hidden rounded-lg ${className ?? ''}`}>
+      <pre className="min-h-[12rem] overflow-auto p-4 font-mono text-xs leading-5 break-words whitespace-pre-wrap text-foreground">
         {value}
       </pre>
     </div>
@@ -44,7 +39,7 @@ export function CodeEditor({
   return (
     <Suspense
       fallback={
-        <div className={`overflow-hidden rounded-lg border border-border bg-card ${className ?? ''}`}>
+        <div className={`mc-glass overflow-hidden rounded-lg ${className ?? ''}`}>
           <div className="min-h-[12rem] animate-pulse bg-muted/60" />
         </div>
       }

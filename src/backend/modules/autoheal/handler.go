@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package autoheal restarts opted-in containers whose health checks keep failing.
 package autoheal
 
 import (
@@ -65,13 +66,13 @@ func (h *Handler) HandleSetPreference(w http.ResponseWriter, r *http.Request) {
 
 	var req PreferenceRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
 	if err := h.svc.SetPreference(r.Context(), envID, containerID, req.Enabled); err != nil {
 		h.app.Logger.Error("autoheal: set preference failed", "env", envID, "container", containerID, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInvalidBody)
+		response.InternalErrorCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 

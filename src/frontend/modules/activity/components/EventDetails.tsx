@@ -3,16 +3,19 @@
 
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '@resources/utils/format';
+import { Hint } from '@resources/components/ui/Hint';
 
 export type ContainerEvent = {
   id: string;
   timestamp: string;
   environmentId: string | null;
+  environmentName?: string | null;
   containerName: string | null;
   containerId: string;
   action: string;
   eventType: string;
   metadata: string | null;
+  createdAt?: string;
 };
 
 export type ParsedMeta = Record<string, string>;
@@ -43,7 +46,7 @@ function DetailRow({ label, value }: { label: string; value: string | null | und
   return (
     <div className="flex gap-3 py-1.5 text-sm">
       <span className="w-32 shrink-0 text-muted-foreground">{label}</span>
-      <span className="break-all font-mono text-foreground">{value}</span>
+      <span className="font-mono break-all text-foreground">{value}</span>
     </div>
   );
 }
@@ -53,26 +56,26 @@ type EventDetailsProps = {
   envName: (id: string | null) => string;
 };
 
-export function EventDetails({ event, envName }: EventDetailsProps) {
+export function EventDetails({ event: evt, envName }: EventDetailsProps) {
   const { t } = useTranslation('common');
-  const meta = parseMeta(event.metadata);
+  const meta = parseMeta(evt.metadata);
 
   return (
-    <div className="px-4 py-3 space-y-4">
+    <div className="space-y-4 px-4 py-3">
       <div className="divide-y divide-border">
-        <DetailRow label={t('activity.detailTimestamp')} value={formatDate(event.timestamp)} />
-        <DetailRow label={t('activity.detailEnvironment')} value={envName(event.environmentId)} />
-        <DetailRow label={t('activity.detailEventType')} value={event.eventType} />
-        <DetailRow label={t('activity.detailAction')} value={event.action} />
-        <DetailRow label={t('activity.detailContainerId')} value={event.containerId} />
-        <DetailRow label={t('activity.detailContainer')} value={event.containerName} />
+        <DetailRow label={t('activity.detailTimestamp')} value={formatDate(evt.timestamp)} />
+        <DetailRow label={t('activity.detailEnvironment')} value={envName(evt.environmentId)} />
+        <DetailRow label={t('activity.detailEventType')} value={evt.eventType} />
+        <DetailRow label={t('activity.detailAction')} value={evt.action} />
+        <DetailRow label={t('activity.detailContainerId')} value={evt.containerId} />
+        <DetailRow label={t('activity.detailContainer')} value={evt.containerName} />
         <DetailRow label={t('activity.detailImage')} value={meta.image} />
         <DetailRow label={t('activity.detailExitCode')} value={meta.exitCode} />
       </div>
 
       {Object.keys(meta).length > 0 && (
         <div>
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <h4 className="mb-2 text-xs font-medium tracking-wider text-muted-foreground uppercase">
             {t('activity.attributes')}
           </h4>
           <div className="rounded-md border border-border bg-muted/30 p-3">
@@ -81,8 +84,10 @@ export function EventDetails({ event, envName }: EventDetailsProps) {
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([key, value]) => (
                   <div key={key} className="grid grid-cols-[140px_1fr] gap-3 py-1.5 text-xs">
-                    <span className="truncate text-muted-foreground" title={key}>{key}</span>
-                    <span className="break-all font-mono text-foreground min-w-0">{value}</span>
+                    <Hint text={key}>
+                      <span className="truncate text-muted-foreground">{key}</span>
+                    </Hint>
+                    <span className="min-w-0 font-mono break-all text-foreground">{value}</span>
                   </div>
                 ))}
             </div>
@@ -92,4 +97,3 @@ export function EventDetails({ event, envName }: EventDetailsProps) {
     </div>
   );
 }
-

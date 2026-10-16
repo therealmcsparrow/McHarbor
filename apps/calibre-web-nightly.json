@@ -1,0 +1,49 @@
+{
+    "slug":  "calibre-web-nightly",
+    "name":  "Calibre-Web (Nightly)",
+    "description":  "Nightly channel build of Calibre-Web. Web app for browsing, reading, and managing Calibre libraries.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/calibre-web:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre-web.png",
+    "website":  "https://docs.linuxserver.io/images/docker-calibre-web/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-calibre-web/",
+    "ports":  [
+                  {
+                      "host":  9083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/calibre-web-nightly/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

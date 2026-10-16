@@ -1,0 +1,9 @@
+{
+  "label": "Ticket bijwerken",
+  "description": "Voeg een notitie toe aan het ticket dat door een sleutel is geopend, zonder de status te wijzigen",
+  "config": {
+    "channel_id": "Ticketkanaal",
+    "dedup_key": "Ticketsleutel",
+    "message": "Bericht"
+  }
+}

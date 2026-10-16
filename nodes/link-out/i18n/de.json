@@ -1,6 +1,6 @@
 {
-  "label": "Link Out",
-  "description": "Store the current message for another workflow to consume",
+  "label": "Link-Ausgang",
+  "description": "Aktuelle Nachricht zur Verarbeitung durch einen anderen Workflow speichern",
   "config": {
     "name": "Name"
   }

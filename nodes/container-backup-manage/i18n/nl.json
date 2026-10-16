@@ -1,0 +1,28 @@
+{
+  "label": "Containerback-ups beheren",
+  "description": "Back-upplannen of runs weergeven, of een back-uprun ophalen, annuleren en verwijderen",
+  "config": {
+    "environment": "Omgeving",
+    "action": "Actie",
+    "container": "Container (filter)",
+    "status": "Status",
+    "limit": "Limiet",
+    "run_id": "Back-uprun"
+  },
+  "options": {
+    "action": {
+      "list_plans": "Plannen weergeven",
+      "list_runs": "Runs weergeven",
+      "get_run": "Run ophalen",
+      "cancel_run": "Run annuleren",
+      "delete_run": "Run verwijderen"
+    },
+    "status": {
+      "all": "Alle",
+      "completed": "Voltooid",
+      "running": "Bezig",
+      "failed": "Mislukt",
+      "cancelled": "Geannuleerd"
+    }
+  }
+}

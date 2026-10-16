@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package encryption seals sensitive columns with AES-256-GCM so they are never stored in plaintext.
 package encryption
 
 import (
@@ -126,6 +127,12 @@ func (s *Service) StableHash(value string) string {
 	mac := hmac.New(sha256.New, s.hashKey)
 	mac.Write([]byte(value))
 	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// KeyMaterial returns a copy of the data-encryption key. Only the instance
+// export needs it: encrypted columns restored without their key decrypt to nothing.
+func (s *Service) KeyMaterial() []byte {
+	return append([]byte(nil), s.hashKey...)
 }
 
 // IsEncrypted checks if a value has the encryption prefix.

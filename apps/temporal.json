@@ -4,7 +4,7 @@
   "description": "Durable execution platform for building reliable, long-running workflows at scale.",
   "category": "Databases",
   "image": "temporalio/temporal:latest",
-  "logo": "https://temporal.io/icons/icon-512x512.png",
+  "logo": "https://cdn.simpleicons.org/temporal",
   "website": "https://temporal.io",
   "docsUrl": "https://docs.temporal.io/self-hosted-guide",
   "ports": [
@@ -58,5 +58,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

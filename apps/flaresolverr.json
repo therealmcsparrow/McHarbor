@@ -1,0 +1,36 @@
+{
+  "slug": "flaresolverr",
+  "name": "FlareSolverr",
+  "description": "Proxy server that solves Cloudflare challenges for Prowlarr and Jackett indexers.",
+  "category": "Media",
+  "image": "ghcr.io/flaresolverr/flaresolverr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flaresolverr.png",
+  "website": "https://github.com/FlareSolverr/FlareSolverr",
+  "docsUrl": "https://github.com/FlareSolverr/FlareSolverr#docker",
+  "ports": [
+    {
+      "host": 8191,
+      "container": 8191,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "LOG_LEVEL",
+      "default": "info",
+      "description": "Log verbosity: debug, info, warning or error"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -1,0 +1,635 @@
+{
+  "title": "Contenedores de sistema",
+  "description": "Una distribución completa con su propio init, usuarios y servicios, con una fracción de la memoria de una máquina virtual.",
+  "nav": {
+    "containers": "Contenedores de sistema",
+    "templates": "Plantillas de contenedor",
+    "section": {
+      "compute": "Cómputo"
+    }
+  },
+  "actions": {
+    "create": "Crear contenedor",
+    "start": "Iniciar",
+    "shutdown": "Apagar",
+    "stop": "Detener",
+    "restart": "Reiniciar",
+    "freeze": "Congelar",
+    "unfreeze": "Descongelar",
+    "console": "Consola",
+    "delete": "Eliminar",
+    "snapshot": "Tomar instantánea",
+    "revert": "Revertir",
+    "clone": "Clonar",
+    "makeTemplate": "Convertir en plantilla",
+    "unTemplate": "Dejar de ser plantilla",
+    "addNic": "Añadir interfaz",
+    "addMount": "Añadir montaje",
+    "editLimits": "Cambiar límites",
+    "applyLimits": "Aplicar",
+    "diagnose": "Preguntar qué falla",
+    "refresh": "Actualizar",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "next": "Siguiente"
+  },
+  "list": {
+    "searchPlaceholder": "Buscar contenedores",
+    "title": "Contenedores de sistema",
+    "empty": {
+      "title": "Todavía no hay contenedores de sistema",
+      "body": "Un contenedor de sistema ejecuta una distribución completa (su propio init, usuarios y servicios), arranca en aproximadamente un segundo y usa una fracción de la memoria de una máquina virtual.",
+      "action": "Crear el primero"
+    },
+    "emptyTemplates": {
+      "title": "Todavía no hay plantillas de contenedor",
+      "body": "Marque un contenedor detenido como plantilla para clonar nuevos contenedores a partir de él. En un pool con copy-on-write cada clon es casi instantáneo y casi no ocupa espacio."
+    },
+    "columns": {
+      "name": "Nombre",
+      "state": "Estado",
+      "host": "Host",
+      "os": "SO",
+      "init": "Init",
+      "memory": "Memoria",
+      "processes": "Procesos",
+      "address": "Dirección",
+      "uptime": "Tiempo activo",
+      "pool": "Pool",
+      "isolation": "Aislamiento"
+    },
+    "filter": {
+      "all": "Todos",
+      "running": "En ejecución",
+      "stopped": "Detenidos",
+      "problem": "Requiere atención"
+    }
+  },
+  "state": {
+    "defined": "Definido",
+    "running": "En ejecución",
+    "frozen": "Congelado",
+    "stopping": "Deteniéndose",
+    "stopped": "Detenido",
+    "crashed": "Fallido",
+    "unknown": "Desconocido",
+    "unknownHint": "No se puede acceder al host de este contenedor, por lo que su estado es realmente desconocido. Lo supervisa systemd y probablemente sigue en ejecución, pero nada puede confirmarlo hasta que el agente vuelva.",
+    "frozenHint": "Todos los procesos están suspendidos. La memoria, los archivos abiertos y las conexiones de red siguen ahí, y al descongelar se reanuda exactamente donde se detuvo."
+  },
+  "isolation": {
+    "privileged": "Privilegiado",
+    "unprivileged": "Sin privilegios",
+    "privilegedHint": "Este contenedor no tiene espacio de nombres de usuario. Root dentro de él es root en el host en todo lo que importa.",
+    "unprivilegedHint": "Root dentro de este contenedor se asigna a un usuario sin privilegios en el host.",
+    "nesting": "Anidamiento",
+    "nestingHint": "Este contenedor puede ejecutar sus propios contenedores, lo que requiere un cgroup de dispositivos relajado y un perfil de montaje permisivo.",
+    "idMapping": "Asignación de ID",
+    "idMappingHint": "El rango de uid y gid del host sobre el que se asignan los uid propios de este contenedor. Dos contenedores nunca comparten un rango."
+  },
+  "address": {
+    "observed": "Dirección observada",
+    "observedHint": "Leída por el agente del espacio de nombres de red del contenedor, no informada desde dentro del contenedor."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Resumen",
+      "console": "Consola",
+      "resources": "Recursos",
+      "mounts": "Montajes",
+      "processes": "Procesos",
+      "snapshots": "Instantáneas",
+      "backups": "Copias de seguridad"
+    },
+    "overview": {
+      "init": "Sistema init",
+      "os": "Sistema operativo",
+      "pool": "Pool de almacenamiento",
+      "isolation": "Aislamiento",
+      "memory": "Memoria",
+      "processes": "Procesos",
+      "started": "Iniciado",
+      "neverStarted": "Nunca iniciado",
+      "exitReason": "Motivo de salida",
+      "lastError": "Último error",
+      "unknown": "Desconocido"
+    }
+  },
+  "console": {
+    "title": "Consola",
+    "connecting": "Conectando…",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "reconnect": "Reconectar",
+    "notRunning": "El contenedor no está en ejecución, así que no hay nada a lo que conectarse.",
+    "permissionHint": "Conectar una consola es un shell root dentro del contenedor, por eso necesita su propio permiso.",
+    "shell": "Shell",
+    "modeHint": "Consola se conecta al terminal propio del contenedor (PID 1) y reproduce su salida reciente; al desconectar, el contenedor sigue en ejecución. Shell inicia un nuevo shell root que termina cuando se desconecta.",
+    "rootShellWarning": "Todo lo que se escriba aquí se ejecuta como root dentro del contenedor."
+  },
+  "resources": {
+    "title": "Límites de recursos",
+    "liveNote": "Se aplican de inmediato a un contenedor en ejecución. No hay reinicio ni tiempo de inactividad: el cambio surte efecto en cuanto se aplica.",
+    "queuedNote": "Este contenedor no está en ejecución, así que se guardan para su próximo inicio.",
+    "memoryMax": "Límite de memoria",
+    "memoryMaxHint": "El techo estricto. Al superarlo, el OOM killer del kernel termina un proceso dentro del contenedor, normalmente no el culpable.",
+    "memoryHigh": "Limitar en",
+    "memoryHighHint": "Un límite flexible contra el que el kernel limita antes de empezar a matar nada, lo que convierte un contenedor que muere en uno que va lento. Por defecto, el 90% del límite estricto.",
+    "swapMax": "Swap",
+    "swapMaxHint": "Desactivado por defecto. El swap dentro de un contenedor sale del swap del host y convierte la presión de memoria de un contenedor en latencia para todo lo demás.",
+    "cpuMax": "Límite de CPU",
+    "cpuMaxHint": "Una cuota y un periodo en microsegundos: «200000 100000» equivale a dos núcleos. Déjelo como «max» para no tener límite.",
+    "cpuWeight": "Cuota de CPU",
+    "cpuWeightHint": "Peso relativo cuando los contenedores compiten por los mismos núcleos. No tiene efecto mientras sobren núcleos.",
+    "cpuSet": "Fijado a núcleos",
+    "pidsMax": "Límite de procesos",
+    "pidsMaxHint": "El número máximo de procesos. Sin uno, un solo contenedor puede agotar el espacio de procesos del host y arrastrar consigo todo lo demás.",
+    "diskQuota": "Cuota de disco",
+    "diskQuotaHint": "La aplica el pool de almacenamiento. Un pool de directorio no puede aplicar una cuota.",
+    "usage": {
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "processes": "Procesos",
+      "rootfs": "Rootfs",
+      "ofLimit": "del límite",
+      "noLimit": "Sin límite"
+    },
+    "applied": {
+      "title": "En vigor ahora",
+      "clampedOne": "El kernel ajustó un valor: {{fields}}.",
+      "clampedOther": "El kernel ajustó {{count}} valores: {{fields}}.",
+      "clampedHint": "El kernel redondea y limita. Lo que se muestra aquí es lo que está realmente en vigor, no lo que se pidió.",
+      "never": "Estos límites nunca han llegado a un kernel en ejecución.",
+      "pidsBadge": "{{value}} pids"
+    },
+    "lxcfsNote": "Las herramientas dentro del contenedor (free, top, /proc/cpuinfo) informan de las cifras del host y no de las del contenedor. Los números de aquí leen el cgroup propio del contenedor y son correctos."
+  },
+  "mounts": {
+    "title": "Montajes",
+    "empty": "Sin montajes. El contenedor solo ve su propio rootfs.",
+    "columns": {
+      "kind": "Tipo",
+      "source": "Origen",
+      "destination": "Destino",
+      "options": "Opciones"
+    },
+    "kind": {
+      "volume": "Volumen",
+      "bind": "Bind del host",
+      "device": "Dispositivo"
+    },
+    "kindHint": {
+      "volume": "Un directorio dentro del propio pool de almacenamiento de este contenedor.",
+      "bind": "Una ruta del host. Todo lo que hay detrás es totalmente accesible desde dentro del contenedor.",
+      "device": "Un nodo de dispositivo del host."
+    },
+    "readonly": "Solo lectura",
+    "shiftIds": "ID desplazados",
+    "shiftIdsHint": "Sin esto, todos los archivos del montaje parecen pertenecer a nadie desde dentro de un contenedor sin privilegios.",
+    "hostBindWarning": "Un montaje bind de una ruta del host da a este contenedor todo lo que hay detrás de esa ruta. Un contenedor que puede escribir en el /etc del host puede reescribir las contraseñas del host.",
+    "mustBeStopped": "El contenedor debe estar detenido antes de poder cambiar sus montajes."
+  },
+  "processes": {
+    "title": "Procesos",
+    "empty": "Sin procesos. El contenedor no está en ejecución.",
+    "columns": {
+      "pid": "PID",
+      "user": "Usuario",
+      "command": "Comando",
+      "cpu": "CPU",
+      "memory": "Memoria"
+    },
+    "hostPidHint": "El mismo proceso visto desde el host, donde su pid es distinto.",
+    "note": "Leído por el host del cgroup del contenedor. Nada dentro del contenedor tiene que cooperar para que esto funcione."
+  },
+  "snapshots": {
+    "title": "Instantáneas",
+    "empty": "Todavía no hay instantáneas.",
+    "columns": {
+      "name": "Nombre",
+      "taken": "Tomada",
+      "mechanism": "Mecanismo",
+      "consistency": "Consistencia",
+      "size": "Tamaño",
+      "depth": "Profundidad de cadena"
+    },
+    "consistent": "Consistente",
+    "crashConsistent": "Consistente ante fallos",
+    "consistentHint": "El contenedor estaba congelado cuando se tomó esto, por lo que su sistema de archivos está en un estado desde el que se podría haber apagado.",
+    "crashConsistentHint": "El contenedor estaba en ejecución y sin congelar. Falta todo lo que aún no se había escrito en disco: el mismo estado que produce un corte de corriente.",
+    "mechanismHint": {
+      "zfs": "Una instantánea ZFS. Instantánea y sin coste hasta que los datos del contenedor divergen de ella.",
+      "btrfs": "Una instantánea btrfs. Instantánea y sin coste hasta que los datos del contenedor divergen de ella.",
+      "lvm": "Una instantánea LVM.",
+      "rsync": "Una copia completa. Este pool no tiene mecanismo de instantáneas propio, así que es una copia real del rootfs: correcta, pero mucho más lenta y ocupa el espacio equivalente."
+    },
+    "chainWarning": "Las cadenas profundas de instantáneas ralentizan todas las lecturas. Es el motivo habitual por el que un contenedor se vuelve misteriosamente lento.",
+    "revertWarning": "Revertir descarta todos los cambios hechos desde esta instantánea y todas las instantáneas tomadas después.",
+    "freezeOption": "Congelar el contenedor mientras se toma la instantánea",
+    "freezeHint": "Cuesta milisegundos en un pool con copy-on-write y es lo que hace que la instantánea se pueda restaurar."
+  },
+  "create": {
+    "title": "Crear un contenedor de sistema",
+    "steps": {
+      "source": "Origen",
+      "profile": "Perfil",
+      "resources": "Recursos",
+      "network": "Red",
+      "setup": "Configuración",
+      "summary": "Resumen"
+    },
+    "source": {
+      "title": "¿Qué debe ejecutar este contenedor?",
+      "image": "Una imagen de distribución",
+      "imageHint": "Un archivo de sistema de archivos raíz que McHarbor ya ha descargado y verificado.",
+      "template": "Una de sus plantillas",
+      "templateHint": "Un contenedor que ha marcado como plantilla. En un pool con copy-on-write es casi instantáneo.",
+      "noImages": "Todavía no se ha descargado ninguna imagen de contenedor en este host.",
+      "downloadImages": "Descargar imágenes"
+    },
+    "profile": {
+      "title": "¿Cómo debe aislarse?",
+      "init": "Sistema init",
+      "initHint": "systemd necesita un subárbol de cgroup delegado y su propia señal de parada. Elegir el incorrecto produce un contenedor que arranca y sale de inmediato.",
+      "unprivileged": "Sin privilegios (recomendado)",
+      "unprivilegedHint": "Root dentro del contenedor se asigna a un usuario sin privilegios en el host. Es lo que hace seguro entregar un contenedor a alguien.",
+      "privileged": "Privilegiado",
+      "privilegedHint": "Sin espacio de nombres de usuario. Root dentro del contenedor es root en el host en todo lo que importa: úselo solo para algo en lo que confiaría con el propio host.",
+      "nesting": "Permitir contenedores dentro de este contenedor",
+      "nestingHint": "Necesario para ejecutar Docker u otro entorno de ejecución de contenedores dentro. Relaja el cgroup de dispositivos y el perfil de montaje.",
+      "privilegeRequired": "Necesita el permiso ct.privileged."
+    },
+    "resources": {
+      "title": "¿Cuánto se le debe permitir?",
+      "preset": "Preajuste",
+      "presets": {
+        "small": "Pequeño: 512 MB, 1 núcleo",
+        "medium": "Mediano: 2 GB, 2 núcleos",
+        "large": "Grande: 8 GB, 4 núcleos",
+        "custom": "Personalizado"
+      },
+      "liveNote": "Todo esto se puede cambiar más tarde mientras el contenedor se ejecuta."
+    },
+    "network": {
+      "title": "¿Cómo debe acceder a la red?",
+      "network": "Red",
+      "noNetworks": "Todavía no se ha configurado ninguna red en este host.",
+      "addressMode": "Dirección",
+      "dhcp": "Desde DHCP",
+      "static": "Estática",
+      "staticIp": "Dirección IP",
+      "staticGateway": "Puerta de enlace",
+      "staticIpv6": "IPv6 estática (CIDR)",
+      "staticGateway6": "Puerta de enlace IPv6",
+      "staticIpv6Hint": "Opcional e independiente de la configuración de dirección anterior: un contenedor con DHCP puede tener igualmente una dirección IPv6 fija.",
+      "staticDns": "Servidores DNS",
+      "staticHint": "Un contenedor no tiene cloud-init. Una dirección estática se escribe en la propia configuración de red de la distribución, así que equivocarse deja el contenedor accesible solo desde su consola.",
+      "networkPlaceholder": "Elija una red",
+      "attachment": "Se conecta mediante {{attachment}}"
+    },
+    "setup": {
+      "title": "Configuración del primer arranque",
+      "hostname": "Nombre del host",
+      "timezone": "Zona horaria",
+      "sshKeys": "Claves SSH",
+      "sshKeysHint": "Una clave por línea. Se escribe en authorized_keys de root antes de que el contenedor arranque por primera vez.",
+      "password": "Contraseña de root",
+      "passwordHint": "Se convierte en hash antes de guardarse y antes de salir de este servidor. La propia contraseña nunca se escribe en disco en ningún sitio.",
+      "noAccessWarning": "Sin clave SSH ni contraseña, la única forma de entrar en este contenedor es su consola."
+    },
+    "summary": {
+      "title": "Listo para crear",
+      "startAfterCreate": "Iniciarlo una vez creado",
+      "startHint": "Desactivado por defecto, para que pueda comprobar su configuración de red antes de que esté en la red."
+    }
+  },
+  "clone": {
+    "title": "Clonar {{name}}",
+    "body": "Crea un contenedor nuevo a partir de este, en el mismo pool. De forma predeterminada es una copia completa: después no se comparte nada con el origen.",
+    "name": "Nombre del clon",
+    "linked": "Compartir almacenamiento con el origen",
+    "linkedHint": "Pide al pool un clon vinculado que comparte los datos sin modificar con el origen. El origen no se puede eliminar mientras exista el clon. Si el host no puede crear un vínculo, se obtiene una copia completa y el resultado lo indica.",
+    "linkedUnavailable": "El pool de este contenedor no puede compartir datos, por lo que el clon será una copia completa.",
+    "start": "Iniciar el clon cuando esté listo",
+    "resultLinked": "{{name}} se creó como clon vinculado. Comparte datos con su origen, que no se puede eliminar mientras exista el clon.",
+    "resultFull": "{{name}} se creó como copia completa. No comparte nada con su origen."
+  },
+  "delete": {
+    "title": "¿Eliminar {{name}}?",
+    "body": "Esto elimina el contenedor y todo lo que hay dentro.",
+    "keepRootfs": "Conservar el sistema de archivos",
+    "keepRootfsHint": "El contenedor se elimina de McHarbor pero sus archivos permanecen en el pool.",
+    "templateInUse": "Esta plantilla aún respalda a otros contenedores. Eliminarla los corrompería.",
+    "confirm": "Escriba el nombre del contenedor para confirmar."
+  },
+  "diagnose": {
+    "title": "Qué es probable que falle",
+    "pending": "Leyendo la definición del contenedor y su motivo de salida…",
+    "unavailable": "No hay ningún proveedor de IA configurado en esta instalación.",
+    "dismiss": "Descartar",
+    "disclaimer": "Una sugerencia de un modelo de lenguaje que lee la definición, los límites y el motivo de salida de este contenedor. No se envió nada del interior del contenedor."
+  },
+  "widgets": {
+    "ctSummary": {
+      "label": "Contenedores de sistema",
+      "description": "Cuántos contenedores hay y cuántos están en ejecución."
+    },
+    "ctDensity": {
+      "label": "Densidad de contenedores",
+      "description": "Lo que usan realmente sus contenedores frente a lo que se les permite."
+    },
+    "empty": "Todavía no hay contenedores de sistema.",
+    "running": "En ejecución",
+    "stopped": "Detenidos",
+    "problem": "Requiere atención",
+    "memoryInUse": "Memoria en uso",
+    "nearLimit": "Cerca de un límite",
+    "densityHint": "Los contenedores comparten kernel y caché de páginas, así que el uso real queda muy por debajo de la suma de sus límites."
+  },
+  "reports": {
+    "platform": "Contenedores del sistema",
+    "isolation": {
+      "label": "Aislamiento de contenedores de sistema",
+      "description": "Qué contenedores han perdido una frontera con el host: privilegios, montajes del host, anidamiento y asignación de ID."
+    },
+    "options": {
+      "aiSummary": "Añadir una evaluación escrita (usa su proveedor de IA configurado)"
+    }
+  },
+  "backups": {
+    "title": "Programaciones de copias de seguridad",
+    "description": "Una copia de seguridad sale de este host. Es un archivo comprimido del sistema de archivos del contenedor más un manifiesto de su definición, escrito en los destinos de almacenamiento que indique, de modo que un fallo del pool que se lleve las instantáneas deje las copias.",
+    "history": "Historial de copias de seguridad",
+    "runNow": "Hacer copia ahora",
+    "addPlan": "Añadir una programación",
+    "editPlan": "Editar programación",
+    "deletePlan": "Eliminar programación",
+    "restore": "Restaurar",
+    "delete": "Eliminar copia de seguridad",
+    "disabled": "Desactivada",
+    "noPlans": "Todavía no hay programación de copias. Hasta que haya una, este contenedor solo está protegido por sus instantáneas, que residen en el mismo pool que él.",
+    "noRuns": "Todavía no se ha hecho ninguna copia.",
+    "noDestinations": "No hay ningún destino de almacenamiento configurado. Añada uno en Ajustes antes de escribir una copia.",
+    "fellBack": "Tomada como copia completa",
+    "fellBackHint": "Tocaba una incremental y en su lugar se tomó una copia completa: {{reason}}",
+    "idShift": {
+      "none": "Propietarios sin cambios",
+      "noneHint": "La copia se tomó en el rango de ID de este contenedor, por lo que no hubo que mover ningún propietario de archivos.",
+      "shifted": "Propietarios movidos",
+      "shiftedHint": "La propiedad se movió al rango de ID de este contenedor: todos los propietarios de archivos se desplazaron desde el rango en el que se tomó la copia.",
+      "skipped": "Propietarios no movidos",
+      "skippedHint": "El host restauró los archivos sin mover a sus propietarios, por lo que siguen perteneciendo al rango de ID en el que se tomó la copia."
+    },
+    "blocked": {
+      "template": "Una plantilla no se puede copiar: su sistema de archivos es el almacén de respaldo de todos sus clones.",
+      "hostOffline": "No se puede acceder al host de este contenedor, por lo que no se puede iniciar una copia.",
+      "noDestination": "Añada primero un destino de almacenamiento en Ajustes: una copia que no va a ninguna parte no es una copia de seguridad.",
+      "noPlan": "Añada primero una programación, para que la copia sepa dónde escribir."
+    },
+    "planColumns": {
+      "name": "Programación",
+      "schedule": "Se ejecuta",
+      "retention": "Conserva",
+      "lastRun": "Última ejecución",
+      "nextRun": "Próxima ejecución"
+    },
+    "columns": {
+      "started": "Iniciada",
+      "operation": "Qué",
+      "kind": "Tipo",
+      "size": "Tamaño",
+      "consistency": "Tomada",
+      "destinations": "Escrita en",
+      "status": "Estado"
+    },
+    "operation": {
+      "backup": "Copia de seguridad",
+      "restore": "Restauración"
+    },
+    "kind": {
+      "full": "Completa",
+      "incremental": "Incremental"
+    },
+    "consistency": {
+      "snapshot": "Desde una instantánea",
+      "snapshotHint": "El archivo se leyó de una instantánea en un momento dado y no del sistema de archivos en vivo. En un pool btrfs, ZFS o LVM la instantánea es instantánea y el contenedor nunca se detuvo.",
+      "live-copy": "Copia en vivo",
+      "live-copyHint": "El rootfs se copió mientras el contenedor seguía en ejecución, sin instantánea ni congelación. Los archivos se leyeron en momentos distintos, así que la copia no es de un instante concreto: una base de datos o una actualización de paquetes en curso pueden capturarse a medio escribir. Detenga primero el contenedor, o use un pool btrfs, ZFS o LVM thin, cuando eso importe.",
+      "frozen": "Congelado",
+      "frozenHint": "Los procesos del contenedor se congelaron durante toda la copia. Consistente, y no ejecutó nada mientras se realizaba.",
+      "filesystem": "En reposo",
+      "filesystemHint": "El contenedor no estaba en ejecución, así que nada escribía en el sistema de archivos mientras se leía."
+    },
+    "status": {
+      "running": "En ejecución",
+      "success": "Correcta",
+      "failure": "Fallida",
+      "cancelled": "Cancelada"
+    },
+    "errorHint": {
+      "backupKeyMissing": "No hay ninguna clave de cifrado de copias instalada en este McHarbor, por lo que ningún destino aceptaría la copia. Instale una en Ajustes → Almacenamiento → Clave de cifrado de copias y vuelva a ejecutar la copia."
+    },
+    "retention": {
+      "lastCount": "últimas {{count}}",
+      "forDays": "{{days}} días",
+      "forever": "Para siempre"
+    },
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Copia nocturna",
+      "schedule": "Programación",
+      "scheduleHint": "Cuándo se ejecuta esta copia. El constructor legible cubre los casos habituales; el campo avanzado acepta cualquier expresión cron de cinco campos.",
+      "enabled": "Ejecutar según esta programación",
+      "destinations": "Destinos",
+      "destinationsHint": "Cada destino que elija recibe su propia copia. Una sola copia no es una copia de seguridad.",
+      "retentionCount": "Conservar esta cantidad",
+      "retentionDays": "Conservar durante este número de días",
+      "retentionHint": "Cero significa para siempre. Nunca se elimina una copia de seguridad en la que aún se apoya una incremental posterior, ni la única copia restante de un contenedor que todavía existe.",
+      "fullEvery": "Hacer una copia completa cada",
+      "fullEveryUnit": "ejecuciones",
+      "fullEveryHint": "Las incrementales son rápidas y cada una depende de las copias anteriores. Reiniciar la cadena con regularidad mantiene corta una restauración. Cero nunca fuerza una.",
+      "quiesceNotice": "Un contenedor en ejecución se captura con una instantánea donde su pool lo permite, y se congela mientras dura la copia donde no. Una copia que no pueda hacerse de ninguna de las dos formas se rechaza en lugar de escribirse, porque un sistema de archivos a medio escribir no se distingue de uno correcto.",
+      "save": "Guardar programación"
+    },
+    "deletePlanConfirm": {
+      "title": "¿Eliminar esta programación?",
+      "body": "Las copias de seguridad que ya escribió permanecen donde están y siguen siendo restaurables. Solo se elimina la programación."
+    },
+    "deleteConfirm": {
+      "title": "¿Eliminar esta copia de seguridad?",
+      "body": "También se eliminan las copias de cada destino. No se puede eliminar una copia de seguridad en la que se apoya una incremental posterior."
+    },
+    "restoreDialog": {
+      "title": "¿Restaurar {{name}}?",
+      "description": "Reconstruye el sistema de archivos de este contenedor a partir de la copia de seguridad realizada el {{taken}}.",
+      "needsStop": "Primero hay que detener el contenedor. Reemplazar el sistema de archivos bajo un init en ejecución no falla de forma limpia.",
+      "spaceNotice": "El sistema de archivos se reconstruye junto al actual y se mueve a su lugar en el último paso, por lo que el host necesita espacio para una segunda copia mientras se ejecuta.",
+      "chainNote": "Esta es una copia de seguridad incremental, por lo que se descargan y aplican en orden la copia completa en la que se apoya y todas las incrementales intermedias.",
+      "irreversible": "Esto reemplaza ahora todo el contenido del sistema de archivos del contenedor. No se puede deshacer.",
+      "confirm": "Escriba {{name}} para confirmar",
+      "submit": "Restaurar esta copia de seguridad"
+    }
+  },
+  "recreate": {
+    "action": "Recrear como contenedor nuevo",
+    "orphaned": {
+      "button": "Copias de seguridad de contenedores eliminados",
+      "title": "Copias de seguridad de contenedores eliminados",
+      "description": "Estas copias de seguridad pertenecen a contenedores que McHarbor ya no tiene. Una copia de seguridad sobrevive a su contenedor a propósito: elija una para recrear el contenedor a partir de ella.",
+      "empty": "Todas las copias de seguridad pertenecen a un contenedor que todavía existe.",
+      "container": "Contenedor",
+      "unknownName": "Contenedor sin nombre"
+    },
+    "dialog": {
+      "title": "Recrear {{name}} a partir de una copia de seguridad",
+      "description": "Todo lo que aparece a continuación proviene de la definición almacenada con la copia de seguridad realizada el {{taken}}. Cambie lo que ya no encaje: un nombre ya en uso, un pool o una red que ya no existe.",
+      "loading": "Leyendo la definición del contenedor desde el destino de la copia de seguridad…",
+      "pool": "Pool de almacenamiento",
+      "poolPlaceholder": "Elija un pool",
+      "poolMissing": "El pool en el que vivía este contenedor ({{backend}} en {{target}}) no está en este host. Elija otro.",
+      "interfaces": "Interfaces",
+      "noInterfaces": "Sin interfaces. El contenedor solo tendrá loopback.",
+      "networkPlaceholder": "Elija una red",
+      "networkMissing": "La red en la que estaba esta interfaz ya no existe. Elija otra o elimine la interfaz.",
+      "removeInterface": "Eliminar la interfaz {{name}}",
+      "mounts": "Montajes",
+      "noMounts": "Sin montajes.",
+      "removeMount": "Eliminar el montaje {{destination}}",
+      "startAfter": "Iniciarlo cuando termine la restauración",
+      "restoreNote": "El contenedor se crea detenido y después su sistema de archivos se reconstruye a partir de esta copia de seguridad y de todas aquellas en las que se apoya. Las interfaces reciben nuevas direcciones MAC, por lo que una reserva DHCP basada en la anterior no coincidirá.",
+      "submit": "Recrear contenedor"
+    },
+    "warnings": {
+      "name_invalid": "El nombre almacenado no es uno que un contenedor pueda tomar aquí. Elija uno nuevo.",
+      "init_unknown": "El sistema init almacenado no es uno de los que McHarbor ejecuta, por lo que se eligió systemd. Compruébelo antes de crear.",
+      "pool_target_unknown": "La ruta de rootfs almacenada no indica en qué pool estaba. Elija un pool.",
+      "nic_dropped": "Se omitió una interfaz sin puente ni adaptador principal.",
+      "mount_dropped": "Se omitió un montaje de tipo desconocido o sin origen.",
+      "limits_adjusted": "Un límite negativo se restableció a sin límite."
+    }
+  },
+  "permissions": {
+    "ct.view": {
+      "label": "Ver contenedores del sistema"
+    },
+    "ct.manage": {
+      "label": "Gestionar contenedores del sistema"
+    },
+    "ct.delete": {
+      "label": "Eliminar contenedores del sistema"
+    },
+    "ct.console": {
+      "label": "Abrir la consola de un contenedor del sistema"
+    },
+    "ct.backup": {
+      "label": "Hacer copias de seguridad de contenedores del sistema"
+    },
+    "ct.restore": {
+      "label": "Restaurar un contenedor del sistema desde una copia de seguridad"
+    },
+    "ct.privileged": {
+      "label": "Ejecutar contenedores privilegiados y montar rutas del host"
+    }
+  },
+  "err": {
+    "ct": {
+      "unauthorized": "Debe iniciar sesión para hacer eso.",
+      "privilege_required": "Eso requiere el permiso para ejecutar contenedores privilegiados y montar rutas del host.",
+      "invalid_request": "Algo de esa solicitud no era utilizable.",
+      "not_found": "Ese contenedor ya no existe.",
+      "name_taken": "Ya hay un contenedor con ese nombre en este host.",
+      "pool_mismatch": "Ese pool ya está registrado con un backend o una ruta distintos en este host. Vuelve a elegir el pool de la lista.",
+      "pool_required": "Se requiere un pool de almacenamiento.",
+      "running": "Primero hay que detener el contenedor.",
+      "not_running": "El contenedor no está en ejecución.",
+      "host_offline": "No se puede acceder al host de este contenedor.",
+      "no_capability": "Este host no puede ejecutar contenedores del sistema.",
+      "snapshot_chain_deep": "Este contenedor tiene demasiadas instantáneas apiladas. Elimine algunas antes de tomar otra.",
+      "template_in_use": "Esta plantilla todavía respalda a otros contenedores.",
+      "template_running": "Una plantilla no se puede iniciar.",
+      "bad_mount": "Ese montaje no está permitido.",
+      "id_range_exhausted": "Este host no tiene más rangos de id libres para otro contenedor sin privilegios.",
+      "command_failed": "El host no pudo llevar eso a cabo.",
+      "agent_too_old": "El host de este contenedor ejecuta un agente demasiado antiguo para crear o eliminar el rootfs de un contenedor. Actualice el agente en ese host e inténtelo de nuevo.",
+      "image_not_cached": "Esa imagen todavía no se ha descargado en este host. Descárguela en el host desde Compute → Images y cree el contenedor de nuevo.",
+      "stats_unavailable": "El agente del host no devolvió estadísticas para este contenedor en ejecución. Actualice el agente en este host para ver el uso en vivo.",
+      "nic_ipv6_invalid": "Introduzca una dirección IPv6 con longitud de prefijo, como 2001:db8::50/64, y una puerta de enlace IPv6. En estos campos no se admiten valores IPv4.",
+      "nic_ipv6_macvlan_only": "Una dirección IPv6 estática solo está disponible en redes directas (macvlan).",
+      "not_ready": "Esta sección todavía se está iniciando. Inténtelo de nuevo en un momento.",
+      "backup_name_required": "Una programación de copias de seguridad necesita un nombre.",
+      "backup_name_too_long": "El nombre de esa programación de copias de seguridad es demasiado largo.",
+      "backup_retention_invalid": "Esa configuración de retención está fuera de rango.",
+      "backup_cron_invalid": "Esa no es una expresión cron válida de cinco campos.",
+      "backup_no_destination": "Esta copia de seguridad no tiene adónde ir. Elija al menos un destino de almacenamiento.",
+      "backup_chain_incomplete": "La cadena de esta copia de seguridad está incompleta, por lo que no se puede restaurar.",
+      "backup_chain_unrestorable": "Esta copia de seguridad no se puede restaurar: sus copias incrementales se leyeron de una copia en vivo de un rootfs de pool dir. Restaure en su lugar la copia completa en la que se apoya.",
+      "backup_idmap_conflict": "Esta copia de seguridad no se puede restaurar: las copias de su cadena registraron rangos de id distintos, por lo que los propietarios de sus archivos no se pueden trasladar de forma coherente al contenedor de destino.",
+      "backup_not_confirmed": "Escriba el nombre del contenedor para confirmar la restauración.",
+      "backup_template": "Una plantilla no se puede respaldar ni sobrescribir con una restauración.",
+      "backup_agent_too_old": "El host de este contenedor ejecuta un agente demasiado antiguo para hacer copias de seguridad de un contenedor.",
+      "backup_store_failed": "McHarbor no pudo almacenar la copia de seguridad en su destino.",
+      "backup_manifest_missing": "La definición del contenedor de esta copia de seguridad ya no está en ninguno de sus destinos. Cree un contenedor manualmente y restaure sobre él.",
+      "backup_manifest_unreadable": "No se pudo leer la definición del contenedor de esta copia de seguridad.",
+      "recreate_manage_required": "Recrear un contenedor requiere ct.manage en ese host además de ct.restore.",
+      "recreate_restore_required": "Recrear un contenedor a partir de una copia de seguridad requiere ct.restore en ese host."
+    }
+  },
+  "msg": {
+    "ct": {
+      "created": "Contenedor creado.",
+      "updated": "Contenedor actualizado.",
+      "started": "Contenedor iniciado.",
+      "stopped": "Contenedor detenido.",
+      "shutdown_escalated": "El contenedor no se detuvo por sí solo y fue terminado a la fuerza.",
+      "restarted": "Contenedor reiniciado.",
+      "frozen": "Contenedor congelado.",
+      "unfrozen": "Contenedor descongelado.",
+      "deleted": "Contenedor eliminado.",
+      "limits_applied": "Límites aplicados. Están en vigor ahora.",
+      "limits_queued": "Límites almacenados. Se aplican la próxima vez que se inicie el contenedor.",
+      "snapshot_created": "Instantánea tomada.",
+      "snapshot_reverted": "Contenedor revertido.",
+      "snapshot_deleted": "Instantánea eliminada.",
+      "cloned": "Contenedor clonado.",
+      "templated": "Plantilla actualizada.",
+      "nic_added": "Interfaz añadida.",
+      "mount_added": "Montaje añadido.",
+      "backup_plan_saved": "Programación de copias de seguridad guardada.",
+      "backup_plan_deleted": "Programación de copias de seguridad eliminada.",
+      "backup_started": "Copia de seguridad iniciada. Sigue ejecutándose si abandona esta página.",
+      "backup_stored": "Copia de seguridad almacenada.",
+      "backup_deleted": "Copia de seguridad eliminada.",
+      "restore_started": "Restauración iniciada.",
+      "recreate_started": "Contenedor definido. Su sistema de archivos se está restaurando desde la copia de seguridad y podrá iniciarse cuando termine la restauración."
+    }
+  },
+  "runbook": {
+    "attach": {
+      "ct": "Contenedor de sistema"
+    },
+    "targets": {
+      "ct": "Contenedor de sistema"
+    },
+    "steps": {
+      "ct_start": "Inicia el contenedor del sistema",
+      "ct_stop": "Detiene el contenedor del sistema",
+      "ct_restart": "Reinicia el contenedor del sistema",
+      "ct_freeze": "Congela todos los procesos del contenedor del sistema",
+      "ct_unfreeze": "Descongela un contenedor del sistema congelado",
+      "ct_backup_run": "Hace una copia de seguridad del contenedor del sistema ahora",
+      "ct_state": "El estado, los límites y el host del contenedor del sistema",
+      "ct_backups": "Las 20 copias de seguridad más recientes del contenedor del sistema"
+    }
+  },
+  "estate": {
+    "containers": "Contenedores del sistema"
+  },
+  "search": {
+    "group": {
+      "containers": "Contenedores del sistema"
+    },
+    "action": {
+      "createContainer": "Crear contenedor del sistema",
+      "createContainerKeywords": "nuevo lxc ct contenedor"
+    }
+  }
+}

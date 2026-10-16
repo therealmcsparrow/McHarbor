@@ -1,0 +1,47 @@
+{
+    "slug":  "keepalived",
+    "name":  "Keepalived",
+    "description":  "Provides high availability and load balancing for Linux systems using VRRP failover.",
+    "category":  "Networking",
+    "image":  "osixia/keepalived:2.0.20",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/keepalived.png",
+    "website":  "https://www.keepalived.org/",
+    "docsUrl":  "https://github.com/osixia/docker-keepalived",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/keepalived/config",
+                        "container":  "/etc/keepalived"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KEEPALIVED_INTERFACE",
+                        "default":  "eth0",
+                        "description":  "Network interface keepalived should manage"
+                    },
+                    {
+                        "key":  "KEEPALIVED_VIRTUAL_IPS",
+                        "default":  "192.168.1.100",
+                        "description":  "Virtual IP addresses to advertise"
+                    },
+                    {
+                        "key":  "KEEPALIVED_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "VRRP authentication password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "2.0.20",
+    "latest":  {
+        "version":  "2.0.20",
+        "release_date":  "2026-09-29"
+    }
+}

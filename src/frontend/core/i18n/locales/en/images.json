@@ -9,6 +9,16 @@
   "pruneUnused": "Prune Unused",
   "pruneDescription": "Remove unused images that are not referenced by containers.",
   "columns": {
+    "allTags": "All tags",
+    "digests": "Digests",
+    "parentId": "Parent ID",
+    "sharedSize": "Shared size",
+    "labels": "Labels",
+    "containerCount": "Containers",
+    "protected": "Protected",
+    "usedBy": "Used by",
+    "groupRelations": "Relations",
+    "groupImage": "Image",
     "repoTag": "Repository:Tag",
     "status": "Status",
     "repository": "Repository",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "in use",
-    "unused": "unused"
+    "unused": "Unused"
   },
   "pull": {
     "title": "Pull Image",
@@ -64,6 +74,10 @@
     "noLayerHistory": "No layer history",
     "noLabels": "No labels",
     "noEnvVars": "No environment variables",
+    "revealValues": "Reveal values",
+    "hideValues": "Hide values",
+    "envWithheld": "Credential-looking values are hidden. Revealing them is recorded in the audit log.",
+    "historyWithheld": "Credential-looking ENV and build-argument values are hidden. Revealing them is recorded in the audit log.",
     "fields": {
       "id": "ID",
       "tags": "Tags",
@@ -78,7 +92,7 @@
       "entrypoint": "Entrypoint",
       "workingDir": "Working Dir",
       "user": "User",
-      "stopSignal": "Stop Signal",
+      "stopSignal": "Stop signal",
       "exposedPorts": "Exposed Ports",
       "volumes": "Volumes",
       "environment": "Environment"
@@ -87,6 +101,17 @@
       "instruction": "Instruction",
       "size": "Size",
       "created": "Created"
+    },
+    "tabs": {
+      "ariaLabel": "Image sections",
+      "overview": "Overview",
+      "config": "Config",
+      "labels": "Labels",
+      "history": "History"
+    },
+    "badges": {
+      "tagged": "Tagged",
+      "dangling": "Dangling"
     }
   }
 }

@@ -4,24 +4,20 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const loop: NodeDefinition = {
-  "key": "loop",
-  "label": "Loop",
-  "category": "logic",
-  "description": "Iterate over an array from the current message",
-  "icon": "IconRepeat",
-  "configSchema": [
+  key: 'loop',
+  label: 'Loop',
+  category: 'logic',
+  description: 'Iterate over an array from the current message',
+  icon: 'IconRepeat',
+  configSchema: [
     {
-      "key": "items_field",
-      "label": "Items Field",
-      "type": "expression",
-      "required": false,
-      "default": "payload"
-    }
+      key: 'items_field',
+      label: 'Items Field',
+      type: 'expression',
+      required: false,
+      default: 'payload',
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "done"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['done'],
 };

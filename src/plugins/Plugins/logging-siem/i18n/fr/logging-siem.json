@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "SIEM (HTTP)",
+    "description": "JSON signe via HTTPS vers Splunk HEC, Sentinel, Elastic ou tout collecteur JSON."
+  },
+  "settings": {
+    "title": "SIEM (HTTP)",
+    "subtitle": "JSON signe via HTTPS vers Splunk HEC, Sentinel, Elastic ou tout collecteur JSON."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Livraison du transfert de journaux SIEM",
+      "description": "Événements d'audit livrés et échoués par transmetteur SIEM, taux de réussite, la plus longue période sans livraison réussie et les motifs d'échec qui reviennent."
+    }
+  },
+  "subject": {
+    "siem-forwarder": "Transmetteur SIEM"
+  },
+  "subjectAll": {
+    "siem-forwarder": "Tous les transmetteurs SIEM"
+  }
+}

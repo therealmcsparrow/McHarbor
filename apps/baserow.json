@@ -1,0 +1,47 @@
+{
+    "slug":  "baserow",
+    "name":  "Baserow",
+    "description":  "Open source no-code database and spreadsheet tool for building collaborative apps on top of Postgres.",
+    "category":  "Developer Tools",
+    "image":  "baserow/baserow:1.25.2",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/baserow.png",
+    "website":  "https://baserow.io",
+    "docsUrl":  "https://baserow.io/docs/installation%2Finstall-with-docker",
+    "ports":  [
+                  {
+                      "host":  8093,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/baserow/data",
+                        "container":  "/baserow/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BASEROW_PUBLIC_URL",
+                        "default":  "http://localhost:8093",
+                        "description":  "Public URL used to build links and email confirmations"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "change-me",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "1.25.2",
+    "latest":  {
+        "version":  "1.25.2",
+        "release_date":  "2026-09-29"
+    }
+}

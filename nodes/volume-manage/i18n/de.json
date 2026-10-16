@@ -1,0 +1,27 @@
+{
+  "label": "Volume verwalten",
+  "description": "Docker-Volume erstellen, entfernen, sichern oder wiederherstellen",
+  "config": {
+    "environment": "Umgebung",
+    "action": "Aktion",
+    "name": "Name",
+    "driver": "Treiber",
+    "labels": "Labels",
+    "force": "Erzwingen",
+    "volume": "Volume",
+    "backup_path": "Backup-Dateipfad",
+    "overwrite": "Vorhandene Dateien ueberschreiben",
+    "helper_image": "Helper-Image"
+  },
+  "options": {
+    "action": {
+      "create": "Erstellen",
+      "remove": "Entfernen",
+      "backup": "Sichern",
+      "restore": "Wiederherstellen"
+    },
+    "driver": {
+      "local": "Lokal"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Destinos de copia de seguridad de ownCloud",
+    "subtitle": "Haga copias de seguridad de contenedores en una instancia de ownCloud (Classic) mediante WebDAV (RFC 4918). ownCloud usa la misma superficie WebDAV que Nextcloud (/remote.php/dav/files/{user}/) por compatibilidad, por lo que el plugin usa la misma ruta y el mismo flujo de autenticación Basic que el plugin de Nextcloud. Dos modos de autenticación: flujo de token de actualización OAuth 2.0 o autenticación directa con contraseña de aplicación.",
+    "registerHint": "Haga clic en Probar la conexión para verificar que el endpoint WebDAV es accesible y que las credenciales son válidas."
+  },
+  "fields": {
+    "clientId": "ID de cliente OAuth",
+    "clientSecret": "Secreto de cliente OAuth / contraseña de aplicación",
+    "refreshToken": "Token de actualización (entregado por el flujo de consentimiento OAuth)",
+    "folderId": "Carpeta bajo la raíz del usuario (en blanco para la raíz del usuario)"
+  },
+  "toast": {
+    "registered": "Plugin de ownCloud registrado.",
+    "testPassed": "La prueba de conexión de ownCloud se superó.",
+    "testFailed": "La prueba de conexión de ownCloud falló: {{error}}"
+  },
+  "error": {
+    "noHost": "La URL base de ownCloud es obligatoria.",
+    "noUsername": "El nombre de usuario de ownCloud es obligatorio.",
+    "noSecret": "El secreto de cliente OAuth o la contraseña de aplicación es obligatorio."
+  },
+  "form": {
+    "introTitle": "Credenciales de ownCloud",
+    "introBody": "Genera una contraseña de aplicación en Personal settings → Security → App passwords, o registra un cliente OAuth 2.0 en los ajustes de administración. Ambos métodos funcionan mediante autenticación HTTP Basic en cada llamada WebDAV. McHarbor almacena el secreto cifrado en reposo.",
+    "hostLabel": "URL base de ownCloud",
+    "hostHelp": "URL base de la instancia de ownCloud, p. ej. https://cloud.example.com. No añadas una barra final.",
+    "usernameLabel": "Nombre de usuario",
+    "usernameHelp": "Inicio de sesión de ownCloud (nombre de usuario o correo electrónico).",
+    "clientIdLabel": "ID de cliente OAuth (opcional)",
+    "clientIdHelp": "client_id de OAuth 2.0 de ownCloud admin → Security → OAuth 2.0. Déjalo vacío si usas una contraseña de aplicación.",
+    "clientSecretHelp": "El client_secret de OAuth 2.0 o una contraseña de aplicación de ownCloud Personal settings → Security → App passwords. Ambos funcionan mediante autenticación HTTP Basic en cada llamada WebDAV.",
+    "basePathLabel": "Carpeta bajo la raíz del usuario",
+    "basePathHelp": "Subcarpeta opcional bajo la raíz de Files de ownCloud del usuario.",
+    "apiPathLabel": "Prefijo de ruta WebDAV (avanzado)",
+    "apiPathHelp": "Sobrescribe la ruta WebDAV. Por defecto es /remote.php/dav/files/{username}/. Configúralo solo si tu ownCloud está detrás de un reverse proxy que reescribe la ruta WebDAV."
+  },
+  "setup": {
+    "title": "Guía de configuración de ownCloud",
+    "step1": "En ownCloud, abre <b>Personal settings → Security → App passwords</b>. (Los administradores pueden habilitarlo para toda la instancia en <b>Settings → Security</b>.) Dale a la contraseña de aplicación un nombre descriptivo (p. ej. <code>mcharbor-backups</code>) y haz clic en <b>Create app password</b>.",
+    "step2": "Copia el nombre de usuario (la cuenta bajo la que quieres guardar las copias de seguridad) y la contraseña de aplicación que ownCloud acaba de generar. Ambos distinguen entre mayúsculas y minúsculas.",
+    "step3": "En McHarbor, pega la URL base de ownCloud (p. ej. <code>https://cloud.example.com</code>, sin barra final), el nombre de usuario y la contraseña de aplicación en el formulario de la izquierda. Opcional: establece una carpeta bajo la raíz del usuario (p. ej. <code>Backups/2026</code>) y deja que McHarbor cree las carpetas intermedias automáticamente.",
+    "step4": "Haz clic en <b>Test connection</b> para escribir y leer un archivo de prueba en la carpeta resuelta. El plugin ejecuta un <code>PROPFIND</code> de WebDAV autenticado con HTTP Basic contra <code>/remote.php/dav/files/{username}/</code> para confirmar que el destino es accesible y que las credenciales son válidas.",
+    "step5": "Opcional: cambia a un flujo OAuth delegado creando un cliente OAuth 2.0 en <b>ownCloud admin → Security → OAuth 2.0</b>. Establece el URI de redirección en <code>/api/storage-locations/oauth/callback</code> de tu host de McHarbor. Genera un client secret, pega ambos en el formulario y haz clic en <b>Connect</b> para conceder el consentimiento. El plugin almacena el refresh token y lo renueva de forma transparente en cada ejecución de copia de seguridad.",
+    "step6": "Lanza una copia de seguridad. El plugin sube el archivo por WebDAV mediante PUT fragmentado con <code>Content-Range</code>, de modo que incluso las copias de más de 10 GB se transmiten sin almacenar en memoria toda la carga a la vez. El servidor WebDAV de ownCloud reensambla los fragmentos en el lado del servidor."
+  }
+}

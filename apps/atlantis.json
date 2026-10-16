@@ -1,0 +1,57 @@
+{
+    "slug":  "atlantis",
+    "name":  "Atlantis",
+    "description":  "Terraform pull request automation that runs plan and apply from webhook-triggered comments.",
+    "category":  "CI/CD",
+    "image":  "ghcr.io/runatlantis/atlantis:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.runatlantis.io\u0026sz=128",
+    "website":  "https://www.runatlantis.io",
+    "docsUrl":  "https://www.runatlantis.io/docs/deployment.html",
+    "ports":  [
+                  {
+                      "host":  4141,
+                      "container":  4141,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/atlantis/data",
+                        "container":  "/atlantis-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ATLANTIS_GH_USER",
+                        "default":  "",
+                        "description":  "GitHub username Atlantis comments as"
+                    },
+                    {
+                        "key":  "ATLANTIS_GH_TOKEN",
+                        "default":  "change-me",
+                        "description":  "GitHub personal access token with repo scope",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ATLANTIS_GH_WEBHOOK_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret validating GitHub webhook requests",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ATLANTIS_REPO_ALLOWLIST",
+                        "default":  "github.com/myorg/*",
+                        "description":  "Repositories Atlantis is allowed to operate on"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

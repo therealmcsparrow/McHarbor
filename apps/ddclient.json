@@ -1,0 +1,41 @@
+{
+    "slug":  "ddclient",
+    "name":  "ddclient",
+    "description":  "Updates dynamic DNS records automatically when a host's public IP address changes.",
+    "category":  "Networking",
+    "image":  "lscr.io/linuxserver/ddclient:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ddclient.png",
+    "website":  "https://ddclient.net/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-ddclient/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ddclient/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID for file permissions"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID for file permissions"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

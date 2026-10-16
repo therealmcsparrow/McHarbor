@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "TrueNAS-Backup-Ziele",
+    "subtitle": "Sichert Container über WebDAV (RFC 4918) auf eine TrueNAS-Instanz. TrueNAS stellt WebDAV am konfigurierten Pfad der Freigabe bereit (Standard /webdav für die Standard-WebDAV-Freigabe). Operatoren authentifizieren sich mit einem lokalen TrueNAS-Benutzer + Passwort über HTTP Basic Auth. Chunked-Uploads verwenden Content-Range-PUT, das serverseitig vom TrueNAS-Samba-Server unterstützt wird.",
+    "registerHint": "Klicken Sie auf Verbindung testen, um zu prüfen, ob der WebDAV-Endpunkt erreichbar ist und die Zugangsdaten gültig sind."
+  },
+  "fields": {
+    "username": "Benutzername",
+    "password": "Passwort",
+    "folderId": "Unterordner auf der WebDAV-Freigabe"
+  },
+  "toast": {
+    "registered": "TrueNAS-Plugin registriert.",
+    "testPassed": "TrueNAS-Verbindungstest bestanden.",
+    "testFailed": "TrueNAS-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "noHost": "TrueNAS-Basis-URL ist erforderlich.",
+    "noUsername": "TrueNAS-Benutzername ist erforderlich.",
+    "noPassword": "TrueNAS-Passwort ist erforderlich."
+  },
+  "form": {
+    "hostLabel": "TrueNAS-Basis-URL",
+    "hostHelp": "Basis-URL des TrueNAS-Servers, z. B. https://nas.local. Keinen abschließenden Schrägstrich anhängen.",
+    "usernameHelp": "Lokaler TrueNAS-Benutzer. Der Benutzer muss Lese- und Schreibzugriff auf die konfigurierte WebDAV-Freigabe haben.",
+    "passwordHelp": "Passwort des lokalen TrueNAS-Benutzers. Wird vom AES-256-GCM-Dienst des Hosts verschlüsselt gespeichert.",
+    "basePathLabel": "Unterordner (optional)",
+    "basePathHelp": "Optionaler Unterordner unter dem WebDAV-Stammverzeichnis der Freigabe. Leer lassen für das Stammverzeichnis der Freigabe.",
+    "apiPathLabel": "WebDAV-Pfad (erweitert)",
+    "apiPathHelp": "Überschreibt den WebDAV-Pfad. Standard ist /webdav. Operatoren mit mehreren WebDAV-Freigaben können dies auf /webdav/{share-name} setzen.",
+    "introTitle": "TrueNAS-Zugangsdaten",
+    "introBody": "TrueNAS verwendet ein lokales Benutzerkonto für die WebDAV-Authentifizierung. Der Benutzer muss Lese- und Schreibzugriff auf die konfigurierte WebDAV-Freigabe haben. McHarbor speichert das Passwort verschlüsselt."
+  },
+  "setup": {
+    "title": "TrueNAS-Einrichtungsanleitung",
+    "step1": "Erstelle auf der TrueNAS-Seite eine WebDAV-Freigabe: <b>Services → SMB</b> → Freigabe hinzufügen. Setze den Pfad auf ein Verzeichnis, in dem Backups abgelegt werden sollen (z. B. <code>/mnt/tank/backups</code>). TrueNAS stellt die Freigabe standardmäßig unter <code>/webdav</code> bereit, sobald der WebDAV-Dienst aktiviert ist (<b>Services → SMB → advanced settings</b> oder über den WebDAV-spezifischen Dienst in neueren Versionen).",
+    "step2": "Lege einen lokalen TrueNAS-Benutzer an (oder verwende einen vorhandenen) mit Lese- und Schreibzugriff auf das Verzeichnis der Freigabe. Das Home-Verzeichnis des Benutzers spielt keine Rolle — nur die ACL der Freigabe.",
+    "step3": "Füge in McHarbor die TrueNAS-Basis-URL (z. B. <code>https://nas.local</code> — ohne abschließenden Schrägstrich), den Benutzernamen und das Passwort des Benutzers in das Formular links ein. Optional: Lege einen Unterordner unter dem WebDAV-Stammverzeichnis der Freigabe fest (z. B. <code>Backups/2026</code>) und lass McHarbor Zwischenordner automatisch anlegen.",
+    "step4": "Klicke auf <b>Test connection</b>, um eine Testdatei im aufgelösten Ordner zu schreiben und wieder zu lesen. Das Plugin führt einen per HTTP Basic authentifizierten WebDAV-<code>PROPFIND</code> gegen <code>/webdav</code> aus, um zu bestätigen, dass das Ziel erreichbar und die Zugangsdaten gültig sind.",
+    "step5": "Setze bei Setups mit mehreren Freigaben den <b>WebDAV path override</b> (z. B. <code>/webdav/Backups</code>), sodass er auf den Pfad der Freigabe unter dem WebDAV-Stammverzeichnis zeigt.",
+    "step6": "Starte ein Backup. Das Plugin lädt das Archiv per WebDAV mit <code>Content-Range</code>-Chunked-PUT hoch. Der auf samba.org basierende WebDAV-Server von TrueNAS unterstützt Chunked-Uploads, sodass auch Backups über 10 GB gestreamt werden, ohne die gesamte Nutzlast auf einmal im Speicher zu puffern."
+  }
+}

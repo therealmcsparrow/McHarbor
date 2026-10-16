@@ -1,0 +1,67 @@
+{
+    "slug":  "sunshine",
+    "name":  "Sunshine",
+    "description":  "Self-hosted game streaming host that pairs with Moonlight clients for low-latency remote play.",
+    "category":  "Gaming",
+    "image":  "ghcr.io/lizardbyte/sunshine:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sunshine.png",
+    "website":  "https://app.lizardbyte.dev/Sunshine/",
+    "docsUrl":  "https://docs.lizardbyte.dev/projects/sunshine/en/latest/about/installation.html",
+    "ports":  [
+                  {
+                      "host":  47989,
+                      "container":  47989,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  47990,
+                      "container":  47990,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  47998,
+                      "container":  47998,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  47999,
+                      "container":  47999,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  48000,
+                      "container":  48000,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sunshine/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SUNSHINE_USER",
+                        "default":  "admin",
+                        "description":  "Web UI username"
+                    },
+                    {
+                        "key":  "SUNSHINE_PASS",
+                        "default":  "change-me",
+                        "description":  "Web UI password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

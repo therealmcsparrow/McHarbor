@@ -4,7 +4,7 @@
   "description": "IT asset management and helpdesk ticketing platform with inventory and software tracking.",
   "category": "Productivity",
   "image": "glpi/glpi:latest",
-  "logo": "https://glpi-project.org/favicon.ico",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/glpi.svg",
   "website": "https://glpi-project.org",
   "docsUrl": "https://glpi-user-documentation.readthedocs.io",
   "ports": [
@@ -56,5 +56,9 @@
       "secret": true
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

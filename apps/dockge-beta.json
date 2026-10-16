@@ -1,0 +1,48 @@
+{
+    "slug":  "dockge-beta",
+    "name":  "Dockge (Beta)",
+    "description":  "Beta channel build of Dockge. Dockge is a fancy, easy-to-use, reactive self-hosted docker compose.yaml manager.",
+    "category":  "Developer Tools",
+    "image":  "louislam/dockge:beta",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dockge.png",
+    "website":  "https://dockge.kuma.pet",
+    "docsUrl":  "https://dockge.kuma.pet/#installation",
+    "ports":  [
+                  {
+                      "host":  6001,
+                      "container":  5001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dockge-beta/data",
+                        "container":  "/app/data"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    },
+                    {
+                        "host":  "/opt/appdata",
+                        "container":  "/opt/stacks"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOCKGE_STACKS_DIR",
+                        "default":  "/opt/stacks",
+                        "description":  "Compose stacks directory"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

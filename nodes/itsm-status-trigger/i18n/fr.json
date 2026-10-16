@@ -1,0 +1,17 @@
+{
+  "label": "Statut du ticket",
+  "description": "Démarrer lorsqu'un ITSM signale qu'un ticket lié a changé d'état",
+  "config": {
+    "channel_id": "Canal de ticketing",
+    "states": "États"
+  },
+  "options": {
+    "states": {
+      "open": "Ouvert",
+      "acknowledged": "Pris en compte",
+      "resolved": "Résolu",
+      "closed": "Fermé",
+      "cancelled": "Annulé"
+    }
+  }
+}

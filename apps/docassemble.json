@@ -1,0 +1,51 @@
+{
+    "slug":  "docassemble",
+    "name":  "Docassemble",
+    "description":  "Expert-system platform for building guided interviews that assemble legal and business documents.",
+    "category":  "Documents",
+    "image":  "jhpyle/docassemble:latest",
+    "logo":  "https://docassemble.org/favicon.ico",
+    "website":  "https://docassemble.org",
+    "docsUrl":  "https://docassemble.org/docs/docker.html",
+    "ports":  [
+                  {
+                      "host":  8104,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docassemble/config",
+                        "container":  "/usr/share/docassemble/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/docassemble/data",
+                        "container":  "/usr/share/docassemble/files"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DAADMINEMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Initial administrator email"
+                    },
+                    {
+                        "key":  "DAADMINPASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial administrator password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

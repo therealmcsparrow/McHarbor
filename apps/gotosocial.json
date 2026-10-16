@@ -1,0 +1,41 @@
+{
+    "slug":  "gotosocial",
+    "name":  "GoToSocial",
+    "description":  "Lightweight federated microblogging server built for small, low-resource ActivityPub instances.",
+    "category":  "Communications",
+    "image":  "superseriousbusiness/gotosocial:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gotosocial.png",
+    "website":  "https://gotosocial.org",
+    "docsUrl":  "https://docs.gotosocial.org/en/latest/getting_started/installation/container/",
+    "ports":  [
+                  {
+                      "host":  8034,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gotosocial/data",
+                        "container":  "/gotosocial/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GTS_HOST",
+                        "default":  "social.example.com",
+                        "description":  "Public hostname the instance is served from"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

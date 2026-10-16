@@ -1,0 +1,44 @@
+{
+    "slug":  "comfyui",
+    "name":  "ComfyUI",
+    "description":  "Node-based visual editor for building Stable Diffusion image and video generation workflows; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/ai-dock/comfyui:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/comfyui.png",
+    "website":  "https://www.comfy.org",
+    "docsUrl":  "https://github.com/comfyanonymous/ComfyUI",
+    "ports":  [
+                  {
+                      "host":  8188,
+                      "container":  8188,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/comfyui/models",
+                        "container":  "/opt/ComfyUI/models"
+                    },
+                    {
+                        "host":  "/opt/appdata/comfyui/output",
+                        "container":  "/opt/ComfyUI/output"
+                    },
+                    {
+                        "host":  "/opt/appdata/comfyui/custom_nodes",
+                        "container":  "/opt/ComfyUI/custom_nodes"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

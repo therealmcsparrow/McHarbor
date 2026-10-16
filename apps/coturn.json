@@ -1,0 +1,57 @@
+{
+    "slug":  "coturn",
+    "name":  "Coturn",
+    "description":  "TURN and STUN server that relays WebRTC media for video calls when a direct peer connection is not possible.",
+    "category":  "Networking",
+    "image":  "coturn/coturn:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/coturn/coturn",
+    "docsUrl":  "https://github.com/coturn/coturn/wiki/CoturnConfig",
+    "ports":  [
+                  {
+                      "host":  3478,
+                      "container":  3478,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3478,
+                      "container":  3478,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  5349,
+                      "container":  5349,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  49160,
+                      "container":  49200,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/coturn/conf",
+                        "container":  "/etc/coturn"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TURN_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret used to authenticate TURN allocation requests",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

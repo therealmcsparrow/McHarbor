@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -15,19 +15,23 @@ import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Select } from '@resources/components/ui/Select';
 import { Switch } from '@resources/components/ui/Switch';
-import { useCreateUser } from '../hooks/useUsers';
+import { PasswordRequirements } from '@resources/components/ui/PasswordRequirements';
+import { useCreateUser } from '@resources/hooks/useUsers';
 import { useRoles } from '../hooks/useRoles';
+import { PERM } from '@core/auth/permissionKeys';
+import { usePasswordPolicy } from '@core/auth/usePasswordPolicy';
+import { isPasswordValid } from '@core/auth/passwordPolicy';
 
 type CreateUserDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) {
+export function CreateUserDialog({ open: isOpen, onOpenChange }: CreateUserDialogProps) {
   const { t } = useTranslation('security');
-  const { t: tc } = useTranslation('common');
   const createUser = useCreateUser();
   const { data: roles } = useRoles();
+  const { policy } = usePasswordPolicy();
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,19 +39,16 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   const [roleId, setRoleId] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  const roleOptions = useMemo(
-    () => (roles ?? []).map((role) => ({ value: role.id, label: role.name })),
-    [roles],
-  );
+  const roleOptions = useMemo(() => (roles ?? []).map((role) => ({ value: role.id, label: role.name })), [roles]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
+  const [seeded, setSeeded] = useState<{ isOpen: boolean; roles: typeof roles }>({ isOpen: false, roles: undefined });
+  if (seeded.isOpen !== isOpen || seeded.roles !== roles) {
+    setSeeded({ isOpen, roles });
+    if (isOpen) {
+      const defaultRole = roles?.find((role) => role.id === 'role_viewer') ?? roles?.[0];
+      setRoleId(defaultRole?.id ?? '');
     }
-
-    const defaultRole = roles?.find((role) => role.id === 'role_viewer') ?? roles?.[0];
-    setRoleId(defaultRole?.id ?? '');
-  }, [open, roles]);
+  }
 
   function resetForm() {
     setUsername('');
@@ -58,25 +59,31 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   }
 
   function handleSubmit() {
-    createUser.mutate({
-      username,
-      password,
-      displayName: displayName || undefined,
-      email: email || undefined,
-      roleId: roleId || undefined,
-      isActive,
-    }, {
-      onSuccess: () => {
-        resetForm();
-        onOpenChange(false);
+    createUser.mutate(
+      {
+        username,
+        password,
+        displayName: displayName || undefined,
+        email: email || undefined,
+        roleId: roleId || undefined,
+        isActive,
       },
-    });
+      {
+        onSuccess: () => {
+          resetForm();
+          onOpenChange(false);
+        },
+      },
+    );
   }
 
-  const canSubmit = username.trim() !== '' && password.length >= 8 && roleId !== '';
+  // The same policy the backend enforces, fetched at runtime — a
+  // hardcoded minimum here would let the user submit a password the
+  // server rejects the moment an admin tightens the policy.
+  const canSubmit = username.trim() !== '' && isPasswordValid(password, policy) && roleId !== '';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('users.createUser')}</DialogTitle>
@@ -122,18 +129,19 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('users.password')}
+              aria-describedby="create-user-password-requirements"
             />
-            <p className="text-xs text-muted-foreground">{t('users.passwordHint')}</p>
+            <PasswordRequirements
+              id="create-user-password-requirements"
+              showHistory={false}
+              password={password}
+              policy={policy}
+            />
           </div>
 
           <div className="grid gap-2">
             <label className="text-sm font-medium text-foreground">{t('users.defaultRole')}</label>
-            <Select
-              value={roleId}
-              onChange={setRoleId}
-              options={roleOptions}
-              placeholder={t('users.selectRole')}
-            />
+            <Select value={roleId} onChange={setRoleId} options={roleOptions} placeholder={t('users.selectRole')} />
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -146,9 +154,11 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{tc('actions.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit || createUser.isPending}>
-            {createUser.isPending ? tc('actions.processing') : tc('actions.create')}
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t('actions.cancel', { ns: 'common' })}
+          </Button>
+          <Button permission={PERM.USERS_MANAGE} onClick={handleSubmit} disabled={!canSubmit || createUser.isPending}>
+            {createUser.isPending ? t('actions.processing', { ns: 'common' }) : t('actions.create', { ns: 'common' })}
           </Button>
         </DialogFooter>
       </DialogContent>

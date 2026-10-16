@@ -1,0 +1,27 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+FROM golang:1.27.2-bookworm AS build
+COPY src/cli /src/cli
+COPY VERSION BUILD /src/
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd /src/cli && \
+      PKG=github.com/therealmcsparrow/mcharbor-cli/internal/cli && \
+      CGO_ENABLED=0 GOWORK=off go build -trimpath \
+        -ldflags "-s -w -X $PKG.Version=$(tr -d '[:space:]' < /src/VERSION) -X $PKG.Build=$(tr -d '[:space:]' < /src/BUILD)" \
+        -o /mcharbor . && \
+      mkdir -p /usr/share/bash-completion/completions && \
+      /mcharbor completion bash > /usr/share/bash-completion/completions/mcharbor
+
+FROM debian:bookworm-slim
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates bash-completion jq \
+    && apt-get clean && find /var/lib/apt/lists -mindepth 1 -delete \
+    && useradd --create-home --uid 1000 mcharbor
+COPY --from=build /mcharbor /usr/local/bin/mcharbor
+COPY --from=build /usr/share/bash-completion/completions/mcharbor /usr/share/bash-completion/completions/mcharbor
+USER mcharbor
+ENV MCHARBOR_NO_KEYRING=1
+ENTRYPOINT ["mcharbor"]
+CMD ["--help"]

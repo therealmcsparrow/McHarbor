@@ -1,0 +1,51 @@
+{
+    "slug":  "lancache-dns",
+    "name":  "LANCache DNS",
+    "description":  "DNS server that redirects game download traffic to a local LANCache instance instead of the internet.",
+    "category":  "Gaming",
+    "image":  "lancachenet/lancache-dns:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lancache.png",
+    "website":  "https://lancache.net",
+    "docsUrl":  "https://docs.lancache.net/steps/dns",
+    "ports":  [
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lancache-dns/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LANCACHE_IP",
+                        "default":  "192.168.1.10",
+                        "description":  "LAN IP address of the LANCache monolithic server"
+                    },
+                    {
+                        "key":  "UPSTREAM_DNS",
+                        "default":  "1.1.1.1",
+                        "description":  "Upstream DNS resolver for non-cached domains"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

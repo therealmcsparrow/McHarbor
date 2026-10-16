@@ -13,6 +13,13 @@
       "gauge": "Medidor",
       "counter": "Contador",
       "event": "Evento"
+    },
+    "unit": {
+      "ms": "Milissegundos",
+      "s": "Segundos",
+      "bytes": "Bytes",
+      "percent": "Porcentagem",
+      "count": "Contagem"
     }
   }
 }

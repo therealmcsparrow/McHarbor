@@ -1,0 +1,164 @@
+{
+  "title": "Paquetes de cumplimiento",
+  "description": "Evidencias para un marco de controles con nombre: las comprobaciones que McHarbor puede ejecutar en un host activo, las evidencias que registra y los controles que no puede ver.",
+  "disclaimer": "Un paquete es evidencia para un marco, no una afirmación de cumplimiento. Una comprobación correcta significa que la comprobación se superó; que el control se cumpla es un juicio suyo y de su auditor.",
+  "framework": {
+    "label": "Marco",
+    "mappingOnly": "Solo asignación de evidencias: este marco no tiene comprobaciones mecánicas"
+  },
+  "run": {
+    "never": "Nunca ejecutado",
+    "last": "Última ejecución {{time}}",
+    "startedBy": "Iniciada por",
+    "environment": "Entorno",
+    "defaultEnvironment": "Entorno predeterminado",
+    "trigger": {
+      "manual": "Iniciada manualmente",
+      "scheduled": "Programada"
+    },
+    "status": {
+      "running": "En ejecución",
+      "completed": "Completada",
+      "failed": "Fallida"
+    }
+  },
+  "actions": {
+    "runChecks": "Ejecutar comprobaciones",
+    "showFacts": "Mostrar los datos detrás de este veredicto",
+    "hideFacts": "Ocultar los datos"
+  },
+  "runDialog": {
+    "title": "Ejecutar las comprobaciones ahora",
+    "body": "Esto lee el demonio de Docker y todos los contenedores del entorno seleccionado y registra una nueva ejecución. No cambia nada en el host.",
+    "confirm": "Ejecutar comprobaciones",
+    "environment": "Entorno"
+  },
+  "attestation": {
+    "title": "Aprobación",
+    "description": "Quién revisó y aceptó estas evidencias, cuándo y en qué ejecución. Una aprobación nunca se edita; una más reciente la sustituye y ambas quedan registradas.",
+    "never": "Nadie ha aprobado esto todavía.",
+    "last": "Aprobado {{time}} por {{user}}",
+    "run": "Ejecución {{id}}, iniciada {{time}}",
+    "noRun": "Sin ejecución: una aprobación de la revisión en su conjunto",
+    "action": "Aprobar",
+    "runOpen": "La ejecución aún está en curso. Apruébela cuando haya terminado.",
+    "dialog": {
+      "title": "Registrar una aprobación",
+      "body": "Esto registra, con su nombre y la hora actual, que ha revisado las evidencias siguientes y las acepta. No se puede editar ni eliminar después.",
+      "confirm": "Registrar aprobación",
+      "framework": "Marco",
+      "run": "Ejecución",
+      "note": "Nota",
+      "notePlaceholder": "Qué revisó, qué aceptó y dónde se registra la decisión",
+      "noteRequired": "Se requiere una nota: una aprobación sin una palabra de justificación no es evidencia de una revisión."
+    }
+  },
+  "toast": {
+    "started": "Ejecución de comprobaciones iniciada",
+    "failed": "No se pudo iniciar la ejecución de comprobaciones"
+  },
+  "summary": {
+    "pass": "Correctos",
+    "warn": "Requieren atención",
+    "fail": "Con fallos",
+    "info": "Informativos",
+    "unknown": "No evaluados"
+  },
+  "verdict": {
+    "pass": "Correcto",
+    "warn": "Atención",
+    "fail": "Fallo",
+    "info": "Información",
+    "unknown": "No evaluado"
+  },
+  "coverage": {
+    "mechanical": "Comprobado mecánicamente",
+    "evidenced": "Evidenciado a partir de datos registrados",
+    "notCovered": "No cubierto"
+  },
+  "group": {
+    "host": "Configuración del host",
+    "daemon": "Configuración del demonio",
+    "files": "Archivos de configuración del demonio",
+    "images": "Imágenes y archivos de compilación",
+    "runtime": "Entorno de ejecución de contenedores",
+    "operations": "Operaciones de seguridad",
+    "swarm": "Configuración de Swarm"
+  },
+  "table": {
+    "control": "Control",
+    "requirement": "Qué exige",
+    "verdict": "Veredicto",
+    "coverage": "Cobertura",
+    "evidence": "Evidencia",
+    "empty": "Este paquete nunca se ha ejecutado, por lo que ningún control tiene veredicto todavía."
+  },
+  "notAssessed": {
+    "title": "Controles no evaluados",
+    "body": "{{count}} de los controles de este paquete no tienen veredicto. No evaluado no es una aprobación: significa que no se pudo reunir la evidencia o que McHarbor no puede ver el control en absoluto."
+  },
+  "fact": {
+    "serverVersion": "Versión de Docker Engine",
+    "interContainerCommunication": "Comunicación entre contenedores en el bridge predeterminado",
+    "debug": "Registro de depuración",
+    "storageDriver": "Controlador de almacenamiento",
+    "connectionType": "Transporte configurado",
+    "usernsRemap": "Reasignación del espacio de nombres de usuario",
+    "authorizationPlugins": "Plugins de autorización",
+    "authorizationPluginNames": "Nombres de los plugins de autorización",
+    "loggingDriver": "Controlador de registro predeterminado",
+    "liveRestore": "Restauración en vivo",
+    "seccompProfile": "Perfil seccomp predeterminado",
+    "experimental": "Compilación experimental",
+    "swarmState": "Estado de Swarm",
+    "containersChecked": "Contenedores inspeccionados",
+    "containersViolating": "Contenedores que incumplen este control",
+    "violations": "Contenedores implicados",
+    "inspectFailures": "Inspecciones fallidas"
+  },
+  "reason": {
+    "daemonUnavailable": "No se pudo leer el demonio de Docker, por lo que este control no tiene veredicto.",
+    "containersUnavailable": "No se pudo leer la lista de contenedores, por lo que este control no tiene veredicto.",
+    "inspectIncomplete": "No se pudieron inspeccionar algunos contenedores, por lo que un resultado limpio solo describiría los que sí se inspeccionaron.",
+    "containerListCapped": "Existen más contenedores de los que inspecciona una ejecución, por lo que este resultado abarca un subconjunto.",
+    "noContainers": "Este entorno no tiene contenedores, así que no había nada que comprobar.",
+    "notCoveredByMcHarbor": "McHarbor no puede ver este control. Se lista para que la laguna sea visible en lugar de quedar implícita.",
+    "evidencedNotChecked": "McHarbor registra la evidencia de este control pero no la juzga.",
+    "versionRecorded": "Se registra la versión del motor en ejecución. McHarbor no puede saber si es la actual para este host.",
+    "versionUnreported": "El demonio no informó de su versión.",
+    "iccEnabled": "Los contenedores del bridge predeterminado pueden comunicarse entre sí sin que se declare una red.",
+    "bridgeUnreadable": "No se pudo inspeccionar la red bridge predeterminada.",
+    "debugLoggingEnabled": "El demonio se ejecuta con registro de depuración, que guarda detalles de las solicitudes en el journal del host.",
+    "legacyStorageDriver": "El demonio usa un controlador de almacenamiento que el benchmark desaconseja.",
+    "storageDriverUnreported": "El demonio no informó de su controlador de almacenamiento.",
+    "daemonTCPNoTLS": "Se accede al demonio por TCP sin cifrar, por lo que cualquiera que llegue al puerto puede darle órdenes.",
+    "connectionTypeUnknown": "No se pudo leer el transporte configurado del entorno.",
+    "usernsDisabled": "La reasignación del espacio de nombres de usuario está desactivada, por lo que el root de un contenedor es el root del host.",
+    "noAuthorizationPlugin": "Ningún plugin de autorización decide las solicitudes al demonio.",
+    "loggingDriverLocal": "La salida de los contenedores se queda en el host. Un sidecar que la envíe a otro lugar cumple la intención y esta comprobación no puede verlo.",
+    "liveRestoreDisabled": "Los contenedores se detienen cuando lo hace el demonio.",
+    "seccompDisabled": "El perfil seccomp predeterminado del demonio está desactivado.",
+    "seccompUnreported": "El demonio no informó de un perfil seccomp.",
+    "experimentalEnabled": "El demonio es una compilación experimental.",
+    "swarmActive": "El modo Swarm está activo. Es un hallazgo solo en un host que no debe orquestar con él.",
+    "containersRunAsRoot": "Los contenedores se ejecutan como root.",
+    "containersWithoutHealthcheck": "Los contenedores no declaran ninguna comprobación de salud.",
+    "containersAddCapabilities": "Los contenedores añaden capacidades del kernel más allá del conjunto predeterminado.",
+    "containersPrivileged": "Los contenedores se ejecutan en modo privilegiado, lo que equivale a root del host.",
+    "containersOnPrivilegedPorts": "Los contenedores publican en un puerto del host inferior a 1024.",
+    "containersShareHostNetwork": "Los contenedores comparten el espacio de nombres de red del host.",
+    "containersWithoutMemoryLimit": "Los contenedores no tienen límite de memoria, por lo que uno puede agotar el host.",
+    "containersWithoutCPULimit": "Los contenedores no tienen cuota ni CPU shares.",
+    "containersWritableRootfs": "Los contenedores tienen un sistema de archivos raíz con permiso de escritura.",
+    "containersRestartUnbounded": "Los contenedores se reinician sin un número de intentos limitado.",
+    "containersShareHostPID": "Los contenedores comparten el espacio de nombres de procesos del host.",
+    "containersShareHostIPC": "Los contenedores comparten el espacio de nombres IPC del host.",
+    "containersExposeHostDevices": "Los contenedores reciben un dispositivo del host directamente.",
+    "containersSharedMountPropagation": "Los contenedores usan propagación de montajes compartida, lo que les permite escribir en el árbol de montajes del host.",
+    "containersShareHostUTS": "Los contenedores comparten el espacio de nombres UTS del host.",
+    "containersSeccompUnconfined": "Los contenedores se ejecutan con seccomp desactivado.",
+    "containersMayGainPrivileges": "Los contenedores pueden adquirir privilegios adicionales.",
+    "containersWithoutPIDsLimit": "Los contenedores no tienen límite de PID, por lo que una fork bomb puede agotar el host.",
+    "containersMountDockerSocket": "Los contenedores montan el socket de Docker, lo que equivale a root del host."
+  }
+}

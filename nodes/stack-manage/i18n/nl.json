@@ -1,0 +1,26 @@
+{
+  "label": "Stack beheren",
+  "description": "Deploy, start, stop of verwijder een compose-stack",
+  "config": {
+    "environment": "Omgeving",
+    "action": "Actie",
+    "stack_name": "Stacknaam",
+    "compose_source": "Compose-bron",
+    "compose_content": "Compose-inhoud",
+    "compose_path": "Compose-pad",
+    "remove_volumes": "Volumes verwijderen"
+  },
+  "options": {
+    "action": {
+      "deploy": "Deployen",
+      "up": "Starten (compose up)",
+      "down": "Stoppen (compose down)",
+      "remove": "Verwijderen"
+    },
+    "compose_source": {
+      "message": "Bericht",
+      "inline": "Inline YAML",
+      "file": "Bestandspad"
+    }
+  }
+}

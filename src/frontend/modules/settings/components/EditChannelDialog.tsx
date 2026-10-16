@@ -1,8 +1,9 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconHelpCircle } from '@tabler/icons-react';
 import {
   Dialog,
   DialogContent,
@@ -12,15 +13,12 @@ import {
   DialogDescription,
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
+import { PluginFormOutlet } from '@core/plugins/PluginFormOutlet';
+import { SetupGuidePanel } from '@resources/components/SetupGuidePanel';
 import { useUpdateChannel, type CommunicationChannel } from '../hooks/useNotificationChannels';
-import { SlackForm, type SlackFormData } from './SlackForm';
-import { DiscordForm, type DiscordFormData } from './DiscordForm';
-import { TeamsForm, type TeamsFormData } from './TeamsForm';
-import { GotifyForm, type GotifyFormData } from './GotifyForm';
-import { NtfyForm, type NtfyFormData } from './NtfyForm';
-import { TelegramForm, type TelegramFormData } from './TelegramForm';
-import { SignalForm, type SignalFormData } from './SignalForm';
-import { WhatsAppForm, type WhatsAppFormData } from './WhatsAppForm';
+import { PERM } from '@core/auth/permissionKeys';
+import { useItsmChannels } from '../hooks/useItsm';
+import { ChannelWebhookPanel } from './ChannelWebhookPanel';
 
 type EditChannelDialogProps = {
   open: boolean;
@@ -28,108 +26,95 @@ type EditChannelDialogProps = {
   channel: CommunicationChannel;
 };
 
-export function EditChannelDialog({ open, onOpenChange, channel }: EditChannelDialogProps) {
+export function EditChannelDialog({ open: isOpen, onOpenChange, channel }: EditChannelDialogProps) {
   const { t } = useTranslation('settings');
+  const itsmChannels = useItsmChannels(isOpen);
   const updateChannel = useUpdateChannel();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [pluginConfig, setPluginConfig] = useState<Record<string, string>>({});
+  const [pluginErrors, setPluginErrors] = useState<Record<string, string>>({});
 
-  const [slackData, setSlackData] = useState<SlackFormData>({ name: '', webhookUrl: '' });
-  const [discordData, setDiscordData] = useState<DiscordFormData>({ name: '', webhookUrl: '' });
-  const [teamsData, setTeamsData] = useState<TeamsFormData>({ name: '', webhookUrl: '' });
-  const [gotifyData, setGotifyData] = useState<GotifyFormData>({ name: '', serverUrl: '', token: '', priority: '' });
-  const [ntfyData, setNtfyData] = useState<NtfyFormData>({ name: '', serverUrl: '', topic: '', token: '', username: '', password: '', priority: '' });
-  const [telegramData, setTelegramData] = useState<TelegramFormData>({ name: '', token: '', chatId: '' });
-  const [signalData, setSignalData] = useState<SignalFormData>({ name: '', method: 'rest_api', serverUrl: '', senderNumber: '', recipients: '', username: '', password: '', token: '' });
-  const [whatsappData, setWhatsappData] = useState<WhatsAppFormData>({ name: '', method: 'cloud_api', serverUrl: '', phoneNumberId: '', token: '', recipientPhone: '' });
+  const [seededFor, setSeededFor] = useState<{ isOpen: boolean; channel: CommunicationChannel | null }>({
+    isOpen: false,
+    channel: null,
+  });
+  if (seededFor.isOpen !== isOpen || seededFor.channel !== channel) {
+    setSeededFor({ isOpen, channel });
+    if (isOpen) seedFromChannel();
+  }
 
-  useEffect(() => {
-    if (!open) return;
-
-    switch (channel.channelType) {
-      case 'slack':
-        setSlackData({ name: channel.name, webhookUrl: '' });
-        break;
-      case 'discord':
-        setDiscordData({ name: channel.name, webhookUrl: '' });
-        break;
-      case 'teams':
-        setTeamsData({ name: channel.name, webhookUrl: '' });
-        break;
-      case 'gotify':
-        setGotifyData({ name: channel.name, serverUrl: channel.serverUrl ?? '', token: '', priority: channel.priority ?? '' });
-        break;
-      case 'ntfy':
-        setNtfyData({ name: channel.name, serverUrl: channel.serverUrl ?? '', topic: channel.topic ?? '', token: '', username: channel.username ?? '', password: '', priority: channel.priority ?? '' });
-        break;
-      case 'telegram':
-        setTelegramData({ name: channel.name, token: '', chatId: channel.chatId ?? '' });
-        break;
-      case 'signal':
-        setSignalData({ name: channel.name, method: (channel.method || 'rest_api') as SignalFormData['method'], serverUrl: channel.serverUrl ?? '', senderNumber: channel.senderNumber ?? '', recipients: channel.recipients ?? '', username: channel.username ?? '', password: '', token: '' });
-        break;
-      case 'whatsapp':
-        setWhatsappData({ name: channel.name, method: (channel.method || 'cloud_api') as WhatsAppFormData['method'], serverUrl: channel.serverUrl ?? '', phoneNumberId: channel.phoneNumberId ?? '', token: '', recipientPhone: channel.recipientPhone ?? '' });
-        break;
+  function seedFromChannel() {
+    setHelpOpen(false);
+    setPluginErrors({});
+    // The host returns non-secret config keys in `config` and promotes a
+    // few well-known ones to top-level fields; seed the snake_case key
+    // from the top-level field when `config` lacks it so plugin forms
+    // that read `value.chat_id` etc. start populated. Secrets are never
+    // returned — the plugin form renders them optional in edit mode and
+    // the backend keeps the stored value when the key is blank.
+    const seeded: Record<string, string> = { ...channel.config };
+    const promoted: Array<[string, string | undefined]> = [
+      ['server_url', channel.serverUrl],
+      ['topic', channel.topic],
+      ['chat_id', channel.chatId],
+      ['phone_number_id', channel.phoneNumberId],
+      ['recipient_phone', channel.recipientPhone],
+      ['sender_number', channel.senderNumber],
+      ['recipients', channel.recipients],
+      ['username', channel.username],
+      ['priority', channel.priority],
+    ];
+    for (const [key, val] of promoted) {
+      if (!seeded[key] && val) seeded[key] = val;
     }
-  }, [open, channel]);
+    setPluginConfig({ name: channel.name, ...seeded });
+  }
 
   function handleSave() {
     const base = { id: channel.id };
 
-    switch (channel.channelType) {
-      case 'slack':
-        updateChannel.mutate({ ...base, name: slackData.name, webhookUrl: slackData.webhookUrl || undefined }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'discord':
-        updateChannel.mutate({ ...base, name: discordData.name, webhookUrl: discordData.webhookUrl || undefined }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'teams':
-        updateChannel.mutate({ ...base, name: teamsData.name, webhookUrl: teamsData.webhookUrl || undefined }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'gotify':
-        updateChannel.mutate({ ...base, name: gotifyData.name, serverUrl: gotifyData.serverUrl, token: gotifyData.token || undefined, priority: gotifyData.priority }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'ntfy':
-        updateChannel.mutate({ ...base, name: ntfyData.name, serverUrl: ntfyData.serverUrl, topic: ntfyData.topic, token: ntfyData.token || undefined, username: ntfyData.username, password: ntfyData.password || undefined, priority: ntfyData.priority }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'telegram':
-        updateChannel.mutate({ ...base, name: telegramData.name, token: telegramData.token || undefined, chatId: telegramData.chatId }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'signal':
-        updateChannel.mutate({ ...base, name: signalData.name, method: signalData.method, serverUrl: signalData.serverUrl, senderNumber: signalData.senderNumber || undefined, recipients: signalData.recipients, username: signalData.username || undefined, password: signalData.password || undefined, token: signalData.token || undefined }, { onSuccess: () => onOpenChange(false) });
-        break;
-      case 'whatsapp':
-        updateChannel.mutate({ ...base, name: whatsappData.name, method: whatsappData.method, serverUrl: whatsappData.serverUrl || undefined, phoneNumberId: whatsappData.phoneNumberId || undefined, token: whatsappData.token || undefined, recipientPhone: whatsappData.recipientPhone }, { onSuccess: () => onOpenChange(false) });
-        break;
+    const { name: channelName, ...config } = pluginConfig;
+    const cleanConfig = { ...config };
+    if (!cleanConfig.password) {
+      delete cleanConfig.password;
     }
+    updateChannel.mutate({ ...base, name: channelName, config: cleanConfig }, { onSuccess: () => onOpenChange(false) });
   }
 
-  const typeLabel = t(`communications.type${channel.channelType.charAt(0).toUpperCase() + channel.channelType.slice(1)}`);
+  const typeLabel = channel.channelType;
 
-  const isValid = (() => {
-    switch (channel.channelType) {
-      case 'slack': return !!slackData.name;
-      case 'discord': return !!discordData.name;
-      case 'teams': return !!teamsData.name;
-      case 'gotify': return !!(gotifyData.name && gotifyData.serverUrl);
-      case 'ntfy': return !!(ntfyData.name && ntfyData.serverUrl && ntfyData.topic);
-      case 'telegram': return !!(telegramData.name && telegramData.chatId);
-      case 'signal': {
-        if (!signalData.name || !signalData.serverUrl || !signalData.recipients) return false;
-        if (signalData.method === 'bot') return !!signalData.token;
-        return !!signalData.senderNumber;
+  function handlePluginError(field: string, message: string | null) {
+    setPluginErrors((current) => {
+      const next = { ...current };
+      if (message) {
+        next[field] = message;
+      } else {
+        delete next[field];
       }
-      case 'whatsapp': {
-        if (!whatsappData.name || !whatsappData.recipientPhone) return false;
-        if (whatsappData.method === 'gateway' || whatsappData.method === 'saas') return !!whatsappData.serverUrl;
-        if (whatsappData.method === 'business') return !!(whatsappData.serverUrl && whatsappData.phoneNumberId);
-        return !!whatsappData.phoneNumberId; // cloud_api
-      }
-      default: return false;
-    }
-  })();
+      return next;
+    });
+  }
+
+  function renderGuidePanel() {
+    return (
+      <SetupGuidePanel>
+        <PluginFormOutlet
+          resource="channel"
+          kind="setup_guide"
+          keyName={channel.channelType}
+          value={pluginConfig}
+          onChange={setPluginConfig}
+          i18nPrefix="commSmtp"
+        />
+      </SetupGuidePanel>
+    );
+  }
+
+  const isValid = !!pluginConfig.name && Object.keys(pluginErrors).length === 0;
+  const itsmChannel = itsmChannels.data?.find((c) => c.id === channel.id);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t('communications.editChannel')}</DialogTitle>
@@ -137,26 +122,38 @@ export function EditChannelDialog({ open, onOpenChange, channel }: EditChannelDi
         </DialogHeader>
 
         <div>
-          {channel.channelType === 'slack' && <SlackForm data={slackData} onChange={setSlackData} isEdit />}
-          {channel.channelType === 'discord' && <DiscordForm data={discordData} onChange={setDiscordData} isEdit />}
-          {channel.channelType === 'teams' && <TeamsForm data={teamsData} onChange={setTeamsData} isEdit />}
-          {channel.channelType === 'gotify' && <GotifyForm data={gotifyData} onChange={setGotifyData} isEdit />}
-          {channel.channelType === 'ntfy' && <NtfyForm data={ntfyData} onChange={setNtfyData} isEdit />}
-          {channel.channelType === 'telegram' && <TelegramForm data={telegramData} onChange={setTelegramData} isEdit />}
-          {channel.channelType === 'signal' && <SignalForm data={signalData} onChange={setSignalData} isEdit />}
-          {channel.channelType === 'whatsapp' && <WhatsAppForm data={whatsappData} onChange={setWhatsappData} isEdit />}
+          <PluginFormOutlet
+            resource="channel"
+            kind="config_form"
+            keyName={channel.channelType}
+            value={pluginConfig}
+            onChange={setPluginConfig}
+            onError={handlePluginError}
+            mode="edit"
+            i18nPrefix="commSmtp"
+          />
+
+          {helpOpen && renderGuidePanel()}
+          {itsmChannel && <ChannelWebhookPanel channel={itsmChannel} />}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common:cancel', 'Cancel')}
+        <DialogFooter className="flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="ghost" onClick={() => setHelpOpen((current) => !current)} aria-expanded={helpOpen}>
+            <IconHelpCircle className="size-4" />
+            {helpOpen ? t('communications.hideSetupGuide') : t('communications.showSetupGuide')}
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!isValid || updateChannel.isPending}
-          >
-            {updateChannel.isPending ? '...' : t('common:save', 'Save')}
-          </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t('common:actions.cancel')}
+            </Button>
+            <Button
+              permission={PERM.COMMUNICATIONS_MANAGE}
+              onClick={handleSave}
+              disabled={!isValid || updateChannel.isPending}
+            >
+              {updateChannel.isPending ? '...' : t('common:actions.save')}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

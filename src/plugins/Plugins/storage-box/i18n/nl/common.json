@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Box-bestemming",
+    "subtitle": "Back-upsnapshots worden geschreven naar de Box-map-ID die je opgeeft. Gebruik folder_id \"0\" voor de hoofdmap van het account.",
+    "registerHint": "Deze plugin beheert één LocationType: box. Om de map later te wijzigen, sla je de bestemming op en open je hem opnieuw."
+  },
+  "fields": {
+    "clientId": "Client-ID",
+    "clientSecret": "Clientgeheim",
+    "folderId": "Map-ID",
+    "refreshToken": "Refresh-token"
+  },
+  "form": {
+    "help": {
+      "clientId": "Client-ID uit de Box Developer Console voor je app (Custom App of Server Authentication).",
+      "clientSecret": "Client Secret uit de Box Developer Console. Wordt behandeld als een write-only geheim; de plugin logt het nooit terug.",
+      "folderId": "ID van de Box-map waar back-ups terechtkomen. Gebruik \"0\" voor de hoofdmap van het account.",
+      "refreshToken": "Langlevend refresh token dat na de OAuth-toestemmingsflow wordt uitgegeven. Laat leeg totdat je Verbinden met Box hebt uitgevoerd."
+    }
+  },
+  "help": {
+    "clientId": "Uit de Box Developer Console: App → Configuration → OAuth 2.0.",
+    "clientSecret": "Het clientgeheim wordt eenmalig getoond wanneer de app wordt aangemaakt — kopieer het nu.",
+    "folderId": "Numerieke Box-map-ID. \"0\" = de hoofdmap van het account. Vind de ID van een map in de URL van de Box-webinterface.",
+    "refreshToken": "Wordt automatisch ingevuld door de flow Verbinden met Box. Niet handmatig bewerken.",
+    "oauthHint": "Klik na het opslaan op \"Verbinden met Box\" om de plugin toestemming te geven en een refresh-token op te slaan. Zonder refresh-token valt de plugin terug op de client_credentials-grant (vereist dat Server Authentication op de Box-app is geconfigureerd)."
+  },
+  "setup": {
+    "title": "Box-installatiegids",
+    "subtitle": "Koppel een Box-ontwikkelaarsapp in zes korte stappen aan je McHarbor-instantie. Ongeveer 5 minuten.",
+    "step1": {
+      "title": "Maak een Box-app aan",
+      "body": "Open de Box Developer Console (developer.box.com) en maak een nieuwe app aan. Kies \"Custom App\" voor gedelegeerde gebruikersauthenticatie, of \"Server Authentication\" als je tokens alleen voor de app verkiest (geen toestemming per gebruiker)."
+    },
+    "step2": {
+      "title": "Configureer OAuth 2.0",
+      "body": "Kies in de app-instellingen OAuth 2.0. Voeg de redirect-URI toe die je McHarbor-instantie aanbiedt (Instellingen → Opslag → Verbinden met Box toont hem). Kies voorlopig één primaire omgeving (development of production)."
+    },
+    "step3": {
+      "title": "Vraag scopes aan",
+      "body": "Schakel onder \"Application Scopes\" file_readwrite in (volledig lezen/schrijven op alle bestanden en mappen waartoe de gebruiker toegang heeft). Oudere apps gebruiken mogelijk nog root_readwrite — beide werken met deze plugin."
+    },
+    "step4": {
+      "title": "Dien de app in voor autorisatie",
+      "body": "Custom Apps vereisen dat een Box-beheerder de app autoriseert voordat gebruikers toestemming kunnen geven. Laat je Box-beheerder in de Developer Console op de knop \"Authorize\" klikken en de gevraagde scopes goedkeuren."
+    },
+    "step5": {
+      "title": "Kopieer client_id + client_secret",
+      "body": "Plak terug in McHarbor de Client-ID en het clientgeheim uit de Box Developer Console in het bestemmingsformulier. Sla de bestemming op voordat je verdergaat."
+    },
+    "step6": {
+      "title": "Verbind om toestemming te geven",
+      "body": "Open de opgeslagen bestemming en klik op \"Verbinden met Box\". De plugin start de OAuth-toestemmingsflow bij Box; na toestemming stuurt Box terug met een autorisatiecode die de host inwisselt voor een langlevend refresh-token (versleuteld opgeslagen in de bestemming)."
+    },
+    "footer": "Heb je mapniveau-beperking nodig in plaats van accountbreed? Gebruik een Service Account dat aan een Box-map is gebonden en plak de inloggegevens van het Service Account in het bestemmingsformulier. De plugin gebruikt de inloggegevens die tijdens runtime aanwezig zijn."
+  },
+  "toast": {
+    "registered": "Box-bestemming geregistreerd.",
+    "testPassed": "Box-verbinding geslaagd.",
+    "testFailed": "Box-verbinding mislukt.",
+    "oauthGranted": "Box-account verbonden. Refresh-token opgeslagen.",
+    "oauthDenied": "Box-autorisatie geweigerd. Verbind opnieuw om het nogmaals te proberen."
+  },
+  "error": {
+    "noClientId": "Client-ID is vereist.",
+    "noClientSecret": "Clientgeheim is vereist.",
+    "invalidFolderId": "Map-ID moet numeriek zijn.",
+    "tokenFailed": "Kon de inloggegevens niet inwisselen voor een Box-toegangstoken. Controleer client_id + client_secret en probeer het opnieuw."
+  }
+}

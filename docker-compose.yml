@@ -6,10 +6,25 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_TAG:-latest}
+      target: production
+      secrets:
+        # The plugin signing key. Optional: a build without it still
+        # succeeds and ships an unsigned catalog, which every card then
+        # reports honestly. Mounted, never copied into a layer.
+        - plugin_signing_key
+    image: mcharbor-local:debug
     restart: unless-stopped
     ports:
-      - "8705:5474"
+      # Single HTTPS listener (self-signed cert generated on first boot
+      # into /app/data/tls/, see TLS_ENABLED below). For production,
+      # upload your own cert via Settings → HTTPS or use
+      # apps/acme-companion.json. Host and container both use 8705 —
+      # there is exactly one McHarbor port now, no separate plain-HTTP
+      # listener.
+      - "8705:8705"
+      # Note: the file-transfer listener on :8788 runs inside the
+      # AGENT container (see MCHARBOR_TRANSFER_LISTEN in
+      # src/backend/modules/agent/install.go), not in this one.
     environment:
       - LOG_LEVEL=info
       # Timezone for cron schedules, run timestamps, and any other
@@ -18,10 +33,106 @@ services:
       # honored by the base image — the multi-stage Dockerfile uses
       # alpine, which respects TZ via /etc/localtime.
       - TZ=${TZ:-UTC}
+      # ---- HTTPS defaults (Phase 1-7) ----
+      # TLS_ENABLED=true → server listens on TLS at PORT (8705).
+      # A self-signed cert is auto-generated on first boot when
+      # /app/data/tls/cert.pem is absent. Operators can upload their
+      # own cert via the Settings UI; the cert reload watcher picks up
+      # the change within 30s.
+      - TLS_ENABLED=true
+      # "1.3" floor (the parser also accepts 13, 0x0304, 772).
+      # Drop to 1.2 only for clients older than 2019 — OpenSSL 1.0.2,
+      # Java 10 and earlier, or a TLS-inspecting middlebox.
+      - TLS_MIN_VERSION=1.3
+      # Plain-HTTP redirect-only listener; only 308s to HTTPS, never
+      # serves the app. Left disabled by default now that the app has a
+      # single HTTPS listener on 8705. Set to ":8080" (or any free port)
+      # if you want a redirect listener for the case where TLS breaks
+      # and you need an HTTP path back into the UI to fix it.
+      - HTTP_REDIRECT_ADDR=
+      # Audit retention recovery: if a future retention policy is
+      # misconfigured and purges too aggressively, set
+      # AUDIT_LOG_RETENTION_DAYS=0 for one recreate cycle to keep audit
+      # rows indefinitely while the policy is repaired.
+      # - AUDIT_LOG_RETENTION_DAYS=0
+      # Path to the catalog for the plugin_runtime icon fallback. The icon endpoint falls back to <catalogDir>/icons/<slug>/<name> for uninstalled plugins - the picker tile and catalog card render per-slug icons without the host bundling plugin assets.
+      - MCHARBOR_PLUGIN_CATALOG_DIRS=${MCHARBOR_PLUGIN_CATALOG_DIRS:-/mnt/plugin-catalog}
+      # Reverse proxies whose forwarding headers may be believed when
+      # attributing an API-key request to a client address. Comma-separated
+      # CIDRs or bare IPs, e.g. "10.0.0.0/8" or "192.0.2.7,203.0.113.0/24".
+      #
+      # Empty is the secure default: Forwarded / X-Forwarded-For / X-Real-IP
+      # are ignored entirely and the socket peer is recorded as the client,
+      # so a client cannot claim to be someone else by sending a header.
+      # Set this only to proxies you actually run. Never 0.0.0.0/0 — that
+      # trusts every caller's claim about its own identity, which is worse
+      # than not resolving at all. A malformed value fails startup.
+      - MCHARBOR_TRUSTED_PROXY_CIDRS=${MCHARBOR_TRUSTED_PROXY_CIDRS:-}
+      # When true, install script + install token page emit
+      # MCHARBOR_FORCE_TLS=1 and the agent dials wss:// instead of ws://.
+      - FORCE_AGENT_TLS=true
+      # HSTS off by default (would lock operators out of the
+      # recovery redirect listener if a cert upload breaks). Opt in
+      # via Settings → HTTPS or by setting a non-zero value here.
+      - HSTS_MAX_AGE=0
+      # Comma-separated extra SANs to embed in the auto-generated
+      # self-signed cert (e.g. "mcharbor.lan,192.168.1.10"). Defaults
+      # to localhost + 127.0.0.1 + hostname + the listen address.
+      - SELF_SIGNED_SAN_EXTRA=${MCHARBOR_SELF_SIGNED_SAN_EXTRA:-}
+      # Comma-separated CORS origins the backend will accept. The
+      # default list only covers localhost variants; remote browsers
+      # hitting the API at a LAN IP (e.g. http://10.35.229.31:8705)
+      # need their origin added here or the preflight OPTIONS fails
+      # and login never reaches the handler. Append whatever URLs
+      # you actually open the UI from, no trailing slash.
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://localhost:8705,http://localhost:8080,http://localhost:8173}
+      # Where the compute plugin writes uploaded guest images. It must resolve
+      # to the same directory the agent mounts, which is what lets an upload
+      # reach a host without crossing the agent transport. Unset, it defaults to
+      # <data>/compute/images, which no agent mounts.
+      - MCHARBOR_COMPUTE_IMAGE_LIBRARY=/var/lib/mcharbor/compute/images
     volumes:
+      # `:ro` only stops the socket file being replaced; it does not restrict
+      # the Docker API. Anything that can open this socket is root on the host.
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - mcharbor-data:/app/data
       - ${MCHARBOR_LOCAL_BACKUP_PATH:-./mnt/backup}:/mnt/backup
+      # Docker application definitions are catalog data, not image assets.
+      # The App Store resolves this mount through settings_catalogs.
+      - ${MCHARBOR_LOCAL_APP_CATALOG_PATH:-./mnt/app-catalog}:/mnt/app-catalog:ro
+      # Downloadable guest images (cloud images, rootfs tarballs, ISOs), one
+      # JSON per entry. Read on every boot and by the Reload action, because a
+      # plugin's migrations run only at install and could never add one later.
+      - ${MCHARBOR_LOCAL_COMPUTE_CATALOG_PATH:-./mnt/compute-catalog}:/mnt/compute-catalog:ro
+      # Locally built agent binaries (scripts/development/build-agent.sh).
+      # Settings -> Updates prefers these over the copy baked into the image and
+      # offers them to connected agents, so a rebuilt agent reaches a native
+      # install without publishing a GitHub release. Absent is the normal case
+      # for a released deployment and simply means the image's own copy is used.
+      - ${MCHARBOR_LOCAL_AGENT_PATH:-./agents}:/app/agent-local:ro
+      - ${MCHARBOR_LOCAL_CLI_PATH:-./cli}:/app/cli-local:ro
+      - ${MCHARBOR_LOCAL_PLUGIN_PATH:-./mnt/plugins}:/mnt/plugins:ro
+      - ${MCHARBOR_LOCAL_THEMES_CATALOG_PATH:-./mnt/themes-catalog}:/mnt/themes-catalog:ro
+      - /proc:/host/proc:ro
+      # Extra CA certificates to trust, e.g. an internal licence server or a
+      # registry behind a private CA. The entrypoint runs update-ca-certificates
+      # when it finds any *.crt here, so Go and curl inside the container trust
+      # them together. Read-only: the refresh writes to /etc/ssl/certs instead.
+      # An empty directory is the normal case and costs nothing.
+      - ${MCHARBOR_LOCAL_CA_PATH:-./mnt/certs}:/usr/local/share/ca-certificates:ro
+      # Second dev-only plugin catalog directory. Same shape as the
+      # MCHARBOR_LOCAL_PLUGIN_PATH entry above: a host bind-mount whose
+      # contents are auto-seeded as a non-readonly plugin catalog row
+      # by catalogs.SeedDevLocalCatalogs on startup. Production images
+      # ship with no such mounts so the loop is a silent no-op there.
+      - ${MCHARBOR_LOCAL_PLUGIN_PATH_CATALOG:-./mnt/plugin-catalog}:/mnt/plugin-catalog:ro
+      # The shared compute image library. Uploaded guest images are written
+      # here, and every compute host mounts the same directory on its own image
+      # cache root — so an image uploaded once is already present on each host
+      # rather than transferred to it. The agent side of this bind is below, and
+      # the path there is fixed: the agent's cache root is a compiled-in
+      # constant.
+      - ${MCHARBOR_COMPUTE_IMAGE_LIBRARY_PATH:-./mnt/compute-images}:/var/lib/mcharbor/compute/images
 
   agent:
     profiles: ["agent"]
@@ -33,8 +144,44 @@ services:
       - DOCKER_HOST=${MCHARBOR_AGENT_DOCKER_HOST:-unix:///var/run/docker.sock}
       - LOG_LEVEL=${MCHARBOR_AGENT_LOG_LEVEL:-info}
       - MCHARBOR_INSECURE=${MCHARBOR_AGENT_INSECURE:-false}
+      # While McHarbor is unreachable the agent buffers Docker events,
+      # container stats and its own log in $MCHARBOR_DATA_DIR/offline.db
+      # and replays them on reconnect. The named volume below keeps that
+      # buffer across container recreates.
+      - MCHARBOR_OFFLINE_BUFFER=${MCHARBOR_AGENT_OFFLINE_BUFFER:-true}
+      - MCHARBOR_DATA_DIR=/var/lib/mcharbor-agent
+      # An agent server is a licence seat, exactly like McHarbor itself,
+      # and claims one against the same key under its own instance id
+      # (stored as instance-id in MCHARBOR_DATA_DIR, which is why that
+      # volume matters). Leave the key unset and the agent reports
+      # nothing outward — no path in the binary is gated on a licence.
+      - MCHARBOR_LICENSE_KEY=${MCHARBOR_LICENSE_KEY:-}
+      - MCHARBOR_LICENSE_SERVER=${MCHARBOR_LICENSE_SERVER:-https://www.mcharbor.eu}
+    # The agent shares the host's network namespace. It is what lets guest
+    # networking see the host's real bridges and uplinks — on Docker's own
+    # network the agent sees loopback and one veth, and every guest-network
+    # picker comes up empty with nothing saying why.
+    #
+    # It also publishes :8788 directly, which is where the agent listens for
+    # inbound file transfers pushed by the host (see TransferListen in
+    # src/backend/modules/agent/install.go). A "ports:" mapping alongside
+    # network_mode: host is rejected rather than ignored, so there is none.
+    network_mode: host
+    cap_add:
+      # Creating bridges, taps and the managed network's NAT rules.
+      - NET_ADMIN
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - mcharbor-agent-data:/var/lib/mcharbor-agent
+      # The other half of the shared image library. This path is the agent's
+      # compiled-in image cache root, so an image McHarbor wrote here is one
+      # this agent already considers cached.
+      - ${MCHARBOR_COMPUTE_IMAGE_LIBRARY_PATH:-./mnt/compute-images}:/var/lib/mcharbor/compute/images
 
 volumes:
   mcharbor-data:
+  mcharbor-agent-data:
+
+secrets:
+  plugin_signing_key:
+    file: ./signing/plugin-signing.key

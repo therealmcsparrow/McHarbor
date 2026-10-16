@@ -1,0 +1,53 @@
+{
+    "slug":  "readarr",
+    "name":  "Readarr",
+    "description":  "Book and audiobook collection manager that automates downloading and organizing your library.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/readarr:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/readarr.png",
+    "website":  "https://readarr.com",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-readarr",
+    "ports":  [
+                  {
+                      "host":  8787,
+                      "container":  8787,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/readarr/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/readarr/books",
+                        "container":  "/books"
+                    },
+                    {
+                        "host":  "/opt/appdata/readarr/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

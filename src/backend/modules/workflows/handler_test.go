@@ -20,7 +20,9 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/therealmcsparrow/mcharbor/core/config"
+	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
 func TestHandleExecuteEmitsDebugNodeEvent(t *testing.T) {
@@ -294,7 +296,7 @@ func TestExecuteSQLQueryRejectsDisallowedTable(t *testing.T) {
 		},
 	}
 
-	port, out, err := svc.executeSQLQuery(context.Background(), node, NewMsg(nil))
+	port, out, err := svc.executeSQLQuery(t.Context(), node, NewMsg(nil))
 	if err != nil {
 		t.Fatalf("execute sql query: %v", err)
 	}
@@ -333,7 +335,7 @@ func TestExecuteSQLQueryCapsResultRows(t *testing.T) {
 		},
 	}
 
-	port, out, err := svc.executeSQLQuery(context.Background(), node, NewMsg(nil))
+	port, out, err := svc.executeSQLQuery(t.Context(), node, NewMsg(nil))
 	if err != nil {
 		t.Fatalf("execute sql query: %v", err)
 	}
@@ -451,12 +453,24 @@ func newWorkflowTestHandler(t *testing.T, db *sql.DB) *Handler {
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	app := &router.AppDeps{
-		Config: &config.Config{DataDir: t.TempDir()},
-		DB:     db,
-		Logger: logger,
+		Config:     &config.Config{DataDir: t.TempDir()},
+		DB:         db,
+		Logger:     logger,
+		Encryption: testEncryption(t),
 	}
 
 	return NewHandler(app, NewHub())
+}
+
+// testEncryption returns a real encryption service: the workflow payload refuses to be
+// stored without one, so a nil service would fail every save these tests make.
+func testEncryption(t *testing.T) *encryption.Service {
+	t.Helper()
+	enc, err := encryption.New(t.TempDir(), "")
+	if err != nil {
+		t.Fatalf("encryption: %v", err)
+	}
+	return enc
 }
 
 func openWorkflowTestDB(t *testing.T) *sql.DB {
@@ -466,7 +480,7 @@ func openWorkflowTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() { closeutil.Report(db.Close(), "db") })
 
 	schema := []string{
 		`CREATE TABLE workflows (
@@ -480,7 +494,8 @@ func openWorkflowTestDB(t *testing.T) *sql.DB {
 			updated_by TEXT NOT NULL DEFAULT '',
 			last_run_at TEXT NOT NULL DEFAULT '',
 			created_at TEXT NOT NULL,
-			updated_at TEXT NOT NULL
+			updated_at TEXT NOT NULL,
+			self_host_authorized INTEGER NOT NULL DEFAULT 0
 		)`,
 		`CREATE TABLE workflow_runs (
 			id TEXT PRIMARY KEY,

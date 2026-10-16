@@ -1,0 +1,16 @@
+{
+  "slug": "comm-whatsapp",
+  "name": "WhatsApp",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "WhatsApp notification channel. Delivers workflow and backup events to a phone number via one of four connection methods: Meta Cloud API, self-hosted gateway, WhatsApp Business API platform, or a third-party SaaS provider. Install this plugin to add 'WhatsApp' as a channel_type in Settings > Notifications > Channels.",
+  "category": "Communication channels",
+  "icon": "IconBrandWhatsapp",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-whatsapp-1.0.0.tar.gz"
+    }
+  ]
+}

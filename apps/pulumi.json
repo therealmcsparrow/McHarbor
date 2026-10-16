@@ -1,0 +1,37 @@
+{
+    "slug":  "pulumi",
+    "name":  "Pulumi",
+    "description":  "Infrastructure-as-code platform that provisions cloud resources using general-purpose programming languages.",
+    "category":  "Developer Tools",
+    "image":  "pulumi/pulumi:latest",
+    "logo":  "https://cdn.simpleicons.org/pulumi",
+    "website":  "https://www.pulumi.com",
+    "docsUrl":  "https://www.pulumi.com/docs/install/#using-the-pulumi-docker-image",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pulumi/workspace",
+                        "container":  "/workspace"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PULUMI_ACCESS_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Access token for the Pulumi Cloud state backend",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

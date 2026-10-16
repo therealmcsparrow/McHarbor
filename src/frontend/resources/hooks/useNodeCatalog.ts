@@ -20,7 +20,7 @@ export function useUpdateNodeCatalogEnabled() {
     mutationFn: ({ key, enabled }: { key: string; enabled: boolean }) =>
       api.put<{ key: string; enabled: boolean }>(`/workflow-nodes/${key}`, { enabled }).then(assertSuccess),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflow-nodes', 'availability'] });
+      void queryClient.invalidateQueries({ queryKey: ['workflow-nodes', 'availability'] });
     },
   });
 }

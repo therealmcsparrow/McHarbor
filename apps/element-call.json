@@ -1,0 +1,36 @@
+{
+    "slug":  "element-call",
+    "name":  "Element Call",
+    "description":  "Native Matrix video calling application for group calls built directly on the Matrix protocol.",
+    "category":  "Communications",
+    "image":  "ghcr.io/element-hq/element-call:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/element.png",
+    "website":  "https://element.io/labs/element-call",
+    "docsUrl":  "https://github.com/element-hq/element-call/blob/livekit/docs/self-hosting.md",
+    "ports":  [
+                  {
+                      "host":  8055,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/element-call/config",
+                        "container":  "/app/config.json"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

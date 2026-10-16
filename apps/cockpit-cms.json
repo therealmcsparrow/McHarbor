@@ -1,0 +1,35 @@
+{
+    "slug":  "cockpit-cms",
+    "name":  "Cockpit CMS",
+    "description":  "Headless content management platform for structuring and delivering content through an API.",
+    "category":  "Web Apps",
+    "image":  "agentejo/cockpit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/cockpit-cms.svg",
+    "website":  "https://getcockpit.com",
+    "docsUrl":  "https://getcockpit.com/documentation/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8110,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cockpit-cms/data",
+                        "container":  "/var/www/html/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -2,9 +2,9 @@
     "slug":  "dify-web",
     "name":  "Dify Web",
     "description":  "Frontend for the Dify LLM app platform. Provides the visual workflow editor and chat UI.",
-    "category":  "AI \u0026 Voice",
+    "category":  "AI & Voice",
     "image":  "langgenius/dify-web:latest",
-    "logo":  "https://icon.horse/icon/dify.ai",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/dify.svg",
     "website":  "https://dify.ai",
     "docsUrl":  "https://docs.dify.ai/getting-started/install-self-hosted/docker-compose",
     "ports":  [
@@ -35,5 +35,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

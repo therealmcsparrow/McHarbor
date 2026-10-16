@@ -31,6 +31,11 @@ export interface EnvVarDef {
   secret?: boolean;
 }
 
+export interface LatestRelease {
+  version: string;
+  release_date: string;
+}
+
 export interface AppTemplate {
   id: string;
   slug: string;
@@ -49,6 +54,16 @@ export interface AppTemplate {
   source: string;
   version: string;
   updatedAt: string;
+  /**
+   * What the catalog server publishes about the newest release: the real
+   * version string (never the "latest" tag) and the date it shipped. Absent
+   * for a catalog that does not emit the block.
+   */
+  latest?: LatestRelease;
+  /** Newest release tag published for this app's image in its registry. */
+  registryVersion?: string;
+  /** When that release was built, RFC3339. */
+  registryUpdatedAt?: string;
   installed: boolean;
   stackId?: string;
   installations: AppInstallation[];
@@ -71,6 +86,12 @@ export interface InstallRequest {
   volumes?: VolumeMount[];
   envVars?: Record<string, string>;
   network?: AppNetworkSettings;
+  /**
+   * Deliver any ${secret:NAME} in envVars as a file under /run/secrets and set
+   * <VAR>_FILE to its path, instead of putting the value in the container's
+   * environment where `docker inspect` reads it.
+   */
+  secretFileMode?: boolean;
 }
 
 export interface InstallResult {

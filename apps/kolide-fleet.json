@@ -4,7 +4,7 @@
     "description":  "Osquery manager providing a web UI for live and scheduled endpoint queries.",
     "category":  "Security",
     "image":  "kolide/fleet:latest",
-    "logo":  "https://icon.horse/icon/www.kolide.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.kolide.com\u0026sz=128",
     "website":  "https://www.kolide.com",
     "docsUrl":  "https://www.kolide.com/docs",
     "ports":  [
@@ -49,5 +49,9 @@
                     }
                 ],
     "minMemory":  "1GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

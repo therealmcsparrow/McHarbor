@@ -1,0 +1,41 @@
+{
+    "slug":  "whisper-asr-webservice",
+    "name":  "Whisper ASR Webservice",
+    "description":  "HTTP and WebSocket API for automatic speech recognition and transcription using OpenAI Whisper models.",
+    "category":  "AI & Voice",
+    "image":  "onerahmet/openai-whisper-asr-webservice:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/ahmetoner/whisper-asr-webservice",
+    "docsUrl":  "https://ahmetoner.github.io/whisper-asr-webservice/",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/whisper-asr-webservice/cache",
+                        "container":  "/root/.cache"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ASR_MODEL",
+                        "default":  "base",
+                        "description":  "Whisper model size to load (tiny, base, small, medium, large)"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

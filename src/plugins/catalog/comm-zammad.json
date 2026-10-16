@@ -1,0 +1,16 @@
+{
+  "slug": "comm-zammad",
+  "name": "Zammad",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Opens, notes and closes Zammad tickets from McHarbor alerts through the Zammad REST API, with HMAC-signed trigger webhooks or polling for status.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-zammad-2026.09.01.tar.gz"
+    }
+  ]
+}

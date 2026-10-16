@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "Fila de atualizações",
+      "description": "Contentores com uma atualização de imagem pronta e a ação para as rever"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "Fila de atualizações",
+    "checkNow": "Procurar atualizações",
+    "checkAgain": "Procurar novamente",
+    "notChecked": "Ainda não foi feita nenhuma verificação de atualizações",
+    "upToDate": "Está tudo atualizado",
+    "reviewAll": "Rever {{count}} atualização",
+    "reviewAll_other": "Rever {{count}} atualizações",
+    "more": "{{count}} mais"
+  }
+}

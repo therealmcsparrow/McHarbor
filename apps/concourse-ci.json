@@ -4,7 +4,7 @@
     "description":  "Continuous thing-doer with a UI focused on pipelines as code.",
     "category":  "Developer Tools",
     "image":  "concourse/concourse:latest",
-    "logo":  "https://icon.horse/icon/concourse-ci.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/concourse.svg",
     "website":  "https://concourse-ci.org",
     "docsUrl":  "https://concourse-ci.org/quick-start.html",
     "ports":  [
@@ -46,5 +46,9 @@
                         "description":  "Initial local user (user:password)"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

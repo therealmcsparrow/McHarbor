@@ -10,17 +10,11 @@
  */
 const widgetI18nModules = import.meta.glob<Record<string, unknown>>('@widgets/*/i18n/*.json', { import: 'default' });
 
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
   for (const key of Object.keys(source)) {
     const sv = source[key];
     const tv = target[key];
-    if (
-      sv && typeof sv === 'object' && !Array.isArray(sv) &&
-      tv && typeof tv === 'object' && !Array.isArray(tv)
-    ) {
+    if (sv && typeof sv === 'object' && !Array.isArray(sv) && tv && typeof tv === 'object' && !Array.isArray(tv)) {
       deepMerge(tv as Record<string, unknown>, sv as Record<string, unknown>);
     } else {
       target[key] = sv;

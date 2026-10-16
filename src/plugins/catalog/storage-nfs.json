@@ -1,0 +1,16 @@
+{
+  "slug": "storage-nfs",
+  "name": "NFS",
+  "author": "McSparrow <info@mcsparrow.eu>",
+  "license": "McHarbor",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Backup destination backed by an NFS (RFC 7530) export. AUTH_SYS (UID-based) plus Kerberos flavors (krb5/krb5i/krb5p) via the kernel nfs client.",
+  "category": "Storage destinations",
+  "icon": "IconFolderShare",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-nfs-1.0.1.tar.gz"
+    }
+  ]
+}

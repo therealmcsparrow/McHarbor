@@ -1,15 +1,9 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@resources/components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
@@ -23,31 +17,24 @@ type RenameDialogProps = {
   currentName: string;
 };
 
-export function RenameDialog({
-  open,
-  onOpenChange,
-  containerId,
-  filePath,
-  currentName,
-}: RenameDialogProps) {
+export function RenameDialog({ open: isOpen, onOpenChange, containerId, filePath, currentName }: RenameDialogProps) {
   const { t } = useTranslation('containers');
   const [newName, setNewName] = useState(currentName);
   const renameMutation = useRenameFile(containerId);
 
-  useEffect(() => {
+  const [appliedName, setAppliedName] = useState(currentName);
+  if (appliedName !== currentName) {
+    setAppliedName(currentName);
     setNewName(currentName);
-  }, [currentName]);
+  }
 
   const handleSubmit = () => {
     if (!newName.trim() || newName === currentName) return;
-    renameMutation.mutate(
-      { path: filePath, newName },
-      { onSuccess: () => onOpenChange(false) }
-    );
+    renameMutation.mutate({ path: filePath, newName }, { onSuccess: () => onOpenChange(false) });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('files.rename')}</DialogTitle>
@@ -59,7 +46,6 @@ export function RenameDialog({
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              autoFocus
             />
           </div>
         </div>

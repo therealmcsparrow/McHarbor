@@ -2,12 +2,18 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconRefresh } from '@tabler/icons-react';
+import { IconArrowsExchange, IconCloudUpload, IconRefresh, IconX } from '@tabler/icons-react';
 import { StatusBadge, ENVIRONMENT_STATUS } from '@resources/components/ui/StatusBadge';
 import { Button } from '@resources/components/ui/Button';
+import { Spinner } from '@resources/components/ui/Spinner';
+import { useRedeployAgent } from '../hooks/useEnvironmentActions';
+import { PERM } from '@core/auth/permissionKeys';
 
 type Environment = {
+  id: string;
   connectionType: string;
+  pendingConnectionType?: string | null;
+  migrationRevertTo?: string | null;
   socketPath?: string | null;
   host?: string | null;
   port?: number | null;
@@ -17,20 +23,66 @@ type Environment = {
   agentOs?: string | null;
   agentArch?: string | null;
   agentVersion?: string | null;
+  agentBuild?: string | null;
+  agentHostIp?: string | null;
+  agentInstallKind?: string | null;
   agentLastSeen?: string | null;
   agentStatus?: string | null;
 };
 
 type ConnectionDetailsCardProps = {
   env: Environment;
+  onMigrate?: () => void;
+  onCancelMigration?: () => void;
+  cancelPending?: boolean;
 };
 
-export function ConnectionDetailsCard({ env }: ConnectionDetailsCardProps) {
+export function ConnectionDetailsCard({
+  env,
+  onMigrate,
+  onCancelMigration,
+  cancelPending,
+}: ConnectionDetailsCardProps) {
   const { t } = useTranslation('environments');
+  // An immediate migration is already on `agent` and carries a revert target
+  // instead of a pending type; both are a conversion that has not proved itself.
+  const pending = env.pendingConnectionType ?? (env.migrationRevertTo ? 'agent' : null);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <h3 className="mb-4 text-sm font-medium text-foreground">{t('detail.connectionDetails')}</h3>
+    <div className="mc-glass rounded-lg p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-medium text-foreground">{t('detail.connectionDetails')}</h3>
+        {onMigrate && (
+          <Button permission={PERM.ENVIRONMENTS_MANAGE} variant="outline" size="sm" onClick={onMigrate}>
+            <IconArrowsExchange className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+            {t('migrate.action')}
+          </Button>
+        )}
+      </div>
+
+      {pending && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md bg-warning/10 p-3">
+          <div>
+            <p className="text-sm text-foreground">
+              {t('migrate.pendingNotice', { target: t(`connectionTypes.${pending}`) })}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('migrate.pendingFailsafe')}</p>
+          </div>
+          {onCancelMigration && (
+            <Button
+              permission={PERM.ENVIRONMENTS_MANAGE}
+              variant="ghost"
+              size="sm"
+              onClick={onCancelMigration}
+              disabled={cancelPending}
+            >
+              <IconX className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+              {t('migrate.cancel')}
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <span className="text-muted-foreground">{t('detail.type')}</span>
@@ -65,14 +117,16 @@ type AgentInfoCardProps = {
 
 export function AgentInfoCard({ env, onRegenerateToken, isRegenerating }: AgentInfoCardProps) {
   const { t } = useTranslation('environments');
+  const redeploy = useRedeployAgent();
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mc-glass rounded-lg p-6">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{t('detail.agentInfo')}</h3>
         <div className="flex items-center gap-2">
           <StatusBadge status={env.agentStatus ?? 'disconnected'} map={ENVIRONMENT_STATUS} />
           <Button
+            permission={PERM.ENVIRONMENTS_MANAGE}
             variant="outline"
             size="sm"
             onClick={onRegenerateToken}
@@ -80,6 +134,21 @@ export function AgentInfoCard({ env, onRegenerateToken, isRegenerating }: AgentI
           >
             <IconRefresh className="mr-1 h-3.5 w-3.5" />
             {t('detail.regenerateToken')}
+          </Button>
+          <Button
+            permission={PERM.ENVIRONMENTS_MANAGE}
+            variant="outline"
+            size="sm"
+            onClick={() => redeploy.mutate({ envId: env.id })}
+            disabled={redeploy.isPending}
+            title={t('detail.updateAgentHelp')}
+          >
+            {redeploy.isPending ? (
+              <Spinner className="mr-1 h-3.5 w-3.5" />
+            ) : (
+              <IconCloudUpload className="mr-1 h-3.5 w-3.5" />
+            )}
+            {t('detail.updateAgent')}
           </Button>
         </div>
       </div>
@@ -99,6 +168,22 @@ export function AgentInfoCard({ env, onRegenerateToken, isRegenerating }: AgentI
         <div>
           <span className="text-muted-foreground">{t('detail.agentVersion')}</span>
           <p className="font-mono text-xs font-medium">{env.agentVersion ?? '-'}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">{t('detail.agentBuild')}</span>
+          <p className="font-mono text-xs font-medium">{env.agentBuild ?? '-'}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">{t('detail.hostIp')}</span>
+          <p className="font-mono text-xs font-medium">{env.agentHostIp ?? '-'}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">{t('detail.installKind')}</span>
+          <p className="font-medium">
+            {env.agentInstallKind
+              ? t(`detail.installKindValue.${env.agentInstallKind}`)
+              : t('detail.installKindUnknown')}
+          </p>
         </div>
         <div>
           <span className="text-muted-foreground">{t('detail.lastSeen')}</span>

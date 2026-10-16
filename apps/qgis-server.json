@@ -4,7 +4,7 @@
   "description": "Open-source geographic information system server providing WMS, WFS, and WCS services from QGIS projects.",
   "category": "Databases",
   "image": "qgis/qgis-server:latest",
-  "logo": "https://qgis.org/uploads/media/qgis-logo-7f19696c39.svg",
+  "logo": "https://cdn.simpleicons.org/qgis",
   "website": "https://qgis.org",
   "docsUrl": "https://docs.qgis.org/latest/en/docs/server_manual/",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

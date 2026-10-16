@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Aprovação da revisão de acesso",
+    "description": "Registre que a revisão de acesso foi realizada e seu resultado aceito. As permissões calculadas abaixo são a entrada da revisão; a aprovação é o registro dela."
+  },
+  "effective": {
+    "title": "Acesso efetivo",
+    "description": "Escolha um usuário e um escopo para ver todas as permissões que ele possui ali e de onde cada uma vem.",
+    "user": "Usuário",
+    "userPlaceholder": "Selecione um usuário",
+    "environment": "Ambiente",
+    "allEnvironments": "Global (sem ambiente)",
+    "stack": "Stack",
+    "noStack": "Ambiente inteiro",
+    "filter": "Filtrar permissões",
+    "showAll": "Mostrar permissões que o usuário não possui",
+    "empty": "Escolha um usuário para ver suas permissões efetivas.",
+    "noMatches": "Nenhuma permissão corresponde a este filtro.",
+    "noSource": "Sem concessão",
+    "wildcard": "{{username}} possui uma função curinga, que concede todas as permissões, inclusive as adicionadas depois.",
+    "breakGlass": "{{username}} tem uma sessão break-glass aberta: todas as permissões são concedidas até ela terminar.",
+    "abac": "Políticas de atributos são aplicadas nesta instalação e ainda podem negar uma requisição que estas funções permitem.",
+    "overridesNote": "\"Possui\" é o que os controles de rota aplicam: funções, elevações aprovadas e break-glass. \"Com substituições\" aplica as substituições de concessão e negação por usuário como o mecanismo de políticas faz; os controles de rota não leem substituições hoje.",
+    "summary": "{{held}} de {{total}} permissões possuídas",
+    "held": "Possui",
+    "notHeld": "Não possui",
+    "columns": {
+      "permission": "Permissão",
+      "held": "Possui",
+      "authorize": "Com substituições",
+      "sources": "Concedida por"
+    },
+    "source": {
+      "roleDirect": "Função {{role}}",
+      "roleGroup": "Função {{role}} via grupo {{group}}",
+      "wildcard": "curinga",
+      "scopeGlobal": "global",
+      "scopeEnvironment": "em {{environment}}",
+      "scopeStack": "na stack {{stack}}",
+      "elevation": "Elevação até {{until}}",
+      "breakGlass": "Sessão break-glass",
+      "overrideGrant": "Substituição de concessão",
+      "overrideDeny": "Substituição de negação",
+      "conditional": "somente para {{resource}}",
+      "expires": "expira em {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Exportar catálogo (CSV)",
+    "exportJson": "Exportar catálogo (JSON)",
+    "exportFailed": "Não foi possível exportar o catálogo de permissões.",
+    "exported": "Catálogo de permissões exportado"
+  },
+  "endpoints": {
+    "title": "Endereços a registrar no provedor de identidade",
+    "intro": "Registre estes endereços no lado do provedor de identidade. Eles seguem o endereço público pelo qual o McHarbor é acessado.",
+    "oidcRedirect": "URI de redirecionamento (OIDC)",
+    "oidcRedirectHint": "Compartilhado por todos os provedores OpenID Connect desta instalação.",
+    "acs": "URL do Assertion Consumer Service (SAML)",
+    "spMetadata": "URL de metadados do provedor de serviço (SAML)",
+    "login": "URL de login direto",
+    "samlAfterSave": "As URLs de ACS e de metadados do SAML contêm o ID do provedor, então aparecem depois que o provedor é salvo."
+  },
+  "metadata": {
+    "title": "Importar metadados do IdP",
+    "description": "Cole a URL ou o XML de metadados SAML do provedor de identidade. O McHarbor os lê, preenche os campos que este plugin aceita e mostra o restante para você conferir.",
+    "url": "URL de metadados",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "Ou cole o XML de metadados",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Ler metadados",
+    "prefillReady": "{{count}} campo(s) podem ser preenchidos a partir destes metadados.",
+    "applyPrefill": "Preencher o formulário",
+    "copyManually": "Este plugin não tem campo para estes valores, então copie-os onde o plugin os solicitar.",
+    "entityId": "ID de entidade do IdP",
+    "sso": "URL de single sign-on ({{binding}})",
+    "slo": "URL de single logout ({{binding}})",
+    "certificate": "Impressão digital do certificado, SHA-256 ({{use}})",
+    "anyUse": "qualquer uso",
+    "expires": "expira em {{date}}",
+    "nameIdFormats": "Formatos de NameID: {{formats}}",
+    "reason": {
+      "invalid_url": "A URL de metadados deve ser um endereço http ou https.",
+      "fetch_failed": "Não foi possível buscar a URL de metadados. Verifique se o McHarbor consegue acessá-la; o log do servidor tem os detalhes.",
+      "not_saml_metadata": "Este não é um documento de metadados SAML.",
+      "no_idp_descriptor": "Os metadados não descrevem nenhum provedor de identidade (sem IDPSSODescriptor).",
+      "input_missing": "Informe uma URL de metadados ou cole o XML."
+    }
+  },
+  "preview": {
+    "title": "Pré-visualizar mapeamento de grupos",
+    "description": "Informe os grupos com os quais um usuário entraria para ver quais grupos e funções do McHarbor ele receberia.",
+    "sampleGroups": "Grupos do provedor, um por linha",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Usar os {{count}} grupos do teste de conexão",
+    "run": "Pré-visualizar",
+    "groupsJoined": "Grupos associados",
+    "noGroups": "Estes grupos não levam a nenhum grupo do McHarbor.",
+    "newGroup": "criado no primeiro login",
+    "from": "de {{groups}}",
+    "noRoles": "Este grupo não possui funções.",
+    "defaultRole": "Um usuário recém-provisionado também recebe a função padrão {{role}}.",
+    "unmapped": "Não mapeado: {{groups}}",
+    "scopeGlobal": "global",
+    "scopeEnvironment": "ambiente {{environment}}",
+    "scopeStack": "stack {{stack}}",
+    "loadGroups": "Carregar grupos do provedor"
+  },
+  "impact": {
+    "title": "Quem ganha ou perde funções",
+    "summary": "{{evaluated}} usuários avaliados a partir do último login: {{changed}} mudariam, {{unchanged}} não.",
+    "users": "Usuários afetados",
+    "legend_one": "{{gained}} função ganha, {{lost}} perdida",
+    "legend_other": "{{gained}} funções ganhas, {{lost}} perdidas",
+    "joined": "Entra em: {{groups}}",
+    "left": "Sai de: {{groups}}",
+    "unknown": "Não avaliado, sem login registrado desde que as declarações de grupo passaram a ser rastreadas: {{users}}",
+    "confirmTitle": "Aplicar o novo mapeamento de grupos?",
+    "confirmDescription": "Estas alterações entram em vigor para cada usuário no próximo login.",
+    "nextSignIn": "Remover um mapeamento não remove as associações que ele já criou; apenas os grupos que um mapeamento ainda cita são mantidos em sincronia com o provedor.",
+    "confirm": "Salvar mapeamento"
+  },
+  "wizard": {
+    "progress": "Progresso da configuração",
+    "steps": {
+      "type": "Escolha um provedor",
+      "configure": "Configurar",
+      "access": "Acesso e grupos",
+      "review": "Revisar e salvar",
+      "done": "Provedor salvo"
+    },
+    "next": "Avançar",
+    "finish": "Concluir",
+    "defaultRole": "Função padrão para novos usuários",
+    "defaultRoleHint": "Atribuída às contas criadas pelo provisionamento automático.",
+    "noDefaultRole": "Sem função padrão",
+    "fetchGroupsAfterSave": "Este provedor pode listar seus grupos. Depois de salvo, o diálogo de edição pode buscá-los para o mapeamento.",
+    "review": {
+      "description": "Confira as configurações antes de salvar o provedor.",
+      "name": "Nome",
+      "type": "Tipo",
+      "fields": "Campos configurados",
+      "autoProvision": "Provisionamento automático",
+      "defaultRole": "Função padrão",
+      "autoImport": "Importar grupos por nome",
+      "mappings": "Mapeamentos de grupos",
+      "yes": "Sim",
+      "no": "Não",
+      "none": "Nenhum",
+      "disabledNote": "O provedor é salvo desativado, então ninguém pode entrar com ele até você ativá-lo."
+    },
+    "done": {
+      "title": "{{name}} foi salvo",
+      "description": "Registre os endereços abaixo no provedor de identidade e depois ative e teste a conexão.",
+      "enable": "Ativar provedor",
+      "enableFirst": "Ative o provedor para testar a conexão.",
+      "test": "Testar conexão",
+      "previewHint": "Pré-visualize o mapeamento com grupos reais: execute o teste de conexão ou carregue os grupos do provedor."
+    }
+  }
+}

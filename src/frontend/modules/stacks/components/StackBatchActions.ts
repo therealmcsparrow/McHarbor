@@ -1,16 +1,10 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import {
-  IconPlayerStop,
-  IconRotate,
-  IconArrowDown,
-  IconArrowUp,
-  IconTrash,
-} from '@tabler/icons-react';
-import type { BatchAction } from '@resources/components/DataGrid';
+import { IconPlayerStop, IconRotate, IconArrowDown, IconArrowUp, IconTrash } from '@tabler/icons-react';
+import type { BatchAction } from '@resources/layout/table-page/types';
 import { isProtectedStack } from '@core/utils/protection';
-import type { StackInfo } from '../hooks/useStacks';
+import type { StackInfo } from '@resources/hooks/useStacks';
 
 type StackBatchActionsParams = {
   tc: (key: string) => string;
@@ -31,21 +25,21 @@ export function getStackBatchActions({
     {
       label: tc('batch.updateSelected'),
       icon: IconArrowUp,
-      iconClassName: 'text-emerald-500',
+      iconClassName: 'text-success',
       variant: 'default',
       onClick: (rows) => onUpdateSelected?.(rows as StackInfo[]),
     },
     {
       label: tc('batch.reinstallSelected'),
       icon: IconRotate,
-      iconClassName: 'text-blue-400',
+      iconClassName: 'text-info',
       variant: 'default',
       onClick: (rows) => onReinstallSelected?.(rows as StackInfo[]),
     },
     {
       label: tc('batch.stop'),
       icon: IconPlayerStop,
-      iconClassName: 'text-amber-500',
+      iconClassName: 'text-warning',
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
@@ -57,7 +51,7 @@ export function getStackBatchActions({
     {
       label: tc('batch.restart'),
       icon: IconRotate,
-      iconClassName: 'text-blue-400',
+      iconClassName: 'text-info',
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
@@ -69,7 +63,7 @@ export function getStackBatchActions({
     {
       label: tc('batch.down'),
       icon: IconArrowDown,
-      iconClassName: 'text-orange-400',
+      iconClassName: 'text-chart-2',
       variant: 'default',
       confirm: true,
       onClick: (rows) => {

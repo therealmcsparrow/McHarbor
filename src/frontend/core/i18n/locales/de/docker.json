@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Docker-Daemon Informationen und Konfiguration",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Erstellt",
+    "updatedAt": "Aktualisiert",
+    "groupRegistry": "Registry"
+  },
+  "nav": {
+    "sections": "Docker-Bereiche"
+  },
+  "sectionDescription": {
+    "info": "Daemon-Version, Host-Details und Objektanzahlen",
+    "registries": "Registry-Verbindungen und Zugangsdaten",
+    "resources": "Host-Kapazität und Docker-Speichernutzung"
+  },
   "tabs": {
-    "info": "Docker Info",
+    "info": "Docker-Info",
     "registries": "Registries",
-    "networks": "Netzwerke",
     "resources": "Ressourcen"
   },
   "info": {
@@ -22,7 +35,7 @@
     "version": "Version",
     "apiVersion": "API-Version",
     "minApiVersion": "Min API-Version",
-    "gitCommit": "Git Commit",
+    "gitCommit": "Git-Commit",
     "goVersion": "Go-Version",
     "os": "Betriebssystem",
     "architecture": "Architektur",
@@ -31,8 +44,17 @@
     "serverId": "Server-ID",
     "cpus": "CPUs",
     "memory": "Arbeitsspeicher",
+    "hardware": "Hardware",
+    "gpu": "GPU",
+    "networkAdapters": "Netzwerkadapter",
+    "attachedDevices": "Angeschlossene Geräte",
+    "hardwareNone": "Nichts erkannt",
+    "hardwareLoading": "Geräte des Hosts werden gelesen...",
+    "hardwareUnavailable": "Die Geräteliste des Hosts ist auf dieser Plattform nicht verfügbar",
+    "hardwareRemovable": "wechselbar",
+    "hardwareScope": "Hardware des Hosts, auf dem McHarbor läuft, nicht der ausgewählten Umgebung.",
     "storageDriver": "Speichertreiber",
-    "dockerRootDir": "Docker Root Dir",
+    "dockerRootDir": "Docker-Stammverzeichnis",
     "driverStatus": "Treiberstatus",
     "cgroupDriver": "Cgroup-Treiber",
     "cgroupVersion": "Cgroup-Version",
@@ -47,17 +69,16 @@
     "securityOptions": "Sicherheitsoptionen",
     "volumePlugins": "Volume",
     "networkPlugins": "Netzwerk",
-    "logPlugins": "Log",
+    "logPlugins": "Protokoll",
     "swarmActive": "Aktiv",
     "swarmInactive": "Inaktiv",
     "swarmNodeId": "Node-ID",
     "swarmManagers": "Manager",
-    "swarmNodes": "Nodes",
-    "isolation": "Isolierung",
-    "status": "Status"
+    "swarmNodes": "Knoten",
+    "isolation": "Isolierung"
   },
   "registries": {
-    "title": "Container Registries",
+    "title": "Container-Registries",
     "description": "Docker Container Registry-Verbindungen verwalten",
     "add": "Registry hinzufügen",
     "noRegistries": "Keine Registries konfiguriert",
@@ -75,6 +96,7 @@
     "editTitle": "Registry bearbeiten",
     "editDescription": "Registry-Verbindungseinstellungen aktualisieren.",
     "nameLabel": "Name",
+    "urlPlaceholder": "https://registry.example.com",
     "urlLabel": "URL",
     "usernameLabel": "Benutzername",
     "passwordLabel": "Passwort",
@@ -92,17 +114,6 @@
       "deleted": "Registry entfernt",
       "testSuccess": "Verbindungstest erfolgreich"
     }
-  },
-  "networks": {
-    "title": "Docker Netzwerke",
-    "description": "Übersicht der Docker-Netzwerke in dieser Umgebung",
-    "viewAll": "Alle Netzwerke anzeigen",
-    "columnName": "Name",
-    "columnDriver": "Treiber",
-    "columnScope": "Bereich",
-    "columnSubnet": "Subnetz",
-    "columnContainers": "Container",
-    "noNetworks": "Keine Netzwerke gefunden"
   },
   "resources": {
     "title": "Host-Ressourcen",

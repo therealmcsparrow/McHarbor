@@ -6,12 +6,13 @@ package containers
 import (
 	"errors"
 	"io"
+	"net"
+	"net/netip"
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	networkTypes "github.com/docker/docker/api/types/network"
+	"github.com/moby/moby/api/types/container"
+	networkTypes "github.com/moby/moby/api/types/network"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
@@ -28,23 +29,23 @@ func TestIsSelfMcHarborContainerDoesNotMatchAgent(t *testing.T) {
 }
 
 func TestReplacementNetworkingConfigDropsRuntimeEndpointFields(t *testing.T) {
-	info := types.ContainerJSON{
+	info := container.InspectResponse{
 		NetworkSettings: &container.NetworkSettings{
 			Networks: map[string]*networkTypes.EndpointSettings{
 				"mcharbor_default": {
 					IPAMConfig: &networkTypes.EndpointIPAMConfig{
-						IPv4Address: "172.20.0.10",
+						IPv4Address: netip.MustParseAddr("172.20.0.10"),
 					},
 					Aliases:             []string{"agent"},
 					NetworkID:           "network-id",
 					EndpointID:          "endpoint-id",
-					Gateway:             "172.20.0.1",
-					IPAddress:           "172.20.0.5",
+					Gateway:             netip.MustParseAddr("172.20.0.1"),
+					IPAddress:           netip.MustParseAddr("172.20.0.5"),
 					IPPrefixLen:         16,
-					IPv6Gateway:         "fd00::1",
-					GlobalIPv6Address:   "fd00::5",
+					IPv6Gateway:         netip.MustParseAddr("fd00::1"),
+					GlobalIPv6Address:   netip.MustParseAddr("fd00::5"),
 					GlobalIPv6PrefixLen: 64,
-					MacAddress:          "02:42:ac:14:00:05",
+					MacAddress:          mustMAC(t, "02:42:ac:14:00:05"),
 					DriverOpts:          map[string]string{"com.docker.network.endpoint.sysctls": "net.ipv4.conf.IFNAME.log_martians=1"},
 					GwPriority:          10,
 				},
@@ -61,16 +62,25 @@ func TestReplacementNetworkingConfigDropsRuntimeEndpointFields(t *testing.T) {
 	if ep == nil {
 		t.Fatal("expected endpoint config")
 	}
-	if ep.NetworkID != "" || ep.EndpointID != "" || ep.Gateway != "" || ep.IPAddress != "" || ep.IPPrefixLen != 0 ||
-		ep.IPv6Gateway != "" || ep.GlobalIPv6Address != "" || ep.GlobalIPv6PrefixLen != 0 {
+	if ep.NetworkID != "" || ep.EndpointID != "" || ep.Gateway.IsValid() || ep.IPAddress.IsValid() || ep.IPPrefixLen != 0 ||
+		ep.IPv6Gateway.IsValid() || ep.GlobalIPv6Address.IsValid() || ep.GlobalIPv6PrefixLen != 0 {
 		t.Fatalf("expected runtime endpoint fields to be omitted, got %#v", ep)
 	}
-	if ep.IPAMConfig == nil || ep.IPAMConfig.IPv4Address != "172.20.0.10" {
+	if ep.IPAMConfig == nil || ep.IPAMConfig.IPv4Address != netip.MustParseAddr("172.20.0.10") {
 		t.Fatalf("expected static IPAM config to be preserved, got %#v", ep.IPAMConfig)
 	}
-	if ep.MacAddress != "02:42:ac:14:00:05" || ep.GwPriority != 10 {
+	if ep.MacAddress.String() != "02:42:ac:14:00:05" || ep.GwPriority != 10 {
 		t.Fatalf("expected create-time endpoint options to be preserved, got %#v", ep)
 	}
+}
+
+func mustMAC(t *testing.T, s string) networkTypes.HardwareAddr {
+	t.Helper()
+	hw, err := net.ParseMAC(s)
+	if err != nil {
+		t.Fatalf("parse mac %q: %v", s, err)
+	}
+	return networkTypes.HardwareAddr(hw)
 }
 
 func TestFormatMoveTransferProgressIncludesTotal(t *testing.T) {
@@ -101,7 +111,7 @@ func TestMoveProgressReaderEmitsTransferredBytes(t *testing.T) {
 
 	buf := make([]byte, 3)
 	n, err := reader.Read(buf)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		t.Fatalf("expected read to succeed, got %v", err)
 	}
 	if n != 3 {

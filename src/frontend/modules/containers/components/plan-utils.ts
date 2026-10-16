@@ -6,27 +6,24 @@
 // dedicated file so both the per-container BackupsTab and the
 // cross-environment Backups overview page can reuse them.
 
-import type {
-  ContainerBackupInput,
-  ContainerBackupPlan,
-} from "../hooks/useContainerBackups";
+import type { ContainerBackupInput, ContainerBackupPlan } from '@resources/hooks/useContainerBackups';
 
-// mandatoryLocalStorage picks the storage location that must always
-// be present on a plan's destination list — the default local backup
-// location, falling back to the first local location with the
-// canonical /mnt/backup base path, then any other local location.
-// Returns null if there are no local locations configured at all.
-export function mandatoryLocalStorage(
-  locations: { id: string; locationType: string; basePath?: string }[],
-) {
+// defaultLocalStorage picks the storage location a new plan starts
+// with selected — the default local backup location, falling back to
+// the first local location with the canonical /mnt/backup base path,
+// then any other local location. Returns null if there are no local
+// locations configured at all.
+//
+// It is a *default*, not a mandate: the user may switch it off, and
+// the backend no longer re-adds it. What is enforced instead is that
+// at least one destination remains — see hasDestination.
+export function defaultLocalStorage(locations: { id: string; locationType: string; basePath?: string }[]) {
   return (
-    locations.find((location) => location.id === "default-local-backup") ??
+    locations.find((loc2) => loc2.id === 'default-local-backup') ??
     locations.find(
-      (location) =>
-        location.locationType === "local" &&
-        location.basePath === "/mnt/backup",
+      (locationValue) => locationValue.locationType === 'local' && locationValue.basePath === '/mnt/backup',
     ) ??
-    locations.find((location) => location.locationType === "local") ??
+    locations.find((loc) => loc.locationType === 'local') ??
     null
   );
 }
@@ -34,7 +31,7 @@ export function mandatoryLocalStorage(
 export function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
   return {
     name: plan.name,
-    storageLocationId: plan.storageLocationId ?? plan.storageLocationIds[0] ?? "",
+    storageLocationId: plan.storageLocationId ?? plan.storageLocationIds[0] ?? '',
     storageLocationIds: plan.storageLocationIds ?? [],
     includeConfig: plan.includeConfig,
     includeLogs: plan.includeLogs,
@@ -42,7 +39,7 @@ export function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
     includeImage: plan.includeImage,
     selectedMounts: plan.selectedMounts ?? [],
     logTailLines: plan.logTailLines,
-    cron: plan.cron ?? "",
+    cron: plan.cron ?? '',
     enabled: plan.enabled,
     retentionCount: plan.retentionCount,
     retentionDays: plan.retentionDays,
@@ -50,34 +47,38 @@ export function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
 }
 
 export const EMPTY_BACKUP_INPUT: ContainerBackupInput = {
-  name: "",
-  storageLocationId: "",
+  name: '',
+  storageLocationId: '',
   storageLocationIds: [],
   includeConfig: true,
   includeLogs: false,
   includeFilesystem: false,
   includeImage: false,
   selectedMounts: [],
-  cron: "",
+  cron: '',
   enabled: true,
   retentionCount: 0,
   retentionDays: 0,
 };
 
-// withMandatoryStorage guarantees the mandatory local destination is
-// in the plan's destinations list and is also the primary
-// storageLocationId. Used by the create / edit form patches.
-export function withMandatoryStorage(
-  input: ContainerBackupInput,
-  mandatoryStorageLocationId: string | undefined,
-): ContainerBackupInput {
-  if (!mandatoryStorageLocationId) return input;
-  const ids = new Set(input.storageLocationIds ?? []);
-  ids.add(mandatoryStorageLocationId);
-  const storageLocationIds = Array.from(ids);
+// withPrimaryDestination keeps the legacy single `storageLocationId`
+// in step with the destination list: it is always the first entry, and
+// empty when the list is. It adds nothing of its own — clearing the
+// last destination really does leave the input empty, which is what
+// hasDestination then reports to the button gate.
+export function withPrimaryDestination(input: ContainerBackupInput): ContainerBackupInput {
+  const storageLocationIds = input.storageLocationIds ?? [];
   return {
     ...input,
-    storageLocationId: input.storageLocationId || mandatoryStorageLocationId,
+    storageLocationId: storageLocationIds[0] ?? '',
     storageLocationIds,
   };
+}
+
+// hasDestination is the single source of truth for "can this backup run
+// or be scheduled at all". The backend rejects an empty list with
+// err.container.backup_destination_required; this keeps the user from
+// getting there.
+export function hasDestination(input: ContainerBackupInput): boolean {
+  return (input.storageLocationIds ?? []).length > 0;
 }

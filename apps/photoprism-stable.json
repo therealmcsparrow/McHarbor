@@ -2,7 +2,7 @@
     "slug":  "photoprism-stable",
     "name":  "PhotoPrism Stable",
     "description":  "AI-powered photo management for private collections (stable track).",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "photoprism/photoprism:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/photoprism.png",
     "website":  "https://www.photoprism.app",
@@ -37,5 +37,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

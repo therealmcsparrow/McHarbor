@@ -1,0 +1,49 @@
+{
+    "slug":  "sabnzbd-unstable",
+    "name":  "SABnzbd (Unstable)",
+    "description":  "Unstable channel build of SABnzbd. Free and open-source binary newsreader for Usenet downloading.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/sabnzbd:unstable",
+    "logo":  "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/sabnzbd-icon.png",
+    "website":  "https://sabnzbd.org",
+    "docsUrl":  "https://sabnzbd.org/wiki/",
+    "ports":  [
+                  {
+                      "host":  9080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sabnzbd-unstable/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/sabnzbd-unstable/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "unstable",
+    "latest":  {
+        "version":  "unstable",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,43 @@
+# plugin.yaml — manifest for the storage-truenas plugin.
+#
+# TrueNAS is iXsystems' storage OS (FreeBSD-based TrueNAS Core or
+# Linux-based TrueNAS Scale). It exposes WebDAV via the built-in
+# SMB/WebDAV share. The WebDAV endpoint is configured per-share
+# at share-creation time on the TrueNAS side — the most common
+# convention is `/webdav` at the server root. Operators
+# authenticate with a local TrueNAS user + password over HTTP
+# Basic auth.
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-truenas"
+name:     "TrueNAS"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Back up containers to a TrueNAS instance via WebDAV (RFC 4918). TrueNAS exposes WebDAV on the share's configured path (default `/webdav` for the standard WebDAV share). Operators authenticate with a local TrueNAS user + password over HTTP Basic auth. Chunked uploads use Content-Range PUT; the TrueNAS Samba server is built on samba.org which supports Content-Range PUT in WebDAV. Same Test round-trip shape (write / change / delete) as the SharePoint, Google Drive, and Nextcloud plugins."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-truenas"
+  forms:
+    - resource: "storage_location"
+      kind: "config_form"
+      key: "truenas"
+    - resource: "storage_location"
+      kind: "setup_guide"
+      key: "truenas"
+
+signature: ""
+checksum:  ""

@@ -1,0 +1,52 @@
+{
+    "slug":  "doccano",
+    "name":  "Doccano",
+    "description":  "Open-source text annotation tool for labeling data for text classification, sequence labeling, and translation.",
+    "category":  "Developer Tools",
+    "image":  "doccano/doccano:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/doccano.png",
+    "website":  "https://doccano.github.io/doccano",
+    "docsUrl":  "https://doccano.github.io/doccano/installation/",
+    "ports":  [
+                  {
+                      "host":  8082,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/doccano/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_USERNAME",
+                        "default":  "admin",
+                        "description":  "Username for the initial admin account"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the initial admin account",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ADMIN_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Email address for the initial admin account"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

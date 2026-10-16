@@ -1,0 +1,51 @@
+{
+    "slug":  "percona-xtrabackup",
+    "name":  "Percona XtraBackup",
+    "description":  "Open source hot backup utility for MySQL and MariaDB that backs up data without locking tables.",
+    "category":  "Backups",
+    "image":  "percona/percona-xtrabackup:8.0",
+    "logo":  "https://github.com/percona.png",
+    "website":  "https://www.percona.com/mysql/software/percona-xtrabackup",
+    "docsUrl":  "https://docs.percona.com/percona-xtrabackup/8.0/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/percona-xtrabackup/backups",
+                        "container":  "/backups"
+                    },
+                    {
+                        "host":  "/opt/appdata/percona-xtrabackup/data",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MYSQL_HOST",
+                        "default":  "mysql",
+                        "description":  "MySQL host to back up"
+                    },
+                    {
+                        "key":  "MYSQL_USER",
+                        "default":  "backup",
+                        "description":  "MySQL backup account username"
+                    },
+                    {
+                        "key":  "MYSQL_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "MySQL backup account password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "8.0",
+    "latest":  {
+        "version":  "8.0",
+        "release_date":  "2026-09-29"
+    }
+}

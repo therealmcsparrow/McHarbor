@@ -1,0 +1,60 @@
+{
+    "slug":  "aria2-ariang",
+    "name":  "Aria2 + AriaNg",
+    "description":  "Lightweight multi-protocol download daemon paired with the AriaNg web interface.",
+    "category":  "Media",
+    "image":  "p3terx/aria2-pro:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ariang.png",
+    "website":  "https://aria2.github.io",
+    "docsUrl":  "https://github.com/P3TERX/Aria2-Pro-Docker",
+    "ports":  [
+                  {
+                      "host":  6800,
+                      "container":  6800,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6880,
+                      "container":  6880,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/aria2-ariang/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/aria2-ariang/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RPC_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret token required to use the aria2 RPC interface",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

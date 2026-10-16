@@ -4,7 +4,7 @@
   "description": "Service networking platform with service discovery, health checking, and KV store.",
   "category": "Networking",
   "image": "hashicorp/consul:latest",
-  "logo": "https://www.consul.io/_astro/consul-logo.DxynKyKW.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/consul.svg",
   "website": "https://www.consul.io",
   "docsUrl": "https://developer.hashicorp.com/consul/docs",
   "ports": [
@@ -36,5 +36,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

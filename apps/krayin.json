@@ -1,0 +1,56 @@
+{
+    "slug":  "krayin",
+    "name":  "Krayin",
+    "description":  "Open source Laravel CRM for managing leads, contacts, and sales pipelines.",
+    "category":  "Business & ERP",
+    "image":  "webkul/krayin:latest",
+    "logo":  "https://github.com/krayin.png",
+    "website":  "https://krayincrm.com",
+    "docsUrl":  "https://devdocs.krayincrm.com/2.0/introduction/docker.html",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/krayin/storage",
+                        "container":  "/var/www/html/storage"
+                    },
+                    {
+                        "host":  "/opt/appdata/krayin/mysql",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Bundled database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DB_DATABASE",
+                        "default":  "krayin",
+                        "description":  "Bundled database name"
+                    },
+                    {
+                        "key":  "APP_URL",
+                        "default":  "http://localhost:8088",
+                        "description":  "Public URL"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "mcharbor-plugin-storage-sftp-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "UMD bundle for the storage-sftp plugin's frontend. Built by the host's Dockerfile `plugin-frontend` stage and shipped inside the plugin tarball.",
+  "scripts": {
+    "build": "vite build --config vite-plugin.config.ts"
+  },
+  "dependencies": {
+    "@tabler/icons-react": "^3.0.0",
+    "i18next": "^25.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^6.0.0"
+  }
+}

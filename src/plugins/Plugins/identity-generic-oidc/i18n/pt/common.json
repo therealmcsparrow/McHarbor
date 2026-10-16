@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "OpenID Connect genérico",
+    "subtitle": "Federe o login do McHarbor a qualquer provedor OpenID Connect compatível — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP e muitos outros. O plugin busca <issuer>/.well-known/openid-configuration em tempo de execução para descobrir os endpoints de autorização e de token, e então executa o fluxo padrão de código de autorização OIDC.",
+    "registerHint": "Adicione um provedor na página Configurações > Segurança > Provedores de identidade do host e escolha \"Generic OpenID Connect\" como provider_type."
+  },
+  "fields": {
+    "issuer_url":    "URL do emissor",
+    "client_id":     "ID do cliente",
+    "client_secret": "Segredo do cliente",
+    "scopes":        "Escopos"
+  },
+  "help": {
+    "issuer_url":    "A URL do emissor OIDC — normalmente a URL base do portal voltado ao usuário do seu provedor de identidade (por exemplo, https://login.example.com ou https://your-tenant.auth0.com/). O plugin acrescenta /.well-known/openid-configuration para descobrir o endpoint de autorização, o endpoint de token e a URI JWKS.",
+    "client_id":     "ID de cliente OAuth atribuído pelo seu IdP ao aplicativo McHarbor. Copie-o da tela de configuração de aplicativo/cliente do seu IdP.",
+    "client_secret": "Segredo de cliente OAuth emitido pelo seu IdP. Armazenado criptografado em repouso (AES-256-GCM).",
+    "scopes":        "Escopos OAuth separados por espaço. O padrão é 'openid profile email', que cobre as claims de identidade OIDC padrão. Adicione 'groups' se seu IdP expõe uma claim de grupo com esse nome (o assistente de mapeamento de grupos do host lê a claim 'groups' declarada pelo OIDC)."
+  },
+  "guide": {
+    "title":    "Configurar o OpenID Connect genérico no McHarbor",
+    "subtitle": "Registre um cliente OAuth confidencial no seu IdP e conceda a ele o direito de ler claims básicas de perfil (e opcionalmente grupos).",
+    "step1": {
+      "title": "Abra o registro de aplicativo do seu IdP",
+      "body":  "No console de administração do seu provedor de identidade, navegue até Applications (ou Clients / API Clients, dependendo do produto) e crie um novo aplicativo web confidencial. Escolha um nome como \"McHarbor SSO\" e o tipo Web application."
+    },
+    "step2": {
+      "title": "Defina o URI de redirecionamento",
+      "body":  "Em Allowed Callback URLs / Redirect URIs, adicione a URL de callback do McHarbor exibida na página de edição do provedor. O host acrescenta /api/identity-providers/callback à URL base do seu McHarbor — copie-a exatamente para evitar divergências silenciosas de código de autorização."
+    },
+    "step3": {
+      "title": "Crie um segredo do cliente",
+      "body":  "Gere um novo segredo do cliente. Escolha uma validade sensata (90 ou 180 dias) e defina um lembrete no calendário. Copie o VALOR do segredo (não o ID do segredo) para o campo Segredo do cliente no formulário do provedor. O McHarbor o armazena criptografado com AES-256-GCM."
+    },
+    "step4": {
+      "title": "Copie o ID do cliente",
+      "body":  "Na visão geral do aplicativo, copie o Client ID para o campo ID do cliente no formulário do provedor."
+    },
+    "step5": {
+      "title": "Copie a URL do emissor",
+      "body":  "A URL do emissor é a URL base do seu IdP — a mesma URL que seus usuários acessam ao entrar. Formatos comuns: https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Cole-a no campo URL do emissor. O plugin buscará <issuer>/.well-known/openid-configuration para validar a configuração."
+    },
+    "step6": {
+      "title": "Teste a conexão",
+      "body":  "De volta ao McHarbor, clique em \"Testar conexão\" no formulário do provedor. Um resultado verde significa que o documento de descoberta OIDC foi resolvido e o IdP aceitou suas credenciais. Agora você pode ativar o provedor e usar \"Entrar com <seu IdP>\" na página de login."
+    }
+  }
+}

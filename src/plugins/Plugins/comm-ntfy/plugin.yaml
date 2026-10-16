@@ -1,0 +1,97 @@
+# plugin.yaml — manifest for the comm-ntfy plugin.
+#
+# Single-channel ntfy notification adapter. The plugin owns one
+# ChannelType ("ntfy") and registers a NotificationAdapterClient
+# that POSTs Title + Message payloads to <server_url>/<topic> with
+# optional Priority + Tags headers and either Bearer-token or HTTP
+# Basic auth.
+#
+# Family: comm-* (notification channels). Distinct from storage-*
+# adapters: comm plugins implement plugin.NotificationAdapterClient
+# (Test + Send only) and never see Upload/Download/Delete/List.
+#
+# RBAC: comm channels register one adds_permission so operators can
+# grant "send alerts to this channel" as a discrete, auditable
+# capability. The menu sidebar entry is gated on that permission
+# and the host's "channels" admin UI is gated on settings.manage.
+#
+# Auth model: ntfy.sh and self-hosted ntfy both accept either a
+# topic-scoped access token (Authorization: Bearer …) or HTTP Basic
+# auth (username + password). The plugin picks Bearer if
+# access_token is set, falls back to Basic if username+password are
+# both set. If neither is set the request is anonymous — fine for
+# public topics on ntfy.sh.
+#
+# Naming: server_url defaults to https://ntfy.sh on empty. Topic is
+# the channel name operators subscribe to on the ntfy app. Priority
+# is one of min/low/default/high/urgent (mapped to ntfy's integer
+# priority 1/2/3/4/5). Tags is a comma-separated list of emoji
+# shortcodes (e.g. "warning,rocket") rendered as topic-level icons.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-ntfy"
+name:     "ntfy"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "ntfy.sh or self-hosted ntfy notification channel. POSTs Title + Message to <server_url>/<topic> with optional Priority + Tags headers, plus HTTP Basic or Bearer-token auth. Install this plugin to add 'ntfy' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   notification.adapter.register  required — register NotificationAdapterSpec
+#   encryption.handle.read         optional — for fields typed `secret` in
+#                                   ConfigSchema (the host encrypts them at
+#                                   rest via AES-256-GCM automatically; this
+#                                   perm lets the plugin read them back).
+#   audit.emit                     required — every plugin should audit.
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+# Adds one permission key. Operators with channels.use_comm_ntfy
+# (or the broader channels:send) can route events to this channel.
+# Hosts that don't use RBAC for comm plugins can ignore this block.
+adds_permissions:
+  - key:      "channels.use_comm_ntfy"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through ntfy channels"
+    description: "Required to route workflow, alert, or backup events to an ntfy channel."
+
+# No consumes_permissions — this plugin never gates itself on another
+# plugin's permission.
+
+contributes:
+  routes: []
+  # No `menu:` block — comm channels are managed from the host's
+  # Settings > Notifications > Channels page, which lists every
+  # registered ChannelType (built-in + plugin).
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-ntfy"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "ntfy"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "ntfy"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-ntfy"
+      channel_type: "ntfy"
+
+signature: ""
+checksum:  ""

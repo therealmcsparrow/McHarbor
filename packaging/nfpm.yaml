@@ -1,0 +1,95 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: mcharbor
+arch: ${MCHARBOR_ARCH}
+platform: linux
+version: ${MCHARBOR_VERSION}
+version_schema: none
+section: admin
+priority: optional
+maintainer: McSparrow <development@mcsparrow.eu>
+description: |
+  Self-hosted container management platform for Docker and Kubernetes.
+vendor: McSparrow
+homepage: https://github.com/therealmcsparrow/mcharbor
+license: McHarbor License
+
+depends:
+  - ca-certificates
+  - curl
+recommends:
+  - docker-ce
+  - docker-compose-plugin
+suggests:
+  - trivy
+  - grype
+
+contents:
+  - src: ${MCHARBOR_PAYLOAD}/mcharbor
+    dst: /opt/mcharbor/mcharbor
+    expand: true
+    file_info:
+      mode: 0755
+  - src: ${MCHARBOR_PAYLOAD}/static
+    dst: /opt/mcharbor/static
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${MCHARBOR_PAYLOAD}/themes-catalog
+    dst: /opt/mcharbor/themes-catalog
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${MCHARBOR_PAYLOAD}/agent-bin
+    dst: /opt/mcharbor/agent-bin
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${MCHARBOR_PAYLOAD}/trust
+    dst: /opt/mcharbor/trust
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${MCHARBOR_PAYLOAD}/VERSION
+    dst: /opt/mcharbor/VERSION
+    expand: true
+    file_info:
+      mode: 0644
+  - src: ${MCHARBOR_PAYLOAD}/BUILD
+    dst: /opt/mcharbor/BUILD
+    expand: true
+    file_info:
+      mode: 0644
+  - src: packaging/systemd/mcharbor.service
+    dst: /usr/lib/systemd/system/mcharbor.service
+    file_info:
+      mode: 0644
+  - src: packaging/mcharbor.env
+    dst: /etc/mcharbor/mcharbor.env
+    type: config|noreplace
+    file_info:
+      mode: 0644
+  - dst: /var/lib/mcharbor
+    type: dir
+    file_info:
+      mode: 0750
+      owner: mcharbor
+      group: mcharbor
+
+scripts:
+  postinstall: packaging/scripts/postinstall.sh
+  preremove: packaging/scripts/preremove.sh
+  postremove: packaging/scripts/postremove.sh
+
+overrides:
+  rpm:
+    depends:
+      - ca-certificates
+      - curl
+    recommends:
+      - docker-ce
+      - docker-compose-plugin
+  apk:
+    depends:
+      - ca-certificates
+      - curl

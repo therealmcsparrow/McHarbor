@@ -1,0 +1,43 @@
+{
+    "slug":  "fuxa",
+    "name":  "FUXA",
+    "description":  "Web-based SCADA and HMI editor for building industrial process dashboards over Modbus, OPC UA and MQTT.",
+    "category":  "IoT & Industrial",
+    "image":  "frangoteam/fuxa:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=frangoteam.org\u0026sz=128",
+    "website":  "https://frangoteam.org",
+    "docsUrl":  "https://github.com/frangoteam/FUXA#installation",
+    "ports":  [
+                  {
+                      "host":  1881,
+                      "container":  1881,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fuxa/appdata",
+                        "container":  "/usr/src/app/FUXA/server/_appdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/fuxa/log",
+                        "container":  "/usr/src/app/FUXA/server/_log"
+                    },
+                    {
+                        "host":  "/opt/appdata/fuxa/db",
+                        "container":  "/usr/src/app/FUXA/server/_db"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

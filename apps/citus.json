@@ -4,7 +4,7 @@
     "description":  "Distributed PostgreSQL that scales horizontally across multiple nodes for high performance.",
     "category":  "Databases",
     "image":  "citusdata/citus:12.1-alpine",
-    "logo":  "https://icon.horse/icon/www.citusdata.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.citusdata.com\u0026sz=128",
     "website":  "https://www.citusdata.com",
     "docsUrl":  "https://docs.citusdata.com",
     "ports":  [
@@ -38,5 +38,9 @@
                         "description":  "Default database name"
                     }
                 ],
-    "version":  "12.1-alpine"
+    "version":  "12.1-alpine",
+    "latest":  {
+        "version":  "12.1-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

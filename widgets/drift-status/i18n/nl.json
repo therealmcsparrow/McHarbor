@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Afwijking",
+      "description": "Bewakingen waarvan de containers, stacks of omgeving zijn afgeweken van wat is gedeclareerd"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Afwijking",
+    "empty": "Alles komt overeen met wat is gedeclareerd",
+    "unavailable": "Het afwijkingsrapport kan niet worden gelezen",
+    "noAccess": "Vereist de machtiging reconciler.view",
+    "more": "{{count}} meer",
+    "viewReport": "Afwijkingsrapport",
+    "detail": "{{classes}} · sinds {{since}}"
+  }
+}

@@ -28,5 +28,9 @@
       "secret": true
     }
   ],
-  "version": "7-alpine"
+  "version":  "7-alpine",
+  "latest":  {
+      "version":  "7-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

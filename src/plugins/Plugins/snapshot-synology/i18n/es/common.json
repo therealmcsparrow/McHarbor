@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "Conexión con DSM",
+    "targetSection": "Destino de la instantánea",
+    "advancedSection": "Avanzado",
+    "dsmUrl": {
+      "label": "URL de DSM",
+      "help": "URL base de la interfaz web de Synology DSM. Incluya el puerto si no es el estándar (por defecto 5000 para HTTP, 5001 para HTTPS)."
+    },
+    "username": {
+      "label": "Nombre de usuario",
+      "help": "Cuenta de DSM con permiso para gestionar instantáneas. Use una cuenta de servicio dedicada."
+    },
+    "password": {
+      "label": "Contraseña",
+      "help": "Contraseña de DSM o contraseña específica de aplicación."
+    },
+    "shareName": {
+      "label": "Carpeta compartida",
+      "help": "Nombre de la carpeta compartida de la que se toma la instantánea (sin barra inicial)."
+    },
+    "ignoreCert": {
+      "label": "Ignorar errores de certificado",
+      "help": "Obligatorio cuando DSM usa un certificado autofirmado."
+    },
+    "appPasswordHint": "Recomendación: cree una contraseña específica de aplicación desde DSM Control Panel → User &amp; Team → User → App Passwords. Así las credenciales quedan limitadas a las operaciones de copia de seguridad y se pueden revocar sin cambiar la contraseña principal."
+  },
+  "setup": {
+    "title": "Antes de empezar",
+    "intro": "snapshot-synology se comunica con la API REST del Backup Service de DSM 7.x. Confirme que el lado de DSM está configurado y luego rellene el formulario.",
+    "steps": [
+      {
+        "title": "Habilite la API del Backup Service",
+        "body": "Control Panel → External Access → Certificate → Add. Abra Control Panel → Backup Service y confirme que el servicio está en ejecución. La API REST escucha en el puerto HTTPS de DSM (por defecto 5001)."
+      },
+      {
+        "title": "Cree una contraseña específica de aplicación",
+        "body": "Control Panel → User &amp; Team → User → Account → App Passwords → Add. Póngale la etiqueta 'McHarbor snapshots' y conceda solo los permisos necesarios (DSM y Backup Service). La contraseña generada es la que se pega en el formulario."
+      },
+      {
+        "title": "Elija o cree una carpeta compartida",
+        "body": "Abra Control Panel → Shared Folder. Tome la instantánea de una carpeta existente (recomendado: una carpeta vacía reservada para las copias de seguridad de McHarbor) o cree una nueva. Anote el nombre de la carpeta exactamente: en DSM distingue mayúsculas de minúsculas."
+      },
+      {
+        "title": "Verifique la accesibilidad de DSM desde el host",
+        "body": "Desde el host donde se ejecuta McHarbor, confirme la conectividad HTTPS. Sustituya nas.local por el nombre de host de su DSM:",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Pruebe la conexión",
+        "body": "Tras guardar la configuración, haga clic en 'Probar la conexión' en la pestaña Instantáneas. Un resultado verde de la sonda confirma que DSM aceptó las credenciales y que la carpeta compartida es accesible."
+      }
+    ]
+  }
+}

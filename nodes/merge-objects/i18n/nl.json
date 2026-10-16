@@ -1,8 +1,8 @@
 {
-  "label": "Merge Objects",
-  "description": "Merge multiple source objects into one output",
+  "label": "Objecten samenvoegen",
+  "description": "Voeg meerdere bronobjecten samen tot één uitvoer",
   "config": {
-    "sources": "Sources",
+    "sources": "Bronnen",
     "output_property": "Uitvoerpad"
   }
 }

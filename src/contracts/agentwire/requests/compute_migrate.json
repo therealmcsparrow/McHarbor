@@ -1,0 +1,54 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "Plan": false,
+      "Repair": false,
+      "Roots": {
+        "vmRoot": "VMRoot",
+        "ctRoot": "CTRoot",
+        "imageRoot": "ImageRoot"
+      },
+      "Volumes": [
+        {
+          "Kind": "Kind",
+          "From": "From",
+          "To": "To",
+          "GuestID": "GuestID",
+          "Slot": 4,
+          "Bytes": 5
+        }
+      ],
+      "VMFrom": "VMFrom",
+      "CTFrom": "CTFrom",
+      "ImageFrom": "ImageFrom",
+      "DiskFrom": "DiskFrom",
+      "DiskTo": "DiskTo"
+    }
+  ],
+  "wire": {
+    "operation": "migrate",
+    "envId": "env-1",
+    "migrate": {
+      "roots": {
+        "vmRoot": "VMRoot",
+        "ctRoot": "CTRoot",
+        "imageRoot": "ImageRoot"
+      },
+      "volumes": [
+        {
+          "kind": "Kind",
+          "from": "From",
+          "to": "To",
+          "guestId": "GuestID",
+          "slot": 4
+        }
+      ],
+      "vmFrom": "VMFrom",
+      "ctFrom": "CTFrom",
+      "imageFrom": "ImageFrom",
+      "diskFrom": "DiskFrom",
+      "diskTo": "DiskTo"
+    }
+  }
+}

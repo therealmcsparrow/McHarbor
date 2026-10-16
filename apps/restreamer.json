@@ -1,0 +1,55 @@
+{
+    "slug":  "restreamer",
+    "name":  "Restreamer",
+    "description":  "Self-hosted restreaming platform that publishes a camera or RTMP source to multiple destinations.",
+    "category":  "Media",
+    "image":  "datarhei/restreamer:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/restreamer.png",
+    "website":  "https://datarhei.com/restreamer",
+    "docsUrl":  "https://docs.datarhei.com/restreamer/getting-started/installation",
+    "ports":  [
+                  {
+                      "host":  8180,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8181,
+                      "container":  8181,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/restreamer/config",
+                        "container":  "/core/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/restreamer/data",
+                        "container":  "/core/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CORE_API_AUTH_USERNAME",
+                        "default":  "admin",
+                        "description":  "Admin username for the Restreamer API and UI"
+                    },
+                    {
+                        "key":  "CORE_API_AUTH_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Admin password for the Restreamer API and UI",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

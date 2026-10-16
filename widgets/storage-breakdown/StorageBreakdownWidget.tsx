@@ -1,102 +1,56 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PieChart, Pie, Cell } from 'recharts';
+import { IconDatabaseOff } from '@tabler/icons-react';
 import { useHostMetrics } from '@modules/dashboard/hooks/useHostMetrics';
-import { MeasuredResponsiveContainer } from '@resources/components/MeasuredResponsiveContainer';
-import { cn } from '@resources/utils/cn';
 import { formatBytes } from '@resources/utils/format';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
+import { WidgetEmpty, WidgetFrame, WidgetLoading, type Tone } from '@modules/dashboard/components/widget-kit';
+import { DonutPanel } from '@modules/dashboard/components/widget-donut';
 
-const COLORS = [
-  'hsl(210 70% 50%)',  // images - blue
-  'hsl(280 70% 50%)',  // volumes - purple
-  'hsl(142 70% 45%)',  // containers - green
-  'hsl(30 80% 55%)',   // build cache - orange
-];
-
-const SWATCH_CLASSES = [
-  'bg-[hsl(210_70%_50%)]',
-  'bg-[hsl(280_70%_50%)]',
-  'bg-[hsl(142_70%_45%)]',
-  'bg-[hsl(30_80%_55%)]',
+const SEGMENTS: { key: 'images' | 'volumes' | 'containers' | 'buildCache'; tone: Tone }[] = [
+  { key: 'images', tone: 'info' },
+  { key: 'volumes', tone: 'primary' },
+  { key: 'containers', tone: 'success' },
+  { key: 'buildCache', tone: 'warning' },
 ];
 
 export default function StorageBreakdownWidget({ typeId: _typeId }: { colSpan: number; typeId: WidgetTypeId }) {
   const { t } = useTranslation('dashboard');
   const { data: metrics } = useHostMetrics();
 
-  const segments = useMemo(() => {
-    if (!metrics) return [];
-    const items = [
-      { name: t('storageBreakdownWidget.images'), value: metrics.disk.imagesSize },
-      { name: t('storageBreakdownWidget.volumes'), value: metrics.disk.volumesSize },
-      { name: t('storageBreakdownWidget.containers'), value: metrics.disk.containersSize },
-      { name: t('storageBreakdownWidget.buildCache'), value: metrics.disk.buildCacheSize },
-    ].filter((s) => s.value > 0);
-    return items;
-  }, [metrics, t]);
-
-  if (!metrics) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('loading')}
-      </div>
-    );
-  }
-
-  if (segments.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('storageBreakdownWidget.noData')}
-      </div>
-    );
-  }
-
+  const sizes: Record<string, number> = {
+    images: metrics?.disk.imagesSize ?? 0,
+    volumes: metrics?.disk.volumesSize ?? 0,
+    containers: metrics?.disk.containersSize ?? 0,
+    buildCache: metrics?.disk.buildCacheSize ?? 0,
+  };
+  const segments = SEGMENTS.map((s) => ({
+    key: s.key,
+    label: t(`storageBreakdownWidget.${s.key}`),
+    value: sizes[s.key] ?? 0,
+    display: formatBytes(sizes[s.key] ?? 0),
+    tone: s.tone,
+  }));
   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h3 className="shrink-0 px-4 pt-3 pb-1 text-sm font-semibold text-foreground">
-        {t('storageBreakdownWidget.title')}
-      </h3>
-      <div className="flex flex-1 items-center gap-4 px-4 pb-3">
-        <div className="relative h-[140px] w-[140px] shrink-0">
-          <MeasuredResponsiveContainer>
-            <PieChart>
-              <Pie
-                data={segments}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={65}
-                paddingAngle={2}
-                dataKey="value"
-                stroke="none"
-              >
-                {segments.map((segment, i) => (
-                  <Cell key={segment.name} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-            </PieChart>
-          </MeasuredResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-lg font-semibold text-foreground">{formatBytes(total)}</span>
-            <span className="text-[10px] text-muted-foreground">{t('storageBreakdownWidget.total')}</span>
-          </div>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          {segments.map((s, i) => (
-            <div key={s.name} className="flex items-center gap-2 text-xs">
-              <div className={cn('h-2.5 w-2.5 rounded-full', SWATCH_CLASSES[i % SWATCH_CLASSES.length])} />
-              <span className="text-muted-foreground">{s.name}</span>
-              <span className="font-medium text-foreground">{formatBytes(s.value)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <WidgetFrame title={t('storageBreakdownWidget.title')}>
+      {!metrics ? (
+        <WidgetLoading label={t('loading')} />
+      ) : total === 0 ? (
+        <WidgetEmpty
+          icon={<IconDatabaseOff className="size-5" aria-hidden="true" />}
+          title={t('storageBreakdownWidget.noData')}
+        />
+      ) : (
+        <DonutPanel
+          segments={segments}
+          centerValue={formatBytes(total)}
+          centerLabel={t('storageBreakdownWidget.total')}
+        />
+      )}
+    </WidgetFrame>
   );
 }

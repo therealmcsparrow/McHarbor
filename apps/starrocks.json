@@ -4,7 +4,7 @@
     "description":  "High-performance MPP analytical database for sub-second real-time analytics at scale.",
     "category":  "Databases",
     "image":  "starrocks/allin1-ubuntu:latest",
-    "logo":  "https://icon.horse/icon/www.starrocks.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.starrocks.io\u0026sz=128",
     "website":  "https://www.starrocks.io",
     "docsUrl":  "https://docs.starrocks.io",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

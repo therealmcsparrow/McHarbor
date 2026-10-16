@@ -1,5 +1,5 @@
 {
-  "label": "Registry Tag Trigger",
+  "label": "Registry-tagtrigger",
   "description": "Start een workflow wanneer de digest van een bewaakte image-tag wijzigt",
   "config": {
     "environment": "Omgeving",

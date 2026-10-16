@@ -1,14 +1,16 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPencil, IconDeviceFloppy } from '@tabler/icons-react';
+import { IconPencil, IconDeviceFloppy, IconEye, IconEyeOff } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Badge } from '@resources/components/ui/Badge';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { CodeEditor } from '@resources/components/CodeEditor';
-import { useStackCompose, useUpdateStack } from '../../hooks/useStacks';
+import { useStackCompose, useStackComposeRevealed, useUpdateStack } from '@resources/hooks/useStacks';
+import { PERM } from '@core/auth/permissionKeys';
+import { ENV_REDACTION_MARKER } from '@resources/utils/env-redaction';
 
 type ComposeTabProps = {
   stackName: string;
@@ -20,22 +22,25 @@ type ComposeTabProps = {
 export function ComposeTab({ stackName, isManaged, editing: globalEditing, readOnly = false }: ComposeTabProps) {
   const { t } = useTranslation('stacks');
   const { t: tc } = useTranslation('common');
+  const cancelLabel = tc('actions.cancel');
   const { data: content, isLoading } = useStackCompose(stackName);
   const updateStack = useUpdateStack();
   const [localEditing, setLocalEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
+  const [editContent, setEditContent] = useState(content ?? '');
+  const [revealed, setRevealed] = useState(false);
 
   const isEditing = !readOnly && (globalEditing || localEditing);
+  // Editing always starts from the masked text; the server puts back every value that still
+  // carries the marker, so the plaintext never has to round-trip through the editor.
+  const hasMasked = (content ?? '').includes(ENV_REDACTION_MARKER);
+  const revealQuery = useStackComposeRevealed(stackName, revealed && !isEditing);
+  const shownContent = revealed && revealQuery.data !== undefined ? revealQuery.data : (content ?? '');
 
-  useEffect(() => {
+  const [seededFrom, setSeededFrom] = useState({ content, globalEditing });
+  if (seededFrom.content !== content || seededFrom.globalEditing !== globalEditing) {
+    setSeededFrom({ content, globalEditing });
     if (content !== undefined) setEditContent(content);
-  }, [content]);
-
-  useEffect(() => {
-    if (globalEditing && content !== undefined) {
-      setEditContent(content);
-    }
-  }, [globalEditing, content]);
+  }
 
   const handleSave = () => {
     updateStack.mutate(
@@ -65,6 +70,18 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing, readO
               {t('detail.readOnly')}
             </Badge>
           )}
+          {!isEditing && (hasMasked || revealed) && (
+            <Button
+              variant="outline"
+              size="sm"
+              permission={PERM.STACKS_MANAGE}
+              disabled={revealed && revealQuery.isFetching}
+              onClick={() => setRevealed((value) => !value)}
+            >
+              {revealed ? <IconEyeOff className="h-3.5 w-3.5" /> : <IconEye className="h-3.5 w-3.5" />}
+              {revealed ? t('detail.hideComposeValues') : t('detail.revealComposeValues')}
+            </Button>
+          )}
           {isManaged && !readOnly && !isEditing && (
             <Button variant="outline" size="sm" onClick={() => setLocalEditing(true)}>
               <IconPencil className="h-3.5 w-3.5" />
@@ -75,10 +92,10 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing, readO
             <>
               {!globalEditing && (
                 <Button variant="outline" size="sm" onClick={() => setLocalEditing(false)}>
-                  {tc('actions.cancel')}
+                  {cancelLabel}
                 </Button>
               )}
-              <Button size="sm" onClick={handleSave} disabled={updateStack.isPending}>
+              <Button permission={PERM.STACKS_MANAGE} size="sm" onClick={handleSave} disabled={updateStack.isPending}>
                 <IconDeviceFloppy className="h-3.5 w-3.5" />
                 {updateStack.isPending ? t('edit.saving') : t('detail.saveCompose')}
               </Button>
@@ -88,7 +105,7 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing, readO
       </div>
 
       <CodeEditor
-        value={isEditing ? editContent : content ?? ''}
+        value={isEditing ? editContent : shownContent}
         onChange={isEditing ? setEditContent : undefined}
         readOnly={!isEditing}
         language="yaml"
@@ -97,4 +114,3 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing, readO
     </div>
   );
 }
-

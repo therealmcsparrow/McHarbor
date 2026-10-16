@@ -1,10 +1,20 @@
 {
-  "label": "Container Logs",
-  "description": "Read recent logs from a container",
+  "label": "Containerlogs",
+  "description": "Lees recente logs van een container",
   "config": {
     "environment": "Omgeving",
     "container": "Container",
     "tail": "Laatste regels",
     "since": "Sinds"
+  },
+  "options": {
+    "since": {
+      "5m": "Laatste 5 minuten",
+      "15m": "Laatste 15 minuten",
+      "1h": "Laatste uur",
+      "6h": "Laatste 6 uur",
+      "24h": "Laatste 24 uur",
+      "168h": "Laatste 7 dagen"
+    }
   }
 }

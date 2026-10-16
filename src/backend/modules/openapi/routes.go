@@ -4,8 +4,7 @@
 package openapi
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,9 +12,9 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/docs", func(r chi.Router) {
-			r.Get("/", h.HandleDocs)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/docs", func(r *apispec.Router) {
+			r.Get("/", h.HandleDocs, apispec.Query("source", ""))
 		})
 	})
 }

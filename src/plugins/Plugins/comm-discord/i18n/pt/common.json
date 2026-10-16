@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Nome de exibição deste canal de comunicação do Discord." },
+    "webhook_url": { "help": "URL do webhook do canal do Discord. Armazenada criptografada em repouso." }
+  },
+  "title": "Entrega de notificações do Discord",
+  "subtitle": "Canal de comunicação pertencente ao plugin",
+  "description": "Este plugin é dono do Discord. Ele armazena a URL do webhook do Discord no próprio canal e despacha as notificações pelo runtime do plugin.",
+  "nameLabel": "Nome do canal",
+  "namePlaceholder": "Discord de operações",
+  "webhookUrlLabel": "URL do webhook",
+  "securityTitle": "Segurança",
+  "securityHelp": "URL do webhook criptografada",
+  "securityDescription": "A URL do webhook é armazenada criptografada em repouso. Crie um webhook dedicado para o McHarbor para que possa ser rotacionado de forma independente.",
+  "testTitle": "Testar conexão",
+  "testHelp": "Envia mensagem",
+  "testDescription": "A ação de teste do host publica uma mensagem real no canal do Discord configurado. Use antes um canal de teste privado se o webhook apontar para uma sala de plantão.",
+  "secretKeepHint": "Deixe em branco para manter o valor armazenado.",
+  "requiredField": "Obrigatório",
+  "setupGuideTitle": "Guia de configuração do canal de comunicação do Discord",
+  "guide": {
+    "step1": { "body": "Abra o servidor do Discord de destino e crie um canal de texto dedicado aos alertas do McHarbor, ou escolha um canal de operações existente." },
+    "step2": { "body": "Abra as configurações do canal, vá para <b>Integrations</b>, crie um webhook e copie a URL do webhook." },
+    "step3": { "body": "Cole a URL do webhook na configuração deste canal. O McHarbor a armazena criptografada e a oculta nas respostas da API." },
+    "step4": { "body": "Salve o canal e clique em <b>Testar conexão</b>. O plugin publica uma mensagem de teste real no Discord pelo mesmo caminho usado nos eventos reais de fluxo de trabalho, alerta e backup." },
+    "step5": { "body": "Se o teste falhar, verifique se o webhook não foi excluído, se o canal ainda existe e se as permissões do servidor permitem postagens por webhook." }
+  }
+}

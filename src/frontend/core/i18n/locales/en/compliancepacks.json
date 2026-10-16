@@ -1,0 +1,164 @@
+{
+  "title": "Compliance packs",
+  "description": "Evidence for a named control framework: the checks McHarbor can run against a live host, the evidence it records, and the controls it cannot see.",
+  "disclaimer": "A pack is evidence for a framework, not a claim of compliance with one. A passing check means the check passed — whether the control is met is your judgement and your auditor's.",
+  "framework": {
+    "label": "Framework",
+    "mappingOnly": "Evidence mapping only — this framework has no mechanical checks"
+  },
+  "run": {
+    "never": "Never run",
+    "last": "Last run {{time}}",
+    "startedBy": "Started by",
+    "environment": "Environment",
+    "defaultEnvironment": "Default environment",
+    "trigger": {
+      "manual": "Started by hand",
+      "scheduled": "Scheduled"
+    },
+    "status": {
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "actions": {
+    "runChecks": "Run checks",
+    "showFacts": "Show the facts behind this verdict",
+    "hideFacts": "Hide the facts"
+  },
+  "runDialog": {
+    "title": "Run the checks now",
+    "body": "This reads the Docker daemon and every container on the selected environment and records a new run. It changes nothing on the host.",
+    "confirm": "Run checks",
+    "environment": "Environment"
+  },
+  "attestation": {
+    "title": "Sign-off",
+    "description": "Who reviewed this evidence and accepted it, when, and on which run. A sign-off is never edited; a newer one supersedes it and both stay on record.",
+    "never": "Nobody has signed off on this yet.",
+    "last": "Signed off {{time}} by {{user}}",
+    "run": "Run {{id}}, started {{time}}",
+    "noRun": "No run: a sign-off on the review as a whole",
+    "action": "Sign off",
+    "runOpen": "The run is still in progress. Sign off once it has finished.",
+    "dialog": {
+      "title": "Record a sign-off",
+      "body": "This records, under your name and the current time, that you reviewed the evidence below and accept it. It cannot be edited or deleted afterwards.",
+      "confirm": "Record sign-off",
+      "framework": "Framework",
+      "run": "Run",
+      "note": "Note",
+      "notePlaceholder": "What you reviewed, what you accepted, and where the decision is recorded",
+      "noteRequired": "A note is required: a sign-off without a word of justification is not evidence of a review."
+    }
+  },
+  "toast": {
+    "started": "Check run started",
+    "failed": "The check run could not be started"
+  },
+  "summary": {
+    "pass": "Passing",
+    "warn": "Needs attention",
+    "fail": "Failing",
+    "info": "Informational",
+    "unknown": "Not assessed"
+  },
+  "verdict": {
+    "pass": "Pass",
+    "warn": "Attention",
+    "fail": "Fail",
+    "info": "Info",
+    "unknown": "Not assessed"
+  },
+  "coverage": {
+    "mechanical": "Checked mechanically",
+    "evidenced": "Evidenced from recorded data",
+    "notCovered": "Not covered"
+  },
+  "group": {
+    "host": "Host configuration",
+    "daemon": "Daemon configuration",
+    "files": "Daemon configuration files",
+    "images": "Images and build files",
+    "runtime": "Container runtime",
+    "operations": "Security operations",
+    "swarm": "Swarm configuration"
+  },
+  "table": {
+    "control": "Control",
+    "requirement": "What it requires",
+    "verdict": "Verdict",
+    "coverage": "Coverage",
+    "evidence": "Evidence",
+    "empty": "This pack has never been run, so no control carries a verdict yet."
+  },
+  "notAssessed": {
+    "title": "Controls not assessed",
+    "body": "{{count}} of this pack's controls carry no verdict. Not assessed is not a pass: it means the evidence could not be gathered, or McHarbor cannot see the control at all."
+  },
+  "fact": {
+    "serverVersion": "Docker Engine version",
+    "interContainerCommunication": "Inter-container communication on the default bridge",
+    "debug": "Debug logging",
+    "storageDriver": "Storage driver",
+    "connectionType": "Configured transport",
+    "usernsRemap": "User namespace remapping",
+    "authorizationPlugins": "Authorization plugins",
+    "authorizationPluginNames": "Authorization plugin names",
+    "loggingDriver": "Default logging driver",
+    "liveRestore": "Live restore",
+    "seccompProfile": "Default seccomp profile",
+    "experimental": "Experimental build",
+    "swarmState": "Swarm state",
+    "containersChecked": "Containers inspected",
+    "containersViolating": "Containers breaking this control",
+    "violations": "Containers involved",
+    "inspectFailures": "Inspections that failed"
+  },
+  "reason": {
+    "daemonUnavailable": "The Docker daemon could not be read, so this control has no verdict.",
+    "containersUnavailable": "The container list could not be read, so this control has no verdict.",
+    "inspectIncomplete": "Some containers could not be inspected, so a clean result would only describe the ones that were.",
+    "containerListCapped": "More containers exist than one run inspects, so this result covers a subset.",
+    "noContainers": "This environment has no containers, so there was nothing to check.",
+    "notCoveredByMcHarbor": "McHarbor cannot see this control. It is listed so the gap is visible rather than implied.",
+    "evidencedNotChecked": "McHarbor records the evidence for this control but does not judge it.",
+    "versionRecorded": "The running engine version is recorded. Whether it is current for this host is not something McHarbor can know.",
+    "versionUnreported": "The daemon did not report its version.",
+    "iccEnabled": "Containers on the default bridge can reach each other without a network being declared.",
+    "bridgeUnreadable": "The default bridge network could not be inspected.",
+    "debugLoggingEnabled": "The daemon runs with debug logging, which records request detail into the host journal.",
+    "legacyStorageDriver": "The daemon uses a storage driver the benchmark objects to.",
+    "storageDriverUnreported": "The daemon did not report its storage driver.",
+    "daemonTCPNoTLS": "The daemon is reached over plain TCP, so anybody who can reach the port can command it.",
+    "connectionTypeUnknown": "The environment's configured transport could not be read.",
+    "usernsDisabled": "User namespace remapping is off, so a container root is the host root.",
+    "noAuthorizationPlugin": "No authorization plugin decides daemon requests.",
+    "loggingDriverLocal": "Container output stays on the host. A sidecar that ships it elsewhere satisfies the intent and this check cannot see it.",
+    "liveRestoreDisabled": "Containers stop when the daemon does.",
+    "seccompDisabled": "The daemon's default seccomp profile is disabled.",
+    "seccompUnreported": "The daemon did not report a seccomp profile.",
+    "experimentalEnabled": "The daemon is an experimental build.",
+    "swarmActive": "Swarm mode is active. That is a finding only on a host that is not meant to orchestrate with it.",
+    "containersRunAsRoot": "Containers run as root.",
+    "containersWithoutHealthcheck": "Containers declare no health check.",
+    "containersAddCapabilities": "Containers add kernel capabilities beyond the default set.",
+    "containersPrivileged": "Containers run privileged, which is equivalent to host root.",
+    "containersOnPrivilegedPorts": "Containers publish to a host port below 1024.",
+    "containersShareHostNetwork": "Containers share the host network namespace.",
+    "containersWithoutMemoryLimit": "Containers have no memory limit, so one can exhaust the host.",
+    "containersWithoutCPULimit": "Containers have no CPU shares or quota.",
+    "containersWritableRootfs": "Containers have a writable root filesystem.",
+    "containersRestartUnbounded": "Containers restart without a bounded attempt count.",
+    "containersShareHostPID": "Containers share the host process namespace.",
+    "containersShareHostIPC": "Containers share the host IPC namespace.",
+    "containersExposeHostDevices": "Containers are given a host device directly.",
+    "containersSharedMountPropagation": "Containers use shared mount propagation, which lets them write to the host mount tree.",
+    "containersShareHostUTS": "Containers share the host UTS namespace.",
+    "containersSeccompUnconfined": "Containers run with seccomp disabled.",
+    "containersMayGainPrivileges": "Containers can acquire additional privileges.",
+    "containersWithoutPIDsLimit": "Containers have no PIDs limit, so a fork bomb can exhaust the host.",
+    "containersMountDockerSocket": "Containers mount the Docker socket, which is equivalent to host root."
+  }
+}

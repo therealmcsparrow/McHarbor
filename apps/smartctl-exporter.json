@@ -1,0 +1,32 @@
+{
+    "slug":  "smartctl-exporter",
+    "name":  "Smartctl Exporter",
+    "description":  "Prometheus exporter that reports S.M.A.R.T. disk health metrics collected via smartctl.",
+    "category":  "Monitoring",
+    "image":  "prometheuscommunity/smartctl-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+    "website":  "https://github.com/prometheus-community/smartctl_exporter",
+    "docsUrl":  "https://github.com/prometheus-community/smartctl_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9633,
+                      "container":  9633,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

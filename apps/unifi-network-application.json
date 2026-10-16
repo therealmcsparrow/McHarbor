@@ -4,7 +4,7 @@
     "description":  "Controller for UniFi network devices.",
     "category":  "Networking",
     "image":  "lscr.io/linuxserver/unifi-network-application:latest",
-    "logo":  "https://icon.horse/icon/docs.linuxserver.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/unifi.svg",
     "website":  "https://docs.linuxserver.io/images/docker-unifi-network-application/",
     "docsUrl":  "https://docs.linuxserver.io/images/docker-unifi-network-application/",
     "ports":  [
@@ -63,5 +63,9 @@
                         "description":  "MongoDB database"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

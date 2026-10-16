@@ -1,0 +1,635 @@
+{
+  "title": "Systemcontainer",
+  "description": "Eine vollständige Distribution mit eigenem Init, eigenen Benutzern und Diensten, bei einem Bruchteil des Arbeitsspeichers einer virtuellen Maschine.",
+  "nav": {
+    "containers": "Systemcontainer",
+    "templates": "Container-Vorlagen",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Container erstellen",
+    "start": "Starten",
+    "shutdown": "Herunterfahren",
+    "stop": "Stoppen",
+    "restart": "Neu starten",
+    "freeze": "Einfrieren",
+    "unfreeze": "Auftauen",
+    "console": "Konsole",
+    "delete": "Löschen",
+    "snapshot": "Snapshot erstellen",
+    "revert": "Zurücksetzen",
+    "clone": "Klonen",
+    "makeTemplate": "Zur Vorlage machen",
+    "unTemplate": "Keine Vorlage mehr sein",
+    "addNic": "Schnittstelle hinzufügen",
+    "addMount": "Einhängung hinzufügen",
+    "editLimits": "Limits ändern",
+    "applyLimits": "Anwenden",
+    "diagnose": "Fragen, was nicht stimmt",
+    "refresh": "Aktualisieren",
+    "cancel": "Abbrechen",
+    "back": "Zurück",
+    "next": "Weiter"
+  },
+  "list": {
+    "searchPlaceholder": "Container suchen",
+    "title": "Systemcontainer",
+    "empty": {
+      "title": "Noch keine Systemcontainer",
+      "body": "Ein Systemcontainer führt eine vollständige Distribution aus – mit eigenem Init, eigenen Benutzern und Diensten –, startet in etwa einer Sekunde und braucht nur einen Bruchteil des Arbeitsspeichers einer virtuellen Maschine.",
+      "action": "Ersten erstellen"
+    },
+    "emptyTemplates": {
+      "title": "Noch keine Container-Vorlagen",
+      "body": "Markieren Sie einen gestoppten Container als Vorlage, um daraus neue Container zu klonen. Auf einem Copy-on-Write-Pool ist jeder Klon nahezu sofort fertig und kostet kaum Platz."
+    },
+    "columns": {
+      "name": "Name",
+      "state": "Zustand",
+      "host": "Host",
+      "os": "Betriebssystem",
+      "init": "Init",
+      "memory": "Arbeitsspeicher",
+      "processes": "Prozesse",
+      "address": "Adresse",
+      "uptime": "Betriebszeit",
+      "pool": "Pool",
+      "isolation": "Isolierung"
+    },
+    "filter": {
+      "all": "Alle",
+      "running": "Läuft",
+      "stopped": "Gestoppt",
+      "problem": "Erfordert Aufmerksamkeit"
+    }
+  },
+  "state": {
+    "defined": "Definiert",
+    "running": "Läuft",
+    "frozen": "Eingefroren",
+    "stopping": "Wird gestoppt",
+    "stopped": "Gestoppt",
+    "crashed": "Abgestürzt",
+    "unknown": "Unbekannt",
+    "unknownHint": "Der Host dieses Containers ist nicht erreichbar, daher ist sein Zustand tatsächlich unbekannt. Er wird von systemd überwacht und läuft vermutlich noch, aber nichts kann das bestätigen, bis der Agent zurückkehrt.",
+    "frozenHint": "Jeder Prozess ist angehalten. Arbeitsspeicher, geöffnete Dateien und Netzwerkverbindungen sind alle noch vorhanden, und das Auftauen setzt genau dort fort, wo angehalten wurde."
+  },
+  "isolation": {
+    "privileged": "Privilegiert",
+    "unprivileged": "Unprivilegiert",
+    "privilegedHint": "Dieser Container hat keinen User-Namespace. Root darin ist in jeder relevanten Hinsicht Root auf dem Host.",
+    "unprivilegedHint": "Root in diesem Container wird auf einen unprivilegierten Benutzer auf dem Host abgebildet.",
+    "nesting": "Verschachtelung",
+    "nestingHint": "Dieser Container darf eigene Container ausführen, was eine gelockerte Device-cgroup und ein permissives Mount-Profil erfordert.",
+    "idMapping": "ID-Zuordnung",
+    "idMappingHint": "Der Bereich von Host-UIDs und -GIDs, auf den die eigenen UIDs dieses Containers abgebildet werden. Keine zwei Container teilen sich einen Bereich."
+  },
+  "address": {
+    "observed": "Beobachtete Adresse",
+    "observedHint": "Vom Agent aus dem Netzwerk-Namespace des Containers gelesen, nicht aus dem Inneren des Containers gemeldet."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Übersicht",
+      "console": "Konsole",
+      "resources": "Ressourcen",
+      "mounts": "Einhängungen",
+      "processes": "Prozesse",
+      "snapshots": "Snapshots",
+      "backups": "Backups"
+    },
+    "overview": {
+      "init": "Init-System",
+      "os": "Betriebssystem",
+      "pool": "Speicherpool",
+      "isolation": "Isolierung",
+      "memory": "Arbeitsspeicher",
+      "processes": "Prozesse",
+      "started": "Gestartet",
+      "neverStarted": "Nie gestartet",
+      "exitReason": "Beendigungsgrund",
+      "lastError": "Letzter Fehler",
+      "unknown": "Unbekannt"
+    }
+  },
+  "console": {
+    "title": "Konsole",
+    "connecting": "Verbindung wird hergestellt…",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "reconnect": "Erneut verbinden",
+    "notRunning": "Der Container läuft nicht, daher gibt es nichts, woran man sich anbinden könnte.",
+    "permissionHint": "Das Anbinden einer Konsole ist eine Root-Shell im Container, weshalb dafür eine eigene Berechtigung nötig ist.",
+    "shell": "Shell",
+    "modeHint": "Die Konsole bindet sich an das eigene Terminal des Containers (PID 1) an und gibt dessen letzte Ausgabe wieder; beim Trennen läuft der Container weiter. Shell startet eine neue Root-Shell, die endet, wenn Sie die Verbindung trennen.",
+    "rootShellWarning": "Alles, was hier eingegeben wird, läuft als Root im Container."
+  },
+  "resources": {
+    "title": "Ressourcenlimits",
+    "liveNote": "Diese gelten sofort für einen laufenden Container. Es gibt keinen Neustart und keine Ausfallzeit – die Änderung wirkt, sobald sie angewendet wird.",
+    "queuedNote": "Dieser Container läuft nicht, daher werden diese Werte für seinen nächsten Start gespeichert.",
+    "memoryMax": "Arbeitsspeicherlimit",
+    "memoryMaxHint": "Die harte Obergrenze. Wird sie überschritten, beendet der OOM-Killer des Kernels einen Prozess im Container – meist nicht den verursachenden.",
+    "memoryHigh": "Drosseln bei",
+    "memoryHighHint": "Ein weiches Limit, gegen das der Kernel drosselt, bevor er etwas beendet. Das macht aus einem Container, der stirbt, einen Container, der langsam wird. Standard sind 90% des harten Limits.",
+    "swapMax": "Swap",
+    "swapMaxHint": "Standardmäßig aus. Swap in einem Container stammt aus dem Swap des Hosts und macht aus dem Speicherdruck eines Containers die Latenz aller anderen.",
+    "cpuMax": "CPU-Limit",
+    "cpuMaxHint": "Ein Kontingent und eine Periode in Mikrosekunden – \"200000 100000\" entspricht zwei Kernen. Bei \"max\" belassen für kein Limit.",
+    "cpuWeight": "CPU-Anteil",
+    "cpuWeightHint": "Relatives Gewicht, wenn Container um dieselben Kerne konkurrieren. Ohne Wirkung, solange Kerne frei sind.",
+    "cpuSet": "An Kerne gebunden",
+    "pidsMax": "Prozesslimit",
+    "pidsMaxHint": "Die maximale Anzahl an Prozessen. Ohne eines kann ein einzelner Container den Prozessraum des Hosts erschöpfen und alles andere mit sich reißen.",
+    "diskQuota": "Datenträgerkontingent",
+    "diskQuotaHint": "Wird vom Speicherpool durchgesetzt. Ein Verzeichnis-Pool kann kein Kontingent durchsetzen.",
+    "usage": {
+      "cpu": "CPU",
+      "memory": "Arbeitsspeicher",
+      "processes": "Prozesse",
+      "rootfs": "Rootfs",
+      "ofLimit": "des Limits",
+      "noLimit": "Kein Limit"
+    },
+    "applied": {
+      "title": "Jetzt in Kraft",
+      "clampedOne": "Der Kernel hat einen Wert angepasst: {{fields}}.",
+      "clampedOther": "Der Kernel hat {{count}} Werte angepasst: {{fields}}.",
+      "clampedHint": "Der Kernel rundet und begrenzt. Angezeigt wird, was tatsächlich in Kraft ist, nicht was angefragt wurde.",
+      "never": "Diese Limits haben nie einen laufenden Kernel erreicht.",
+      "pidsBadge": "{{value}} PIDs"
+    },
+    "lxcfsNote": "Werkzeuge im Container – free, top, /proc/cpuinfo – melden die Werte des Hosts statt die des Containers. Die Zahlen hier lesen die eigene cgroup des Containers und sind korrekt."
+  },
+  "mounts": {
+    "title": "Einhängungen",
+    "empty": "Keine Einhängungen. Der Container sieht nur sein eigenes Rootfs.",
+    "columns": {
+      "kind": "Art",
+      "source": "Quelle",
+      "destination": "Ziel",
+      "options": "Optionen"
+    },
+    "kind": {
+      "volume": "Volume",
+      "bind": "Host-Bind",
+      "device": "Gerät"
+    },
+    "kindHint": {
+      "volume": "Ein Verzeichnis im eigenen Speicherpool dieses Containers.",
+      "bind": "Ein Pfad auf dem Host. Alles dahinter ist aus dem Container vollständig erreichbar.",
+      "device": "Ein Host-Gerätedateiknoten."
+    },
+    "readonly": "Schreibgeschützt",
+    "shiftIds": "IDs verschoben",
+    "shiftIdsHint": "Ohne dies erscheint aus einem unprivilegierten Container jede Datei in der Einhängung als niemandem gehörig.",
+    "hostBindWarning": "Ein Bind-Mount eines Host-Pfads gibt diesem Container alles hinter diesem Pfad. Ein Container, der in das /etc des Hosts schreiben kann, kann die Passwörter des Hosts umschreiben.",
+    "mustBeStopped": "Der Container muss gestoppt sein, bevor seine Einhängungen geändert werden können."
+  },
+  "processes": {
+    "title": "Prozesse",
+    "empty": "Keine Prozesse. Der Container läuft nicht.",
+    "columns": {
+      "pid": "PID",
+      "user": "Benutzer",
+      "command": "Befehl",
+      "cpu": "CPU",
+      "memory": "Arbeitsspeicher"
+    },
+    "hostPidHint": "Derselbe Prozess vom Host aus gesehen, wo seine PID eine andere ist.",
+    "note": "Vom Host aus der cgroup des Containers gelesen. Dafür muss nichts im Container mitwirken."
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": "Noch keine Snapshots.",
+    "columns": {
+      "name": "Name",
+      "taken": "Erstellt",
+      "mechanism": "Mechanismus",
+      "consistency": "Konsistenz",
+      "size": "Größe",
+      "depth": "Kettentiefe"
+    },
+    "consistent": "Konsistent",
+    "crashConsistent": "Absturzkonsistent",
+    "consistentHint": "Der Container war während der Erstellung eingefroren, sodass sich sein Dateisystem in einem Zustand befindet, aus dem er hätte heruntergefahren werden können.",
+    "crashConsistentHint": "Der Container lief und war nicht eingefroren. Alles, was noch nicht auf den Datenträger geschrieben war, fehlt – derselbe Zustand wie nach einem Stromausfall.",
+    "mechanismHint": {
+      "zfs": "Ein ZFS-Snapshot. Sofort verfügbar und kostenlos, bis die Daten des Containers davon abweichen.",
+      "btrfs": "Ein btrfs-Snapshot. Sofort verfügbar und kostenlos, bis die Daten des Containers davon abweichen.",
+      "lvm": "Ein LVM-Snapshot.",
+      "rsync": "Eine vollständige Kopie. Dieser Pool hat keinen eigenen Snapshot-Mechanismus, daher ist dies eine echte Kopie des Rootfs – korrekt, aber deutlich langsamer und mit entsprechendem Platzbedarf."
+    },
+    "chainWarning": "Tiefe Snapshot-Ketten verlangsamen jedes Lesen. Das ist der übliche Grund, warum ein Container rätselhaft langsam wird.",
+    "revertWarning": "Das Zurücksetzen verwirft jede seit diesem Snapshot vorgenommene Änderung und jeden danach erstellten Snapshot.",
+    "freezeOption": "Container während der Snapshot-Erstellung einfrieren",
+    "freezeHint": "Kostet auf einem Copy-on-Write-Pool Millisekunden und macht den Snapshot wiederherstellbar."
+  },
+  "create": {
+    "title": "Systemcontainer erstellen",
+    "steps": {
+      "source": "Quelle",
+      "profile": "Profil",
+      "resources": "Ressourcen",
+      "network": "Netzwerk",
+      "setup": "Einrichtung",
+      "summary": "Zusammenfassung"
+    },
+    "source": {
+      "title": "Was soll dieser Container ausführen?",
+      "image": "Ein Distributions-Image",
+      "imageHint": "Ein Root-Dateisystemarchiv, das McHarbor bereits heruntergeladen und verifiziert hat.",
+      "template": "Eine Ihrer Vorlagen",
+      "templateHint": "Ein Container, den Sie als Vorlage markiert haben. Auf einem Copy-on-Write-Pool ist das nahezu sofort erledigt.",
+      "noImages": "Auf diesen Host wurden noch keine Container-Images heruntergeladen.",
+      "downloadImages": "Images herunterladen"
+    },
+    "profile": {
+      "title": "Wie soll er isoliert werden?",
+      "init": "Init-System",
+      "initHint": "systemd benötigt einen delegierten cgroup-Teilbaum und ein eigenes Stopp-Signal. Die falsche Wahl ergibt einen Container, der startet und sofort wieder beendet.",
+      "unprivileged": "Unprivilegiert (empfohlen)",
+      "unprivilegedHint": "Root im Container wird auf einen unprivilegierten Benutzer auf dem Host abgebildet. Das macht einen Container sicher genug, um ihn jemandem zu übergeben.",
+      "privileged": "Privilegiert",
+      "privilegedHint": "Kein User-Namespace. Root im Container ist in jeder relevanten Hinsicht Root auf dem Host – verwenden Sie dies nur für etwas, dem Sie den Host selbst anvertrauen würden.",
+      "nesting": "Container innerhalb dieses Containers erlauben",
+      "nestingHint": "Erforderlich, um Docker oder eine andere Container-Runtime darin auszuführen. Es lockert die Device-cgroup und das Mount-Profil.",
+      "privilegeRequired": "Erfordert die Berechtigung ct.privileged."
+    },
+    "resources": {
+      "title": "Wie viel soll erlaubt sein?",
+      "preset": "Voreinstellung",
+      "presets": {
+        "small": "Klein — 512 MB, 1 Kern",
+        "medium": "Mittel — 2 GB, 2 Kerne",
+        "large": "Groß — 8 GB, 4 Kerne",
+        "custom": "Benutzerdefiniert"
+      },
+      "liveNote": "All dies lässt sich später ändern, während der Container läuft."
+    },
+    "network": {
+      "title": "Wie soll er das Netzwerk erreichen?",
+      "network": "Netzwerk",
+      "noNetworks": "Auf diesem Host wurden noch keine Netzwerke eingerichtet.",
+      "addressMode": "Adresse",
+      "dhcp": "Per DHCP",
+      "static": "Statisch",
+      "staticIp": "IP-Adresse",
+      "staticGateway": "Gateway",
+      "staticIpv6": "Statische IPv6 (CIDR)",
+      "staticGateway6": "IPv6-Gateway",
+      "staticIpv6Hint": "Optional und unabhängig von der Adresseinstellung oben: Ein Container mit DHCP kann trotzdem eine feste IPv6-Adresse haben.",
+      "staticDns": "DNS-Server",
+      "staticHint": "Ein Container hat kein cloud-init. Eine statische Adresse wird in die eigene Netzwerkkonfiguration der Distribution geschrieben; ist sie falsch, ist der Container nur noch über seine Konsole erreichbar.",
+      "networkPlaceholder": "Ein Netzwerk auswählen",
+      "attachment": "Anbindung über {{attachment}}"
+    },
+    "setup": {
+      "title": "Ersteinrichtung",
+      "hostname": "Hostname",
+      "timezone": "Zeitzone",
+      "sshKeys": "SSH-Schlüssel",
+      "sshKeysHint": "Ein Schlüssel pro Zeile. Wird vor dem ersten Start des Containers in die authorized_keys von root geschrieben.",
+      "password": "Root-Passwort",
+      "passwordHint": "Wird vor dem Speichern und bevor es diesen Server verlässt gehasht. Das Passwort selbst wird nirgends auf den Datenträger geschrieben.",
+      "noAccessWarning": "Ohne SSH-Schlüssel oder Passwort führt der einzige Weg in diesen Container über seine Konsole."
+    },
+    "summary": {
+      "title": "Bereit zum Erstellen",
+      "startAfterCreate": "Nach dem Erstellen starten",
+      "startHint": "Standardmäßig aus, damit Sie seine Netzwerkkonfiguration prüfen können, bevor er im Netzwerk ist."
+    }
+  },
+  "clone": {
+    "title": "{{name}} klonen",
+    "body": "Erstellt aus diesem Container einen neuen im selben Pool. Standardmäßig ist es eine vollständige Kopie: Danach wird nichts mehr mit der Quelle geteilt.",
+    "name": "Name des Klons",
+    "linked": "Speicher mit der Quelle teilen",
+    "linkedHint": "Fordert vom Pool einen verknüpften Klon an, der unveränderte Daten mit der Quelle teilt. Die Quelle kann nicht gelöscht werden, solange der Klon existiert. Kann der Host keine Verknüpfung herstellen, erhalten Sie stattdessen eine vollständige Kopie, und das Ergebnis weist darauf hin.",
+    "linkedUnavailable": "Der Pool dieses Containers kann keine Daten teilen, daher wird der Klon eine vollständige Kopie.",
+    "start": "Klon starten, sobald er bereit ist",
+    "resultLinked": "{{name}} wurde als verknüpfter Klon erstellt. Er teilt Daten mit seiner Quelle, die nicht gelöscht werden kann, solange der Klon existiert.",
+    "resultFull": "{{name}} wurde als vollständige Kopie erstellt. Es wird nichts mit der Quelle geteilt."
+  },
+  "delete": {
+    "title": "{{name}} löschen?",
+    "body": "Dadurch werden der Container und alles darin entfernt.",
+    "keepRootfs": "Dateisystem behalten",
+    "keepRootfsHint": "Der Container wird aus McHarbor entfernt, seine Dateien bleiben aber im Pool.",
+    "templateInUse": "Diese Vorlage dient noch anderen Containern als Grundlage. Ein Löschen würde sie beschädigen.",
+    "confirm": "Geben Sie zur Bestätigung den Namen des Containers ein."
+  },
+  "diagnose": {
+    "title": "Was wahrscheinlich nicht stimmt",
+    "pending": "Definition und Beendigungsgrund des Containers werden gelesen…",
+    "unavailable": "In dieser Installation ist kein KI-Anbieter eingerichtet.",
+    "dismiss": "Ausblenden",
+    "disclaimer": "Ein Vorschlag eines Sprachmodells, das Definition, Limits und Beendigungsgrund dieses Containers liest. Aus dem Inneren des Containers wurde nichts gesendet."
+  },
+  "widgets": {
+    "ctSummary": {
+      "label": "Systemcontainer",
+      "description": "Wie viele Container es gibt und wie viele davon laufen."
+    },
+    "ctDensity": {
+      "label": "Container-Dichte",
+      "description": "Was Ihre Container tatsächlich verbrauchen im Vergleich zu dem, was ihnen erlaubt ist."
+    },
+    "empty": "Noch keine Systemcontainer.",
+    "running": "Läuft",
+    "stopped": "Gestoppt",
+    "problem": "Erfordert Aufmerksamkeit",
+    "memoryInUse": "Belegter Arbeitsspeicher",
+    "nearLimit": "Nahe an einem Limit",
+    "densityHint": "Container teilen sich Kernel und Page-Cache, daher liegt die tatsächliche Nutzung deutlich unter der Summe ihrer Limits."
+  },
+  "reports": {
+    "platform": "System-Container",
+    "isolation": {
+      "label": "Systemcontainer-Isolation",
+      "description": "Bei welchen Containern eine Grenze zum Host entfernt wurde: Privilegien, Host-Einhängungen, Nesting und ID-Zuordnung."
+    },
+    "options": {
+      "aiSummary": "Eine schriftliche Bewertung hinzufügen (nutzt Ihren konfigurierten KI-Anbieter)"
+    }
+  },
+  "backups": {
+    "title": "Backup-Zeitpläne",
+    "description": "Ein Backup verlässt diesen Host. Es ist ein komprimiertes Archiv des Container-Dateisystems plus ein Manifest seiner Definition, geschrieben auf die von Ihnen genannten Speicherziele – so bleiben die Backups erhalten, wenn ein Pool-Ausfall die Snapshots mitreißt.",
+    "history": "Backup-Verlauf",
+    "runNow": "Jetzt sichern",
+    "addPlan": "Zeitplan hinzufügen",
+    "editPlan": "Zeitplan bearbeiten",
+    "deletePlan": "Zeitplan löschen",
+    "restore": "Wiederherstellen",
+    "delete": "Backup löschen",
+    "disabled": "Aus",
+    "noPlans": "Noch kein Backup-Zeitplan. Solange keiner existiert, ist dieser Container nur durch seine Snapshots geschützt, die auf demselben Pool liegen wie er selbst.",
+    "noRuns": "Es wurde noch nichts gesichert.",
+    "noDestinations": "Es ist kein Speicherziel konfiguriert. Fügen Sie unter Einstellungen eines hinzu, bevor Sie ein Backup schreiben.",
+    "fellBack": "Als vollständige Kopie erstellt",
+    "fellBackHint": "Ein inkrementelles Backup war fällig, stattdessen wurde eine vollständige Kopie erstellt: {{reason}}",
+    "idShift": {
+      "none": "Besitzer unverändert",
+      "noneHint": "Das Backup wurde im ID-Bereich dieses Containers erstellt, daher musste kein Dateibesitzer verschoben werden.",
+      "shifted": "Besitzer verschoben",
+      "shiftedHint": "Der Besitz wurde in den ID-Bereich dieses Containers verschoben: Jeder Dateibesitzer wurde aus dem Bereich verschoben, in dem das Backup erstellt wurde.",
+      "skipped": "Besitzer nicht verschoben",
+      "skippedHint": "Der Host hat die Dateien wiederhergestellt, ohne ihre Besitzer zu verschieben, daher gehören sie weiterhin zum ID-Bereich, in dem das Backup erstellt wurde."
+    },
+    "blocked": {
+      "template": "Eine Vorlage kann nicht gesichert werden: Ihr Dateisystem ist der Backing-Store für jeden ihrer Klone.",
+      "hostOffline": "Der Host dieses Containers ist nicht erreichbar, daher kann kein Backup starten.",
+      "noDestination": "Fügen Sie zuerst unter Einstellungen ein Speicherziel hinzu – ein Backup, das nirgendwohin geht, ist kein Backup.",
+      "noPlan": "Fügen Sie zuerst einen Zeitplan hinzu, damit das Backup weiß, wohin es schreiben soll."
+    },
+    "planColumns": {
+      "name": "Zeitplan",
+      "schedule": "Läuft",
+      "retention": "Behält",
+      "lastRun": "Letzter Lauf",
+      "nextRun": "Nächster Lauf"
+    },
+    "columns": {
+      "started": "Gestartet",
+      "operation": "Was",
+      "kind": "Art",
+      "size": "Größe",
+      "consistency": "Erstellt",
+      "destinations": "Geschrieben nach",
+      "status": "Status"
+    },
+    "operation": {
+      "backup": "Backup",
+      "restore": "Wiederherstellung"
+    },
+    "kind": {
+      "full": "Vollständig",
+      "incremental": "Inkrementell"
+    },
+    "consistency": {
+      "snapshot": "Aus einem Snapshot",
+      "snapshotHint": "Das Archiv wurde aus einem Punkt-in-Zeit-Snapshot statt aus dem Live-Dateisystem gelesen. Auf einem btrfs-, ZFS- oder LVM-Pool ist der Snapshot sofort fertig, und der Container wurde nie angehalten.",
+      "live-copy": "Live-Kopie",
+      "live-copyHint": "Das Rootfs wurde kopiert, während der Container weiterlief, ohne Snapshot oder Einfrieren. Die Dateien wurden zu unterschiedlichen Zeitpunkten gelesen, daher ist die Kopie kein Punkt-in-Zeit-Abbild: Eine Datenbank oder ein laufendes Paket-Upgrade kann halb geschrieben erfasst werden. Stoppen Sie in diesem Fall zuerst den Container oder verwenden Sie einen btrfs-, ZFS- oder LVM-Thin-Pool.",
+      "frozen": "Eingefroren",
+      "frozenHint": "Die Prozesse des Containers wurden für die Dauer der Kopie eingefroren. Konsistent, und er hat währenddessen nichts ausgeführt.",
+      "filesystem": "Im Ruhezustand",
+      "filesystemHint": "Der Container lief nicht, daher hat beim Lesen nichts in das Dateisystem geschrieben."
+    },
+    "status": {
+      "running": "Läuft",
+      "success": "Erfolgreich",
+      "failure": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
+    },
+    "errorHint": {
+      "backupKeyMissing": "In diesem McHarbor ist kein Backup-Verschlüsselungsschlüssel installiert, daher würde kein Ziel das Backup annehmen. Installieren Sie einen unter Einstellungen → Speicher → Backup-Verschlüsselungsschlüssel und führen Sie das Backup erneut aus."
+    },
+    "retention": {
+      "lastCount": "letzte {{count}}",
+      "forDays": "{{days}} Tage",
+      "forever": "Unbegrenzt"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Nächtliches Backup",
+      "schedule": "Zeitplan",
+      "scheduleHint": "Wann dieses Backup läuft. Der lesbare Builder deckt die üblichen Fälle ab; das erweiterte Feld akzeptiert jeden Cron-Ausdruck mit fünf Feldern.",
+      "enabled": "Nach diesem Zeitplan ausführen",
+      "destinations": "Ziele",
+      "destinationsHint": "Jedes gewählte Ziel erhält eine eigene Kopie. Eine Kopie ist kein Backup.",
+      "retentionCount": "So viele aufbewahren",
+      "retentionDays": "So viele Tage aufbewahren",
+      "retentionHint": "Null bedeutet unbegrenzt. Ein Backup, auf dem ein späteres inkrementelles noch aufbaut, wird nie gelöscht, ebenso wenig das einzige verbleibende Backup eines Containers, der noch existiert.",
+      "fullEvery": "Vollständige Kopie erstellen alle",
+      "fullEveryUnit": "Läufe",
+      "fullEveryHint": "Inkrementelle Backups sind schnell, und jedes hängt von den Kopien davor ab. Ein regelmäßiger Neustart der Kette hält eine Wiederherstellung kurz. Null erzwingt nie eine.",
+      "quiesceNotice": "Ein laufender Container wird per Snapshot gesichert, wo sein Pool das kann, und dort, wo nicht, für die Dauer der Kopie eingefroren. Eine Kopie, die weder das eine noch das andere zuließ, wird abgelehnt statt geschrieben, da ein halb geschriebenes Dateisystem nicht von einem guten zu unterscheiden ist.",
+      "save": "Zeitplan speichern"
+    },
+    "deletePlanConfirm": {
+      "title": "Diesen Zeitplan löschen?",
+      "body": "Die bereits geschriebenen Backups bleiben, wo sie sind, und bleiben wiederherstellbar. Nur der Zeitplan entfällt."
+    },
+    "deleteConfirm": {
+      "title": "Dieses Backup löschen?",
+      "body": "Die Kopien an jedem Ziel werden ebenfalls entfernt. Ein Backup, auf dem ein späteres inkrementelles aufbaut, kann nicht gelöscht werden."
+    },
+    "restoreDialog": {
+      "title": "{{name}} wiederherstellen?",
+      "description": "Baut das Dateisystem dieses Containers aus dem am {{taken}} erstellten Backup neu auf.",
+      "needsStop": "Der Container muss zuerst gestoppt werden. Das Ersetzen des Dateisystems unter einem laufenden Init schlägt nicht sauber fehl.",
+      "spaceNotice": "Das Dateisystem wird neben dem aktuellen neu aufgebaut und im letzten Schritt an seinen Platz verschoben, daher braucht der Host währenddessen Platz für eine zweite Kopie.",
+      "chainNote": "Dies ist ein inkrementelles Backup, daher werden die vollständige Kopie, auf der es aufbaut, und jedes inkrementelle dazwischen heruntergeladen und der Reihe nach angewendet.",
+      "irreversible": "Dadurch wird jetzt alles im Dateisystem des Containers ersetzt. Dies kann nicht rückgängig gemacht werden.",
+      "confirm": "Geben Sie {{name}} zur Bestätigung ein",
+      "submit": "Dieses Backup wiederherstellen"
+    }
+  },
+  "recreate": {
+    "action": "Als neuen Container neu erstellen",
+    "orphaned": {
+      "button": "Backups gelöschter Container",
+      "title": "Backups gelöschter Container",
+      "description": "Diese Backups gehören zu Containern, die McHarbor nicht mehr hat. Ein Backup überdauert seinen Container mit Absicht – wählen Sie eines aus, um den Container daraus neu zu erstellen.",
+      "empty": "Jedes Backup gehört zu einem Container, der noch existiert.",
+      "container": "Container",
+      "unknownName": "Unbenannter Container"
+    },
+    "dialog": {
+      "title": "{{name}} aus einem Backup neu erstellen",
+      "description": "Alles unten stammt aus der mit dem am {{taken}} erstellten Backup gespeicherten Definition. Ändern Sie alles, was nicht mehr passt – einen bereits verwendeten Namen, einen Pool oder ein Netzwerk, das nicht mehr existiert.",
+      "loading": "Definition des Containers wird vom Backup-Ziel gelesen…",
+      "pool": "Speicherpool",
+      "poolPlaceholder": "Einen Pool wählen",
+      "poolMissing": "Der Pool, auf dem dieser Container lag ({{backend}} unter {{target}}), ist auf diesem Host nicht vorhanden. Wählen Sie einen anderen.",
+      "interfaces": "Schnittstellen",
+      "noInterfaces": "Keine Schnittstellen. Der Container hat nur Loopback.",
+      "networkPlaceholder": "Ein Netzwerk wählen",
+      "networkMissing": "Das Netzwerk, in dem diese Schnittstelle lag, existiert nicht mehr. Wählen Sie ein anderes oder entfernen Sie die Schnittstelle.",
+      "removeInterface": "Schnittstelle {{name}} entfernen",
+      "mounts": "Einhängungen",
+      "noMounts": "Keine Einhängungen.",
+      "removeMount": "Einhängung {{destination}} entfernen",
+      "startAfter": "Nach Abschluss der Wiederherstellung starten",
+      "restoreNote": "Der Container wird gestoppt erstellt, dann wird sein Dateisystem aus diesem Backup und jedem Backup, auf dem es aufbaut, neu aufgebaut. Schnittstellen erhalten neue MAC-Adressen, daher passt eine DHCP-Reservierung auf die alte nicht.",
+      "submit": "Container neu erstellen"
+    },
+    "warnings": {
+      "name_invalid": "Der gespeicherte Name kann hier nicht für einen Container verwendet werden. Wählen Sie einen neuen.",
+      "init_unknown": "Das gespeicherte Init-System wird von McHarbor nicht ausgeführt, daher wurde systemd gewählt. Prüfen Sie es vor dem Erstellen.",
+      "pool_target_unknown": "Der gespeicherte Rootfs-Pfad gibt nicht an, auf welchem Pool er lag. Wählen Sie einen Pool.",
+      "nic_dropped": "Eine Schnittstelle ohne Bridge oder übergeordneten Adapter wurde ausgelassen.",
+      "mount_dropped": "Eine Einhängung mit unbekannter Art oder ohne Quelle wurde ausgelassen.",
+      "limits_adjusted": "Ein negatives Limit wurde auf kein Limit zurückgesetzt."
+    }
+  },
+  "permissions": {
+    "ct.view": {
+      "label": "Systemcontainer anzeigen"
+    },
+    "ct.manage": {
+      "label": "Systemcontainer verwalten"
+    },
+    "ct.delete": {
+      "label": "Systemcontainer löschen"
+    },
+    "ct.console": {
+      "label": "Eine Systemcontainer-Konsole öffnen"
+    },
+    "ct.backup": {
+      "label": "Systemcontainer sichern"
+    },
+    "ct.restore": {
+      "label": "Einen Systemcontainer aus einem Backup wiederherstellen"
+    },
+    "ct.privileged": {
+      "label": "Privilegierte Container ausführen und Host-Pfade einhängen"
+    }
+  },
+  "err": {
+    "ct": {
+      "unauthorized": "Dafür müssen Sie sich anmelden.",
+      "privilege_required": "Dafür wird die Berechtigung zum Ausführen privilegierter Container und zum Einhängen von Host-Pfaden benötigt.",
+      "invalid_request": "Etwas an dieser Anfrage war nicht verwendbar.",
+      "not_found": "Dieser Container existiert nicht mehr.",
+      "name_taken": "Ein Container auf diesem Host hat bereits diesen Namen.",
+      "pool_mismatch": "Dieser Pool ist auf diesem Host bereits mit einem anderen Backend oder Pfad erfasst. Wählen Sie den Pool erneut aus der Liste.",
+      "pool_required": "Ein Speicherpool ist erforderlich.",
+      "running": "Der Container muss zuerst gestoppt werden.",
+      "not_running": "Der Container läuft nicht.",
+      "host_offline": "Der Host dieses Containers ist nicht erreichbar.",
+      "no_capability": "Dieser Host kann keine System-Container ausführen.",
+      "snapshot_chain_deep": "Dieser Container hat zu viele gestapelte Snapshots. Löschen Sie einige, bevor Sie einen weiteren erstellen.",
+      "template_in_use": "Diese Vorlage dient noch als Grundlage für andere Container.",
+      "template_running": "Eine Vorlage kann nicht gestartet werden.",
+      "bad_mount": "Diese Einhängung ist nicht zulässig.",
+      "id_range_exhausted": "Auf diesem Host ist kein freier ID-Bereich für einen weiteren unprivilegierten Container mehr verfügbar.",
+      "command_failed": "Der Host konnte das nicht ausführen.",
+      "agent_too_old": "Der Host dieses Containers führt einen Agent aus, der zu alt ist, um das Root-Dateisystem eines Containers zu erstellen oder zu entfernen. Aktualisieren Sie den Agent auf diesem Host und versuchen Sie es erneut.",
+      "image_not_cached": "Dieses Image wurde noch nicht auf diesen Host heruntergeladen. Laden Sie es unter Compute → Images auf den Host herunter und erstellen Sie den Container dann erneut.",
+      "stats_unavailable": "Der Agent des Hosts hat keine Statistiken für diesen laufenden Container geliefert. Aktualisieren Sie den Agent auf diesem Host, um die Live-Auslastung zu sehen.",
+      "nic_ipv6_invalid": "Geben Sie eine IPv6-Adresse mit Präfixlänge ein, z. B. 2001:db8::50/64, und ein IPv6-Gateway. IPv4-Werte sind in diesen Feldern nicht zulässig.",
+      "nic_ipv6_macvlan_only": "Eine statische IPv6-Adresse ist nur in direkten (Macvlan-)Netzwerken verfügbar.",
+      "not_ready": "Dieser Bereich startet noch. Versuchen Sie es gleich erneut.",
+      "backup_name_required": "Ein Backup-Zeitplan benötigt einen Namen.",
+      "backup_name_too_long": "Der Name dieses Backup-Zeitplans ist zu lang.",
+      "backup_retention_invalid": "Diese Aufbewahrungseinstellung liegt außerhalb des zulässigen Bereichs.",
+      "backup_cron_invalid": "Das ist kein gültiger Cron-Ausdruck mit fünf Feldern.",
+      "backup_no_destination": "Dieses Backup hat kein Ziel. Wählen Sie mindestens ein Speicherziel aus.",
+      "backup_chain_incomplete": "Die Kette dieses Backups ist unvollständig und kann daher nicht wiederhergestellt werden.",
+      "backup_chain_unrestorable": "Dieses Backup kann nicht wiederhergestellt werden: Seine inkrementellen Backups wurden von einer Live-Kopie eines Dir-Pool-Root-Dateisystems gelesen. Stellen Sie stattdessen das vollständige Backup wieder her, auf dem es aufbaut.",
+      "backup_idmap_conflict": "Dieses Backup kann nicht wiederhergestellt werden: Die Backups in seiner Kette haben unterschiedliche ID-Bereiche aufgezeichnet, sodass die Dateibesitzer nicht konsistent in den Ziel-Container übertragen werden können.",
+      "backup_not_confirmed": "Geben Sie den Namen des Containers ein, um die Wiederherstellung zu bestätigen.",
+      "backup_template": "Eine Vorlage kann nicht gesichert oder überschrieben wiederhergestellt werden.",
+      "backup_agent_too_old": "Der Host dieses Containers führt einen Agent aus, der zu alt ist, um einen Container zu sichern.",
+      "backup_store_failed": "McHarbor konnte das Backup nicht an seinem Ziel speichern.",
+      "backup_manifest_missing": "Die Container-Definition dieses Backups befindet sich an keinem seiner Ziele mehr. Erstellen Sie manuell einen Container und stellen Sie das Backup stattdessen dort ein.",
+      "backup_manifest_unreadable": "Die Container-Definition dieses Backups konnte nicht gelesen werden.",
+      "recreate_manage_required": "Zum Neuerstellen eines Containers sind auf diesem Host ct.manage und ct.restore erforderlich.",
+      "recreate_restore_required": "Zum Neuerstellen eines Containers aus einem Backup ist auf diesem Host ct.restore erforderlich."
+    }
+  },
+  "msg": {
+    "ct": {
+      "created": "Container erstellt.",
+      "updated": "Container aktualisiert.",
+      "started": "Container gestartet.",
+      "stopped": "Container gestoppt.",
+      "shutdown_escalated": "Der Container wurde nicht von selbst beendet und wurde abgebrochen.",
+      "restarted": "Container neu gestartet.",
+      "frozen": "Container eingefroren.",
+      "unfrozen": "Container aufgetaut.",
+      "deleted": "Container gelöscht.",
+      "limits_applied": "Limits angewendet. Sie sind jetzt aktiv.",
+      "limits_queued": "Limits gespeichert. Sie gelten ab dem nächsten Start des Containers.",
+      "snapshot_created": "Snapshot erstellt.",
+      "snapshot_reverted": "Container zurückgesetzt.",
+      "snapshot_deleted": "Snapshot gelöscht.",
+      "cloned": "Container geklont.",
+      "templated": "Vorlage aktualisiert.",
+      "nic_added": "Schnittstelle hinzugefügt.",
+      "mount_added": "Einhängung hinzugefügt.",
+      "backup_plan_saved": "Backup-Zeitplan gespeichert.",
+      "backup_plan_deleted": "Backup-Zeitplan gelöscht.",
+      "backup_started": "Backup gestartet. Es läuft weiter, wenn Sie diese Seite verlassen.",
+      "backup_stored": "Backup gespeichert.",
+      "backup_deleted": "Backup gelöscht.",
+      "restore_started": "Wiederherstellung gestartet.",
+      "recreate_started": "Container definiert. Sein Dateisystem wird aus dem Backup wiederhergestellt und er kann gestartet werden, sobald die Wiederherstellung abgeschlossen ist."
+    }
+  },
+  "runbook": {
+    "attach": {
+      "ct": "Systemcontainer"
+    },
+    "targets": {
+      "ct": "Systemcontainer"
+    },
+    "steps": {
+      "ct_start": "Startet den System-Container",
+      "ct_stop": "Stoppt den System-Container",
+      "ct_restart": "Startet den System-Container neu",
+      "ct_freeze": "Friert jeden Prozess im System-Container ein",
+      "ct_unfreeze": "Taut einen eingefrorenen System-Container auf",
+      "ct_backup_run": "Sichert den System-Container jetzt",
+      "ct_state": "Status, Limits und Host des System-Containers",
+      "ct_backups": "Die 20 neuesten Backups des System-Containers"
+    }
+  },
+  "estate": {
+    "containers": "System-Container"
+  },
+  "search": {
+    "group": {
+      "containers": "System-Container"
+    },
+    "action": {
+      "createContainer": "System-Container erstellen",
+      "createContainerKeywords": "neuer lxc ct container"
+    }
+  }
+}

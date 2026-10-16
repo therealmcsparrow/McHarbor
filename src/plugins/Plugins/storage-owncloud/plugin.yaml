@@ -1,0 +1,44 @@
+# plugin.yaml — manifest for the storage-owncloud plugin.
+#
+# ownCloud (Classic) is the upstream project that Nextcloud forked
+# from in 2016. The classic ownCloud server (PHP / Apache) uses
+# the same WebDAV paths as Nextcloud for compatibility, so this
+# plugin uses the same /remote.php/dav/files/{user}/ endpoint
+# and the same Basic auth flow as the Nextcloud / OpenCloud
+# plugins. Operators authenticate with an app password from
+# ownCloud's Personal settings → Security → App passwords (or
+# via OAuth 2.0 client credentials).
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-owncloud"
+name:     "ownCloud"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Back up containers to an ownCloud (Classic) instance via WebDAV (RFC 4918). ownCloud uses the same WebDAV surface as Nextcloud (/remote.php/dav/files/{user}/) for compatibility, so the plugin uses the same path and Basic auth flow as the Nextcloud plugin. Two auth modes: OAuth 2.0 refresh-token flow or direct app-password authentication. Chunked uploads use Content-Range PUT, supported server-side by ownCloud's WebDAV. Same Test round-trip shape (write / change / delete) as the SharePoint, Google Drive, and Nextcloud plugins."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-owncloud"
+  forms:
+    - resource: "storage_location"
+      kind: "config_form"
+      key: "owncloud"
+    - resource: "storage_location"
+      kind: "setup_guide"
+      key: "owncloud"
+
+signature: ""
+checksum:  ""

@@ -4,7 +4,7 @@
   "description": "HTTP accelerator designed for content-heavy dynamic web sites and APIs.",
   "category": "Networking",
   "image": "varnish:latest",
-  "logo": "https://varnish-cache.org/sites/default/files/varnish_50.png",
+  "logo": "https://www.google.com/s2/favicons?domain=varnish-cache.org\u0026sz=128",
   "website": "https://varnish-cache.org",
   "docsUrl": "https://varnish-cache.org/docs/",
   "ports": [
@@ -31,5 +31,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

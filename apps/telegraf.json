@@ -1,0 +1,32 @@
+{
+    "slug":  "telegraf",
+    "name":  "Telegraf",
+    "description":  "Plugin-driven agent for collecting, processing, and shipping metrics and logs to virtually any backend.",
+    "category":  "Monitoring",
+    "image":  "telegraf:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/telegraf.png",
+    "website":  "https://www.influxdata.com/time-series-platform/telegraf/",
+    "docsUrl":  "https://docs.influxdata.com/telegraf/v1/install/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/telegraf/telegraf.conf",
+                        "container":  "/etc/telegraf/telegraf.conf",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

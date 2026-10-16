@@ -1,0 +1,19 @@
+{
+  "label": "Almacén KV",
+  "description": "Leer, escribir o eliminar un valor en el almacén clave-valor del flujo",
+  "config": {
+    "operation": "Operación",
+    "key": "Llave",
+    "output_property": "Propiedad de salida",
+    "default_value": "Valor predeterminado",
+    "property": "Propiedad",
+    "ttl": "TTL (segundos)"
+  },
+  "options": {
+    "operation": {
+      "get": "Obtener",
+      "set": "Guardar",
+      "delete": "Eliminar"
+    }
+  }
+}

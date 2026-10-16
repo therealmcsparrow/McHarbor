@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Google",
+    "subtitle": "Verbindet die McHarbor-Anmeldung mit Google-Konten. Unterstützt sowohl persönliche Google-Konten als auch Google Workspace (setzen Sie das Feld Workspace-Domain, um über den OIDC-Hinweis hd= auf einen Tenant zu beschränken). Der Abruf von Admin-Gruppen ist für Workspace-Tenants über ein Dienstkonto mit domainweiter Delegierung verfügbar.",
+    "registerHint": "Fügen Sie auf der Seite Einstellungen > Sicherheit > Identitätsanbieter des Hosts einen Anbieter hinzu und wählen Sie „Google“ als provider_type."
+  },
+  "fields": {
+    "client_id":                     "Client-ID",
+    "client_secret":                 "Client-Secret",
+    "domain":                        "Workspace-Domain",
+    "scopes":                        "Scopes",
+    "service_account_json":          "Dienstkonto-JSON (Admin-Gruppen)",
+    "delegated_user_email":          "E-Mail des delegierten Benutzers",
+    "delegated_user_access_token":   "Zugriffstoken des delegierten Benutzers (Überschreibung)",
+    "user_email_for_lookup":         "Benutzer-E-Mail für Gruppensuche"
+  },
+  "help": {
+    "client_id":                     "OAuth-2.0-Client-ID aus der Google Cloud Console (APIs & Services > Credentials > Ihr OAuth-Client für Webanwendungen).",
+    "client_secret":                 "Von Google ausgestelltes OAuth-Client-Secret. Im Ruhezustand verschlüsselt gespeichert (AES-256-GCM).",
+    "domain":                        "Optionale gehostete Google-Workspace-Domain (z. B. example.com). Wenn gesetzt, übergibt das Plugin sie als Query-Parameter hd=, sodass sich nur Konten dieses Workspace anmelden können. Leer lassen, um persönliche Google-Konten zuzulassen.",
+    "scopes":                        "Durch Leerzeichen getrennte OAuth-Scopes. Standardmäßig openid profile email. Fügen Sie https://www.googleapis.com/auth/admin.directory.group.readonly hinzu, um den Abruf von Admin-Gruppen über die Directory API zu aktivieren.",
+    "service_account_json":          "Optional: Inhalt einer JSON-Schlüsseldatei eines Google-Dienstkontos mit domainweiter Delegierung. Erforderlich für den Gruppenabruf über das Admin SDK. Im Ruhezustand verschlüsselt gespeichert.",
+    "delegated_user_email":          "Optional: der Workspace-Admin-Benutzer, den das Dienstkonto imitiert (z. B. admin@example.com). Erforderlich, wenn service_account_json gesetzt ist.",
+    "delegated_user_access_token":   "Optional: manuell ausgestellter Google-API-Zugriffstoken für Admin-SDK-Aufrufe. Verwenden Sie ihn, bis v1.1 die RS256-JWT-Signierung für Dienstkonto-Assertions liefert.",
+    "user_email_for_lookup":         "Optional: E-Mail des Benutzers, für den Gruppen abgefragt werden. Die meisten Operatoren lassen dies leer und überlassen es dem Host, zur Laufzeit die E-Mail des authentifizierten Benutzers zu übergeben."
+  },
+  "guide": {
+    "title":    "Google-Anmeldung in McHarbor einrichten",
+    "subtitle": "Erstellen Sie in der Google Cloud Console einen OAuth-2.0-Client für Webanwendungen und konfigurieren Sie optional ein Dienstkonto für den Gruppenabruf über das Admin SDK.",
+    "step1": {
+      "title": "Google-Cloud-Projekt erstellen oder auswählen",
+      "body":  "Öffnen Sie die Google Cloud Console und wählen Sie ein vorhandenes Projekt oder erstellen Sie ein neues, das McHarbor gewidmet ist. Notieren Sie die Projekt-ID — Sie benötigen sie bei der Konfiguration des OAuth-Zustimmungsbildschirms."
+    },
+    "step2": {
+      "title": "OAuth-Zustimmungsbildschirm konfigurieren",
+      "body":  "Legen Sie unter APIs & Services > OAuth consent screen den Benutzertyp (Internal für Google Workspace, sonst External), die Support-E-Mail und den App-Namen fest. Fügen Sie die benötigten Scopes hinzu: openid, profile, email (immer) und https://www.googleapis.com/auth/admin.directory.group.readonly (nur wenn Sie den Gruppenabruf wünschen)."
+    },
+    "step3": {
+      "title": "OAuth-Web-Client erstellen",
+      "body":  "Wählen Sie unter APIs & Services > Credentials > Create credentials > OAuth client ID den Anwendungstyp Web application. Fügen Sie unter Authorized redirect URIs die auf der Bearbeitungsseite des Anbieters angezeigte McHarbor-Callback-URL hinzu — der Host hängt /api/identity-providers/callback an Ihre McHarbor-Basis-URL an. Kopieren Sie die von Google angezeigte Client-ID und das Client-Secret in die passenden Felder im Anbieterformular."
+    },
+    "step4": {
+      "title": "(Nur Workspace) Workspace-Domain festlegen",
+      "body":  "Wenn Sie die Anmeldung auf einen einzelnen Google-Workspace-Tenant beschränken möchten, fügen Sie die primäre Domain des Tenants (z. B. example.com) in das Feld Workspace-Domain ein. Das Plugin übergibt sie als Query-Parameter hd= an die Google-Anmeldeseite. Lassen Sie das Feld leer, um persönliche Google-Konten zu akzeptieren."
+    },
+    "step5": {
+      "title": "Verbindung testen",
+      "body":  "Klicken Sie in McHarbor im Anbieterformular auf „Verbindung testen“. Ein grünes Ergebnis bedeutet, dass das OIDC-Discovery-Dokument aufgelöst wurde und sich der OAuth-Client erfolgreich bei accounts.google.com authentifiziert hat — die Konfiguration ist gültig."
+    },
+    "step6": {
+      "title": "(Nur Workspace) Dienstkonto für das Admin SDK erstellen",
+      "body":  "Geben Sie unter IAM & Admin > Service Accounts > Create service account einen Namen wie „mcharbor-admin-groups“ ein und weisen Sie die Rolle Service Account User zu. Wählen Sie unter Keys > Add key > Create new key JSON, speichern Sie die Datei und fügen Sie ihren gesamten Inhalt in das Feld Dienstkonto-JSON im Anbieterformular ein."
+    },
+    "step7": {
+      "title": "(Nur Workspace) Domainweite Delegierung aktivieren",
+      "body":  "Fügen Sie in der Google-Workspace-Admin-Konsole (admin.google.com) unter Security > API controls > Domain-wide delegation die client_id des Dienstkontos und den Scope https://www.googleapis.com/auth/admin.directory.group.readonly hinzu. Setzen Sie dann das Feld E-Mail des delegierten Benutzers im Anbieterformular auf die Workspace-Admin-E-Mail, die das Dienstkonto imitiert (z. B. admin@example.com). Speichern Sie den Anbieter — McHarbor verwendet die delegierte Identität, um die Gruppenmitgliedschaft bei Bedarf abzurufen."
+    }
+  }
+}

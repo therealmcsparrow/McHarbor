@@ -4,7 +4,7 @@
     "description":  "Centralized schema management and compatibility service for Kafka with Avro, JSON Schema, and Protobuf.",
     "category":  "Databases",
     "image":  "confluentinc/cp-schema-registry:latest",
-    "logo":  "https://icon.horse/icon/docs.confluent.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=docs.confluent.io\u0026sz=128",
     "website":  "https://docs.confluent.io",
     "docsUrl":  "https://docs.confluent.io/platform/current/schema-registry/installation/deployment.html",
     "ports":  [
@@ -42,5 +42,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

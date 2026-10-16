@@ -10,6 +10,12 @@
     "container": "Recipiente",
     "age": "Edad",
     "state": "Estado",
-    "noContainers": "No se encontraron contenedores"
+    "noContainers": "No se encontraron contenedores",
+    "oldestFirst": "Más antiguos primero",
+    "more": "{{count}} más",
+    "viewAll": "Todos los contenedores",
+    "createdAgo": "Creado {{when}}",
+    "days": "{{count}} día",
+    "days_other": "{{count}} días"
   }
 }

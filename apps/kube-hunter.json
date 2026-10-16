@@ -1,0 +1,31 @@
+{
+    "slug":  "kube-hunter",
+    "name":  "kube-hunter",
+    "description":  "Hunts for security weaknesses in Kubernetes clusters by probing for exposed and misconfigured components.",
+    "category":  "Security",
+    "image":  "aquasec/kube-hunter:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=aquasec.com\u0026sz=128",
+    "website":  "https://github.com/aquasecurity/kube-hunter",
+    "docsUrl":  "https://aquasecurity.github.io/kube-hunter/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kube-hunter/results",
+                        "container":  "/results"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

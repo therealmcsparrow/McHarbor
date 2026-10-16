@@ -4,7 +4,7 @@
     "description":  "Modern load testing tool from Grafana with a developer-friendly scripting API.",
     "category":  "Developer Tools",
     "image":  "grafana/k6:latest",
-    "logo":  "https://icon.horse/icon/k6.io",
+    "logo":  "https://cdn.simpleicons.org/k6",
     "website":  "https://k6.io",
     "docsUrl":  "https://k6.io/docs/getting-started/installation/",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Output sink URL (e.g. influxdb=http://...)"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

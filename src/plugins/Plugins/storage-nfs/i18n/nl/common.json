@@ -1,0 +1,141 @@
+{
+  "storage-nfs": {
+    "page": {
+      "title": "NFS-opslagbestemming",
+      "subtitle": "Maak een back-up naar een NFS-export (RFC 7530). AUTH_SYS (op UID gebaseerd) of Kerberos (krb5/krb5i/krb5p) via de NFS-client van de Linux-kernel.",
+      "registerHint": "Koppel de export lokaal en werk op het koppelpad. Alleen Linux."
+    },
+    "menu": {
+      "root": "NFS-bestemmingen"
+    },
+    "config": {
+      "heading": "NFS-verbinding",
+      "description": "Configureer de NFS-server, het exportpad en de beveiligingsvariant. De Linux-kernel koppelt de export onder mount_base; de plugin werkt op het lokale koppelpad.",
+      "field": {
+        "server": {
+          "label": "Server",
+          "placeholder": "nfs.example.com of 10.0.0.5",
+          "help": "Hostnaam of IP van de NFS-server. Het hostproces moet er netwerktoegang toe hebben (TCP/UDP-poort 2049).",
+          "option": {
+            "sys": "AUTH_SYS (op UID gebaseerd, standaard)",
+            "krb5": "Kerberos 5 (geauthenticeerd)",
+            "krb5i": "Kerberos 5 + integriteit",
+            "krb5p": "Kerberos 5 + privacy (versleuteld)"
+          }
+        },
+        "export": {
+          "label": "Exportpad",
+          "placeholder": "/srv/backups",
+          "help": "Absoluut pad op de NFS-server zoals vermeld in /etc/exports. Voorbeeld: /srv/backups."
+        },
+        "path": {
+          "label": "Submap",
+          "placeholder": "mcharbor",
+          "help": "Optionele submap binnen de export. Laat leeg om naar de hoofdmap van de export te schrijven."
+        },
+        "sec": {
+          "label": "Beveiligingsvariant",
+          "help": "Authenticatiemodus voor de koppeling. AUTH_SYS vertrouwt de UID/GID van de client; krb5* vereisen een Kerberos-principal + keytab.",
+          "option": {
+            "sys": "sys",
+            "krb5": "krb5",
+            "krb5i": "krb5i",
+            "krb5p": "krb5p"
+          }
+        },
+        "version": {
+          "label": "NFS-versie",
+          "help": "NFS-protocolversie. auto laat de kernel onderhandelen (meestal 4.2 op moderne kernels).",
+          "option": {
+            "auto": "auto",
+            "3": "3",
+            "4": "4",
+            "4.1": "4.1",
+            "4.2": "4.2"
+          }
+        },
+        "principal": {
+          "label": "Kerberos-principal",
+          "placeholder": "nfs/host.nfs.example.com",
+          "help": "Serviceprincipal voor de NFS-client. Moet overeenkomen met een principal die in de keytab van de server is geregistreerd.",
+          "placeholder_detail": "nfs/host.nfs.example.com"
+        },
+        "realm": {
+          "label": "Kerberos-realm",
+          "placeholder": "EXAMPLE.COM",
+          "help": "Kerberos-realm (meestal het DNS-domein in hoofdletters). Moet overeenkomen met de realm van de server."
+        },
+        "keytab_path": {
+          "label": "Keytab-pad",
+          "placeholder": "/etc/krb5.keytab",
+          "help": "Bestandssysteempad naar de keytab die de principal bevat. Het hostproces moet hem kunnen lezen.",
+          "helpText": "De McHarbor-container draait als root en ziet het hostbestandssysteem. Bind-mount /etc/krb5.keytab als hij buiten de standaard mount-namespace van de host staat."
+        },
+        "mount_base": {
+          "label": "Koppelbasis",
+          "placeholder": "/var/lib/mcharbor/mounts/nfs",
+          "help": "Geavanceerd: bovenliggende map voor koppelpunten per bestemming. Laat leeg om de standaard te gebruiken."
+        }
+      }
+    },
+    "guide": {
+      "title": "NFS-installatiegids",
+      "description": "Bereid een NFS-export voor op gebruik met deze plugin. De plugin koppelt de export lokaal en werkt op het koppelpad.",
+      "section": {
+        "server": {
+          "title": "1. Controleer of de NFS-server bereikbaar is",
+          "body": "De McHarbor-host moet netwerktoegang hebben tot de NFS-server op TCP/UDP-poort 2049. Controleer met: showmount -e <server> of rpcinfo -t <server> nfs 4. De server moet de export aankondigen die je wilt gebruiken."
+        },
+        "export": {
+          "title": "2. Controleer de export",
+          "body": "Op de NFS-server moet /etc/exports het exportpad vermelden. Het IP/CIDR van de McHarbor-host moet in de toegestane lijst staan (of het jokerteken *). Het anonymous-squash-beleid moet lezen-schrijven toestaan voor de gebruiker waarmee de host draait (standaard uid 0)."
+        },
+        "sec": {
+          "title": "3. Kies een beveiligingsvariant",
+          "body": "De sec-variant bepaalt hoe de NFS-server de client authenticeert. AUTH_SYS is de verouderde standaard op basis van UID; krb5* gebruiken Kerberos 5 via RPCSEC_GSS.",
+          "body_sys": "AUTH_SYS is geschikt voor vertrouwde netwerken. De server vertrouwt de UID/GID in het koppelverzoek. Zorg dat het hostproces (uid 0 in de container) aan de serverkant lees-/schrijftoegang heeft, bijv. via no_root_squash in /etc/exports.",
+          "body_krb5": "Kerberos 5 authenticeert de client op basis van de principal. De server kent de gebruiker achter het verzoek, maar de payload zelf wordt niet op integriteit gecontroleerd. Nuttig als je moet weten wie schrijft maar het netwerkverkeer niet hoeft te beschermen.",
+          "body_krb5i": "Kerberos 5 + integriteit. Elk bericht wordt geauthenticeerd tegen manipulatie. De payload is niet verborgen, maar wijziging is detecteerbaar. Gebruik dit bij het doorkruisen van onvertrouwde netwerken als de inhoud niet gevoelig is.",
+          "body_krb5p": "Kerberos 5 + privacy. Elk bericht wordt versleuteld. De sterkste optie, maar met de hoogste CPU-kosten. Gebruik dit voor gevoelige data over onvertrouwde netwerken."
+        },
+        "keytab": {
+          "title": "4. Richt de keytab in (alleen krb5*-varianten)",
+          "body": "De NFS-client heeft een keytab nodig met een nfs/<host>@<realm>-principal. Plaats de keytab op het geconfigureerde pad (standaard /etc/krb5.keytab). Het hostproces moet hem kunnen lezen. Op een gangbare server is dit een eenmalige installatie: kadmin: addprinc -randkey nfs/host.nfs.example.com && kadmin: ktadd -k /etc/krb5.keytab nfs/host.nfs.example.com."
+        },
+        "capabilities": {
+          "title": "5. Test de verbinding",
+          "body": "Gebruik na het opslaan van de bestemming de knop Test op de pagina Opslaglocaties van de host. De plugin koppelt de export, schrijft een klein bestand, leest het terug en verwijdert het. Een geslaagde test bevestigt dat de koppeling, de authenticatievariant en het pad allemaal geldig zijn."
+        }
+      }
+    },
+    "form": {
+      "required": "vereist",
+      "field": {
+        "sec": {
+          "help": "Authenticatiemodus voor de mount. AUTH_SYS vertrouwt de UID/GID van de client; krb5* vereist een Kerberos-principal + keytab."
+        },
+        "principal": {
+          "help": "Service principal voor de NFS-client. Moet overeenkomen met een principal die in de keytab van de server is geregistreerd."
+        },
+        "realm": {
+          "help": "Kerberos-realm (meestal het DNS-domein in hoofdletters). Moet overeenkomen met de realm van de server."
+        },
+        "keytab_path": {
+          "helpText": "De McHarbor-container draait als root en ziet het bestandssysteem van de host. Bind-mount /etc/krb5.keytab als die buiten de standaard mount-namespace van de host staat."
+        }
+      },
+      "guide": {
+        "exportBody": "Op de NFS-server moet /etc/exports het exportpad vermelden. Het IP/CIDR van de McHarbor-host moet in de toegestane lijst staan (of het jokerteken *). Het anonymous squash-beleid moet lezen en schrijven toestaan voor de gebruiker waaronder de host draait (standaard uid 0).",
+        "krb5Body": "Kerberos 5 authenticeert de client via principal. De server weet welke gebruiker achter het verzoek zit, maar de payload zelf wordt niet op integriteit gecontroleerd. Handig als je wilt weten wie er schrijft, maar het netwerkverkeer niet hoeft te beschermen.",
+        "krb5iBody": "Kerberos 5 + integriteit. Elk bericht wordt geauthenticeerd tegen manipulatie. De payload wordt niet verborgen, maar je kunt wijzigingen detecteren. Gebruik dit bij onvertrouwde netwerken wanneer de inhoud niet gevoelig is.",
+        "testBody": "Gebruik na het opslaan van de bestemming de knop Test op de pagina Opslaglocaties van de host. De plugin mount de export, schrijft een klein bestand, leest het terug en verwijdert het. Een geslaagde test bevestigt dat de mount, de authenticatiemodus en het pad allemaal geldig zijn."
+      }
+    },
+    "toast": {
+      "saved": "NFS-bestemming opgeslagen",
+      "saveFailed": "Kon NFS-bestemming niet opslaan: {{error}}",
+      "testPassed": "NFS-verbinding geslaagd",
+      "testFailed": "NFS-verbinding mislukt: {{error}}"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+services:
+  mcharbor:
+    networks:
+      - default
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.mcharbor.rule=Host(`mcharbor.example.com`)
+      - traefik.http.routers.mcharbor.entrypoints=websecure
+      - traefik.http.routers.mcharbor.tls=true
+      - traefik.http.routers.mcharbor.tls.certresolver=letsencrypt
+      - traefik.http.routers.mcharbor.service=mcharbor
+      - traefik.http.services.mcharbor.loadbalancer.server.port=8705
+      - traefik.http.services.mcharbor.loadbalancer.server.scheme=https
+      - traefik.http.services.mcharbor.loadbalancer.serverstransport=mcharbor-upstream@file
+      - traefik.http.services.mcharbor.loadbalancer.passhostheader=true
+      - traefik.http.services.mcharbor.loadbalancer.responseforwarding.flushinterval=100ms
+      - traefik.http.services.mcharbor.loadbalancer.healthcheck.path=/api/readyz
+      - traefik.http.services.mcharbor.loadbalancer.healthcheck.scheme=https
+      - traefik.http.services.mcharbor.loadbalancer.healthcheck.interval=5s
+      - traefik.http.services.mcharbor.loadbalancer.healthcheck.timeout=3s
+      - traefik.http.services.mcharbor.loadbalancer.healthcheck.status=200
+
+networks:
+  traefik:
+    external: true

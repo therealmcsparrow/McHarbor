@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Informações e configuração do daemon Docker",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Criado",
+    "updatedAt": "Atualizado",
+    "groupRegistry": "Registro"
+  },
+  "nav": {
+    "sections": "Secções do Docker"
+  },
+  "sectionDescription": {
+    "info": "Versão do daemon, detalhes do anfitrião e contagens de objetos",
+    "registries": "Ligações e credenciais de registos de contentores",
+    "resources": "Capacidade do anfitrião e utilização de disco do Docker"
+  },
   "tabs": {
     "info": "Informações Docker",
     "registries": "Registros",
-    "networks": "Redes",
     "resources": "Recursos"
   },
   "info": {
@@ -31,6 +44,15 @@
     "serverId": "ID do servidor",
     "cpus": "CPUs",
     "memory": "Memória",
+    "hardware": "Hardware",
+    "gpu": "GPU",
+    "networkAdapters": "Adaptadores de rede",
+    "attachedDevices": "Dispositivos ligados",
+    "hardwareNone": "Nenhum detetado",
+    "hardwareLoading": "A ler os dispositivos do anfitrião...",
+    "hardwareUnavailable": "O inventário de dispositivos do anfitrião não está disponível nesta plataforma",
+    "hardwareRemovable": "removível",
+    "hardwareScope": "Hardware do anfitrião que executa o McHarbor, não do ambiente selecionado.",
     "storageDriver": "Driver de armazenamento",
     "dockerRootDir": "Diretório raiz Docker",
     "driverStatus": "Status do motorista",
@@ -74,6 +96,7 @@
     "editTitle": "Editar registro",
     "editDescription": "Atualize as configurações de conexão do registro.",
     "nameLabel": "Nome",
+    "urlPlaceholder": "https://registry.exemplo.com",
     "urlLabel": "URL",
     "usernameLabel": "Nome de usuário",
     "passwordLabel": "Senha",
@@ -91,17 +114,6 @@
       "deleted": "Registro removido",
       "testSuccess": "Teste de conexão bem-sucedido"
     }
-  },
-  "networks": {
-    "title": "Redes Docker",
-    "description": "Visão geral das redes Docker neste ambiente",
-    "viewAll": "Ver todas as redes",
-    "columnName": "Nome",
-    "columnDriver": "Motorista",
-    "columnScope": "Escopo",
-    "columnSubnet": "Sub-rede",
-    "columnContainers": "Recipientes",
-    "noNetworks": "Nenhuma rede encontrada"
   },
   "resources": {
     "title": "Recursos de hospedagem",

@@ -4,7 +4,7 @@
   "description": "Modern web UI for Apache Kafka with topic browsing, message inspection, and consumer-group monitoring.",
   "category": "Databases",
   "image": "quay.io/cloudhut/kowl:latest",
-  "logo": "https://github.com/cloudhut/kowl/raw/master/frontend/src/svg/kowl-logo.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
   "website": "https://github.com/cloudhut/kowl",
   "docsUrl": "https://github.com/cloudhut/kowl/blob/master/docs/config/config-file.md",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

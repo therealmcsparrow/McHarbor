@@ -19,15 +19,15 @@ export type LogEntry = {
   phase?: string;
 };
 
-function logLineColor(entry: LogEntry, isLast: boolean, status?: string): string {
-  if (entry.phase === 'scan-error') return 'text-amber-400';
-  if (entry.phase === 'scan-result') return 'text-cyan-400';
-  if (entry.phase === 'scan') return 'text-violet-400';
-  if (entry.phase === 'warning') return 'text-amber-400';
-  if (entry.phase === 'containers' || entry.phase === 'volumes' || entry.phase === 'images') return 'text-cyan-400';
-  if (status === 'error' && isLast) return 'text-destructive';
-  if (status === 'done' && isLast) return 'text-green-400';
-  if (isLast && status !== 'done' && status !== 'error') return 'text-foreground';
+function logLineColor(entry: LogEntry, isLast: boolean, statusValue?: string): string {
+  if (entry.phase === 'scan-error') return 'text-warning';
+  if (entry.phase === 'scan-result') return 'text-chart-1';
+  if (entry.phase === 'scan') return 'text-chart-3';
+  if (entry.phase === 'warning') return 'text-warning';
+  if (entry.phase === 'containers' || entry.phase === 'volumes' || entry.phase === 'images') return 'text-chart-1';
+  if (statusValue === 'error' && isLast) return 'text-destructive';
+  if (statusValue === 'done' && isLast) return 'text-success';
+  if (isLast && statusValue !== 'done' && statusValue !== 'error') return 'text-foreground';
   return 'text-muted-foreground';
 }
 
@@ -35,9 +35,7 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
   const { t } = useTranslation('common');
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  const progressPercent = progress
-    ? Math.round((progress.step / progress.total) * 100)
-    : 0;
+  const progressPercent = progress ? Math.round((progress.step / progress.total) * 100) : 0;
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,11 +46,11 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
       {/* Status header */}
       <div className="flex items-center gap-3">
         {progress?.status === 'done' ? (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-green-500/10">
-            <IconCheck className="size-4 text-green-500" />
+          <div className="flex size-8 shrink-0 items-center justify-center bg-success/10">
+            <IconCheck className="size-4 text-success" />
           </div>
         ) : progress?.status === 'error' ? (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+          <div className="flex size-8 shrink-0 items-center justify-center bg-destructive/10">
             <IconX className="size-4 text-destructive" />
           </div>
         ) : (
@@ -66,7 +64,7 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
               progress?.status === 'error'
                 ? '[&::-moz-progress-bar]:bg-destructive [&::-webkit-progress-value]:bg-destructive'
                 : progress?.status === 'done'
-                  ? '[&::-moz-progress-bar]:bg-green-500 [&::-webkit-progress-value]:bg-green-500'
+                  ? '[&::-moz-progress-bar]:bg-success [&::-webkit-progress-value]:bg-success'
                   : '[&::-moz-progress-bar]:bg-primary [&::-webkit-progress-value]:bg-primary'
             }`}
             value={progressPercent}
@@ -74,9 +72,7 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
           />
         </div>
 
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          {progressPercent}%
-        </span>
+        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{progressPercent}%</span>
       </div>
 
       {/* Log output */}
@@ -86,9 +82,7 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
           const color = logLineColor(entry, isLast, progress?.status);
           return (
             <div key={entry.id} className="flex gap-2">
-              <span className="shrink-0 select-none text-muted-foreground/40">
-                {String(i + 1).padStart(2, '0')}
-              </span>
+              <span className="shrink-0 text-muted-foreground/40 select-none">{String(i + 1).padStart(2, '0')}</span>
               <span className={color}>
                 {entry.phase === 'scan' && '🔍 '}
                 {entry.phase === 'scan-result' && '📊 '}
@@ -115,4 +109,3 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
     </div>
   );
 }
-

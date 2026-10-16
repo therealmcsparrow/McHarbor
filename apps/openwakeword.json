@@ -2,7 +2,7 @@
     "slug":  "openwakeword",
     "name":  "openWakeWord",
     "description":  "Open-source wake word detection for voice assistants using on-device processing.",
-    "category":  "AI \u0026 Voice",
+    "category":  "AI & Voice",
     "image":  "rhasspy/wyoming-openwakeword:latest",
     "logo":  "https://github.githubassets.com/favicons/favicon.svg",
     "website":  "https://github.com/dscripka/openWakeWord",
@@ -27,5 +27,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

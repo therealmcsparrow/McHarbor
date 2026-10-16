@@ -2,9 +2,9 @@
     "slug":  "juicefs",
     "name":  "JuiceFS",
     "description":  "Distributed POSIX file system built on top of object storage and Redis or TiKV metadata.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "juicedata/juicefs:latest",
-    "logo":  "https://icon.horse/icon/juicefs.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=juicefs.com\u0026sz=128",
     "website":  "https://juicefs.com",
     "docsUrl":  "https://juicefs.com/docs",
     "ports":  [
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

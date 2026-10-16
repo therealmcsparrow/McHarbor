@@ -4,8 +4,11 @@
 package communications
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -15,27 +18,6 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
-
-// validChannelTypes defines accepted communication channel types.
-var validChannelTypes = map[string]bool{
-	"slack": true, "discord": true, "teams": true, "gotify": true,
-	"ntfy": true, "telegram": true, "signal": true, "whatsapp": true,
-}
-
-// validNtfyPriority defines accepted ntfy priority values.
-var validNtfyPriority = map[string]bool{
-	"min": true, "low": true, "default": true, "high": true, "urgent": true,
-}
-
-// validWhatsAppMethods defines accepted WhatsApp setup methods.
-var validWhatsAppMethods = map[string]bool{
-	"": true, "cloud_api": true, "gateway": true, "business": true, "saas": true,
-}
-
-// validSignalMethods defines accepted Signal setup methods.
-var validSignalMethods = map[string]bool{
-	"": true, "rest_api": true, "bot": true, "signald": true, "simple": true,
-}
 
 // Handler holds dependencies for communication channel HTTP handlers.
 type Handler struct {
@@ -50,8 +32,14 @@ func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
 		app:        app,
 		service:    svc,
-		dispatcher: corenotify.NewDispatcher(app.DB, app.Encryption),
+		dispatcher: corenotify.NewDispatcher(app.DB, app.Encryption).SetPluginRuntime(app.PluginAdapters),
 	}
+}
+
+// SetPluginRuntime injects the loaded plugin runtime for plugin-owned channel types.
+func (h *Handler) SetPluginRuntime(runtime any) {
+	h.service.SetPluginRuntime(runtime)
+	h.dispatcher.SetPluginRuntime(runtime)
 }
 
 // HandleList returns all communication channels.
@@ -59,7 +47,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	items, err := h.service.List(r.Context())
 	if err != nil {
 		h.app.Logger.Error("communications: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelListFailed, err)
 		return
 	}
 
@@ -71,7 +59,7 @@ func (h *Handler) HandleCapabilities(w http.ResponseWriter, r *http.Request) {
 	items, err := h.dispatcher.Capabilities(r.Context())
 	if err != nil {
 		h.app.Logger.Error("communications: capabilities error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelListFailed, err)
 		return
 	}
 	if items == nil {
@@ -81,10 +69,23 @@ func (h *Handler) HandleCapabilities(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, items)
 }
 
+// HandleAdapterCapabilities returns what each registered channel type
+// can do — chiefly whether it can carry a file.
+func (h *Handler) HandleAdapterCapabilities(w http.ResponseWriter, r *http.Request) {
+	items, err := h.service.AdapterCapabilities(r.Context())
+	if err != nil {
+		h.app.Logger.Error("communications: adapter capabilities error", "error", err)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelListFailed, err)
+		return
+	}
+
+	response.OK(w, items)
+}
+
 // HandleCreate creates a new communication channel.
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateChannelInput
-	if err := response.DecodeBody(r, &input); err != nil {
+	if err := response.DecodeBody(r, &input); err != nil || hasReservedKey(input.Config) {
 		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 		return
 	}
@@ -93,20 +94,15 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		response.BadRequestCode(w, r, i18n.ErrCommChannelNameRequired)
 		return
 	}
-	if !validChannelTypes[input.ChannelType] {
+	if !h.service.HasNotificationAdapter(input.ChannelType) {
 		response.BadRequestCode(w, r, i18n.ErrCommChannelTypeInvalid)
-		return
-	}
-
-	if code := h.validateByType(input); code != "" {
-		response.BadRequestCode(w, r, code)
 		return
 	}
 
 	ch, err := h.service.Create(r.Context(), input)
 	if err != nil {
 		h.app.Logger.Error("communications: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelCreateFailed, err)
 		return
 	}
 
@@ -127,7 +123,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	ch, err := h.service.ByID(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("communications: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelListFailed, err)
 		return
 	}
 	if ch == nil {
@@ -143,7 +139,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	var input UpdateChannelInput
-	if err := response.DecodeBody(r, &input); err != nil {
+	if err := response.DecodeBody(r, &input); err != nil || hasReservedKey(input.Config) {
 		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 		return
 	}
@@ -151,7 +147,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	ch, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
 		h.app.Logger.Error("communications: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelUpdateFailed, err)
 		return
 	}
 	if ch == nil {
@@ -169,14 +165,28 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, ch)
 }
 
+// auditChannelName resolves a channel id to its name for the audit trail, empty
+// when the lookup fails: a deleted channel that appears in the log only as an
+// xid is what this is here to prevent.
+func (h *Handler) auditChannelName(ctx context.Context, id string) string {
+	channel, err := h.service.ByID(ctx, id)
+	if err != nil || channel == nil {
+		return ""
+	}
+	return channel.Name
+}
+
 // HandleDelete removes a communication channel.
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
+	// Read before the delete: afterwards there is no row left to name.
+	name := h.auditChannelName(r.Context(), id)
+
 	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("communications: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelRemoveFailed, err)
 		return
 	}
 	if !deleted {
@@ -188,6 +198,7 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		Action:     "communication_channel.deleted",
 		EntityType: "communication_channel",
 		EntityID:   id,
+		EntityName: name,
 	})
 
 	response.NoContent(w)
@@ -199,7 +210,7 @@ func (h *Handler) HandleSetDefault(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.SetDefault(r.Context(), id); err != nil {
 		h.app.Logger.Error("communications: set default error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelUpdateFailed, err)
 		return
 	}
 
@@ -207,135 +218,80 @@ func (h *Handler) HandleSetDefault(w http.ResponseWriter, r *http.Request) {
 		Action:     "communication_channel.default_set",
 		EntityType: "communication_channel",
 		EntityID:   id,
+		EntityName: h.auditChannelName(r.Context(), id),
 	})
 
 	response.OKMsg(w, r, i18n.MsgCommChannelDefaultSet)
 }
 
-// HandleTest sends a test notification via the specified channel.
+// HandleTest sends a test notification via the specified channel and
+// returns the per-step report.
+//
+// A failed *test* is a successful *request*: the response is 200 with
+// OverallStatus "fail" so the modal can show which phase broke — DB
+// load, config, plugin lookup, or the send itself. Only a missing row
+// (404) or an internal fault (500) is a non-200. Mirrors
+// storage_locations, ai_providers, and identity.
 func (h *Handler) HandleTest(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	channel, lookupErr := h.service.ByID(r.Context(), id)
+	if lookupErr != nil {
+		h.app.Logger.Error("communications: audit channel lookup error", "error", lookupErr, "id", id)
+	}
 
-	if err := h.service.Test(r.Context(), id); err != nil {
+	result, err := h.service.TestChannel(r.Context(), id)
+	if err != nil {
+		h.auditTest(r, id, channel, "fail")
 		if errors.Is(err, ErrChannelNotFound) {
 			response.NotFoundCode(w, r, i18n.ErrCommChannelNotFound)
 			return
 		}
-		if errors.Is(err, ErrTelegramAdminRequired) {
-			response.BadRequestCode(w, r, i18n.ErrCommChannelTelegramAdminRequired)
-			return
-		}
 		h.app.Logger.Error("communications: test error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrCommChannelTestFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCommChannelTestFailed, err)
 		return
 	}
 
-	response.OKMsg(w, r, i18n.MsgCommChannelTestSent)
+	h.auditTest(r, id, channel, result.OverallStatus)
+	response.OK(w, result)
 }
 
-// validateByType performs type-specific validation on a create input.
-// Returns an empty MsgCode if validation passes.
-func (h *Handler) validateByType(input CreateChannelInput) i18n.MsgCode {
-	switch input.ChannelType {
-	case "slack", "discord", "teams":
-		if input.WebhookURL == "" {
-			return i18n.ErrCommChannelWebhookRequired
-		}
+func (h *Handler) auditTest(r *http.Request, id string, channel *CommunicationChannel, status string) {
+	entityName := id
+	channelType := ""
+	if channel != nil {
+		entityName = channel.Name
+		channelType = channel.ChannelType
+	}
+	details, err := json.Marshal(map[string]string{"status": status, "channelType": channelType})
+	if err != nil {
+		h.app.Logger.Error("communications: marshal audit details failed", "error", err, "id", id)
+		return
+	}
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "communication_channel.tested",
+		Severity:   auditStatusSeverity(status),
+		EntityType: "communication_channel",
+		EntityID:   id,
+		EntityName: entityName,
+		Details:    string(details),
+	})
+}
 
-	case "gotify":
-		if input.ServerURL == "" {
-			return i18n.ErrCommChannelServerRequired
-		}
-		if input.Token == "" {
-			return i18n.ErrCommChannelTokenRequired
-		}
+func auditStatusSeverity(status string) string {
+	if status == "fail" {
+		return "error"
+	}
+	return "success"
+}
 
-	case "ntfy":
-		if input.ServerURL == "" {
-			return i18n.ErrCommChannelServerRequired
-		}
-		if input.Topic == "" {
-			return i18n.ErrCommChannelTopicRequired
-		}
-		if input.Priority != "" && !validNtfyPriority[input.Priority] {
-			return i18n.ErrCommChannelPriorityInvalid
-		}
-
-	case "telegram":
-		if input.Token == "" {
-			return i18n.ErrCommChannelTokenRequired
-		}
-		if input.ChatID == "" {
-			return i18n.ErrCommChannelChatIDRequired
-		}
-
-	case "signal":
-		if !validSignalMethods[input.Method] {
-			return i18n.ErrCommChannelTypeInvalid
-		}
-		switch input.Method {
-		case "bot":
-			if input.ServerURL == "" {
-				return i18n.ErrCommChannelServerRequired
-			}
-			if input.Token == "" {
-				return i18n.ErrCommChannelTokenRequired
-			}
-			if input.Recipients == "" {
-				return i18n.ErrCommChannelRecipientsRequired
-			}
-		default: // "", "rest_api", "signald", "simple"
-			if input.ServerURL == "" {
-				return i18n.ErrCommChannelServerRequired
-			}
-			if input.SenderNumber == "" {
-				return i18n.ErrCommChannelSenderRequired
-			}
-			if input.Recipients == "" {
-				return i18n.ErrCommChannelRecipientsRequired
-			}
-		}
-
-	case "whatsapp":
-		if !validWhatsAppMethods[input.Method] {
-			return i18n.ErrCommChannelTypeInvalid
-		}
-		switch input.Method {
-		case "gateway", "saas":
-			if input.ServerURL == "" {
-				return i18n.ErrCommChannelServerRequired
-			}
-			if input.Token == "" {
-				return i18n.ErrCommChannelTokenRequired
-			}
-			if input.RecipientPhone == "" {
-				return i18n.ErrCommChannelPhoneRequired
-			}
-		case "business":
-			if input.ServerURL == "" {
-				return i18n.ErrCommChannelServerRequired
-			}
-			if input.PhoneNumberID == "" {
-				return i18n.ErrCommChannelPhoneRequired
-			}
-			if input.Token == "" {
-				return i18n.ErrCommChannelTokenRequired
-			}
-			if input.RecipientPhone == "" {
-				return i18n.ErrCommChannelPhoneRequired
-			}
-		default: // "", "cloud_api"
-			if input.PhoneNumberID == "" {
-				return i18n.ErrCommChannelPhoneRequired
-			}
-			if input.Token == "" {
-				return i18n.ErrCommChannelTokenRequired
-			}
-			if input.RecipientPhone == "" {
-				return i18n.ErrCommChannelPhoneRequired
-			}
+// hasReservedKey reports a config key starting with an underscore. Those are
+// the host's own — the ITSM inbound URL and signing secret it injects into
+// plugin calls — and a user-supplied one could impersonate them.
+func hasReservedKey(cfg map[string]string) bool {
+	for k := range cfg {
+		if strings.HasPrefix(strings.TrimSpace(k), "_") {
+			return true
 		}
 	}
-
-	return ""
+	return false
 }

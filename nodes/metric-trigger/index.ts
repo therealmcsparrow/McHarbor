@@ -4,64 +4,62 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const metricTrigger: NodeDefinition = {
-  "key": "metric-trigger",
-  "label": "Metric Trigger",
-  "category": "trigger",
-  "description": "Start a workflow when container metrics are checked",
-  "icon": "IconChartLine",
-  "configSchema": [
+  key: 'metric-trigger',
+  label: 'Metric Trigger',
+  category: 'trigger',
+  description: 'Start a workflow when container metrics are checked',
+  icon: 'IconChartLine',
+  configSchema: [
     {
-      "key": "environment",
-      "label": "Environment",
-      "type": "environment-select",
-      "required": true
+      key: 'environment',
+      label: 'Environment',
+      type: 'environment-select',
+      required: true,
     },
     {
-      "key": "container",
-      "label": "Container",
-      "type": "container-select",
-      "required": true
+      key: 'container',
+      label: 'Container',
+      type: 'container-select',
+      required: true,
     },
     {
-      "key": "conditions",
-      "label": "Metric Conditions",
-      "type": "metric-conditions",
-      "required": false
+      key: 'conditions',
+      label: 'Metric Conditions',
+      type: 'metric-conditions',
+      required: false,
     },
     {
-      "key": "logic",
-      "label": "Condition Logic",
-      "type": "select",
-      "required": false,
-      "default": "and",
-      "options": [
+      key: 'logic',
+      label: 'Condition Logic',
+      type: 'select',
+      required: false,
+      default: 'and',
+      options: [
         {
-          "value": "and",
-          "label": "AND"
+          value: 'and',
+          label: 'AND',
         },
         {
-          "value": "or",
-          "label": "OR"
-        }
-      ]
+          value: 'or',
+          label: 'OR',
+        },
+      ],
     },
     {
-      "key": "interval",
-      "label": "Interval (seconds)",
-      "type": "number",
-      "required": false,
-      "default": 10
+      key: 'interval',
+      label: 'Interval (seconds)',
+      type: 'number',
+      required: false,
+      default: 10,
     },
     {
-      "key": "cooldown",
-      "label": "Cooldown (seconds)",
-      "type": "number",
-      "required": false,
-      "default": 60
-    }
+      key: 'cooldown',
+      label: 'Cooldown (seconds)',
+      type: 'number',
+      required: false,
+      default: 60,
+    },
   ],
-  "inputPorts": [],
-  "outputPorts": [
-    "output"
-  ]
+  inputPorts: [],
+  outputPorts: ['output'],
 };

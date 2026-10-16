@@ -4,7 +4,7 @@
     "description":  "Log management solution with syslog protocol parsing and flexible routing/filtering.",
     "category":  "Monitoring",
     "image":  "balabit/syslog-ng:latest",
-    "logo":  "https://icon.horse/icon/www.syslog-ng.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.syslog-ng.com\u0026sz=128",
     "website":  "https://www.syslog-ng.com",
     "docsUrl":  "https://www.syslog-ng.com/technical-documents/doc/syslog-ng-open-source-edition/3.37/administration-guide/27",
     "ports":  [
@@ -36,5 +36,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

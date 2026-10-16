@@ -1,0 +1,11 @@
+{
+  "label": "Container-Backup wiederherstellen",
+  "description": "Einen abgeschlossenen Container-Backup-Lauf im Container wiederherstellen",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container (Filter)",
+    "run_id": "Backup-Lauf",
+    "restore_items": "Wiederherzustellende Elemente",
+    "secret_key": "Geheimer Schlüssel"
+  }
+}

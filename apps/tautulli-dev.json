@@ -1,0 +1,45 @@
+{
+    "slug":  "tautulli-dev",
+    "name":  "Tautulli (Dev)",
+    "description":  "Dev channel build of Tautulli. Monitoring, analytics, and notifications for Plex Media Server.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/tautulli:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tautulli.png",
+    "website":  "https://docs.linuxserver.io/images/docker-tautulli/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-tautulli/",
+    "ports":  [
+                  {
+                      "host":  9181,
+                      "container":  8181,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tautulli-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

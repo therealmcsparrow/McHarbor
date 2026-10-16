@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Nombre del canal" },
+    "region": { "label": "Región del servicio", "help": "us o eu. Debe coincidir con la región en la que se encuentra su cuenta de PagerDuty." },
+    "routing_key": { "label": "Clave de integración (enrutamiento)", "help": "Clave de 32 caracteres de la integración Events API V2 del servicio." },
+    "rest_api_key": { "label": "Clave de la API REST (solo lectura)", "help": "Opcional. Habilita el sondeo de estado y los enlaces a incidentes." },
+    "webhook_signing_secret": { "label": "Secreto de firma del webhook", "help": "Se muestra una sola vez al crear la suscripción de webhook v3." },
+    "update_on_repeat": { "label": "Reactivar en cada nuevo disparo" },
+    "poll_interval_minutes": { "label": "Intervalo de sondeo (minutos)", "help": "0 desactiva el sondeo. Requiere una clave REST." },
+    "severity_map": { "label": "Asignación de gravedad (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Nombre del canal",
+      "placeholder": "PagerDuty — Plataforma"
+    },
+    "region": {
+      "label": "Región del servicio",
+      "help": "Debe coincidir con la región de servicio en la que reside su cuenta de PagerDuty.",
+      "us": "Estados Unidos (predeterminado)",
+      "eu": "Unión Europea"
+    },
+    "routing_key": {
+      "label": "Clave de integración (routing)",
+      "placeholder": "Clave de 32 caracteres",
+      "help": "De la integración Events API V2 del servicio. Almacenada cifrada."
+    },
+    "rest_api_key": {
+      "label": "Clave de API REST (solo lectura)",
+      "placeholder": "Opcional",
+      "help": "Opcional. Habilita el sondeo de estado, los números de incidente y los enlaces."
+    },
+    "webhook_signing_secret": {
+      "label": "Secreto de firma del webhook",
+      "placeholder": "Opcional",
+      "help": "PagerDuty lo muestra una sola vez al crear la suscripción de webhook v3."
+    },
+    "update_on_repeat": {
+      "label": "Reactivar al dispararse de nuevo",
+      "help": "Cuando una alerta se dispara de nuevo mientras su incidente sigue abierto, envía otro trigger con la misma clave."
+    },
+    "poll_interval_minutes": {
+      "label": "Intervalo de sondeo (minutos)",
+      "help": "0 desactiva el sondeo. El sondeo necesita una clave de API REST."
+    },
+    "severity_map": {
+      "label": "Mapa de severidad (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Opcional. Asigna critical, warning e info a critical, error, warning o info de PagerDuty."
+    },
+    "secretKeepHint": "Déjelo en blanco para conservar el valor almacenado.",
+    "errors": {
+      "required": "Obligatorio",
+      "routingKeyLength": "La clave de routing tiene exactamente 32 caracteres.",
+      "pollRange": "Introduzca un número de 0 a 60."
+    }
+  },
+  "guide": {
+    "title": "Configuración del canal de PagerDuty",
+    "steps": {
+      "service": "En PagerDuty, abra <b>Services → Service Directory</b> y seleccione (o cree) el servicio al que deben avisar las alertas de McHarbor.",
+      "integration": "En el servicio, abra la pestaña <b>Integrations</b>, elija <b>Add an integration</b>, seleccione <b>Events API V2</b> y guarde.",
+      "routingKey": "Copie la <b>Integration Key</b> (32 caracteres) en <b>Clave de integración (routing)</b> aquí.",
+      "region": "Elija <b>Unión Europea</b> si su cuenta de PagerDuty está en la región de servicio de la UE; en caso contrario, deje <b>Estados Unidos</b>.",
+      "restKey": "Opcional: en <b>Integrations → API Access Keys</b>, cree una clave de API de solo lectura y péguela en <b>Clave de API REST</b> para habilitar el sondeo y los enlaces de incidentes.",
+      "inbound": "Guarde este canal, ábralo de nuevo desde <b>Ajustes → Integraciones → Comunicaciones</b> y, en <b>Estado del ticket desde el ITSM</b>, seleccione <b>Crear URL entrante</b>. Copie la URL; termina en <code>/api/incident-webhooks/</code> seguido de un token. PagerDuty no utiliza el secreto de firma que se muestra a su lado.",
+      "webhook": "En PagerDuty, abra <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, pegue la URL entrante, limítela al mismo servicio, suscríbase a <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> e <code>incident.reopened</code> y copie el secreto de firma <warn>que muestra una sola vez</warn> en <b>Secreto de firma del webhook</b> de este canal (o en <b>Secreto de firma emitido por el ITSM</b>).",
+      "save": "Guarde el canal y seleccione <b>Probar la conexión</b>. Comprueba la configuración y la clave REST sin avisar a nadie.",
+      "testEvent": "Para comprobar la clave de routing, use <b>Send Test Event</b> en la página de integración de PagerDuty. La prueba de McHarbor nunca dispara un incidente."
+    },
+    "note": "La agrupación de alertas de PagerDuty puede fusionar una alerta de McHarbor en el incidente de otra alerta. Ese incidente lleva la clave de la otra alerta, por lo que McHarbor no puede leer de vuelta su confirmación ni su resolución; la alerta sigue resolviéndose en PagerDuty cuando se despeja en McHarbor."
+  }
+}

@@ -14,6 +14,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Input } from '@resources/components/ui/Input';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { PERM } from '@core/auth/permissionKeys';
 
 type CreateVolumeDialogProps = {
   open: boolean;
@@ -21,9 +22,10 @@ type CreateVolumeDialogProps = {
   createVolume: UseMutationResult<unknown, Error, { name: string; driver?: string }>;
 };
 
-export function CreateVolumeDialog({ open, onOpenChange, createVolume }: CreateVolumeDialogProps) {
+export function CreateVolumeDialog({ open: isOpen, onOpenChange, createVolume }: CreateVolumeDialogProps) {
   const { t } = useTranslation('volumes');
   const { t: tc } = useTranslation('common');
+  const cancelLabel = tc('actions.cancel');
   const [volumeName, setVolumeName] = useState('');
   const [volumeDriver, setVolumeDriver] = useState('local');
 
@@ -37,12 +39,12 @@ export function CreateVolumeDialog({ open, onOpenChange, createVolume }: CreateV
           setVolumeName('');
           setVolumeDriver('local');
         },
-      }
+      },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('create.title')}</DialogTitle>
@@ -66,9 +68,13 @@ export function CreateVolumeDialog({ open, onOpenChange, createVolume }: CreateV
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {cancelLabel}
           </Button>
-          <Button onClick={handleCreate} disabled={createVolume.isPending || !volumeName.trim()}>
+          <Button
+            permission={PERM.VOLUMES_MANAGE}
+            onClick={handleCreate}
+            disabled={createVolume.isPending || !volumeName.trim()}
+          >
             {createVolume.isPending ? t('create.creating') : t('create.submit')}
           </Button>
         </DialogFooter>

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
 // Service handles schedule business logic and database operations.
@@ -41,7 +42,7 @@ func (s *Service) List(ctx context.Context, page, perPage int) ([]Schedule, int6
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing schedules: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var items []Schedule
 	for rows.Next() {
@@ -194,7 +195,7 @@ func (s *Service) ListExecutions(ctx context.Context, scheduleID string, page, p
 	if err != nil {
 		return nil, 0, fmt.Errorf("listing executions for schedule %s: %w", scheduleID, err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var items []Execution
 	for rows.Next() {

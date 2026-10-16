@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Información y configuración del demonio Docker",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Creado",
+    "updatedAt": "Actualizado",
+    "groupRegistry": "Registro"
+  },
+  "nav": {
+    "sections": "Secciones de Docker"
+  },
+  "sectionDescription": {
+    "info": "Versión del daemon, detalles del host y recuentos de objetos",
+    "registries": "Conexiones y credenciales de registros de contenedores",
+    "resources": "Capacidad del host y uso de disco de Docker"
+  },
   "tabs": {
     "info": "Información sobre Docker",
     "registries": "Registros",
-    "networks": "Redes",
     "resources": "Recursos"
   },
   "info": {
@@ -31,6 +44,15 @@
     "serverId": "ID del servidor",
     "cpus": "CPU",
     "memory": "Memoria",
+    "hardware": "Hardware",
+    "gpu": "GPU",
+    "networkAdapters": "Adaptadores de red",
+    "attachedDevices": "Dispositivos conectados",
+    "hardwareNone": "No se ha detectado ninguno",
+    "hardwareLoading": "Leyendo los dispositivos del host...",
+    "hardwareUnavailable": "El inventario de dispositivos del host no está disponible en esta plataforma",
+    "hardwareRemovable": "extraíble",
+    "hardwareScope": "Hardware del host que ejecuta McHarbor, no del entorno seleccionado.",
     "storageDriver": "Controlador de almacenamiento",
     "dockerRootDir": "Directorio raíz Docker",
     "driverStatus": "Estado del conductor",
@@ -74,6 +96,7 @@
     "editTitle": "Editar registro",
     "editDescription": "Actualice la configuración de conexión del registro.",
     "nameLabel": "Nombre",
+    "urlPlaceholder": "https://registro.ejemplo.com",
     "urlLabel": "URL",
     "usernameLabel": "Nombre de usuario",
     "passwordLabel": "Contraseña",
@@ -91,17 +114,6 @@
       "deleted": "Registro eliminado",
       "testSuccess": "Prueba de conexión exitosa"
     }
-  },
-  "networks": {
-    "title": "Redes Docker",
-    "description": "Descripción general de las redes Docker en este entorno",
-    "viewAll": "Ver todas las redes",
-    "columnName": "Nombre",
-    "columnDriver": "Conductor",
-    "columnScope": "Alcance",
-    "columnSubnet": "Subred",
-    "columnContainers": "Contenedores",
-    "noNetworks": "No se encontraron redes"
   },
   "resources": {
     "title": "Recursos para anfitriones",

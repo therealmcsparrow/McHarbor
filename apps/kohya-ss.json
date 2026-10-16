@@ -1,0 +1,40 @@
+{
+    "slug":  "kohya-ss",
+    "name":  "Kohya SS GUI",
+    "description":  "Web interface for training and fine-tuning Stable Diffusion LoRA and Dreambooth models; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/bmaltais/kohya-ss-gui:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/bmaltais/kohya_ss",
+    "docsUrl":  "https://github.com/bmaltais/kohya_ss#docker",
+    "ports":  [
+                  {
+                      "host":  7861,
+                      "container":  7860,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kohya-ss/dataset",
+                        "container":  "/dataset"
+                    },
+                    {
+                        "host":  "/opt/appdata/kohya-ss/outputs",
+                        "container":  "/outputs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

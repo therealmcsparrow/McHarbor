@@ -4,7 +4,7 @@
   "description": "Self-hosted start page with a clean modern UI and app bookmarks.",
   "category": "Dashboards",
   "image": "pawelmalak/flame:latest",
-  "logo": "https://raw.githubusercontent.com/pawelmalak/flame/master/.github/preview.png",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flame.png",
   "website": "https://github.com/pawelmalak/flame",
   "docsUrl": "https://github.com/pawelmalak/flame",
   "ports": [
@@ -27,5 +27,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

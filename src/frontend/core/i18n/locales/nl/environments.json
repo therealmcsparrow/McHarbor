@@ -1,6 +1,6 @@
 {
   "title": "Omgevingen",
-  "description": "Docker- en Kubernetes-verbindingen beheren",
+  "description": "Docker-verbindingen beheren",
   "searchPlaceholder": "Omgevingen zoeken...",
   "addEnvironment": "Omgeving toevoegen",
   "tableView": "Tabelweergave",
@@ -11,17 +11,54 @@
     "platform": "Platform",
     "connection": "Verbinding",
     "endpoint": "Eindpunt",
+    "hostIp": "Host-IP",
     "version": "Versie",
     "status": "Status",
     "actions": "Acties",
-    "type": "Type"
+    "type": "Type",
+    "id": "ID",
+    "stackCount": "Stacks",
+    "isActive": "Actief",
+    "lastConnected": "Laatst verbonden",
+    "timezone": "Tijdzone",
+    "agentStatus": "Agentstatus",
+    "agentBuild": "Agentbuild",
+    "agentPlatform": "Agentplatform",
+    "agentLastSeen": "Agent laatst gezien",
+    "agentInstallKind": "Agentinstallatie",
+    "ssh": "SSH",
+    "createdAt": "Aangemaakt",
+    "updatedAt": "Bijgewerkt",
+    "logRetentionDays": "Logbewaring (dagen)",
+    "metricRetentionHours": "Metricbewaring (uren)",
+    "autoUpdateWindow": "Venster voor automatische updates",
+    "containerPruneEnabled": "Containers opschonen",
+    "containerPruneStoppedDays": "Opschonen na (dagen)",
+    "imagePruneDanglingOnly": "Alleen dangling images opschonen",
+    "automaticImagePruning": "Automatisch images opschonen",
+    "groupEnvironment": "Omgeving",
+    "groupAgent": "Agent",
+    "groupConnection": "Verbinding",
+    "groupMaintenance": "Onderhoud",
+    "groupLogEntry": "Logitem",
+    "attrs": "Attributen",
+    "entryId": "Item-ID"
   },
   "badges": {
     "default": "Standaard"
   },
   "platform": {
-    "docker": "Docker",
-    "kubernetes": "Kubernetes"
+    "docker": "Docker"
+  },
+  "tls": {
+    "title": "Agenttransport",
+    "mode": {
+      "pinned": "Versleuteld (TLS) — servercertificaat vastgepind",
+      "verified": "Versleuteld (TLS) — servercertificaat geverifieerd",
+      "encrypted": "Versleuteld (TLS) — certificaatverificatie onbekend",
+      "insecure": "Versleuteld (TLS) — certificaatverificatie uitgeschakeld",
+      "plaintext": "Niet versleuteld — de agent verbindt via gewone HTTP"
+    }
   },
   "waitingForAgent": "Wachten op agent...",
   "versions": {
@@ -30,11 +67,11 @@
   "testConnection": "Verbinding testen",
   "installAgent": "Agent-installatie",
   "connectionTypes": {
-    "socket": "Unix Socket",
+    "socket": "Unix-socket",
     "tcp": "TCP",
     "tls": "TLS",
     "ssh": "SSH",
-    "agent": "Remote Agent",
+    "agent": "Agent",
     "podman": "Podman"
   },
   "card": {
@@ -46,18 +83,27 @@
     "restarting": "Herstart",
     "killed": "Gedood",
     "needsUpdates": "Updates nodig",
+    "estateRunning": "{{running}} van {{total}} actief",
     "loadingMetrics": "Metrics laden...",
     "unavailable": "Niet beschikbaar",
     "versionUnknown": "Versie onbekend",
     "open": "Omgeving openen",
     "noMatches": "Geen omgevingen komen overeen met je zoekopdracht"
   },
+  "edit": {
+      "title": "Omgeving bewerken",
+      "description": "Wijzig de naam en verbindingsgegevens van deze omgeving.",
+      "action": "Omgeving bewerken",
+      "setDefault": "Standaardomgeving",
+      "setDefaultHint": "Nieuwe sessies openen op deze omgeving.",
+      "active": "Actief",
+      "activeHint": "Inactieve omgevingen blijven bewaard maar worden niet bevraagd."
+  },
   "create": {
     "title": "Omgeving toevoegen",
-    "description": "Verbind met een Docker-host of Kubernetes-cluster.",
+    "description": "Verbind met een Docker-host.",
     "name": "Naam",
     "namePlaceholderDocker": "Mijn Docker-host",
-    "namePlaceholderK8s": "Mijn K8s-cluster",
     "platformLabel": "Platform",
     "connectionType": "Verbindingstype",
     "connectionMethod": "Verbindingsmethode",
@@ -71,9 +117,8 @@
     "defaultNamespace": "Standaard namespace",
     "agentDescription": "Een lichtgewicht agent-binary draait op de externe machine en maakt een uitgaande verbinding met McHarbor via WebSocket. Er hoeven geen poorten geopend te worden op de externe host. Na het aanmaken van de omgeving ontvangt u een token om de agent te configureren.",
     "deployMethod": "Implementatiemethode",
-    "deployManual": "Handmatig (kopieer opdrachten)",
-    "deploySSH": "Geautomatiseerd via SSH",
-    "deployScript": "Installatiescript-URL",
+    "deployManual": "Handmatig",
+    "deploySSH": "Automatisch (SSH)",
     "sshHost": "SSH-host",
     "sshPort": "SSH-poort",
     "sshUser": "SSH-gebruiker",
@@ -85,19 +130,73 @@
     "sshAuthPassword": "Wachtwoord (minder veilig)",
     "sshKey": "SSH-privésleutel",
     "sshPassword": "SSH-wachtwoord",
+    "sshKeyPlaceholder": "-----BEGIN OPENSSH PRIVATE KEY-----",
+    "socketPathPlaceholder": "/var/run/docker.sock",
     "sshPasswordWarning": "Wachtwoordauthenticatie is minder veilig dan sleutelgebaseerde authenticatie. Overweeg een SSH-sleutel te gebruiken.",
     "deployAs": "Implementeren als",
     "deployAsDocker": "Docker-container",
     "deployAsBinary": "Systeembinary",
-    "scriptDescription": "Na het aanmaken van de omgeving ontvangt u een eenmalige installatie-URL. Voer deze uit op de externe machine om de agent automatisch te installeren. De URL verloopt na 24 uur.",
     "adding": "Toevoegen...",
     "submit": "Omgeving toevoegen",
-    "orchestratorType": "Orchestrator",
-    "docker": "Docker",
-    "kubernetes": "Kubernetes",
     "tlsCa": "CA-certificaat",
     "tlsCert": "Clientcertificaat",
-    "tlsKey": "Clientsleutel"
+    "tlsKey": "Clientsleutel",
+    "useExistingToken": "Bestaand agent-token gebruiken",
+    "useExistingTokenDescription": "Plak het token dat al is uitgegeven door een andere McHarbor-host waar deze agent op terugverbindt. Vink niet aan om een nieuw token te genereren.",
+    "existingTokenLabel": "Agent-token",
+    "existingTokenPlaceholder": "agt_<64 hex-tekens>",
+    "existingTokenHelp": "Vind het token onder → Identiteit en toegang op de bronhost. Formaat: agt_ gevolgd door 64 hex-tekens.",
+    "useExistingTokenImported": "Bestaand agent-token geïmporteerd",
+    "caCert": "CA-certificaat",
+    "caCertHelp": "Vereist wanneer de API-server een zelfondertekend certificaat gebruikt. Laat leeg als het certificaat algemeen vertrouwd is.",
+    "serverUrlPlaceholder": "https://10.0.0.1:6443",
+    "bearerTokenPlaceholder": "eyJhbGciOi...",
+    "caCertPlaceholder": "-----BEGIN CERTIFICATE-----",
+    "saveCredentials": "Deze gegevens onthouden voor updates",
+    "saveCredentialsHelp": "De host, gebruiker en methode worden op de omgeving opgeslagen. De sleutel of het wachtwoord gaat in de geheimenvault en McHarbor bewaart alleen een verwijzing ernaar — zodat de agent later bijwerken één klik is en niet opnieuw typen vereist.",
+    "hostChecks": {
+      "title": "Hostcontroles",
+      "body": "Vraag deze host wat hij al heeft, voordat de agent erop komt.",
+      "docker": "Docker controleren",
+      "vm": "VM-gereedheid controleren",
+      "hint": "Vul eerst de SSH-host, de gebruiker en de vingerafdruk van de hostsleutel in.",
+      "failed": "De hostcontrole is mislukt.",
+      "blocks": "— ontbreekt",
+      "dockerReady": "Docker is op deze host geïnstalleerd.",
+      "dockerNotReady": "Docker is niet op deze host geïnstalleerd.",
+      "vmReady": "Deze host is klaar om virtuele machines te draaien.",
+      "vmNotReady": "Deze host kan nog geen virtuele machines draaien.",
+      "vmNote": "Virtuele machines vereisen ook dat de agent als binary onder systemd is geïnstalleerd. Een agent in een container kan ze niet hosten."
+    },
+    "prereq": {
+      "title": "Vereisten",
+      "body": "Controleer wat deze host al heeft voordat je deployt.",
+      "check": "Host controleren",
+      "notChecked": "Nog niet gecontroleerd. Vul de SSH-gegevens in en controleer.",
+      "ready": "Klaar om door te gaan. Er ontbreekt niets wat nodig is.",
+      "blockedMissing": "Er ontbreekt iets wat deze implementatiemethode nodig heeft. Vink het aan voor installatie, of installeer het handmatig en controleer opnieuw.",
+      "blockedEscalation": "De aangevinkte pakketten kunnen niet worden geïnstalleerd: deze host biedt geen manier om bevoorrechte opdrachten uit te voeren. Voer het rootwachtwoord in of herstel sudo.",
+      "detected": "{{os}} op {{arch}} gedetecteerd ({{distro}})",
+      "required": "— vereist voor deze methode",
+      "noRemediation": "Voor deze distributie is geen installatiecommando bekend. Installeer het handmatig.",
+      "failed": "Hostcontrole mislukt.",
+      "installTitle": "De ontbrekende installeren",
+      "installBody": "Alleen wat je aanvinkt wordt geïnstalleerd, en alleen op deze host. Er wordt niets geïnstalleerd tenzij je erom vraagt.",
+      "install": "Geselecteerde installeren",
+      "installing": "Bezig met installeren...",
+      "outputTitle": "Installatie-uitvoer",
+      "escalationNote": "Wordt via SSH uitgevoerd met de hierboven gedetecteerde escalatie.",
+      "rootPassword": "Root-wachtwoord",
+      "rootPasswordHelp": "Deze host heeft geen sudo, dus voor het installeren wordt su gebruikt. Het wachtwoord wordt alleen voor deze run gebruikt en nooit opgeslagen.",
+      "escalation": {
+        "label": "Bevoorrechte commando's worden uitgevoerd:",
+        "none": "direct — al root",
+        "sudo": "via sudo zonder wachtwoord",
+        "sudo_password": "via sudo, met het SSH-wachtwoord",
+        "su": "via su, met het root-wachtwoord",
+        "unavailable": "helemaal niet — geen root, geen sudo, geen root-wachtwoord"
+      }
+    }
   },
   "detail": {
     "notFound": "Omgeving niet gevonden",
@@ -114,16 +213,32 @@
     "agentInfo": "Agent-info",
     "regenerateToken": "Token opnieuw genereren",
     "hostname": "Hostnaam",
+    "hostIp": "Host-IP",
     "os": "Besturingssysteem",
     "architecture": "Architectuur",
     "agentVersion": "Agent-versie",
     "lastSeen": "Laatst gezien",
+    "agentLog": {
+      "exportName": "agent-log-{{env}}",
+      "columnTime": "Tijd",
+      "columnLevel": "Niveau",
+      "columnMessage": "Bericht",
+      "title": "Agentlog",
+      "description": "Regels die de agent vastlegde toen McHarbor onbereikbaar was, teruggespeeld na het opnieuw verbinden.",
+      "refresh": "Agentlog vernieuwen",
+      "emptyTitle": "Geen gebufferde logregels",
+      "emptyDescription": "De agent is sinds de laatste verbinding niet offline geweest, of er is nog niets teruggespeeld.",
+      "pageOf": "Pagina {{page}} van {{totalPages}} · {{total}} regels",
+      "previous": "Vorige pagina",
+      "next": "Volgende pagina"
+    },
     "cpuCores": "CPU-kernen",
     "cores": "kernen",
     "totalMemory": "Totaal geheugen",
     "dockerVersionStat": "Docker-versie",
-    "diskUsage": "Schijfgebruik",
-    "imagesVolumes": "Images: {{images}}, Volumes: {{volumes}}",
+    "diskIo": "Schijf-I/O",
+    "diskIoSplit": "Lezen {{read}} · Schrijven {{write}}",
+    "diskIoUnavailable": "Nog geen schijfmetingen",
     "running": "Actief",
     "stopped": "Gestopt",
     "paused": "Gepauzeerd",
@@ -147,7 +262,10 @@
       "docker": "Docker",
       "processes": "Processen",
       "terminal": "Terminal",
-      "logs": "Logs"
+      "logs": "Logboeken",
+      "access": "Toegang",
+      "updates": "Updates",
+      "services": "Services"
     },
     "activity": {
       "title": "Activiteitsinstellingen",
@@ -166,7 +284,6 @@
       "diskCapacityNote": "Drempelmeldingen gebruiken de door de engine gerapporteerde opslagcapaciteit van de Docker-driver wanneer die beschikbaar is.",
       "diskUsageExceededTitle": "Drempel voor schijfgebruik overschreden in {{name}}",
       "diskUsageExceededDescription": "Docker-opslag zit op {{percent}}% van de capaciteit (drempel: {{threshold}}%, huidig gebruik: {{total}}).",
-      "kubernetesNote": "Deze activiteitsinstellingen gelden voor Docker-omgevingen. Je kunt de verbinding voor deze omgeving nog steeds testen.",
       "connectionTestInProgress": "Verbinding wordt getest",
       "connectionTestSuccessful": "Verbinding geslaagd",
       "connectionTestFailed": "Verbinding mislukt",
@@ -187,14 +304,12 @@
       "prunePreviewLabel": "Preview automatische image-prune",
       "timezoneLabel": "Tijdzone",
       "timezoneDescription": "Gebruikt voor het plannen van auto-updates, git-syncs en image pruning.",
-      "kubernetesNote": "Updatecontroles en image pruning gelden voor Docker-omgevingen. Je kunt de tijdzone nog steeds instellen voor planning.",
       "statusOn": "AAN",
       "statusOff": "UIT"
     },
     "retention": {
       "title": "Retentie & opschonen",
       "description": "Configureer logretentie, automatische container-pruning, het auto-update onderhoudsvenster en metriekretentie voor deze omgeving.",
-      "kubernetesNote": "Retentie en pruning gelden voor Docker-omgevingen. Het auto-update venster is informatief en wordt door toekomstige automatisering gebruikt.",
       "logRetentionTitle": "Containerlogretentie",
       "logRetentionDescription": "Hoe lang containerloghistorie wordt bewaard voordat deze wordt opgeschoond.",
       "logRetentionLabel": "Bewaartermijn",
@@ -241,8 +356,8 @@
         "memory": "Geheugen",
         "uptime": "Uptime",
         "dockerVersion": "Docker-versie",
-        "load": "Load {{value}}",
-        "cores": "{{count}} cores",
+        "load": "Belasting {{value}}",
+        "cores": "{{count}} kernen",
         "unavailable": "Niet beschikbaar"
       },
       "disk": {
@@ -254,15 +369,15 @@
       },
       "hostFs": {
         "title": "Hostbestandssysteem",
-        "path": "Mount: {{path}}",
+        "path": "Koppeling: {{path}}",
         "unavailable": "Hostbestandssysteemgebruik is niet beschikbaar voor deze omgeving."
       },
       "prune": {
-        "title": "Prune",
+        "title": "Opschonen",
         "description": "Maak schijfruimte vrij door ongebruikte Docker-resources te verwijderen. Destructief — bevestig elke actie.",
         "agentLimited": "Prune is niet beschikbaar voor agent-omgevingen: de Docker-daemon op de externe host is niet direct bereikbaar.",
         "destructiveTag": "Destructief",
-        "confirm": "Prune",
+        "confirm": "Opschonen",
         "system": {
           "label": "Systeem (containers, images, netwerken)",
           "title": "Systeem-prune",
@@ -307,7 +422,7 @@
       "minApiVersion": "Min API-versie",
       "gitCommit": "Git-commit",
       "goVersion": "Go-versie",
-      "os": "OS",
+      "os": "Besturingssysteem",
       "architecture": "Architectuur",
       "kernelVersion": "Kernel",
       "hostname": "Hostnaam",
@@ -351,10 +466,13 @@
       "searchPlaceholder": "Processen zoeken...",
       "empty": "Geen draaiende processen met statistieken beschikbaar.",
       "columns": {
+        "memLimit": "Geheugenlimiet",
+        "containerId": "Container-ID",
+        "groupContainer": "Container",
         "name": "Naam",
         "cpu": "CPU",
         "memory": "Geheugen",
-        "pids": "PIDs",
+        "pids": "PID's",
         "network": "RX / TX",
         "block": "Lezen / Schrijven"
       }
@@ -368,7 +486,173 @@
       "connected": "Verbonden",
       "disconnected": "Niet verbonden",
       "warning": "Deze sessie heeft volledige toegang op host-niveau. Voer alleen opdrachten uit als je de impact begrijpt.",
-      "connectError": "Kan geen verbinding maken met de hostterminal."
+      "connectError": "Kan geen verbinding maken met de hostterminal.",
+      "userDefault": "Hoststandaard (root)",
+      "userCustom": "Aangepast…",
+      "userPlaceholder": "Naam hostaccount"
+    },
+    "access": {
+        "title": "SSH-toegang",
+        "description": "Hoe McHarbor deze host bereikt om de agent te installeren of bij te werken. De inloggegevens zelf staan in de geheimenvault en worden hier nooit getoond.",
+        "loading": "De toegangsinstellingen worden gelezen…",
+        "configured": "Geconfigureerd",
+        "notConfigured": "Er is nog geen SSH-toegang voor deze omgeving opgeslagen.",
+        "lastDeployed": "Laatst gedeployd {{when}}",
+        "forget": "Toegang vergeten",
+        "saved": "Toegangsinstellingen opgeslagen",
+        "host": "Host",
+        "port": "Poort",
+        "user": "Gebruiker",
+        "method": "Installatiemethode",
+        "methodBinary": "Native binary",
+        "methodDocker": "Docker-container",
+        "fingerprint": "Vingerafdruk van hostsleutel",
+        "fingerprintHelp": "De SHA256-vingerafdruk die McHarbor bij het verbinden vastpint. Laat zoals opgeslagen tenzij de hostsleutel is gewijzigd.",
+        "credentialTitle": "Inloggegevens",
+        "authType": "Authenticatie",
+        "authKey": "SSH-sleutel",
+        "authPassword": "Wachtwoord",
+        "secret": "Vaultgeheim",
+        "secretNone": "Geen geselecteerd",
+        "secretHelp": "Kies een geheim dat al in de vault staat, of voer hieronder een nieuwe sleutel of een nieuw wachtwoord in om er een aan te maken.",
+        "newKey": "Nieuwe privésleutel",
+        "newPassword": "Nieuw wachtwoord",
+        "credentialHelp": "Een hier ingevoerde sleutel of wachtwoord wordt naar de geheimenvault geschreven en nooit meer naar de browser teruggestuurd. Laat beide leeg om de opgeslagen inloggegevens te behouden."
+      },
+    "hostUpdates": {
+      "unavailable": "Het hostbesturingssysteem kon niet worden gelezen, dus hier kan niets worden gewijzigd.",
+        "title": "Host-OS-updates",
+        "osTitle": "Hostbesturingssysteem",
+        "lastChecked": "Laatst gecontroleerd {{when}}",
+        "neverChecked": "Nog niet gecontroleerd",
+        "checkNow": "Nu controleren",
+        "updateNow": "Host bijwerken",
+        "loading": "De updatestatus wordt gelezen…",
+        "checkFailed": "De updatecontrole is niet voltooid.",
+        "osFailed": "Het hostbesturingssysteem kon niet worden gelezen.",
+        "upToDate": "De host heeft geen openstaande pakketupdates.",
+        "pending_one": "{{count}} pakketupdate",
+        "pending_other": "{{count}} pakketupdates",
+        "os": "Besturingssysteem",
+        "osVersion": "Versie",
+        "kernel": "Kernel",
+        "architecture": "Architectuur",
+        "hostname": "Hostnaam",
+        "packageManager": "Pakketbeheerder",
+        "virtualization": "Virtualisatie",
+        "uptime": "Uptime",
+        "rebootRequired": "Herstart vereist",
+        "uptimeDays": "{{days}}d {{hours}}h",
+        "uptimeHours": "{{hours}}h {{minutes}}m",
+        "uptimeMinutes": "{{minutes}}m",
+        "progressTitle": "Updatevoortgang",
+        "progressWaiting": "Wachten op de pakketbeheerder…",
+        "running_one": "Bezig · {{count}} regel",
+        "running_other": "Bezig · {{count}} regels",
+        "finished": "Voltooid",
+        "failed": "Mislukt",
+        "scheduleTitle": "Automatische controle",
+        "scheduleDescription": "McHarbor controleert volgens dit schema op openstaande hostpakketten. Het installeert ze nooit uit zichzelf.",
+        "scheduleEnabled": "Automatisch controleren op hostupdates",
+        "scheduleTime": "Tijd",
+        "scheduleDays": "Dagen",
+        "newPackages": "Nieuwe pakketten installeren indien nodig",
+        "newPackagesDescription": "Laat een upgrade pakketten binnenhalen die hij nog niet heeft. Zonder dit wordt een kernelupdate gemeld als “achtergehouden” en nooit toegepast, omdat een nieuwe kernel-ABI nieuwe image- en headerpakketten nodig heeft. Er wordt nooit iets verwijderd.",
+        "skipUnavailable": "Niet-beschikbare pakketten overslaan",
+        "skipUnavailableDescription": "Gaat door wanneer een mirror een pakket niet meer aanbiedt, in plaats van de hele upgrade te laten mislukken. apt gebruikt --fix-missing, dnf gebruikt --skip-broken met skip_if_unavailable en yum gebruikt --skip-broken. zypper, apk en pacman hebben geen veilig equivalent en negeren het.",
+        "removeUnused": "Ongebruikte pakketten verwijderen",
+        "removeUnusedDescription": "Verwijdert na een geslaagde upgrade pakketten die als afhankelijkheid zijn geïnstalleerd en niet meer nodig zijn, inclusief oude kernels op Debian en Ubuntu. apt, dnf en yum gebruiken autoremove, pacman verwijdert wezen; apk en zypper hebben geen veilig equivalent, dus de optie wordt daar genegeerd.",
+        "refreshNote": "De pakketlijsten worden vóór een upgrade altijd vernieuwd, en een mislukte download wordt na een nieuwe vernieuwing één keer opnieuw geprobeerd.",
+        "recoveryUnsupported": "De agent van deze omgeving is ouder dan Niet-beschikbare pakketten overslaan en de automatische nieuwe poging, en negeert beide. Werk de agent bij via Instellingen → Updates.",
+        "applyTitle": "De host bijwerken?",
+        "applyDescription_one": "Installeert {{count}} openstaande pakketupdate op deze host. De uitvoer wordt in de pagina gestreamd.",
+        "applyDescription_other": "Installeert {{count}} openstaande pakketupdates op deze host. De uitvoer wordt in de pagina gestreamd.",
+        "applyDefaultsNote": "Deze beginnen bij de opgeslagen standaardwaarden van de omgeving op de kaart Automatische controle en gelden alleen voor deze run.",
+        "hintSkipUnavailable": "Sommige pakketten konden niet worden gedownload, zelfs nadat de pakketlijsten waren vernieuwd en de upgrade één keer opnieuw was geprobeerd. Schakel Niet-beschikbare pakketten overslaan in en voer de update opnieuw uit om al het overige te installeren."
+      },
+    "hostReboot": {
+      "title": "Herstart",
+      "requiredDescription": "De host meldt dat een herstart nodig is om het installeren van updates af te ronden.",
+      "idleDescription": "De laatste herstart die McHarbor op deze host heeft uitgevoerd.",
+      "rebootMachine": "Machine herstarten",
+      "cancel": "Herstart annuleren",
+      "scheduledFor": "Gepland voor {{when}}",
+      "requestedBy": "Aangevraagd door {{user}}",
+      "finishedAt": "Voltooid {{when}}",
+      "demoBlocked": "Demomodus herstart nooit een host.",
+      "errorTitle": "Herstartdetails",
+      "status": {
+        "scheduled": "Gepland",
+        "running": "Bezig met starten",
+        "stopping_workloads": "Workloads worden gestopt",
+        "rebooting": "Bezig met herstarten",
+        "done": "Voltooid",
+        "failed": "Mislukt"
+      },
+      "phase": {
+        "detect": "Workloads worden gedetecteerd",
+        "swarm": "De Swarm-node wordt gepauzeerd",
+        "guests": "Virtuele machines en LXC-containers worden afgesloten",
+        "containers": "Docker-containers worden gestopt",
+        "reboot": "Wachten tot de host terug is"
+      },
+      "reason": {
+        "demo_mode": "Demomodus herstart nooit een host.",
+        "reboot_in_progress": "Er is al een herstart van deze host bezig.",
+        "invalid_time": "Kies een datum en tijd in de toekomst, maximaal 90 dagen vooruit.",
+        "not_confirmed": "De herstart is niet bevestigd.",
+        "not_scheduled": "Er is geen geplande herstart om te annuleren.",
+        "host_unreachable": "De host kon niet worden bereikt, dus er is niets gestopt.",
+        "kubernetes_node": "Deze host is een Kubernetes-node waarvan niet is bevestigd dat hij is geleegd, dus er is niets gestopt.",
+        "swarm_worker": "Deze host is een Swarm-worker met draaiende servicetaken waarvan niet is bevestigd dat hij is geleegd, dus er is niets gestopt.",
+        "swarm_pause_failed": "De Swarm-node kon niet worden gepauzeerd, dus er is niets gestopt.",
+        "guest_not_graceful": "Een virtuele machine of LXC-container kan niet netjes worden afgesloten, dus er is niets gestopt.",
+        "guest_shutdown_failed": "Een virtuele machine of LXC-container weigerde het afsluitverzoek. De herstart is geannuleerd.",
+        "guest_timeout": "Een virtuele machine of LXC-container is niet op tijd afgesloten. Hij is blijven draaien en de herstart is geannuleerd.",
+        "container_stop_failed": "Een Docker-container kon zijn stopsignaal niet ontvangen. De herstart is geannuleerd.",
+        "container_timeout": "Een Docker-container is niet op tijd gestopt. Hij is blijven draaien en de herstart is geannuleerd.",
+        "reboot_command_failed": "De host weigerde het herstartcommando. De containers die McHarbor had gestopt zijn opnieuw gestart.",
+        "host_not_back": "De host is na de herstart niet teruggekomen.",
+        "host_did_not_restart": "De host is bereikbaar maar is niet herstart.",
+        "interrupted": "McHarbor stopte terwijl de herstart workloads aan het stoppen was, dus de host is niet herstart.",
+        "restore_partial": "De host is herstart, maar niet alles kon opnieuw worden gestart."
+      },
+      "dialog": {
+        "title": "Deze machine herstarten?",
+        "description": "McHarbor stopt alles op de host netjes en vraagt systemd daarna om te herstarten. Er wordt niets geforceerd beëindigd: als een workload niet op tijd stopt, wordt de herstart geweigerd en blijft de host draaien.",
+        "when": "Wanneer",
+        "now": "Nu",
+        "later": "Op een datum en tijd",
+        "dateTime": "Datum en tijd",
+        "dateTimeHint": "In de tijdzone van je browser. McHarbor voert de herstart één keer uit, op dit moment.",
+        "disclaimersTitle": "Wat er op deze host gebeurt",
+        "detecting": "Er wordt gedetecteerd wat op deze host draait…",
+        "drainedLabel": "Ik heb deze node afgezonderd en geleegd",
+        "drainedDescription": "Vereist voor een Kubernetes-node of een Swarm-worker: McHarbor kan die workloads niet voor je verplaatsen en weigert de herstart zonder deze bevestiging."
+      },
+      "disclaimer": {
+        "containersTitle": "Docker-containers",
+        "containers": "Elke container ontvangt zijn eigen stopsignaal (SIGTERM tenzij anders geconfigureerd) en krijgt maximaal 10 minuten om af te sluiten. Er wordt er geen geforceerd beëindigd. Containers met het herstartbeleid always of unless-stopped worden opnieuw gestart zodra de host terug is.",
+        "containersDetected": "Gedetecteerd op deze host: {{total}} draaiend, {{returning}} worden daarna opnieuw gestart.",
+        "vmsTitle": "Virtuele machines (KVM)",
+        "vms": "Elke VM krijgt een ACPI-afsluitverzoek en maximaal 10 minuten om uit te schakelen. Er is geen geforceerde uitschakeling. Een VM start na de herstart alleen opnieuw als autostart aan staat.",
+        "lxcTitle": "LXC-containers",
+        "lxc": "Elke container krijgt het stopsignaal van zijn init-systeem en er wordt op dezelfde manier op gewacht, nooit geforceerd beëindigd. Hij start na de herstart alleen opnieuw als autostart aan staat.",
+        "guestsDetected": "Gedetecteerd op deze host: {{guests}} gasten draaiend (virtuele machines en systeemcontainers).",
+        "guestBlockers": "Deze kunnen niet netjes worden afgesloten en blokkeren de herstart: {{names}}",
+        "kubernetesTitle": "Kubernetes",
+        "kubernetes": "McHarbor sluit Kubernetes-nodes niet af of leegt ze niet. Leeg de node eerst (kubectl drain), anders stopt de kubelet zijn pods tijdens het afsluiten.",
+        "kubernetesDetected": "Kubernetes gedetecteerd op deze host ({{names}}). Bevestig hieronder dat de node is geleegd.",
+        "swarmTitle": "Docker Swarm",
+        "swarm": "Een managernode wordt gepauzeerd zodat zijn servicetaken naar andere nodes verhuizen terwijl ze stoppen, en na de herstart weer op actief gezet. Een worker kan zichzelf niet pauzeren: leeg hem eerst vanaf een manager.",
+        "swarmManager": "Deze host is een Swarm-manager en wordt tijdens de herstart gepauzeerd.",
+        "swarmWorker": "Deze host is een Swarm-worker met {{tasks}} draaiende servicetaken. Leeg hem vanaf een manager en bevestig hieronder.",
+        "mcharborTitle": "McHarbor",
+        "mcharbor": "McHarbor zelf draait op deze machine en is offline totdat de machine terug is. De herstart wordt afgerond en gestopte containers worden opnieuw gestart wanneer McHarbor opstart.",
+        "notDetected": "Op deze host niets gedetecteerd.",
+        "unknown": "Kon op deze host niet worden gedetecteerd.",
+        "refused": "Als iets niet op tijd stopt, weigert McHarbor de herstart in plaats van die te forceren, start de Docker-containers die het had gestopt opnieuw en toont de reden op deze kaart."
+      }
     },
     "hostLogs": {
       "title": "Hostlogboeken",
@@ -384,10 +668,15 @@
         "auth": "Authenticatie",
         "docker": "Docker"
       },
+      "availableFilesLabel": "Logbestanden gevonden op deze host",
+      "fallbackNote": "Geen van de verwachte logbestanden was aanwezig, dus is het grootste logbestand op deze host gelezen: {{file}}",
       "notices": {
-        "generic": "De logbron gaf een niet-fatale melding.",
         "permission_denied": "Een hostlogbestand bestaat maar McHarbor heeft geen leesrechten. Er is een alternatieve bron geprobeerd.",
-        "no_supported_log_source": "Geen leesbaar logbestand of ondersteunde journal-bron gevonden voor deze host."
+        "no_supported_log_source": "Geen leesbaar logbestand of ondersteunde journal-bron gevonden voor deze host.",
+        "no_var_log_dir": "De host heeft geen /var/log-map, dus er konden geen logbestanden worden gelezen.",
+        "no_journalctl": "journalctl is niet geïnstalleerd op deze host, dus journal-logs konden niet worden gelezen.",
+        "journalctl_failed": "journalctl gaf een fout terug. De uitvoer hieronder kan onvolledig zijn.",
+        "unknown": "Hostlog-diagnose: {{code}}"
       }
     },
     "hostLogPreview": {
@@ -398,7 +687,76 @@
       "empty": "Geen logregels beschikbaar op de host. Probeer een andere bron of controleer de logmap van de host.",
       "lineCount": "{{count}} regels",
       "tailNote": "Toont de laatste {{tail}} regels"
-    }
+    },
+    "group": {
+      "overview": "Overzicht",
+      "settings": "Instellingen",
+      "host": "Host"
+    },
+    "status": {
+      "connected": "Verbonden",
+      "disconnected": "Niet verbonden",
+      "error": "Fout"
+    },
+    "agentHealth": {
+      "title": "Agentgezondheid",
+      "state": {
+        "healthy": "Gezond",
+        "degraded": "Verslechterd",
+        "unhealthy": "Ongezond",
+        "unknown": "Onbekend"
+      },
+      "summaryNoSamples": "Nog geen metingen vastgelegd. De strook vult zich naarmate McHarbor de keepalive van de agent waarneemt.",
+      "summaryNeverConnected": "Deze agent heeft nog nooit verbinding gemaakt, dus er valt nog niets te beoordelen. Installeer hem op de externe host en hij belt vanzelf in.",
+      "summaryDisconnected": "De agent is niet verbonden. Hij werd voor het laatst gezien om {{time}}; tot hij opnieuw inbelt, kan er niets in deze omgeving worden beheerd.",
+      "summaryDegraded": "{{degraded}} van de laatste {{total}} metingen waren verslechterd — de agent beantwoordde zijn keepalive te laat of helemaal niet. De ping loopt elke {{interval}} s.",
+      "summaryHealthy": "De agent beantwoordde alle {{total}} vastgelegde keepalives. De ping loopt elke {{interval}} s en de laatste retourtijd was {{latency}} ms.",
+      "sample": "{{time}} — {{health}}",
+      "stripLabel": "Geschiedenis van agentgezondheid: {{total}} metingen, {{degraded}} verslechterd, {{down}} losgekoppeld",
+      "footer": "{{count}} metingen · interval van {{interval}} s",
+      "latency": "Retourtijd",
+      "latencyCounts": "gemiddeld {{avg}} ms · piek {{max}} ms",
+      "latencyUnavailable": "Geen retourtijd gemeten",
+      "ms": "{{value}} ms"
+    },
+    "agentUptime": {
+      "title": "Agentbeschikbaarheid",
+      "percent": "{{percent}}% online",
+      "connected": "Verbonden",
+      "disconnected": "Losgekoppeld",
+      "summaryNoSamples": "Nog geen metingen vastgelegd. De strook vult zich naarmate McHarbor de agent waarneemt.",
+      "summaryAllUp": "De agent was verbonden bij alle {{total}} vastgelegde metingen.",
+      "summaryWithDowntime": "De agent was losgekoppeld bij {{down}} van de laatste {{total}} metingen — {{percent}}% beschikbaar, verdeeld over {{outages}} storingen.",
+      "sample": "{{time}} — {{state}}",
+      "stripLabel": "Geschiedenis van agentbeschikbaarheid: {{total}} metingen, {{up}} verbonden, {{down}} losgekoppeld",
+      "footer": "{{count}} metingen · interval van {{interval}} s",
+      "counts": "{{up}} verbonden · {{down}} los · {{outages}} storingen"
+    },
+    "statsPath": {
+      "title": "Containerstatistieken",
+      "lastBatch": "Laatste batch {{time}}",
+      "mode": {
+        "push": "Door de agent gepusht om de {{seconds}} s",
+        "pull": "Eén container tegelijk opgehaald",
+        "direct": "Rechtstreeks gelezen van de Docker-verbinding",
+        "off": "Niet verzameld"
+      },
+      "reason": {
+        "agent_too_old": "Agent {{version}} (build {{build}}) kan geen statistieken pushen. Build {{requiredBuild}} van {{requiredVersion}} of nieuwer kan dat wel.",
+        "awaiting_first_batch": "De agent is gevraagd te pushen en zijn eerste batch is nog niet aangekomen.",
+        "agent_disconnected": "De agent is niet verbonden.",
+        "agent_metrics_disabled": "Agentmetrics staan uit in Instellingen → Systeem → Agent."
+      }
+    },
+    "installKind": "Agentinstallatie",
+    "installKindUnknown": "Onbekend (agent ouder dan 3.5.0)",
+    "installKindValue": {
+      "native": "Native (host)",
+      "container": "Container"
+    },
+    "updateAgent": "Agent bijwerken",
+    "updateAgentHelp": "Voert de opgeslagen SSH-deployment opnieuw uit om de huidige agent te installeren. Vereist dat deploymentgegevens zijn onthouden.",
+    "agentBuild": "Agentbuild"
   },
   "agentToken": {
     "title": "Agent-token aangemaakt",
@@ -409,12 +767,39 @@
     "copyToken": "Token kopiëren",
     "runWithDocker": "Uitvoeren met Docker",
     "runAsBinary": "Uitvoeren als binary",
-    "installScript": "Eenregelig installatiescript (uitvoeren op externe host)",
+    "binaryIntro": "Een native installatie — de binary onder systemd. Het is de enige installatie die virtuele machines of systeemcontainers kan hosten.",
+    "binaryDownload": "Download de binary (als root uitvoeren)",
+    "copyBinaryDownload": "Downloadcommando kopiëren",
+    "binaryDownloadNote": "Neemt de agent waarmee deze McHarbor is gebouwd, zodat de twee versies overeenkomen.",
+    "binaryForegroundNote": "Draait op de voorgrond, voor een snelle controle. Overleeft geen herstart — installeer hieronder de service voor een permanente agent.",
+    "runAsService": "Installeren als systemd-service (als root uitvoeren)",
+    "copyServiceCommand": "Serviceinstallatiecommando kopiëren",
+    "serviceNote": "Het token wordt in het unitbestand geschreven, daarom is het bestand alleen voor root leesbaar. Volg het starten met journalctl -u mcharbor-agent -f.",
+    "serviceOtherPlatforms": "Geen systemd op deze host? Koppel de binary aan het init-systeem dat je gebruikt. McHarbor levert geen serviceinstaller voor Windows of macOS.",
+    "installUrlDocker": "Installatie-URL — container (Docker)",
+    "installUrlBinary": "Installatie-URL — binary (systemd)",
+    "installUrlNote": "Uitvoeren op de externe host. Forceert de containerinstallatie en mislukt als Docker daar niet bruikbaar is.",
     "copyScript": "Installatieopdracht kopiëren",
     "copyDockerCommand": "Docker-opdracht kopiëren",
     "copyBinaryCommand": "Binary-opdracht kopiëren",
     "scriptExpiry": "Deze URL verloopt na 24 uur en kan slechts één keer worden gebruikt.",
-    "done": "Gereed"
+    "done": "Gereed",
+    "wssHint": "De verbinding gebruikt wss:// — zorg dat de externe host het McHarbor-certificaat vertrouwt.",
+    "forceTlsLabel": "MCHARBOR_FORCE_TLS=1",
+    "transferHttpsHint": "Bestandsoverdrachten gaan naar https://<agent-host>:8788 — de agent moet het McHarbor-certificaat vertrouwen.",
+    "methodLabel": "Installatiemethode",
+    "methods": {
+      "script": "Installatiescript",
+      "compose": "Compose",
+      "docker": "Docker run",
+      "binary": "Binary"
+    },
+    "runWithCompose": "docker-compose.yml",
+    "copyComposeFile": "Het Compose-bestand kopiëren",
+    "composeNote": "Sla op als docker-compose.yml op de externe host en voer docker compose up -d uit.",
+    "composeLoadNote": "Voer eerst de eerste twee regels van het Docker-commando uit om de agentimage van McHarbor te laden. Sla dit daarna op als docker-compose.yml op de externe host en voer docker compose up -d uit.",
+    "insecureTls": "Server gebruikt een zelfondertekend certificaat",
+    "insecureTlsHint": "Standaard aan omdat een standaard-McHarbor zijn eigen certificaat ondertekent. De agent wordt dan met MCHARBOR_PIN vastgezet op de certificeringsinstantie van deze server, zodat hij alleen die ene CA vertrouwt. Zet het uit als jouw certificaat is ondertekend door een CA die de externe host al vertrouwt."
   },
   "toast": {
     "created": "Omgeving aangemaakt",
@@ -451,7 +836,8 @@
     "agentDeployed": "Agent-implementatie gestart",
     "agentDeployFailed": "Agent-implementatie mislukt",
     "copiedToClipboard": "Gekopieerd naar klembord",
-    "copyFailed": "Kon niet naar klembord kopieren"
+    "copyFailed": "Kon niet naar klembord kopieren",
+    "agentRedeployed": "Agent bijgewerkt"
   },
   "confirm": {
     "removeTitle": "Omgeving verwijderen",
@@ -466,8 +852,195 @@
       "resultFail": "Mislukt",
       "resultWarn": "Waarschuwing",
       "resultSkip": "Overgeslagen",
+      "dockerVersion": "Docker v{{version}}",
       "noSteps": "Er zijn geen teststappen uitgevoerd.",
-      "overallStatus": "Algemene status"
+      "overallStatus": "Algemene status",
+      "status": {
+        "pass": "Geslaagd",
+        "warn": "Waarschuwing",
+        "fail": "Mislukt",
+        "skip": "Overgeslagen"
+      },
+      "steps": {
+        "load": "Omgeving laden",
+        "reset": "Client in cache resetten",
+        "connect": "Client verkrijgen",
+        "ping": "Daemon pingen",
+        "version": "Serverversie lezen",
+        "persist": "Resultaat opslaan"
+      }
+    }
+  },
+  "placeholders": {
+    "sshUser": "root"
+  },
+  "migrate": {
+    "action": "Verbinding migreren",
+    "title": "Verbinding migreren",
+    "description": "Wijzig hoe McHarbor deze host bereikt. De omgeving behoudt zijn ID, dus zijn stacks, metrics, activiteit en computeresources gaan mee.",
+    "targetType": "Migreren naar",
+    "existingToken": "Bestaand agenttoken",
+    "existingTokenPlaceholder": "agt_…",
+    "existingTokenHint": "Laat leeg om McHarbor een nieuw token te laten uitgeven. Plak er alleen een in wanneer de agent al is gedeployd en het bezit.",
+    "immediate": "Direct overschakelen",
+    "immediateHint": "De omgeving schakelt nu over en werkt niet meer totdat de agent verbindt.",
+    "gracefulHint": "De omgeving blijft zijn huidige verbinding gebruiken totdat de agent met het nieuwe token verbindt.",
+    "revokeWarning": "Het huidige agenttoken wordt ingetrokken en de verbonden agent wordt losgekoppeld. Hij kan niet opnieuw verbinden tenzij je terug migreert en een nieuw token uitgeeft.",
+    "submit": "Migreren",
+    "cancel": "Migratie annuleren",
+    "pendingNotice": "Wachten tot een agent verbindt. Deze omgeving schakelt over naar {{target}} zodra dat gebeurt en blijft tot dan werken.",
+    "toast": {
+      "cancelled": "Verbindingsmigratie geannuleerd"
+    },
+    "deployAgent": "Installeer de agent voor mij",
+    "deployAgentHint": "McHarbor deployt de agentcontainer op deze host via de verbinding die het al heeft, en de omgeving schakelt zelf over zodra hij verbindt.",
+    "deployAgentOffHint": "Je krijgt een token en installeert de agent zelf. De omgeving blijft werken totdat hij verbindt.",
+    "insecureTls": "Server gebruikt een zelfondertekend certificaat",
+    "insecureTlsHint": "Standaard aan omdat een standaard McHarbor zijn eigen certificaat ondertekent. Zet uit als het jouwe is ondertekend door een CA die de host vertrouwt.",
+    "deployFailed": "De agent kon niet worden geïnstalleerd",
+    "deployFailedHint": "Er is niets gewijzigd — de omgeving gebruikt weer zijn vorige verbinding en het token is ingetrokken.",
+    "pendingFailsafe": "Als hij niet binnen 15 minuten is verbonden, zet McHarbor deze omgeving terug zoals hij was, verwijdert de gedeployde agent en trekt het token in."
+  },
+  "merge": {
+    "action": "Duplicaat samenvoegen",
+    "title": "Omgevingen samenvoegen",
+    "description": "Voeg een andere omgeving samen met {{target}} en verwijder die.",
+    "source": "Samen te voegen omgeving",
+    "sourceHint": "Alles wat eraan hangt wordt naar deze omgeving omgeleid, en de rij wordt daarna verwijderd.",
+    "warning": "Dit kan niet ongedaan worden gemaakt. Rijen waarvan de behouden omgeving al een equivalent heeft — een pool met dezelfde naam, dezelfde instellingenrij — worden weggegooid in plaats van gedupliceerd.",
+    "planning": "Er wordt uitgezocht wat er zou verhuizen…",
+    "planTitle": "{{count}} rijen zouden verhuizen",
+    "planEmpty": "Er hangt niets aan die omgeving.",
+    "defaultMoved": "De vlag voor de standaardomgeving verhuist mee.",
+    "submit": "Samenvoegen en verwijderen",
+    "columns": {
+      "table": "Tabel",
+      "rows": "Rijen"
+    }
+  },
+  "duplicates": {
+    "title": "Een andere omgeving bereikt dezelfde machine ({{hostname}})",
+    "thisHost": "dezelfde Docker-daemon",
+    "body": "Zowel deze omgeving als {{others}} melden dezelfde Docker-daemon. Twee omgevingen op één host verdubbelen de pollingkosten en tellen hem dubbel in rapportages."
+  },
+  "hostServices": {
+    "title": "Services",
+    "searchPlaceholder": "Services zoeken",
+    "empty": "Geen services gemeld door deze host",
+    "truncated": "De host meldde meer services dan McHarbor in één keer toont; de lijst is ingekort.",
+    "failureTitle": "Waarom {{unit}} is mislukt",
+    "column": {
+      "unit": "Unit",
+      "description": "Beschrijving",
+      "state": "Status",
+      "enabled": "Ingeschakeld",
+      "pid": "Hoofd-PID",
+      "load": "Load"
+    },
+    "facet": {
+      "running": "Actief",
+      "failed": "Mislukt",
+      "inactive": "Inactief",
+      "enabled": "Ingeschakeld",
+      "disabled": "Uitgeschakeld"
+    },
+    "action": {
+      "revert": "Terugdraaien",
+      "daemonReload": "systemd herladen"
+    },
+    "row": {
+      "start": "{{unit}} starten",
+      "stop": "{{unit}} stoppen",
+      "restart": "{{unit}} herstarten",
+      "enable": "{{unit}} inschakelen",
+      "disable": "{{unit}} uitschakelen",
+      "edit": "Configuratie van {{unit}} bewerken"
+    },
+    "protected": {
+      "agent": "Beschermd: dit is de McHarbor-agent zelf. Hij kan worden herstart, niet gestopt of uitgeschakeld.",
+      "ssh": "Beschermd: het stoppen van SSH kan je buitensluiten van de host.",
+      "systemd": "Beschermd: een kern-systemd-component.",
+      "dbus": "Beschermd: de systeemberichtenbus waarvan systemd en de meeste services afhangen.",
+      "runtime": "Beschermd: de containerruntime die de McHarbor-agent aanstuurt.",
+      "mcharbor": "Beschermd: dit draait McHarbor zelf. Het kan worden herstart, niet gestopt of uitgeschakeld.",
+      "self_runtime": "Beschermd: de containerruntime waarop McHarbor zelf draait. Hij kan worden herstart, niet gestopt of uitgeschakeld."
+    },
+    "toast": {
+      "start": "{{unit}} gestart",
+      "stop": "{{unit}} gestopt",
+      "restart": "{{unit}} herstart",
+      "enable": "{{unit}} ingeschakeld",
+      "disable": "{{unit}} uitgeschakeld",
+      "agentRestarting": "De agent wordt herstart; hij verbindt over enkele seconden opnieuw",
+      "overrideSaved": "Override voor {{unit}} opgeslagen",
+      "overrideReverted": "Override voor {{unit}} verwijderd",
+      "reloaded": "systemd-configuratie herladen",
+      "mcharborRestarting": "{{unit}} wordt herstart; McHarbor is niet beschikbaar totdat hij terug is"
+    },
+    "confirm": {
+      "stop": {
+        "title": "{{unit}} stoppen?",
+        "description": "De service stopt nu. Hij start bij de volgende opstart opnieuw als hij is ingeschakeld."
+      },
+      "restart": {
+        "title": "{{unit}} herstarten?",
+        "description": "De service stopt en start opnieuw. Alles wat ermee is verbonden wordt onderbroken."
+      },
+      "disable": {
+        "title": "{{unit}} uitschakelen?",
+        "description": "De service start niet langer bij het opstarten. Of hij nu draait verandert niet."
+      },
+      "revert": {
+        "title": "{{unit}} terugzetten naar de configuratie van de leverancier?",
+        "description": "De McHarbor-override wordt verwijderd en systemd wordt herladen. De inhoud ervan kan niet worden hersteld."
+      },
+      "reload": {
+        "title": "systemd herladen?",
+        "description": "Voert systemctl daemon-reload uit: systemd leest elk unitbestand en elke drop-in opnieuw. Draaiende services worden niet herstart."
+      },
+      "agentRestartWarning": "Dit is de McHarbor-agent. Herstarten verbreekt de verbinding met deze host totdat de agent opnieuw verbindt, meestal binnen enkele seconden.",
+      "mcharborRestartWarning": "Het herstarten van {{unit}} neemt McHarbor mee. Deze pagina reageert niet meer totdat McHarbor terug is, meestal binnen een minuut."
+    },
+    "override": {
+      "title": "Configuratie van {{unit}}",
+      "description": "Wijzigingen gaan in een drop-in-override, zoals systemctl edit doet. Het unitbestand van de leverancier wordt nooit gewijzigd.",
+      "loadFailed": "De configuratie van de unit kon niet worden gelezen",
+      "effective": "Effectieve configuratie (systemctl cat)",
+      "editor": "Override: {{path}}",
+      "notYetCreated": "Er bestaat nog geen override; opslaan maakt er een aan.",
+      "reload": "systemd herladen na het opslaan",
+      "verify": "Controleren met systemd-analyze verify",
+      "verifyWarning": "Opgeslagen. systemd-analyze verify meldde:"
+    },
+    "unavailable": {
+      "not_agent": {
+        "title": "Services hebben een agent nodig",
+        "description": "Alleen een host waarop een McHarbor-agent native is geïnstalleerd kan zijn services laten beheren."
+      },
+      "not_native": {
+        "title": "Services hebben een native agent nodig",
+        "description": "Deze agent draait in een container, die de systemd van de host niet kan bereiken. Installeer de agent als binary onder systemd om services te beheren."
+      },
+      "offline": {
+        "title": "De agent is niet verbonden",
+        "description": "Services kunnen weer worden beheerd zodra de agent opnieuw verbindt."
+      },
+      "agent_outdated": {
+        "title": "Werk de agent bij om Services te gebruiken",
+        "description": "Deze agent is {{version}} build {{build}}. Services vereisen {{minVersion}} build {{minBuild}} of nieuwer. Werk hem bij via Instellingen → Updates → Agents."
+      },
+      "no_systemd": {
+        "title": "Deze host draait geen systemd",
+        "description": "De agent vond geen systemd op deze host, dus er zijn geen services te beheren."
+      },
+      "self_unreachable": {
+        "title": "McHarbor kan de machine waarop het is geïnstalleerd niet bereiken",
+        "description": "{{detail}}"
+      },
+      "self_no_systemd": {
+        "title": "Deze machine draait geen systemd",
+        "description": "De machine waarop McHarbor is geïnstalleerd draait geen systemd, dus er zijn geen services te beheren."
+      }
     }
   }
 }

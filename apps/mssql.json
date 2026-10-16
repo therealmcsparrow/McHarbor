@@ -4,7 +4,7 @@
     "description":  "Microsoft SQL Server 2022 developer edition for development.",
     "category":  "Databases",
     "image":  "mcr.microsoft.com/mssql/server:2022-latest",
-    "logo":  "https://icon.horse/icon/www.microsoft.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.microsoft.com\u0026sz=128",
     "website":  "https://www.microsoft.com/en-us/sql-server",
     "docsUrl":  "https://learn.microsoft.com/en-us/sql/sql-server/",
     "ports":  [
@@ -38,5 +38,9 @@
                         "description":  "SQL Server edition: Developer, Express, Standard, or Enterprise"
                     }
                 ],
-    "version":  "2022-latest"
+    "version":  "2022-latest",
+    "latest":  {
+        "version":  "2022-latest",
+        "release_date":  "2026-09-10"
+    }
 }

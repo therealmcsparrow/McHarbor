@@ -1,0 +1,167 @@
+{
+  "title": "SCIM-provisioning",
+  "description": "Configureer SCIM 2.0-endpoints voor provisioning door de identityprovider en bekijk de synchronisatiegeschiedenis.",
+  "actions": {
+    "new": "Nieuw endpoint",
+    "syncNow": "Nu synchroniseren",
+    "history": "Geschiedenis bekijken",
+    "edit": "Endpoint bewerken",
+    "delete": "Endpoint verwijderen",
+    "preview": "Voorbeeld bekijken en synchroniseren",
+    "rotate": "Token roteren"
+  },
+  "table": {
+    "name": "Naam",
+    "baseUrl": "Basis-URL",
+    "schedule": "Schema",
+    "lastSync": "Laatste synchronisatie",
+    "counts": "Objecten",
+    "status": "Status",
+    "actions": "Acties"
+  },
+  "counts": {
+    "users": "{{count}} gebruiker",
+    "users_other": "{{count}} gebruikers",
+    "groups": "{{count}} groep",
+    "groups_other": "{{count}} groepen"
+  },
+  "status": {
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld"
+  },
+  "syncStatus": {
+    "pending": "In afwachting",
+    "success": "Geslaagd",
+    "failed": "Mislukt",
+    "running": "Bezig"
+  },
+  "empty": {
+    "title": "Geen SCIM-endpoints",
+    "description": "Maak een SCIM-endpoint om een bearer-token uit te geven en McHarbor-gebruikers en -groepen beschikbaar te stellen aan compatibele identityproviders."
+  },
+  "delete": {
+    "title": "SCIM-endpoint verwijderen?",
+    "description": "{{name}} en de bijbehorende synchronisatiegeschiedenis verwijderen?",
+    "warning": "Provisioningclients die dit endpointtoken gebruiken werken direct niet meer.",
+    "cancel": "Annuleren",
+    "confirm": "Endpoint verwijderen"
+  },
+  "history": {
+    "title": "Synchronisatiegeschiedenis voor {{name}}",
+    "description": "Recente SCIM-synchronisaties en objectaantallen.",
+    "empty": "Nog geen synchronisatiegeschiedenis.",
+    "close": "Sluiten",
+    "errorTitle": "Synchronisatiefout",
+    "dryRun": "Proefrun",
+    "counts": "{{seen}} gezien, {{linked}} gekoppeld, {{unmatched}} niet gekoppeld, {{updated}} bijgewerkt, {{disabled}} uitgeschakeld, {{skipped}} overgeslagen, {{groups}} groepen",
+    "notes": "Notities",
+    "trigger": {
+      "schedule": "Gepland",
+      "manual": "Handmatig",
+      "preview": "Voorbeeld"
+    }
+  },
+  "editor": {
+    "titleCreate": "SCIM-endpoint maken",
+    "titleEdit": "SCIM-endpoint bewerken",
+    "name": "Naam",
+    "namePlaceholder": "Zakelijke IdP",
+    "authType": "Authenticatie",
+    "authBearer": "Bearer-token",
+    "authBasic": "Basic-authenticatie",
+    "authNone": "Geen authenticatie",
+    "baseUrl": "Basis-URL",
+    "baseUrlPlaceholder": "https://idp.example.com/scim/v2",
+    "token": "Token of wachtwoord",
+    "tokenStored": "Token opgeslagen",
+    "tokenMissing": "Geen token opgeslagen",
+    "tokenKeep": "Laat leeg om het bestaande geheim te behouden",
+    "tokenAutoGenerate": "Laat leeg om automatisch een bearer-token te genereren",
+    "tokenHint": "Geheimen worden versleuteld opgeslagen en na aanmaak nooit meer getoond.",
+    "username": "Gebruikersnaam",
+    "usernamePlaceholder": "scim-service-account",
+    "pollSchedule": "Pollschema",
+    "pollScheduleHint": "Cron-expressie met vijf velden, bijvoorbeeld */15 * * * *.",
+    "enabled": "Ingeschakeld",
+    "cancel": "Annuleren",
+    "save": "Endpoint opslaan",
+    "saving": "Opslaan..."
+  },
+  "token": {
+    "title": "SCIM-bearer-token kopiëren",
+    "description": "Dit token voor {{name}} wordt eenmalig getoond.",
+    "warning": "Kopieer dit token nu. McHarbor bewaart alleen een versleuteld geheim en kan het niet opnieuw tonen.",
+    "reveal": "Token tonen",
+    "hide": "Token verbergen",
+    "copy": "Token kopiëren",
+    "copied": "Token gekopieerd",
+    "copyFailed": "Kon token niet kopiëren",
+    "copiedHint": "Gekopieerd naar klembord.",
+    "acknowledge": "Ik heb het token gekopieerd"
+  },
+  "toast": {
+    "created": "SCIM-endpoint aangemaakt",
+    "updated": "SCIM-endpoint bijgewerkt",
+    "deleted": "SCIM-endpoint verwijderd",
+    "syncQueued": "SCIM-synchronisatie in de wachtrij",
+    "tokenRotated": "Token geroteerd"
+  },
+  "preview": {
+    "title": "Voorbeeld van synchronisatie voor {{name}}",
+    "description": "Een proefrun leest de directory en vergelijkt die met McHarbor. Er verandert niets totdat je de synchronisatie uitvoert.",
+    "loading": "De directory wordt gelezen...",
+    "failed": "De directory kon niet worden gelezen",
+    "blockedTitle": "Deze synchronisatie is geblokkeerd",
+    "refresh": "Het voorbeeld opnieuw uitvoeren",
+    "confirm": "Nu synchroniseren",
+    "queuedNote": "De synchronisatie draait bij de volgende tick van de poller, binnen een minuut, en leest de directory opnieuw, dus ze past toe wat de directory op dat moment zegt.",
+    "noChanges": "Er zou niets veranderen.",
+    "more": "...en nog {{count}}",
+    "groups": "{{count}} groepen gelezen, {{matched}} komen op naam overeen met een McHarbor-groep. Groepen worden alleen gerapporteerd; een synchronisatie wijzigt het groepslidmaatschap niet.",
+    "changes": "Wijzigingen"
+  },
+  "blocked": {
+    "empty_directory": "De directory gaf geen gebruikers terug terwijl er nog accounts zijn gekoppeld. De synchronisatie is geblokkeerd zodat ze niet alle accounts tegelijk kan uitschakelen.",
+    "directory_too_large": "Er zijn meer accounts dan een synchronisatie veilig kan vergelijken, dus de synchronisatie is geblokkeerd."
+  },
+  "summary": {
+    "usersSeen": "Gezien",
+    "linked": "Koppelen",
+    "unmatched": "Nieuw, niet gekoppeld",
+    "updated": "Bijwerken",
+    "disabled": "Uitschakelen",
+    "skipped": "Overgeslagen",
+    "unchanged": "Ongewijzigd",
+    "pendingLink": "Wacht op een account"
+  },
+  "action": {
+    "link": "Koppelen",
+    "unmatched": "Niet gekoppeld",
+    "update": "Bijwerken",
+    "disable": "Uitschakelen",
+    "skip": "Overslaan"
+  },
+  "reason": {
+    "inactive": "inactief in de directory",
+    "removed": "niet meer in de directory",
+    "protected_admin": "heeft een wildcardrol, dus een synchronisatie schakelt het nooit uit",
+    "already_linked": "het account is al gekoppeld aan een andere directorygebruiker",
+    "empty_directory": "de directory gaf geen gebruikers terug"
+  },
+  "field": {
+    "email": "e-mailadres",
+    "displayName": "weergavenaam",
+    "scimUserName": "directorygebruikersnaam",
+    "scimEmail": "directory-e-mailadres"
+  },
+  "change": {
+    "account": "account {{username}}",
+    "noAccount": "geen McHarbor-account, vastgelegd ter beoordeling",
+    "fields": "wijzigt {{fields}}"
+  },
+  "rotate": {
+    "title": "Het bearer-token voor {{name}} roteren?",
+    "description": "Er wordt een nieuw token gegenereerd en eenmalig getoond. Het huidige token werkt direct niet meer, dus werk elke client bij die het gebruikt.",
+    "confirm": "Token roteren"
+  }
+}

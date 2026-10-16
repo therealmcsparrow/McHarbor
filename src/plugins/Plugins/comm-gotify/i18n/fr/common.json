@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": { "help": "Nom d'affichage de ce canal de communication Gotify." },
+    "server_url": { "help": "URL de base du serveur Gotify." },
+    "token": { "help": "Jeton d'application Gotify. Stocké chiffré au repos." },
+    "priority": { "help": "Priorité Gotify facultative, sous forme d'entier." }
+  },
+  "title": "Livraison des notifications Gotify",
+  "subtitle": "Géré par le plugin",
+  "description": "Ce plugin gère Gotify. Il stocke les paramètres de connexion Gotify sur le canal lui-même et distribue les notifications via le runtime du plugin.",
+  "nameLabel": "Nom du canal",
+  "namePlaceholder": "Gotify Opérations",
+  "serverUrlLabel": "URL du serveur",
+  "tokenLabel": "Jeton d'application",
+  "priorityLabel": "Priorité",
+  "securityTitle": "Sécurité",
+  "securityHelp": "Jeton d'application chiffré",
+  "securityDescription": "Le jeton d'application Gotify est stocké chiffré au repos. Utilisez un jeton d'application dédié pour McHarbor afin de pouvoir le renouveler indépendamment.",
+  "testTitle": "Tester la connexion",
+  "testHelp": "Envoie un message",
+  "testDescription": "L'action de test de l'hôte publie un vrai message vers l'application Gotify configurée. Utilisez d'abord une application de test si le jeton notifie des appareils de production.",
+  "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+  "requiredField": "Obligatoire",
+  "setupGuideTitle": "Guide de configuration du canal de communication Gotify",
+  "guide": {
+    "step1": { "body": "Ouvrez votre serveur Gotify et créez une application dédiée aux notifications McHarbor." },
+    "step2": { "body": "Copiez le jeton d'application et collez-le dans la configuration de ce canal. McHarbor le stocke chiffré et le masque dans les réponses de l'API." },
+    "step3": { "body": "Définissez <b>URL du serveur</b> sur l'URL de base de Gotify, par exemple <code>https://gotify.example.com</code>, sans le chemin <code>/message</code>." },
+    "step4": { "body": "Définissez si vous le souhaitez <b>Priorité</b> sous forme d'entier si vos clients Gotify utilisent des règles de notification basées sur la priorité." },
+    "step5": { "body": "Enregistrez le canal et cliquez sur <b>Tester la connexion</b>. Le plugin publie un vrai message de test par le même chemin que celui des événements réels de workflow, d'alerte et de sauvegarde." },
+    "step6": { "body": "Si le test échoue, vérifiez l'URL du serveur, le jeton d'application, le chemin du proxy inverse et la confiance accordée au certificat TLS." }
+  }
+}

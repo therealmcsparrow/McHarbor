@@ -1,0 +1,36 @@
+{
+    "slug":  "snappymail",
+    "name":  "SnappyMail",
+    "description":  "Lightweight webmail client for connecting to existing IMAP and SMTP accounts.",
+    "category":  "Communications",
+    "image":  "djmaze/snappymail:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/snappymail.png",
+    "website":  "https://snappymail.eu",
+    "docsUrl":  "https://github.com/the-djmaze/snappymail/wiki/Docker",
+    "ports":  [
+                  {
+                      "host":  8027,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/snappymail/data",
+                        "container":  "/var/lib/snappymail"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

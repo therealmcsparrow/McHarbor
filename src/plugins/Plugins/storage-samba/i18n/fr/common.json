@@ -1,0 +1,98 @@
+{
+  "page": {
+    "title": "Destination Samba / SMB",
+    "subtitle": "Les instantanés de sauvegarde sont diffusés vers un partage SMB/CIFS du serveur configuré. Prend en charge l'invité anonyme, l'utilisateur/mot de passe de base et l'authentification de domaine NTLMv2.",
+    "registerHint": "Ce plugin gère un seul LocationType : samba. Choisissez une méthode d'authentification — guest pour les partages publics, basic pour l'authentification de groupe de travail, domain pour Active Directory."
+  },
+  "fields": {
+    "server": "Serveur",
+    "share": "Partage",
+    "path": "Chemin",
+    "authMethod": "Authentification",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "domain": "Domaine",
+    "guestUser": "Utilisateur invité",
+    "guestPassword": "Mot de passe invité"
+  },
+  "help": {
+    "server": "Nom d'hôte ou IP du serveur Samba (p. ex. `nas.local` ou `192.168.1.10`).",
+    "share": "Le nom du partage tel qu'exporté dans smb.conf. Le même nom que vous utiliseriez avec `smbclient //server/<share>`.",
+    "path": "Sous-répertoire dans le partage. Par défaut la racine du partage (`/`). Les instantanés sont écrits directement sous ce chemin.",
+    "authMethod": "Comment le plugin s'authentifie auprès du partage. Guest utilise un utilisateur invité configuré ; basic est un utilisateur/mot de passe NTLMv2 sur le groupe de travail ; domain est NTLMv2 avec un domaine Windows explicite.",
+    "username": "Compte Samba ou AD. Pour l'authentification de domaine, le nom d'utilisateur seul (sans préfixe `DOMAIN\\` — utilisez le champ Domaine).",
+    "password": "Mot de passe du compte. Stocké chiffré dans la table cfg de la destination.",
+    "domain": "Domaine Windows / Active Directory. Utilisé comme realm d'authentification pour NTLMv2.",
+    "guestUser": "Nom de compte envoyé sur le réseau pour l'accès invité. Par défaut `nobody` — faites-le correspondre à votre directive Samba `guest account =`.",
+    "guestPassword": "Mot de passe du compte invité. Généralement vide ; certaines configurations exigent un mot de passe littéral."
+  },
+  "auth": {
+    "guest": "Invité (sans mot de passe)",
+    "basic": "Basic (utilisateur + mot de passe)",
+    "domain": "Domaine (NTLMv2)"
+  },
+  "setup": {
+    "title": "Guide de configuration Samba / SMB",
+    "subtitle": "Les étapes ci-dessous sont adaptées à la méthode d'authentification choisie. Changez le champ auth_method pour voir les autres parcours.",
+    "common": {
+      "step1": {
+        "title": "Vérifier que TCP 445 est accessible",
+        "body": "Depuis l'hôte exécutant McHarbor, lancez `Test-NetConnection nas.local -Port 445` (PowerShell) ou `nc -zv nas.local 445` (bash). SMB/CIFS utilise TCP 445 ; le port NetBIOS 139 est historique et rarement utilisé par Samba moderne."
+      },
+      "step2": {
+        "title": "Choisir ou créer un partage",
+        "body": "Si vous avez déjà un partage nommé p. ex. `backups`, notez son nom. Pour en créer un, ajoutez à /etc/samba/smb.conf sur le serveur : `[backups] path = /srv/backups browseable = yes read only = no` puis `sudo systemctl restart smbd`."
+      },
+      "step3": {
+        "title": "Enregistrer la destination",
+        "body": "Dans McHarbor, renseignez Serveur (nom d'hôte ou IP), Partage et Chemin (par défaut la racine du partage). Choisissez la méthode d'authentification qui correspond à la politique de votre partage, puis enregistrez."
+      }
+    },
+    "guest": {
+      "step1": {
+        "title": "Activer l'accès invité sur le partage",
+        "body": "Dans smb.conf, ajoutez `guest ok = yes` au bloc du partage et définissez `map to guest = bad user` globalement. Par défaut, Samba utilise `nobody` comme utilisateur invité ; remplacez-le avec `guest account = ...` si vous avez un compte personnalisé."
+      },
+      "step2": {
+        "title": "Tester depuis un autre hôte",
+        "body": "Essayez `smbclient //nas.local/backups -U nobody%\"\"` depuis une machine Linux pour confirmer que l'accès invité fonctionne. Le plugin McHarbor enverra les mêmes identifiants."
+      }
+    },
+    "basic": {
+      "step1": {
+        "title": "Créer un utilisateur Samba local",
+        "body": "Exécutez `sudo smbpasswd -a backup-user` sur le serveur. Le mot de passe défini est celui que l'opérateur saisit dans McHarbor — Samba et le compte système stockent le même hachage."
+      },
+      "step2": {
+        "title": "Accorder à l'utilisateur l'accès en écriture au chemin du partage",
+        "body": "Définissez la propriété du système de fichiers : `sudo chown -R backup-user:backup-user /srv/backups`. Le plugin McHarbor s'exécute sous l'utilisateur configuré ; la lecture+écriture au niveau du système d'exploitation est donc requise même si smb.conf autorise l'utilisateur."
+      }
+    },
+    "domain": {
+      "step1": {
+        "title": "Joindre le serveur Samba au domaine AD",
+        "body": "Utilisez `net ads join -U administrator` (ou `samba-tool domain join`) sur l'hôte Samba. Confirmez que `wbinfo -u` liste les utilisateurs du domaine. Le plugin McHarbor a besoin que le serveur Samba valide NTLMv2 auprès d'AD, et non auprès de la SAM locale."
+      },
+      "step2": {
+        "title": "Accorder à l'utilisateur de sauvegarde l'accès au partage",
+        "body": "Dans smb.conf, définissez `valid users = @CORP\\backup-users` (ou des UPN spécifiques) dans le bloc du partage. Le plugin McHarbor enverra le nom d'utilisateur sous la forme que vous configurez ici — `DOMAIN\\user` n'est PAS pris en charge ; utilisez le nom d'utilisateur seul + le champ Domaine."
+      }
+    },
+    "footer": "go-smb2 v1.x ne négocie pas le chiffrement SMB3. Utilisez un LAN/VPN privé pour le partage, ou placez-le derrière un tunnel TLS (stunnel, wireguard) si des écritures via Internet sont nécessaires."
+  },
+  "toast": {
+    "registered": "Destination Samba enregistrée.",
+    "testPassed": "Connexion SMB réussie.",
+    "testFailed": "Échec de la connexion SMB.",
+    "authMethodChanged": "Méthode d'authentification mise à jour."
+  },
+  "error": {
+    "noServer": "Le serveur est obligatoire.",
+    "noShare": "Le partage est obligatoire.",
+    "noUsername": "Le nom d'utilisateur est obligatoire pour cette méthode d'authentification.",
+    "noPassword": "Le mot de passe est obligatoire pour cette méthode d'authentification.",
+    "noDomain": "Le domaine est obligatoire pour l'authentification de domaine.",
+    "mountFailed": "Impossible de monter le partage. Vérifiez le serveur, le nom du partage et les identifiants.",
+    "permissionDenied": "Le serveur SMB a rejeté l'opération. Vérifiez la permission d'écriture de l'utilisateur sur le partage."
+  }
+}

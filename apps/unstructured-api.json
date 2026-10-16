@@ -2,9 +2,9 @@
     "slug":  "unstructured-api",
     "name":  "Unstructured API",
     "description":  "Preprocess and structure documents (PDFs, DOCX, images) for downstream LLM pipelines.",
-    "category":  "AI \u0026 Voice",
+    "category":  "AI & Voice",
     "image":  "quay.io/unstructured-io/unstructured-api:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/Unstructured-IO/unstructured",
     "docsUrl":  "https://docs.unstructured.io/open-source/ingestion-api/overview",
     "ports":  [
@@ -34,5 +34,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

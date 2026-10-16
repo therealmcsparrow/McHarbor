@@ -1,267 +1,186 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { useParams, useNavigate } from "react-router";
-import { useTranslation } from "react-i18next";
-import {
-  IconInfoCircle,
-  IconBox,
-  IconLayersSubtract,
-  IconFileText,
-  IconCode,
-  IconVariable,
-  IconWebhook,
-} from "@tabler/icons-react";
-import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
-import { LinkContainerDialog } from "@resources/components/LinkContainerDialog";
-import { Button } from "@resources/components/ui/Button";
-import { Spinner } from "@resources/components/ui/Spinner";
-import { useHeaderSlot } from "@resources/stores/headerSlot";
-import { cn } from "@resources/utils/cn";
-import { isProtectedStack } from "@core/utils/protection";
-import {
-  useStack,
-  useStackAction,
-  useDeleteStack,
-  useUpdateStack,
-} from "../hooks/useStacks";
-import { TakeOverDialog } from "../components/TakeOverDialog";
-import { OverviewTab } from "../components/tabs/OverviewTab";
-import { ServicesTab } from "../components/tabs/ServicesTab";
-import { LogsTab } from "../components/tabs/LogsTab";
-import { ComposeTab } from "../components/tabs/ComposeTab";
-import { EnvironmentTab } from "../components/tabs/EnvironmentTab";
-import { LayersTab } from "../components/tabs/LayersTab";
-import { WebhooksTab } from "../components/tabs/WebhooksTab";
-import { StackDetailHeader } from "./StackDetailHeader";
+// StackDetailPage — built to the container detail page's grammar.
+//
+// The seven tabs were already here; what was missing was the frame around
+// them. The action header portalled into the topbar, so the page opened with
+// no title and the global chrome changed shape per route, and the tab bar was
+// a hand-rolled `bg-muted` pill nav that drew the same idea as `SubNav` with a
+// different set of tokens.
+//
+// Now: breadcrumb in the topbar (with a leaf switcher over the other stacks),
+// a hero card carrying identity, state and actions, the `SubNav` rail inside
+// that card, and one concern at a time in the panel below.
 
-const DETAIL_TAB_IDS = [
-  "overview",
-  "services",
-  "layers",
-  "logs",
-  "compose",
-  "environment",
-  "webhooks",
-] as const;
-type DetailTabId = (typeof DETAIL_TAB_IDS)[number];
-
-const DETAIL_TAB_ICONS: Record<DetailTabId, typeof IconInfoCircle> = {
-  overview: IconInfoCircle,
-  services: IconBox,
-  layers: IconLayersSubtract,
-  logs: IconFileText,
-  compose: IconCode,
-  environment: IconVariable,
-  webhooks: IconWebhook,
-};
+import { useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Card } from '@resources/components/ui/Card';
+import { CardSkeleton } from '@resources/components/ui/Skeleton';
+import { ErrorState } from '@resources/components/ui/ErrorState';
+import { HeaderBreadcrumb } from '@resources/layout/HeaderBreadcrumb';
+import { PageBody } from '@resources/layout/PageBody';
+import { cn } from '@resources/utils/cn';
+import { useTabCommands } from '@resources/hooks/useTabCommands';
+import { useTabContextMenu } from '@resources/hooks/useTabContextMenu';
+import { useTabFromUrl } from '@resources/hooks/useTabFromUrl';
+import { useHeaderSlot } from '@resources/stores/headerSlot';
+import { isProtectedStack } from '@core/utils/protection';
+import { useStack, useStackAction } from '@resources/hooks/useStacks';
+import { StackDetailDialogs, useStackDialogState } from '../components/StackDetailDialogs';
+import { useStackEditState } from '../hooks/useStackEditState';
+import { useStackSiblings } from '../hooks/useStackSiblings';
+import { StackDetailTabs } from '../components/StackDetailTabs';
+import { StackDetailTabContent } from '../components/StackDetailTabContent';
+import { DETAIL_TAB_IDS, DETAIL_TAB_ICONS, type DetailTabId } from '../components/stackDetailTabConfig';
+import { StackDetailHeader } from './StackDetailHeader';
 
 export default function StackDetailPage() {
-  const { name } = useParams<{ name: string }>();
+  const { name: stackParam } = useParams<{ name: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation("stacks");
-  const { data: stack, isLoading } = useStack(name ?? "");
+  const { t } = useTranslation('stacks');
+  const { data: stack, isLoading } = useStack(stackParam ?? '');
   const action = useStackAction();
-  const deleteStack = useDeleteStack();
-  const updateStack = useUpdateStack();
-  const [activeTab, setActiveTab] = useState<DetailTabId>("overview");
-  const [removeOpen, setRemoveOpen] = useState(false);
-  const [takeOverOpen, setTakeOverOpen] = useState(false);
-  const [linkOpen, setLinkOpen] = useState(false);
+  const stackTabIds = useMemo(
+    () => (stack?.type === 'managed' ? DETAIL_TAB_IDS : DETAIL_TAB_IDS.filter((id) => id !== 'environment')),
+    [stack?.type],
+  );
+  const [activeTab, setActiveTab] = useTabFromUrl<DetailTabId>(stackTabIds, 'overview', {
+    storageKey: `mcharbor-tabs:stack:${stackParam ?? 'unknown'}`,
+  });
+  const tabCommands = useMemo(
+    () =>
+      stackTabIds.map((tabId) => ({
+        id: tabId,
+        label: t(`detail.${tabId}`),
+        icon: DETAIL_TAB_ICONS[tabId],
+      })),
+    [stackTabIds, t],
+  );
+
+  useTabCommands({
+    pageId: `stack:${stackParam ?? 'unknown'}`,
+    pageLabel: stack?.name ?? t('title'),
+    tabs: tabCommands,
+    onTabChange: setActiveTab,
+    keywords: ['stack', stack?.name ?? stackParam ?? ''],
+  });
+  const tabContextMenuItems = useTabContextMenu({
+    tabs: tabCommands,
+    activeTab,
+    onTabChange: setActiveTab,
+  });
+  const dialogs = useStackDialogState();
   const setHeaderActive = useHeaderSlot((s) => s.setActive);
 
-  // Edit mode state
-  const [editing, setEditing] = useState(false);
-  const [editDescription, setEditDescription] = useState("");
+  const { editing, editDescription, setEditDescription, handleStartEdit, handleCancelEdit, handleSave, saving } =
+    useStackEditState(stack);
+
+  const siblings = useStackSiblings();
 
   useEffect(() => {
     setHeaderActive(true);
     return () => setHeaderActive(false);
   }, [setHeaderActive]);
 
-  // Reset edit state when stack changes
-  useEffect(() => {
-    if (stack) {
-      setEditDescription(stack.description ?? "");
-    }
-  }, [stack]);
-
-  const handleStartEdit = useCallback(() => {
-    if (!stack) return;
-    setEditDescription(stack.description ?? "");
-    setEditing(true);
-  }, [stack]);
-
-  const handleCancelEdit = useCallback(() => {
-    setEditing(false);
-    if (stack) {
-      setEditDescription(stack.description ?? "");
-    }
-  }, [stack]);
-
-  const handleSave = useCallback(() => {
-    if (!stack) return;
-    updateStack.mutate(
-      {
-        name: stack.name,
-        description: editDescription || undefined,
-      },
-      {
-        onSuccess: () => setEditing(false),
-      },
-    );
-  }, [stack, editDescription, updateStack]);
-
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="flex h-full flex-col gap-4">
+        <CardSkeleton lines={2} className="min-h-24" />
+        <CardSkeleton lines={8} className="min-h-64" />
       </div>
     );
   }
 
   if (!stack) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        {t("detail.stackNotFound")}
+      <div>
+        <ErrorState
+          variant="page"
+          title={t('detail.stackNotFound')}
+          primaryAction={{
+            label: t('detail.backToStacks'),
+            onClick: () => navigate('/stacks'),
+          }}
+        />
       </div>
     );
   }
 
-  const isRunning = stack.status === "running" || stack.status === "partial";
-  const isManaged = stack.type === "managed";
+  const isRunning = stack.status === 'running' || stack.status === 'partial';
+  const isManaged = stack.type === 'managed';
   const locked = isProtectedStack(stack);
-  const headerSlot = document.getElementById("header-slot");
-
-  const visibleTabs = isManaged
-    ? DETAIL_TAB_IDS
-    : DETAIL_TAB_IDS.filter((id) => id !== "environment");
 
   return (
-    <div className="flex h-full flex-col gap-0">
-      {headerSlot &&
-        createPortal(
+    <div className="flex h-full min-h-0 flex-col">
+      <HeaderBreadcrumb
+        crumbs={[{ label: t('title'), to: '/stacks' }, { label: stack.name }]}
+        siblings={siblings}
+        currentId={stack.name}
+      />
+
+      <PageBody
+        className={cn('gap-4 p-6', activeTab === 'logs' || activeTab === 'compose' ? 'overflow-hidden' : undefined)}
+      >
+        <Card className="flex-none overflow-visible">
           <StackDetailHeader
             stackName={stack.name}
             status={stack.status}
             isManaged={isManaged}
             isRunning={isRunning}
+            serviceCount={stack.services?.length ?? 0}
             locked={locked}
+            targetsSelf={stack.targetsSelf}
             editing={editing}
-            onAction={(a) => !locked && action.mutate({ name: stack.name, action: a })}
-            onRemove={() => !locked && setRemoveOpen(true)}
-            onTakeOver={() => !locked && setTakeOverOpen(true)}
-            onLinkContainer={() => !locked && setLinkOpen(true)}
+            onAction={(a) => {
+              if (locked) return;
+              if (a === 'down') dialogs.setDownOpen(true);
+              else action.mutate({ stack, action: a });
+            }}
+            onRemove={() => !locked && dialogs.setRemoveOpen(true)}
+            onTakeOver={() => !locked && dialogs.setTakeOverOpen(true)}
+            onLinkContainer={() => !locked && dialogs.setLinkOpen(true)}
             onEdit={() => !locked && handleStartEdit()}
             onSave={handleSave}
             onCancelEdit={handleCancelEdit}
-            saving={updateStack.isPending}
-          />,
-          headerSlot,
-        )}
+            saving={saving}
+          />
 
-      <div className="flex h-full flex-col overflow-hidden">
-        <div className="border-b border-border bg-card px-5 py-3">
-          <nav className="flex w-fit bg-muted rounded-lg p-1 gap-x-1">
-            {visibleTabs.map((tabId) => {
-              const Icon = DETAIL_TAB_ICONS[tabId];
-              return (
-                <Button
-                  key={tabId}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setActiveTab(tabId)}
-                  className={cn(
-                    "h-auto py-2 px-3.5 inline-flex items-center gap-x-1.5 text-sm font-medium rounded-lg transition-colors",
-                    activeTab === tabId
-                      ? "bg-card text-foreground shadow-sm"
-                      : "bg-transparent text-muted-foreground hover:text-primary",
-                  )}
-                >
-                  <Icon className="size-4" />
-                  {t(`detail.${tabId}`)}
-                </Button>
-              );
-            })}
-          </nav>
+          <StackDetailTabs
+            tabs={stackTabIds}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            iconFor={(tabId) => DETAIL_TAB_ICONS[tabId]}
+            labelFor={(tabId) => t(`detail.${tabId}`)}
+            ariaLabel={t('detail.tabs.ariaLabel')}
+            contextMenuFor={tabContextMenuItems}
+          />
+        </Card>
+
+        <div
+          id="stack-detail-panel"
+          role="tabpanel"
+          aria-labelledby={`stack-tab-${activeTab}`}
+          tabIndex={0}
+          className={cn(
+            'flex min-h-0 flex-col',
+            activeTab === 'logs' || activeTab === 'compose' ? 'flex-1' : undefined,
+          )}
+        >
+          <StackDetailTabContent
+            activeTab={activeTab}
+            stack={stack}
+            isManaged={isManaged}
+            locked={locked}
+            editing={editing}
+            description={editDescription}
+            onDescriptionChange={setEditDescription}
+          />
         </div>
+      </PageBody>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
-          {activeTab === "overview" && (
-            <OverviewTab
-              stack={stack}
-              editing={editing}
-              description={editDescription}
-              onDescriptionChange={setEditDescription}
-            />
-          )}
-          {activeTab === "services" && <ServicesTab stackName={stack.name} />}
-          {activeTab === "layers" && (
-            <LayersTab stackName={stack.name} services={stack.services} />
-          )}
-          <div
-            className={
-              activeTab !== "logs" ? "hidden" : "flex min-h-0 flex-1 flex-col"
-            }
-          >
-            <LogsTab stackName={stack.name} />
-          </div>
-          <div
-            className={
-              activeTab !== "compose"
-                ? "hidden"
-                : "flex min-h-0 flex-1 flex-col"
-            }
-          >
-            <ComposeTab
-              stackName={stack.name}
-              isManaged={isManaged}
-              editing={editing && !locked}
-              readOnly={locked}
-            />
-          </div>
-          {activeTab === "environment" && isManaged && (
-            <EnvironmentTab stackName={stack.name} editing={editing && !locked} readOnly={locked} />
-          )}
-          {activeTab === "webhooks" && isManaged && (
-            <WebhooksTab stackName={stack.name} />
-          )}
-        </div>
-      </div>
-
-      <TakeOverDialog
-        open={takeOverOpen}
-        onOpenChange={setTakeOverOpen}
-        stackName={stack.name}
-      />
-
-      <LinkContainerDialog
-        open={linkOpen}
-        onOpenChange={setLinkOpen}
-        initialStackName={stack.name}
-        fixedStack
-      />
-
-      <ConfirmDialog
-        open={removeOpen}
-        onOpenChange={(open) => !open && setRemoveOpen(false)}
-        title={t("confirm.removeTitle")}
-        description={t("confirm.removeDescription", { name: stack.name })}
-        confirmLabel={t("confirm.removeLabel")}
-        onConfirm={() => {
-          if (locked) {
-            setRemoveOpen(false);
-            return;
-          }
-          deleteStack.mutate(stack.name, {
-            onSuccess: () => navigate("/stacks"),
-          });
-          setRemoveOpen(false);
-        }}
-        loading={deleteStack.isPending}
-      />
+      <StackDetailDialogs stack={stack} locked={locked} dialogs={dialogs} />
     </div>
   );
 }

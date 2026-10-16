@@ -13,37 +13,37 @@
  */
 export const ct = {
   // --- Category A: Theme-aware opacity variants ---
-  text10: "text-foreground/10",
-  text20: "text-foreground/20",
-  text25: "text-foreground/25",
-  text30: "text-foreground/30",
-  text40: "text-foreground/40",
-  text50: "text-foreground/50",
-  text60: "text-foreground/60",
-  text80: "text-foreground/80",
-  border5: "border-foreground/5",
-  border30: "border-foreground/30",
-  border60: "border-foreground/60",
-  bg20: "bg-foreground/20",
-  shadowNode: "shadow-foreground/20",
+  text10: 'text-foreground/10',
+  text20: 'text-foreground/20',
+  text25: 'text-foreground/25',
+  text30: 'text-foreground/30',
+  text40: 'text-foreground/40',
+  text50: 'text-foreground/50',
+  text60: 'text-foreground/60',
+  text80: 'text-foreground/80',
+  border5: 'border-foreground/5',
+  border30: 'border-foreground/30',
+  border60: 'border-foreground/60',
+  bg20: 'bg-foreground/20',
+  shadowNode: 'shadow-foreground/20',
 
   // --- Category A: Theme-aware surface colors ---
   // Canvas background, node bodies, input fields on canvas
-  canvasBg: "bg-background",
-  nodeBg: "bg-muted",
-  portBg: "bg-muted/50",
-  gridDot: "rgba(128,128,128,0.15)",
+  canvasBg: 'bg-background',
+  nodeBg: 'bg-muted',
+  portBg: 'bg-muted/50',
+  gridDot: 'color-mix(in oklch, var(--muted-foreground) 22%, transparent)',
 
   // --- Category B: Fixed contrast (on colored backgrounds) ---
-  nodeHeaderText: "text-primary-foreground",
-  activeBtnText: "text-primary-foreground",
-  runBtnText: "text-primary-foreground",
+  nodeHeaderText: 'text-primary-foreground',
+  activeBtnText: 'text-primary-foreground',
+  runBtnText: 'text-primary-foreground',
 
   // --- Category C: Fixed structural ---
-  toggleKnob: "bg-background",
-  backdrop: "bg-background/40",
-  tooltipBg: "bg-popover/95",
-  pickerBorder: "border-white",
-  pickerBorderHover: "hover:border-white/30",
-  selection: "border-blue-400/50 bg-blue-400/10",
+  toggleKnob: 'bg-background',
+  backdrop: 'bg-background/40',
+  tooltipBg: 'bg-popover/95',
+  pickerBorder: 'border-white',
+  pickerBorderHover: 'hover:border-white/30',
+  selection: 'border-info/50 bg-info/10',
 } as const;

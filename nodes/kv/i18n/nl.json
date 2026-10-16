@@ -1,0 +1,19 @@
+{
+  "label": "KV-opslag",
+  "description": "Lees, schrijf of verwijder een waarde in de workflow key-value-opslag",
+  "config": {
+    "operation": "Bewerking",
+    "key": "Sleutel",
+    "output_property": "Uitvoerpad",
+    "default_value": "Standaardwaarde",
+    "property": "Eigenschap",
+    "ttl": "TTL (seconden)"
+  },
+  "options": {
+    "operation": {
+      "get": "Ophalen",
+      "set": "Opslaan",
+      "delete": "Verwijderen"
+    }
+  }
+}

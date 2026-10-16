@@ -1,0 +1,26 @@
+{
+  "label": "Gestionar stack",
+  "description": "Desplegar, iniciar, detener o eliminar un stack compose",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Acción",
+    "stack_name": "Nombre de la pila",
+    "compose_source": "Fuente Compose",
+    "compose_content": "Contenido Compose",
+    "compose_path": "Ruta Compose",
+    "remove_volumes": "Eliminar volúmenes"
+  },
+  "options": {
+    "action": {
+      "deploy": "Desplegar",
+      "up": "Iniciar (compose up)",
+      "down": "Detener (compose down)",
+      "remove": "Eliminar"
+    },
+    "compose_source": {
+      "message": "Mensaje",
+      "inline": "YAML en línea",
+      "file": "Ruta del archivo"
+    }
+  }
+}

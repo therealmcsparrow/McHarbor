@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Divergência",
+      "description": "Monitoramentos cujos contêineres, stacks ou ambiente divergiram do que foi declarado"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Divergência",
+    "empty": "Tudo corresponde ao que foi declarado",
+    "unavailable": "Não foi possível ler o relatório de divergências",
+    "noAccess": "Requer a permissão reconciler.view",
+    "more": "mais {{count}}",
+    "viewReport": "Relatório de divergências",
+    "detail": "{{classes}} · desde {{since}}"
+  }
+}

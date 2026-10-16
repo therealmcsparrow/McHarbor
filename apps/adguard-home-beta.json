@@ -1,0 +1,44 @@
+{
+    "slug":  "adguard-home-beta",
+    "name":  "AdGuard Home (Beta)",
+    "description":  "Beta channel build of AdGuard Home. Network-wide ad and tracker blocking DNS server with a beautiful UI.",
+    "category":  "Networking",
+    "image":  "adguard/adguardhome:beta",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/adguard-home.png",
+    "website":  "https://adguard.com/en/adguard-home/overview.html",
+    "docsUrl":  "https://github.com/AdguardTeam/AdGuardHome/wiki",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1053,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/adguard/work",
+                        "container":  "/opt/adguardhome/work"
+                    },
+                    {
+                        "host":  "/opt/appdata/adguard/conf",
+                        "container":  "/opt/adguardhome/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

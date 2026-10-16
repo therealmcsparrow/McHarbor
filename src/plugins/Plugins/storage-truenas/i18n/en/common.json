@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "TrueNAS Backup Destinations",
+    "subtitle": "Back up containers to a TrueNAS instance via WebDAV (RFC 4918). TrueNAS exposes WebDAV on the share's configured path (default /webdav for the standard WebDAV share). Operators authenticate with a local TrueNAS user + password over HTTP Basic auth. Chunked uploads use Content-Range PUT, supported server-side by the TrueNAS Samba server.",
+    "registerHint": "Click Test connection to verify the WebDAV endpoint is reachable and the credentials are valid."
+  },
+  "fields": {
+    "username": "Username",
+    "password": "Password",
+    "folderId": "Subfolder on the WebDAV share"
+  },
+  "toast": {
+    "registered": "TrueNAS plugin registered.",
+    "testPassed": "TrueNAS connection test passed.",
+    "testFailed": "TrueNAS connection test failed: {{error}}"
+  },
+  "error": {
+    "noHost": "TrueNAS base URL is required.",
+    "noUsername": "TrueNAS username is required.",
+    "noPassword": "TrueNAS password is required."
+  },
+  "form": {
+    "hostLabel": "TrueNAS base URL",
+    "hostHelp": "Base URL of the TrueNAS server, e.g. https://nas.local. Do not add a trailing slash.",
+    "usernameHelp": "Local TrueNAS user. The user must have read/write access to the configured WebDAV share.",
+    "passwordHelp": "Password for the local TrueNAS user. Stored encrypted at rest by the host's AES-256-GCM service.",
+    "basePathLabel": "Subfolder (optional)",
+    "basePathHelp": "Optional subfolder under the share's WebDAV root. Leave blank for the share root.",
+    "apiPathLabel": "WebDAV path (advanced)",
+    "apiPathHelp": "Override the WebDAV path. Defaults to /webdav. Operators with multiple WebDAV shares can set this to /webdav/{share-name}.",
+    "introTitle": "TrueNAS credentials",
+    "introBody": "TrueNAS uses a local user account for WebDAV authentication. The user must have read/write access to the configured WebDAV share. McHarbor stores the password encrypted at rest."
+  },
+  "setup": {
+    "title": "TrueNAS setup guide",
+    "step1": "On the TrueNAS side, create a WebDAV share: <b>Services → SMB</b> → add a share. Set the path to a directory you want backups to land in (e.g. <code>/mnt/tank/backups</code>). TrueNAS exposes the share at <code>/webdav</code> by default once the WebDAV service is enabled (<b>Services → SMB → advanced settings</b> or via the WebDAV-specific service on newer versions).",
+    "step2": "Create a local TrueNAS user (or use an existing one) with read/write access to the share's directory. The user's home directory doesn't matter — only the share's ACL does.",
+    "step3": "In McHarbor, paste the TrueNAS base URL (e.g. <code>https://nas.local</code> — no trailing slash), the username, and the user's password into the form on the left. Optional: set a subfolder under the share's WebDAV root (e.g. <code>Backups/2026</code>) and let McHarbor create intermediate folders automatically.",
+    "step4": "Click <b>Test connection</b> to round-trip a probe file in the resolved folder. The plugin performs an HTTP Basic-authenticated WebDAV <code>PROPFIND</code> against <code>/webdav</code> to confirm the destination is reachable and the credentials are valid.",
+    "step5": "For multi-share setups, set the <b>WebDAV path override</b> (e.g. <code>/webdav/Backups</code>) to point at the share's path under the WebDAV root.",
+    "step6": "Trigger a backup. The plugin uploads the archive via WebDAV using <code>Content-Range</code> chunked PUT. TrueNAS's samba.org-based WebDAV server supports chunked uploads so even 10+ GB backups stream without buffering the entire payload in memory at once."
+  }
+}

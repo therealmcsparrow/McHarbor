@@ -1,0 +1,36 @@
+{
+    "slug":  "kometa-nightly",
+    "name":  "Kometa (Nightly)",
+    "description":  "Nightly channel build of Kometa. Builds collections, overlays and metadata for Plex libraries on a schedule (formerly Plex Meta Manager).",
+    "category":  "Media",
+    "image":  "kometateam/kometa:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kometa.png",
+    "website":  "https://kometa.wiki",
+    "docsUrl":  "https://kometa.wiki/en/latest/kometa/install/docker/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kometa-nightly/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KOMETA_TIMES",
+                        "default":  "05:00",
+                        "description":  "Comma-separated times of day to run"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

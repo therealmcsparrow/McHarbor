@@ -1,0 +1,16 @@
+{
+  "slug": "identity-google",
+  "name": "Google",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Google identity provider. OIDC authorization-code flow against accounts.google.com. Supports both personal Google accounts and Google Workspace tenants (the Workspace Domain field gates the latter via the OIDC hd= hint). Optional Admin SDK Directory API group fetching via a service account with domain-wide delegation. Install to add 'Google' as a provider_type in Settings > Security > Identity Providers.",
+  "category": "Identity providers",
+  "icon": "IconBrandGoogle",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/identity-google-1.0.0.tar.gz"
+    }
+  ]
+}

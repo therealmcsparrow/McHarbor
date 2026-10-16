@@ -1,9 +1,0 @@
-{
-  "label": "Lista de contêineres",
-  "description": "Listar contêineres em um ambiente",
-  "config": {
-    "environment": "Ambiente",
-    "show_all": "Mostrar tudo",
-    "name_filter": "Filtro de nome"
-  }
-}

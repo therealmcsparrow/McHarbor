@@ -1,0 +1,597 @@
+{
+  "nav": {
+    "section": {
+      "reporting": "Berichtswesen"
+    }
+  },
+  "menu": {
+    "studio": "Berichtsstudio",
+    "library": "Berichtsarchiv",
+    "settings": "Berichtseinstellungen",
+    "schedules": "Berichtszeitpläne"
+  },
+  "page": {
+    "studio": {
+      "title": "Berichtsstudio",
+      "subtitle": "Bericht wählen, Zeitraum festlegen, erzeugen. Jede Zahl stammt aus den eigenen Aufzeichnungen dieser Plattform."
+    },
+    "library": {
+      "title": "Berichtsarchiv",
+      "subtitle": "Bisher erzeugte Berichte. Jeder ist eine feste Aufzeichnung dessen, was zum Zeitpunkt der Erstellung galt."
+    },
+    "settings": {
+      "title": "Berichtseinstellungen",
+      "subtitle": "Was auf dem Deckblatt eines exportierten Berichts erscheint und wie viel Historie erhalten bleibt."
+    },
+    "schedules": {
+      "title": "Berichtszeitpläne",
+      "subtitle": "Berichte, die automatisch laufen und sich selbst zustellen"
+    }
+  },
+  "category": {
+    "board": {
+      "label": "Für die Geschäftsführung",
+      "description": "Ein Bericht, drei Ebenen: Lage und Risiko für die Leitung, Zielwerte für die Plattformverantwortlichen, Details für den Betrieb."
+    },
+    "assurance": {
+      "label": "Prüfung und Nachweis",
+      "description": "Belege für Sicherheitsprüfungen, Incident-Nachbetrachtungen, Rezertifizierung von Zugriffen und Wiederherstellungstests."
+    },
+    "service": {
+      "label": "Serviceleistung",
+      "description": "Wie die Plattform gegenüber ihren Zielen abschneidet und wie Änderungen sie erreichen."
+    },
+    "platform": {
+      "label": "Plattform",
+      "description": "Der Bestand selbst: Umgebungen, Kapazität, Images und Konfiguration."
+    },
+    "workload": {
+      "label": "Workload-Tiefe",
+      "description": "Ein Objekt nach dem anderen, ausführlich beantwortet: wie sich jede Workload im Zeitraum verhalten hat, nicht nur wie sie aktuell aussieht."
+    },
+    "operations": {
+      "label": "Betrieb",
+      "description": "Die Technik, die die Umgebung am Laufen hält — Zeitpläne, Updates, Alarmierung, Agents, Netzwerke und Speicher."
+    },
+    "finance": {
+      "label": "Kosten und Effizienz",
+      "description": "Was die Umgebung verbraucht und wer es verbraucht, als Anteile, die der Betreiber bewerten kann."
+    },
+    "custom": {
+      "label": "Benutzerdefiniert",
+      "description": "Stellen Sie eine Frage in Ihren eigenen Worten. Ein Modell entscheidet, welche Daten es benötigt, und verfasst das Dokument."
+    }
+  },
+  "level": {
+    "strategic": "Strategisch",
+    "tactical": "Taktisch",
+    "operational": "Operativ",
+    "summary": "Zusammenfassung",
+    "annex": "Anhang"
+  },
+  "band": {
+    "strong": "Stark",
+    "stable": "Stabil",
+    "watch": "Beobachten",
+    "at_risk": "Gefährdet",
+    "critical": "Kritisch",
+    "not_assessed": "Nicht bewertet"
+  },
+  "option": {
+    "include_detail": "Operative Details aufnehmen",
+    "include_glossary": "Glossar aufnehmen",
+    "include_narrative": "Erläuterung aufnehmen",
+    "paper": {
+      "a4": "A4 · 210 × 297 mm",
+      "legal": "Legal · 216 × 356 mm"
+    }
+  },
+  "type": {
+    "change-approvals": {
+      "name": "Änderungsgenehmigungen und privilegierter Zugriff",
+      "description": "Genehmigungsanfragen und ihre Ergebnisse, die Regeln, die sie auslösen, und jede im Zeitraum gewährte temporäre Rechteerhöhung."
+    },
+    "control-framework-evidence": {
+      "name": "Nachweise zum Kontrollrahmenwerk",
+      "description": "Nachweise für ein benanntes Kontrollrahmenwerk: welche Prüfungen liefen und was sie ergeben haben, welche Kontrollen belegt statt beurteilt sind und welche McHarbor nicht einsehen kann."
+    },
+    "compliance-posture": {
+      "name": "Compliance-Status",
+      "description": "Der Compliance-Status der Plattform Kontrolle für Kontrolle, mit dem, was besteht, was fehlschlägt und was nicht bewertet werden konnte."
+    },
+    "drift-enforcement": {
+      "name": "Konfigurationsabweichung und Durchsetzung",
+      "description": "Wo der laufende Zustand vom Sollzustand abweicht, welche Vorschläge genehmigt wurden und was die Durchsetzung selbstständig geändert hat."
+    },
+    "ha-posture": {
+      "name": "Hochverfügbarkeitsstatus",
+      "description": "Cluster-Knoten, Heartbeats, Leadership und Failover-Verlauf sowie ob ein Standby zur Übernahme bereit ist."
+    },
+    "incident-narrative": {
+      "name": "Vorfallsanalyse",
+      "description": "Im Zeitraum eröffnete Vorfälle, ihre Erkenntnisse und Quellen, wie lange jeder bis zur Erklärung und bis zur Lösung dauerte und was sich immer wiederholt."
+    },
+    "instance-dr-readiness": {
+      "name": "Disaster-Recovery-Bereitschaft der Instanz",
+      "description": "Backups von McHarbor selbst: Verlauf, Zeitpläne, das Alter des letzten guten Backups und jeder versuchte Restore."
+    },
+    "itsm-integration": {
+      "name": "ITSM-Integration",
+      "description": "Aus Alarmen und Vorfällen eröffnete Tickets, wie sie gelöst wurden und bei welchen Kanälen die Synchronisierung fehlschlug."
+    },
+    "runbooks": {
+      "name": "Runbooks",
+      "description": "Die Verfahren dieser Instanz: woran jedes hängt, seine Schritte in Reihenfolge, ob es unbeaufsichtigt läuft und welche Alarmbedingungen kein Runbook haben. Beschränken Sie den Bericht auf ein Runbook, um nur dieses zu drucken."
+    },
+    "secrets-hygiene": {
+      "name": "Geheimnis-Hygiene",
+      "description": "Alter und Rotation von Geheimnissen, Geheimnisse, auf die nichts verweist, und wie weit ein kompromittiertes Geheimnis reichen würde."
+    },
+    "webhook-delivery": {
+      "name": "Webhook-Zustellung",
+      "description": "Jeder ausgehende Webhook, seine Zustellerfolgsrate, Wiederholungen und die Endpunkte, die immer wieder fehlschlagen."
+    },
+    "workflow-automation": {
+      "name": "Workflow-Automatisierung",
+      "description": "Workflow-Läufe im Zeitraum, ihre Erfolgsrate, die Fehlschläge und die am häufigsten auslösenden Trigger."
+    },
+    "access-review": {
+      "name": "Zugriffs- und Identitätsprüfung",
+      "description": "Konten, Rollen, Gruppen und API-Schlüssel, aufbereitet für die regelmäßige Rezertifizierung."
+    },
+    "agent-fleet": {
+      "name": "Remote-Agent-Flotte",
+      "description": "Verbindungsstatus, Versionsstreuung und Veralterung der Agents auf allen Remote-Hosts."
+    },
+    "alerting-coverage": {
+      "name": "Alarmierungsabdeckung",
+      "description": "Welche Workloads eine Alarmregel überwacht — und, anhand des gemessenen Verlaufs, welche Ausfälle niemandem gemeldet wurden."
+    },
+    "audit-assurance": {
+      "name": "Audit-Trail-Absicherung",
+      "description": "Die Vollständigkeit des Audit-Trails selbst: Schweregradverteilung, was er abdeckt und Lücken in der Erfassung."
+    },
+    "automation-schedules": {
+      "name": "Geplante Aufgaben und Automatisierung",
+      "description": "Jeder Zeitplan, jede Update-Richtlinie und jeder Backup-Plan, wann sie zuletzt liefen und welche noch nie gelaufen sind."
+    },
+    "availability-slo": {
+      "name": "Verfügbarkeit & Serviceniveaus",
+      "description": "Laufende und als gesund gemeldete Workloads gegenüber dem Ziel, mit benannten blinden Flecken."
+    },
+    "backup-recovery": {
+      "name": "Sicherung & Wiederherstellung",
+      "description": "Abdeckung laufender Workloads, Erfolgsquote der Läufe und Alter der neuesten brauchbaren Sicherung."
+    },
+    "capacity-utilisation": {
+      "name": "Kapazität & Auslastung",
+      "description": "Reserve auf der knapperen Ressource aus CPU und Speicher, Speicherverbrauch und was sich heute freigeben lässt."
+    },
+    "change-delivery": {
+      "name": "Änderungen & Auslieferung",
+      "description": "Deployment-Frequenz und Änderungsfehlerrate, eingeordnet nach den DORA-Benchmarks."
+    },
+    "container-service": {
+      "name": "Container-Service-Bericht",
+      "description": "Eine Zeile pro Workload mit Verfügbarkeit, Image, Stack, Backup-Abdeckung und Update-Automatisierung."
+    },
+    "cost-allocation": {
+      "name": "Kostenzuordnung und Showback",
+      "description": "Dem verursachenden Stack zugeordneter Verbrauch, als Anteile statt Währung: Die Plattform verfügt über keine Preisliste."
+    },
+    "credential-hygiene": {
+      "name": "Zugangsdaten-Hygiene",
+      "description": "Alter, Ablauf, Umfang der Berechtigungen und letzte Nutzung von API-Schlüsseln — eine Widerrufsliste statt eines Inventars."
+    },
+    "data-protection-rpo": {
+      "name": "Datenschutz und RPO",
+      "description": "Wiederherstellungspunkt im Vergleich zu üblichen Zielen, Abdeckung laufender Workloads und was noch nie gesichert wurde."
+    },
+    "environment-comparison": {
+      "name": "Umgebungsvergleich",
+      "description": "Dieselben Kennzahlen für jede Umgebung nebeneinander, damit Versionsabweichungen und veraltete Agents sichtbar werden."
+    },
+    "environment-health": {
+      "name": "Zustand der Umgebungen",
+      "description": "Zustand von Umgebung, Engine, Agent und Ressourcen auf jedem verbundenen Host."
+    },
+    "executive-overview": {
+      "name": "Plattformübersicht für die Leitung",
+      "description": "Der Leitbericht: Lage über sechs Domänen, Risikoregister, Zielerreichung und die Details dahinter."
+    },
+    "healthcheck-quality": {
+      "name": "Health-Check-Qualität",
+      "description": "Ob Health-Checks vorhanden, erfolgreich und schnell genug sind — und welche laufenden Workloads gar keinen haben."
+    },
+    "image-supply-chain": {
+      "name": "Images & Lieferkette",
+      "description": "Herkunft und Alter der Images, Registries, Update-Automatisierung und bewertete Gefährdung."
+    },
+    "incident-problem": {
+      "name": "Incident- und Problemrückblick",
+      "description": "Was im Zeitraum ausgefallen ist, wie schnell es sich erholt hat und welche Workloads immer wieder auffallen."
+    },
+    "network-connectivity": {
+      "name": "Netzwerk und Konnektivität",
+      "description": "Netzwerke, Treiber und Anbindungen, damit sich der mögliche Schadensumfang einer kompromittierten Workload ablesen statt erraten lässt."
+    },
+    "operational-readiness": {
+      "name": "Betriebsbereitschaft",
+      "description": "Jede Workload bewertet anhand fünf Grundlagen: Health-Check, Verfügbarkeit, Backup, Update-Richtlinie und ein gescanntes Image."
+    },
+    "patch-currency": {
+      "name": "Patch- und Update-Aktualität",
+      "description": "Wie weit sich der Image-Bestand entfernt hat, wie viel davon die Automatisierung aufholt und welche Workloads keine Richtlinie abdeckt."
+    },
+    "permission-matrix": {
+      "name": "Rollen- und Berechtigungsmatrix",
+      "description": "Rollen nach Zugriffsbreite geordnet, wer sie innehat und welche Rollen niemand innehat."
+    },
+    "platform-inventory": {
+      "name": "Plattform-Inventar",
+      "description": "Version von McHarbor selbst, Umgebungen, Agenten, Plugins und geplante Aufgaben."
+    },
+    "resource-efficiency": {
+      "name": "Ressourceneffizienz",
+      "description": "Spielraum in beide Richtungen — zu wenig ist ein Resilienzproblem, zu viel ein Effizienzproblem — und was zurückgewonnen werden kann."
+    },
+    "security-compliance": {
+      "name": "Sicherheit & Compliance",
+      "description": "Schwachstellen nach Schweregrad, Scan-Abdeckung und -Aktualität, Zugriffskontrollen und Audit-Nachweise."
+    },
+    "stability-flapping": {
+      "name": "Stabilität und Flapping",
+      "description": "Workloads, die ständig den Zustand wechseln. Unterscheidet viele kurze Übergänge von wenigen langen Ausfällen, da die Ursachen verschieden sind."
+    },
+    "stack-portfolio": {
+      "name": "Stack- und Anwendungsportfolio",
+      "description": "Der Datensatz pro Container, auf den Stack aggregiert, der Einheit, für die meist ein Team verantwortlich ist."
+    },
+    "uptime-availability": {
+      "name": "Uptime- und Verfügbarkeitsverlauf",
+      "description": "Gemessene Uptime pro Workload, Ausfälle, MTTR und Error Budget, aus dem 30-Sekunden-Verlauf der Plattform statt aus dem aktuellen Zustand."
+    },
+    "user-activity": {
+      "name": "Benutzeraktivität",
+      "description": "Wer die Plattform bedient hat, wie viel, was geändert wurde und wie viel außerhalb der Arbeitszeit geschah."
+    },
+    "volume-data-estate": {
+      "name": "Volume- und Datenbestand",
+      "description": "Persistente Daten: wie viele es gibt, wem sie gehören, was verwaist ist und ob etwas sie wiederherstellen könnte."
+    },
+    "workload-inventory": {
+      "name": "Workload-Inventar",
+      "description": "Eine Momentaufnahme jeder Workload auf jeder Plattform, die antwortet, mit den zugehörigen Docker-Images, Volumes und Netzwerken, für Änderungsmanagement und Übergabe."
+    },
+    "ad-hoc": {
+      "name": "KI-generierter Bericht",
+      "description": "Beschreiben Sie die Frage in Ihren eigenen Worten und ein Modell verfasst das Dokument. Es wählt die Daten selbst aus, und jede verwendete Zahl wird vor der Ausgabe des Berichts anhand der eigenen Datensätze der Plattform geprüft."
+    }
+  },
+  "studio": {
+    "searchPlaceholder": "Berichte suchen",
+    "searchEmptyTitle": "Kein Bericht passt",
+    "searchEmptyDescription": "Kein Berichtstyp passt zu diesem Text. Löschen Sie die Suche, um den gesamten Katalog zu sehen.",
+    "searchCount": "{{shown}} von {{total}}",
+    "configure": "Konfigurieren",
+    "period": "Zeitraum",
+    "environment": "Umgebung",
+    "customRange": "Benutzerdefinierter Zeitraum",
+    "from": "Von",
+    "to": "Bis",
+    "rangeInvalid": "Das Startdatum muss am oder vor dem Enddatum liegen.",
+    "sections": "Abschnitte",
+    "options": "Optionen",
+    "generate": "Bericht erzeugen",
+    "generating": "Daten werden erfasst…",
+    "lastDays": "Letzte {{count}} Tage",
+    "pointInTime": "Stichtag",
+    "pointInTimeHint": "Dieser Bericht beschreibt den aktuellen Stand und hat daher keinen Zeitraum.",
+    "scope": "Beschränkt auf {{environment}}. Der Bericht enthält nur Daten, die Sie ohnehin sehen können.",
+    "scopeAll": "Beschränkt auf alle für Sie sichtbaren Umgebungen.",
+    "error": "Der Bericht konnte nicht erzeugt werden. Prüfen Sie die Erreichbarkeit der Umgebung und versuchen Sie es erneut.",
+    "empty": {
+      "title": "Keine Berichtstypen verfügbar",
+      "description": "Der Berichtskatalog konnte nicht geladen werden. Prüfen Sie, ob das Plugin aktiviert ist, und laden Sie neu."
+    },
+    "subject": "Umfang",
+    "subjectKind": "Eingrenzen nach",
+    "subjectHint": "Grenzen Sie den Bericht auf ein Objekt ein oder lassen Sie ihn alles abdecken.",
+    "subjectEmpty": "Nichts zum Eingrenzen vorhanden",
+    "scopeSubject": "Eingegrenzt auf {{subject}}. Der Bericht enthält nur Daten, die Sie ohnehin sehen dürfen.",
+    "environmentAll": "Alle Umgebungen",
+    "aiAuthored": "Von einem KI-Modell verfasst",
+    "prompt": "Was soll der Bericht abdecken?",
+    "promptPlaceholder": "z. B. welche Images haben kritische Schwachstellen und laufen noch in der Produktion?",
+    "aiConnection": "KI-Verbindung",
+    "aiConnectionHint": "Auf diesem Host ist kein KI-Anbieter konfiguriert oder verfügbar. Bitten Sie einen Administrator, in den KI-Einstellungen einen zu konfigurieren — bis dahin verwendet die Erläuterung Standardformulierungen.",
+    "aiConnectionRequired": "Auf diesem Host ist kein KI-Anbieter konfiguriert oder verfügbar. Bitten Sie einen Administrator, in den KI-Einstellungen einen zu konfigurieren, bevor Sie diesen Bericht erzeugen."
+  },
+  "library": {
+    "count": "{{count}} Bericht",
+    "count_other": "{{count}} Berichte",
+    "allTypes": "Alle Berichtstypen",
+    "filterByType": "Nach Berichtstyp filtern",
+    "searchPlaceholder": "Berichte suchen",
+    "noMatches": "Keine Berichte entsprechen diesen Filtern",
+    "page": "Seite {{page}} von {{total}}",
+    "retired": "Berichtstyp außer Betrieb",
+    "retiredHint": "Dieser Berichtstyp wurde durch einen plattformübergreifenden Bericht ersetzt. Das Dokument bleibt genau so erhalten, wie es erzeugt wurde.",
+    "col": {
+      "report": "Bericht",
+      "period": "Zeitraum",
+      "score": "Lage",
+      "generated": "Erzeugt",
+      "actions": "Aktionen"
+    },
+    "delete": {
+      "title": "Diesen Bericht löschen?",
+      "description": "„{{title}}“ wird dauerhaft entfernt. Berichte sind Momentaufnahmen und lassen sich nicht identisch neu erzeugen."
+    },
+    "empty": {
+      "title": "Noch keine Berichte",
+      "description": "Erzeugen Sie Ihren ersten Bericht in der Berichtsstudio. Das dauert wenige Sekunden und liest nur, worauf Sie bereits Zugriff haben."
+    }
+  },
+  "viewer": {
+    "sections": "Berichtsabschnitte",
+    "generatedBy": "Erstellt von {{user}}",
+    "error": "Dieser Bericht konnte nicht geladen werden.",
+    "scope": "Umfang: {{subject}}"
+  },
+  "scorecard": {
+    "overall": "Gesamtlage"
+  },
+  "settings": {
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert",
+    "error": "Einstellungen konnten nicht gespeichert werden.",
+    "organisation": {
+      "label": "Name der Organisation",
+      "help": "Erscheint über dem Titel auf dem Deckblatt jedes exportierten Berichts."
+    },
+    "classification": {
+      "label": "Einstufung",
+      "help": "Auf dem Deckblatt und in der Fußzeile jeder Seite sichtbar. Zum Beispiel: Intern, Vertraulich, Eingeschränkt."
+    },
+    "logo": {
+      "label": "Berichtslogo",
+      "help": "Die Wortmarke, die oben auf dem Deckblatt und am Anfang jedes Word-Exports gedruckt wird. Lassen Sie das Feld leer, um die McHarbor-Wortmarke zu verwenden."
+    },
+    "icon": {
+      "label": "Berichtssymbol",
+      "help": "Das kleine Zeichen in der Kopfzeile jeder PDF-Seite. Lassen Sie das Feld leer, um das McHarbor-Zeichen zu verwenden."
+    },
+    "defaultDays": {
+      "label": "Standardzeitraum",
+      "help": "Anzahl der Tage, die ein Bericht abdeckt, wenn sein Typ keinen eigenen Zeitraum vorgibt."
+    },
+    "retain": {
+      "label": "Aufzubewahrende Berichte",
+      "help": "Ältere Berichte werden entfernt, sobald diese Anzahl erreicht ist. Jeder Bericht behält sein vollständiges Dokument."
+    },
+    "ai": {
+      "label": "KI-Erläuterung",
+      "help": "Lässt den konfigurierten KI-Anbieter die Formulierung des Einleitungsabsatzes verbessern. Zahlen dürfen nie hinzugefügt, entfernt oder umformuliert werden; bei einem Fehler gilt der Standardtext. Standardmäßig aus, damit Berichte reproduzierbar bleiben."
+    },
+    "paper": {
+      "label": "Seitenformat",
+      "help": "Das Papierformat, auf dem jeder PDF- und Word-Export gesetzt wird. Die Ränder betragen unabhängig von der Wahl 1,27 cm auf allen vier Seiten."
+    },
+    "mark": {
+      "upload": "Hochladen",
+      "reset": "Standard verwenden",
+      "default": "Es wird das Anwendungslogo aus Einstellungen → Anpassung verwendet.",
+      "hint": "PNG oder SVG. Ein SVG wird bei der Auswahl in PNG umgewandelt, da die PDF- und Word-Writer Bilder statt Vektorgrafiken einbetten.",
+      "badImage": "Diese Datei konnte nicht als Bild gelesen werden.",
+      "tooLarge": "Dieses Bild ist zu groß. Es darf höchstens 2 MB und 4000 Pixel pro Seite haben."
+    },
+    "aiReports": {
+      "label": "KI-verfasste Berichte",
+      "help": "Erlaubt dem Berichtstyp KI-generierter Bericht, Umgebungsdetails — Container-, Image-, Benutzer- und Ereignisdatensätze — an den konfigurierten KI-Anbieter zu senden, damit ein Modell das Dokument verfassen kann. Standardmäßig aus."
+    }
+  },
+  "action": {
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "save": "Änderungen speichern",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "exportPdf": "PDF exportieren",
+    "exportDocx": "Word exportieren"
+  },
+  "error": {
+    "reporting": {
+      "invalid_request": "Diese Anfrage konnte nicht verarbeitet werden.",
+      "unknown_type": "Diesen Berichtstyp gibt es nicht.",
+      "not_found": "Bericht nicht gefunden.",
+      "generate_failed": "Der Bericht konnte nicht erzeugt werden.",
+      "export_failed": "Der Export konnte nicht erstellt werden.",
+      "unsupported_format": "Dieses Exportformat wird nicht unterstützt.",
+      "internal": "Etwas ist schiefgelaufen. Details finden Sie in den Serverprotokollen.",
+      "schedule_no_targets": "Ein Zeitplan muss irgendwohin zustellen. Wählen Sie mindestens einen Kanal oder Speicherort.",
+      "schedule_bad_target": "Dieses Zustellziel ist weder ein Kommunikationskanal noch ein Speicherort.",
+      "schedule_bad_cron": "Dieser Zeitplanausdruck konnte nicht gelesen werden. Er benötigt fünf Felder, zum Beispiel 0 7 * * 1.",
+      "schedule_running": "Dieser Zeitplan läuft bereits.",
+      "delivery_failed": "Zustellung fehlgeschlagen",
+      "delivery_unavailable": "Zustellung ist in dieser Installation nicht verfügbar",
+      "delivery_target_gone": "das Ziel existiert nicht mehr",
+      "schedule_bad_path": "Dieser Zielordner kann nicht verwendet werden. Geben Sie einen relativen Ordner ohne führenden Schrägstrich, ohne Laufwerksbuchstaben und ohne „..“-Segment an.",
+      "schedule_bad_filename": "Dieser Dateiname kann nicht verwendet werden. Geben Sie einen einfachen Namen ohne Ordnertrennzeichen, ohne „..“ und ohne Erweiterung an und verwenden Sie nur die im Feld aufgeführten Platzhalter.",
+      "schedule_bad_recipient": "Dieser alternative Empfänger kann nicht verwendet werden. Geben Sie ihn in einer Zeile an und nur für einen Kanal, der einen akzeptiert.",
+      "ai_disabled": "KI-Berichte sind deaktiviert. Ein Administrator kann sie in den Berichtseinstellungen aktivieren.",
+      "ai_unavailable": "Auf diesem Host ist kein KI-Anbieter konfiguriert oder verfügbar. Bitten Sie einen Administrator, in den KI-Einstellungen einen zu konfigurieren.",
+      "ai_connection_unavailable": "Die ausgewählte KI-Verbindung ist nicht verfügbar. Wählen Sie eine andere Verbindung und versuchen Sie es erneut.",
+      "prompt_required": "Beschreiben Sie, was der Bericht abdecken soll.",
+      "ai_plan_failed": "Das Modell konnte nicht ermitteln, welche Daten diese Frage benötigt. Formulieren Sie sie um.",
+      "ai_author_failed": "Das Modell konnte aus diesen Daten keinen brauchbaren Bericht erstellen."
+    }
+  },
+  "findings": {
+    "recommended": "Empfohlen:",
+    "owner": "Verantwortlich: {{owner}}"
+  },
+  "chart": {
+    "aria": "Diagramm"
+  },
+  "subject": {
+    "container": "Container",
+    "stack": "Stack",
+    "image": "Image",
+    "volume": "Volume",
+    "network": "Netzwerk",
+    "user": "Benutzer",
+    "group": "Benutzergruppe"
+  },
+  "subjectAll": {
+    "container": "Alle Container",
+    "stack": "Alle Stacks",
+    "image": "Alle Images",
+    "volume": "Alle Volumes",
+    "network": "Alle Netzwerke",
+    "user": "Alle Benutzer",
+    "group": "Alle Benutzergruppen"
+  },
+  "progress": {
+    "title": "Bericht wird erzeugt",
+    "description": "Die eigenen Aufzeichnungen dieser Plattform werden gelesen. Gespeichert wird erst, wenn das Dokument fertig ist.",
+    "sources": "{{done}} von {{total}} Quellen gelesen",
+    "failed": "Der Bericht konnte nicht erzeugt werden. Prüfen Sie, ob die Umgebung erreichbar ist, und versuchen Sie es erneut.",
+    "stage": {
+      "queued": "In Warteschlange",
+      "collect": "Daten werden erfasst",
+      "analyze": "Auswertung",
+      "build": "Dokument wird geschrieben",
+      "store": "Speichern",
+      "done": "Fertig"
+    }
+  },
+  "schedule": {
+    "enable": "Diesen Bericht planen",
+    "enableHint": "Wiederkehrend ausführen und automatisch zustellen, mit den obigen Einstellungen.",
+    "name": "Name des Zeitplans",
+    "format": "Zugestellt als",
+    "formatPdf": "PDF",
+    "formatDocx": "Word (.docx)",
+    "frequency": "Läuft",
+    "frequencyDaily": "Jeden Tag",
+    "frequencyWeekly": "Jede Woche",
+    "frequencyMonthly": "Jeden Monat",
+    "frequencyCustom": "Benutzerdefinierter Zeitplan",
+    "time": "Um",
+    "weekdayLabel": "Am",
+    "dayOfMonth": "Am Tag",
+    "cron": "Zeitplanausdruck",
+    "cronPreview": "Läuft nach {{cron}} (UTC).",
+    "cronInvalid": "Ein Zeitplanausdruck benötigt fünf Felder, zum Beispiel 0 7 * * 1.",
+    "targets": "Zustellen an",
+    "targetsHint": "Mindestens ein Ziel ist erforderlich. Ein Zeitplan, der nirgendwohin zustellt, erzeugt einen Bericht, den niemand liest.",
+    "targetsLoading": "Ziele werden geladen…",
+    "targetsEmpty": "Es sind noch keine Kommunikationskanäle oder Speicherorte konfiguriert. Fügen Sie einen hinzu, bevor Sie einen Bericht planen.",
+    "linkOnly": "Nur Link",
+    "libraryNotice": "Geplante Läufe werden nicht in der Berichtsbibliothek gespeichert. Nur der jeweils letzte Lauf jedes Zeitplans wird aufbewahrt.",
+    "incomplete": "Geben Sie dem Zeitplan einen Namen, einen gültigen Ausdruck und mindestens ein Ziel.",
+    "create": "Zeitplan erstellen",
+    "weekday": {
+      "0": "Sonntag",
+      "1": "Montag",
+      "2": "Dienstag",
+      "3": "Mittwoch",
+      "4": "Donnerstag",
+      "5": "Freitag",
+      "6": "Samstag"
+    },
+    "path": "Zielordner",
+    "pathHint": "Relativ zum Basispfad des Speicherorts. Lassen Sie das Feld leer, um den oben angezeigten Standardordner zu verwenden.",
+    "pathInvalid": "Verwenden Sie einen relativen Ordner — ohne führenden Schrägstrich, ohne Laufwerksbuchstaben und ohne „..“.",
+    "filename": "Dateiname",
+    "filenamePlaceholder": "{name}-{date}",
+    "filenameHint": "Platzhalter: {{tokens}}. Die Erweiterung wird automatisch ergänzt, damit die Datei immer zum gerenderten Format passt.",
+    "filenameInvalid": "Verwenden Sie einen einfachen Dateinamen — ohne Ordnertrennzeichen, ohne „..“ und ohne Erweiterung. Geschweifte Klammern müssen einer der oben aufgeführten Platzhalter sein.",
+    "recipient": "Stattdessen senden an",
+    "recipientPlaceholder": "Leer lassen für das eigene Ziel des Kanals",
+    "recipientHint": "Stellt diesen Zeitplan an einem anderen Ort zu als dem konfigurierten Ziel des Kanals. Der Kanal selbst bleibt unverändert.",
+    "recipientHintMultiple": "Stellt diesen Zeitplan an einem anderen Ort zu als dem konfigurierten Ziel des Kanals, mehrere durch Komma getrennt. Der Kanal selbst bleibt unverändert.",
+    "recipientInvalid": "Dieses Ziel kann nicht verwendet werden. Geben Sie es in einer Zeile ohne Zeilenumbrüche an."
+  },
+  "schedules": {
+    "searchPlaceholder": "Zeitpläne suchen…",
+    "noMatches": "Keine Zeitpläne entsprechen dieser Suche.",
+    "nextRun": "Nächster: {{when}}",
+    "disabled": "Deaktiviert",
+    "neverRun": "Noch nicht gelaufen",
+    "runNow": "Jetzt ausführen",
+    "targetMissing": "Dieses Ziel existiert nicht mehr.",
+    "col": {
+      "schedule": "Zeitplan",
+      "cadence": "Läuft",
+      "targets": "Zustellung an",
+      "lastRun": "Letzter Lauf",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "running": "Läuft",
+      "success": "Zugestellt",
+      "partial": "Teilweise zugestellt",
+      "failed": "Fehlgeschlagen"
+    },
+    "delete": {
+      "title": "Diesen Zeitplan löschen?",
+      "description": "„{{name}}“ wird nicht mehr ausgeführt und der letzte Lauf wird entfernt. Bereits zugestellte Berichte bleiben unberührt."
+    },
+    "empty": {
+      "title": "Keine geplanten Berichte",
+      "description": "Öffnen Sie das Berichtsstudio, wählen Sie einen Bericht und aktivieren Sie „Diesen Bericht planen“, damit er automatisch läuft und zugestellt wird."
+    },
+    "run": {
+      "ranAt": "Letzter Lauf {{when}}",
+      "loading": "Letzter Lauf wird geladen…",
+      "error": "Der letzte Lauf konnte nicht geladen werden.",
+      "delivery": "Zustellung",
+      "noDelivery": "Dieser Lauf wurde nirgendwohin zugestellt.",
+      "attached": "Dokument angehängt",
+      "linkOnly": "Nachricht gesendet, Dokument nicht angehängt",
+      "failed": "Zustellung fehlgeschlagen"
+    },
+    "edit": {
+      "action": "Zeitplan bearbeiten",
+      "title": "Zeitplan bearbeiten",
+      "enabled": "Zeitplan ist aktiv",
+      "period": "Berichtszeitraum (Tage)",
+      "periodHint": "Jeder Lauf umfasst diese Anzahl Tage bis zum Zeitpunkt der Ausführung.",
+      "hint": "Der Berichtstyp kann nicht geändert werden. Erstellen Sie einen neuen Zeitplan, um über etwas anderes zu berichten.",
+      "error": "Der Zeitplan konnte nicht gespeichert werden."
+    }
+  },
+  "widgets": {
+    "recentReports": {
+      "label": "Aktuelle Berichte",
+      "description": "Die neuesten Dokumente der Bibliothek mit Gesamtbewertung",
+      "title": "Aktuelle Berichte",
+      "inLibrary": "{{count}} in der Bibliothek",
+      "none": "Noch keine Berichte",
+      "noneHint": "Erstellen Sie einen im Report Studio"
+    },
+    "reportSchedules": {
+      "label": "Berichtszeitpläne",
+      "description": "Jeder Zeitplan mit letztem Ergebnis und nächstem Lauf, Fehler zuerst",
+      "title": "Zeitpläne",
+      "failing": "{{count}} fehlgeschlagen",
+      "enabled": "{{count}} aktiv",
+      "none": "Keine Zeitpläne",
+      "noneHint": "Planen Sie einen Bericht für die regelmäßige Zustellung",
+      "lastRun": "Letzter Lauf {{when}}",
+      "neverRan": "Nie gelaufen",
+      "next": "nächster {{when}}",
+      "paused": "Pausiert"
+    },
+    "common": {
+      "loading": "Berichte werden gelesen…",
+      "unavailable": "Berichte nicht verfügbar",
+      "more": "{{count}} weitere",
+      "justNow": "gerade eben"
+    }
+  }
+}

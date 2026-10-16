@@ -1,6 +1,6 @@
 {
   "label": "Filter",
-  "description": "Allow or block a message using a condition",
+  "description": "Laat een bericht toe of blokkeer het met een voorwaarde",
   "config": {
     "field": "Veld",
     "operator": "Operator",
@@ -10,7 +10,7 @@
     "operator": {
       "==": "Gelijk aan",
       "!=": "Niet gelijk aan",
-      "contains": "Contains",
+      "contains": "Bevat",
       "regex": "Komt overeen met regex",
       "is_empty": "Is leeg",
       "is_not_empty": "Is niet leeg"

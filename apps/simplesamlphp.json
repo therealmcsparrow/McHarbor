@@ -1,0 +1,51 @@
+{
+    "slug":  "simplesamlphp",
+    "name":  "SimpleSAMLphp",
+    "description":  "PHP application implementing SAML 2.0 and WS-Federation for building identity providers and service providers.",
+    "category":  "Identity & SSO",
+    "image":  "kenchan0130/simplesamlphp:latest",
+    "logo":  "https://icon.horse/icon/simplesamlphp.org",
+    "website":  "https://simplesamlphp.org",
+    "docsUrl":  "https://simplesamlphp.org/docs/stable/simplesamlphp-install",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/simplesamlphp/config",
+                        "container":  "/var/simplesamlphp/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/simplesamlphp/metadata",
+                        "container":  "/var/simplesamlphp/metadata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SIMPLESAMLPHP_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the SimpleSAMLphp admin area",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SIMPLESAMLPHP_SECRET_SALT",
+                        "default":  "change-me",
+                        "description":  "Secret salt used to protect sessions and cookies",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

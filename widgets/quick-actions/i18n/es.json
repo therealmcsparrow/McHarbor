@@ -11,6 +11,12 @@
     "pruneImagesDesc": "Elimina todas las imágenes no utilizadas. Esto no se puede deshacer.",
     "pruneVolumes": "Podar volúmenes",
     "pruneVolumesDesc": "Elimine todos los volúmenes no utilizados. Esto no se puede deshacer.",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "pruneContainers": "Limpiar contenedores",
+    "pruneContainersDesc": "Elimina todos los contenedores detenidos. No se puede deshacer.",
+    "checkUpdates": "Buscar actualizaciones",
+    "checkUpdatesDesc": "Buscar imágenes más recientes",
+    "liveLogs": "Registros en vivo",
+    "liveLogsDesc": "Abrir el flujo de registros"
   }
 }

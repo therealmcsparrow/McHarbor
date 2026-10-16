@@ -1,0 +1,416 @@
+{
+  "estate": {
+    "clusters": "Kubernetes-clusters"
+  },
+  "title": "Kubernetes",
+  "description": "Beheer Kubernetes-omgevingen via een overzicht in Docker-stijl, resourcetabellen en workloaddetails.",
+  "actions": {
+    "refresh": "Vernieuwen",
+    "backTo": "Terug naar {{kind}}",
+    "scale": "Schalen",
+    "restart": "Herstarten",
+    "delete": "Verwijderen",
+    "logs": "Logboeken",
+    "configure": "Clusters configureren",
+    "searchIn": "Zoeken in {{kind}}…",
+    "deleteSelected": "Selectie verwijderen",
+    "restartSelected": "Selectie herstarten"
+  },
+  "tabs": {
+    "label": "Kubernetes-onderdelen",
+    "overview": "Overzicht",
+    "resources": "Bronnen",
+    "pods": "Pods",
+    "deployments": "Deployments",
+    "workloads": "Workloads",
+    "services": "Services",
+    "networking": "Netwerk",
+    "namespaces": "Namespaces",
+    "nodes": "Nodes",
+    "events": "Gebeurtenissen",
+    "config": "Configuratie",
+    "storage": "Opslag",
+    "capabilities": "Mogelijkheden",
+    "menu": {
+      "open": "Openen",
+      "openInNewTab": "Openen in nieuw tabblad",
+      "copyLink": "Link kopiëren",
+      "reload": "Herladen"
+    }
+  },
+  "sections": {
+    "cluster": "Cluster",
+    "workloads": "Workloads",
+    "networking": "Netwerk",
+    "storage": "Opslag",
+    "inventory": "Inventaris",
+    "details": "Details",
+    "containers": "Containers",
+    "conditions": "Condities"
+  },
+  "fields": {
+    "connected": "Verbonden",
+    "version": "Versie",
+    "namespaceScope": "Namespacebereik",
+    "nodes": "Nodes"
+  },
+  "values": {
+    "yes": "Ja",
+    "allNamespaces": "Alle namespaces",
+    "no": "Nee"
+  },
+  "resources": {
+    "replicaSets": "Replica sets",
+    "hpas": "Horizontale pod-autoscalers",
+    "endpoints": "Endpoints",
+    "networkPolicies": "Netwerkbeleid",
+    "persistentVolumes": "Persistente volumes",
+    "claims": "Claims",
+    "storageClasses": "Opslagklassen",
+    "configMaps": "Config maps",
+    "secrets": "Secrets",
+    "serviceAccounts": "Serviceaccounts",
+    "resourceQuotas": "Resourcequota's",
+    "limitRanges": "Limietbereiken"
+  },
+  "columns": {
+    "kind": "Soort",
+    "name": "Naam",
+    "namespace": "Namespace",
+    "status": "Status",
+    "ready": "Gereed",
+    "restarts": "Herstarts",
+    "node": "Node",
+    "age": "Leeftijd",
+    "upToDate": "Actueel",
+    "available": "Beschikbaar",
+    "images": "Afbeeldingen",
+    "type": "Type",
+    "clusterIP": "Cluster-IP",
+    "externalIP": "Extern IP",
+    "ports": "Poorten",
+    "roles": "Rollen",
+    "version": "Versie",
+    "cpu": "CPU",
+    "memory": "Geheugen",
+    "reason": "Reden",
+    "object": "Object",
+    "message": "Bericht",
+    "capacity": "Capaciteit",
+    "storageClass": "Opslagklasse",
+    "claim": "Claim",
+    "addresses": "Adressen",
+    "target": "Doel",
+    "replicas": "Replica's",
+    "description": "Beschrijving",
+    "actions": "Acties",
+    "image": "Image",
+    "state": "Toestand",
+    "restartCount": "Herstarts",
+    "ip": "IP",
+    "createdAt": "Aangemaakt",
+    "strategy": "Strategie",
+    "desiredReplicas": "Gewenst"
+  },
+  "empty": {
+    "resources": "Geen Kubernetes-resources gevonden.",
+    "capabilities": "Geen capability-controles gerapporteerd.",
+    "filtered": "Geen resource komt overeen met dit filter."
+  },
+  "errors": {
+    "summaryFailed": "Kubernetes-samenvatting mislukt",
+    "unavailable": "Kubernetes niet beschikbaar",
+    "verifyCredentials": "Selecteer een Kubernetes-omgeving en controleer de clusterreferenties.",
+    "detailUnavailable": "Details niet beschikbaar",
+    "detailMessage": "De geselecteerde Kubernetes-resource kon niet worden geladen.",
+    "reason": {
+      "no_environment": "Er is nog geen Kubernetes-cluster geconfigureerd. Voeg er een toe op de pagina Omgevingen om hier resources te zien.",
+      "not_kubernetes": "De geselecteerde omgeving is een Docker-host, geen Kubernetes-cluster. Kies hierboven een cluster.",
+      "unreachable": "Het cluster is niet bereikbaar. Controleer of de API-server draait en of de gegevens nog geldig zijn."
+    }
+  },
+  "groups": {
+    "overview": "Clusteroverzicht",
+    "workloads": "Workloads",
+    "network": "Netwerk",
+    "storage": "Opslag",
+    "config": "Configuratie",
+    "cluster": "Cluster"
+  },
+  "cluster": {
+    "label": "Cluster",
+    "add": "Cluster toevoegen"
+  },
+  "scale": {
+    "title": "Deployment schalen",
+    "description": "Stel het aantal replicas in voor {{name}} in {{namespace}}.",
+    "replicas": "Replica's",
+    "zeroWarning": "Schalen naar 0 stopt elke pod in deze deployment.",
+    "submit": "Schalen",
+    "applying": "Bezig met schalen…"
+  },
+  "logs": {
+    "title": "Pod-logs",
+    "description": "Logs voor {{name}} in {{namespace}}.",
+    "tail": "Regels",
+    "previous": "Vorige instantie",
+    "loading": "Logs lezen…",
+    "empty": "Deze container heeft geen loguitvoer geproduceerd."
+  },
+  "confirm": {
+    "deletePodTitle": "Pod verwijderen",
+    "deletePodDescription": "{{name}} in {{namespace}} verwijderen? Een pod die door een controller wordt beheerd, wordt opnieuw aangemaakt.",
+    "deleteDeploymentTitle": "Deployment verwijderen",
+    "deleteDeploymentDescription": "{{name}} in {{namespace}} verwijderen? De replica sets en pods gaan mee."
+  },
+  "toast": {
+    "scaled": "Deployment geschaald",
+    "restarted": "Herstart van de deployment gestart",
+    "deleted": "Resource verwijderd"
+  },
+  "stats": {
+    "podsDetail": "verdeeld over {{namespaces}} namespaces",
+    "deploymentsDetail": "{{replicaSets}} replica sets",
+    "servicesDetail": "{{endpoints}} endpoints",
+    "nodesDetail": "{{events}} gebeurtenissen"
+  },
+  "nav": {
+    "section": {
+      "kubernetes": "Kubernetes"
+    },
+    "overview": "Clusteroverzicht",
+    "workloads": "Workloads",
+    "network": "Netwerk",
+    "storage": "Opslag",
+    "config": "Configuratie",
+    "cluster": "Cluster",
+    "clusters": "Verbindingen"
+  },
+  "clusters": {
+    "title": "Clusterverbindingen",
+    "description": "{{count}} clusters geconfigureerd",
+    "searchPlaceholder": "Zoek clusters…",
+    "empty": "Nog geen clusters",
+    "emptyDescription": "Voeg een clusterverbinding toe om workloads te beheren.",
+    "default": "Standaard",
+    "active": "Actief",
+    "inactive": "Inactief",
+    "fromKubeconfig": "Uit kubeconfig",
+    "columns": {
+      "name": "Naam",
+      "server": "API-server",
+      "namespace": "Namespace",
+      "credential": "Referentie",
+      "state": "Status"
+    },
+    "credential": {
+      "kubeconfig": "Kubeconfig",
+      "token": "Bearer-token",
+      "none": "Geen"
+    },
+    "actions": {
+      "add": "Cluster toevoegen",
+      "remove": "Verwijderen",
+      "makeDefault": "Als standaard instellen",
+      "export": "Exporteren",
+      "exportHint": "Exporteert namen en verbindingsgegevens — nooit credentials."
+    },
+    "form": {
+      "addTitle": "Cluster toevoegen",
+      "editTitle": "Cluster bewerken",
+      "description": "Credentials worden versleuteld opgeslagen en nooit door de API teruggegeven.",
+      "name": "Naam",
+      "namePlaceholder": "productie",
+      "namespace": "Namespace",
+      "namespaceHelp": "Laat leeg om elke namespace te lezen die de credential mag zien.",
+      "authMethod": "Authenticatie",
+      "authKubeconfig": "Kubeconfig",
+      "authToken": "Server-URL en bearer-token",
+      "kubeconfig": "Kubeconfig",
+      "kubeconfigHelp": "Plak de volledige kubeconfig-YAML. De huidige context wordt gebruikt.",
+      "kubeconfigPlaceholder": "apiVersion: v1\nkind: Config\n…",
+      "serverUrl": "API-server-URL",
+      "bearerToken": "Bearer-token",
+      "caCert": "CA-certificaat",
+      "caCertHelp": "Optioneel. Nodig wanneer de API-server een eigen CA gebruikt.",
+      "credentialOnFile": "Er is een credential opgeslagen. Laat leeg om die te behouden.",
+      "isDefault": "Standaardcluster",
+      "environment": "Draait op omgeving",
+      "environmentHelp": "De McHarbor-omgeving waarop dit cluster draait. Gekoppeld verschijnt het cluster op de kaart van die omgeving.",
+      "environmentNone": "Niet op een McHarbor-omgeving",
+      "isActive": "Actief"
+    },
+    "confirmRemove": {
+      "title": "Cluster verwijderen?",
+      "description": "Verbinding met {{name}} verwijderen? Het cluster zelf blijft ongemoeid."
+    },
+    "toast": {
+      "created": "Cluster toegevoegd",
+      "updated": "Cluster bijgewerkt",
+      "deleted": "Cluster verwijderd",
+      "exported": "{{count}} clusters geëxporteerd"
+    }
+  },
+  "facets": {
+    "all": "Alles"
+  },
+  "detail": {
+    "breadcrumbLabel": "Kruimelpad",
+    "tabs": {
+      "ariaLabel": "Resourceonderdelen",
+      "overview": "Overzicht",
+      "containers": "Containers",
+      "conditions": "Condities"
+    },
+    "empty": {
+      "containers": "Deze pod meldt nog geen containerstatussen.",
+      "conditions": "Deze resource meldt geen condities."
+    }
+  },
+  "overview": {
+    "general": "Algemeen",
+    "suggested": {
+      "title": "Wat wil je doen?",
+      "description": "Ga direct naar de eerstvolgende waarschijnlijke clustertaak.",
+      "inspectPods": "Falende pods bekijken",
+      "reviewEvents": "Events bekijken",
+      "viewNodes": "Nodes bekijken",
+      "viewWorkloads": "Workloads bekijken",
+      "manageClusters": "Clusters beheren"
+    }
+  },
+  "insights": {
+    "title": "Inzichten",
+    "clear": "Geen actiepunten gevonden in de huidige clustergegevens.",
+    "open": "Details openen voor {{title}}",
+    "severity": {
+      "info": "Info",
+      "warning": "Waarschuwing",
+      "error": "Kritiek"
+    },
+    "failedPodsTitle": "{{count}} pods zijn mislukt",
+    "failedPodsDescription": "{{name}} en andere draaien niet. Bekijk hun logs en events.",
+    "unreadyNodesTitle": "{{count}} nodes zijn niet gereed",
+    "unreadyNodesDescription": "{{name}} accepteert geen workloads. De scheduler mijdt de node tot herstel.",
+    "rolloutTitle": "{{count}} deployments halen hun doel niet",
+    "rolloutDescription": "{{name}} heeft minder gereedstaande replicas dan gewenst. Mogelijk loopt er nog een uitrol.",
+    "pendingPodsTitle": "{{count}} pods staan in de wacht",
+    "pendingPodsDescription": "Ze zijn nog niet ingepland. Meestal ligt het aan nodecapaciteit of een ontbrekend volume.",
+    "warningEventsTitle": "{{count}} waarschuwingsevents",
+    "warningEventsDescription": "De meest recente reden is {{reason}}.",
+    "probesTitle": "{{count}} capability-checks zijn niet gezond",
+    "probesDescription": "Sommige clusterfuncties konden niet worden geverifieerd met de huidige credentials."
+  },
+  "badges": {
+    "connected": "Verbonden",
+    "disconnected": "Niet verbonden"
+  },
+  "reporting": {
+    "category": {
+      "label": "Kubernetes",
+      "description": "Betrouwbaarheid, opslag en netwerkblootstelling, gelezen van de Kubernetes API-server."
+    },
+    "platform": "Kubernetes",
+    "type": {
+      "reliability": {
+        "name": "Betrouwbaarheidsreview",
+        "description": "Herstartende pods, niet-gereed workloads en waarvoor het cluster waarschuwt."
+      },
+      "storage": {
+        "name": "Opslaglandschap",
+        "description": "Claims, volumes en storage classes, en welke daarvan door niets worden gebruikt."
+      },
+      "network": {
+        "name": "Netwerkblootstelling",
+        "description": "Wat van buiten het cluster bereikbaar is en welke namespaces geen netwerkbeleid hebben."
+      }
+    }
+  },
+  "subject": {
+    "kubernetes-cluster": "Cluster",
+    "kubernetes-namespace": "Namespace"
+  },
+  "subjectAll": {
+    "kubernetes-cluster": "Standaardcluster",
+    "kubernetes-namespace": "Alle namespaces"
+  },
+  "widgets": {
+    "clusterHealth": {
+      "label": "Clustergezondheid",
+      "description": "Pod-fases, rollouts en nodes in één oogopslag, met een oordeel",
+      "title": "Clustergezondheid",
+      "allHealthy": "Alle workloads gezond",
+      "failedPods": "{{count}} pod faalt",
+      "failedPods_other": "{{count}} pods falen",
+      "unreadyNodes": "{{count}} node niet gereed",
+      "unreadyNodes_other": "{{count}} nodes niet gereed",
+      "stalledRollouts": "{{count}} rollout onvolledig",
+      "stalledRollouts_other": "{{count}} rollouts onvolledig",
+      "pendingPods": "{{count}} pod in afwachting",
+      "pendingPods_other": "{{count}} pods in afwachting",
+      "warnings": "Waarschuwingen",
+      "inNamespaces": "in {{count}} namespaces",
+      "ofReady": "van {{total}} gereed",
+      "recentEvents": "van {{count}} recente events",
+      "phase": {
+        "running": "Actief",
+        "pending": "In afwachting",
+        "failed": "Mislukt",
+        "succeeded": "Voltooid",
+        "other": "Overig"
+      }
+    },
+    "workloads": {
+      "label": "Deployments",
+      "description": "Rollout-voortgang per deployment, vastgelopen eerst",
+      "title": "Deployments",
+      "stalled": "{{count}} onvolledig",
+      "allReady": "Alles gereed",
+      "none": "Geen deployments"
+    },
+    "events": {
+      "label": "Cluster-events",
+      "description": "Laatste events, waarschuwingen eerst",
+      "title": "Cluster-events",
+      "warnings": "{{count}} waarschuwingen",
+      "noWarnings": "Geen waarschuwingen",
+      "none": "Geen recente events"
+    },
+    "common": {
+      "loading": "Cluster lezen…",
+      "notConfigured": "Geen cluster verbonden",
+      "unreachable": "Cluster onbereikbaar",
+      "openHint": "Open Kubernetes om een clusterverbinding toe te voegen of te herstellen",
+      "more": "{{count}} meer"
+    }
+  },
+  "runbook": {
+    "clusterDefault": "Standaardcluster",
+    "attach": {
+      "k8s_workload": "Kubernetes-deployment"
+    },
+    "targets": {
+      "k8s_cluster": "Kubernetes-cluster",
+      "k8s_pod": "Pod",
+      "k8s_deployment": "Deployment"
+    },
+    "steps": {
+      "k8s_deployment_restart": "Ververs de pods van de deployment, zoals kubectl rollout restart",
+      "k8s_deployment_scale": "Stel het aantal replica's van de deployment in",
+      "k8s_pod_delete": "Verwijder de pod zodat de controller hem vervangt",
+      "k8s_pod_state": "De fase, containers en herstarts van de pod",
+      "k8s_pod_logs": "De laatste 150 regels van het logboek van de pod",
+      "k8s_deployment_state": "De replica's, rollout en condities van de deployment"
+    }
+  },
+  "search": {
+    "group": {
+      "deployments": "Kubernetes-deployments",
+      "pods": "Kubernetes-pods"
+    },
+    "action": {
+      "addCluster": "Kubernetes-cluster toevoegen",
+      "addClusterKeywords": "k8s kubeconfig cluster verbinden koppelen"
+    }
+  }
+}

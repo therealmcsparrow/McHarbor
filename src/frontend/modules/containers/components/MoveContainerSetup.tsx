@@ -73,12 +73,12 @@ export function MoveContainerSetup({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="move-target-name">{t('moveDialog.targetName')}</Label>
-          <Input id="move-target-name" value={targetName} onChange={(event) => onTargetNameChange(event.target.value)} />
+          <Input id="move-target-name" value={targetName} onChange={(evt) => onTargetNameChange(evt.target.value)} />
         </div>
       </div>
 
       {targetOptions.length === 0 ? (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+        <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
           {t('moveDialog.noTargets')}
         </div>
       ) : planLoading ? (

@@ -1,0 +1,75 @@
+{
+  "slug": "semaphore",
+  "name": "Semaphore UI",
+  "description": "Web UI and scheduler for Ansible, Terraform, OpenTofu and shell tasks.",
+  "category": "Developer Tools",
+  "image": "semaphoreui/semaphore:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/semaphore.png",
+  "website": "https://semaphoreui.com",
+  "docsUrl": "https://docs.semaphoreui.com/administration-guide/installation/docker",
+  "ports": [
+    {
+      "host": 3021,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/semaphore/data",
+      "container": "/var/lib/semaphore"
+    },
+    {
+      "host": "/opt/appdata/semaphore/config",
+      "container": "/etc/semaphore"
+    },
+    {
+      "host": "/opt/appdata/semaphore/tmp",
+      "container": "/tmp/semaphore"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SEMAPHORE_DB_DIALECT",
+      "default": "bolt",
+      "description": "Embedded BoltDB storage; switch to mysql or postgres for larger setups"
+    },
+    {
+      "key": "SEMAPHORE_ADMIN",
+      "default": "admin",
+      "description": "Initial admin login"
+    },
+    {
+      "key": "SEMAPHORE_ADMIN_PASSWORD",
+      "default": "change-me",
+      "description": "Initial admin password",
+      "secret": true
+    },
+    {
+      "key": "SEMAPHORE_ADMIN_NAME",
+      "default": "Admin",
+      "description": "Initial admin display name"
+    },
+    {
+      "key": "SEMAPHORE_ADMIN_EMAIL",
+      "default": "admin@localhost",
+      "description": "Initial admin email"
+    },
+    {
+      "key": "SEMAPHORE_ACCESS_KEY_ENCRYPTION",
+      "default": "",
+      "description": "Base64 key for encrypting stored credentials (head -c32 /dev/urandom | base64)",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

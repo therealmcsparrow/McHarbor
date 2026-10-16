@@ -34,9 +34,8 @@ export function MoveVolumeSettings({ plan, volumes, onVolumesChange }: MoveVolum
     return null;
   }
 
-  const sourceKey = (sourceName: string | undefined, sourceDestination: string) => (
-    sourceName ? `name:${sourceName}` : `destination:${sourceDestination}`
-  );
+  const sourceKey = (sourceName: string | undefined, sourceDestination: string) =>
+    sourceName ? `name:${sourceName}` : `destination:${sourceDestination}`;
 
   const updateVolume = (sourceName: string, sourceDestination: string, patch: Partial<MoveVolumeConfig>) => {
     const key = sourceKey(sourceName, sourceDestination);
@@ -56,15 +55,17 @@ export function MoveVolumeSettings({ plan, volumes, onVolumesChange }: MoveVolum
       ]);
       return;
     }
-    onVolumesChange(volumes.map((volume) => (
-      sourceKey(volume.sourceName, volume.sourceDestination ?? '') === key ? { ...volume, ...patch } : volume
-    )));
+    onVolumesChange(
+      volumes.map((volume) =>
+        sourceKey(volume.sourceName, volume.sourceDestination ?? '') === key ? { ...volume, ...patch } : volume,
+      ),
+    );
   };
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3">
       <div className="flex items-center gap-2 text-sm font-medium">
-        <IconDatabase className="size-4 text-lime-400" />
+        <IconDatabase className="size-4 text-chart-8" />
         {t('moveDialog.editVolumeMounts')}
       </div>
 
@@ -83,14 +84,21 @@ export function MoveVolumeSettings({ plan, volumes, onVolumesChange }: MoveVolum
           const inputPathId = `move-volume-path-${key}`;
 
           return (
-            <div key={`${source.name}-${source.destination}`} className="space-y-3 rounded-md border border-border bg-background/50 p-3">
+            <div
+              key={`${source.name}-${source.destination}`}
+              className="space-y-3 rounded-md border border-border bg-background/50 p-3"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0 text-sm font-medium">
                   <span className="truncate">{source.name || source.source || source.destination}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{source.destination}</span>
                 </div>
                 <Badge variant={source.manual ? 'warning' : source.willCreate ? 'warning' : 'secondary'}>
-                  {source.manual ? t('moveDialog.manual') : source.willCreate ? t('moveDialog.create') : t('moveDialog.keep')}
+                  {source.manual
+                    ? t('moveDialog.manual')
+                    : source.willCreate
+                      ? t('moveDialog.create')
+                      : t('moveDialog.keep')}
                 </Badge>
               </div>
 
@@ -101,12 +109,14 @@ export function MoveVolumeSettings({ plan, volumes, onVolumesChange }: MoveVolum
                   </Label>
                   <Input
                     id={inputSourceId}
-                    value={isBind ? volume.targetSource ?? '' : volume.targetName ?? ''}
-                    onChange={(event) => updateVolume(
-                      volume.sourceName,
-                      volume.sourceDestination ?? source.destination,
-                      isBind ? { targetSource: event.target.value } : { targetName: event.target.value },
-                    )}
+                    value={isBind ? (volume.targetSource ?? '') : (volume.targetName ?? '')}
+                    onChange={(changeEvent) =>
+                      updateVolume(
+                        volume.sourceName,
+                        volume.sourceDestination ?? source.destination,
+                        isBind ? { targetSource: changeEvent.target.value } : { targetName: changeEvent.target.value },
+                      )
+                    }
                     placeholder={isBind ? source.source : source.name}
                   />
                 </div>
@@ -115,11 +125,11 @@ export function MoveVolumeSettings({ plan, volumes, onVolumesChange }: MoveVolum
                   <Input
                     id={inputPathId}
                     value={volume.targetDestination ?? ''}
-                    onChange={(event) => updateVolume(
-                      volume.sourceName,
-                      volume.sourceDestination ?? source.destination,
-                      { targetDestination: event.target.value },
-                    )}
+                    onChange={(evt) =>
+                      updateVolume(volume.sourceName, volume.sourceDestination ?? source.destination, {
+                        targetDestination: evt.target.value,
+                      })
+                    }
                     placeholder={source.destination}
                   />
                 </div>

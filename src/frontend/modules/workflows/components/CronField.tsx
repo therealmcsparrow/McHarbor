@@ -15,6 +15,7 @@ interface CronFieldProps {
 
 export function CronField({ field, value, onChange, nodeKey, timezone }: CronFieldProps) {
   const { t } = useTranslation('common');
+  // eslint-disable-next-line mcharbor/no-restricted-syntax -- i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
   const fieldLabel = nodeKey ? t(`nodes:${nodeKey}.config.${field.key}`, { defaultValue: field.label }) : field.label;
 
   return (
@@ -26,4 +27,3 @@ export function CronField({ field, value, onChange, nodeKey, timezone }: CronFie
     />
   );
 }
-

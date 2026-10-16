@@ -1,0 +1,9 @@
+{
+  "label": "Resolve Ticket",
+  "description": "Resolve the ticket a key opened",
+  "config": {
+    "channel_id": "Ticketing Channel",
+    "dedup_key": "Ticket Key",
+    "message": "Message"
+  }
+}

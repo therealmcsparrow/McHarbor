@@ -4,6 +4,7 @@
 package audit
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -12,18 +13,26 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/inapp"
 )
 
-func logInAppNotification(db *sql.DB, username *string, entry Entry) {
+func logInAppNotification(ctx context.Context, db *sql.DB, username *string, entry Entry) {
 	record, ok := notificationRecord(username, entry)
 	if !ok {
 		return
 	}
 
-	if err := inapp.CreateBroadcast(db, record); err != nil {
+	if err := inapp.CreateBroadcastContext(ctx, db, record); err != nil {
 		slog.Error("failed to write in-app notification", "action", entry.Action, "error", err)
 	}
 }
 
 func notificationRecord(username *string, entry Entry) (inapp.Record, bool) {
+	if notificationEntitySuppressed(entry.EntityType) {
+		return inapp.Record{}, false
+	}
+
+	if notificationActionSuppressed(entry.Action) {
+		return inapp.Record{}, false
+	}
+
 	actionKey := normalizeNotificationAction(entry.Action)
 	if actionKey == "" {
 		return inapp.Record{}, false
@@ -42,6 +51,34 @@ func notificationRecord(username *string, entry Entry) (inapp.Record, bool) {
 		EntityType: entry.EntityType,
 		EntityID:   entry.EntityID,
 	}, true
+}
+
+// notificationEntitySuppressed reports whether an audit entry describes the
+// in-app notification inbox itself. Reading or dismissing a notification is a
+// mutating protected route, so FallbackMiddleware audits it; turning that row
+// into a broadcast would post a new notification about the act of clearing one
+// and the inbox would never reach empty. The audit row is still written — only
+// the bell entry is suppressed.
+func notificationEntitySuppressed(entityType string) bool {
+	switch strings.TrimSpace(strings.ToLower(entityType)) {
+	case "in_app_notification", "in_app_notifications":
+		return true
+	default:
+		return false
+	}
+}
+
+// notificationActionSuppressed reports whether an audit entry describes a
+// scheduled background self-check. Each one already posts its own deduplicated
+// notification when something is actually wrong, so the generic broadcast only
+// fills the inbox with "activity" rows nobody can act on.
+func notificationActionSuppressed(action string) bool {
+	switch strings.TrimSpace(strings.ToLower(action)) {
+	case "clock.boot_check", "clock.drift_check", "audit.verified.scheduled":
+		return true
+	default:
+		return false
+	}
 }
 
 func normalizeNotificationAction(action string) string {

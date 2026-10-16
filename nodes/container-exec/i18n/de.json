@@ -1,10 +1,10 @@
 {
-  "label": "Container Exec",
-  "description": "Execute a command inside a running container",
+  "label": "Container-Exec",
+  "description": "Einen Befehl in einem laufenden Container ausführen",
   "config": {
     "environment": "Umgebung",
     "container": "Container",
-    "command": "Command",
+    "command": "Befehl",
     "workdir": "Arbeitsverzeichnis"
   }
 }

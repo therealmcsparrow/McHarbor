@@ -1,93 +1,66 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { api } from '@core/api/client';
+import { useCallback, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { assertSuccess } from '@resources/utils/api-mutation';
+import { runWithMcHarborRestart } from '@resources/stores/mcharbor-restart';
 import type { ContainerInspect } from '@core/types/docker';
 import {
   type EditFormData,
   type ChangeClassification,
+  type ResourceEditField,
   containerToEditForm,
   classifyChanges,
   buildUpdatePayload,
   buildRecreatePayload,
 } from '../types/edit-form';
 
+import { useContainerEditMutations } from './useContainerEditMutations';
+
 type ContainerEditOptions = {
   unlockProtected?: boolean;
 };
 
-export function useContainerEdit(
-  container: ContainerInspect | undefined,
-  options: ContainerEditOptions = {},
-) {
-  const { t } = useTranslation('containers');
-  const queryClient = useQueryClient();
+export function useContainerEdit(container: ContainerInspect | undefined, options: ContainerEditOptions = {}) {
+  const routerLocation = useLocation();
+  const navigate = useNavigate();
   const envId = useEnvironmentStore((s) => s.currentId);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<EditFormData | null>(null);
-  const originalRef = useRef<EditFormData | null>(null);
+  const [originalForm, setOriginal] = useState<EditFormData | null>(null);
 
   const startEditing = useCallback(() => {
     if (!container) return;
     const form = containerToEditForm(container);
-    originalRef.current = form;
-    setEditData({
-      ...form,
-      env: [...form.env],
-      labels: { ...form.labels },
-      devices: form.devices.map((device) => ({ ...device })),
-      gpuDeviceIds: [...form.gpuDeviceIds],
-      gpuCapabilities: [...form.gpuCapabilities],
-    });
+    setOriginal(structuredClone(form));
+    setEditData(structuredClone(form));
     setEditing(true);
   }, [container]);
 
   const cancelEditing = useCallback(() => {
     setEditing(false);
     setEditData(null);
-    originalRef.current = null;
+    setOriginal(null);
   }, []);
 
-  const onFieldChange = useCallback(<K extends keyof EditFormData>(
-    field: K,
-    value: EditFormData[K],
-  ) => {
+  const onFieldChange = useCallback(<K extends keyof EditFormData>(field: K, value: EditFormData[K]) => {
     setEditData((prev) => (prev ? { ...prev, [field]: value } : prev));
   }, []);
 
   const changes: ChangeClassification = useMemo(() => {
-    if (!originalRef.current || !editData) {
-      return { hasResourceChanges: false, hasConfigChanges: false, changedResourceFields: [], changedConfigFields: [] };
+    if (!originalForm || !editData) {
+      return {
+        hasResourceChanges: false,
+        hasConfigChanges: false,
+        changedResourceFields: [],
+        changedConfigFields: [],
+      };
     }
-    return classifyChanges(originalRef.current, editData);
-  }, [editData]);
+    return classifyChanges(originalForm, editData);
+  }, [originalForm, editData]);
 
-  const envQuery = envId ? `?env=${envId}` : '';
-
-  const updateMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      api.post(`/containers/${container?.Id}/update${envQuery}`, payload).then(assertSuccess),
-    meta: { success: t('toast.updated') },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['container'] });
-      queryClient.invalidateQueries({ queryKey: ['containers'] });
-    },
-  });
-
-  const recreateMutation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      api.post(`/containers/${container?.Id}/recreate${envQuery}`, payload).then(assertSuccess),
-    meta: { success: t('toast.recreated') },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['container'] });
-      queryClient.invalidateQueries({ queryKey: ['containers'] });
-    },
-  });
+  const { updateMutation, recreateMutation } = useContainerEditMutations(container, envId);
 
   const save = useCallback(async () => {
     if (!editData || !container) return;
@@ -97,19 +70,76 @@ export function useContainerEdit(
       if (options.unlockProtected) payload.unlockProtected = true;
       await updateMutation.mutateAsync(payload);
     } else if (changes.hasConfigChanges) {
-      // If both resource and config changes, do update first then recreate
-      if (changes.hasResourceChanges) {
-        const updatePayload = buildUpdatePayload(editData, changes);
-        if (options.unlockProtected) updatePayload.unlockProtected = true;
-        await updateMutation.mutateAsync(updatePayload);
-      }
       const recreatePayload = buildRecreatePayload(editData, changes);
       if (options.unlockProtected) recreatePayload.unlockProtected = true;
-      await recreateMutation.mutateAsync(recreatePayload);
+      // The McHarbor container recreates itself through a detached helper, so
+      // the API disappears from under this page moments after the request
+      // returns. Driving the global restart dialog is what keeps the page
+      // honest — and it reloads once the new instance answers, instead of
+      // leaving a success toast on a dead session. unlockProtected is only ever
+      // true for that container, so it doubles as the self-container signal.
+      const recreated = options.unlockProtected
+        ? await runWithMcHarborRestart(() => recreateMutation.mutateAsync(recreatePayload))
+        : await recreateMutation.mutateAsync(recreatePayload);
+      cancelEditing();
+      if (recreated?.confirmed && recreated.Id && recreated.Id !== container.Id) {
+        void navigate(`/containers/${encodeURIComponent(recreated.Id)}${routerLocation.search}`, {
+          replace: true,
+        });
+      }
+      return;
     }
 
     cancelEditing();
-  }, [editData, container, changes, updateMutation, recreateMutation, cancelEditing, options.unlockProtected]);
+  }, [
+    editData,
+    container,
+    changes,
+    updateMutation,
+    recreateMutation,
+    cancelEditing,
+    options.unlockProtected,
+    routerLocation.search,
+    navigate,
+  ]);
+
+  // Recreate on demand, with no configuration change: an empty payload keeps
+  // the current image and every current setting, which is exactly what the
+  // detail hero's Recreate button promises. It shares the edit flow's
+  // self-restart handling and its follow-the-new-id navigation, because the
+  // container id changes under the page either way.
+  const recreateInPlace = useCallback(
+    async (recreateOptions: { secretFileMode?: boolean } = {}) => {
+      if (!container) return;
+      const payload: Record<string, unknown> = {};
+      if (options.unlockProtected) payload.unlockProtected = true;
+      if (recreateOptions.secretFileMode !== undefined) {
+        payload.secretFileMode = recreateOptions.secretFileMode;
+      }
+      const recreated = options.unlockProtected
+        ? await runWithMcHarborRestart(() => recreateMutation.mutateAsync(payload))
+        : await recreateMutation.mutateAsync(payload);
+      cancelEditing();
+      if (recreated?.confirmed && recreated.Id && recreated.Id !== container.Id) {
+        void navigate(`/containers/${encodeURIComponent(recreated.Id)}${routerLocation.search}`, { replace: true });
+      }
+    },
+    [cancelEditing, container, routerLocation.search, navigate, options.unlockProtected, recreateMutation],
+  );
+
+  const saveResourceField = useCallback(
+    async (field: ResourceEditField, value: number | string) => {
+      if (!container) return;
+      const original = containerToEditForm(container);
+      const current = { ...original, [field]: value };
+      const fieldChanges = classifyChanges(original, current);
+      if (!fieldChanges.hasResourceChanges) return;
+      const payload = buildUpdatePayload(current, fieldChanges);
+      if (options.unlockProtected) payload.unlockProtected = true;
+      await updateMutation.mutateAsync(payload);
+    },
+    [container, options.unlockProtected, updateMutation],
+  );
 
   const isSaving = updateMutation.isPending || recreateMutation.isPending;
 
@@ -120,7 +150,11 @@ export function useContainerEdit(
     cancelEditing,
     onFieldChange,
     save,
+    recreateInPlace,
+    saveResourceField,
     changes,
     isSaving,
+    recreateError: recreateMutation.error?.message ?? null,
+    clearRecreateError: recreateMutation.reset,
   };
 }

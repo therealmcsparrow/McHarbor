@@ -1,0 +1,16 @@
+{
+  "slug": "comm-pagerduty",
+  "name": "PagerDuty",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "PagerDuty incident channel. Triggers, re-notifies and resolves PagerDuty incidents through Events API v2 and reads acknowledge/resolve back through signed v3 webhooks or REST polling.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-pagerduty-2026.09.01.tar.gz"
+    }
+  ]
+}

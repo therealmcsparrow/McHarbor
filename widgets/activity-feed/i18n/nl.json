@@ -8,6 +8,9 @@
   "activityFeedWidget": {
     "title": "Activiteitenfeed",
     "loadingActivity": "Activiteit laden...",
-    "noRecentActivity": "Geen recente activiteit"
+    "noRecentActivity": "Geen recente activiteit",
+    "more": "{{count}} meer",
+    "viewAll": "Activiteit bekijken",
+    "justNow": "zojuist"
   }
 }

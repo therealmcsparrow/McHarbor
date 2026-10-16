@@ -1,16 +1,16 @@
 {
-  "label": "FTP Upload",
-  "description": "Upload workflow data or a saved file with FTP or SFTP",
+  "label": "FTP-upload",
+  "description": "Upload workflowgegevens of een opgeslagen bestand via FTP of SFTP",
   "config": {
     "host": "Host",
-    "port": "Port",
-    "username": "Username",
-    "password": "Password",
+    "port": "Poort",
+    "username": "Gebruikersnaam",
+    "password": "Wachtwoord",
     "protocol": "Protocol",
-    "remote_path": "Remote Path",
-    "source_mode": "Source Mode",
-    "property": "Property",
-    "local_path": "Local Path"
+    "remote_path": "Extern pad",
+    "source_mode": "Bronmodus",
+    "property": "Eigenschap",
+    "local_path": "Lokaal pad"
   },
   "options": {
     "protocol": {
@@ -18,8 +18,8 @@
       "sftp": "SFTP"
     },
     "source_mode": {
-      "payload": "Message Property",
-      "file": "File Path"
+      "payload": "Berichteigenschap",
+      "file": "Bestandspad"
     }
   }
 }

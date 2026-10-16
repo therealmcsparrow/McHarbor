@@ -1,0 +1,37 @@
+{
+  "label": "Objeto de armazenamento",
+  "description": "Listar, enviar, baixar ou excluir objetos em um local de armazenamento por meio do seu adaptador",
+  "config": {
+    "storage_location_id": "Local de armazenamento",
+    "action": "Ação",
+    "prefix": "Prefixo",
+    "key": "Chave do objeto",
+    "source_mode": "Origem",
+    "property": "Propriedade de origem",
+    "content_encoding": "Codificação de origem",
+    "content": "Conteúdo",
+    "output_encoding": "Codificação de saída",
+    "output_property": "Propriedade de saída"
+  },
+  "options": {
+    "action": {
+      "list": "Listar",
+      "upload": "Enviar",
+      "download": "Baixar",
+      "delete": "Excluir"
+    },
+    "source_mode": {
+      "property": "Propriedade da mensagem",
+      "text": "Texto embutido"
+    },
+    "content_encoding": {
+      "auto": "Automático (texto ou JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Texto",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "watcharr",
+    "name":  "Watcharr",
+    "description":  "Self-hosted watchlist and tracker for movies and TV shows with ratings and stats.",
+    "category":  "Media",
+    "image":  "ghcr.io/sbondco/watcharr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/watcharr.png",
+    "website":  "https://watcharr.app",
+    "docsUrl":  "https://docs.watcharr.app/installation/",
+    "ports":  [
+                  {
+                      "host":  3080,
+                      "container":  3080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/watcharr/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JWT_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret used to sign login sessions",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

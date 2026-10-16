@@ -4,6 +4,7 @@
 import { useTranslation } from 'react-i18next';
 import { InfoRow } from '@resources/components/ui/InfoRow';
 import type { ImageInspect } from '@core/types/docker';
+import { ImageEnvList } from './ImageEnvList';
 
 type ImageConfigCardProps = {
   image: ImageInspect;
@@ -12,48 +13,47 @@ type ImageConfigCardProps = {
 export function ImageConfigCard({ image }: ImageConfigCardProps) {
   const { t } = useTranslation('images');
 
+  // Hoisted so each value can be handed to both the row and its `title` —
+  // `spread` truncates, and an ellipsis with nothing behind it is a dead end.
+  const config = image.Config;
+  const cmd = config?.Cmd?.join(' ') ?? '-';
+  const entrypoint = config?.Entrypoint?.join(' ') ?? '-';
+  const workingDir = config?.WorkingDir || '/';
+  const user = config?.User || '-';
+  const stopSignal = config?.StopSignal || '-';
+  const exposedPorts = Object.keys(config?.ExposedPorts ?? {}).join(', ') || '-';
+  const volumes = Object.keys(config?.Volumes ?? {}).join(', ') || '-';
+
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="mc-glass rounded-lg p-6">
+      <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
         {t('detail.config')}
       </h3>
-      <InfoRow label={t('detail.fields.cmd')}>
-        <span className="font-mono text-xs">{image.Config?.Cmd?.join(' ') ?? '-'}</span>
+      <InfoRow label={t('detail.fields.cmd')} variant="spread" title={cmd}>
+        <span className="font-mono text-xs">{cmd}</span>
       </InfoRow>
-      <InfoRow label={t('detail.fields.entrypoint')}>
-        <span className="font-mono text-xs">{image.Config?.Entrypoint?.join(' ') ?? '-'}</span>
+      <InfoRow label={t('detail.fields.entrypoint')} variant="spread" title={entrypoint}>
+        <span className="font-mono text-xs">{entrypoint}</span>
       </InfoRow>
-      <InfoRow label={t('detail.fields.workingDir')}>{image.Config?.WorkingDir || '/'}</InfoRow>
-      <InfoRow label={t('detail.fields.user')}>{image.Config?.User || '-'}</InfoRow>
-      <InfoRow label={t('detail.fields.stopSignal')}>{image.Config?.StopSignal || '-'}</InfoRow>
-      <InfoRow label={t('detail.fields.exposedPorts')}>
-        {image.Config?.ExposedPorts && Object.keys(image.Config.ExposedPorts).length > 0
-          ? Object.keys(image.Config.ExposedPorts).join(', ')
-          : '-'}
+      <InfoRow label={t('detail.fields.workingDir')} variant="spread" title={workingDir}>
+        {workingDir}
       </InfoRow>
-      <InfoRow label={t('detail.fields.volumes')}>
-        {image.Config?.Volumes && Object.keys(image.Config.Volumes).length > 0
-          ? Object.keys(image.Config.Volumes).join(', ')
-          : '-'}
+      <InfoRow label={t('detail.fields.user')} variant="spread" title={user}>
+        {user}
+      </InfoRow>
+      <InfoRow label={t('detail.fields.stopSignal')} variant="spread" title={stopSignal}>
+        {stopSignal}
+      </InfoRow>
+      <InfoRow label={t('detail.fields.exposedPorts')} variant="spread" title={exposedPorts}>
+        {exposedPorts}
+      </InfoRow>
+      <InfoRow label={t('detail.fields.volumes')} variant="spread" title={volumes}>
+        {volumes}
       </InfoRow>
       <div className="mt-3 border-t border-border pt-3">
         <span className="text-xs font-medium text-muted-foreground">{t('detail.fields.environment')}</span>
-        <div className="mt-2 max-h-48 overflow-y-auto">
-          {image.Config?.Env && image.Config.Env.length > 0 ? (
-            image.Config.Env.map((env, index) => {
-              const separator = env.indexOf('=');
-              const key = separator > -1 ? env.slice(0, separator) : env;
-              const value = separator > -1 ? env.slice(separator + 1) : '';
-              return (
-                <div key={`${key}-${value}-${index}`} className="flex gap-2 border-b border-border py-1.5 last:border-0">
-                  <span className="shrink-0 font-mono text-xs font-medium text-foreground">{key}</span>
-                  <span className="truncate font-mono text-xs text-muted-foreground">{value}</span>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-sm text-muted-foreground">{t('detail.noEnvVars')}</p>
-          )}
+        <div className="mt-2 max-h-48 overflow-x-hidden overflow-y-auto">
+          <ImageEnvList imageId={image.Id} env={image.Config?.Env} />
         </div>
       </div>
     </div>

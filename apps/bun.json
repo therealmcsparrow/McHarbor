@@ -4,7 +4,7 @@
     "description":  "All-in-one JavaScript runtime and toolkit with native bundler, test runner, and package manager.",
     "category":  "Developer Tools",
     "image":  "oven/bun:latest",
-    "logo":  "https://icon.horse/icon/bun.sh",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/bun.svg",
     "website":  "https://bun.sh",
     "docsUrl":  "https://bun.sh/docs",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

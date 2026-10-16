@@ -1,0 +1,16 @@
+{
+  "slug": "ai-provider-fireworks",
+  "name": "Fireworks AI",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Routes McHarbor AI chat completions through Fireworks AI's hosted inference API.",
+  "category": "AI providers",
+  "icon": "plugin.svg",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/ai-provider-fireworks-1.0.0.tar.gz"
+    }
+  ]
+}

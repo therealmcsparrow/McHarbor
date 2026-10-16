@@ -7,6 +7,28 @@
   "tableView": "Tabelweergave",
   "cardView": "Kaartweergave",
   "columns": {
+    "id": "ID",
+    "type": "Type",
+    "orchestrator": "Orchestrator",
+    "createdAt": "Aangemaakt",
+    "updatedAt": "Bijgewerkt",
+    "protected": "Beschermd",
+    "environment": "Omgeving",
+    "containerIds": "Container-ID's",
+    "owner": "Eigenaar",
+    "groupOwner": "Eigenaar",
+    "groupStack": "Stack",
+    "groupEnvironment": "Omgeving",
+    "groupContainers": "Containers",
+    "containerName": "Containernaam",
+    "statusText": "Status",
+    "imageId": "Image-ID",
+    "command": "Opdracht",
+    "networks": "Netwerken",
+    "ipAddresses": "IP-adressen",
+    "volumes": "Volumes",
+    "labels": "Labels",
+    "groupContainer": "Container",
     "name": "Naam",
     "status": "Status",
     "services": "Services",
@@ -16,8 +38,8 @@
     "created": "Aangemaakt"
   },
   "badges": {
-    "managed": "beheerd",
-    "discovered": "ontdekt"
+    "managed": "Beheerd",
+    "discovered": "Ontdekt"
   },
   "actions": {
     "view": "Details bekijken",
@@ -92,6 +114,8 @@
     "composeFile": "Compose-bestand",
     "editCompose": "Bewerken",
     "saveCompose": "Opslaan",
+    "revealComposeValues": "Waarden tonen",
+    "hideComposeValues": "Waarden verbergen",
     "readOnly": "Alleen-lezen (ontdekte stack)",
     "envVars": "Omgevingsvariabelen",
     "noEnvVars": "Geen omgevingsvariabelen geconfigureerd.",
@@ -107,7 +131,10 @@
     "loadingLayers": "Lagen laden...",
     "webhooks": "Webhooks",
     "editMode": "Bewerken",
-    "descriptionPlaceholder": "Stack-beschrijving..."
+    "descriptionPlaceholder": "Stack-beschrijving...",
+    "tabs": {
+      "ariaLabel": "Stacksecties"
+    }
   },
   "webhooks": {
     "title": "Webhooks",
@@ -138,19 +165,21 @@
     "button": "Verweesde opruimen",
     "pruning": "Opruimen...",
     "noOrphans": "Geen verweesde services gevonden",
-    "removed": "{{count}} verweesde service(s) verwijderd"
+    "removed_one": "{{count}} verweesde service verwijderd",
+    "removed_other": "{{count}} verweesde services verwijderd"
   },
   "editStack": {
     "editStack": "Stack bewerken",
     "saveStack": "Opslaan",
     "saving": "Opslaan...",
-    "cancel": "Annuleren",
-    "envVarsSaved": "Omgevingsvariabelen opgeslagen"
+    "cancel": "Annuleren"
   },
   "confirm": {
     "removeTitle": "Stack verwijderen",
     "removeDescription": "Dit stopt en verwijdert alle containers in \"{{name}}\" en verwijdert deze permanent.",
-    "removeLabel": "Verwijderen"
+    "removeLabel": "Verwijderen",
+    "downTitle": "Stack neerhalen",
+    "downDescription": "Dit stopt en verwijdert elke container en elk netwerk van \"{{name}}\". Volumes en de stackdefinitie blijven behouden."
   },
   "takeOver": {
     "title": "Beheer overnemen",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Alle stacks opnieuw installeren",
-      "reinstallAllDescription": "Maak {{count}} beheerde stack(s) geforceerd opnieuw aan met hun huidige images. Dit kan draaiende services kort onderbreken."
+      "reinstallAllDescription_one": "Maak {{count}} beheerde stack geforceerd opnieuw aan met de huidige images. Dit kan draaiende services kort onderbreken.",
+      "reinstallAllDescription_other": "Maak {{count}} beheerde stacks geforceerd opnieuw aan met hun huidige images. Dit kan draaiende services kort onderbreken."
     }
   },
   "toast": {
@@ -216,6 +246,13 @@
     "webhookUpdated": "Webhook bijgewerkt",
     "webhookDeleted": "Webhook verwijderd",
     "envVarsSaved": "Omgevingsvariabelen opgeslagen",
-    "pruned": "{{count}} verweesde service(s) opgeruimd"
+    "pruned_one": "{{count}} verweesde service opgeruimd",
+    "pruned_other": "{{count}} verweesde services opgeruimd"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Wachten tot de McHarbor-API weer online komt...",
+      "apiRecoveryTimeout": "De McHarbor-API is niet op tijd weer online gekomen."
+    }
   }
 }

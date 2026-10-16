@@ -1,0 +1,40 @@
+{
+    "slug":  "apollo-router",
+    "name":  "Apollo Router",
+    "description":  "High-performance GraphQL federation gateway that composes a supergraph from multiple subgraphs.",
+    "category":  "Developer Tools",
+    "image":  "ghcr.io/apollographql/router:v1.61.0",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.apollographql.com\u0026sz=128",
+    "website":  "https://www.apollographql.com/docs/router",
+    "docsUrl":  "https://www.apollographql.com/docs/router/containerization/docker",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apollo-router/config",
+                        "container":  "/dist/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APOLLO_ROUTER_SUPERGRAPH_PATH",
+                        "default":  "/dist/config/supergraph.graphql",
+                        "description":  "Path to the supergraph schema file"
+                    }
+                ],
+    "version":  "v1.61.0",
+    "latest":  {
+        "version":  "v1.61.0",
+        "release_date":  "2026-09-29"
+    }
+}

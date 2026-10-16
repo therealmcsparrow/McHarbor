@@ -8,6 +8,18 @@
   "pruneUnused": "Podar não utilizado",
   "pruneDescription": "Remova volumes que não estão anexados a nenhum contêiner.",
   "columns": {
+    "scope": "Escopo",
+    "labels": "Rótulos",
+    "options": "Opções",
+    "status": "Status",
+    "size": "Tamanho",
+    "refCount": "Referências",
+    "stack": "Stack",
+    "protected": "Protegido",
+    "groupVolume": "Volume",
+    "usedBy": "Usado por",
+    "groupRelations": "Relações",
+    "groupStack": "Stack",
     "name": "Nome",
     "driver": "Motorista",
     "usage": "Uso",
@@ -17,7 +29,8 @@
   },
   "badges": {
     "inUse": "em uso",
-    "unused": "não utilizado"
+    "unused": "Não utilizado",
+    "inUseCount": "{{count}} em uso"
   },
   "create": {
     "title": "Criar Volume",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Remover volume",
     "removeDescription": "Isso removerá permanentemente este volume e todos os seus dados."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Seções do volume",
+      "overview": "Visão geral",
+      "containers": "Contêineres",
+      "configuration": "Configuração"
+    },
+    "notFound": "Volume não encontrado",
+    "backToVolumes": "Voltar aos volumes",
+    "general": "Geral",
+    "name": "Nome",
+    "driver": "Driver",
+    "scope": "Escopo",
+    "mountpoint": "Ponto de montagem",
+    "created": "Criado",
+    "usage": "Uso",
+    "status": "Status",
+    "size": "Tamanho",
+    "sizeUnknown": "Não informado",
+    "sizeDescription": "O daemon do Docker informa o tamanho apenas quando coletou dados de uso deste volume.",
+    "mountedBy": "Montado por",
+    "mountedByContainers": "Contêineres que usam este volume",
+    "noContainers": "Nenhum contêiner monta este volume no momento.",
+    "containerName": "Contêiner",
+    "containerId": "ID do contêiner",
+    "mountPath": "Caminho de montagem",
+    "access": "Acesso",
+    "readWrite": "leitura-escrita",
+    "readOnly": "somente leitura",
+    "options": "Opções",
+    "labels": "Rótulos",
+    "noConfiguration": "Este volume não tem opções nem rótulos personalizados.",
+    "protectedCannotRemove": "Este volume está protegido e não pode ser removido.",
+    "inUseCannotRemove": "Um contêiner ainda monta este volume. Remova-o ou pare-o primeiro."
   }
 }

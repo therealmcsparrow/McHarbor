@@ -1,0 +1,43 @@
+{
+    "slug":  "moonraker",
+    "name":  "Moonraker",
+    "description":  "API server for the Klipper 3D-printer firmware, exposing device control and status over HTTP and WebSocket.",
+    "category":  "Home Automation",
+    "image":  "mkuf/moonraker:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=moonraker.readthedocs.io\u0026sz=128",
+    "website":  "https://moonraker.readthedocs.io",
+    "docsUrl":  "https://moonraker.readthedocs.io/en/latest/installation",
+    "ports":  [
+                  {
+                      "host":  7125,
+                      "container":  7125,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/moonraker/config",
+                        "container":  "/opt/printer_data/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/moonraker/logs",
+                        "container":  "/opt/printer_data/logs"
+                    },
+                    {
+                        "host":  "/opt/appdata/moonraker/gcodes",
+                        "container":  "/opt/printer_data/gcodes"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

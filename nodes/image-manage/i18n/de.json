@@ -1,0 +1,30 @@
+{
+  "label": "Image verwalten",
+  "description": "Docker-Image pullen, pushen, taggen oder entfernen",
+  "config": {
+    "environment": "Umgebung",
+    "action": "Aktion",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry-URL",
+    "registry_username": "Registry-Benutzername",
+    "registry_password": "Registry-Passwort",
+    "image": "Image",
+    "source": "Quell-Image",
+    "target": "Ziel-Image",
+    "force": "Erzwingen",
+    "prune_children": "Untergeordnete bereinigen"
+  },
+  "options": {
+    "action": {
+      "pull": "Pull",
+      "push": "Push",
+      "tag": "Tag",
+      "remove": "Entfernen"
+    },
+    "registry_mode": {
+      "configured": "Konfigurierte Registry",
+      "custom": "Andere"
+    }
+  }
+}

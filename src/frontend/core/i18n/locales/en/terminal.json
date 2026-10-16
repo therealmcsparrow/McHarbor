@@ -1,13 +1,15 @@
 {
   "title": "Terminal",
   "description": "Interactive shell into running containers",
-  "selectContainer": "Select a container",
   "selectContainerPlaceholder": "Select a container...",
-  "selectShell": "Shell",
   "connect": "Connect",
   "disconnect": "Disconnect",
   "connecting": "Connecting...",
   "connected": "Connected",
   "disconnected": "Disconnected",
-  "reconnect": "Reconnect"
+  "shellLabel": "Shell",
+  "userLabel": "User",
+  "userPlaceholder": "uid, username, or uid:gid",
+  "workDirPlaceholder": "/workdir",
+  "workDirLabel": "Working directory"
 }

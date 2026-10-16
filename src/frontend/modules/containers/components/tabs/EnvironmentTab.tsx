@@ -1,70 +1,53 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import type { ContainerInspect } from "@core/types/docker";
-import type { EditFormData, HealthcheckConfig } from "../../types/edit-form";
-import {
-  EnvironmentConfigSection,
-  EnvironmentConsoleSection,
-  EnvironmentHealthcheckSection,
-  EnvironmentImageSection,
-  EnvironmentLogOptionsSection,
-  EnvironmentVariablesSection,
-} from "./EnvironmentSections";
+import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { ContainerInspect } from '@core/types/docker';
+import type { EditFormData, HealthcheckConfig } from '../../types/edit-form';
+import { EnvironmentConfigSection, EnvironmentImageSection, EnvironmentVariablesSection } from './EnvironmentSections';
+import { EnvironmentConsoleSection, EnvironmentLogOptionsSection } from './EnvironmentRuntimeSections';
+import { EnvironmentHealthcheckSection, EnvironmentHealthcheckSummary } from './EnvironmentHealthcheckSections';
 
 type EnvironmentTabProps = {
   container: ContainerInspect;
   editing: boolean;
   editData: EditFormData | null;
-  onFieldChange: <K extends keyof EditFormData>(
-    field: K,
-    value: EditFormData[K],
-  ) => void;
+  onFieldChange: <K extends keyof EditFormData>(field: K, value: EditFormData[K]) => void;
 };
 
 const DEFAULT_HEALTHCHECK: HealthcheckConfig = {
   enabled: false,
-  command: "",
+  command: '',
   interval: 30,
   timeout: 30,
   retries: 3,
   startPeriod: 0,
 };
 
-export function EnvironmentTab({
-  container,
-  editing,
-  editData,
-  onFieldChange,
-}: EnvironmentTabProps) {
-  const { t } = useTranslation("containers");
+export function EnvironmentTab({ container, editing, editData, onFieldChange }: EnvironmentTabProps) {
+  const { t } = useTranslation('containers');
 
   const envEntries = useMemo(() => {
-    const envList = editing
-      ? (editData?.env ?? [])
-      : (container.Config?.Env ?? []);
+    const envList = editing ? (editData?.env ?? []) : (container.Config?.Env ?? []);
     return envList.map((entry) => {
-      const idx = entry.indexOf("=");
+      const idx = entry.indexOf('=');
       return {
         key: idx > -1 ? entry.slice(0, idx) : entry,
-        value: idx > -1 ? entry.slice(idx + 1) : "",
+        value: idx > -1 ? entry.slice(idx + 1) : '',
       };
     });
   }, [container.Config?.Env, editData?.env, editing]);
 
   const logOptionEntries = useMemo(() => {
-    const options = editing
-      ? (editData?.logOptions ?? {})
-      : (container.HostConfig?.LogConfig?.Config ?? {});
+    const options = editing ? (editData?.logOptions ?? {}) : (container.HostConfig?.LogConfig?.Config ?? {});
     return Object.entries(options).map(([key, value]) => ({ key, value }));
   }, [container.HostConfig?.LogConfig?.Config, editData?.logOptions, editing]);
 
   const handleEnvChange = useCallback(
     (entries: Array<{ key: string; value: string }>) => {
       onFieldChange(
-        "env",
+        'env',
         entries.map((entry) => `${entry.key}=${entry.value}`),
       );
     },
@@ -73,20 +56,14 @@ export function EnvironmentTab({
 
   const handleLogOptionChange = useCallback(
     (entries: Array<{ key: string; value: string }>) => {
-      onFieldChange(
-        "logOptions",
-        Object.fromEntries(entries.map((entry) => [entry.key, entry.value])),
-      );
+      onFieldChange('logOptions', Object.fromEntries(entries.map((entry) => [entry.key, entry.value])));
     },
     [onFieldChange],
   );
 
   const handleHealthcheckChange = useCallback(
-    <K extends keyof HealthcheckConfig>(
-      field: K,
-      value: HealthcheckConfig[K],
-    ) => {
-      onFieldChange("healthcheck", {
+    <K extends keyof HealthcheckConfig>(field: K, value: HealthcheckConfig[K]) => {
+      onFieldChange('healthcheck', {
         ...(editData?.healthcheck ?? DEFAULT_HEALTHCHECK),
         [field]: value,
       });
@@ -96,15 +73,10 @@ export function EnvironmentTab({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      {editing && (
-        <EnvironmentImageSection
-          t={t}
-          image={editData?.image ?? ""}
-          onFieldChange={onFieldChange}
-        />
-      )}
+      {editing && <EnvironmentImageSection t={t} image={editData?.image ?? ''} onFieldChange={onFieldChange} />}
       <EnvironmentVariablesSection
         t={t}
+        containerId={container.Id}
         editing={editing}
         envEntries={envEntries}
         onEnvChange={handleEnvChange}
@@ -129,12 +101,16 @@ export function EnvironmentTab({
         logOptionEntries={logOptionEntries}
         onLogOptionChange={handleLogOptionChange}
       />
-      {editing && (
+      {editing ? (
         <EnvironmentHealthcheckSection
           t={t}
+          containerId={container.Id}
+          running={Boolean(container.State?.Running)}
           healthcheck={editData?.healthcheck ?? DEFAULT_HEALTHCHECK}
           onHealthcheckChange={handleHealthcheckChange}
         />
+      ) : (
+        <EnvironmentHealthcheckSummary t={t} healthcheck={container.Config?.Healthcheck} />
       )}
     </div>
   );

@@ -1,0 +1,46 @@
+{
+    "slug":  "jmx-exporter",
+    "name":  "JMX Exporter",
+    "description":  "Prometheus exporter that scrapes Java application metrics over JMX and exposes them for scraping.",
+    "category":  "Monitoring",
+    "image":  "bitnami/jmx-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/java.png",
+    "website":  "https://github.com/prometheus/jmx_exporter",
+    "docsUrl":  "https://github.com/prometheus/jmx_exporter#running-as-a-separate-http-server",
+    "ports":  [
+                  {
+                      "host":  5556,
+                      "container":  5556,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jmx-exporter/config.yml",
+                        "container":  "/opt/bitnami/jmx-exporter/config.yml",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JMX_TARGET_HOST",
+                        "default":  "localhost",
+                        "description":  "Hostname of the JVM application to scrape over JMX"
+                    },
+                    {
+                        "key":  "JMX_TARGET_PORT",
+                        "default":  "9999",
+                        "description":  "JMX remote port of the target JVM application"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

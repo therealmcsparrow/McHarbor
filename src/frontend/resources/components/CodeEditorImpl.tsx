@@ -2,106 +2,10 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useEffect, useMemo, useRef } from 'react';
-import { Compartment, EditorState, type Extension } from '@codemirror/state';
-import {
-  EditorView,
-  drawSelection,
-  highlightActiveLine,
-  highlightActiveLineGutter,
-  keymap,
-  lineNumbers,
-} from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import { Compartment, EditorState } from '@codemirror/state';
+import { EditorView, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view';
+import { baseExtensions, getMinHeightClass, loadLanguageExtension } from './codeEditorSetup';
 import type { CodeEditorProps } from './CodeEditor';
-
-const editorTheme = EditorView.theme({
-  '&': {
-    minHeight: '100%',
-    backgroundColor: 'hsl(var(--card))',
-    color: 'hsl(var(--foreground))',
-  },
-  '.cm-scroller': {
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    minHeight: '100%',
-  },
-  '.cm-content': {
-    minHeight: '100%',
-    padding: '0.75rem 0',
-  },
-  '.cm-gutters': {
-    backgroundColor: 'hsl(var(--muted) / 0.45)',
-    color: 'hsl(var(--muted-foreground))',
-    borderRight: '1px solid hsl(var(--border))',
-  },
-  '.cm-activeLine': {
-    backgroundColor: 'hsl(var(--accent) / 0.18)',
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: 'hsl(var(--accent) / 0.28)',
-  },
-  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection': {
-    backgroundColor: 'hsl(var(--primary) / 0.25)',
-  },
-  '&.cm-focused': {
-    outline: 'none',
-  },
-  '.cm-cursor, .cm-dropCursor': {
-    borderLeftColor: 'hsl(var(--primary))',
-  },
-});
-
-const baseExtensions: Extension[] = [
-  lineNumbers(),
-  history(),
-  drawSelection(),
-  EditorState.tabSize.of(2),
-  EditorView.lineWrapping,
-  keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-  EditorView.theme({
-    '.cm-line': {
-      padding: '0 0.75rem',
-    },
-  }),
-  editorTheme,
-];
-
-async function loadLanguageExtension(
-  language: NonNullable<CodeEditorProps['language']>,
-): Promise<Extension> {
-  if (language === 'yaml') {
-    const { yaml } = await import('@codemirror/lang-yaml');
-    return yaml();
-  }
-
-  if (language === 'javascript') {
-    const { javascript } = await import('@codemirror/lang-javascript');
-    return javascript();
-  }
-
-  if (language === 'typescript') {
-    const { javascript } = await import('@codemirror/lang-javascript');
-    return javascript({ typescript: true });
-  }
-
-  return [];
-}
-
-function getMinHeightClass(minHeight: string): string {
-  switch (minHeight) {
-    case '100%':
-      return 'min-h-full';
-    case '120px':
-      return 'min-h-[120px]';
-    case '200px':
-      return 'min-h-[200px]';
-    case '300px':
-      return 'min-h-[300px]';
-    case '400px':
-      return 'min-h-[400px]';
-    default:
-      return 'min-h-[400px]';
-  }
-}
 
 export function CodeEditorImpl({
   value,
@@ -124,8 +28,10 @@ export function CodeEditorImpl({
     [],
   );
 
-  onChangeRef.current = onChange;
-  valueRef.current = value;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    valueRef.current = value;
+  }, [onChange, value]);
 
   const wrapperClassName = `overflow-hidden rounded-lg border border-border ${className ?? ''}`;
   const editorHeightClass = minHeight === '100%' ? 'h-full min-h-full' : `h-full ${getMinHeightClass(minHeight)}`;
@@ -135,16 +41,17 @@ export function CodeEditorImpl({
       return;
     }
 
+    // The view is built once and fed later values by the sync effect below. Rebuilding it on
+    // every value change destroyed the focused editor on each keystroke, and a dialog's focus
+    // trap then moved focus to the dialog itself.
     const view = new EditorView({
       state: EditorState.create({
-        doc: value,
+        doc: valueRef.current,
         extensions: [
           ...baseExtensions,
           compartments.editable.of(EditorView.editable.of(!readOnly)),
           compartments.language.of([]),
-          compartments.activeLine.of(
-            readOnly ? [] : [highlightActiveLine(), highlightActiveLineGutter()],
-          ),
+          compartments.activeLine.of(readOnly ? [] : [highlightActiveLine(), highlightActiveLineGutter()]),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) {
               return;
@@ -165,7 +72,7 @@ export function CodeEditorImpl({
       view.destroy();
       viewRef.current = null;
     };
-  }, [compartments, readOnly, value]);
+  }, [compartments, readOnly]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -192,9 +99,7 @@ export function CodeEditorImpl({
     view.dispatch({
       effects: [
         compartments.editable.reconfigure(EditorView.editable.of(!readOnly)),
-        compartments.activeLine.reconfigure(
-          readOnly ? [] : [highlightActiveLine(), highlightActiveLineGutter()],
-        ),
+        compartments.activeLine.reconfigure(readOnly ? [] : [highlightActiveLine(), highlightActiveLineGutter()]),
       ],
     });
   }, [compartments, readOnly]);

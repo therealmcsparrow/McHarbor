@@ -23,68 +23,100 @@ import type { Driver } from './networkDriverConfig';
 import { NetworkDriverFields } from './NetworkDriverFields';
 import { NetworkIPAMSection } from './NetworkIPAMSection';
 import { NetworkAdvancedSection } from './NetworkAdvancedSection';
+import { HostLinkFields } from './HostLinkFields';
+import { EMPTY_HOST_LINK, hostLinkRequestOf } from '../utils/hostLinkForm';
+import type { HostLinkFormValue } from '../utils/hostLinkForm';
+import { PERM } from '@core/auth/permissionKeys';
 
 interface NetworkCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function NetworkCreateDialog({ open, onOpenChange }: NetworkCreateDialogProps) {
+export function NetworkCreateDialog({ open: isOpen, onOpenChange }: NetworkCreateDialogProps) {
   const { t } = useTranslation('networks');
   const { t: tc } = useTranslation('common');
   const createNetwork = useCreateNetwork();
+  const cancelLabel = tc('actions.cancel');
 
-  const [name, setName] = useState('');
+  const [networkName, setNetworkName] = useState('');
   const [driver, setDriver] = useState<Driver>('bridge');
-  const [parent, setParent] = useState('');
+  const [parentIface, setParentIface] = useState('');
   const [mode, setMode] = useState('');
   const [internal, setInternal] = useState(false);
   const [attachable, setAttachable] = useState(false);
+  const [enableIPv6, setEnableIPv6] = useState(false);
   const [ipamConfigs, setIpamConfigs] = useState<IPAMConfig[]>([{ Subnet: '', Gateway: '', IPRange: '' }]);
   const [customOptions, setCustomOptions] = useState<KeyValuePair[]>([]);
   const [labels, setLabels] = useState<KeyValuePair[]>([]);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [hostLink, setHostLink] = useState<HostLinkFormValue>(EMPTY_HOST_LINK);
 
   const cfg = DRIVER_CONFIG[driver];
 
   const resetForm = useCallback(() => {
-    setName(''); setDriver('bridge'); setParent(''); setMode('');
-    setInternal(false); setAttachable(false);
+    setNetworkName('');
+    setDriver('bridge');
+    setParentIface('');
+    setMode('');
+    setInternal(false);
+    setAttachable(false);
+    setEnableIPv6(false);
     setIpamConfigs([{ Subnet: '', Gateway: '', IPRange: '' }]);
-    setCustomOptions([]); setLabels([]); setAdvancedOpen(false);
+    setCustomOptions([]);
+    setLabels([]);
+    setAdvancedOpen(false);
+    setHostLink(EMPTY_HOST_LINK);
   }, []);
 
   const handleDriverChange = (d: Driver) => {
-    setDriver(d); setParent('');
+    setDriver(d);
+    setParentIface('');
+    setHostLink(EMPTY_HOST_LINK);
     setMode(DRIVER_CONFIG[d].modes?.[0] ?? '');
-    setInternal(false); setAttachable(false);
+    setInternal(false);
+    setAttachable(false);
   };
 
-  const handleClose = (isOpen: boolean) => { if (!isOpen) resetForm(); onOpenChange(isOpen); };
+  const handleClose = (nextOpen: boolean) => {
+    if (!nextOpen) resetForm();
+    onOpenChange(nextOpen);
+  };
 
-  const canSubmit = name.trim() !== '' && (!cfg.hasParent || parent.trim() !== '') && !createNetwork.isPending;
+  const wantsHostLink = driver === 'macvlan' && hostLink.enabled;
+  const canSubmit =
+    networkName.trim() !== '' &&
+    (!cfg.hasParent || parentIface.trim() !== '') &&
+    (!wantsHostLink || hostLink.name.trim() !== '') &&
+    !createNetwork.isPending;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     const options: Record<string, string> = {};
-    if (cfg.hasParent && parent.trim()) options['parent'] = parent.trim();
+    if (cfg.hasParent && parentIface.trim()) options['parent'] = parentIface.trim();
     if (cfg.hasMode && mode) options[driver === 'macvlan' ? 'macvlan_mode' : 'ipvlan_mode'] = mode;
-    for (const kv of customOptions) { if (kv.key.trim()) options[kv.key.trim()] = kv.value; }
+    for (const kv of customOptions) {
+      if (kv.key.trim()) options[kv.key.trim()] = kv.value;
+    }
     const filteredLabels: Record<string, string> = {};
-    for (const kv of labels) { if (kv.key.trim()) filteredLabels[kv.key.trim()] = kv.value; }
+    for (const kv of labels) {
+      if (kv.key.trim()) filteredLabels[kv.key.trim()] = kv.value;
+    }
     const filteredIpam = ipamConfigs.filter((c) => c.Subnet || c.Gateway || c.IPRange);
 
-    const req: CreateNetworkRequest = { name: name.trim(), driver };
+    const req: CreateNetworkRequest = { name: networkName.trim(), driver };
     if (cfg.hasToggles && internal) req.internal = true;
     if (cfg.hasToggles && attachable) req.attachable = true;
     if (cfg.hasIpam && filteredIpam.length > 0) req.ipam = { Config: filteredIpam };
+    if (cfg.hasIpam && enableIPv6) req.enableIPv6 = true;
+    if (driver === 'macvlan') req.hostLink = hostLinkRequestOf(hostLink, enableIPv6);
     if (Object.keys(options).length > 0) req.options = options;
     if (Object.keys(filteredLabels).length > 0) req.labels = filteredLabels;
     createNetwork.mutate(req, { onSuccess: () => handleClose(false) });
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('create.title')}</DialogTitle>
@@ -93,21 +125,70 @@ export function NetworkCreateDialog({ open, onOpenChange }: NetworkCreateDialogP
         <div className="space-y-4">
           <div className="space-y-3">
             <div>
-              <Label className="mb-1">{t('create.nameLabel')} <span className="text-destructive">*</span></Label>
-              <Input variant="outline" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('create.namePlaceholder')} />
+              <Label className="mb-1">
+                {t('create.nameLabel')} <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                variant="outline"
+                type="text"
+                value={networkName}
+                onChange={(e) => setNetworkName(e.target.value)}
+                placeholder={t('create.namePlaceholder')}
+              />
             </div>
             <div>
               <Label className="mb-1">{t('create.driverLabel')}</Label>
-              <Select variant="outline" value={driver} onChange={(v) => handleDriverChange(v as Driver)} options={[...DRIVER_OPTIONS]} />
+              <Select
+                variant="outline"
+                value={driver}
+                onChange={(v) => handleDriverChange(v as Driver)}
+                options={[...DRIVER_OPTIONS]}
+              />
             </div>
           </div>
-          <NetworkDriverFields driver={driver} cfg={cfg} parent={parent} onParentChange={setParent} mode={mode} onModeChange={setMode} internal={internal} onInternalChange={setInternal} attachable={attachable} onAttachableChange={setAttachable} />
-          {cfg.hasIpam && <NetworkIPAMSection driver={driver} ipamConfigs={ipamConfigs} onIpamConfigsChange={setIpamConfigs} />}
-          <NetworkAdvancedSection open={advancedOpen} onToggle={() => setAdvancedOpen(!advancedOpen)} customOptions={customOptions} onCustomOptionsChange={setCustomOptions} labels={labels} onLabelsChange={setLabels} />
+          <NetworkDriverFields
+            driver={driver}
+            cfg={cfg}
+            parent={parentIface}
+            onParentChange={setParentIface}
+            mode={mode}
+            onModeChange={(m) => {
+              setMode(m);
+              if (m === 'passthru') setHostLink(EMPTY_HOST_LINK);
+            }}
+            internal={internal}
+            onInternalChange={setInternal}
+            attachable={attachable}
+            onAttachableChange={setAttachable}
+          />
+          {cfg.hasIpam && (
+            <NetworkIPAMSection
+              driver={driver}
+              ipamConfigs={ipamConfigs}
+              onIpamConfigsChange={setIpamConfigs}
+              enableIPv6={enableIPv6}
+              onEnableIPv6Change={setEnableIPv6}
+            />
+          )}
+          {driver === 'macvlan' && (
+            <HostLinkFields value={hostLink} onChange={setHostLink} enableIPv6={enableIPv6} mode={mode} />
+          )}
+          <NetworkAdvancedSection
+            open={advancedOpen}
+            onToggle={() => setAdvancedOpen(!advancedOpen)}
+            customOptions={customOptions}
+            onCustomOptionsChange={setCustomOptions}
+            labels={labels}
+            onLabelsChange={setLabels}
+          />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleClose(false)}>{tc('actions.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit}>{createNetwork.isPending ? t('create.creating') : t('create.submit')}</Button>
+          <Button variant="outline" onClick={() => handleClose(false)}>
+            {cancelLabel}
+          </Button>
+          <Button permission={PERM.NETWORKS_MANAGE} onClick={handleSubmit} disabled={!canSubmit}>
+            {createNetwork.isPending ? t('create.creating') : t('create.submit')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

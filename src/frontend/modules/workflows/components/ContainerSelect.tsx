@@ -1,12 +1,12 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@resources/components/ui/Button";
-import { cn } from "@resources/utils/cn";
-import { api } from "@core/api/client";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@resources/components/ui/Button';
+import { cn } from '@resources/utils/cn';
+import { api } from '@core/api/client';
 
 type ContainerInfo = {
   Id: string;
@@ -22,20 +22,16 @@ interface ContainerSelectProps {
   envId?: string;
 }
 
-export function ContainerSelect({
-  value,
-  onChange,
-  envId,
-}: ContainerSelectProps) {
-  const { t } = useTranslation("common");
-  const [open, setOpen] = useState(false);
+export function ContainerSelect({ value, onChange, envId }: ContainerSelectProps) {
+  const { t } = useTranslation('common');
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: containers } = useQuery({
-    queryKey: ["containers-select", envId ?? ""],
+    queryKey: ['containers-select', envId ?? ''],
     queryFn: () =>
       api
-        .get<ContainerInfo[]>("/containers", {
-          all: "true",
+        .get<ContainerInfo[]>('/containers', {
+          all: 'true',
           ...(envId ? { env: envId } : {}),
         })
         .then((r) => r.data ?? []),
@@ -43,24 +39,21 @@ export function ContainerSelect({
     enabled: !!envId,
   });
 
-  const selected = containers?.find(
-    (c) =>
-      c.Id === value || c.Names?.some((n) => n.replace(/^\//, "") === value),
-  );
+  const selected = containers?.find((c) => c.Id === value || c.Names?.some((n) => n.replace(/^\//, '') === value));
   const displayName = selected
-    ? (selected.Names?.[0]?.replace(/^\//, "") ?? selected.Id.slice(0, 12))
-    : value || t("workflows.selectContainer");
+    ? (selected.Names?.[0]?.replace(/^\//, '') ?? selected.Id.slice(0, 12))
+    : value || t('workflows.selectContainer');
 
   return (
     <div className="relative">
       <Button
         type="button"
         variant="ghost"
-        aria-label={t("workflows.selectContainer")}
-        onClick={() => setOpen(!open)}
+        aria-label={t('workflows.selectContainer')}
+        onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-8 w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          !value && "text-muted-foreground",
+          'flex w-full items-center justify-between rounded-md border border-input bg-card px-2 text-xs ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          !value && 'text-muted-foreground',
         )}
       >
         <span className="truncate">{displayName}</span>
@@ -74,44 +67,33 @@ export function ContainerSelect({
           <path d="M3 4.5L6 7.5L9 4.5" />
         </svg>
       </Button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
+      {isOpen && (
+        <div className="absolute top-full right-0 left-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-xl">
           {!containers || containers.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">
-              {t("workflows.noContainersFound")}
-            </p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{t('workflows.noContainersFound')}</p>
           ) : (
             containers.map((c) => {
-              const name = c.Names?.[0]?.replace(/^\//, "") ?? "";
+              const containerName = c.Names?.[0]?.replace(/^\//, '') ?? '';
               const shortId = c.Id.slice(0, 12);
-              const isSelected = c.Id === value || name === value;
+              const isSelected = c.Id === value || containerName === value;
               return (
                 <Button
                   key={c.Id}
                   type="button"
                   variant="ghost"
                   onClick={() => {
-                    onChange(name || c.Id);
-                    setOpen(false);
+                    onChange(containerName || c.Id);
+                    setIsOpen(false);
                   }}
                   className={cn(
-                    "flex w-full flex-col gap-0.5 px-3 py-1.5 text-left hover:bg-muted/50 transition-colors",
-                    isSelected && "bg-muted/50",
+                    'flex h-auto w-full flex-col gap-0.5 px-3 py-1.5 text-left transition-colors hover:bg-muted/50',
+                    isSelected && 'bg-muted/50',
                   )}
                 >
-                  <span className="text-xs font-semibold text-foreground">
-                    {name || shortId}
-                  </span>
+                  <span className="text-xs font-semibold text-foreground">{containerName || shortId}</span>
                   <span className="text-[10px] text-muted-foreground">
-                    ID: {shortId}
-                    <span
-                      className={cn(
-                        "ml-2",
-                        c.State === "running"
-                          ? "text-emerald-400"
-                          : "text-red-400",
-                      )}
-                    >
+                    {t('containerSelect.idLabel', { ns: 'workflows', id: shortId })}
+                    <span className={cn('ml-2', c.State === 'running' ? 'text-success' : 'text-danger')}>
                       {c.State}
                     </span>
                   </span>

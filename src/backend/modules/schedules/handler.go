@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package schedules exposes the schedule listing and management endpoints.
 package schedules
 
 import (
@@ -32,7 +33,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	items, total, err := h.service.List(r.Context(), page, perPage)
 	if err != nil {
 		h.app.Logger.Error("schedules: list error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleListFailed, err)
 		return
 	}
 
@@ -43,7 +44,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateScheduleInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -67,7 +68,7 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	sched, err := h.service.Create(r.Context(), input)
 	if err != nil {
 		h.app.Logger.Error("schedules: create error", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleCreateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleCreateFailed, err)
 		return
 	}
 
@@ -81,7 +82,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	sched, err := h.service.ByID(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("schedules: get error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleListFailed, err)
 		return
 	}
 	if sched == nil {
@@ -98,14 +99,14 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateScheduleInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
 	sched, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
 		h.app.Logger.Error("schedules: update error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleUpdateFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleUpdateFailed, err)
 		return
 	}
 	if sched == nil {
@@ -123,7 +124,7 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
 		h.app.Logger.Error("schedules: delete error", "error", err, "id", id)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleRemoveFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleRemoveFailed, err)
 		return
 	}
 	if !deleted {
@@ -142,7 +143,7 @@ func (h *Handler) HandleListExecutions(w http.ResponseWriter, r *http.Request) {
 	items, total, err := h.service.ListExecutions(r.Context(), scheduleID, page, perPage)
 	if err != nil {
 		h.app.Logger.Error("schedules: executions list error", "error", err, "scheduleId", scheduleID)
-		response.InternalErrorCode(w, r, i18n.ErrScheduleListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrScheduleListFailed, err)
 		return
 	}
 

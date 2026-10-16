@@ -2,7 +2,7 @@
   "label": "Puerta de aprobacion",
   "description": "Enruta un workflow mediante una aprobacion o rechazo explicito",
   "config": {
-    "decision": "Decision",
+    "decision": "Decisión",
     "reason": "Motivo"
   },
   "options": {

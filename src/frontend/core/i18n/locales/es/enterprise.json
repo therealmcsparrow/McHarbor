@@ -1,0 +1,461 @@
+{
+  "title": "Resumen de Enterprise",
+  "description": "Revise la preparación empresarial en identidad, auditoría, copias de seguridad, plugins, almacenamiento y fundamentos de alta disponibilidad.",
+  "actions": {
+    "open": "Abrir"
+  },
+  "values": {
+    "ready": "Listo",
+    "enabled": "Activado",
+    "disabled": "Desactivado"
+  },
+  "status": {
+    "success": "Configurado",
+    "warning": "Requiere atención",
+    "secondary": "Comprobando"
+  },
+  "sections": {
+    "surfaces": "Áreas de Enterprise"
+  },
+  "cards": {
+    "ha": {
+      "title": "Alta disponibilidad",
+      "description": "Modo de base de datos y estado de la coordinación del clúster."
+    },
+    "identity": {
+      "title": "Proveedores de identidad",
+      "description": "Proveedores SSO/OIDC/SAML/LDAP configurados."
+    },
+    "scim": {
+      "title": "Aprovisionamiento SCIM",
+      "description": "Endpoints de aprovisionamiento y estado de sincronización."
+    },
+    "audit": {
+      "title": "Eventos de auditoría",
+      "description": "Rastro consultable de acciones privilegiadas."
+    },
+    "auditExport": {
+      "title": "Exportación de auditoría firmada",
+      "description": "Exportación CSV/JSON filtrada con metadatos de checksum."
+    },
+    "siem": {
+      "title": "Reenvio de registros de auditoria",
+      "description": "Envie el registro de auditoria fuera del host con un complemento de registros."
+    },
+    "backups": {
+      "title": "Actividad de copias de seguridad",
+      "description": "Historial de operaciones de copia y restauración."
+    },
+    "storage": {
+      "title": "Ubicaciones de almacenamiento",
+      "description": "Destinos configurados para copias y artefactos."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Aportaciones cargadas del runtime de plugins."
+    },
+    "apiKeys": {
+      "title": "Claves de API",
+      "description": "Credenciales de automatización con ámbito limitado."
+    }
+  },
+  "links": {
+    "security": {
+      "title": "Seguridad",
+      "description": "Usuarios, roles, TLS, identidad y endurecimiento."
+    },
+    "identity": {
+      "title": "Proveedores de identidad",
+      "description": "Configure y pruebe los proveedores de inicio de sesión empresarial."
+    },
+    "scim": {
+      "title": "SCIM",
+      "description": "Aprovisione usuarios y grupos desde directorios externos."
+    },
+    "policies": {
+      "title": "Roles y políticas",
+      "description": "Revise el comportamiento de las políticas RBAC y ABAC."
+    },
+    "audit": {
+      "title": "Centro de auditoría",
+      "description": "Rastree acciones privilegiadas y denegaciones."
+    },
+    "auditExport": {
+      "title": "Exportación de auditoría firmada",
+      "description": "Descargue evidencias de auditoría verificables."
+    },
+    "siem": {
+      "title": "Reenvio de registros de auditoria",
+      "description": "Configure el reenvio de registros de auditoria y el historial de entregas."
+    },
+    "apiKeys": {
+      "title": "Claves de API",
+      "description": "Gestione credenciales de API con ámbito limitado."
+    },
+    "backups": {
+      "title": "Copias de seguridad",
+      "description": "Revise las ejecuciones de copia y la preparación para restaurar."
+    },
+    "storage": {
+      "title": "Almacenamiento",
+      "description": "Gestione destinos de copia externos."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Instale e inspeccione extensiones empresariales."
+    },
+    "ha": {
+      "title": "Fundamentos de HA",
+      "description": "Nodo actual, base de datos y liderazgo singleton."
+    },
+    "license": {
+      "title": "Licencia",
+      "description": "Tipo de licencia, qué cubre y cuánto se está usando."
+    }
+  },
+  "haWizard": {
+    "title": "Asistente de migración a HA",
+    "description": "Pase de SQLite singleton a HA activo-activo con una lista de comprobación que controla el operador.",
+    "errorTitle": "No se pudo cargar el plan de migración a HA",
+    "mode": {
+      "singleton": "Singleton",
+      "ha": "Alta disponibilidad"
+    },
+    "summary": {
+      "database": "Base de datos",
+      "node": "Nodo",
+      "target": "Destino recomendado"
+    },
+    "direction": {
+      "toHA": "De singleton a HA",
+      "toSingleton": "De HA a singleton"
+    },
+    "resources": {
+      "title": "Recursos para el operador",
+      "composeTemplate": {
+        "title": "Plantilla de compose para HA",
+        "description": "Valide o inicie el ejemplo incluido de HA con dos nodos PostgreSQL antes de adaptarlo a producción."
+      },
+      "envExample": {
+        "title": "Plantilla de entorno",
+        "description": "Copie este archivo de ejemplo a ha.env y rellene los secretos reales, las credenciales de base de datos y los valores propios de cada nodo."
+      },
+      "backupKey": {
+        "title": "Clave de copia compartida",
+        "description": "Genere una única clave de cifrado de copias y monte el mismo archivo en todos los nodos de McHarbor."
+      },
+      "documentation": {
+        "title": "Documentación de la migración",
+        "description": "Siga la guía completa de base de datos compartida, archivo compartido, reversión y endurecimiento para producción."
+      },
+      "postgresImport": {
+        "title": "Comandos de importación de PostgreSQL",
+        "description": "Use estos comandos como punto de partida para una importación de prueba y un volcado de reversión cuando PostgreSQL sea la base de datos de HA."
+      },
+      "mysqlImport": {
+        "title": "Comandos de importación de MySQL/MariaDB",
+        "description": "Use estos comandos como punto de partida para una importación de prueba y un volcado de reversión cuando MySQL o MariaDB sea la base de datos de HA."
+      }
+    },
+    "actions": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "copyCommand": "Copiar el comando",
+      "copyValue": "Copiar el valor",
+      "copied": "Copiado al portapapeles",
+      "manualCopy": "Copia manual"
+    },
+    "checkStatus": {
+      "pass": "Listo",
+      "attention": "Requiere atención"
+    },
+    "checks": {
+      "title": "Comprobaciones de preparación",
+      "database": {
+        "title": "Base de datos externa",
+        "detail": "Use PostgreSQL, MySQL/MariaDB o SQL Server con MCHARBOR_DB_DSN en cada nodo de HA."
+      },
+      "nodeId": {
+        "title": "ID de nodo estable",
+        "detail": "Defina MCHARBOR_NODE_ID por nodo para tener registros y estado de clúster legibles."
+      },
+      "sharedSecret": {
+        "title": "Secreto de sesión compartido",
+        "detail": "Use el mismo MCHARBOR_SECRET en todos los nodos para que las sesiones sobrevivan a una conmutación por error."
+      },
+      "encryptionKey": {
+        "title": "Clave de cifrado compartida",
+        "detail": "Defina la misma ENCRYPTION_KEY en cada nodo; un nodo cuya clave no coincide con la base de datos se niega a iniciar."
+      },
+      "backupKey": {
+        "title": "Clave de copia compartida",
+        "detail": "Monte el mismo secreto de cifrado de copias en cada nodo antes de restaurar entre nodos."
+      },
+      "databaseReachable": {
+        "title": "Base de datos accesible",
+        "detail": "La base de datos actual debe responder antes de migrar o revertir."
+      }
+    },
+    "steps": {
+      "progress": "Paso {{current}} de {{total}}",
+      "prepare": {
+        "badge": "Planificar",
+        "title": "Preparar los servicios compartidos",
+        "description": "Cree una base de datos PostgreSQL o MySQL, elija un destino de archivo compartido, genere secretos estables y valide docker-compose.ha.yml antes de detener el nodo singleton."
+      },
+      "snapshot": {
+        "badge": "Copia",
+        "title": "Captura del singleton",
+        "description": "Detenga las escrituras, haga una copia de la base SQLite y conserve el directorio de datos antes de exportar nada."
+      },
+      "import": {
+        "badge": "Importar",
+        "title": "Importar en la base de datos compartida",
+        "description": "Cargue el volcado de SQLite primero en una base de pruebas de PostgreSQL o MySQL/MariaDB y deje que McHarbor ejecute las migraciones pendientes en el primer arranque de HA."
+      },
+      "configure": {
+        "badge": "Configurar",
+        "title": "Configurar cada nodo",
+        "description": "Defina MCHARBOR_DB_DRIVER, MCHARBOR_DB_DSN, MCHARBOR_NODE_ID, MCHARBOR_SECRET y la clave de copia compartida en cada nodo de McHarbor."
+      },
+      "start": {
+        "badge": "Iniciar",
+        "title": "Arrancar detrás del balanceador de carga",
+        "description": "Arranque primero un nodo, confirme que el estado del clúster es correcto y añada después el resto de nodos al balanceador."
+      },
+      "drain": {
+        "badge": "Drenar",
+        "title": "Drenar el tráfico de HA",
+        "description": "Quite todos los nodos menos uno del balanceador y pause las escrituras programadas durante la ventana de reversión."
+      },
+      "export": {
+        "badge": "Exportar",
+        "title": "Exportar la base de datos compartida",
+        "description": "Vuelque la base PostgreSQL o MySQL/MariaDB y conviértala de nuevo a SQL compatible con SQLite, o restaure la instantánea de SQLite anterior a HA si no quiere conservar las escrituras de HA."
+      },
+      "restore": {
+        "badge": "Restaurar",
+        "title": "Restaurar los datos de SQLite",
+        "description": "Coloque la base SQLite restaurada bajo DATA_DIR y mantenga montado el destino de archivo compartido si los archivos de copia viven fuera del nodo."
+      },
+      "singleNodeEnv": {
+        "badge": "Iniciar",
+        "title": "Devolver el entorno a su estado anterior",
+        "description": "Elimine MCHARBOR_DB_DRIVER y MCHARBOR_DB_DSN, mantenga estable MCHARBOR_SECRET y arranque después el nodo singleton."
+      }
+    },
+    "gaps": {
+      "title": "Lagunas del roadmap",
+      "agentRouting": {
+        "title": "Agentes en más de un nodo activo",
+        "description": "Un agente remoto mantiene una conexión con un nodo. En activo/activo, cada llamada a Docker y cada sesión de terminal, consola y registros se retransmite a ese nodo. Una sesión abierta termina cuando su agente se reconecta a otro nodo y hay que reabrirla, y la autoactualización del agente solo actúa desde el nodo que lo mantiene."
+      },
+      "mysqlRuntime": {
+        "title": "MySQL y MariaDB en tiempo de ejecución",
+        "description": "PostgreSQL, MySQL 8.4 y MariaDB 11 ejecutan toda la aplicación; las instrucciones en tiempo de ejecución se traducen en el controlador. Algunas instrucciones de migración exclusivas de SQLite (índices únicos parciales, triggers WORM de auditoría) no tienen equivalente en MySQL y se omiten, por lo que PostgreSQL sigue siendo la opción más completa."
+      }
+    }
+  },
+  "ha": {
+    "title": "Alta disponibilidad",
+    "description": "Cada nodo de McHarbor, cuál está activo, si cada uno está listo para recibir tráfico y los controles para transferir o drenar.",
+    "singleNode": "Esta instancia se ejecuta sobre SQLite, que no se puede compartir entre nodos. La alta disponibilidad requiere PostgreSQL, MySQL/MariaDB o SQL Server en cada nodo.",
+    "facts": {
+      "mode": "Modo",
+      "thisNode": "Este nodo",
+      "database": "Base de datos",
+      "readiness": "Disponibilidad",
+      "pluginStore": "Paquetes de plugins"
+    },
+    "mode": {
+      "peer": "Pares",
+      "active-passive": "Activo/pasivo"
+    },
+    "role": {
+      "peer": "Par",
+      "active": "Activo",
+      "standby": "En espera"
+    },
+    "state": {
+      "running": "En ejecución",
+      "draining": "Drenando",
+      "stopped": "Detenido"
+    },
+    "check": {
+      "database": "La base de datos responde",
+      "coordinator": "Sesión de bloqueo activa",
+      "accepting": "No está drenando",
+      "serving": "No está en espera"
+    },
+    "reachable": "Accesible",
+    "unreachable": "Inaccesible",
+    "ready": "Listo",
+    "notReady": "No listo",
+    "thisNode": "Este nodo",
+    "notResponding": "No responde",
+    "nodesTitle": "Nodos",
+    "searchPlaceholder": "Buscar nodos, hosts, versiones...",
+    "empty": "Ningún nodo se ha registrado todavía.",
+    "health": {
+      "up": "Operativo",
+      "degraded": "Degradado",
+      "down": "Caído"
+    },
+    "facet": {
+      "drift": "Deriva de versión"
+    },
+    "filter": {
+      "allRoles": "Todos los roles"
+    },
+    "columns": {
+      "health": "Estado",
+      "advertiseUrl": "URL anunciada",
+      "started": "Iniciado",
+      "node": "Nodo",
+      "role": "Rol",
+      "state": "Estado",
+      "heartbeat": "Último latido",
+      "version": "Versión",
+      "agents": "Agentes",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "makeActive": "Activar",
+      "drain": "Drenar",
+      "resume": "Reanudar"
+    },
+    "confirm": {
+      "failover": {
+        "title": "¿Convertir {{node}} en el nodo activo?",
+        "description": "El nodo activo libera su bloqueo y todas las tareas singleton, y {{node}} toma el relevo en segundos. Los usuarios y los agentes se reconectan a través del balanceador de carga.",
+        "confirm": "Activar"
+      },
+      "drain": {
+        "title": "¿Drenar {{node}}?",
+        "description": "{{node}} deja de informar que está listo, por lo que el balanceador de carga no le envía tráfico nuevo. Un nodo activo transfiere primero.",
+        "confirm": "Drenar"
+      },
+      "resume": {
+        "title": "¿Reanudar {{node}}?",
+        "description": "{{node}} vuelve a informar que está listo y puede recibir tráfico o pasar a activo.",
+        "confirm": "Reanudar"
+      }
+    },
+    "splitBrain": {
+      "title": "Más de un nodo afirma estar activo",
+      "description": "Los nodos {{nodes}} informan del rol activo. La conmutación y el drenaje están deshabilitados hasta que quede solo uno; compruebe la conexión a la base de datos de cada nodo."
+    },
+    "jobsTitle": "Tareas singleton de este nodo",
+    "jobsDescription": "Tareas que deben ejecutarse exactamente una vez en todos los nodos, y cuáles de ellas ejecuta actualmente este nodo.",
+    "jobsNone": "Este nodo no ejecuta ninguna.",
+    "banner": {
+      "title": "Este es un nodo en espera",
+      "description": "{{node}} está en espera: atiende lecturas y se rechazan los cambios hasta que pase a activo. Use la dirección del balanceador de carga para hacer cambios."
+    },
+    "pluginStore": {
+      "local": "Solo este nodo",
+      "database": "Base de datos compartida",
+      "shared-fs": "Sistema de archivos compartido",
+      "object": "Ubicación de almacenamiento"
+    },
+    "pluginStoreLocal": "Los paquetes de plugins se guardan solo en cada nodo. Un nodo en espera no puede cargar un plugin instalado mientras no estaba activo; establezca MCHARBOR_PLUGIN_STORE en database, shared-fs:<path> u object:<storage location id> en cada nodo.",
+    "readiness": {
+      "title": "Preparación para HA",
+      "description": "Comprueba este clúster frente a un modo de destino. Una puerta que falla bloquea el destino; una advertencia no.",
+      "targetLabel": "Modo de destino",
+      "target": {
+        "active-active": "Activo/activo",
+        "active-passive": "Activo/pasivo"
+      },
+      "status": {
+        "pass": "Correcto",
+        "warn": "Advertencia",
+        "fail": "Fallo"
+      },
+      "verdict": {
+        "ready": "Todas las puertas se superan para este destino.",
+        "notReady": "Al menos una puerta falla para este destino."
+      },
+      "activeActiveDisabled": "Activo/activo permanece deshabilitado mientras una puerta falle. Corrija todas las puertas que fallan a continuación y luego establezca MCHARBOR_HA_MODE=active-active en cada nodo; las advertencias no lo bloquean.",
+      "routing": {
+        "check": "Demostrar el enrutamiento entre nodos",
+        "proven": "Una llamada al entorno {{env}} fue ejecutada por el nodo {{node}}, por lo que el reenvío funciona desde aquí.",
+        "failed": "La última llamada entre nodos falló: {{error}}",
+        "unproven_one": "{{nodes}} nodo mantiene agentes que este nodo no tiene. Todavía no se ha reenviado nada.",
+        "unproven_other": "{{nodes}} nodos mantienen agentes que este nodo no tiene. Todavía no se ha reenviado nada.",
+        "nothingToRoute": "Ningún agente está en poder de otro nodo, así que no hay nada que reenviar ni que demostrar."
+      },
+      "gate": {
+        "externalDatabase": {
+          "title": "Base de datos compartida",
+          "pass": "PostgreSQL, MySQL o MariaDB está configurado y responde desde este nodo.",
+          "fail": "SQLite no se puede compartir, o la base de datos compartida no responde. Defina MCHARBOR_DB_DRIVER y MCHARBOR_DB_DSN en cada nodo."
+        },
+        "encryptionKey": {
+          "title": "La misma clave de cifrado en cada nodo",
+          "pass": "La clave procede de ENCRYPTION_KEY y coincide con la comprobación de clave que cada nodo verifica al arrancar.",
+          "fail": "La clave se genera por nodo o no coincide con la base de datos. Defina la misma ENCRYPTION_KEY en cada nodo."
+        },
+        "pluginStore": {
+          "title": "Almacén compartido de paquetes de plugins",
+          "pass": "Todos los nodos pueden obtener los paquetes de plugins instalados.",
+          "fail": "Los paquetes de plugins residen solo en el nodo que los instaló. Establezca MCHARBOR_PLUGIN_STORE en un almacén compartido."
+        },
+        "sameVersion": {
+          "title": "Misma versión y compilación",
+          "pass": "Todos los nodos activos ejecutan la misma versión y compilación.",
+          "warn": "No se pudo leer el registro de nodos, por lo que se desconocen las versiones.",
+          "fail": "Los nodos activos ejecutan versiones o compilaciones distintas. Actualice todos los nodos a la misma imagen."
+        },
+        "agentRouting": {
+          "title": "Enrutamiento de agentes remotos",
+          "pass": "Cada llamada a un agente llega al nodo que lo mantiene. Con un nodo activo, todos los agentes se reconectan a él; en activo/activo, las llamadas a Docker y el relé de sesiones para terminales, la consola del invitado, los registros del host y los mensajes del agente se demostraron con una llamada que volvió.",
+          "warn": "Las llamadas a la API de Docker se reenvían al nodo que mantiene el agente, pero el relé de sesiones que transporta la ejecución en terminal, la terminal del host, la consola del invitado, los registros del host y los mensajes del agente no se ha demostrado desde este nodo, o su último intento falló. Ejecute la comprobación de enrutamiento; hasta que se supere, esas sesiones solo llegan a ese nodo.",
+          "fail": "Un agente en poder de otro nodo no es accesible desde aquí: el salto entre nodos no está configurado o su última llamada real falló. Defina el mismo MCHARBOR_SECRET y una MCHARBOR_ADVERTISE_URL accesible en cada nodo."
+        },
+        "nodeLinkTransport": {
+          "title": "Llamadas cifradas entre nodos",
+          "pass": "Las llamadas firmadas entre nodos nunca cruzan la red sin cifrar: solo hay un nodo activo, o todos los nodos activos anuncian una dirección https.",
+          "warn": "Las llamadas entre nodos usan TLS debilitado: MCHARBOR_NODE_LINK_ALLOW_HTTP=1 les permite llegar a nodos que anuncian http simple, o MCHARBOR_NODE_LINK_SKIP_VERIFY=1 acepta cualquier certificado de par. Cualquiera en la ruta puede entonces leerlas y falsificar cuerpos de solicitud en streaming, respuestas del agente y sesiones retransmitidas de terminal, consola y registros, que solo TLS protege. Fije la CA de los nodos con MCHARBOR_NODE_LINK_CA_FILE o mantenga esto solo en una red privada de confianza.",
+          "fail": "Las llamadas entre nodos se rechazan: algunos nodos activos anuncian una dirección que no es https, o no se puede cargar MCHARBOR_NODE_LINK_CA_FILE en este nodo. Asigne a esos nodos un MCHARBOR_ADVERTISE_URL https (o defina MCHARBOR_NODE_LINK_ALLOW_HTTP=1 en todos los nodos para una red privada de confianza) y apunte MCHARBOR_NODE_LINK_CA_FILE a un certificado PEM legible, o elimine la variable."
+        },
+        "sessions": {
+          "title": "Sesiones",
+          "pass": "Las sesiones residen en la base de datos compartida, por lo que no se requieren sesiones fijas."
+        },
+        "perNodeState": {
+          "title": "Tickets de consola y límites de tasa",
+          "pass": "Atiende un solo nodo, por lo que los tickets y límites de tasa en memoria se comportan como en un único nodo.",
+          "warn": "Los tickets de consola están en la base de datos compartida, por lo que cualquier nodo puede canjear un ticket emitido por cualquier otro. Los contadores de límite de tasa y el tope de visores de consola siguen siendo por nodo por diseño: el límite efectivo es el configurado multiplicado por el número de nodos.",
+          "fail": "La tabla de tickets de consola no respondió desde este nodo, por lo que una consola abierta aquí no podría canjearse en otro lugar."
+        },
+        "coordinator": {
+          "title": "Bloqueo del coordinador",
+          "pass": "La sesión de bloqueo que elige el nodo activo y las tareas singleton responde.",
+          "fail": "La sesión de bloqueo no está disponible. Requiere una base de datos externa."
+        }
+      }
+    },
+    "startup": {
+      "title": "Estado de inicio",
+      "description": "Lo que este nodo encontró al iniciar ({{time}}).",
+      "haModeRefused": "Se solicitó MCHARBOR_HA_MODE=active-active y se rechazó porque sus puertas de preparación fallan; este nodo se ejecuta en activo/pasivo.",
+      "database": "Base de datos",
+      "dataDir": "Directorio de datos",
+      "writable": "Con permiso de escritura",
+      "notWritable": "Sin permiso de escritura",
+      "free": "{{size}} libres",
+      "keySource": "Clave de cifrado",
+      "key": {
+        "env": "De ENCRYPTION_KEY",
+        "file": "Generada en el directorio de datos"
+      },
+      "tls": "TLS",
+      "tlsMode": {
+        "off": "Desactivado",
+        "https": "HTTPS",
+        "https-only": "Solo HTTPS"
+      }
+    }
+  }
+}

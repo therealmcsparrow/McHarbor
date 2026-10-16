@@ -1,15 +1,15 @@
 {
   "label": "Log",
-  "description": "Write a message to the workflow log stream",
+  "description": "Schrijf een bericht naar de logstream van de workflow",
   "config": {
-    "level": "Level",
+    "level": "Niveau",
     "message": "Bericht"
   },
   "options": {
     "level": {
       "info": "Info",
-      "warn": "Warn",
-      "error": "Error"
+      "warn": "Waarschuwing",
+      "error": "Fout"
     }
   }
 }

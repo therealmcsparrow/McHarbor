@@ -12,14 +12,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	dockerclient "github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	dockerclient "github.com/moby/moby/client"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
+
+// fullDiskUsage asks for every object type with its items, because the totals
+// below are summed from the items and API 1.52+ only sends them when verbose.
+var fullDiskUsage = dockerclient.DiskUsageOptions{Containers: true, Images: true, Volumes: true, BuildCache: true, Verbose: true}
 
 // Service handles Docker metrics collection.
 type Service struct {
@@ -40,26 +42,29 @@ func NewServiceWithAgent(pool *docker.ClientPool, agentPool *coreagent.AgentPool
 
 // HostInfo returns host system info and disk usage for the given environment.
 func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsResponse, error) {
-	cli, err := s.dockerPool.Get(envID)
+	cli, err := s.dockerPool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting Docker client: %w", err)
 	}
 
-	infoCtx, infoCancel := context.WithTimeout(ctx, 30*time.Second)
+	infoCtx, infoCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer infoCancel()
-	info, err := cli.Info(infoCtx)
+	infoRes, err := cli.Info(infoCtx, dockerclient.InfoOptions{})
+	info := infoRes.Info
 	if err != nil {
 		return nil, fmt.Errorf("fetching Docker info: %w", err)
 	}
 
-	duCtx, duCancel := context.WithTimeout(ctx, 30*time.Second)
-	defer duCancel()
-	du, err := cli.DiskUsage(duCtx, types.DiskUsageOptions{})
+	du, err := sharedDiskUsage.get(ctx, envID, func(ctx context.Context) (dockerclient.DiskUsageResult, error) {
+		duCtx, duCancel := context.WithTimeout(ctx, docker.CallTimeout)
+		defer duCancel()
+		return cli.DiskUsage(duCtx, fullDiskUsage)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("fetching disk usage: %w", err)
 	}
 
-	agentLimit := s.dockerPool.IsAgentEnv(envID)
+	agentLimit := s.dockerPool.IsAgentEnvContext(ctx, envID)
 
 	host := HostInfo{
 		NCPU:          info.NCPU,
@@ -91,7 +96,7 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 			host.Load15 = load15
 		}
 	} else if s.agentPool != nil {
-		if t := s.agentPool.Transport(envID); t != nil && t.HostStatsSupported() {
+		if t := s.agentPool.ResolveTransport(envID); t != nil && t.HostStatsSupported() {
 			statsCtx, statsCancel := context.WithTimeout(ctx, 15*time.Second)
 			stats, supported, err := t.HostStats(statsCtx)
 			statsCancel()
@@ -111,20 +116,18 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 	}
 
 	var imagesSize, containersSize, volumesSize, buildCacheSize int64
-	for _, img := range du.Images {
+	for _, img := range du.Images.Items {
 		imagesSize += img.Size
 	}
-	for _, c := range du.Containers {
+	for _, c := range du.Containers.Items {
 		containersSize += c.SizeRw
 	}
-	if du.Volumes != nil {
-		for _, v := range du.Volumes {
-			if v.UsageData.Size > 0 {
-				volumesSize += v.UsageData.Size
-			}
+	for _, v := range du.Volumes.Items {
+		if v.UsageData != nil && v.UsageData.Size > 0 {
+			volumesSize += v.UsageData.Size
 		}
 	}
-	for _, bc := range du.BuildCache {
+	for _, bc := range du.BuildCache.Items {
 		buildCacheSize += bc.Size
 	}
 	total := imagesSize + containersSize + volumesSize + buildCacheSize
@@ -150,7 +153,7 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 			}
 		}
 	} else if s.agentPool != nil {
-		if t := s.agentPool.Transport(envID); t != nil && t.HostStatsSupported() {
+		if t := s.agentPool.ResolveTransport(envID); t != nil && t.HostStatsSupported() {
 			statsCtx, statsCancel := context.WithTimeout(ctx, 15*time.Second)
 			stats, supported, err := t.HostStats(statsCtx)
 			statsCancel()
@@ -178,11 +181,11 @@ func (s *Service) Prune(ctx context.Context, envID string, req PruneRequest) (*P
 		return nil, fmt.Errorf("confirm flag is required to run a prune")
 	}
 
-	if s.dockerPool.IsAgentEnv(envID) {
+	if s.dockerPool.IsAgentEnvContext(ctx, envID) {
 		if s.agentPool == nil {
 			return nil, fmt.Errorf("metrics service is not wired with an agent pool")
 		}
-		t := s.agentPool.Transport(envID)
+		t := s.agentPool.ResolveTransport(envID)
 		if t == nil {
 			return nil, fmt.Errorf("agent is not connected for environment %s", envID)
 		}
@@ -205,7 +208,7 @@ func (s *Service) Prune(ctx context.Context, envID string, req PruneRequest) (*P
 		}, nil
 	}
 
-	cli, err := s.dockerPool.Get(envID)
+	cli, err := s.dockerPool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting Docker client: %w", err)
 	}
@@ -224,31 +227,35 @@ func (s *Service) Prune(ctx context.Context, envID string, req PruneRequest) (*P
 			totalItems   int64
 			totalReclaim int64
 		)
-		img, err := cli.ImagesPrune(timeout, filters.Args{})
+		imgRes, err := cli.ImagePrune(timeout, dockerclient.ImagePruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("system prune (images): %w", err)
 		}
+		img := imgRes.Report
 		totalItems += int64(len(img.ImagesDeleted))
 		totalReclaim += int64(img.SpaceReclaimed)
 
-		ctn, err := cli.ContainersPrune(timeout, filters.Args{})
+		ctnRes, err := cli.ContainerPrune(timeout, dockerclient.ContainerPruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("system prune (containers): %w", err)
 		}
+		ctn := ctnRes.Report
 		totalItems += int64(len(ctn.ContainersDeleted))
 		totalReclaim += int64(ctn.SpaceReclaimed)
 
-		net, err := cli.NetworksPrune(timeout, filters.Args{})
+		netRes, err := cli.NetworkPrune(timeout, dockerclient.NetworkPruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("system prune (networks): %w", err)
 		}
+		net := netRes.Report
 		totalItems += int64(len(net.NetworksDeleted))
 
 		if req.Volumes {
-			vol, err := cli.VolumesPrune(timeout, filters.Args{})
+			volRes, err := cli.VolumePrune(timeout, dockerclient.VolumePruneOptions{})
 			if err != nil {
 				return nil, fmt.Errorf("system prune (volumes): %w", err)
 			}
+			vol := volRes.Report
 			totalItems += int64(len(vol.VolumesDeleted))
 			totalReclaim += int64(vol.SpaceReclaimed)
 		}
@@ -259,53 +266,57 @@ func (s *Service) Prune(ctx context.Context, envID string, req PruneRequest) (*P
 			SpaceReclaimed: totalReclaim,
 		}, nil
 	case "builder":
-		report, err := cli.BuildCachePrune(timeout, types.BuildCachePruneOptions{
+		pruned, err := cli.BuildCachePrune(timeout, dockerclient.BuildCachePruneOptions{
 			All:     false,
-			Filters: filters.Args{},
+			Filters: dockerclient.Filters{},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("builder prune: %w", err)
 		}
 		return &PruneResult{
 			Type:           "builder",
-			ItemsDeleted:   int64(len(report.CachesDeleted)),
-			SpaceReclaimed: int64(report.SpaceReclaimed),
+			ItemsDeleted:   int64(len(pruned.Report.CachesDeleted)),
+			SpaceReclaimed: int64(pruned.Report.SpaceReclaimed),
 		}, nil
 	case "volumes":
-		report, err := cli.VolumesPrune(timeout, filters.Args{})
+		reportRes, err := cli.VolumePrune(timeout, dockerclient.VolumePruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("volume prune: %w", err)
 		}
+		report := reportRes.Report
 		return &PruneResult{
 			Type:           "volumes",
 			ItemsDeleted:   int64(len(report.VolumesDeleted)),
 			SpaceReclaimed: int64(report.SpaceReclaimed),
 		}, nil
 	case "images":
-		report, err := cli.ImagesPrune(timeout, filters.Args{})
+		reportRes, err := cli.ImagePrune(timeout, dockerclient.ImagePruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("image prune: %w", err)
 		}
+		report := reportRes.Report
 		return &PruneResult{
 			Type:           "images",
 			ItemsDeleted:   int64(len(report.ImagesDeleted)),
 			SpaceReclaimed: int64(report.SpaceReclaimed),
 		}, nil
 	case "containers":
-		report, err := cli.ContainersPrune(timeout, filters.Args{})
+		reportRes, err := cli.ContainerPrune(timeout, dockerclient.ContainerPruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("container prune: %w", err)
 		}
+		report := reportRes.Report
 		return &PruneResult{
 			Type:           "containers",
 			ItemsDeleted:   int64(len(report.ContainersDeleted)),
 			SpaceReclaimed: int64(report.SpaceReclaimed),
 		}, nil
 	case "networks":
-		report, err := cli.NetworksPrune(timeout, filters.Args{})
+		reportRes, err := cli.NetworkPrune(timeout, dockerclient.NetworkPruneOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("network prune: %w", err)
 		}
+		report := reportRes.Report
 		return &PruneResult{
 			Type:           "networks",
 			ItemsDeleted:   int64(len(report.NetworksDeleted)),
@@ -321,16 +332,30 @@ func (s *Service) Prune(ctx context.Context, envID string, req PruneRequest) (*P
 // non-Linux platforms so the service reports zeros and the UI can show a
 // "host metrics unavailable" state.
 
+// statsFanoutLocal and statsFanoutAgent bound how many one-shot stats calls
+// AllContainerStats has outstanding at once. Concurrency is the point - a
+// sequential loop over an agent environment costs ~2s per container and would
+// never finish inside the collector's deadline - but unbounded concurrency is
+// not. Every agent request shares one WebSocket, so a host with fifty
+// containers used to put fifty round trips on that socket at once, and each
+// one still outstanding when the connection dropped produced its own
+// cancellation. The agent limit stays well under the local one for that reason.
+const (
+	statsFanoutLocal = 32
+	statsFanoutAgent = 8
+)
+
 // AllContainerStats returns calculated stats for all running containers.
 func (s *Service) AllContainerStats(ctx context.Context, envID string) ([]ContainerMetric, error) {
-	cli, err := s.dockerPool.Get(envID)
+	cli, err := s.dockerPool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting Docker client: %w", err)
 	}
 
-	listCtx, listCancel := context.WithTimeout(ctx, 30*time.Second)
+	listCtx, listCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer listCancel()
-	containers, err := cli.ContainerList(listCtx, container.ListOptions{})
+	containersRes, err := cli.ContainerList(listCtx, dockerclient.ContainerListOptions{})
+	containers := containersRes.Items
 	if err != nil {
 		return nil, fmt.Errorf("listing containers: %w", err)
 	}
@@ -341,11 +366,19 @@ func (s *Service) AllContainerStats(ctx context.Context, envID string) ([]Contai
 	}
 	results := make([]result, len(containers))
 
+	fanout := statsFanoutLocal
+	if s.dockerPool.IsAgentEnvContext(ctx, envID) {
+		fanout = statsFanoutAgent
+	}
+	sem := make(chan struct{}, fanout)
+
 	var wg sync.WaitGroup
 	for i, c := range containers {
 		wg.Add(1)
-		go func(idx int, ctr types.Container) {
+		sem <- struct{}{}
+		go func(idx int, ctr container.Summary) {
 			defer wg.Done()
+			defer func() { <-sem }()
 			stat, err := getOneShot(ctx, cli, ctr.ID)
 			if err != nil {
 				return
@@ -354,7 +387,12 @@ func (s *Service) AllContainerStats(ctx context.Context, envID string) ([]Contai
 			if len(ctr.Names) > 0 {
 				name = strings.TrimPrefix(ctr.Names[0], "/")
 			}
-			results[idx] = result{metric: buildMetric(ctr.ID, name, stat), ok: true}
+			metric := buildMetric(ctr.ID, name, stat)
+			// The labels are only available here, on the list result. The
+			// collector writes this alongside the id so the stored series
+			// survives the container being recreated.
+			metric.Key = docker.ContainerKey(ctr.Labels, name)
+			results[idx] = result{metric: metric, ok: true}
 		}(i, c)
 	}
 	wg.Wait()
@@ -372,16 +410,17 @@ func (s *Service) AllContainerStats(ctx context.Context, envID string) ([]Contai
 // ValidateContainerRunning checks that a container exists and is running.
 // Returns the Docker SDK error directly (use client.IsErrNotFound to check for 404).
 func (s *Service) ValidateContainerRunning(ctx context.Context, envID, containerID string) error {
-	cli, err := s.dockerPool.Get(envID)
+	cli, err := s.dockerPool.GetContext(ctx, envID)
 	if err != nil {
 		return fmt.Errorf("getting Docker client: %w", err)
 	}
-	tctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	tctx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
-	info, err := cli.ContainerInspect(tctx, containerID)
+	infoRes, err := cli.ContainerInspect(tctx, containerID, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
+	info := infoRes.Container
 	if !info.State.Running {
 		return fmt.Errorf("container is not running")
 	}
@@ -401,7 +440,7 @@ func (s *Service) StreamContainerStats(ctx context.Context, envID, containerID s
 
 		slog.Info("StreamContainerStats: starting", "env", envID, "container", containerID)
 
-		cli, err := s.dockerPool.Get(envID)
+		cli, err := s.dockerPool.GetContext(ctx, envID)
 		if err != nil {
 			slog.Error("StreamContainerStats: get client failed", "env", envID, "error", err)
 			errCh <- fmt.Errorf("getting Docker client: %w", err)
@@ -409,8 +448,9 @@ func (s *Service) StreamContainerStats(ctx context.Context, envID, containerID s
 		}
 
 		// Get container name
-		inspectCtx, inspectCancel := context.WithTimeout(ctx, 30*time.Second)
-		inspect, err := cli.ContainerInspect(inspectCtx, containerID)
+		inspectCtx, inspectCancel := context.WithTimeout(ctx, docker.CallTimeout)
+		inspectRes, err := cli.ContainerInspect(inspectCtx, containerID, dockerclient.ContainerInspectOptions{})
+		inspect := inspectRes.Container
 		inspectCancel()
 		if err != nil {
 			slog.Error("StreamContainerStats: inspect failed", "env", envID, "error", err)
@@ -419,7 +459,7 @@ func (s *Service) StreamContainerStats(ctx context.Context, envID, containerID s
 		}
 		name := strings.TrimPrefix(inspect.Name, "/")
 
-		isAgent := s.dockerPool.IsAgentEnv(envID)
+		isAgent := s.dockerPool.IsAgentEnvContext(ctx, envID)
 		slog.Info("StreamContainerStats: checked agent", "env", envID, "isAgent", isAgent)
 
 		// Agent environments: poll one-shot stats (reliable through agent transport)
@@ -429,12 +469,12 @@ func (s *Service) StreamContainerStats(ctx context.Context, envID, containerID s
 		}
 
 		// Local/direct: use Docker streaming stats
-		resp, err := cli.ContainerStats(ctx, containerID, true)
+		resp, err := cli.ContainerStats(ctx, containerID, dockerclient.ContainerStatsOptions{Stream: true})
 		if err != nil {
 			errCh <- fmt.Errorf("opening stats stream: %w", err)
 			return
 		}
-		defer resp.Body.Close()
+		defer closeBody(resp.Body)
 
 		decoder := json.NewDecoder(resp.Body)
 		for {
@@ -507,14 +547,14 @@ func (s *Service) pollContainerStats(ctx context.Context, cli *dockerclient.Clie
 
 // getOneShot fetches a single stats snapshot (non-streaming).
 func getOneShot(ctx context.Context, cli *dockerclient.Client, containerID string) (*container.StatsResponse, error) {
-	statsCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	statsCtx, cancel := context.WithTimeout(ctx, docker.CallTimeout)
 	defer cancel()
 
-	resp, err := cli.ContainerStats(statsCtx, containerID, false)
+	resp, err := cli.ContainerStats(statsCtx, containerID, dockerclient.ContainerStatsOptions{Stream: false, IncludePreviousSample: true})
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	var stat container.StatsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&stat); err != nil {

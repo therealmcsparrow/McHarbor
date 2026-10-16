@@ -11,6 +11,12 @@
     "pruneImagesDesc": "Alle unbenutzten Images entfernen. Dies kann nicht rückgängig gemacht werden.",
     "pruneVolumes": "Volumes bereinigen",
     "pruneVolumesDesc": "Alle unbenutzten Volumes entfernen. Dies kann nicht rückgängig gemacht werden.",
-    "confirm": "Bestätigen"
+    "confirm": "Bestätigen",
+    "pruneContainers": "Container bereinigen",
+    "pruneContainersDesc": "Alle gestoppten Container entfernen. Das kann nicht rückgängig gemacht werden.",
+    "checkUpdates": "Updates prüfen",
+    "checkUpdatesDesc": "Nach neueren Images suchen",
+    "liveLogs": "Live-Logs",
+    "liveLogsDesc": "Log-Stream öffnen"
   }
 }

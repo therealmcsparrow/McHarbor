@@ -1,26 +1,75 @@
 {
   "title": "Panel",
   "description": "Descripción general de su entorno Docker",
+  "summary": {
+    "environments_one": "{{count}} entorno",
+    "environments_other": "{{count}} entornos",
+    "containers_one": "{{count}} contenedor",
+    "containers_other": "{{count}} contenedores",
+    "acrossStacks_one": "en {{count}} stack",
+    "acrossStacks_other": "en {{count}} stacks",
+    "vms_one": "{{count}} máquina virtual",
+    "vms_other": "{{count}} máquinas virtuales",
+    "acrossEnvironments_one": "en {{count}} entorno",
+    "acrossEnvironments_other": "en {{count}} entornos",
+    "agentsBehind_one": "{{count}} agente una versión por detrás",
+    "agentsBehind_other": "{{count}} agentes una versión por detrás",
+    "scansNeedReview_one": "{{count}} escaneo requiere revisión",
+    "scansNeedReview_other": "{{count}} escaneos requieren revisión",
+    "unreachable_one": "{{count}} host inaccesible",
+    "unreachable_other": "{{count}} hosts inaccesibles"
+  },
   "addWidget": "Agregar widget",
-  "editDashboard": "Editar panel",
-  "doneEditing": "Edición terminada",
   "edit": "Editar",
   "done": "Hecho",
-  "reset": "Reiniciar",
+  "reset": "Restablecer",
   "loading": "Cargando...",
   "addWidgets": "Agregar widgets",
   "addWidgetsDescription": "Seleccione widgets para agregar a su panel",
   "categories": {
     "resources": "Recursos",
-    "host": "Anfitrión",
-    "metrics": "Métrica",
-    "monitoring": "Escucha",
+    "host": "Host",
+    "metrics": "Métricas",
+    "monitoring": "Monitorización",
     "operations": "Operaciones",
-    "kubernetes": "Kubernetes"
+    "plugin": "Plugins"
   },
   "widget": {
     "removeWidget": "Eliminar widget",
     "decreaseHeight": "Reducir altura",
-    "increaseHeight": "Aumentar altura"
+    "increaseHeight": "Aumentar altura",
+    "failed": "No se pudo mostrar {{title}}",
+    "retry": "Reintentar",
+    "size": "Tamaño",
+    "width": "Ancho",
+    "height": "Alto"
+  },
+  "template": {
+    "pickerLabel": "Diseños de panel",
+    "wizardPrompt": "Empezar desde un diseño"
+  },
+  "dashboard": {
+    "template": {
+      "homelab": {
+        "name": "Homelab",
+        "description": "Qué se está ejecutando, en qué, y las acciones rápidas que más usa"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Ejecuciones de flujos, alertas y vulnerabilidades en primer plano"
+      },
+      "production": {
+        "name": "Producción",
+        "description": "Capacidad, alertas, vulnerabilidades y almacenamiento de un vistazo"
+      },
+      "monitoring": {
+        "name": "Monitorización",
+        "description": "Gráficos temporales y mayores consumidores, para ver tendencias"
+      },
+      "starter": {
+        "name": "Inicial",
+        "description": "El veredicto y sus contenedores: lo demás lo añade cuando lo necesite"
+      }
+    }
   }
 }

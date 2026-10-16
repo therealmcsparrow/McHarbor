@@ -1,0 +1,53 @@
+{
+    "slug":  "duplicati-dev",
+    "name":  "Duplicati (Dev)",
+    "description":  "Dev channel build of Duplicati. Free backup solution with encryption and cloud storage support.",
+    "category":  "Utilities",
+    "image":  "lscr.io/linuxserver/duplicati:development",
+    "logo":  "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/duplicati-icon.png",
+    "website":  "https://www.duplicati.com",
+    "docsUrl":  "https://duplicati.readthedocs.io",
+    "ports":  [
+                  {
+                      "host":  9200,
+                      "container":  8200,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/duplicati-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/duplicati-dev/backups",
+                        "container":  "/backups"
+                    },
+                    {
+                        "host":  "/opt/appdata/duplicati-dev/source",
+                        "container":  "/source"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

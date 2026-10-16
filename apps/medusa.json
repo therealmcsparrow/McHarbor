@@ -1,0 +1,53 @@
+{
+    "slug":  "medusa",
+    "name":  "Medusa",
+    "description":  "TV show download automation tool that manages a library and fetches new episodes.",
+    "category":  "Media",
+    "image":  "pymedusa/medusa:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/medusa.png",
+    "website":  "https://pymedusa.com",
+    "docsUrl":  "https://github.com/pymedusa/Medusa/wiki/Docker",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/medusa/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/medusa/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/medusa/tv",
+                        "container":  "/tv"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

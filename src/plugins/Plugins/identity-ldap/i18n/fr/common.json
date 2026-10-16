@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "LDAP / Active Directory",
+    "subtitle": "Fédérez la connexion McHarbor vers tout annuaire LDAP v3 ou Active Directory. Le plugin gère le flux d'authentification de recherche puis nouvelle liaison sur l'annuaire configuré et provisionne les utilisateurs lors de la première liaison réussie.",
+    "registerHint": "Ajoutez un fournisseur depuis la page Paramètres > Sécurité > Fournisseurs d'identité de l'hôte et choisissez « LDAP » comme provider_type."
+  },
+  "fields": {
+    "url":              "URL du serveur LDAP",
+    "bind_dn":          "DN de liaison",
+    "bind_password":    "Mot de passe de liaison",
+    "user_base_dn":     "DN de base des utilisateurs",
+    "user_filter":      "Filtre de recherche des utilisateurs",
+    "user_attr":        "Attribut du nom d'utilisateur",
+    "email_attr":       "Attribut de l'e-mail",
+    "name_attr":        "Attribut du nom d'affichage",
+    "start_tls":        "Utiliser StartTLS",
+    "skip_tls_verify":  "Ignorer la vérification TLS",
+    "group_base_dn":    "DN de base des groupes",
+    "group_filter":     "Filtre des groupes",
+    "group_attr":       "Attribut du nom de groupe"
+  },
+  "help": {
+    "url":              "URL du serveur LDAP. Utilisez ldaps://host:636 pour TLS implicite, ou ldap://host:389 pour une connexion en clair (activez alors StartTLS ci-dessous pour la mettre à niveau).",
+    "bind_dn":          "DN du compte de service utilisé pour les recherches. Vide = liaison anonyme (la plupart des annuaires refusent de renvoyer des entrées utilisateur de façon anonyme). Exemple : cn=mcharbor-svc,ou=service,dc=example,dc=com.",
+    "bind_password":    "Mot de passe du compte de service. Stocké chiffré au repos (AES-256-GCM).",
+    "user_base_dn":     "DN de base sous lequel se trouvent les entrées utilisateur. Le plugin limite les recherches d'utilisateurs à cette sous-arborescence. Exemple : ou=users,dc=example,dc=com.",
+    "user_filter":      "Modèle de filtre LDAP pour rechercher un utilisateur par son nom de connexion. Le paramètre %s est remplacé par le nom d'utilisateur échappé. Par défaut : (uid=%s) pour OpenLDAP. Pour Active Directory : (sAMAccountName=%s) ou (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)).",
+    "user_attr":        "Attribut qui contient le nom de connexion. Par défaut : uid (OpenLDAP). Active Directory : sAMAccountName.",
+    "email_attr":       "Attribut qui contient l'e-mail de l'utilisateur. Par défaut : mail. Utilisé pour le provisionnement et l'acheminement des notifications.",
+    "name_attr":        "Attribut qui contient le nom d'affichage de l'utilisateur. Par défaut : cn. Utilisé pour les entrées du journal d'audit et le menu déroulant des utilisateurs.",
+    "start_tls":        "Met à niveau une connexion ldap:// en clair vers TLS via l'opération étendue StartTLS. Sans effet lorsque l'URL est déjà ldaps://.",
+    "skip_tls_verify":  "Ignore la vérification des certificats. Test/développement uniquement — ne l'activez PAS en production.",
+    "group_base_dn":    "DN de base pour les recherches de groupes. Par défaut le DN de base des utilisateurs lorsque vide. Exemple : ou=groups,dc=example,dc=com.",
+    "group_filter":     "Modèle de filtre pour récupérer les groupes auxquels appartient un utilisateur. Le paramètre %s est remplacé par le DN complet de l'utilisateur. Par défaut : (|(member=%s)(uniqueMember=%s)) fonctionne pour posixGroup et groupOfUniqueNames d'OpenLDAP. Active Directory : (member:1.2.840.113556.1.4.1941:=<userDN>) nécessite un serveur LDAP prenant en charge la surcouche memberOf.",
+    "group_attr":       "Attribut utilisé comme nom de groupe dans le mappeur de groupes de McHarbor. Par défaut : cn. Active Directory : sAMAccountName si vos groupes sont des principaux de sécurité."
+  },
+  "guide": {
+    "title":    "Configurer la connexion LDAP / Active Directory dans McHarbor",
+    "subtitle": "Créez un compte de service en lecture seule, pointez McHarbor vers votre annuaire et associez les attributs d'utilisateur et de groupe aux claims attendus par l'hôte.",
+    "step1": {
+      "title": "Créer un compte de service en lecture seule",
+      "body":  "La plupart des annuaires refusent de renvoyer des entrées utilisateur aux liaisons anonymes. Créez un compte de service dédié avec un accès en lecture aux objets utilisateur de votre annuaire : OpenLDAP — ajoutez une entrée posixAccount sous ou=service,dc=example,dc=com avec un userPassword haché ; Active Directory — créez un utilisateur dans une UO de comptes de service et désactivez l'ouverture de session interactive et l'expiration du mot de passe. Notez le DN complet et le mot de passe — ils vont dans les champs DN de liaison / Mot de passe de liaison du formulaire du fournisseur."
+    },
+    "step2": {
+      "title": "Localiser le DN de base des utilisateurs",
+      "body":  "Choisissez la sous-arborescence sous laquelle se trouvent toutes les entrées utilisateur. Pour une disposition plate typique, c'est ou=users,dc=example,dc=com. Pour une arborescence profonde couvrant plusieurs UO (Active Directory), c'est généralement le contexte de nommage du domaine : dc=example,dc=com. Le plugin limite chaque recherche d'utilisateur à ce DN ; le choisir trop large nuit aux performances ; le choisir trop étroit provoque « utilisateur introuvable » pour les utilisateurs situés en dehors de la sous-arborescence."
+    },
+    "step3": {
+      "title": "Définir le filtre utilisateur et l'attribut du nom d'utilisateur",
+      "body":  "Le filtre par défaut (uid=%s) cible l'attribut uid des entrées posixAccount d'OpenLDAP. Active Directory utilise sAMAccountName ; changez le filtre en (sAMAccountName=%s) et l'attribut du nom d'utilisateur en sAMAccountName. Pour les forêts AD avec plusieurs domaines dans la même arborescence, un filtre plus strict comme (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)) est plus sûr."
+    },
+    "step4": {
+      "title": "Définir les attributs de l'e-mail et du nom d'affichage",
+      "body":  "Par défaut mail et cn, qui correspondent à OpenLDAP et AD d'emblée. Si votre annuaire utilise un schéma différent (mail vs userPrincipalName, displayName vs cn), modifiez en conséquence l'attribut de l'e-mail et l'attribut du nom d'affichage. Le plugin lit ces attributs une fois par connexion ; une valeur manquante laisse le claim correspondant vide mais ne bloque pas l'authentification."
+    },
+    "step5": {
+      "title": "Configurer TLS",
+      "body":  "LDAPS (ldaps://host:636) est la voie la plus simple — la négociation TLS fait partie de la connexion. StartTLS (ldap://host:389 + option StartTLS activée) est l'alternative pour les annuaires qui écoutent sur un seul port. Si le certificat du serveur est auto-signé ou émis par une autorité de certification interne, laissez Ignorer la vérification TLS désactivé en production et importez plutôt la chaîne de l'AC dans le magasin de confiance de l'hôte."
+    },
+    "step6": {
+      "title": "Configurer la recherche de groupes (facultatif)",
+      "body":  "Laissez DN de base des groupes + Filtre des groupes vides si vous n'avez besoin que de l'authentification des utilisateurs. Pour associer des groupes de l'annuaire à des rôles McHarbor, renseignez le DN de base (par défaut le DN de base des utilisateurs) et un modèle de filtre correspondant à l'attribut d'appartenance de vos groupes. La valeur par défaut (|(member=%s)(uniqueMember=%s)) fonctionne pour OpenLDAP. Pour Active Directory, remplacez le filtre par (member:1.2.840.113556.1.4.1941:=<userDN>) et assurez-vous que l'annuaire prend en charge la surcouche memberOf."
+    },
+    "step7": {
+      "title": "Tester la connexion",
+      "body":  "Cliquez sur « Tester la connexion » dans le formulaire du fournisseur. Un résultat vert signifie que la liaison a réussi, que le DN de base des utilisateurs a été résolu et que la syntaxe du filtre a été acceptée. Déconnectez-vous et utilisez le formulaire de connexion LDAP de la page de connexion ; lors de la première liaison réussie, un enregistrement utilisateur McHarbor est provisionné automatiquement et le cookie de session est émis."
+    }
+  }
+}

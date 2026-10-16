@@ -1,0 +1,47 @@
+{
+    "slug":  "rancher",
+    "name":  "Rancher",
+    "description":  "Multi-cluster Kubernetes management platform for provisioning, securing and operating clusters centrally.",
+    "category":  "CI/CD",
+    "image":  "rancher/rancher:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rancher.png",
+    "website":  "https://www.rancher.com",
+    "docsUrl":  "https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-single-node",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rancher/data",
+                        "container":  "/var/lib/rancher"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CATTLE_BOOTSTRAP_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin bootstrap password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

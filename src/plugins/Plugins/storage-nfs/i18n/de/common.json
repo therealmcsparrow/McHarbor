@@ -1,0 +1,141 @@
+{
+  "storage-nfs": {
+    "page": {
+      "title": "NFS-Speicherziel",
+      "subtitle": "Sichert auf einen NFS-Export (RFC 7530). AUTH_SYS (UID-basiert) oder Kerberos (krb5/krb5i/krb5p) über den NFS-Client des Linux-Kernels.",
+      "registerHint": "Hängen Sie den Export lokal ein und arbeiten Sie auf dem Einhängepfad. Nur Linux."
+    },
+    "menu": {
+      "root": "NFS-Ziele"
+    },
+    "config": {
+      "heading": "NFS-Verbindung",
+      "description": "Konfigurieren Sie NFS-Server, Exportpfad und Security-Flavor. Der Linux-Kernel hängt den Export unter mount_base ein; das Plugin arbeitet auf dem lokalen Einhängepfad.",
+      "field": {
+        "server": {
+          "label": "Server",
+          "placeholder": "nfs.example.com oder 10.0.0.5",
+          "help": "Hostname oder IP des NFS-Servers. Der Host-Prozess muss Netzwerkzugriff darauf haben (TCP/UDP-Port 2049).",
+          "option": {
+            "sys": "AUTH_SYS (UID-basiert, Standard)",
+            "krb5": "Kerberos 5 (authentifiziert)",
+            "krb5i": "Kerberos 5 + Integrität",
+            "krb5p": "Kerberos 5 + Vertraulichkeit (verschlüsselt)"
+          }
+        },
+        "export": {
+          "label": "Exportpfad",
+          "placeholder": "/srv/backups",
+          "help": "Absoluter Pfad auf dem NFS-Server, wie in /etc/exports aufgeführt. Beispiel: /srv/backups."
+        },
+        "path": {
+          "label": "Unterverzeichnis",
+          "placeholder": "mcharbor",
+          "help": "Optionales Unterverzeichnis innerhalb des Exports. Leer lassen, um in das Export-Stammverzeichnis zu schreiben."
+        },
+        "sec": {
+          "label": "Security-Flavor",
+          "help": "Authentifizierungsmodus für den Mount. AUTH_SYS vertraut UID/GID des Clients; krb5* erfordern Kerberos-Principal + Keytab.",
+          "option": {
+            "sys": "sys",
+            "krb5": "krb5",
+            "krb5i": "krb5i",
+            "krb5p": "krb5p"
+          }
+        },
+        "version": {
+          "label": "NFS-Version",
+          "help": "Version des NFS-Protokolls. auto lässt den Kernel aushandeln (bei modernen Kerneln typischerweise 4.2).",
+          "option": {
+            "auto": "auto",
+            "3": "3",
+            "4": "4",
+            "4.1": "4.1",
+            "4.2": "4.2"
+          }
+        },
+        "principal": {
+          "label": "Kerberos-Principal",
+          "placeholder": "nfs/host.nfs.example.com",
+          "help": "Service-Principal für den NFS-Client. Sollte einem im Keytab des Servers registrierten Principal entsprechen.",
+          "placeholder_detail": "nfs/host.nfs.example.com"
+        },
+        "realm": {
+          "label": "Kerberos-Realm",
+          "placeholder": "EXAMPLE.COM",
+          "help": "Kerberos-Realm (meist die DNS-Domain in Großbuchstaben). Muss mit dem Realm des Servers übereinstimmen."
+        },
+        "keytab_path": {
+          "label": "Keytab-Pfad",
+          "placeholder": "/etc/krb5.keytab",
+          "help": "Dateisystempfad zum Keytab, der den Principal enthält. Der Host-Prozess muss ihn lesen können.",
+          "helpText": "Der McHarbor-Container läuft als root und sieht das Dateisystem des Hosts. Binden Sie /etc/krb5.keytab per Bind-Mount ein, wenn er außerhalb des Standard-Mount-Namespace des Hosts liegt."
+        },
+        "mount_base": {
+          "label": "Mount-Basis",
+          "placeholder": "/var/lib/mcharbor/mounts/nfs",
+          "help": "Erweitert: übergeordnetes Verzeichnis für Einhängepunkte pro Ziel. Leer lassen, um den Standard zu verwenden."
+        }
+      }
+    },
+    "guide": {
+      "title": "NFS-Einrichtungsanleitung",
+      "description": "Bereiten Sie einen NFS-Export für die Verwendung mit diesem Plugin vor. Das Plugin hängt den Export lokal ein und arbeitet auf dem Einhängepfad.",
+      "section": {
+        "server": {
+          "title": "1. Erreichbarkeit des NFS-Servers bestätigen",
+          "body": "Der McHarbor-Host muss Netzwerkzugriff auf den NFS-Server über TCP/UDP-Port 2049 haben. Prüfen mit: showmount -e <server> oder rpcinfo -t <server> nfs 4. Der Server sollte den Export anbieten, den Sie verwenden möchten."
+        },
+        "export": {
+          "title": "2. Export prüfen",
+          "body": "Auf dem NFS-Server sollte /etc/exports den Exportpfad auflisten. Die IP/CIDR des McHarbor-Hosts muss in der Allow-List stehen (oder der Platzhalter *). Die Anonymous-Squash-Richtlinie muss Lese-/Schreibzugriff für den Benutzer erlauben, als der der Host läuft (standardmäßig uid 0)."
+        },
+        "sec": {
+          "title": "3. Security-Flavor wählen",
+          "body": "Der sec-Flavor steuert, wie der NFS-Server den Client authentifiziert. AUTH_SYS ist der ältere UID-basierte Standard; krb5* verwenden Kerberos 5 über RPCSEC_GSS.",
+          "body_sys": "AUTH_SYS eignet sich für vertrauenswürdige Netzwerke. Der Server vertraut UID/GID in der Mount-Anfrage. Stellen Sie sicher, dass der Host-Prozess (uid 0 im Container) serverseitig Lese-/Schreibzugriff hat, z. B. über no_root_squash in /etc/exports.",
+          "body_krb5": "Kerberos 5 authentifiziert den Client anhand des Principals. Der Server kennt den Benutzer hinter der Anfrage, die Nutzdaten selbst werden aber nicht auf Integrität geprüft. Nützlich, wenn Sie wissen müssen, wer schreibt, den Datenverkehr aber nicht schützen müssen.",
+          "body_krb5i": "Kerberos 5 + Integrität. Jede Nachricht wird gegen Manipulation authentifiziert. Die Nutzdaten sind nicht verborgen, aber Änderungen lassen sich erkennen. Verwenden Sie dies, wenn nicht vertrauenswürdige Netzwerke durchquert werden, der Inhalt aber nicht sensibel ist.",
+          "body_krb5p": "Kerberos 5 + Vertraulichkeit. Jede Nachricht wird verschlüsselt. Stärkste Option, aber mit dem höchsten CPU-Aufwand. Verwenden Sie dies für sensible Daten über nicht vertrauenswürdige Netzwerke."
+        },
+        "keytab": {
+          "title": "4. Keytab bereitstellen (nur krb5*-Flavors)",
+          "body": "Der NFS-Client benötigt einen Keytab mit einem Principal nfs/<host>@<realm>. Legen Sie den Keytab am konfigurierten Pfad ab (Standard /etc/krb5.keytab). Der Host-Prozess muss ihn lesen können. Auf einem typischen Server ist das eine einmalige Einrichtung: kadmin: addprinc -randkey nfs/host.nfs.example.com && kadmin: ktadd -k /etc/krb5.keytab nfs/host.nfs.example.com."
+        },
+        "capabilities": {
+          "title": "5. Verbindung testen",
+          "body": "Verwenden Sie nach dem Speichern des Ziels die Schaltfläche Testen auf der Seite Speicherorte des Hosts. Das Plugin hängt den Export ein, schreibt eine kleine Datei, liest sie zurück und entfernt sie. Ein erfolgreicher Test bestätigt, dass Mount, Auth-Flavor und Pfad gültig sind."
+        }
+      }
+    },
+    "form": {
+      "required": "erforderlich",
+      "field": {
+        "sec": {
+          "help": "Authentifizierungsmodus für den Mount. AUTH_SYS vertraut der UID/GID des Clients; krb5* erfordern Kerberos-Principal + Keytab."
+        },
+        "principal": {
+          "help": "Service-Principal für den NFS-Client. Muss einem Principal entsprechen, der in der Keytab des Servers registriert ist."
+        },
+        "realm": {
+          "help": "Kerberos-Realm (meist die DNS-Domäne in Großbuchstaben). Muss mit dem Realm des Servers übereinstimmen."
+        },
+        "keytab_path": {
+          "helpText": "Der McHarbor-Container läuft als root und sieht das Dateisystem des Hosts. Binde /etc/krb5.keytab per Bind-Mount ein, wenn sie außerhalb des Standard-Mount-Namespace des Hosts liegt."
+        }
+      },
+      "guide": {
+        "exportBody": "Auf dem NFS-Server sollte /etc/exports den Exportpfad auflisten. Die IP/CIDR des McHarbor-Hosts muss in der Zulassungsliste stehen (oder der Platzhalter *). Die Anonymous-Squash-Richtlinie muss Lese- und Schreibzugriff für den Benutzer erlauben, unter dem der Host läuft (standardmäßig uid 0).",
+        "krb5Body": "Kerberos 5 authentifiziert den Client über den Principal. Der Server kennt den Benutzer hinter der Anfrage, aber die Nutzdaten selbst werden nicht auf Integrität geprüft. Nützlich, wenn du wissen musst, wer schreibt, den Netzwerkverkehr aber nicht schützen musst.",
+        "krb5iBody": "Kerberos 5 + Integrität. Jede Nachricht wird gegen Manipulation authentifiziert. Die Nutzdaten werden nicht verborgen, aber Änderungen lassen sich erkennen. Verwende dies bei nicht vertrauenswürdigen Netzwerken, wenn der Inhalt nicht sensibel ist.",
+        "testBody": "Verwende nach dem Speichern des Ziels die Schaltfläche Test auf der Seite „Speicherorte“ des Hosts. Das Plugin bindet den Export ein, schreibt eine kleine Datei, liest sie zurück und entfernt sie. Ein erfolgreicher Test bestätigt, dass Mount, Authentifizierungsart und Pfad gültig sind."
+      }
+    },
+    "toast": {
+      "saved": "NFS-Ziel gespeichert",
+      "saveFailed": "NFS-Ziel konnte nicht gespeichert werden: {{error}}",
+      "testPassed": "NFS-Verbindung erfolgreich",
+      "testFailed": "NFS-Verbindung fehlgeschlagen: {{error}}"
+    }
+  }
+}

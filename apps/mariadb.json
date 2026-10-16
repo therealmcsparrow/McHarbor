@@ -44,5 +44,9 @@
       "secret": true
     }
   ],
-  "version": "11"
+  "version":  "11",
+  "latest":  {
+      "version":  "11",
+      "release_date":  "2026-09-10"
+  }
 }

@@ -1,44 +1,34 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { OperationProgressDialog } from "@resources/components/OperationProgressDialog";
-import { DataGrid } from "@resources/components/DataGrid";
-import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
-import { PageHeader } from "@resources/layout/PageHeader";
-import { isProtectedStack } from "@core/utils/protection";
-import { useContainersBulkStats } from "@resources/hooks/useContainersBulkStats";
-import {
-  useStacks,
-  useStackAction,
-  useDeleteStack,
-  usePruneStack,
-  useUpdateStack,
-} from "../hooks/useStacks";
-import { useCheckStackUpdates } from "../hooks/useStackUpdates";
-import { useStackBatchOperations } from "../hooks/useStackBatchOperations";
-import { useStacksViewStore } from "../stores/stacks-view";
-import { useStackTableColumns } from "../components/StackTableColumns";
-import { getStackBatchActions } from "../components/StackBatchActions";
-import { StackCardView } from "../components/StackCardView";
-import { CreateStackDialog } from "../components/CreateStackDialog";
-import { EditStackDialog } from "../components/EditStackDialog";
-import { StackLogsDialog } from "../components/StackLogsDialog";
-import { TakeOverDialog } from "../components/TakeOverDialog";
-import { StacksPageHeaderActions } from "../components/StacksPageHeaderActions";
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { TablePage } from '@resources/layout/TablePage';
+import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
+import { isProtectedStack } from '@core/utils/protection';
+import { useContainersBulkStats } from '@resources/hooks/useContainersBulkStats';
+import { useStacks, useStackAction, useDeleteStack, usePruneStack } from '@resources/hooks/useStacks';
+import { useCheckStackUpdates } from '../hooks/useStackUpdates';
+import { useStackBatchOperations } from '../hooks/useStackBatchOperations';
+import { useStacksViewStore } from '../stores/stacks-view';
+import { useStackTableColumns } from '../components/StackTableColumns';
+import { getStackBatchActions } from '../components/StackBatchActions';
+import { StackCardView } from '../components/StackCardView';
+import { StacksPageDialogs } from '../components/StacksPageDialogs';
+import { useStacksPageDialogs } from '../hooks/useStacksPageDialogs';
+import { StacksPageHeaderActions } from '../components/StacksPageHeaderActions';
 
 export default function StacksPage() {
-  const { t } = useTranslation("stacks");
-  const { t: tc } = useTranslation("common");
-  const { data: stacks = [], isLoading } = useStacks();
+  const { t } = useTranslation('stacks');
+  const { t: tc } = useTranslation('common');
+  const { data: stacks = [], isLoading, isFetching, refetch } = useStacks();
   const { data: statsMap } = useContainersBulkStats();
   const action = useStackAction();
   const deleteStack = useDeleteStack();
   const pruneStack = usePruneStack();
-  const updateStack = useUpdateStack();
   const checkUpdates = useCheckStackUpdates();
   const { viewMode, setViewMode } = useStacksViewStore();
+  const batch = useStackBatchOperations(stacks, t);
   const {
     batchProgress,
     updateResults,
@@ -46,46 +36,30 @@ export default function StacksPage() {
     reinstallTargets,
     getManagedTargets,
     runStackOperation,
-  } = useStackBatchOperations(stacks, t);
+  } = batch;
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<(typeof stacks)[number] | null>(
-    null,
-  );
-  const [logsTarget, setLogsTarget] = useState<(typeof stacks)[number] | null>(
-    null,
-  );
-  const [removeTarget, setRemoveTarget] = useState<
-    (typeof stacks)[number] | null
-  >(null);
-  const [takeOverTarget, setTakeOverTarget] = useState<
-    (typeof stacks)[number] | null
-  >(null);
-  const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
-  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
+  const dialogs = useStacksPageDialogs();
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
 
-  const handleAction = (name: string, act: string) => {
-    const stack = stacks.find((item) => item.name === name);
+  const handleAction = (stackName: string, act: string) => {
+    const stack = stacks.find((item) => item.name === stackName);
     if (stack && isProtectedStack(stack)) return;
-    action.mutate({ name, action: act });
+    if (stack && act === 'down') dialogs.setDownTarget(stack);
+    else if (stack) action.mutate({ stack, action: act });
   };
-  const handleDelete = (name: string) => {
-    const stack = stacks.find((item) => item.name === name);
+  const handleDelete = (stackName: string) => {
+    const stack = stacks.find((item) => item.name === stackName);
     if (stack && isProtectedStack(stack)) return;
-    deleteStack.mutate(name);
+    deleteStack.mutate(stackName);
   };
   const updatesAvailable = updateAvailableTargets.length;
-  const pruneTargets = stacks.filter((stack) => stack.type === "managed" && !isProtectedStack(stack));
-
-  async function pruneUnusedServices() {
-    await Promise.allSettled(pruneTargets.map((stack) => pruneStack.mutateAsync(stack.name)));
-  }
 
   const columns = useStackTableColumns({
-    onEdit: setEditTarget,
-    onLogs: setLogsTarget,
-    onRemove: setRemoveTarget,
-    onTakeOver: setTakeOverTarget,
+    onEdit: dialogs.setEditTarget,
+    onLogs: dialogs.setLogsTarget,
+    onRemove: dialogs.setRemoveTarget,
+    onTakeOver: dialogs.setTakeOverTarget,
     onAction: handleAction,
     updateResults,
   });
@@ -94,138 +68,91 @@ export default function StacksPage() {
     tc,
     onAction: handleAction,
     onDelete: handleDelete,
-    onUpdateSelected: (rows) =>
-      runStackOperation("update", getManagedTargets(rows)),
-    onReinstallSelected: (rows) =>
-      runStackOperation("reinstall", getManagedTargets(rows)),
+    onUpdateSelected: (rows) => runStackOperation('update', getManagedTargets(rows)),
+    onReinstallSelected: (rows) => runStackOperation('reinstall', getManagedTargets(rows)),
   });
 
+  // The card view shares the table's query, modes and fields.
+  const matcher = useMemo(() => createSearchMatcher(query, searchMode), [query, searchMode]);
+  const cardStacks = useMemo(
+    () =>
+      query.trim() === ''
+        ? stacks
+        : stacks.filter(
+            (stack) =>
+              matchesSearchFields(query, searchMode, [stack.name, ...stack.services.map((svc) => svc.name)]).matched,
+          ),
+    [stacks, query, searchMode],
+  );
+
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader
-        title={t("title")}
-        description={t("description", { count: stacks.length })}
-        actions={
-          <StacksPageHeaderActions
-            t={t}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            setCreateOpen={setCreateOpen}
-            checkUpdatesPending={checkUpdates.isPending}
-            batchRunning={batchProgress.isRunning}
-            updatesAvailable={updatesAvailable}
-            reinstallCount={reinstallTargets.length}
-            pruneRunning={pruneStack.isPending}
-            onCheckUpdates={() => checkUpdates.mutate(undefined)}
-            onUpdateAll={() =>
-              runStackOperation("update", updateAvailableTargets)
-            }
-            onReinstallAll={() => setReinstallAllConfirmOpen(true)}
-            onPruneUnused={() => setPruneConfirmOpen(true)}
-          />
+    <>
+      <TablePage
+        id="stacks"
+        title={t('title')}
+        description={t('description', { count: stacks.length })}
+        actions={<StacksPageHeaderActions scope="header" t={t} viewMode={viewMode} setViewMode={setViewMode} />}
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('searchPlaceholder'),
+          error: matcher.error !== null,
+          fields: (stack) => [stack.name, ...stack.services.map((svc) => svc.name)],
+        }}
+        toolbar={{
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-stacks' },
+          // One action set for both views. The card view used to render its own
+          // copy alongside a second search box.
+          actions: (
+            <StacksPageHeaderActions
+              scope="toolbar"
+              t={t}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              setCreateOpen={dialogs.setCreateOpen}
+              checkUpdatesPending={checkUpdates.isPending}
+              batchRunning={batchProgress.isRunning}
+              updatesAvailable={updatesAvailable}
+              reinstallCount={reinstallTargets.length}
+              pruneRunning={pruneStack.isPending}
+              onCheckUpdates={() => checkUpdates.mutate(undefined)}
+              onUpdateAll={() => runStackOperation('update', updateAvailableTargets)}
+              onReinstallAll={() => dialogs.setReinstallAllConfirmOpen(true)}
+              onPruneUnused={() => dialogs.setPruneConfirmOpen(true)}
+            />
+          ),
+        }}
+        columns={columns}
+        data={stacks}
+        loading={isLoading}
+        empty={{ title: t('emptyMessage') }}
+        selectable
+        batchActions={batchActions}
+        getRowId={(row) => row.id}
+        body={
+          viewMode === 'table' ? undefined : (
+            <div className="min-h-0 flex-1 overflow-auto" data-scroll-exempt>
+              <StackCardView
+                stacks={cardStacks}
+                isLoading={isLoading}
+                statsMap={statsMap}
+                onAction={handleAction}
+                onEdit={dialogs.setEditTarget}
+                onLogs={dialogs.setLogsTarget}
+                onRemove={dialogs.setRemoveTarget}
+                onTakeOver={dialogs.setTakeOverTarget}
+              />
+            </div>
+          )
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        {viewMode === "table" ? (
-          <DataGrid
-            data={stacks}
-            columns={columns}
-            searchKey="name"
-            searchPlaceholder={t("searchPlaceholder")}
-            loading={isLoading}
-            emptyMessage={t("emptyMessage")}
-            selectable
-            batchActions={batchActions}
-            getRowId={(row) => row.id}
-            fillHeight
-          />
-        ) : (
-          <div className="min-h-0 flex-1 overflow-auto">
-            <StackCardView
-              stacks={stacks}
-              isLoading={isLoading}
-              statsMap={statsMap}
-              onAction={handleAction}
-              onEdit={setEditTarget}
-              onLogs={setLogsTarget}
-              onRemove={setRemoveTarget}
-              onTakeOver={setTakeOverTarget}
-            />
-          </div>
-        )}
-      </div>
-
-      <CreateStackDialog open={createOpen} onOpenChange={setCreateOpen} />
-
-      <EditStackDialog
-        stack={editTarget}
-        onClose={() => setEditTarget(null)}
-        onSave={(compose) => {
-          if (!editTarget) return;
-          updateStack.mutate(
-            { name: editTarget.name, compose },
-            { onSuccess: () => setEditTarget(null) },
-          );
-        }}
-        saving={updateStack.isPending}
-      />
-
-      <StackLogsDialog stack={logsTarget} onClose={() => setLogsTarget(null)} />
-
-      <TakeOverDialog
-        open={takeOverTarget !== null}
-        onOpenChange={(open) => !open && setTakeOverTarget(null)}
-        stackName={takeOverTarget?.name}
-      />
-
-      <ConfirmDialog
-        open={removeTarget !== null}
-        onOpenChange={(open) => !open && setRemoveTarget(null)}
-        title={t("confirm.removeTitle")}
-        description={t("confirm.removeDescription", {
-          name: removeTarget?.name ?? "",
-        })}
-        confirmLabel={t("confirm.removeLabel")}
-        onConfirm={() => {
-          if (removeTarget) deleteStack.mutate(removeTarget.name);
-          setRemoveTarget(null);
-        }}
-        loading={deleteStack.isPending}
-      />
-
-      <ConfirmDialog
-        open={reinstallAllConfirmOpen}
-        onOpenChange={setReinstallAllConfirmOpen}
-        title={t("updates.confirm.reinstallAllTitle")}
-        description={t("updates.confirm.reinstallAllDescription", {
-          count: reinstallTargets.length,
-        })}
-        confirmLabel={t("updates.progress.reinstallAction")}
-        onConfirm={() => {
-          runStackOperation("reinstall", reinstallTargets);
-          setReinstallAllConfirmOpen(false);
-        }}
-        loading={batchProgress.isRunning}
-      />
-
-      <ConfirmDialog
-        open={pruneConfirmOpen}
-        onOpenChange={setPruneConfirmOpen}
-        title={t("prune.button")}
-        description={tc("batch.confirmPruneDescription")}
-        confirmLabel={t("prune.button")}
-        onConfirm={() => {
-          void pruneUnusedServices();
-          setPruneConfirmOpen(false);
-        }}
-        loading={pruneStack.isPending}
-      />
-
-      <OperationProgressDialog
-        state={batchProgress.dialogState}
-        onClose={batchProgress.closeDialog}
-      />
-    </div>
+      <StacksPageDialogs stacks={stacks} dialogs={dialogs} batch={batch} />
+    </>
   );
 }

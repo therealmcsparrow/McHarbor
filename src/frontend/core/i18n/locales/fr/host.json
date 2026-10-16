@@ -1,0 +1,58 @@
+{
+  "toast": {
+    "pruned": "Nettoyé"
+  },
+  "capacity": {
+    "title": "Prévision de capacité",
+    "description": "Quand chaque système de fichiers et destination de stockage manquera d'espace, au rythme actuel.",
+    "window": "Projeté à partir des {{window}} derniers jours par rapport au seuil de {{ceiling}}%. Un sujet nécessite {{required}} jours d'historique avant qu'une date soit donnée.",
+    "sentence": "{{subject}} atteint {{ceiling}}% le {{date}} au rythme actuel, dans {{days}} jours.",
+    "evidence": "Actuellement à {{percent}}% ({{used}} sur {{total}}), en croissance de {{rate}}% par jour. Confiance de l'ajustement R² {{r2}} sur {{observed}} jours.",
+    "usedOfTotal": "Actuellement à {{percent}}% ({{used}} sur {{total}}).",
+    "usedBadge": "{{percent}}% utilisé",
+    "loadFailed": "La prévision de capacité n'a pas pu être lue.",
+    "denied": "Vous avez besoin de l'autorisation {{permission}} pour voir la prévision de capacité.",
+    "kind": {
+      "rootfs": "Système de fichiers de l'hôte",
+      "storageLocation": "Destination de stockage"
+    },
+    "refusal": {
+      "no_fit": "Pas encore assez d'historique : une projection nécessite au moins deux échantillons.",
+      "short_series": "Pas encore assez d'historique : {{required}} jours requis, {{observed}} disponibles.",
+      "noisy": "L'utilisation est trop variable pour en projeter une date.",
+      "not_rising": "L'utilisation n'augmente pas ; il n'y a donc aucune date à donner.",
+      "already_over": "Limite déjà dépassée : cela demande une attention immédiate, pas une prévision.",
+      "beyond_horizon": "À plus de 30 jours, ce qui dépasse ce que cette prévision se risque à estimer."
+    },
+    "empty": {
+      "title": "Aucun historique de capacité pour le moment",
+      "description": "La capacité est échantillonnée une fois par heure. Une projection nécessite une semaine de données ; revenez dans quelques jours."
+    },
+    "idle": {
+      "title": "Ressources inactives",
+      "description": "Conteneurs inactifs depuis plus de {{days}} jours. Docker signale {{reclaimable}} récupérables actuellement.",
+      "descriptionPlain": "Conteneurs arrêtés, ou en cours d'exécution sans CPU ni trafic, depuis assez longtemps pour justifier une récupération.",
+      "loadFailed": "Impossible de lire la liste des ressources inactives.",
+      "days": "{{days}} jours",
+      "sizesUnavailable": "Les tailles des couches inscriptibles ne sont pas collectées pour cet environnement ; le volume occupé par chaque conteneur est donc inconnu ici.",
+      "columns": {
+        "container": "Conteneur",
+        "state": "État",
+        "forHowLong": "Inactif depuis",
+        "holds": "Occupe"
+      },
+      "reason": {
+        "stopped": "Arrêté",
+        "quiet": "Aucun trafic"
+      },
+      "sizeUnknown": {
+        "agent_environment": "Taille inconnue — non collectée pour les environnements d'agent",
+        "not_sampled": "Taille inconnue — jamais échantillonnée"
+      },
+      "empty": {
+        "title": "Rien d'inactif",
+        "description": "Chaque conteneur de cet environnement a été exécuté récemment."
+      }
+    }
+  }
+}

@@ -4,25 +4,20 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const range: NodeDefinition = {
-  "key": "range",
-  "label": "Range",
-  "category": "logic",
-  "description": "Read an array property and attach range metadata",
-  "icon": "IconLayoutList",
-  "configSchema": [
+  key: 'range',
+  label: 'Range',
+  category: 'logic',
+  description: 'Read an array property and attach range metadata',
+  icon: 'IconLayoutList',
+  configSchema: [
     {
-      "key": "property",
-      "label": "Property",
-      "type": "expression",
-      "required": false,
-      "default": "payload"
-    }
+      key: 'property',
+      label: 'Property',
+      type: 'expression',
+      required: false,
+      default: 'payload',
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

@@ -1,0 +1,46 @@
+{
+    "slug":  "rauthy",
+    "name":  "Rauthy",
+    "description":  "Fast, lightweight OpenID Connect provider and single sign-on server written in Rust.",
+    "category":  "Identity & SSO",
+    "image":  "ghcr.io/sebadob/rauthy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/rauthy.svg",
+    "website":  "https://sebadob.github.io/rauthy/",
+    "docsUrl":  "https://sebadob.github.io/rauthy/getting_started/docker.html",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rauthy/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RAUTHY_ADMIN_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Initial administrator account email"
+                    },
+                    {
+                        "key":  "BOOTSTRAP_ADMIN_PASSWORD_PLAIN",
+                        "default":  "change-me",
+                        "description":  "Initial administrator account password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

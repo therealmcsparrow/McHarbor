@@ -1,0 +1,45 @@
+{
+    "slug":  "dnsmasq",
+    "name":  "dnsmasq",
+    "description":  "Lightweight DNS forwarder and DHCP server for small networks.",
+    "category":  "Networking",
+    "image":  "4km3/dnsmasq:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=thekelleys.org.uk\u0026sz=128",
+    "website":  "https://thekelleys.org.uk/dnsmasq/doc.html",
+    "docsUrl":  "https://thekelleys.org.uk/dnsmasq/doc.html",
+    "ports":  [
+                  {
+                      "host":  5303,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5303,
+                      "container":  53,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  6767,
+                      "container":  67,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dnsmasq/config",
+                        "container":  "/etc/dnsmasq.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,37 @@
+{
+  "label": "Storage Object",
+  "description": "List, upload, download or delete objects on a storage location through its adapter",
+  "config": {
+    "storage_location_id": "Storage Location",
+    "action": "Action",
+    "prefix": "Prefix",
+    "key": "Object Key",
+    "source_mode": "Source",
+    "property": "Source Property",
+    "content_encoding": "Source Encoding",
+    "content": "Content",
+    "output_encoding": "Output Encoding",
+    "output_property": "Output Property"
+  },
+  "options": {
+    "action": {
+      "list": "List",
+      "upload": "Upload",
+      "download": "Download",
+      "delete": "Delete"
+    },
+    "source_mode": {
+      "property": "Message property",
+      "text": "Inline text"
+    },
+    "content_encoding": {
+      "auto": "Auto (text or JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Text",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

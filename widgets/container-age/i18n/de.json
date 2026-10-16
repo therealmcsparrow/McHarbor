@@ -10,6 +10,12 @@
     "container": "Container",
     "age": "Alter",
     "state": "Status",
-    "noContainers": "Keine Container gefunden"
+    "noContainers": "Keine Container gefunden",
+    "oldestFirst": "Älteste zuerst",
+    "more": "{{count}} weitere",
+    "viewAll": "Alle Container",
+    "createdAgo": "Erstellt {{when}}",
+    "days": "{{count}} Tag",
+    "days_other": "{{count}} Tage"
   }
 }

@@ -1,0 +1,49 @@
+{
+    "slug":  "jdownloader2",
+    "name":  "JDownloader 2",
+    "description":  "Download manager for one-click hosters with a browser-based desktop view.",
+    "category":  "Media",
+    "image":  "jlesage/jdownloader-2:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jdownloader2.png",
+    "website":  "https://jdownloader.org",
+    "docsUrl":  "https://github.com/jlesage/docker-jdownloader-2",
+    "ports":  [
+                  {
+                      "host":  5800,
+                      "container":  5800,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jdownloader2/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/jdownloader2/output",
+                        "container":  "/output"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "USER_ID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "GROUP_ID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

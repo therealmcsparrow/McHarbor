@@ -1,0 +1,98 @@
+# plugin.yaml — manifest for the comm-signal plugin.
+#
+# Single-channel Signal notification adapter. The plugin owns one
+# ChannelType ("signal") and registers a NotificationAdapterClient
+# that delivers Title + Message payloads through one of four
+# connection methods selected at channel-config time:
+#
+#   1. rest    Official signal-cli-rest-api server
+#              (POST <server_url>/v2/send with optional HTTP Basic auth)
+#   2. bot     Token-based Signal bot server
+#              (POST <server_url>/message with Bearer token)
+#   3. signald signald daemon JSON-RPC API
+#              (POST <server_url>/v1/accounts/<account>/rpc, JSON-RPC 2.0)
+#   4. simple  No-auth community relay / public test endpoint
+#              (POST <server_url>/send, no credentials)
+#
+# The method is a string field on the channel row; the backend's
+# Send branches on cfg["method"] to pick the right HTTP surface.
+# One ChannelType keeps the host's "Add Communication" picker
+# tidy (one Signal tile) and lets the form's tabs control which
+# subset of fields shows up under the chosen method.
+#
+# Family: comm-* (notification channels). Distinct from storage-*
+# adapters: comm plugins implement plugin.NotificationAdapterClient
+# (Test + Send only) and never see Upload/Download/Delete/List.
+#
+# RBAC: comm channels register one adds_permission so operators can
+# grant "send alerts to this channel" as a discrete, auditable
+# capability. The menu sidebar entry is gated on that permission
+# and the host's "channels" admin UI is gated on settings.manage.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-signal"
+name:     "Signal"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Signal notification channel. Delivers workflow and backup events to phone numbers via one of four connection methods: official signal-cli-rest-api, token-based bot server, signald JSON-RPC daemon, or a no-auth community relay. Install this plugin to add 'Signal' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   notification.adapter.register  required — register NotificationAdapterSpec
+#   encryption.handle.read         optional — for fields typed `secret` in
+#                                   ConfigSchema (the host encrypts them at
+#                                   rest via AES-256-GCM automatically; this
+#                                   perm lets the plugin read them back).
+#   audit.emit                     required — every plugin should audit.
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+# Adds one permission key. Operators with channels.use_comm_signal
+# (or the broader channels:send) can route events to this channel.
+# Hosts that don't use RBAC for comm plugins can ignore this block.
+adds_permissions:
+  - key:      "channels.use_comm_signal"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Signal channels"
+    description: "Required to route workflow, alert, or backup events to a Signal channel."
+
+# No consumes_permissions — this plugin never gates itself on another
+# plugin's permission.
+
+contributes:
+  routes: []
+  # No `menu:` block — comm channels are managed from the host's
+  # Settings > Notifications > Channels page, which lists every
+  # registered ChannelType.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-signal"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "signal"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "signal"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-signal"
+      channel_type: "signal"
+
+signature: ""
+checksum:  ""

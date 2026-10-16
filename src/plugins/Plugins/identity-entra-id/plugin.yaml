@@ -1,0 +1,70 @@
+# plugin.yaml — manifest for the identity-entra-id plugin.
+#
+# Single-provider Microsoft Entra ID identity plugin. The plugin owns
+# the OIDC authorization-code + Graph API flows for one provider type
+# ("entra_id"), with the host's identity module dispatching the
+# public /authorize and /callback endpoints through the
+# IdentityAdapterClient interface.
+#
+# Family: identity-* (external identity providers). Distinct from
+# storage-* and comm-* adapters: identity plugins implement
+# plugin.IdentityAdapterClient (Test + BeginAuth + HandleCallback +
+# FetchGroups) and never touch Docker, notifications, or storage.
+#
+# RBAC: identity plugins bypass RBAC by convention — the host's
+# settings.manage permission is sufficient for the admin UI's
+# provider-type picker. This plugin declares no `adds_permissions`.
+#
+# State: the plugin owns its OAuth state in an in-memory map keyed
+# by the `state` token. State is short-lived (10 min) and OIDC
+# flows are dex-cardinal, so host restart during a flow is rare
+# enough not to require v1 persistence. A future release can add
+# a `plugin_identity_entra_id_states` table via contributes.migrations.
+schema: "mcharbor.plugin/v1"
+
+slug:     "identity-entra-id"
+name:     "Microsoft Entra ID"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Microsoft Entra ID identity provider. OIDC authorization-code flow against the v2.0 endpoints at login.microsoftonline.com plus the Microsoft Graph API for group fetching. Install this plugin to add 'Microsoft Entra ID' as a provider_type in Settings > Security > Identity Providers."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   identity.adapter.register  required — register the IdentityAdapterSpec
+#   audit.emit                 required — emit audit events on Test/Auth
+#   encryption.handle.read     optional — read secret-typed fields back
+permissions:
+  - identity.adapter.register
+  - audit.emit
+  - encryption.handle.read
+
+# No adds_permissions — identity plugins skip RBAC overlays.
+
+contributes:
+  routes: []
+  # No `menu:` block — identity providers are managed from the host's
+  # Settings > Security > Identity Providers page, which lists every
+  # registered ProviderType (built-in + plugin).
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "identity-entra-id"
+  # Form slots this plugin owns. The host's identity dialog looks up
+  # a plugin for each (resource, kind, key) slot and mounts the
+  # plugin's UMD bundle into the dialog. The bundle name is
+  # slug-derived (`<slug>.umd.cjs`), so no `frontend:` field is needed.
+  forms:
+    - resource: "identity_provider"
+      kind:     "config_form"
+      key:      "entra_id"
+    - resource: "identity_provider"
+      kind:     "setup_guide"
+      key:      "entra_id"
+
+signature: ""
+checksum:  ""

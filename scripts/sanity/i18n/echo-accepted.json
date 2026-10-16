@@ -1,0 +1,134 @@
+{
+  "access:effective.source.wildcard": {
+    "value": "wildcard",
+    "reason": "the permission source is literally the word wildcard"
+  },
+  "ai:aiAssistant.seed.kind.container": {
+    "value": "container",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.image": {
+    "value": "image",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.stack": {
+    "value": "stack",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.volume": {
+    "value": "volume",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.network": {
+    "value": "network",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.environment": {
+    "value": "environment",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.workflow": {
+    "value": "workflow",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.log": {
+    "value": "log",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "ai:aiAssistant.seed.kind.plugin": {
+    "value": "plugin",
+    "reason": "lowercase noun used mid-sentence"
+  },
+  "common:workflows.required": {
+    "value": "required",
+    "reason": "lowercase inline badge word"
+  },
+  "common:workflows.services": {
+    "value": "services",
+    "reason": "lowercase inline count noun"
+  },
+  "common:footer.cores": {
+    "value": "cores",
+    "reason": "lowercase unit after a number"
+  },
+  "common:labels.optional": {
+    "value": "optional",
+    "reason": "lowercase inline qualifier"
+  },
+  "containers:moveDialog.to": {
+    "value": "to",
+    "reason": "lowercase preposition between two names"
+  },
+  "environments:detail.cores": {
+    "value": "cores",
+    "reason": "lowercase unit after a number"
+  },
+  "plugins:confirm.impact.routes": {
+    "value": "routes",
+    "reason": "lowercase noun in an impact sentence"
+  },
+  "plugins:confirm.impact.tabs": {
+    "value": "tabs",
+    "reason": "lowercase noun in an impact sentence"
+  },
+  "plugins:confirm.impact.widgets": {
+    "value": "widgets",
+    "reason": "lowercase noun in an impact sentence"
+  },
+  "scim:field.email": {
+    "value": "email",
+    "reason": "the SCIM attribute name is literally email"
+  },
+  "security:apiKeys.usage.range.1h": {
+    "value": "1h",
+    "reason": "time-range button label is the machine token"
+  },
+  "security:apiKeys.usage.range.6h": {
+    "value": "6h",
+    "reason": "time-range button label is the machine token"
+  },
+  "security:apiKeys.usage.range.24h": {
+    "value": "24h",
+    "reason": "time-range button label is the machine token"
+  },
+  "security:apiKeys.usage.range.7d": {
+    "value": "7d",
+    "reason": "time-range button label is the machine token"
+  },
+  "security:apiKeys.usage.range.30d": {
+    "value": "30d",
+    "reason": "time-range button label is the machine token"
+  },
+  "security:apiKeys.usage.ms": {
+    "value": "ms",
+    "reason": "millisecond unit symbol"
+  },
+  "security:governance.simulator.allow": {
+    "value": "allow",
+    "reason": "lowercase decision verb rendered inline"
+  },
+  "security:governance.simulator.deny": {
+    "value": "deny",
+    "reason": "lowercase decision verb rendered inline"
+  },
+  "settings:general.seconds": {
+    "value": "seconds",
+    "reason": "lowercase unit after a number"
+  },
+  "settings:email.hostPlaceholder": {
+    "value": "smtp.example.com",
+    "reason": "example hostname placeholder"
+  },
+  "settings:about.agents.mode.binary": {
+    "value": "binary",
+    "reason": "lowercase inline agent mode"
+  },
+  "settings:about.agents.mode.container": {
+    "value": "container",
+    "reason": "lowercase inline agent mode"
+  },
+  "settings:themeTab.overridden": {
+    "value": "overridden",
+    "reason": "lowercase inline status word"
+  }
+}

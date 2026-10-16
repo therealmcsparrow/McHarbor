@@ -1,0 +1,31 @@
+{
+    "slug":  "terraform",
+    "name":  "Terraform",
+    "description":  "Declarative infrastructure-as-code tool for provisioning and managing cloud and on-prem resources.",
+    "category":  "Developer Tools",
+    "image":  "hashicorp/terraform:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/terraform.png",
+    "website":  "https://www.terraform.io",
+    "docsUrl":  "https://developer.hashicorp.com/terraform/install#docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/terraform/workspace",
+                        "container":  "/workspace"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

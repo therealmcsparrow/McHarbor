@@ -1,0 +1,35 @@
+{
+    "slug":  "jellyseerr-dev",
+    "name":  "Jellyseerr (Dev)",
+    "description":  "Dev channel build of Jellyseerr. Media request management for Jellyfin and Emby users.",
+    "category":  "Media",
+    "image":  "fallenbagel/jellyseerr:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyseerr.png",
+    "website":  "https://docs.jellyseerr.dev",
+    "docsUrl":  "https://docs.jellyseerr.dev",
+    "ports":  [
+                  {
+                      "host":  6055,
+                      "container":  5055,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jellyseerr-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

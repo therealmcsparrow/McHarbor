@@ -1,0 +1,58 @@
+{
+  "toast": {
+    "pruned": "Removidos"
+  },
+  "capacity": {
+    "title": "Previsão de capacidade",
+    "description": "Quando cada sistema de arquivos e destino de armazenamento fica sem espaço, na taxa atual.",
+    "window": "Projetado a partir dos últimos {{window}} dias em relação à linha de {{ceiling}}%. Um item precisa de {{required}} dias de histórico antes de qualquer data ser informada.",
+    "sentence": "{{subject}} chega a {{ceiling}}% em {{date}} na taxa atual — daqui a {{days}} dias.",
+    "evidence": "Agora em {{percent}}% ({{used}} de {{total}}), crescendo {{rate}}% ao dia. Confiança do ajuste R² {{r2}} ao longo de {{observed}} dias.",
+    "usedOfTotal": "Agora em {{percent}}% ({{used}} de {{total}}).",
+    "usedBadge": "{{percent}}% usado",
+    "loadFailed": "Não foi possível ler a previsão de capacidade.",
+    "denied": "Você precisa da permissão {{permission}} para ver a previsão de capacidade.",
+    "kind": {
+      "rootfs": "Sistema de arquivos do host",
+      "storageLocation": "Destino de armazenamento"
+    },
+    "refusal": {
+      "no_fit": "Histórico insuficiente ainda — uma projeção precisa de pelo menos duas amostras.",
+      "short_series": "Histórico insuficiente ainda — precisa de {{required}} dias, tem {{observed}}.",
+      "noisy": "O uso é variável demais para projetar uma data.",
+      "not_rising": "O uso não está crescendo, então não há data a informar.",
+      "already_over": "Já passou do limite — isto precisa de atenção agora, não de uma previsão.",
+      "beyond_horizon": "A mais de 30 dias de distância, mais longe do que esta previsão se arrisca a estimar."
+    },
+    "empty": {
+      "title": "Ainda sem histórico de capacidade",
+      "description": "A capacidade é amostrada uma vez por hora. Uma projeção precisa de uma semana disso, então volte em alguns dias."
+    },
+    "idle": {
+      "title": "Recursos ociosos",
+      "description": "Contêineres ociosos por mais de {{days}} dias. O Docker informa {{reclaimable}} recuperáveis agora.",
+      "descriptionPlain": "Contêineres que estão parados, ou em execução sem CPU e sem tráfego, há tempo suficiente para valer a pena recuperar.",
+      "loadFailed": "Não foi possível ler a lista de recursos ociosos.",
+      "days": "{{days}} dias",
+      "sizesUnavailable": "Os tamanhos da camada gravável não são coletados para este ambiente, então o que cada contêiner ocupa é desconhecido aqui.",
+      "columns": {
+        "container": "Contêiner",
+        "state": "Estado",
+        "forHowLong": "Ocioso há",
+        "holds": "Ocupa"
+      },
+      "reason": {
+        "stopped": "Parado",
+        "quiet": "Sem tráfego"
+      },
+      "sizeUnknown": {
+        "agent_environment": "Tamanho desconhecido — não coletado para ambientes com agente",
+        "not_sampled": "Tamanho desconhecido — nunca amostrado"
+      },
+      "empty": {
+        "title": "Nada ocioso",
+        "description": "Todos os contêineres deste ambiente foram executados recentemente."
+      }
+    }
+  }
+}

@@ -37,5 +37,9 @@
       "description": "Disable CGO for static binaries"
     }
   ],
-  "version": "1.23-alpine"
+  "version":  "1.23-alpine",
+  "latest":  {
+      "version":  "1.23-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

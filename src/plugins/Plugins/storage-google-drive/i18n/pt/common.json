@@ -1,0 +1,56 @@
+{
+  "page": {
+    "title": "Destinos de backup do Google Drive",
+    "subtitle": "Faça backup de contêineres em um local do Google Drive. O plugin trata o consentimento OAuth, o upload retomável (para que backups de qualquer tamanho sejam suportados), Download, Exclusão e Listagem no momento do backup pela Drive API v3.",
+    "registerHint": "Instale o plugin storage-google-drive pela App Store, depois adicione um destino na página Locais de armazenamento do host e escolha \"Google Drive\" como tipo."
+  },
+  "fields": {
+    "clientId":     "ID do cliente OAuth (console do Google Cloud)",
+    "clientSecret": "Segredo do cliente OAuth (console do Google Cloud)",
+    "refreshToken": "Refresh token (entregue pelo fluxo de consentimento OAuth)",
+    "folderId":     "ID da pasta do Drive (deixe vazio para usar a raiz do Meu Drive)"
+  },
+  "help": {
+    "clientId":     "Do console do Google Cloud → APIs & Services → Credentials. Crie um cliente OAuth do tipo \"Web application\" com o URI de redirecionamento definido como /api/storage-locations/oauth/callback do seu host McHarbor.",
+    "clientSecret": "Do mesmo cliente OAuth. Armazenado criptografado em repouso pelo serviço AES-256-GCM do host.",
+    "refreshToken": "Após salvar o destino, clique em \"Salvar e conectar\" para concluir o fluxo de consentimento do Google e armazenar um refresh token de longa duração.",
+    "folderId":     "Opcional. O final de uma URL de pasta do Drive após /folders/. Deixe vazio para enviar para a raiz do Meu Drive."
+  },
+  "toast": {
+    "registered": "Plugin do Google Drive registrado.",
+    "testPassed": "Teste de conexão do Google Drive concluído com sucesso.",
+    "testFailed": "O teste de conexão do Google Drive falhou: {{error}}"
+  },
+  "error": {
+    "noClientId":     "O ID do cliente OAuth é obrigatório.",
+    "noClientSecret": "O segredo do cliente OAuth é obrigatório.",
+    "noRefreshToken": "O refresh token é obrigatório. Execute \"Salvar e conectar\" primeiro."
+  },
+  "form": {
+    "introTitle": "Consentimento da conta do Google",
+    "introBody": "Salve este local e use Conectar para conceder o consentimento da conta. O McHarbor armazena o refresh token retornado criptografado.",
+    "clientId": {
+      "label": "ID do cliente OAuth",
+      "help": "Application (client) ID do console do Google Cloud → APIs & Services → Credentials. O cliente OAuth deve ser do tipo \"Web application\", com o URI de redirecionamento definido como /api/storage-locations/oauth/callback do seu host McHarbor."
+    },
+    "clientSecret": {
+      "label": "Segredo do cliente OAuth",
+      "help": "Client secret do mesmo cliente OAuth. Armazenado criptografado em repouso pelo serviço AES-256-GCM do host."
+    },
+    "basePath": {
+      "label": "ID da pasta do Drive",
+      "help": "Opcional. ID da pasta do Drive onde os backups serão gravados. Deixe em branco para usar a raiz do Drive. Em drive.google.com → abra a pasta → copie o ID da URL após /folders/."
+    }
+  },
+  "setup": {
+    "title": "Guia de configuração do Google Drive",
+    "steps": {
+      "enableApi": "No console do Google Cloud, abra <b>APIs & Services → Library</b>, pesquise <b>Google Drive API</b> e ative-a para o seu projeto.",
+      "createClient": "Abra <b>APIs & Services → Credentials → Create credentials → OAuth client ID</b>. Escolha <b>Web application</b> como tipo de aplicativo e adicione a URL <code>/api/storage-locations/oauth/callback</code> do seu host McHarbor aos URIs de redirecionamento autorizados.",
+      "copyCredentials": "Copie o <b>Client ID</b> e o <b>Client Secret</b> do cliente OAuth para o formulário à esquerda.",
+      "folderId": "Se quiser, informe um ID de pasta do Drive para fixar os uploads em uma pasta específica. Deixe em branco para usar a raiz do Meu Drive.",
+      "connect": "Clique em <b>Save and connect</b> (ou em <b>Connect</b> no cartão de armazenamento). O Google pedirá que você entre com a conta proprietária do Drive de destino e conceda o scope <code>drive.file</code>. O McHarbor armazena o refresh token retornado criptografado e <warn>nunca o mostra novamente</warn>.",
+      "test": "Clique em <b>Test connection</b> para gravar e ler um arquivo de teste na pasta resolvida."
+    }
+  }
+}

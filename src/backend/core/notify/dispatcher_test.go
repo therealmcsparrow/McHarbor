@@ -6,21 +6,25 @@ package notify
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"path/filepath"
 	"testing"
+	"time"
 
+	coredb "github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	_ "modernc.org/sqlite"
 )
 
 func TestDispatcherCapabilitiesUsesCanonicalTables(t *testing.T) {
 	db, enc := openDispatcherTestDB(t)
-	createDispatcherTables(t, db)
 
 	insertCommunicationChannel(t, db, "channel-1", "Slack", "slack", true, true)
-	insertCommunicationChannel(t, db, "channel-2", "Teams", "teams", true, false)
+	// Not the default: idx_comm_channels_default_unique allows exactly one, and
+	// Slack holds it. This row is here to prove a disabled channel contributes
+	// no capability, which its default flag has nothing to do with.
+	insertCommunicationChannel(t, db, "channel-2", "Teams", "teams", false, false)
 	insertCommunicationChannel(t, db, "channel-3", "Telegram", "telegram", false, true)
-	insertEmailServer(t, db, "email-1", "SMTP", true, true, "", "")
 
 	dispatcher := NewDispatcher(db, enc)
 
@@ -29,7 +33,10 @@ func TestDispatcherCapabilitiesUsesCanonicalTables(t *testing.T) {
 		t.Fatalf("Capabilities returned error: %v", err)
 	}
 
-	expected := []string{"email", "internal", "slack", "telegram"}
+	// "internal" is synthesised; every other capability is a channel row. Email
+	// used to be synthesised too, from a since-retired email_servers table, and
+	// is now an ordinary channel_type like any other.
+	expected := []string{"internal", "slack", "telegram"}
 	if len(capabilities) != len(expected) {
 		t.Fatalf("expected %d capabilities, got %d: %#v", len(expected), len(capabilities), capabilities)
 	}
@@ -40,44 +47,12 @@ func TestDispatcherCapabilitiesUsesCanonicalTables(t *testing.T) {
 	}
 }
 
-func TestResolveEmailTargetPrefersDefaultAndDecryptsSecrets(t *testing.T) {
-	db, enc := openDispatcherTestDB(t)
-	createDispatcherTables(t, db)
-
-	encryptedPassword, err := enc.Encrypt("smtp-password")
-	if err != nil {
-		t.Fatalf("Encrypt returned error: %v", err)
-	}
-
-	insertEmailServer(t, db, "email-1", "Default SMTP", true, true, encryptedPassword, "")
-	insertEmailServer(t, db, "email-2", "Backup SMTP", false, true, "", "")
-
-	dispatcher := NewDispatcher(db, enc)
-
-	target, err := dispatcher.resolveEmailTarget(context.Background(), "")
-	if err != nil {
-		t.Fatalf("resolveEmailTarget returned error: %v", err)
-	}
-
-	if target.ID != "email-1" {
-		t.Fatalf("expected default email server to be selected, got %q", target.ID)
-	}
-	if target.Password != "smtp-password" {
-		t.Fatalf("expected decrypted password, got %q", target.Password)
-	}
-}
-
 func TestResolveChannelTargetSupportsTypeOverrideAndDefaultFallback(t *testing.T) {
 	db, enc := openDispatcherTestDB(t)
-	createDispatcherTables(t, db)
-
-	encryptedWebhook, err := enc.Encrypt("https://hooks.slack.test")
-	if err != nil {
-		t.Fatalf("Encrypt returned error: %v", err)
-	}
 
 	insertCommunicationChannel(t, db, "channel-default", "Telegram", "telegram", true, true)
-	insertCommunicationChannelWithSecret(t, db, "channel-slack", "Slack", "slack", false, true, encryptedWebhook)
+	insertCommunicationChannelWithConfig(t, db, enc, "channel-slack", "Slack", "slack", false, true,
+		map[string]string{"webhook_url": "https://hooks.slack.test"})
 
 	dispatcher := NewDispatcher(db, enc)
 
@@ -111,7 +86,6 @@ func TestResolveChannelTargetSupportsTypeOverrideAndDefaultFallback(t *testing.T
 
 func TestSendChannelCreatesInternalNotification(t *testing.T) {
 	db, enc := openDispatcherTestDB(t)
-	createDispatcherTables(t, db)
 
 	dispatcher := NewDispatcher(db, enc)
 
@@ -148,15 +122,28 @@ func TestSendChannelCreatesInternalNotification(t *testing.T) {
 	}
 }
 
+// openDispatcherTestDB opens a database and runs the real migrations against it.
+//
+// The schema is deliberately not written out here. An earlier hand-written copy
+// fell two migrations behind the application's own — 072 replaced the per-channel
+// columns with a single config_enc blob, 115 added config_secret_id — and the
+// tests failed against a table shape that had not existed for months.
 func openDispatcherTestDB(t *testing.T) (*sql.DB, *encryption.Service) {
 	t.Helper()
 
 	dbPath := filepath.Join(t.TempDir(), "dispatcher-test.db")
-	db, err := sql.Open("sqlite", "file:"+dbPath+"?_foreign_keys=ON")
+	db, err := coredb.OpenSQLite(dbPath)
 	if err != nil {
-		t.Fatalf("sql.Open returned error: %v", err)
+		t.Fatalf("OpenSQLite returned error: %v", err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
+	if err := coredb.Migrate(db, coredb.DriverSQLite); err != nil {
+		t.Fatalf("migrating test database: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("closing test database: %v", err)
+		}
+	})
 
 	enc, err := encryption.New(t.TempDir(), "")
 	if err != nil {
@@ -166,94 +153,45 @@ func openDispatcherTestDB(t *testing.T) (*sql.DB, *encryption.Service) {
 	return db, enc
 }
 
-func createDispatcherTables(t *testing.T, db *sql.DB) {
-	t.Helper()
-
-	schema := `
-CREATE TABLE email_servers (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	server_type TEXT NOT NULL,
-	is_default INTEGER NOT NULL DEFAULT 0,
-	enabled INTEGER NOT NULL DEFAULT 1,
-	host TEXT,
-	port INTEGER,
-	encryption TEXT,
-	auth_method TEXT,
-	username TEXT,
-	password TEXT,
-	client_id TEXT,
-	client_secret TEXT,
-	tenant_id TEXT,
-	from_address TEXT NOT NULL,
-	from_name TEXT
-);
-CREATE TABLE communication_channels (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	channel_type TEXT NOT NULL,
-	method TEXT NOT NULL DEFAULT '',
-	is_default INTEGER NOT NULL DEFAULT 0,
-	enabled INTEGER NOT NULL DEFAULT 1,
-	webhook_url TEXT,
-	server_url TEXT,
-	token TEXT,
-	topic TEXT,
-	chat_id TEXT,
-	phone_number_id TEXT,
-	recipient_phone TEXT,
-	sender_number TEXT,
-	recipients TEXT,
-	username TEXT,
-	password TEXT,
-	priority TEXT
-);
-CREATE TABLE in_app_notifications (
-	id TEXT PRIMARY KEY,
-	level TEXT NOT NULL DEFAULT 'info',
-	title TEXT NOT NULL,
-	message TEXT NOT NULL,
-	action TEXT,
-	entity_type TEXT,
-	entity_id TEXT,
-	created_at TEXT NOT NULL,
-	updated_at TEXT NOT NULL
-);
-`
-	if _, err := db.Exec(schema); err != nil {
-		t.Fatalf("creating schema: %v", err)
-	}
-}
-
-func insertEmailServer(t *testing.T, db *sql.DB, id, name string, isDefault, enabled bool, password, clientSecret string) {
-	t.Helper()
-
-	if _, err := db.Exec(
-		`INSERT INTO email_servers (
-			id, name, server_type, is_default, enabled, host, port, encryption, auth_method,
-			username, password, client_id, client_secret, tenant_id, from_address, from_name
-		) VALUES (?, ?, 'smtp', ?, ?, 'smtp.example.com', 587, 'starttls', 'plain', 'mailer', ?, 'client-id', ?, 'tenant-id', 'noreply@example.com', 'McHarbor')`,
-		id, name, boolInt(isDefault), boolInt(enabled), password, clientSecret,
-	); err != nil {
-		t.Fatalf("inserting email server: %v", err)
-	}
-}
-
 func insertCommunicationChannel(t *testing.T, db *sql.DB, id, name, channelType string, isDefault, enabled bool) {
 	t.Helper()
 
-	insertCommunicationChannelWithSecret(t, db, id, name, channelType, isDefault, enabled, "")
+	insertChannelRow(t, db, id, name, channelType, isDefault, enabled, nil)
 }
 
-func insertCommunicationChannelWithSecret(t *testing.T, db *sql.DB, id, name, channelType string, isDefault, enabled bool, webhookURL string) {
+// insertCommunicationChannelWithConfig writes a channel whose settings live in
+// config_enc, encrypted exactly the way the communications module writes them —
+// a JSON map, then AES-256-GCM. Passing the ciphertext of a bare value instead
+// would exercise a shape the resolver never meets.
+func insertCommunicationChannelWithConfig(
+	t *testing.T, db *sql.DB, enc *encryption.Service,
+	id, name, channelType string, isDefault, enabled bool, config map[string]string,
+) {
 	t.Helper()
 
+	raw, err := json.Marshal(config)
+	if err != nil {
+		t.Fatalf("marshalling channel config: %v", err)
+	}
+	ciphertext, err := enc.Encrypt(string(raw))
+	if err != nil {
+		t.Fatalf("Encrypt returned error: %v", err)
+	}
+	insertChannelRow(t, db, id, name, channelType, isDefault, enabled, &ciphertext)
+}
+
+func insertChannelRow(
+	t *testing.T, db *sql.DB,
+	id, name, channelType string, isDefault, enabled bool, configEnc *string,
+) {
+	t.Helper()
+
+	now := time.Now().UTC().Format(time.RFC3339)
 	if _, err := db.Exec(
 		`INSERT INTO communication_channels (
-			id, name, channel_type, method, is_default, enabled, webhook_url, server_url, token, topic,
-			chat_id, phone_number_id, recipient_phone, sender_number, recipients, username, password, priority
-		) VALUES (?, ?, ?, '', ?, ?, ?, '', '', '', '', '', '', '', '', '', '', '')`,
-		id, name, channelType, boolInt(isDefault), boolInt(enabled), webhookURL,
+			id, name, channel_type, method, is_default, enabled, config_enc, created_at, updated_at
+		) VALUES (?, ?, ?, '', ?, ?, ?, ?, ?)`,
+		id, name, channelType, boolInt(isDefault), boolInt(enabled), configEnc, now, now,
 	); err != nil {
 		t.Fatalf("inserting communication channel: %v", err)
 	}

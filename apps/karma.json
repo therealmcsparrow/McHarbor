@@ -1,0 +1,40 @@
+{
+    "slug":  "karma",
+    "name":  "Karma",
+    "description":  "Dashboard for Prometheus Alertmanager that groups, filters, and silences alerts across multiple clusters.",
+    "category":  "Monitoring",
+    "image":  "ghcr.io/prymitive/karma:latest",
+    "logo":  "https://github.com/prymitive.png",
+    "website":  "https://github.com/prymitive/karma",
+    "docsUrl":  "https://github.com/prymitive/karma/blob/main/docs/CONFIGURATION.md",
+    "ports":  [
+                  {
+                      "host":  8100,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/karma/config",
+                        "container":  "/karma"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ALERTMANAGER_URI",
+                        "default":  "http://alertmanager:9093",
+                        "description":  "URL of the Alertmanager instance to display alerts from"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

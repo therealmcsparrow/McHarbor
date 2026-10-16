@@ -1,0 +1,35 @@
+{
+    "slug":  "tftpd-hpa",
+    "name":  "tftpd-hpa",
+    "description":  "TFTP server used to serve boot files and device firmware over the network.",
+    "category":  "Networking",
+    "image":  "pghalliday/tftp:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.kernel.org\u0026sz=128",
+    "website":  "https://www.kernel.org/pub/software/network/tftp/",
+    "docsUrl":  "https://www.kernel.org/pub/software/network/tftp/",
+    "ports":  [
+                  {
+                      "host":  690,
+                      "container":  69,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tftpd-hpa/tftpboot",
+                        "container":  "/var/tftpboot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

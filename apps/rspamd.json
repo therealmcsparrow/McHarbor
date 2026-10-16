@@ -1,0 +1,46 @@
+{
+    "slug":  "rspamd",
+    "name":  "Rspamd",
+    "description":  "Fast spam filtering daemon with a web interface, used alongside a mail server to score and reject spam.",
+    "category":  "Communications",
+    "image":  "rspamd/rspamd:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rspamd.png",
+    "website":  "https://rspamd.com",
+    "docsUrl":  "https://rspamd.com/doc/quickstart.html",
+    "ports":  [
+                  {
+                      "host":  8053,
+                      "container":  11334,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rspamd/config",
+                        "container":  "/etc/rspamd/local.d"
+                    },
+                    {
+                        "host":  "/opt/appdata/rspamd/data",
+                        "container":  "/var/lib/rspamd"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RSPAMD_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the Rspamd web controller",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,20 @@
+{
+  "label": "Lijst",
+  "description": "Toon containers, images, netwerken, volumes of stacks in een omgeving",
+  "config": {
+    "environment": "Omgeving",
+    "resource": "Resource",
+    "show_all": "Alles tonen",
+    "name_filter": "Naamfilter",
+    "filter_dangling": "Alleen dangling"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Netwerk",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

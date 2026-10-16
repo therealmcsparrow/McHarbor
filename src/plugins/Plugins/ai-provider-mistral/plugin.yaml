@@ -1,0 +1,31 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug: "ai-provider-mistral"
+name: "Mistral"
+version: "2026.10.01"
+author: "McSparrow <support@mcsparrow.eu>"
+license: "McHarbor"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Routes McHarbor AI chat completions through Mistral's OpenAI-compatible /v1/chat/completions endpoint. Models include Mistral Large, Mistral Medium, and Mixtral open-weights line."
+
+mcharbor: ">=2026.10.01"
+go: ">=1.23"
+
+permissions:
+  - ai.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+capabilities:
+  outbound_http: true
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+
+signature: ""
+checksum: ""

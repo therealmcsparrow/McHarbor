@@ -1,0 +1,167 @@
+{
+  "title": "Provisionnement SCIM",
+  "description": "Configurez des points de terminaison SCIM 2.0 pour le provisionnement par le fournisseur d’identité et consultez l’historique de synchronisation.",
+  "actions": {
+    "new": "Nouveau point de terminaison",
+    "syncNow": "Synchroniser maintenant",
+    "history": "Voir l’historique",
+    "edit": "Modifier le point de terminaison",
+    "delete": "Supprimer le point de terminaison",
+    "preview": "Prévisualiser et synchroniser",
+    "rotate": "Renouveler le jeton"
+  },
+  "table": {
+    "name": "Nom",
+    "baseUrl": "URL de base",
+    "schedule": "Planification",
+    "lastSync": "Dernière synchronisation",
+    "counts": "Objets",
+    "status": "Statut",
+    "actions": "Actions"
+  },
+  "counts": {
+    "users": "{{count}} utilisateur",
+    "users_other": "{{count}} utilisateurs",
+    "groups": "{{count}} groupe",
+    "groups_other": "{{count}} groupes"
+  },
+  "status": {
+    "enabled": "Activé",
+    "disabled": "Désactivé"
+  },
+  "syncStatus": {
+    "pending": "En attente",
+    "success": "Réussi",
+    "failed": "Échoué",
+    "running": "En cours"
+  },
+  "empty": {
+    "title": "Aucun point de terminaison SCIM",
+    "description": "Créez un point de terminaison SCIM pour émettre un jeton bearer et exposer les utilisateurs et groupes McHarbor aux fournisseurs d’identité compatibles."
+  },
+  "delete": {
+    "title": "Supprimer le point de terminaison SCIM ?",
+    "description": "Supprimer {{name}} et son historique de synchronisation ?",
+    "warning": "Les clients de provisionnement utilisant ce jeton cesseront immédiatement de fonctionner.",
+    "cancel": "Annuler",
+    "confirm": "Supprimer le point de terminaison"
+  },
+  "history": {
+    "title": "Historique de synchronisation de {{name}}",
+    "description": "Tentatives de synchronisation SCIM récentes et nombre d’objets.",
+    "empty": "Aucun historique de synchronisation pour l’instant.",
+    "close": "Fermer",
+    "errorTitle": "Erreur de synchronisation",
+    "dryRun": "Simulation",
+    "counts": "{{seen}} vus, {{linked}} liés, {{unmatched}} sans correspondance, {{updated}} mis à jour, {{disabled}} désactivés, {{skipped}} ignorés, {{groups}} groupes",
+    "notes": "Notes",
+    "trigger": {
+      "schedule": "Planifiée",
+      "manual": "Manuelle",
+      "preview": "Aperçu"
+    }
+  },
+  "editor": {
+    "titleCreate": "Créer un point de terminaison SCIM",
+    "titleEdit": "Modifier le point de terminaison SCIM",
+    "name": "Nom",
+    "namePlaceholder": "IdP d’entreprise",
+    "authType": "Authentification",
+    "authBearer": "Jeton bearer",
+    "authBasic": "Authentification basique",
+    "authNone": "Aucune authentification",
+    "baseUrl": "URL de base",
+    "baseUrlPlaceholder": "https://idp.example.com/scim/v2",
+    "token": "Jeton ou mot de passe",
+    "tokenStored": "Jeton enregistré",
+    "tokenMissing": "Aucun jeton enregistré",
+    "tokenKeep": "Laissez vide pour conserver le secret existant",
+    "tokenAutoGenerate": "Laissez vide pour générer automatiquement un jeton bearer",
+    "tokenHint": "Les secrets sont chiffrés au repos et ne sont jamais renvoyés après leur création.",
+    "username": "Nom d’utilisateur",
+    "usernamePlaceholder": "scim-service-account",
+    "pollSchedule": "Planification d’interrogation",
+    "pollScheduleHint": "Expression cron à cinq champs, par exemple */15 * * * *.",
+    "enabled": "Activé",
+    "cancel": "Annuler",
+    "save": "Enregistrer le point de terminaison",
+    "saving": "Enregistrement..."
+  },
+  "token": {
+    "title": "Copier le jeton bearer SCIM",
+    "description": "Ce jeton pour {{name}} n’est affiché qu’une seule fois.",
+    "warning": "Copiez ce jeton maintenant. McHarbor ne conserve qu’un secret chiffré et ne peut pas l’afficher à nouveau.",
+    "reveal": "Afficher le jeton",
+    "hide": "Masquer le jeton",
+    "copy": "Copier le jeton",
+    "copied": "Jeton copié",
+    "copyFailed": "Impossible de copier le jeton",
+    "copiedHint": "Copié dans le presse-papiers.",
+    "acknowledge": "J’ai copié le jeton"
+  },
+  "toast": {
+    "created": "Point de terminaison SCIM créé",
+    "updated": "Point de terminaison SCIM mis à jour",
+    "deleted": "Point de terminaison SCIM supprimé",
+    "syncQueued": "Synchronisation SCIM mise en file d’attente",
+    "tokenRotated": "Jeton renouvelé"
+  },
+  "preview": {
+    "title": "Aperçu de la synchronisation pour {{name}}",
+    "description": "Une simulation lit l'annuaire et le compare à McHarbor. Rien ne change tant que vous n'avez pas lancé la synchronisation.",
+    "loading": "Lecture de l'annuaire...",
+    "failed": "Impossible de lire l'annuaire",
+    "blockedTitle": "Cette synchronisation est bloquée",
+    "refresh": "Relancer l'aperçu",
+    "confirm": "Lancer la synchronisation maintenant",
+    "queuedNote": "La synchronisation s'exécute au prochain passage du poller, dans la minute, et relit l'annuaire ; elle applique donc ce que dit l'annuaire à ce moment-là.",
+    "noChanges": "Rien ne changerait.",
+    "more": "...et {{count}} de plus",
+    "groups": "{{count}} groupes lus, {{matched}} correspondent à un groupe McHarbor par leur nom. Les groupes sont uniquement signalés ; une synchronisation ne modifie pas l'appartenance aux groupes.",
+    "changes": "Modifications"
+  },
+  "blocked": {
+    "empty_directory": "L'annuaire n'a renvoyé aucun utilisateur alors que des comptes sont toujours liés. La synchronisation est bloquée pour ne pas désactiver tous les comptes d'un coup.",
+    "directory_too_large": "Il y a plus de comptes qu'une synchronisation ne peut en comparer en toute sécurité ; la synchronisation est donc bloquée."
+  },
+  "summary": {
+    "usersSeen": "Vus",
+    "linked": "Lier",
+    "unmatched": "Nouveaux, sans correspondance",
+    "updated": "Mettre à jour",
+    "disabled": "Désactiver",
+    "skipped": "Ignorés",
+    "unchanged": "Inchangés",
+    "pendingLink": "En attente d'un compte"
+  },
+  "action": {
+    "link": "Lier",
+    "unmatched": "Sans correspondance",
+    "update": "Mettre à jour",
+    "disable": "Désactiver",
+    "skip": "Ignorer"
+  },
+  "reason": {
+    "inactive": "inactif dans l'annuaire",
+    "removed": "n'est plus dans l'annuaire",
+    "protected_admin": "possède un rôle générique ; une synchronisation ne le désactive donc jamais",
+    "already_linked": "le compte est déjà lié à un autre utilisateur de l'annuaire",
+    "empty_directory": "l'annuaire n'a renvoyé aucun utilisateur"
+  },
+  "field": {
+    "email": "e-mail",
+    "displayName": "nom d'affichage",
+    "scimUserName": "nom d'utilisateur de l'annuaire",
+    "scimEmail": "e-mail de l'annuaire"
+  },
+  "change": {
+    "account": "compte {{username}}",
+    "noAccount": "aucun compte McHarbor, enregistré pour examen",
+    "fields": "modifie {{fields}}"
+  },
+  "rotate": {
+    "title": "Renouveler le jeton bearer de {{name}} ?",
+    "description": "Un nouveau jeton est généré et affiché une seule fois. Le jeton actuel cesse de fonctionner immédiatement ; mettez donc à jour tous les clients qui l'utilisent.",
+    "confirm": "Renouveler le jeton"
+  }
+}

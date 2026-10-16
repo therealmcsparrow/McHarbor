@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package backupcrypto encrypts and decrypts instance backup archives with a passphrase-derived key.
 package backupcrypto
 
 import (
@@ -20,6 +21,7 @@ import (
 )
 
 const (
+	// Algorithm is the envelope algorithm name recorded in backup metadata.
 	Algorithm = "AES-256-GCM-CHUNKED"
 
 	keyLength = 32

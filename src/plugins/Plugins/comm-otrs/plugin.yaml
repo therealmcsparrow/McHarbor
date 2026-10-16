@@ -1,0 +1,45 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-otrs"
+name:     "OTRS / Znuny / OTOBO"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "OTRS-family ITSM channel. Opens, updates and closes tickets in OTRS, Znuny or OTOBO through a GenericInterface REST web service and reads their state back."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.26"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_otrs"
+    scope:    "global"
+    category: "Communications"
+    label:    "Open tickets through OTRS, Znuny or OTOBO channels"
+    description: "Required to route alert, workflow or backup events to an OTRS-family ticket channel."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-otrs"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "otrs"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "otrs"
+
+signature: ""
+checksum:  ""

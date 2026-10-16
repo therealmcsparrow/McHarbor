@@ -1,0 +1,702 @@
+{
+  "operation": "Operation",
+  "envId": "EnvID",
+  "vmId": "VMID",
+  "spec": {
+    "name": "Name",
+    "uuid": "UUID",
+    "guestOsFamily": "GuestOSFamily",
+    "guestOsVariant": "GuestOSVariant",
+    "vcpus": 5,
+    "cpuModel": "CPUModel",
+    "cpuSockets": 10,
+    "cpuCores": 8,
+    "cpuThreads": 10,
+    "memoryMb": 8,
+    "memoryMaxMb": 11,
+    "vcpusMax": 8,
+    "virtioMem": true,
+    "hugePages": true,
+    "numaPolicy": "NUMAPolicy",
+    "numaHostNodes": [
+      13
+    ],
+    "vsockCid": 8,
+    "ioThread": true,
+    "shares": [
+      {
+        "shareId": "ShareID",
+        "tag": "Tag",
+        "hostPath": "HostPath",
+        "readOnly": true
+      }
+    ],
+    "machineType": "MachineType",
+    "firmware": "Firmware",
+    "secureBoot": true,
+    "tpmEnabled": true,
+    "displayType": "DisplayType",
+    "displayWidth": 12,
+    "displayHeight": 13,
+    "spiceOptions": {
+      "imageCompression": "ImageCompression",
+      "jpegWanCompression": "JPEGWANCompression",
+      "zlibGlzWanCompression": "ZlibGLZWANCompression",
+      "streamingVideo": "StreamingVideo",
+      "playbackCompression": "PlaybackCompression",
+      "agentMouse": "AgentMouse"
+    },
+    "disks": [
+      {
+        "diskId": "DiskID",
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "slot": 4,
+        "bus": "Bus",
+        "volumePath": "VolumePath",
+        "format": "Format",
+        "sizeBytes": 9,
+        "backingPath": "BackingPath",
+        "cacheMode": "CacheMode",
+        "discard": true,
+        "readonly": true,
+        "isBoot": true,
+        "isCdrom": true,
+        "bootIndex": 9,
+        "shareRw": true,
+        "readIops": 8,
+        "writeIops": 9,
+        "readBps": 7,
+        "writeBps": 8
+      }
+    ],
+    "nics": [
+      {
+        "nicId": "NICID",
+        "networkId": "NetworkID",
+        "bridge": "Bridge",
+        "vlanTag": 7,
+        "slot": 4,
+        "model": "Model",
+        "mac": "MAC",
+        "tapName": "TapName",
+        "pciAddr": "PCIAddr",
+        "attachKind": "AttachKind",
+        "parentLink": "ParentLink",
+        "linkMode": "LinkMode",
+        "linkDown": true
+      }
+    ],
+    "devices": [
+      {
+        "deviceId": "DeviceID",
+        "kind": "Kind",
+        "hostAddress": "HostAddress",
+        "description": "Description"
+      }
+    ],
+    "cloudInit": {
+      "instanceId": "InstanceID",
+      "hostname": "Hostname",
+      "fqdn": "FQDN",
+      "timezone": "Timezone",
+      "sshKeys": [
+        "SSHKeys"
+      ],
+      "defaultUser": "DefaultUser",
+      "passwordHash": "PasswordHash",
+      "networkMode": "NetworkMode",
+      "staticIp": "StaticIP",
+      "staticGateway": "StaticGateway",
+      "staticDns": [
+        "StaticDNS"
+      ],
+      "runCmd": [
+        "RunCmd"
+      ],
+      "userDataExtra": "UserDataExtra"
+    },
+    "isoPaths": [
+      "ISOPaths"
+    ],
+    "unitName": "UnitName",
+    "extraArgs": [
+      "ExtraArgs"
+    ]
+  },
+  "graceSeconds": 12,
+  "deleteVolumes": true,
+  "disk": {
+    "diskId": "DiskID",
+    "poolId": "PoolID",
+    "poolBackend": "PoolBackend",
+    "poolTarget": "PoolTarget",
+    "slot": 4,
+    "bus": "Bus",
+    "volumePath": "VolumePath",
+    "format": "Format",
+    "sizeBytes": 9,
+    "backingPath": "BackingPath",
+    "cacheMode": "CacheMode",
+    "discard": true,
+    "readonly": true,
+    "isBoot": true,
+    "isCdrom": true,
+    "bootIndex": 9,
+    "shareRw": true,
+    "readIops": 8,
+    "writeIops": 9,
+    "readBps": 7,
+    "writeBps": 8
+  },
+  "snapshotId": "SnapshotID",
+  "snapshotName": "SnapshotName",
+  "childSnapshot": "ChildSnapshot",
+  "withMemory": true,
+  "consistency": "Consistency",
+  "pauseGuest": true,
+  "clone": {
+    "targetVmId": "TargetVMID",
+    "linked": true,
+    "spec": {
+      "name": "Name",
+      "uuid": "UUID",
+      "guestOsFamily": "GuestOSFamily",
+      "guestOsVariant": "GuestOSVariant",
+      "vcpus": 5,
+      "cpuModel": "CPUModel",
+      "cpuSockets": 10,
+      "cpuCores": 8,
+      "cpuThreads": 10,
+      "memoryMb": 8,
+      "memoryMaxMb": 11,
+      "vcpusMax": 8,
+      "virtioMem": true,
+      "hugePages": true,
+      "numaPolicy": "NUMAPolicy",
+      "numaHostNodes": [
+        13
+      ],
+      "vsockCid": 8,
+      "ioThread": true,
+      "shares": [
+        {
+          "shareId": "ShareID",
+          "tag": "Tag",
+          "hostPath": "HostPath",
+          "readOnly": true
+        }
+      ],
+      "machineType": "MachineType",
+      "firmware": "Firmware",
+      "secureBoot": true,
+      "tpmEnabled": true,
+      "displayType": "DisplayType",
+      "displayWidth": 12,
+      "displayHeight": 13,
+      "spiceOptions": {
+        "imageCompression": "ImageCompression",
+        "jpegWanCompression": "JPEGWANCompression",
+        "zlibGlzWanCompression": "ZlibGLZWANCompression",
+        "streamingVideo": "StreamingVideo",
+        "playbackCompression": "PlaybackCompression",
+        "agentMouse": "AgentMouse"
+      },
+      "disks": [
+        {
+          "diskId": "DiskID",
+          "poolId": "PoolID",
+          "poolBackend": "PoolBackend",
+          "poolTarget": "PoolTarget",
+          "slot": 4,
+          "bus": "Bus",
+          "volumePath": "VolumePath",
+          "format": "Format",
+          "sizeBytes": 9,
+          "backingPath": "BackingPath",
+          "cacheMode": "CacheMode",
+          "discard": true,
+          "readonly": true,
+          "isBoot": true,
+          "isCdrom": true,
+          "bootIndex": 9,
+          "shareRw": true,
+          "readIops": 8,
+          "writeIops": 9,
+          "readBps": 7,
+          "writeBps": 8
+        }
+      ],
+      "nics": [
+        {
+          "nicId": "NICID",
+          "networkId": "NetworkID",
+          "bridge": "Bridge",
+          "vlanTag": 7,
+          "slot": 4,
+          "model": "Model",
+          "mac": "MAC",
+          "tapName": "TapName",
+          "pciAddr": "PCIAddr",
+          "attachKind": "AttachKind",
+          "parentLink": "ParentLink",
+          "linkMode": "LinkMode",
+          "linkDown": true
+        }
+      ],
+      "devices": [
+        {
+          "deviceId": "DeviceID",
+          "kind": "Kind",
+          "hostAddress": "HostAddress",
+          "description": "Description"
+        }
+      ],
+      "cloudInit": {
+        "instanceId": "InstanceID",
+        "hostname": "Hostname",
+        "fqdn": "FQDN",
+        "timezone": "Timezone",
+        "sshKeys": [
+          "SSHKeys"
+        ],
+        "defaultUser": "DefaultUser",
+        "passwordHash": "PasswordHash",
+        "networkMode": "NetworkMode",
+        "staticIp": "StaticIP",
+        "staticGateway": "StaticGateway",
+        "staticDns": [
+          "StaticDNS"
+        ],
+        "runCmd": [
+          "RunCmd"
+        ],
+        "userDataExtra": "UserDataExtra"
+      },
+      "isoPaths": [
+        "ISOPaths"
+      ],
+      "unitName": "UnitName",
+      "extraArgs": [
+        "ExtraArgs"
+      ]
+    }
+  },
+  "import": {
+    "importId": "ImportID",
+    "sourcePath": "SourcePath",
+    "sourceUrl": "SourceURL",
+    "sourceToken": "SourceToken",
+    "fileName": "FileName",
+    "poolId": "PoolID",
+    "poolBackend": "PoolBackend",
+    "poolTarget": "PoolTarget",
+    "vmId": "VMID",
+    "format": "Format"
+  },
+  "migrate": {
+    "targetHost": "TargetHost",
+    "targetPort": 10,
+    "live": true,
+    "sharedStorage": true,
+    "maxBandwidthMb": 14,
+    "maxDowntimeMs": 13,
+    "phase": "Phase",
+    "migrationId": "MigrationID",
+    "token": "Token",
+    "disks": [
+      {
+        "diskId": "DiskID",
+        "slot": 4,
+        "sourcePath": "SourcePath",
+        "format": "Format",
+        "sizeBytes": 9,
+        "poolId": "PoolID",
+        "poolBackend": "PoolBackend",
+        "poolTarget": "PoolTarget",
+        "url": "URL",
+        "token": "Token",
+        "volumePath": "VolumePath",
+        "targetFormat": "TargetFormat"
+      }
+    ],
+    "tls": {
+      "caCert": "CACert",
+      "cert": "Cert",
+      "key": "Key",
+      "serverName": "ServerName"
+    },
+    "nbdPort": 7,
+    "spice": true,
+    "hotplugLayout": true,
+    "listenAddrs": [
+      "ListenAddrs"
+    ],
+    "bytesMoved": 10
+  },
+  "guestQuery": "GuestQuery",
+  "guestFamily": "GuestFamily",
+  "devices": [
+    {
+      "deviceId": "DeviceID",
+      "kind": "Kind",
+      "hostAddress": "HostAddress",
+      "description": "Description"
+    }
+  ],
+  "targetMemoryMb": 14,
+  "targetVcpus": 11,
+  "imageOp": {
+    "operation": "Operation",
+    "path": "Path",
+    "comparePath": "ComparePath",
+    "repair": true,
+    "sizeBytes": 9,
+    "format": "Format"
+  },
+  "backup": {
+    "runId": "RunID",
+    "chainId": "ChainID",
+    "kind": "Kind",
+    "quiesce": true,
+    "disks": [
+      {
+        "diskId": "DiskID",
+        "volumePath": "VolumePath",
+        "nodeName": "NodeName",
+        "bitmapName": "BitmapName"
+      }
+    ],
+    "upload": {
+      "url": "URL",
+      "token": "Token"
+    },
+    "scratchDir": "ScratchDir"
+  },
+  "restore": {
+    "runId": "RunID",
+    "disks": [
+      {
+        "diskId": "DiskID",
+        "volumePath": "VolumePath"
+      }
+    ],
+    "scratchDir": "ScratchDir",
+    "artifacts": [
+      {
+        "diskId": "DiskID",
+        "kind": "Kind",
+        "url": "URL",
+        "token": "Token",
+        "sequence": 8,
+        "sizeBytes": 9
+      }
+    ]
+  },
+  "hotplug": {
+    "action": "Action",
+    "disk": {
+      "diskId": "DiskID",
+      "poolId": "PoolID",
+      "poolBackend": "PoolBackend",
+      "poolTarget": "PoolTarget",
+      "slot": 4,
+      "bus": "Bus",
+      "volumePath": "VolumePath",
+      "format": "Format",
+      "sizeBytes": 9,
+      "backingPath": "BackingPath",
+      "cacheMode": "CacheMode",
+      "discard": true,
+      "readonly": true,
+      "isBoot": true,
+      "isCdrom": true,
+      "bootIndex": 9,
+      "shareRw": true,
+      "readIops": 8,
+      "writeIops": 9,
+      "readBps": 7,
+      "writeBps": 8
+    },
+    "nic": {
+      "nicId": "NICID",
+      "networkId": "NetworkID",
+      "bridge": "Bridge",
+      "vlanTag": 7,
+      "slot": 4,
+      "model": "Model",
+      "mac": "MAC",
+      "tapName": "TapName",
+      "pciAddr": "PCIAddr",
+      "attachKind": "AttachKind",
+      "parentLink": "ParentLink",
+      "linkMode": "LinkMode",
+      "linkDown": true
+    },
+    "linkUp": true
+  },
+  "disks": [
+    {
+      "diskId": "DiskID",
+      "poolId": "PoolID",
+      "poolBackend": "PoolBackend",
+      "poolTarget": "PoolTarget",
+      "slot": 4,
+      "bus": "Bus",
+      "volumePath": "VolumePath",
+      "format": "Format",
+      "sizeBytes": 9,
+      "backingPath": "BackingPath",
+      "cacheMode": "CacheMode",
+      "discard": true,
+      "readonly": true,
+      "isBoot": true,
+      "isCdrom": true,
+      "bootIndex": 9,
+      "shareRw": true,
+      "readIops": 8,
+      "writeIops": 9,
+      "readBps": 7,
+      "writeBps": 8
+    }
+  ],
+  "states": [
+    {
+      "vmId": "VMID",
+      "state": "State",
+      "unitName": "UnitName",
+      "unitActive": "UnitActive",
+      "unitSub": "UnitSub",
+      "pid": 3,
+      "qmpReachable": true,
+      "startedAt": "2026-09-30T12:00:00Z",
+      "exitReason": "ExitReason",
+      "lastError": "LastError",
+      "runState": "RunState",
+      "blockJobs": [
+        {
+          "device": "Device",
+          "type": "Type",
+          "len": 3,
+          "offset": 6,
+          "status": "Status",
+          "error": "Error"
+        }
+      ]
+    }
+  ],
+  "state": {
+    "vmId": "VMID",
+    "state": "State",
+    "unitName": "UnitName",
+    "unitActive": "UnitActive",
+    "unitSub": "UnitSub",
+    "pid": 3,
+    "qmpReachable": true,
+    "startedAt": "2026-09-30T12:00:00Z",
+    "exitReason": "ExitReason",
+    "lastError": "LastError",
+    "runState": "RunState",
+    "blockJobs": [
+      {
+        "device": "Device",
+        "type": "Type",
+        "len": 3,
+        "offset": 6,
+        "status": "Status",
+        "error": "Error"
+      }
+    ]
+  },
+  "event": {
+    "vmId": "VMID",
+    "kind": "Kind",
+    "poolId": "PoolID",
+    "device": "Device",
+    "detail": {
+      "key": "Detail"
+    },
+    "timestamp": "Timestamp"
+  },
+  "stats": {
+    "vmId": "VMID",
+    "cpuPercent": 1.5,
+    "cpuUsageNsec": 12,
+    "memoryBytes": 11,
+    "memoryMaxBytes": 14,
+    "balloonBytes": 12,
+    "diskReadBytes": 13,
+    "diskWriteBytes": 14,
+    "netRxBytes": 10,
+    "netTxBytes": 10,
+    "sampledAt": "2026-09-30T12:00:00Z"
+  },
+  "guest": {
+    "vmId": "VMID",
+    "agentState": "AgentState",
+    "hostname": "Hostname",
+    "osId": "OSID",
+    "osName": "OSName",
+    "osVersion": "OSVersion",
+    "ips": [
+      "IPs"
+    ],
+    "frozen": true,
+    "filesystems": [
+      {
+        "mountpoint": "Mountpoint",
+        "type": "Type",
+        "usedBytes": 9,
+        "totalBytes": 10
+      }
+    ],
+    "load1": 1.5,
+    "load5": 1.5,
+    "load15": 1.5,
+    "clockSkewMs": 11,
+    "unsupported": [
+      "Unsupported"
+    ]
+  },
+  "qemuCapability": {
+    "binary": "Binary",
+    "arch": "Arch",
+    "version": "Version",
+    "machineTypes": [
+      "MachineTypes"
+    ],
+    "devices": [
+      "Devices"
+    ],
+    "cpuModels": [
+      "CPUModels"
+    ],
+    "qmpCommands": [
+      "QMPCommands"
+    ],
+    "features": {
+      "key": true
+    },
+    "hugePages": {
+      "total": 5,
+      "free": 4,
+      "sizeKb": 6,
+      "surplus": 7,
+      "reserved": 8
+    },
+    "numaNodes": [
+      {
+        "id": 2,
+        "cpus": [
+          4
+        ],
+        "memoryBytes": 11,
+        "freeBytes": 9
+      }
+    ]
+  },
+  "resize": {
+    "requestedMemoryMb": 17,
+    "actualMemoryMb": 14,
+    "blockSizeMb": 11,
+    "requestedVcpus": 14,
+    "actualVcpus": 11,
+    "complied": true
+  },
+  "imageInfo": {
+    "filled": true
+  },
+  "backupResult": [
+    {
+      "diskId": "DiskID",
+      "kind": "Kind",
+      "bytesWritten": 12,
+      "bitmapName": "BitmapName",
+      "bitmapPresent": true,
+      "fellBackToFull": true,
+      "fallbackReason": "FallbackReason",
+      "consistency": "Consistency",
+      "error": "Error"
+    }
+  ],
+  "backupStage": "BackupStage",
+  "backupBytes": 11,
+  "percent": 7,
+  "importResult": {
+    "importId": "ImportID",
+    "kind": "Kind",
+    "disks": [
+      {
+        "index": 5,
+        "sourceFile": "SourceFile",
+        "sourceFormat": "SourceFormat",
+        "virtualSize": 11,
+        "actualSize": 10,
+        "volumePath": "VolumePath"
+      }
+    ],
+    "stagedPath": "StagedPath",
+    "name": "Name",
+    "vcpus": 5,
+    "memoryMb": 8,
+    "firmware": "Firmware",
+    "guestOsFamily": "GuestOSFamily",
+    "guestOsVariant": "GuestOSVariant",
+    "nicCount": 8,
+    "warnings": [
+      "Warnings"
+    ]
+  },
+  "spiceTicket": {
+    "port": 4,
+    "password": "Password",
+    "addresses": [
+      "Addresses"
+    ],
+    "expiresAt": "2026-09-30T12:00:00Z"
+  },
+  "hostDevices": [
+    {
+      "kind": "Kind",
+      "address": "Address",
+      "description": "Description",
+      "vendor": "Vendor",
+      "product": "Product",
+      "driver": "Driver",
+      "class": "Class",
+      "iommuGroup": "IOMMUGroup",
+      "assignable": true,
+      "reason": "Reason"
+    }
+  ],
+  "volumes": [
+    {
+      "name": "Name",
+      "volumePath": "VolumePath",
+      "format": "Format",
+      "sizeBytes": 9,
+      "isBlock": true
+    }
+  ],
+  "logSource": "LogSource",
+  "logTail": 7,
+  "logLines": [
+    "LogLines"
+  ],
+  "logNotices": [
+    "LogNotices"
+  ],
+  "orphans": [
+    "Orphans"
+  ],
+  "mediaPath": "MediaPath",
+  "mediaLabel": "MediaLabel",
+  "nicAddrs": {
+    "key": "NICAddrs"
+  },
+  "success": true,
+  "error": "Error",
+  "errorCode": "ErrorCode",
+  "notice": "Notice"
+}

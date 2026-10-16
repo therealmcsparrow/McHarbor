@@ -1,0 +1,225 @@
+{
+  "loading": "Laden…",
+  "installed": {
+    "title": "Geïnstalleerde plugins",
+    "empty": "Nog geen plugins geïnstalleerd. De hello-world-plugin staat onder src/plugins/Plugins/hello-world/.",
+    "update_badge": "Update beschikbaar",
+    "update_to_version": "Bijwerken naar v{{version}}",
+    "update_action": "Bijwerken naar v{{version}}",
+    "update_action_short": "Bijwerken",
+    "empty_description": "Blader door de catalogustabbladen rechts om een plugin te installeren."
+  },
+  "status": {
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld",
+    "not_loaded": "Niet geladen"
+  },
+  "actions": {
+    "enable": "Inschakelen",
+    "disable": "Uitschakelen",
+    "uninstall": "Verwijderen",
+    "refresh": "Vernieuwen",
+    "retry": "Opnieuw proberen"
+  },
+  "confirm": {
+    "uninstall": "{{slug}} verwijderen? Dit doorloopt de zevenstapsketen en is onomkeerbaar.",
+    "uninstall_title": "{{name}} verwijderen?",
+    "uninstall_warning": "All saved data will be permanently lost. This includes configuration, plugin data tables, ABAC rules, the plugin's bundle files, and any widget or workflow-node instances. Dit kan niet ongedaan worden gemaakt en er is geen automatische back-up.",
+    "uninstall_button": "Verwijderen",
+    "preview_loading": "Impactoverzicht laden…",
+    "preview_error": "Kon het impactoverzicht niet laden. Het verwijderen gaat toch door.",
+    "impact_title": "Dit verwijdert:",
+    "impact_empty": "Geen bijdragen gevonden — het verwijderen wist alleen de bundelbestanden.",
+    "impact": {
+      "routes": "routes",
+      "menu": "menu-items",
+      "topbar": "topbar-items",
+      "context_menus": "contextmenu-items",
+      "tabs": "tabbladen",
+      "widgets": "widgets",
+      "nodes": "workflownodes",
+      "abac_rules": "ABAC-regels",
+      "data_tables": "plugin-datatabellen",
+      "config_keys": "configuratiesleutels",
+      "permissions_claimed": "Opgeëiste rechten",
+      "permissions_referenced": "Toegekend in rollen (toekenningen worden verwijderd)"
+    },
+    "data_loss_warning": "Deze plug-in bewaart eigen gegevens; verwijderen wist die definitief. Gebruik de export van de plug-in als die er is, voordat u doorgaat.",
+    "roles_strip_warning_one": "{{count}} rol geeft nog rechten van deze plugin: {{roles}}. Verwijderen haalt die rechten uit de rol.",
+    "roles_strip_warning_other": "{{count}} rollen geven nog rechten van deze plugin: {{roles}}. Verwijderen haalt die rechten uit de rollen.",
+    "purge_label": "Ook de opgeslagen gegevens van deze plugin wissen",
+    "purge_help": "Verwijdert de opgeslagen instellingen en geheimen van de plugin, en elke catalogusbron die is achtergebleven voor een categorie die geen andere plugin levert. Laat uitgevinkt om ze te behouden, zodat een herinstallatie de configuratie intact vindt."
+  },
+  "errors": {
+    "load_failed": "Kon de geïnstalleerde plugins niet laden.",
+    "not_loaded": "Plugin {{slug}} is nog niet geladen. Herstart McHarbor na installeren/inschakelen om hem te laden.",
+    "unknown_slug": "Plugin {{slug}} is niet geïnstalleerd.",
+    "bundle_load_failed": "Downloaden van de plugin-bundel is mislukt.",
+    "no_mount": "De bundel van plugin {{slug}} heeft geen mount-functie geregistreerd.",
+    "widget_load_failed": "Plugin {{slug}} kon zijn dashboardwidget {{widget}} niet laden.",
+    "bundle_failed": "Downloaden van de bundel van plugin {{slug}} is mislukt."
+  },
+  "store": {
+    "search": "Plugins zoeken…",
+    "count_one": "{{count}} plugin",
+    "count_other": "{{count}} plugins",
+    "empty": "Er zijn geen plugins beschikbaar in de catalogus.",
+    "no_results": "Geen plugins komen overeen met je zoekopdracht.",
+    "installing": "Installeren…",
+    "updating": "Bijwerken…",
+    "update_action": "Bijwerken naar v{{version}}",
+    "update_short": "Update v{{version}}",
+    "updateAvailable": "Bijwerken",
+    "updateAction": "Bijwerken",
+    "updateAllAction_one": "{{count}} plugin updaten",
+    "updateAllAction_other": "Alle {{count}} plugins updaten",
+    "updateAllDialogTitle": "Plugins bijwerken",
+    "updateAllDialogDescription": "Plugins worden één voor één bijgewerkt. Een plugin die mislukt wordt op zijn eigen rij gemarkeerd en de run gaat door met de volgende.",
+    "updateAllActionLabel": "Bijwerken",
+    "installedVersion": "geïnstalleerd: v{{version}}",
+    "not_installed": "Niet geïnstalleerd"
+  },
+  "iframe": {
+    "title": "Plugin-sandbox",
+    "bridge_unavailable": "De ingebedde plugin is offline. Herlaad de pagina om het opnieuw te proberen."
+  },
+  "catalog": {
+    "title": "Beschikbare plugins",
+    "installedOnly": "Alleen geïnstalleerd",
+    "count_one": "{{count}} beschikbaar",
+    "count_other": "{{count}} beschikbaar",
+    "empty": "Er zijn geen plugins beschikbaar in de catalogus. De catalogusmap is leeg of niet ingesteld — zet MCHARBOR_PLUGIN_CATALOG_DIR of koppel een map met *.json-plugin-items.",
+    "error": "Laden van de plugincatalogus is mislukt.",
+    "install": "Installeren",
+    "installed": "Geïnstalleerd",
+    "installed_badge": "Geïnstalleerd",
+    "install_action_label": "{{name}} installeren",
+    "no_description": "Geen beschrijving opgegeven.",
+    "no_homepage": "Geen startpagina",
+    "update_available_badge": "Bijwerken naar v{{version}}",
+    "update_action": "Bijwerken naar v{{version}}",
+    "update_action_label": "{{name}} bijwerken naar v{{version}}"
+  },
+  "toast": {
+    "enabled": "Plugin ingeschakeld",
+    "disabled": "Plugin uitgeschakeld",
+    "uninstalled": "Plugin verwijderd",
+    "installed": "Plugin geïnstalleerd",
+    "updated": "Plugin bijgewerkt",
+    "uninstall_failed": "Verwijderen van de plugin is mislukt",
+    "uninstalled_roles_stripped": "Plugin verwijderd. De rechten zijn weggehaald bij: {{roles}}"
+  },
+  "empty": {
+    "not_installed": {
+      "description": "{{purpose}}. De plugin wordt als apart pakket geleverd en moet worden geïnstalleerd.",
+      "title": "Plugin {{name}} is niet geïnstalleerd",
+      "body": "Deze pagina is een compatibiliteitslaag van de host. De volledige {{name}}-interface zit in de pluginbundel en is niet aanwezig in deze build. Installeer de plugin om de functie in te schakelen.",
+      "cta_browse": "AppStore doorbladeren",
+      "cta_status": "Pluginstatus"
+    },
+    "installed_redirect": {
+      "description": "{{purpose}}. De plugin-interface is gekoppeld onder /plugins/{{slug}}.",
+      "body": "Open de pluginpagina om {{name}} te gebruiken.",
+      "cta": "Plugin openen"
+    }
+  },
+  "install": {
+    "title": "{{name}} installeren",
+    "update_title": "{{name}} bijwerken",
+    "description": "De pluginbundel wordt gedownload, geverifieerd en geregistreerd. Dit venster sluit vanzelf zodra de bewerking klaar is.",
+    "starting": "Starten…",
+    "network_error": "Netwerkfout",
+    "connect_failed": "Verbinding mislukt",
+    "failure": "Bewerking mislukt",
+    "cancel": "Annuleren",
+    "done": "Klaar",
+    "close": "Sluiten",
+    "phases": {
+      "download": "Downloaden",
+      "verify": "Verifiëren",
+      "extract": "Uitpakken",
+      "migrate": "Migreren",
+      "persist": "Opslaan",
+      "starting": "Starten",
+      "done": "Klaar",
+      "error": "Fout",
+      "dependency": "Afhankelijkheden",
+      "uninstall": "Verwijderen"
+    }
+  },
+  "tabs": {
+    "updates_available": "Updates beschikbaar",
+    "installed": "Geïnstalleerd",
+    "extensions": "Extensies",
+    "ai": "AI-providers",
+    "communication": "Communicatieproviders",
+    "identity": "Identityproviders",
+    "storage": "Opslagproviders",
+    "snapshots": "Snapshot-providers",
+    "themes": "Thema's",
+    "updates": "Updates",
+    "all": "Alle",
+    "addons": "Add-ons",
+    "logging": "Auditlogdoorstuurders",
+    "scanners": "Kwetsbaarheidsscanners"
+  },
+  "updates": {
+    "empty": "Alle geïnstalleerde plugins zijn up-to-date.",
+    "banner_one": "{{count}} update beschikbaar",
+    "banner_other": "{{count}} updates beschikbaar"
+  },
+  "page": {
+    "title": "Plugins",
+    "subtitle": "Beheer geïnstalleerde plugins en blader per categorie door de catalogus."
+  },
+  "filters": {
+    "installed_only": "Alleen geïnstalleerd",
+    "updates_only": "Openstaande updates"
+  },
+  "categories": {
+    "ai": "AI-providers",
+    "communication": "Communicatie",
+    "identity": "Identiteit",
+    "storage": "Opslag",
+    "snapshots": "Snapshot-providers",
+    "other": "Overig",
+    "scanners": "Kwetsbaarheidsscanners"
+  },
+  "plugins": {
+    "catalog": {
+      "pickerHint": "Kies een versie om te installeren. De nieuwste is de standaard; kies een oudere release om vast te zetten of terug te gaan.",
+      "versionLabel": "Versie",
+      "latestLabel": "nieuwste",
+      "versionSelectorLabel": "Pluginversie"
+    }
+  },
+  "unsigned": {
+    "title": "Deze plugin is niet ondertekend",
+    "description": "McHarbor kon deze plugin niet verifiëren tegen een vertrouwde ondertekeningssleutel. Hij kan backendcode draaien, je Docker- en Kubernetes-omgevingen lezen en pagina's aan deze interface toevoegen. Installeer hem alleen als je de herkomst vertrouwt.",
+    "acknowledge": "Ik begrijp het risico en wil deze niet-ondertekende plugin installeren.",
+    "hostPrivileges": "{{name}} draait als native code binnen het McHarbor-proces, met dezelfde toegang tot deze host als McHarbor zelf.",
+    "serverUnverified": "De server kon deze release niet verifiëren aan de hand van een vertrouwde ondertekeningssleutel en installeert hem pas nadat je dit bevestigt.",
+    "installAnyway": "Niet-ondertekende plugin installeren",
+    "badge": "Niet ondertekend"
+  },
+  "signature": {
+    "signedTooltip": "Geverifieerd tegen een vertrouwde ondertekeningssleutel.",
+    "unsignedTooltip": "Geen geverifieerde handtekening van een vertrouwde sleutel. Installeren op eigen risico."
+  },
+  "repair": {
+    "needed": "Herstel nodig",
+    "explanation": "Gebouwd voor McHarbor {{builtFor}}, deze installatie is {{current}}.",
+    "action": "Herstellen",
+    "reconcile": "Afstemmen",
+    "reconcileHint": "Zet deze plugin vast op cataloguversie {{version}}. De host behoudt, verplaatst of herinstalleert deze zodat registratie, bestanden en binary overeenkomen; rolmachtigingen blijven behouden.",
+    "reconciled": "{{slug}} afgestemd op {{version}}: {{outcome}}.",
+    "reconciledKept": "al op deze versie",
+    "reconciledInstalled": "geïnstalleerd",
+    "reconciledUpdated": "verplaatst naar deze versie",
+    "failed": "Herstel mislukt"
+  },
+  "card": {
+    "createdBy": "Gemaakt door",
+    "readOnlyShort": "ro"
+  }
+}

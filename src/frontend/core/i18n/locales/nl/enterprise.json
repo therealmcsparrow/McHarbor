@@ -1,0 +1,461 @@
+{
+  "title": "Enterprise-overzicht",
+  "description": "Beoordeel de enterprisegereedheid op het gebied van identiteit, audit, back-up, plugins, opslag en HA-fundamenten.",
+  "actions": {
+    "open": "Openen"
+  },
+  "values": {
+    "ready": "Gereed",
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld"
+  },
+  "status": {
+    "success": "Geconfigureerd",
+    "warning": "Vraagt aandacht",
+    "secondary": "Bezig met controleren"
+  },
+  "sections": {
+    "surfaces": "Enterprise-onderdelen"
+  },
+  "cards": {
+    "ha": {
+      "title": "Hoge beschikbaarheid",
+      "description": "Databasemodus en status van de clustercoördinatie."
+    },
+    "identity": {
+      "title": "Identityproviders",
+      "description": "Geconfigureerde SSO/OIDC/SAML/LDAP-providers."
+    },
+    "scim": {
+      "title": "SCIM-provisioning",
+      "description": "Provisioning-endpoints en synchronisatiestatus."
+    },
+    "audit": {
+      "title": "Auditgebeurtenissen",
+      "description": "Doorzoekbaar spoor van bevoorrechte acties."
+    },
+    "auditExport": {
+      "title": "Ondertekende auditexport",
+      "description": "Gefilterde CSV/JSON-export met checksum-metadata."
+    },
+    "siem": {
+      "title": "Auditlog doorsturen",
+      "description": "Verstuur het auditspoor extern via een loggingplugin."
+    },
+    "backups": {
+      "title": "Back-upactiviteit",
+      "description": "Geschiedenis van back-up- en herstelbewerkingen."
+    },
+    "storage": {
+      "title": "Opslaglocaties",
+      "description": "Geconfigureerde back-up- en artefactbestemmingen."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Geladen bijdragen van de plugin-runtime."
+    },
+    "apiKeys": {
+      "title": "API-sleutels",
+      "description": "Automatiseringsgegevens met een beperkt bereik."
+    }
+  },
+  "links": {
+    "security": {
+      "title": "Beveiliging",
+      "description": "Gebruikers, rollen, TLS, identiteit en hardening."
+    },
+    "identity": {
+      "title": "Identityproviders",
+      "description": "Enterprise-loginproviders configureren en testen."
+    },
+    "scim": {
+      "title": "SCIM",
+      "description": "Gebruikers en groepen aanleveren vanuit externe directories."
+    },
+    "policies": {
+      "title": "Rollen en beleid",
+      "description": "Het gedrag van RBAC- en ABAC-beleid beoordelen."
+    },
+    "audit": {
+      "title": "Auditcentrum",
+      "description": "Bevoorrechte acties en weigeringen naspeuren."
+    },
+    "auditExport": {
+      "title": "Ondertekende auditexport",
+      "description": "Verifieerbaar auditbewijs downloaden."
+    },
+    "siem": {
+      "title": "Auditlog doorsturen",
+      "description": "Configureer het doorsturen van auditlogs en de bezorggeschiedenis."
+    },
+    "apiKeys": {
+      "title": "API-sleutels",
+      "description": "API-gegevens met een beperkt bereik beheren."
+    },
+    "backups": {
+      "title": "Back-ups",
+      "description": "Back-upruns en herstelgereedheid beoordelen."
+    },
+    "storage": {
+      "title": "Opslag",
+      "description": "Externe back-upbestemmingen beheren."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Enterprise-uitbreidingen installeren en inspecteren."
+    },
+    "ha": {
+      "title": "HA-fundamenten",
+      "description": "Huidige node, database en singleton-leiderschap."
+    },
+    "license": {
+      "title": "Licentie",
+      "description": "Licentietype, wat het dekt en hoeveel er in gebruik is."
+    }
+  },
+  "haWizard": {
+    "title": "HA-migratiewizard",
+    "description": "Wissel tussen singleton-SQLite en actief-actief HA met een checklist die de beheerder zelf afwerkt.",
+    "errorTitle": "Kon het HA-migratieplan niet laden",
+    "mode": {
+      "singleton": "Singleton",
+      "ha": "Hoge beschikbaarheid"
+    },
+    "summary": {
+      "database": "Database",
+      "node": "Node",
+      "target": "Aanbevolen doel"
+    },
+    "direction": {
+      "toHA": "Van singleton naar HA",
+      "toSingleton": "Van HA naar singleton"
+    },
+    "resources": {
+      "title": "Bronnen voor beheerders",
+      "composeTemplate": {
+        "title": "HA-compose-sjabloon",
+        "description": "Valideer of start het meegeleverde voorbeeld met twee PostgreSQL-HA-nodes voordat je het aanpast voor productie."
+      },
+      "envExample": {
+        "title": "Omgevingssjabloon",
+        "description": "Kopieer dit voorbeeldbestand naar ha.env en vul echte secrets, databasegegevens en node-specifieke waarden in."
+      },
+      "backupKey": {
+        "title": "Gedeelde back-upsleutel",
+        "description": "Genereer één back-upversleutelingssleutel en koppel hetzelfde bestand op elke McHarbor-node."
+      },
+      "documentation": {
+        "title": "Migratiedocumentatie",
+        "description": "Volg de volledige handleiding over gedeelde database, gedeeld archief, terugdraaien en productiehardening."
+      },
+      "postgresImport": {
+        "title": "PostgreSQL-importopdrachten",
+        "description": "Gebruik deze opdrachten als startpunt voor een proefimport en een terugdraaidump wanneer PostgreSQL de HA-database is."
+      },
+      "mysqlImport": {
+        "title": "MySQL/MariaDB-importopdrachten",
+        "description": "Gebruik deze opdrachten als startpunt voor een proefimport en een terugdraaidump wanneer MySQL of MariaDB de HA-database is."
+      }
+    },
+    "actions": {
+      "previous": "Vorige",
+      "next": "Volgende",
+      "copyCommand": "Opdracht kopiëren",
+      "copyValue": "Waarde kopiëren",
+      "copied": "Gekopieerd naar klembord",
+      "manualCopy": "Handmatig kopiëren"
+    },
+    "checkStatus": {
+      "pass": "Gereed",
+      "attention": "Vraagt aandacht"
+    },
+    "checks": {
+      "title": "Gereedheidscontroles",
+      "database": {
+        "title": "Externe database",
+        "detail": "Gebruik PostgreSQL, MySQL/MariaDB of SQL Server met MCHARBOR_DB_DSN op elke HA-node."
+      },
+      "nodeId": {
+        "title": "Stabiele node-ID",
+        "detail": "Stel MCHARBOR_NODE_ID per node in voor leesbare logs en clusterstatus."
+      },
+      "sharedSecret": {
+        "title": "Gedeeld sessiegeheim",
+        "detail": "Gebruik dezelfde MCHARBOR_SECRET op elke node zodat sessies een failover overleven."
+      },
+      "encryptionKey": {
+        "title": "Gedeelde versleutelingssleutel",
+        "detail": "Stel op elke node dezelfde ENCRYPTION_KEY in; een node waarvan de sleutel niet overeenkomt met de database weigert te starten."
+      },
+      "backupKey": {
+        "title": "Gedeelde back-upsleutel",
+        "detail": "Koppel hetzelfde back-upversleutelingsgeheim op elke node voordat je tussen nodes herstelt."
+      },
+      "databaseReachable": {
+        "title": "Database bereikbaar",
+        "detail": "De huidige database moet antwoorden voordat een migratie of terugdraaiing start."
+      }
+    },
+    "steps": {
+      "progress": "Stap {{current}} van {{total}}",
+      "prepare": {
+        "badge": "Plannen",
+        "title": "Gedeelde diensten voorbereiden",
+        "description": "Maak een PostgreSQL- of MySQL-database, kies een gedeeld archiefdoel, genereer stabiele secrets en valideer docker-compose.ha.yml voordat je de singleton-node stopt."
+      },
+      "snapshot": {
+        "badge": "Back-up",
+        "title": "Momentopname van de singleton",
+        "description": "Stop het schrijven, maak een back-up van de SQLite-database en bewaar de datamap voordat je gegevens exporteert."
+      },
+      "import": {
+        "badge": "Importeren",
+        "title": "Importeren in de gedeelde database",
+        "description": "Laad de SQLite-dump eerst in een proefdatabase in PostgreSQL of MySQL/MariaDB en laat McHarbor bij de eerste HA-start de openstaande migraties uitvoeren."
+      },
+      "configure": {
+        "badge": "Configureren",
+        "title": "Elke node configureren",
+        "description": "Stel MCHARBOR_DB_DRIVER, MCHARBOR_DB_DSN, MCHARBOR_NODE_ID, MCHARBOR_SECRET en de gedeelde back-upsleutel in op elke McHarbor-node."
+      },
+      "start": {
+        "badge": "Starten",
+        "title": "Starten achter de load balancer",
+        "description": "Start eerst één node, controleer of de clusterstatus gezond is en voeg daarna de overige nodes toe aan de load balancer."
+      },
+      "drain": {
+        "badge": "Aftappen",
+        "title": "HA-verkeer aftappen",
+        "description": "Haal alle nodes op één na uit de load balancer en pauzeer geplande schrijfacties tijdens het terugdraaivenster."
+      },
+      "export": {
+        "badge": "Exporteren",
+        "title": "De gedeelde database exporteren",
+        "description": "Dump de PostgreSQL- of MySQL/MariaDB-database en zet die terug om naar SQLite-compatibele SQL, of herstel de SQLite-momentopname van vóór HA als je geen HA-schrijfacties wilt behouden."
+      },
+      "restore": {
+        "badge": "Herstellen",
+        "title": "SQLite-gegevens herstellen",
+        "description": "Zet de herstelde SQLite-database onder DATA_DIR en houd het gedeelde archiefdoel gekoppeld als back-upbestanden buiten de node staan."
+      },
+      "singleNodeEnv": {
+        "badge": "Starten",
+        "title": "De omgeving terugzetten",
+        "description": "Verwijder MCHARBOR_DB_DRIVER en MCHARBOR_DB_DSN, houd MCHARBOR_SECRET stabiel en start daarna de singleton-node."
+      }
+    },
+    "gaps": {
+      "title": "Openstaande punten op de roadmap",
+      "agentRouting": {
+        "title": "Agents op meer dan één actieve node",
+        "description": "Een externe agent heeft één verbinding met één node. In active/active wordt elke Docker-aanroep en elke terminal-, console- en logsessie naar die node doorgestuurd. Een open sessie eindigt wanneer de agent opnieuw verbindt met een andere node en moet opnieuw worden geopend, en zelfupdate van de agent werkt alleen vanaf de node die de agent vasthoudt."
+      },
+      "mysqlRuntime": {
+        "title": "MySQL en MariaDB tijdens runtime",
+        "description": "PostgreSQL, MySQL 8.4 en MariaDB 11 draaien de hele applicatie; runtime-instructies worden op de driver vertaald. Een paar migratie-instructies die alleen voor SQLite gelden (gedeeltelijke unieke indexen, audit-WORM-triggers) hebben geen MySQL-equivalent en worden overgeslagen, dus PostgreSQL blijft de meest complete keuze."
+      }
+    }
+  },
+  "ha": {
+    "title": "Hoge beschikbaarheid",
+    "description": "Elke McHarbor-node, welke actief is, of elke gereed is voor verkeer, en de bediening om over te dragen of te legen.",
+    "singleNode": "Deze instantie draait op SQLite, dat niet tussen nodes kan worden gedeeld. Hoge beschikbaarheid vereist PostgreSQL, MySQL/MariaDB of SQL Server op elke node.",
+    "facts": {
+      "mode": "Modus",
+      "thisNode": "Deze node",
+      "database": "Database",
+      "readiness": "Gereedheid",
+      "pluginStore": "Pluginpakketten"
+    },
+    "mode": {
+      "peer": "Peers",
+      "active-passive": "Active/passive"
+    },
+    "role": {
+      "peer": "Peer",
+      "active": "Actief",
+      "standby": "Standby"
+    },
+    "state": {
+      "running": "Actief",
+      "draining": "Wordt geleegd",
+      "stopped": "Gestopt"
+    },
+    "check": {
+      "database": "Database antwoordt",
+      "coordinator": "Vergrendelingssessie leeft",
+      "accepting": "Wordt niet geleegd",
+      "serving": "Geen standby"
+    },
+    "reachable": "Bereikbaar",
+    "unreachable": "Onbereikbaar",
+    "ready": "Gereed",
+    "notReady": "Niet gereed",
+    "thisNode": "Deze node",
+    "notResponding": "Reageert niet",
+    "nodesTitle": "Nodes",
+    "searchPlaceholder": "Nodes, hosts, versies zoeken...",
+    "empty": "Er hebben nog geen nodes zich gemeld.",
+    "health": {
+      "up": "Online",
+      "degraded": "Gedegradeerd",
+      "down": "Offline"
+    },
+    "facet": {
+      "drift": "Versiedrift"
+    },
+    "filter": {
+      "allRoles": "Alle rollen"
+    },
+    "columns": {
+      "health": "Gezondheid",
+      "advertiseUrl": "Adverteer-URL",
+      "started": "Gestart",
+      "node": "Node",
+      "role": "Rol",
+      "state": "Status",
+      "heartbeat": "Laatste heartbeat",
+      "version": "Versie",
+      "agents": "Agents",
+      "actions": "Acties"
+    },
+    "actions": {
+      "makeActive": "Actief maken",
+      "drain": "Legen",
+      "resume": "Hervatten"
+    },
+    "confirm": {
+      "failover": {
+        "title": "{{node}} de actieve node maken?",
+        "description": "De actieve node geeft zijn vergrendeling en elke singleton-taak vrij, en {{node}} neemt binnen enkele seconden over. Gebruikers en agents verbinden opnieuw via de load balancer.",
+        "confirm": "Actief maken"
+      },
+      "drain": {
+        "title": "{{node}} legen?",
+        "description": "{{node}} meldt zich niet meer als gereed, dus de load balancer stuurt er geen nieuw verkeer naartoe. Een actieve node draagt eerst over.",
+        "confirm": "Legen"
+      },
+      "resume": {
+        "title": "{{node}} hervatten?",
+        "description": "{{node}} meldt zich weer als gereed en kan verkeer aannemen of actief worden.",
+        "confirm": "Hervatten"
+      }
+    },
+    "splitBrain": {
+      "title": "Meer dan één node claimt actief te zijn",
+      "description": "Nodes {{nodes}} melden beide de actieve rol. Failover en legen zijn uitgeschakeld totdat er nog maar één overblijft; controleer de databaseverbinding van elke node."
+    },
+    "jobsTitle": "Singleton-taken op deze node",
+    "jobsDescription": "Taken die precies één keer over alle nodes heen moeten draaien, en welke daarvan deze node momenteel uitvoert.",
+    "jobsNone": "Deze node voert er geen uit.",
+    "banner": {
+      "title": "Dit is een standby-node",
+      "description": "{{node}} is een standby: hij bedient leesverzoeken en wijzigingen worden geweigerd totdat hij actief wordt. Gebruik het adres van de load balancer om wijzigingen aan te brengen."
+    },
+    "pluginStore": {
+      "local": "Alleen deze node",
+      "database": "Gedeelde database",
+      "shared-fs": "Gedeeld bestandssysteem",
+      "object": "Opslaglocatie"
+    },
+    "pluginStoreLocal": "Pluginpakketten worden alleen op elke node zelf bewaard. Een standby kan geen plugin laden die is geïnstalleerd terwijl hij niet actief was; stel op elke node MCHARBOR_PLUGIN_STORE in op database, shared-fs:<path> of object:<storage location id>.",
+    "readiness": {
+      "title": "HA-gereedheid",
+      "description": "Controleert dit cluster tegen een doelmodus. Een falende poort blokkeert het doel; een waarschuwing niet.",
+      "targetLabel": "Doelmodus",
+      "target": {
+        "active-active": "Active/active",
+        "active-passive": "Active/passive"
+      },
+      "status": {
+        "pass": "Geslaagd",
+        "warn": "Waarschuwing",
+        "fail": "Mislukt"
+      },
+      "verdict": {
+        "ready": "Elke poort slaagt voor dit doel.",
+        "notReady": "Minstens één poort faalt voor dit doel."
+      },
+      "activeActiveDisabled": "Active/active blijft uitgeschakeld zolang een poort faalt. Herstel elke falende poort hieronder en stel dan MCHARBOR_HA_MODE=active-active in op elke node; waarschuwingen blokkeren het niet.",
+      "routing": {
+        "check": "Routering tussen nodes bewijzen",
+        "proven": "Een aanroep naar omgeving {{env}} is uitgevoerd door node {{node}}, dus doorsturen werkt vanaf hier.",
+        "failed": "De laatste aanroep tussen nodes is mislukt: {{error}}",
+        "unproven_one": "{{nodes}} node houdt agents vast die deze node niet heeft. Er is nog niets doorgestuurd.",
+        "unproven_other": "{{nodes}} nodes houden agents vast die deze node niet heeft. Er is nog niets doorgestuurd.",
+        "nothingToRoute": "Geen enkele agent wordt door een andere node vastgehouden, dus er is niets door te sturen en niets te bewijzen."
+      },
+      "gate": {
+        "externalDatabase": {
+          "title": "Gedeelde database",
+          "pass": "PostgreSQL, MySQL of MariaDB is geconfigureerd en antwoordt vanaf deze node.",
+          "fail": "SQLite kan niet worden gedeeld, of de gedeelde database antwoordt niet. Stel MCHARBOR_DB_DRIVER en MCHARBOR_DB_DSN in op elke node."
+        },
+        "encryptionKey": {
+          "title": "Dezelfde versleutelingssleutel op elke node",
+          "pass": "De sleutel komt uit ENCRYPTION_KEY en komt overeen met de sleutelcontrole die elke node bij het opstarten verifieert.",
+          "fail": "De sleutel wordt per node gegenereerd of komt niet overeen met de database. Stel op elke node dezelfde ENCRYPTION_KEY in."
+        },
+        "pluginStore": {
+          "title": "Gedeelde pluginpakketopslag",
+          "pass": "Elke node kan geïnstalleerde pluginpakketten ophalen.",
+          "fail": "Pluginpakketten staan alleen op de node die ze heeft geïnstalleerd. Stel MCHARBOR_PLUGIN_STORE in op een gedeelde opslag."
+        },
+        "sameVersion": {
+          "title": "Dezelfde versie en build",
+          "pass": "Elke live node draait dezelfde versie en build.",
+          "warn": "Het noderegister kon niet worden gelezen, dus versies zijn onbekend.",
+          "fail": "Live nodes draaien verschillende versies of builds. Upgrade elke node naar dezelfde image."
+        },
+        "agentRouting": {
+          "title": "Routering van externe agents",
+          "pass": "Elke agentaanroep bereikt de node die de agent vasthoudt. Met één actieve node verbindt elke agent opnieuw met die node; in active/active zijn zowel Docker-aanroepen als de sessierelay voor terminals, de gastconsole, hostlogs en agentberichten bewezen door een aanroep die terugkwam.",
+          "warn": "Docker API-aanroepen worden doorgestuurd naar de node die de agent vasthoudt, maar de sessierelay die terminal-exec, de hostterminal, de gastconsole, hostlogs en agentberichten draagt is vanaf deze node niet bewezen, of de laatste poging is mislukt. Voer de routeringscontrole uit; totdat die slaagt bereiken die sessies alleen die node.",
+          "fail": "Een agent die door een andere node wordt vastgehouden is vanaf hier niet bereikbaar: de sprong van node naar node is niet geconfigureerd, of de laatste echte aanroep is mislukt. Stel op elke node hetzelfde MCHARBOR_SECRET en een bereikbare MCHARBOR_ADVERTISE_URL in."
+        },
+        "nodeLinkTransport": {
+          "title": "Versleutelde node-naar-node-aanroepen",
+          "pass": "Ondertekende node-naar-node-aanroepen gaan nooit onversleuteld over het netwerk: er is slechts één node actief, of elke actieve node adverteert een https-adres.",
+          "warn": "Node-naar-node-aanroepen draaien op verzwakte TLS: MCHARBOR_NODE_LINK_ALLOW_HTTP=1 laat ze nodes bereiken die gewoon http adverteren, of MCHARBOR_NODE_LINK_SKIP_VERIFY=1 accepteert elk peercertificaat. Iedereen op het pad kan ze dan lezen en gestreamde requestbodies, agentantwoorden en doorgestuurde terminal-, console- en logsessies vervalsen, die alleen TLS beschermt. Pin in plaats daarvan de CA van de nodes met MCHARBOR_NODE_LINK_CA_FILE, of gebruik dit alleen op een privénetwerk dat je vertrouwt.",
+          "fail": "Node-naar-node-aanroepen worden geweigerd: sommige actieve nodes adverteren een adres dat geen https is, of MCHARBOR_NODE_LINK_CA_FILE op deze node kan niet worden geladen. Geef die nodes een https-MCHARBOR_ADVERTISE_URL (of zet MCHARBOR_NODE_LINK_ALLOW_HTTP=1 op elke node voor een vertrouwd privénetwerk), en laat MCHARBOR_NODE_LINK_CA_FILE naar een leesbaar PEM-certificaat wijzen of verwijder de instelling."
+        },
+        "sessions": {
+          "title": "Sessies",
+          "pass": "Sessies staan in de gedeelde database, dus sticky sessions zijn niet vereist."
+        },
+        "perNodeState": {
+          "title": "Consoletickets en ratelimieten",
+          "pass": "Eén node bedient, dus tickets en ratelimieten in het geheugen gedragen zich als op één node.",
+          "warn": "Consoletickets staan in de gedeelde database, dus elke node kan een ticket inwisselen dat een willekeurige node heeft uitgegeven. Ratelimiettellers en de limiet voor consoleviewers blijven bewust per node: de effectieve limiet is de geconfigureerde maal het aantal nodes.",
+          "fail": "De consoleticketstabel antwoordde niet vanaf deze node, dus een hier geopende console kon elders niet worden ingewisseld."
+        },
+        "coordinator": {
+          "title": "Coördinatorvergrendeling",
+          "pass": "De vergrendelingssessie die de actieve node en singleton-taken kiest antwoordt.",
+          "fail": "De vergrendelingssessie is niet beschikbaar. Er is een externe database voor nodig."
+        }
+      }
+    },
+    "startup": {
+      "title": "Opstartgezondheid",
+      "description": "Wat deze node aantrof toen hij startte ({{time}}).",
+      "haModeRefused": "MCHARBOR_HA_MODE=active-active is aangevraagd en geweigerd omdat de gereedheidspoorten falen; deze node draait active/passive.",
+      "database": "Database",
+      "dataDir": "Gegevensmap",
+      "writable": "Beschrijfbaar",
+      "notWritable": "Niet beschrijfbaar",
+      "free": "{{size}} vrij",
+      "keySource": "Versleutelingssleutel",
+      "key": {
+        "env": "Uit ENCRYPTION_KEY",
+        "file": "Gegenereerd in de gegevensmap"
+      },
+      "tls": "TLS",
+      "tlsMode": {
+        "off": "Uit",
+        "https": "HTTPS",
+        "https-only": "Alleen HTTPS"
+      }
+    }
+  }
+}

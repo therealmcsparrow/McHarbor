@@ -1,0 +1,314 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+---
+# Source: mcharbor/templates/pdb.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mcharbor
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mcharbor
+      app.kubernetes.io/instance: mcharbor
+---
+# Source: mcharbor/templates/serviceaccount.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcharbor
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+automountServiceAccountToken: false
+---
+# Source: mcharbor/templates/configmap.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcharbor
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+data:
+  PORT: "8705"
+  DATA_DIR: /app/data
+  PUID: "1000"
+  PGID: "1000"
+  LOG_LEVEL: "info"
+  LOG_JSON: "false"
+  TZ: "UTC"
+  TLS_ENABLED: "true"
+  TLS_MIN_VERSION: "1.3"
+  HTTP_REDIRECT_ADDR: ""
+  HSTS_MAX_AGE: "0"
+  FORCE_AGENT_TLS: "true"
+  ALLOWED_ORIGINS: "https://mcharbor.example.com"
+  MCHARBOR_TRUSTED_PROXY_CIDRS: ""
+  BACKUP_ENCRYPTION_KEY_FILE: /run/secrets/mcharbor_backup_key
+  MCHARBOR_DB_DRIVER: "postgres"
+  MCHARBOR_HA_MODE: active-passive
+  MCHARBOR_PLUGIN_STORE: "database"
+---
+# Source: mcharbor/templates/service.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcharbor
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  type: ClusterIP
+  publishNotReadyAddresses: false
+  selector:
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+  ports:
+    - name: https
+      port: 8705
+      targetPort: app
+      protocol: TCP
+      appProtocol: https
+---
+# Source: mcharbor/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcharbor-nodes
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+  ports:
+    - name: https
+      port: 8705
+      targetPort: app
+      protocol: TCP
+      appProtocol: https
+---
+# Source: mcharbor/templates/statefulset.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mcharbor
+  labels:
+    helm.sh/chart: mcharbor-0.1.0
+    app.kubernetes.io/name: mcharbor
+    app.kubernetes.io/instance: mcharbor
+    app.kubernetes.io/version: "2026.10.01"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  serviceName: mcharbor-nodes
+  replicas: 2
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: OnDelete
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mcharbor
+      app.kubernetes.io/instance: mcharbor
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: mcharbor-0.1.0
+        app.kubernetes.io/name: mcharbor
+        app.kubernetes.io/instance: mcharbor
+        app.kubernetes.io/version: "2026.10.01"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: server
+      annotations:
+        checksum/config: 79c365e4ada68235a04c455ec1e92b8c0173f132332420924d18ed16cd396708
+    spec:
+      serviceAccountName: mcharbor
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: mcharbor
+                    app.kubernetes.io/instance: mcharbor
+      containers:
+        - name: mcharbor
+          image: ghcr.io/therealmcsparrow/mcharbor:2026.10.01
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          ports:
+            - name: app
+              containerPort: 8705
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: mcharbor
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MCHARBOR_NODE_ID
+              value: $(POD_NAME)
+            - name: MCHARBOR_ADVERTISE_URL
+              value: "https://$(POD_NAME).mcharbor-nodes.$(POD_NAMESPACE).svc.cluster.local:8705"
+            - name: SELF_SIGNED_SAN_EXTRA
+              value: "$(POD_NAME).mcharbor-nodes.$(POD_NAMESPACE).svc.cluster.local,mcharbor.$(POD_NAMESPACE).svc,mcharbor.$(POD_NAMESPACE).svc.cluster.local"
+            - name: MCHARBOR_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mcharbor-secrets
+                  key: mcharbor-secret
+                  optional: false
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mcharbor-secrets
+                  key: encryption-key
+                  optional: false
+            - name: MCHARBOR_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: mcharbor-database
+                  key: dsn
+          startupProbe:
+            httpGet:
+              path: /api/livez
+              port: app
+              scheme: HTTPS
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/livez
+              port: app
+              scheme: HTTPS
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /api/readyz
+              port: app
+              scheme: HTTPS
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: 2
+            successThreshold: 1
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+            - name: backup-key
+              mountPath: /run/secrets
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: backup-key
+          secret:
+            secretName: mcharbor-secrets
+            defaultMode: 0440
+            optional: false
+            items:
+              - key: backup-key
+                path: mcharbor_backup_key
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: mcharbor
+          app.kubernetes.io/instance: mcharbor
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+---
+# Source: mcharbor/templates/ingress.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+---
+# Source: mcharbor/templates/pvc.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+---
+# Source: mcharbor/templates/secret.yaml
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.

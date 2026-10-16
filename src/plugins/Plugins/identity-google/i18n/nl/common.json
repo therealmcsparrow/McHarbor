@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Google",
+    "subtitle": "Federeer de McHarbor-login naar Google-accounts. Ondersteunt zowel persoonlijke Google-accounts als Google Workspace (stel het veld Workspace-domein in om te beperken tot één tenant via de OIDC-hint hd=). Het ophalen van beheerdersgroepen is beschikbaar voor Workspace-tenants via een serviceaccount met domeinbrede delegatie.",
+    "registerHint": "Voeg een provider toe via de pagina Instellingen > Beveiliging > Identiteitsproviders van de host en kies \"Google\" als provider_type."
+  },
+  "fields": {
+    "client_id":                     "Client-ID",
+    "client_secret":                 "Clientgeheim",
+    "domain":                        "Workspace-domein",
+    "scopes":                        "Scopes",
+    "service_account_json":          "Serviceaccount-JSON (beheerdersgroepen)",
+    "delegated_user_email":          "E-mailadres van gedelegeerde gebruiker",
+    "delegated_user_access_token":   "Toegangstoken van gedelegeerde gebruiker (overschrijven)",
+    "user_email_for_lookup":         "E-mailadres van gebruiker voor groepsopzoeking"
+  },
+  "help": {
+    "client_id":                     "OAuth 2.0-client-ID uit de Google Cloud-console (APIs & Services > Credentials > je OAuth-client van het type Web application).",
+    "client_secret":                 "OAuth-clientgeheim uitgegeven door Google. Versleuteld opgeslagen (AES-256-GCM).",
+    "domain":                        "Optioneel gehost Google Workspace-domein (bijv. example.com). Indien ingesteld geeft de plugin het door als queryparameter hd=, zodat alleen accounts van die Workspace zich kunnen aanmelden. Laat leeg om persoonlijke Google-accounts toe te staan.",
+    "scopes":                        "Door spaties gescheiden OAuth-scopes. Standaard openid profile email. Voeg https://www.googleapis.com/auth/admin.directory.group.readonly toe om het ophalen van beheerdersgroepen via de Directory API in te schakelen.",
+    "service_account_json":          "Optioneel: inhoud van een JSON-sleutelbestand van een Google-serviceaccount met domeinbrede delegatie. Vereist voor het ophalen van groepen via de Admin SDK. Versleuteld opgeslagen.",
+    "delegated_user_email":          "Optioneel: de Workspace-beheerder die het serviceaccount imiteert (bijv. admin@example.com). Vereist wanneer service_account_json is ingesteld.",
+    "delegated_user_access_token":   "Optioneel: handmatig uitgegeven Google-API-toegangstoken voor Admin SDK-aanroepen. Gebruik dit totdat v1.1 RS256-JWT-ondertekening voor serviceaccount-assertions levert.",
+    "user_email_for_lookup":         "Optioneel: e-mailadres van de gebruiker waarvoor groepen worden opgezocht. De meeste beheerders laten dit leeg en laten de host tijdens runtime het e-mailadres van de aangemelde gebruiker doorgeven."
+  },
+  "guide": {
+    "title":    "Google-aanmelding instellen in McHarbor",
+    "subtitle": "Maak een OAuth 2.0-webapplicatieclient aan in de Google Cloud-console en configureer daarna optioneel een serviceaccount voor het ophalen van groepen via de Admin SDK.",
+    "step1": {
+      "title": "Maak een Google Cloud-project aan of selecteer er een",
+      "body":  "Open de Google Cloud-console en kies een bestaand project of maak een nieuw project aan dat aan McHarbor is gewijd. Noteer de project-ID — je hebt hem nodig bij het configureren van het OAuth-toestemmingsscherm."
+    },
+    "step2": {
+      "title": "Configureer het OAuth-toestemmingsscherm",
+      "body":  "Stel onder APIs & Services > OAuth consent screen het gebruikerstype (Internal voor Google Workspace, anders External), het supportadres en de appnaam in. Voeg de scopes toe die je nodig hebt: openid, profile, email (altijd) en https://www.googleapis.com/auth/admin.directory.group.readonly (alleen als je groepen wilt ophalen)."
+    },
+    "step3": {
+      "title": "Maak een OAuth-webclient aan",
+      "body":  "Kies onder APIs & Services > Credentials > Create credentials > OAuth client ID als Application type: Web application. Voeg onder Authorized redirect URIs de McHarbor-callback-URL toe die op de bewerkpagina van de provider staat — de host voegt /api/identity-providers/callback toe aan je McHarbor-basis-URL. Kopieer de Client-ID en het clientgeheim die Google toont naar de bijbehorende velden op het providerformulier."
+    },
+    "step4": {
+      "title": "(Alleen Workspace) Stel het Workspace-domein in",
+      "body":  "Als je de aanmelding wilt beperken tot één Google Workspace-tenant, plak je het primaire domein van de tenant (bijv. example.com) in het veld Workspace-domein. De plugin geeft het door als queryparameter hd= aan de inlogpagina van Google. Laat het veld leeg om persoonlijke Google-accounts te accepteren."
+    },
+    "step5": {
+      "title": "Test de verbinding",
+      "body":  "Klik terug in McHarbor op \"Verbinding testen\" op het providerformulier. Een groen resultaat betekent dat het OIDC-discovery-document is opgelost en dat de OAuth-client zich succesvol heeft geauthenticeerd bij accounts.google.com — de configuratie is geldig."
+    },
+    "step6": {
+      "title": "(Alleen Workspace) Maak een serviceaccount aan voor de Admin SDK",
+      "body":  "Geef onder IAM & Admin > Service Accounts > Create service account een naam als \"mcharbor-admin-groups\" en geef het de rol Service Account User. Kies onder Keys > Add key > Create new key JSON en sla het bestand op — plak de volledige inhoud in het veld Serviceaccount-JSON op het providerformulier."
+    },
+    "step7": {
+      "title": "(Alleen Workspace) Schakel domeinbrede delegatie in",
+      "body":  "Voeg in de Google Workspace-beheerconsole (admin.google.com) onder Security > API controls > Domain-wide delegation de client_id van het serviceaccount en de scope https://www.googleapis.com/auth/admin.directory.group.readonly toe. Stel daarna het veld E-mailadres van gedelegeerde gebruiker op het providerformulier in op het e-mailadres van de Workspace-beheerder dat het serviceaccount zal imiteren (bijv. admin@example.com). Sla de provider op — McHarbor gebruikt de gedelegeerde identiteit om groepslidmaatschap op aanvraag op te halen."
+    }
+  }
+}

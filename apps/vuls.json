@@ -1,0 +1,39 @@
+{
+    "slug":  "vuls",
+    "name":  "Vuls",
+    "description":  "Agentless vulnerability scanner that audits Linux and network devices against known CVEs.",
+    "category":  "Security",
+    "image":  "vuls/vuls:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=vuls.io\u0026sz=128",
+    "website":  "https://vuls.io",
+    "docsUrl":  "https://vuls.io/docs/en/tutorial-docker.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vuls/config",
+                        "container":  "/vuls"
+                    },
+                    {
+                        "host":  "/opt/appdata/vuls/results",
+                        "container":  "/vuls/results"
+                    },
+                    {
+                        "host":  "/opt/appdata/vuls/log",
+                        "container":  "/var/log/vuls"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

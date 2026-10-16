@@ -1,0 +1,258 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+{{- $ha := include "mcharbor.ha" . }}
+{{- $scheme := include "mcharbor.scheme" . }}
+{{- $headless := include "mcharbor.headlessName" . }}
+{{- $secretsConfigured := include "mcharbor.secretsConfigured" . }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mcharbor.fullname" . }}
+  labels:
+    {{- include "mcharbor.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ $headless }}
+  replicas: {{ if $ha }}{{ .Values.replicaCount }}{{ else }}1{{ end }}
+  podManagementPolicy: Parallel
+  updateStrategy:
+    {{- if $ha }}
+    type: {{ .Values.ha.updateStrategy }}
+    {{- else }}
+    type: RollingUpdate
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mcharbor.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mcharbor.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if include "mcharbor.chartSecretWanted" . }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "mcharbor.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- if .Values.docker.socket.enabled }}
+        supplementalGroups:
+          - {{ .Values.docker.socket.groupId }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- else if and $ha (eq .Values.ha.antiAffinity "hard") }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  {{- include "mcharbor.selectorLabels" . | nindent 18 }}
+      {{- else if and $ha (eq .Values.ha.antiAffinity "soft") }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "mcharbor.selectorLabels" . | nindent 20 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mcharbor
+          image: {{ include "mcharbor.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: app
+              containerPort: 8705
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "mcharbor.fullname" . }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MCHARBOR_NODE_ID
+              value: $(POD_NAME)
+            - name: MCHARBOR_ADVERTISE_URL
+              value: {{ printf "%s://$(POD_NAME).%s.$(POD_NAMESPACE).svc.%s:8705" $scheme $headless .Values.clusterDomain | quote }}
+            - name: SELF_SIGNED_SAN_EXTRA
+              value: {{ printf "$(POD_NAME).%s.$(POD_NAMESPACE).svc.%s,%s.$(POD_NAMESPACE).svc,%s.$(POD_NAMESPACE).svc.%s%s" $headless .Values.clusterDomain (include "mcharbor.fullname" .) (include "mcharbor.fullname" .) .Values.clusterDomain (ternary (printf ",%s" .Values.config.selfSignedSANExtra) "" (ne .Values.config.selfSignedSANExtra "")) | quote }}
+            {{- if $secretsConfigured }}
+            - name: MCHARBOR_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mcharbor.secretName" . }}
+                  key: {{ .Values.secrets.keys.mcharborSecret }}
+                  optional: {{ not $ha }}
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mcharbor.secretName" . }}
+                  key: {{ .Values.secrets.keys.encryptionKey }}
+                  optional: {{ not $ha }}
+            {{- end }}
+            {{- if include "mcharbor.externalDB" . }}
+            - name: MCHARBOR_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingSecret }}
+                  key: {{ .Values.externalDatabase.dsnKey }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /api/livez
+              port: app
+              scheme: {{ upper $scheme }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /api/livez
+              port: app
+              scheme: {{ upper $scheme }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /api/readyz
+              port: app
+              scheme: {{ upper $scheme }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            successThreshold: {{ .Values.probes.readiness.successThreshold }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+            {{- if $secretsConfigured }}
+            - name: backup-key
+              mountPath: /run/secrets
+              readOnly: true
+            {{- end }}
+            {{- if .Values.backupVolume.enabled }}
+            - name: backup
+              mountPath: {{ .Values.backupVolume.mountPath }}
+            {{- end }}
+            {{- if .Values.extraCACerts.existingConfigMap }}
+            - name: extra-ca
+              mountPath: /etc/mcharbor/ca
+              readOnly: true
+            {{- end }}
+            {{- if .Values.docker.socket.enabled }}
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        {{- if $secretsConfigured }}
+        - name: backup-key
+          secret:
+            secretName: {{ include "mcharbor.secretName" . }}
+            defaultMode: 0440
+            optional: {{ not $ha }}
+            items:
+              - key: {{ .Values.secrets.keys.backupKey }}
+                path: mcharbor_backup_key
+        {{- end }}
+        {{- if .Values.backupVolume.enabled }}
+        - name: backup
+          persistentVolumeClaim:
+            claimName: {{ .Values.backupVolume.existingClaim | default (printf "%s-backup" (include "mcharbor.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.extraCACerts.existingConfigMap }}
+        - name: extra-ca
+          configMap:
+            name: {{ .Values.extraCACerts.existingConfigMap }}
+        {{- end }}
+        {{- if .Values.docker.socket.enabled }}
+        - name: docker-socket
+          hostPath:
+            path: {{ .Values.docker.socket.hostPath }}
+            type: Socket
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- if .Values.persistence.enabled }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "mcharbor.selectorLabels" . | nindent 10 }}
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        {{- with .Values.persistence.storageClass }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}

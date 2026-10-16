@@ -1,0 +1,32 @@
+{
+    "slug":  "kube-bench",
+    "name":  "kube-bench",
+    "description":  "Checks whether a Kubernetes cluster is deployed according to the CIS Kubernetes Benchmark recommendations.",
+    "category":  "Security",
+    "image":  "aquasec/kube-bench:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=aquasec.com\u0026sz=128",
+    "website":  "https://github.com/aquasecurity/kube-bench",
+    "docsUrl":  "https://github.com/aquasecurity/kube-bench#installation",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kube-bench/kubeconfig",
+                        "container":  "/root/.kube",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

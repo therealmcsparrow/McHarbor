@@ -1,11 +1,11 @@
 {
-  "label": "Send Email",
-  "description": "Send an email through a configured email server",
+  "label": "E-mail verzenden",
+  "description": "Verstuur een e-mail via een geconfigureerde e-mailserver",
   "config": {
     "server_id": "E-mailserver",
     "to": "Aan",
     "subject": "Onderwerp",
-    "body": "Body",
+    "body": "Inhoud",
     "delivery_mode": "Levering",
     "smtp_host": "SMTP-host",
     "smtp_port": "SMTP-poort",
@@ -18,16 +18,16 @@
   },
   "options": {
     "delivery_mode": {
-      "configured": "Configured Email Server",
-      "custom": "Other"
+      "configured": "Geconfigureerde e-mailserver",
+      "custom": "Overig"
     },
     "smtp_encryption": {
-      "none": "None",
+      "none": "Geen",
       "starttls": "STARTTLS",
       "ssl_tls": "SSL/TLS"
     },
     "smtp_auth_method": {
-      "none": "None",
+      "none": "Geen",
       "plain": "Plain",
       "login": "Login",
       "cram_md5": "CRAM-MD5"

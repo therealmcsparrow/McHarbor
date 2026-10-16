@@ -1,0 +1,19 @@
+{
+  "label": "KV-Speicher",
+  "description": "Wert im Workflow-Key-Value-Speicher lesen, schreiben oder löschen",
+  "config": {
+    "operation": "Vorgang",
+    "key": "Schlüssel",
+    "output_property": "Ausgabe-Eigenschaft",
+    "default_value": "Standardwert",
+    "property": "Eigenschaft",
+    "ttl": "TTL (Sekunden)"
+  },
+  "options": {
+    "operation": {
+      "get": "Lesen",
+      "set": "Schreiben",
+      "delete": "Löschen"
+    }
+  }
+}

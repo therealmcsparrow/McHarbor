@@ -38,5 +38,9 @@
       "description": "Default database name"
     }
   ],
-  "version": "14-alpine"
+  "version":  "14-alpine",
+  "latest":  {
+      "version":  "14-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

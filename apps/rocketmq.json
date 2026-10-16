@@ -4,7 +4,7 @@
   "description": "Low-latency, high-throughput distributed message queue for transactional and streaming workloads.",
   "category": "Databases",
   "image": "apache/rocketmq:latest",
-  "logo": "https://rocketmq.apache.org/img/rmq-logo.svg",
+  "logo": "https://cdn.simpleicons.org/apacherocketmq",
   "website": "https://rocketmq.apache.org",
   "docsUrl": "https://rocketmq.apache.org/docs/quickStart/02quickstartWithDocker",
   "ports": [
@@ -46,5 +46,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

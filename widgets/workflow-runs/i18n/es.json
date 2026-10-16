@@ -11,6 +11,9 @@
     "status": "Estado",
     "duration": "Duración",
     "when": "Cuando",
-    "noRuns": "Aún no se ejecuta ningún flujo de trabajo"
+    "noRuns": "Aún no se ejecuta ningún flujo de trabajo",
+    "successRate": "{{percent}}% con éxito",
+    "more": "{{count}} más",
+    "viewAll": "Todos los flujos"
   }
 }

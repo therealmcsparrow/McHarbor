@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Display name for this Slack communication channel." },
+    "webhook_url": { "help": "Slack incoming webhook URL. Stored encrypted at rest." }
+  },
+  "title": "Slack notification delivery",
+  "subtitle": "Plugin-owned",
+  "description": "This plugin owns the Slack. It stores the Slack webhook URL on the channel itself and dispatches notifications through the plugin runtime.",
+  "nameLabel": "Channel name",
+  "namePlaceholder": "Operations Slack",
+  "webhookUrlLabel": "Webhook URL",
+  "securityTitle": "Security",
+  "securityHelp": "Encrypted webhook URL",
+  "securityDescription": "The webhook URL is stored encrypted at rest. Create a dedicated incoming webhook for McHarbor so it can be rotated independently.",
+  "testTitle": "Test connection",
+  "testHelp": "Sends message",
+  "testDescription": "The host test action posts a real message to the configured Slack channel. Use a private test channel first if the webhook targets an on-call room.",
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "requiredField": "Required",
+  "setupGuideTitle": "Slack communication channel setup guide",
+  "guide": {
+    "step1": { "body": "Open the target Slack workspace and create or choose the channel that should receive McHarbor notifications." },
+    "step2": { "body": "Create a Slack app, enable <b>Incoming Webhooks</b>, add a webhook to the target channel, and copy the webhook URL." },
+    "step3": { "body": "Paste the webhook URL into this channel configuration. McHarbor stores it encrypted at rest and redacts it from API responses." },
+    "step4": { "body": "Save the channel and click <b>Test connection</b>. The plugin posts a real test message to Slack through the same path used for live workflow, alert, and backup events." },
+    "step5": { "body": "If Test fails, verify the app still has incoming webhooks enabled, the webhook was not revoked, and the target channel still exists." }
+  }
+}

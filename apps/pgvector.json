@@ -4,7 +4,7 @@
     "description":  "PostgreSQL with the pgvector extension for storing and searching vector embeddings.",
     "category":  "Databases",
     "image":  "pgvector/pgvector:pg16",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/pgvector/pgvector",
     "docsUrl":  "https://github.com/pgvector/pgvector#readme",
     "ports":  [
@@ -38,5 +38,9 @@
                         "description":  "Default database name"
                     }
                 ],
-    "version":  "pg16"
+    "version":  "pg16",
+    "latest":  {
+        "version":  "pg16",
+        "release_date":  "2026-09-10"
+    }
 }

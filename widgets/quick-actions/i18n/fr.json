@@ -11,6 +11,12 @@
     "pruneImagesDesc": "Supprimez toutes les images inutilisées. Cela ne peut pas être annulé.",
     "pruneVolumes": "Tailler les volumes",
     "pruneVolumesDesc": "Supprimez tous les volumes inutilisés. Cela ne peut pas être annulé.",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "pruneContainers": "Nettoyer les conteneurs",
+    "pruneContainersDesc": "Supprime tous les conteneurs arrêtés. Irréversible.",
+    "checkUpdates": "Vérifier les mises à jour",
+    "checkUpdatesDesc": "Rechercher des images plus récentes",
+    "liveLogs": "Journaux en direct",
+    "liveLogsDesc": "Ouvrir le flux de journaux"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "updateQueue": {
+      "label": "Updatewachtrij",
+      "description": "Containers met een beschikbare image-update, en de actie om ze te bekijken"
+    }
+  },
+  "updateQueueWidget": {
+    "title": "Updatewachtrij",
+    "checkNow": "Controleer op updates",
+    "checkAgain": "Opnieuw controleren",
+    "notChecked": "Er is nog geen updatecontrole uitgevoerd",
+    "upToDate": "Alles is up-to-date",
+    "reviewAll": "{{count}} update bekijken",
+    "reviewAll_other": "{{count}} updates bekijken",
+    "more": "{{count}} meer"
+  }
+}

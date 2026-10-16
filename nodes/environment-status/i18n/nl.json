@@ -1,7 +1,0 @@
-{
-  "label": "Omgevingsstatus",
-  "description": "Controleer bereikbaarheid en daemon-metadata van een Docker-omgeving",
-  "config": {
-    "environment": "Omgeving"
-  }
-}

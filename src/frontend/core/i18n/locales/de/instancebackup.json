@@ -1,0 +1,266 @@
+{
+  "panel": {
+    "title": "Instanz-Backup",
+    "intro": "Eine verschlüsselte Datei mit allem, was diese Instanz ausmacht: Rollen und Richtlinien, Umgebungen und ihre Agent-Tokens, Workflows, Zeitpläne, der Secrets-Tresor, Plugin-Einstellungen und die Zertifizierungsstelle, der Ihre Agents vertrauen.",
+    "twoBackups": "Dies ist kein Container-Backup. Container-Daten werden separat unter Speicher gesichert; Sie benötigen beides.",
+    "keyWarning": "Der Schlüssel wird nie gespeichert. Bewahren Sie ihn an einem anderen Ort als diesem Host auf: Ein Export, dessen einziger Schlüssel auf dem gesicherten Rechner liegt, lässt sich nach dessen Verlust nicht wiederherstellen.",
+    "create": "Export erstellen"
+  },
+  "destinations": {
+    "uploading": "Wird kopiert",
+    "success": "Kopiert",
+    "failure": "Nicht kopiert",
+    "errorTitle": "Warum das Kopieren fehlgeschlagen ist",
+    "hostOnly": "Nur dieser Host"
+  },
+  "table": {
+    "copies": "Kopien",
+    "created": "Erstellt",
+    "status": "Status",
+    "size": "Größe",
+    "key": "Schlüssel",
+    "createdBy": "Erstellt von",
+    "note": "Notiz",
+    "actions": "Aktionen",
+    "verified": "Verifiziert",
+    "trigger": "Auslöser",
+    "fileName": "Dateiname",
+    "search": "Exporte suchen..."
+  },
+  "trigger": {
+    "all": "Beliebiger Auslöser",
+    "manual": "Manuell",
+    "schedule": "Zeitplan"
+  },
+  "status": {
+    "running": "Läuft",
+    "completed": "Abgeschlossen",
+    "failed": "Fehlgeschlagen",
+    "title": "Letzte Wiederherstellung",
+    "by": "von {{actor}}, {{date}}",
+    "errorTitle": "Warum die Wiederherstellung gestoppt wurde",
+    "restarting": "McHarbor startet neu, um die wiederhergestellten Schlüssel und Daten zu laden. Diese Seite verbindet sich automatisch neu.",
+    "reconciling": "Die Plugins des Exports werden in den aufgezeichneten Versionen neu installiert.",
+    "result": "{{rows}} Zeilen in {{tables}} Tabellen wiederhergestellt.",
+    "anchor": "Der Audit-Verlauf wurde wiederhergestellt; die Kette wird über einen Wiederherstellungsanker fortgesetzt.",
+    "pluginErrorTitle": "Warum {{slug}} nicht neu installiert wurde",
+    "pluginsFailed_one": "{{count}} Plugin konnte nicht neu installiert werden. Installieren Sie es aus dem Plugin Store.",
+    "pluginsFailed_other": "{{count}} Plugins konnten nicht neu installiert werden. Installieren Sie sie aus dem Plugin Store."
+  },
+  "keyKind": {
+    "passphrase": "Passphrase",
+    "keyfile": "Schlüsseldatei"
+  },
+  "progress": "{{done}} von {{total}} Zeilen",
+  "errorTitle": "Warum der Export fehlgeschlagen ist",
+  "actions": {
+    "download": "Herunterladen",
+    "delete": "Löschen",
+    "restore": "Wiederherstellen",
+    "verify": "Verifizieren"
+  },
+  "empty": {
+    "title": "Noch keine Exporte",
+    "description": "Erstellen Sie den ersten Export und bewahren Sie ihn samt Schlüssel getrennt von diesem Host auf."
+  },
+  "create": {
+    "title": "Instanz-Export erstellen",
+    "description": "Der Export wird als Ganzes verschlüsselt. Wählen Sie, wie er gesperrt wird; zum Wiederherstellen benötigen Sie dieselbe Passphrase oder Schlüsseldatei.",
+    "keyKind": "Sperren mit",
+    "passphraseOption": "Einer Passphrase",
+    "keyFileOption": "Einer generierten Schlüsseldatei",
+    "passphrase": "Passphrase",
+    "passphraseHint": "Mindestens 12 Zeichen. Sie wird mit Argon2id gedehnt und nie gespeichert.",
+    "confirm": "Passphrase wiederholen",
+    "mismatch": "Die Passphrasen stimmen nicht überein.",
+    "generate": "Schlüsseldatei generieren",
+    "saveKeyFile": "Schlüsseldatei speichern",
+    "keyFileReady": "Eine Schlüsseldatei wurde generiert. Speichern Sie sie jetzt: Sie wird nur einmal angezeigt und kann nicht wiederhergestellt werden.",
+    "keyFileSaved": "Ich habe die Schlüsseldatei an einem anderen Ort als diesem Host gespeichert",
+    "metrics": "Metrikverlauf einschließen",
+    "metricsHelp": "Standardmäßig aus: Metriken werden von selbst neu erzeugt und machen meist den Großteil der Exportgröße aus.",
+    "note": "Notiz",
+    "notePlaceholder": "Zum Beispiel: vor dem Upgrade auf das nächste Release",
+    "submit": "Export erstellen"
+  },
+  "reasons": {
+    "key_required": "Geben Sie eine Passphrase ein oder generieren Sie eine Schlüsseldatei.",
+    "key_both": "Verwenden Sie entweder eine Passphrase oder eine Schlüsseldatei, nicht beides.",
+    "passphrase_too_short": "Die Passphrase muss mindestens 12 Zeichen lang sein.",
+    "key_file_invalid": "Das ist keine McHarbor-Instanz-Schlüsseldatei.",
+    "note_too_long": "Die Notiz darf höchstens 500 Zeichen lang sein.",
+    "busy": "Ein Export läuft bereits. Warten Sie, bis er abgeschlossen ist."
+  },
+  "download": {
+    "title": "Instanz-Export herunterladen",
+    "description": "Diese Datei enthält jedes Secret der Instanz. Bestätigen Sie vor dem Herunterladen, dass Sie es sind.",
+    "password": "Ihr Passwort",
+    "totp": "Authenticator-Code",
+    "totpHint": "Verwenden Sie den Code aus Ihrer Authenticator-App, falls Ihr Konto eine hat.",
+    "submit": "Bestätigen und herunterladen",
+    "warning": "Bewahren Sie die Datei verschlüsselt und getrennt von diesem Host auf. Wer die Datei und ihren Schlüssel besitzt, besitzt diese Instanz."
+  },
+  "delete": {
+    "title": "Diesen Export löschen?",
+    "description": "Die Datei {{name}} wird von diesem Host entfernt. Heruntergeladene Kopien sind davon nicht betroffen.",
+    "confirm": "Export löschen"
+  },
+  "restoreState": {
+    "running": "Wird wiederhergestellt",
+    "restarting": "Neustart",
+    "reconciling": "Plugins werden neu installiert",
+    "done": "Wiederhergestellt",
+    "failed": "Fehlgeschlagen"
+  },
+  "pluginAction": {
+    "kept": "Bereits installiert",
+    "installed": "Installiert",
+    "updated": "In der aufgezeichneten Version neu installiert",
+    "failed": "Fehlgeschlagen"
+  },
+  "categories": {
+    "access": "Benutzer, Rollen und Richtlinien",
+    "environments": "Umgebungen und Registries",
+    "automation": "Workflows, Zeitpläne und Alarme",
+    "stacks": "Stacks",
+    "secrets": "Secrets-Tresor",
+    "settings": "Einstellungen und Integrationen",
+    "plugins": "Plugin-Einstellungen und -Daten",
+    "audit": "Audit-Verlauf",
+    "other": "Alles andere"
+  },
+  "restore": {
+    "open": "Wiederherstellen",
+    "title": "Instanz-Export wiederherstellen",
+    "description": "Wählen Sie den Export und seinen Schlüssel. Die gesamte Datei wird geprüft, bevor etwas geändert wird.",
+    "planDescription": "Das ändert die Wiederherstellung. Es wurde noch nichts geschrieben.",
+    "source": "Export",
+    "uploadOption": "Export-Datei hochladen",
+    "file": "Export-Datei (.mchx)",
+    "keyKind": "Entsperren mit",
+    "keyFile": "Schlüsseldatei",
+    "mode": "Was wiederhergestellt werden soll",
+    "modes": {
+      "full": {
+        "label": "Alles (Disaster Recovery)",
+        "description": "Ersetzt diese Instanz durch den Export: Daten, Schlüssel, Zertifizierungsstelle und Dateien."
+      },
+      "migration": {
+        "label": "Alles, auf neue Hardware oder eine andere Datenbank",
+        "description": "Wie eine vollständige Wiederherstellung, zum Umziehen einer Instanz."
+      },
+      "selective": {
+        "label": "Nur einige Kategorien",
+        "description": "Stellen Sie zum Beispiel gelöschte Workflows oder einen beschädigten Rollensatz wieder her und lassen Sie den Rest unberührt."
+      }
+    },
+    "conflict": "Bereits vorhandene Zeilen",
+    "conflicts": {
+      "replace": "Die gesamte Kategorie durch die des Exports ersetzen",
+      "keep": "Behalten und nur Fehlendes hinzufügen"
+    },
+    "includeAudit": "Auch Audit-Verlauf wiederherstellen",
+    "includeAuditHelp": "Ersetzt das Audit-Log durch das des Exports. Die Kette wird über einen Wiederherstellungsanker fortgesetzt, der festhält, was ersetzt wurde.",
+    "auditApproval": "Für das Wiederherstellen des Audit-Verlaufs wird instance_backup.restore_audit über eine genehmigte Berechtigungserhöhung benötigt, und zwar zum Zeitpunkt der Wiederherstellung.",
+    "check": "Export prüfen",
+    "submit": "Jetzt wiederherstellen",
+    "reasons": {
+      "key_required": "Geben Sie die Passphrase ein oder wählen Sie die Schlüsseldatei.",
+      "key_both": "Verwenden Sie entweder eine Passphrase oder eine Schlüsseldatei, nicht beides.",
+      "wrong_key": "Diese Passphrase oder Schlüsseldatei öffnet diesen Export nicht.",
+      "unreadable": "Der Export kann nicht gelesen werden.",
+      "not_export": "Diese Datei ist kein McHarbor-Instanzexport.",
+      "format": "Dieser Export wurde mit einer neueren McHarbor-Version erstellt und kann hier nicht gelesen werden. Führen Sie zuerst ein Upgrade durch und stellen Sie ihn dann wieder her.",
+      "incomplete": "Der Export ist unvollständig: Er endet, bevor alles enthalten ist, was er auflistet. Kopieren Sie ihn erneut von der Quelle.",
+      "damaged": "Der Export ist beschädigt oder wurde nach seiner Erstellung verändert.",
+      "key_kind": "Dieser Export wurde mit der anderen Art von Geheimnis versiegelt. Verwenden Sie stattdessen die zugehörige Passphrase oder Schlüsseldatei.",
+      "bad_key_file": "Diese Schlüsseldatei ist keine lesbare McHarbor-Instanzschlüsseldatei.",
+      "no_categories": "Wählen Sie mindestens eine Kategorie.",
+      "bad_category": "Diese Kategorie existiert nicht.",
+      "bad_conflict": "Wählen Sie, wie bereits vorhandene Zeilen behandelt werden.",
+      "bad_mode": "Wählen Sie, was wiederhergestellt werden soll.",
+      "approval_required": "Für das Wiederherstellen des Audit-Verlaufs ist eine genehmigte Erhöhung für instance_backup.restore_audit erforderlich. Beantragen Sie eine unter Sicherheit und versuchen Sie es erneut.",
+      "busy": "Eine Wiederherstellung läuft bereits."
+    }
+  },
+  "plan": {
+    "from": "Export von {{host}}, McHarbor {{version}} auf {{backend}}, erstellt am {{date}} von {{user}}.",
+    "category": "Kategorie",
+    "restored": "Wiederhergestellt",
+    "now": "Zeilen aktuell",
+    "fromExport": "Zeilen im Export",
+    "yes": "Wiederhergestellt",
+    "no": "Unverändert",
+    "restoresKeys": "Der Verschlüsselungsschlüssel der Instanz wird durch den des Exports ersetzt.",
+    "restoresSecret": "Das Audit-Signaturgeheimnis wird durch das des Exports ersetzt.",
+    "restoresFiles": "Zertifizierungsstelle, Stack-Dateien und benutzerdefinierte Nodes werden ersetzt; Remote-Agents vertrauen weiterhin der wiederhergestellten Zertifizierungsstelle.",
+    "plugins_one": "{{count}} Plugin wird nach dem Neustart in der aufgezeichneten Version neu installiert.",
+    "plugins_other": "{{count}} Plugins werden nach dem Neustart in den aufgezeichneten Versionen neu installiert.",
+    "restart": "McHarbor startet neu, sobald die Wiederherstellung geschrieben ist.",
+    "confirm": "Geben Sie {{word}} zur Bestätigung ein",
+    "refusals": {
+      "newer_schema": "Dieser Export stammt von einem neueren McHarbor. Aktualisieren Sie zuerst diese Instanz.",
+      "key_pinned": "ENCRYPTION_KEY ist in der Umgebung dieses Servers gesetzt, daher kann der Schlüssel des Exports ihn nicht ersetzen. Entfernen Sie ihn oder setzen Sie ihn auf den Schlüssel des Exports und starten Sie dann neu.",
+      "secret_pinned": "MCHARBOR_SECRET ist in der Umgebung dieses Servers gesetzt, daher kann das Audit-Geheimnis des Exports es nicht ersetzen.",
+      "nothing_selected": "Es würde nichts wiederhergestellt. Wählen Sie mindestens eine Kategorie.",
+      "bad_mode": "Wählen Sie, was wiederhergestellt werden soll.",
+      "postgres_cascade": "Unter PostgreSQL ohne Superuser-Rechte würde ein selektives Ersetzen auf andere Kategorien durchschlagen. Wählen Sie stattdessen, vorhandene Zeilen zu behalten."
+    },
+    "warnings": {
+      "different_key": "Dieser Export wurde auf einer Instanz mit einem anderen Schlüssel erstellt. Verschlüsselte Werte werden beim Wiederherstellen in den Schlüssel dieser Instanz umgewandelt.",
+      "metrics_excluded": "Der Metrikverlauf ist nicht in diesem Export enthalten und beginnt leer von vorn.",
+      "sessions_end": "Alle werden abgemeldet."
+    }
+  },
+  "verify": {
+    "title": "Diesen Export verifizieren",
+    "description": "Der Export wird in eine temporäre Datenbank wiederhergestellt und geprüft: jede Tabelle anhand ihres Manifests sowie die Audit-Kette. Diese Instanz bleibt unberührt.",
+    "submit": "Verifizieren",
+    "running": "Wird verifiziert",
+    "passed": "Bestanden",
+    "failed": "Fehlgeschlagen",
+    "errorTitle": "Warum die Verifizierung fehlgeschlagen ist"
+  },
+  "schedules": {
+    "title": "Zeitpläne",
+    "add": "Zeitplan hinzufügen",
+    "empty": "Keine geplanten Exporte. Ein nur von Hand erstellter Export entsteht zu selten.",
+    "name": "Name",
+    "when": "Wann",
+    "next": "Nächster Lauf",
+    "last": "Letzter Lauf",
+    "disabled": "Aus",
+    "search": "Zeitpläne suchen...",
+    "facets": {
+      "failing": "Letzter Lauf fehlgeschlagen"
+    },
+    "runNow": "Jetzt ausführen",
+    "edit": "Zeitplan bearbeiten",
+    "errorTitle": "Warum der letzte Lauf fehlgeschlagen ist",
+    "deleteTitle": "Diesen Zeitplan löschen?",
+    "deleteDescription": "{{name}} wird nicht mehr ausgeführt. Bereits erstellte Exporte bleiben erhalten.",
+    "deleteConfirm": "Zeitplan löschen",
+    "createTitle": "Instanz-Exporte planen",
+    "editTitle": "Export-Zeitplan bearbeiten",
+    "dialogDescription": "Exporte laufen unbeaufsichtigt, daher wird ihr Schlüssel verschlüsselt auf dieser Instanz gespeichert. Bewahren Sie denselben Schlüssel zusätzlich an anderer Stelle auf, sonst lassen sich die Exporte nach einem Verlust dieses Hosts nicht wiederherstellen.",
+    "key": "Exporte sperren mit",
+    "replaceKey": "Schlüssel ersetzen (leer lassen, um ihn zu behalten)",
+    "keyHint": "Eine Passphrase mit mindestens 12 Zeichen oder eine von Ihnen generierte Schlüsseldatei.",
+    "location": "Zusätzlich kopieren nach",
+    "hostOnly": "Nur auf diesem Host behalten",
+    "keepCount": "So viele behalten",
+    "keepDays": "Tage behalten (0 = unbegrenzt)",
+    "verifyAfter": "Nach jedem Export eine Wiederherstellung proben",
+    "enabled": "Aktiviert",
+    "reasons": {
+      "bad_name": "Geben Sie dem Zeitplan einen Namen mit höchstens 100 Zeichen.",
+      "bad_cron": "Dieser Zeitplan ist ungültig.",
+      "bad_retention": "Behalten Sie zwischen 0 und 1000 Exporte, für höchstens 3650 Tage.",
+      "no_retention": "Legen Sie fest, wie viele Exporte oder für wie viele Tage sie behalten werden.",
+      "key_required": "Geben Sie eine Passphrase ein oder wählen Sie eine Schlüsseldatei.",
+      "key_both": "Verwenden Sie entweder eine Passphrase oder eine Schlüsseldatei, nicht beides.",
+      "passphrase_too_short": "Die Passphrase muss mindestens 12 Zeichen lang sein.",
+      "key_file_invalid": "Das ist keine McHarbor-Instanz-Schlüsseldatei."
+    }
+  }
+}

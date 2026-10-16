@@ -1,0 +1,31 @@
+{
+  "label": "Disparador de contenedor",
+  "description": "Iniciar un flujo cuando un contenedor cambia de estado o salud",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "watch": "Observar",
+    "status": "Estado del evento",
+    "health": "Estado de salud"
+  },
+  "options": {
+    "watch": {
+      "status": "Cambios de estado",
+      "health": "Cambios de salud"
+    },
+    "status": {
+      "any": "Cualquier",
+      "start": "Comenzar",
+      "stop": "Detener",
+      "die": "Morir",
+      "health_status": "Estado de salud"
+    },
+    "health": {
+      "any": "Cualquiera",
+      "healthy": "Saludable",
+      "unhealthy": "No saludable",
+      "starting": "Iniciando",
+      "none": "Sin healthcheck"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "slug": "storage-onedrive-business",
+  "name": "OneDrive for Business",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "OneDrive for Business backup destination. Tenant-scoped Microsoft Graph API (/users/{upn}/drive). OAuth refresh-token flow + chunked upload session. Install storage-sharepoint-online separately for SharePoint document libraries.",
+  "category": "Storage destinations",
+  "icon": "IconBrandOnedrive",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-onedrive-business-1.0.1.tar.gz"
+    }
+  ]
+}

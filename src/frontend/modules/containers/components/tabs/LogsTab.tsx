@@ -1,50 +1,66 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconSearch, IconSortAscending, IconSortDescending, IconPlayerPlay, IconPlayerStop, IconDownload } from '@tabler/icons-react';
-import { Button } from '@resources/components/ui/Button';
-import { Input } from '@resources/components/ui/Input';
+import { Alert } from '@resources/components/ui/Alert';
+import { Badge } from '@resources/components/ui/Badge';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { LogViewer } from '@resources/components/LogViewer';
-import { useContainerLogs } from '../../hooks/useContainerLogs';
+import { useContainerLogs } from '@resources/hooks/useContainerLogs';
+import type { ContainerInspect } from '@core/types/docker';
+import { LogFilterBar } from '@resources/components/logs/LogFilterBar';
+import {
+  createSnapshotLogRecords,
+  detectLogLevel,
+  downloadLogLines,
+  type LogDisplayRecord,
+} from '@resources/components/logs/logRecords';
+import { useLogFilter } from '@resources/components/logs/useLogFilter';
+import { LogContextDrawer } from '../LogContextDrawer';
 
 type LogsTabProps = {
-  containerId: string;
+  container: ContainerInspect;
   isRunning: boolean;
+  active: boolean;
 };
 
-export function LogsTab({ containerId, isRunning }: LogsTabProps) {
+export function LogsTab({ container, isRunning, active }: LogsTabProps) {
+  const containerId = container.Id;
   const { t } = useTranslation('containers');
-  const [newestFirst, setNewestFirst] = useState(true);
   const [live, setLive] = useState(false);
-  const [filter, setFilter] = useState('');
-  const { data: logs = '', isLoading } = useContainerLogs(containerId, 500, live);
+  const [selectedRecord, setSelectedRecord] = useState<LogDisplayRecord | null>(null);
+  const stream = useContainerLogs(containerId, 500, live && active);
 
-  const logLines = typeof logs === 'string' ? logs.split('\n') : [];
-  const orderedLines = newestFirst ? [...logLines].reverse() : logLines;
-  const filteredLines = filter
-    ? orderedLines.filter((line) => line.toLowerCase().includes(filter.toLowerCase()))
-    : orderedLines;
+  const recordKey = `${active}|${containerId}`;
+  const [recordFor, setRecordFor] = useState(recordKey);
+  if (recordFor !== recordKey) {
+    setRecordFor(recordKey);
+    setSelectedRecord(null);
+  }
 
-  // Only auto-scroll in oldest-first + live mode
-  const autoScroll = !newestFirst && live;
+  const records = useMemo<LogDisplayRecord[]>(() => {
+    if (live) {
+      return stream.records.map((record) => ({
+        ...record,
+        level: detectLogLevel(record.message),
+        text: `${record.timestamp} ${record.message}`,
+      }));
+    }
+    return createSnapshotLogRecords(stream.data);
+  }, [live, stream.data, stream.records]);
 
-  const handleExportLogs = () => {
-    const content = filteredLines.join('\n');
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `container-${containerId.slice(0, 12)}.log`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const log = useLogFilter(records);
+  const filteredRecords = log.records;
 
-  if (isLoading) {
+  const handleExportLogs = () =>
+    downloadLogLines(
+      filteredRecords.map((record) => record.text),
+      `container-${containerId.slice(0, 12)}.log`,
+    );
+
+  if (stream.isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Spinner size="lg" />
@@ -52,61 +68,47 @@ export function LogsTab({ containerId, isRunning }: LogsTabProps) {
     );
   }
 
+  if (!live && stream.isError) {
+    return <ErrorState variant="card" error={stream.error} onRetry={() => stream.refetch()} />;
+  }
+
+  const connectionLabel =
+    stream.connectionState === 'reconnecting'
+      ? t('logs.reconnecting', {
+          seconds: Math.ceil(stream.reconnectDelay / 1000),
+        })
+      : t(`logs.connection.${stream.connectionState}`);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t('logs.filterPlaceholder')}
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button
-          variant={newestFirst ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setNewestFirst((prev) => !prev)}
-        >
-          {newestFirst
-            ? <><IconSortDescending className="h-4 w-4" /> {t('logs.newestFirst')}</>
-            : <><IconSortAscending className="h-4 w-4" /> {t('logs.oldestFirst')}</>
-          }
-        </Button>
-        <Button
-          variant={live ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLive((prev) => !prev)}
-          disabled={!isRunning}
-        >
-          {live
-            ? <><IconPlayerStop className="h-4 w-4" /> {t('logs.live')}</>
-            : <><IconPlayerPlay className="h-4 w-4" /> {t('logs.live')}</>
-          }
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportLogs}
-          disabled={filteredLines.length === 0}
-        >
-          <IconDownload className="h-4 w-4" /> {t('logs.export')}
-        </Button>
-      </div>
+      <LogFilterBar
+        {...log.barProps}
+        live={live}
+        onLiveChange={setLive}
+        isRunning={isRunning}
+        exportDisabled={filteredRecords.length === 0}
+        onExport={handleExportLogs}
+      />
 
-      {!isRunning && (
-        <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-500">
-          {t('logs.notRunningWarning')}
-        </div>
-      )}
+      {live ? (
+        <output className="block w-fit">
+          <Badge variant={stream.connectionState === 'connected' ? 'success' : 'secondary'}>{connectionLabel}</Badge>
+        </output>
+      ) : null}
+      {!isRunning ? <Alert variant="warning" description={t('logs.notRunningWarning')} /> : null}
 
       <LogViewer
-        lines={filteredLines}
-        emptyMessage={filter ? t('logs.noMatchingLines') : t('logs.noLogsAvailable')}
-        autoScroll={autoScroll}
+        lines={filteredRecords.map((record) => record.text)}
+        levels={filteredRecords.map((record) => record.level)}
+        lineIds={filteredRecords.map((record) => record.id)}
+        emptyMessage={log.filtering ? t('logs.noMatchingLines', { ns: 'common' }) : t('logs.noLogsAvailable')}
+        autoScroll={!log.newestFirst && live}
+        onLineSelect={(_, index) => setSelectedRecord(filteredRecords[index] ?? null)}
+        getLineAriaLabel={(line, index) => `${line}. ${t('logs.viewLineDetails', { number: index + 1 })}`}
         className="min-h-0 flex-1"
       />
+
+      <LogContextDrawer record={selectedRecord} container={container} onClose={() => setSelectedRecord(null)} />
     </div>
   );
 }

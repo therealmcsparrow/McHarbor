@@ -12,12 +12,7 @@ type MoveContainerDialogFooterProps = {
   t: TFunction<'containers'>;
 };
 
-export function MoveContainerDialogFooter({
-  disabled,
-  onCancel,
-  onMove,
-  t,
-}: MoveContainerDialogFooterProps) {
+export function MoveContainerDialogFooter({ disabled, onCancel, onMove, t }: MoveContainerDialogFooterProps) {
   return (
     <DialogFooter>
       <Button variant="outline" onClick={onCancel}>

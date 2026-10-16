@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": { "help": "Display name for this Gmail communication channel." },
+    "client_id": { "help": "Google OAuth client ID with Gmail API send permissions." },
+    "client_secret": { "help": "Google OAuth client secret. Stored encrypted at rest." },
+    "from_address": { "help": "Gmail user address used as the API sender." },
+    "from_name": { "help": "Optional display name for the From header." },
+    "to": { "help": "Comma-separated recipient email addresses." },
+    "subject_prefix": { "help": "Optional prefix added to every notification subject." }
+  },
+  "title": "Gmail notification delivery",
+  "subtitle": "Plugin-owned",
+  "description": "This plugin owns the Gmail. It stores Gmail API settings on the channel itself and does not use the removed host email-server surface.",
+  "nameLabel": "Channel name",
+  "namePlaceholder": "Operations Gmail",
+  "clientIdLabel": "Client ID",
+  "clientSecretLabel": "Client secret",
+  "fromAddressLabel": "From address",
+  "fromNameLabel": "From name",
+  "toLabel": "Recipients",
+  "subjectPrefixLabel": "Subject prefix",
+  "securityTitle": "Security",
+  "securityHelp": "OAuth client credentials",
+  "securityDescription": "The client secret is stored encrypted at rest. Use a dedicated Google Cloud OAuth client and restrict access to Gmail API send permissions.",
+  "testTitle": "Test connection",
+  "testHelp": "Sends email",
+  "testDescription": "The host test action sends a real email through this Gmail channel. Use a test recipient first if your mailbox reaches an on-call list.",
+  "secretKeepHint": "Leave blank to keep the stored value.",
+  "requiredField": "Required",
+  "setupGuideTitle": "Gmail communication channel setup guide",
+  "guide": {
+    "step1": { "body": "Create or choose a Google Cloud project dedicated to McHarbor notification delivery." },
+    "step2": { "body": "Enable the <b>Gmail API</b> for that project and create OAuth client credentials for the sender integration." },
+    "step3": { "body": "Grant the client Gmail send permissions and <warn>keep the client secret limited to McHarbor administrators</warn>." },
+    "step4": { "body": "Set <b>From address</b> to the Gmail user that will send notifications. Some Google Workspace policies require this address to be a verified or delegated sender." },
+    "step5": { "body": "Add one or more comma-separated recipients. Start with a test mailbox, then switch to your operations or on-call distribution list once delivery is confirmed." },
+    "step6": { "body": "Optionally set <b>Subject prefix</b>, for example <code>[McHarbor Prod]</code>, so alerts are easy to filter in mail clients and ticketing systems." },
+    "step7": { "body": "Save the channel and click <b>Test connection</b>. The plugin sends a real test email through the same Gmail API path used for live workflow, alert, and backup events." },
+    "step8": { "body": "If Test fails with an OAuth error, verify the client ID, client secret, Gmail API enablement, sender mailbox, and Workspace policy for API mail sending." }
+  }
+}

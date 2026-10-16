@@ -54,7 +54,7 @@ func (h *Handler) HandleIncomingWebhook(w http.ResponseWriter, r *http.Request) 
 		StartNodeID: node.ID,
 		StartMsg:    triggerMsg,
 	}, emit)
-	h.service.RecordRun(wf.ID, "webhook", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
+	h.service.RecordRun(r.Context(), wf.ID, "webhook", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
 
 	writeWebhookResponse(w, result, h.app.Logger)
 }

@@ -1,0 +1,98 @@
+{
+  "page": {
+    "title": "Samba / SMB destination",
+    "subtitle": "Backup snapshots stream to an SMB/CIFS share on the configured server. Supports anonymous guest, basic user/password, and NTLMv2 domain authentication.",
+    "registerHint": "This plugin owns one LocationType: samba. Pick an authentication method — guest for public shares, basic for workgroup auth, domain for Active Directory."
+  },
+  "fields": {
+    "server": "Server",
+    "share": "Share",
+    "path": "Path",
+    "authMethod": "Authentication",
+    "username": "Username",
+    "password": "Password",
+    "domain": "Domain",
+    "guestUser": "Guest User",
+    "guestPassword": "Guest Password"
+  },
+  "help": {
+    "server": "Hostname or IP of the Samba server (e.g. `nas.local` or `192.168.1.10`).",
+    "share": "The share name as exported in smb.conf. The same name you would use with `smbclient //server/<share>`.",
+    "path": "Subdirectory inside the share. Defaults to the share root (`/`). Snapshots are written directly under this path.",
+    "authMethod": "How the plugin authenticates to the share. Guest uses a configured guest user; basic is NTLMv2 user/password against the workgroup; domain is NTLMv2 with an explicit Windows domain.",
+    "username": "Samba or AD account. For domain auth, the bare username (no `DOMAIN\\` prefix — use the Domain field).",
+    "password": "Account password. Stored encrypted in the destination's cfg map.",
+    "domain": "Windows / Active Directory domain. Used as the auth realm for NTLMv2.",
+    "guestUser": "Account name sent on the wire for guest access. Defaults to `nobody` — match your Samba `guest account =` directive.",
+    "guestPassword": "Password for the guest account. Usually empty; some configurations require a literal password."
+  },
+  "auth": {
+    "guest": "Guest (no password)",
+    "basic": "Basic (user + password)",
+    "domain": "Domain (NTLMv2)"
+  },
+  "setup": {
+    "title": "Samba / SMB setup guide",
+    "subtitle": "Steps below are tailored to the chosen authentication method. Switch the auth_method field to see alternative tracks.",
+    "common": {
+      "step1": {
+        "title": "Verify TCP 445 is reachable",
+        "body": "From the host running McHarbor, run `Test-NetConnection nas.local -Port 445` (PowerShell) or `nc -zv nas.local 445` (bash). SMB/CIFS uses TCP 445; NetBIOS port 139 is legacy and rarely used by modern Samba."
+      },
+      "step2": {
+        "title": "Pick or create a share",
+        "body": "If you already have a share named e.g. `backups`, note its name. To create one, add to /etc/samba/smb.conf on the server: `[backups] path = /srv/backups browseable = yes read only = no` then `sudo systemctl restart smbd`."
+      },
+      "step3": {
+        "title": "Save the destination",
+        "body": "In McHarbor, fill in Server (hostname or IP), Share, and Path (defaults to the share root). Pick the authentication method that matches your share policy, then save."
+      }
+    },
+    "guest": {
+      "step1": {
+        "title": "Enable guest access on the share",
+        "body": "In smb.conf, add `guest ok = yes` to the share block and set `map to guest = bad user` globally. By default Samba uses `nobody` as the guest user; override with `guest account = ...` if you have a custom account."
+      },
+      "step2": {
+        "title": "Test from another host",
+        "body": "Try `smbclient //nas.local/backups -U nobody%\"\"` from a Linux box to confirm guest access works. The McHarbor plugin will send the same credentials."
+      }
+    },
+    "basic": {
+      "step1": {
+        "title": "Create a local Samba user",
+        "body": "Run `sudo smbpasswd -a backup-user` on the server. The password you set is what the operator types into McHarbor — both Samba and the system account store the same hash."
+      },
+      "step2": {
+        "title": "Grant the user write access to the share path",
+        "body": "Set filesystem ownership: `sudo chown -R backup-user:backup-user /srv/backups`. The McHarbor plugin runs as the configured user, so read+write at the OS layer is required even if smb.conf allows the user."
+      }
+    },
+    "domain": {
+      "step1": {
+        "title": "Join the Samba server to the AD domain",
+        "body": "Use `net ads join -U administrator` (or `samba-tool domain join`) on the Samba host. Confirm `wbinfo -u` lists domain users. The McHarbor plugin needs the Samba server to validate NTLMv2 against AD, not against the local SAM."
+      },
+      "step2": {
+        "title": "Grant the backup user access to the share",
+        "body": "In smb.conf, set `valid users = @CORP\\backup-users` (or specific UPNs) on the share block. The McHarbor plugin will send the username in the form you configure here — `DOMAIN\\user` is NOT supported; use the bare username + the Domain field."
+      }
+    },
+    "footer": "go-smb2 v1.x does not negotiate SMB3 encryption. Use a private LAN/VPN for the share, or front it with a TLS tunnel (stunnel, wireguard) if cross-internet writes are required."
+  },
+  "toast": {
+    "registered": "Samba destination registered.",
+    "testPassed": "SMB connection succeeded.",
+    "testFailed": "SMB connection failed.",
+    "authMethodChanged": "Authentication method updated."
+  },
+  "error": {
+    "noServer": "Server is required.",
+    "noShare": "Share is required.",
+    "noUsername": "Username is required for this authentication method.",
+    "noPassword": "Password is required for this authentication method.",
+    "noDomain": "Domain is required for domain authentication.",
+    "mountFailed": "Could not mount the share. Verify server, share name, and credentials.",
+    "permissionDenied": "SMB server rejected the operation. Check the user's write permission on the share."
+  }
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "hydra",
+    "name":  "Hydra",
+    "description":  "Postgres distribution with a built-in columnar engine for fast analytical queries on transactional data.",
+    "category":  "Databases",
+    "image":  "ghcr.io/hydradatabase/hydra:latest",
+    "logo":  "https://github.com/hydradatabase.png",
+    "website":  "https://www.hydra.so",
+    "docsUrl":  "https://docs.hydra.so/install/docker",
+    "ports":  [
+                  {
+                      "host":  5445,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hydra/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Postgres superuser password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

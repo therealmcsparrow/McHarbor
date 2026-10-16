@@ -1,0 +1,35 @@
+{
+    "slug":  "suwayomi",
+    "name":  "Suwayomi Server",
+    "description":  "Self-hosted manga library and extension backend, formerly known as Tachidesk.",
+    "category":  "Media",
+    "image":  "ghcr.io/suwayomi/tachidesk:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/suwayomi.png",
+    "website":  "https://suwayomi.org",
+    "docsUrl":  "https://suwayomi.org/docs/installation/docker/basic-setup",
+    "ports":  [
+                  {
+                      "host":  4567,
+                      "container":  4567,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/suwayomi/data",
+                        "container":  "/home/suwayomi/.local/share/Tachidesk"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

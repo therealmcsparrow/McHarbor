@@ -4,7 +4,7 @@
     "description":  "Prometheus exporter for Elasticsearch cluster, node, index and shard metrics.",
     "category":  "Monitoring",
     "image":  "quay.io/prometheuscommunity/elasticsearch-exporter:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/elasticsearch.svg",
     "website":  "https://github.com/prometheus-community/elasticsearch_exporter",
     "docsUrl":  "https://github.com/prometheus-community/elasticsearch_exporter#docker",
     "ports":  [
@@ -34,5 +34,9 @@
                         "description":  "Collect all metrics (cluster, indices, nodes)"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

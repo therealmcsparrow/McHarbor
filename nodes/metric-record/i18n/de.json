@@ -1,18 +1,25 @@
 {
-  "label": "Metric Record",
-  "description": "Persist a workflow metric sample from the current message",
+  "label": "Metrik erfassen",
+  "description": "Einen Workflow-Metrikwert aus der aktuellen Nachricht speichern",
   "config": {
-    "metric_name": "Metric Name",
-    "property": "Property",
-    "metric_type": "Metric Type",
-    "unit": "Unit",
+    "metric_name": "Metrikname",
+    "property": "Eigenschaft",
+    "metric_type": "Metriktyp",
+    "unit": "Einheit",
     "labels": "Labels"
   },
   "options": {
     "metric_type": {
       "gauge": "Gauge",
-      "counter": "Counter",
-      "event": "Event"
+      "counter": "Zähler",
+      "event": "Ereignis"
+    },
+    "unit": {
+      "ms": "Millisekunden",
+      "s": "Sekunden",
+      "bytes": "Bytes",
+      "percent": "Prozent",
+      "count": "Anzahl"
     }
   }
 }

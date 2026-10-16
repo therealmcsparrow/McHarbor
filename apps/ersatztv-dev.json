@@ -1,0 +1,39 @@
+{
+    "slug":  "ersatztv-dev",
+    "name":  "ErsatzTV (Dev)",
+    "description":  "Dev channel build of ErsatzTV. IPTV server with custom channels built from your media library using ffmpeg.",
+    "category":  "Media",
+    "image":  "jasongdove/ersatztv:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ersatztv.png",
+    "website":  "https://ersatztv.org",
+    "docsUrl":  "https://ersatztv.org/docs/installation",
+    "ports":  [
+                  {
+                      "host":  9404,
+                      "container":  8404,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ersatztv-dev/config",
+                        "container":  "/root/.local/share/ersatztv"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

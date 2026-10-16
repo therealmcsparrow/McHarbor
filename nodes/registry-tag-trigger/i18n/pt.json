@@ -4,8 +4,8 @@
   "config": {
     "environment": "Ambiente",
     "image": "Tag de image",
-    "registry_mode": "Registry",
-    "registry_id": "Registry",
+    "registry_mode": "Registro",
+    "registry_id": "Registro",
     "interval": "Intervalo (segundos)"
   },
   "options": {

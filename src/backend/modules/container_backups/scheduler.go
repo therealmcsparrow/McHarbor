@@ -6,6 +6,10 @@ package container_backups
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/quiesce"
+	"github.com/therealmcsparrow/mcharbor/core/telemetry"
 	"log/slog"
 	"sync"
 	"time"
@@ -13,12 +17,12 @@ import (
 
 // Scheduler runs enabled container backup plans.
 type Scheduler struct {
-	service  *Service
-	logger   *slog.Logger
-	running  sync.Map
+	service     *Service
+	logger      *slog.Logger
+	running     sync.Map
 	coordinator schedulerCoordinator
-	nodeID   string
-	hasCoord bool
+	nodeID      string
+	hasCoord    bool
 }
 
 // schedulerCoordinator is the subset of *coordinator.Coordinator
@@ -88,7 +92,7 @@ func (s *Scheduler) Start(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case now := <-ticker.C:
-			s.check(ctx, now)
+			quiesce.Run(func() { s.check(ctx, now) })
 		}
 	}
 }
@@ -116,19 +120,21 @@ func (s *Scheduler) check(ctx context.Context, now time.Time) {
 	}
 
 	rows, err := s.service.db.QueryContext(ctx, `
-		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
-		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
-		       log_tail_lines,
-		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
-		       created_at, updated_at
-		FROM container_backup_plans
-		WHERE enabled = 1 AND COALESCE(cron, '') <> ''
+		SELECT p.id, p.name, p.environment_id, p.container_id, p.container_name, COALESCE(p.storage_location_id, ''),
+		       p.include_config, p.include_logs, p.include_filesystem, p.include_image, p.selected_mounts,
+		       COALESCE(p.selections, ''), p.log_tail_lines,
+		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
+		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
+		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		FROM container_backup_plans p
+		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
+		WHERE p.enabled = 1 AND COALESCE(p.cron, '') <> ''
 		LIMIT 1000`)
 	if err != nil {
 		s.logger.Error("container backup scheduler: list plans failed", "error", err)
 		return
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	for rows.Next() {
 		plan, err := scanPlan(rows)
@@ -157,16 +163,19 @@ func (s *Scheduler) check(ctx context.Context, now time.Time) {
 			s.running.Delete(plan.ID)
 			continue
 		}
-		go s.runPlan(plan.ID)
+		telemetry.ScheduleFired("container_backup", now.Truncate(time.Minute))
+		go s.runPlan(ctx, plan.ID)
 	}
 	if err := rows.Err(); err != nil {
 		s.logger.Error("container backup scheduler: iterate plans failed", "error", err)
 	}
 }
 
-func (s *Scheduler) runPlan(planID string) {
+func (s *Scheduler) runPlan(parent context.Context, planID string) {
 	defer s.running.Delete(planID)
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Minute)
+	// The tick that spawned this run ends long before the backup does, so the
+	// run keeps the tick's values but not its cancellation.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), 45*time.Minute)
 	defer cancel()
 
 	// StartPlan spawns a background goroutine that performs the actual
@@ -189,7 +198,7 @@ func (s *Scheduler) runPlan(planID string) {
 
 	// Use a fresh context for the timestamp update so a near-deadline
 	// parent context does not fail the bookkeeping write.
-	tsCtx, tsCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	tsCtx, tsCancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer tsCancel()
 	// Store timestamps in the same timezone the cron parser uses so
 	// `last_run_at` and `next_run_at` round-trip consistently. `time.RFC3339`
@@ -199,7 +208,7 @@ func (s *Scheduler) runPlan(planID string) {
 	var cronSpec string
 	if err := s.service.db.QueryRowContext(tsCtx, "SELECT COALESCE(cron, '') FROM container_backup_plans WHERE id = ?", planID).Scan(&cronSpec); err == nil && cronSpec != "" {
 		next = nextCronRun(cronSpec, now).Format(time.RFC3339)
-	} else if err != nil && err != sql.ErrNoRows {
+	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		s.logger.Warn("container backup scheduler: next run lookup failed", "plan", planID, "error", err)
 	}
 	if _, err := s.service.db.ExecContext(tsCtx, "UPDATE container_backup_plans SET last_run_at = ?, next_run_at = ?, updated_at = ? WHERE id = ?", now.Format(time.RFC3339), nullString(next), now.Format(time.RFC3339), planID); err != nil {

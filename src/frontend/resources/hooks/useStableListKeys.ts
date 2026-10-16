@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useRef } from 'react';
+import { useState } from 'react';
 import { createClientId } from '../utils/id';
 
 type StableKeyEntry = {
@@ -9,12 +9,8 @@ type StableKeyEntry = {
   key: string;
 };
 
-export function useStableListKeys<T>(
-  items: readonly T[],
-  getFingerprint?: (item: T) => string,
-): string[] {
-  const entriesRef = useRef<StableKeyEntry[]>([]);
-  const previousEntries = entriesRef.current;
+export function useStableListKeys<T>(items: readonly T[], getFingerprint?: (item: T) => string): string[] {
+  const [previousEntries, setEntries] = useState<StableKeyEntry[]>([]);
   const nextEntries: StableKeyEntry[] = [];
   const usedIndexes = new Set<number>();
 
@@ -24,8 +20,7 @@ export function useStableListKeys<T>(
 
     if (fingerprint) {
       matchIndex = previousEntries.findIndex(
-        (entry, previousIndex) =>
-          !usedIndexes.has(previousIndex) && entry.fingerprint === fingerprint,
+        (entry, previousIndex) => !usedIndexes.has(previousIndex) && entry.fingerprint === fingerprint,
       );
     }
 
@@ -56,6 +51,12 @@ export function useStableListKeys<T>(
     });
   });
 
-  entriesRef.current = nextEntries;
+  const changed =
+    nextEntries.length !== previousEntries.length ||
+    nextEntries.some(
+      (entry, index) =>
+        entry.key !== previousEntries[index]?.key || entry.fingerprint !== previousEntries[index]?.fingerprint,
+    );
+  if (changed) setEntries(nextEntries);
   return nextEntries.map((entry) => entry.key);
 }

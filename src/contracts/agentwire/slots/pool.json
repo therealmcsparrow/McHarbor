@@ -1,0 +1,56 @@
+{
+  "operation": "Operation",
+  "envId": "EnvID",
+  "poolId": "PoolID",
+  "name": "Name",
+  "backend": "Backend",
+  "target": "Target",
+  "force": true,
+  "path": "Path",
+  "newName": "NewName",
+  "mode": "Mode",
+  "content": "Q29udGVudA==",
+  "recursive": true,
+  "detected": [
+    {
+      "backend": "Backend",
+      "available": true,
+      "detail": "Detail",
+      "remediation": "Remediation",
+      "candidates": [
+        {
+          "target": "Target",
+          "mountpoint": "Mountpoint",
+          "capacityBytes": 13,
+          "freeBytes": 9
+        }
+      ],
+      "instant": true
+    }
+  ],
+  "stats": {
+    "capacityBytes": 13,
+    "usedBytes": 9,
+    "freeBytes": 9,
+    "allocatedBytes": 14,
+    "volumeCount": 11,
+    "sampledAt": "2026-09-30T12:00:00Z"
+  },
+  "entries": [
+    {
+      "name": "Name",
+      "path": "Path",
+      "isDir": true,
+      "isSymlink": true,
+      "linkTarget": "LinkTarget",
+      "sizeBytes": 9,
+      "mode": "Mode",
+      "modifiedAt": "2026-09-30T12:00:00Z",
+      "ownerUid": 8,
+      "ownerGid": 8
+    }
+  ],
+  "success": true,
+  "error": "Error",
+  "errorCode": "ErrorCode"
+}

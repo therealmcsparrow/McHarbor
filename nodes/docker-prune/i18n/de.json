@@ -1,17 +1,17 @@
 {
-  "label": "Docker Prune",
-  "description": "Remove unused Docker resources from an environment",
+  "label": "Docker bereinigen",
+  "description": "Ungenutzte Docker-Ressourcen aus einer Umgebung entfernen",
   "config": {
     "environment": "Umgebung",
     "resource": "Ressource"
   },
   "options": {
     "resource": {
-      "all": "All",
+      "all": "Alle",
       "containers": "Container",
       "images": "Images",
       "volumes": "Volumes",
-      "networks": "Networks"
+      "networks": "Netzwerke"
     }
   }
 }

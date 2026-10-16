@@ -4,7 +4,7 @@
   "description": "Lightweight self-hosted time tagging and tracking tool with tag-based time entries.",
   "category": "Productivity",
   "image": "traggo/server:latest",
-  "logo": "https://traggo.net/img/logo.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/traggo.svg",
   "website": "https://traggo.net",
   "docsUrl": "https://github.com/traggo/server",
   "ports": [
@@ -27,5 +27,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

@@ -1,0 +1,16 @@
+{
+  "slug": "comm-glpi",
+  "name": "GLPI",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Opens, follows up and solves GLPI tickets from McHarbor alerts through the GLPI REST API (v1) or high-level API (v2, GLPI 11), with signed GLPI 11 webhooks or polling for status.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-glpi-2026.09.01.tar.gz"
+    }
+  ]
+}

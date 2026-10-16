@@ -5,5 +5,15 @@
     "status_code": "Código de status",
     "content_type": "Tipo de conteúdo",
     "body": "Corpo"
+  },
+  "options": {
+    "content_type": {
+      "application/json": "JSON",
+      "text/plain": "Texto simples",
+      "text/html": "HTML",
+      "application/xml": "XML",
+      "application/x-www-form-urlencoded": "Formulário (codificado em URL)",
+      "application/octet-stream": "Binário (octet-stream)"
+    }
   }
 }

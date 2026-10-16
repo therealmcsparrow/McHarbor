@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { NumberInput } from '@resources/components/ui/NumberInput';
 import type { PortMapping } from '../types';
 
+const DEFAULT_PROTOCOL = 'tcp';
+
 interface InstallStepPortsProps {
   ports: PortMapping[];
   onPortChange: (index: number, field: 'host' | 'container', value: number) => void;
@@ -31,12 +33,7 @@ export function InstallStepPorts({ ports, onPortChange }: InstallStepPortsProps)
           {ports.map((p, i) => (
             <tr key={`port-${p.container}-${p.protocol}`} className="border-b border-border/50">
               <td className="py-2 pr-2">
-                <NumberInput
-                  value={p.host}
-                  onChange={(v) => onPortChange(i, 'host', v)}
-                  min={1}
-                  max={65535}
-                />
+                <NumberInput value={p.host} onChange={(v) => onPortChange(i, 'host', v)} min={1} max={65535} />
               </td>
               <td className="py-2 pr-2">
                 <NumberInput
@@ -46,7 +43,7 @@ export function InstallStepPorts({ ports, onPortChange }: InstallStepPortsProps)
                   max={65535}
                 />
               </td>
-              <td className="py-2 text-muted-foreground">{p.protocol || 'tcp'}</td>
+              <td className="py-2 text-muted-foreground">{p.protocol || DEFAULT_PROTOCOL}</td>
             </tr>
           ))}
         </tbody>
@@ -54,4 +51,3 @@ export function InstallStepPorts({ ports, onPortChange }: InstallStepPortsProps)
     </div>
   );
 }
-

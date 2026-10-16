@@ -4,7 +4,7 @@
     "description":  "Tecnativa Docker Socket Proxy exposes filtered Docker API over TCP.",
     "category":  "Developer Tools",
     "image":  "tecnativa/docker-socket-proxy:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/docker.svg",
     "website":  "https://github.com/Tecnativa/docker-socket-proxy",
     "docsUrl":  "https://github.com/Tecnativa/docker-socket-proxy/blob/main/README.md",
     "ports":  [
@@ -33,5 +33,9 @@
                         "description":  "Allow container operations"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

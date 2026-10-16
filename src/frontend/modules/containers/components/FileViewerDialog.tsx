@@ -32,16 +32,10 @@ function detectLanguage(path: string): 'yaml' | 'javascript' | 'typescript' {
   return 'yaml';
 }
 
-export function FileViewerDialog({
-  open,
-  onOpenChange,
-  containerId,
-  filePath,
-  onEdit,
-}: FileViewerDialogProps) {
+export function FileViewerDialog({ open: isOpen, onOpenChange, containerId, filePath, onEdit }: FileViewerDialogProps) {
   const { t } = useTranslation('containers');
   const envId = useEnvironmentStore((s) => s.currentId);
-  const { data: content, isLoading, isError } = useFileContent(containerId, filePath, open);
+  const { data: content, isLoading, isError, error } = useFileContent(containerId, filePath, isOpen);
 
   const handleDownload = () => {
     const params = new URLSearchParams({ path: filePath, download: 'true' });
@@ -52,7 +46,7 @@ export function FileViewerDialog({
   const fileName = filePath.split('/').pop() ?? filePath;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-mono text-sm">{fileName}</DialogTitle>
@@ -64,18 +58,11 @@ export function FileViewerDialog({
             </div>
           ) : isError ? (
             <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              {t('files.fileTooLarge')}
+              {[t('files.fileTooLarge'), error?.message].filter(Boolean).join(' — ')}
             </div>
-          ) : (
-            open ? (
-              <CodeEditor
-                value={content ?? ''}
-                readOnly
-                language={detectLanguage(filePath)}
-                minHeight="200px"
-              />
-            ) : null
-          )}
+          ) : isOpen ? (
+            <CodeEditor value={content ?? ''} readOnly language={detectLanguage(filePath)} minHeight="200px" />
+          ) : null}
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={handleDownload} aria-label={t('files.download')}>

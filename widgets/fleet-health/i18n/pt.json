@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Saúde da frota",
+      "description": "Veredicto de uma linha sobre o que precisa de si, com acesso direto"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "A verificar a frota…",
+    "empty": "Sem contentores neste ambiente.",
+    "unavailable": "Estado da frota indisponível",
+    "barLabel": "Estado da frota em {{count}} contentores",
+    "subtitle": "{{count}} contentor no total",
+    "subtitle_other": "{{count}} contentores no total",
+    "verdict": {
+      "allUp": "Tudo o que é crítico está a funcionar.",
+      "down": "{{count}} contentor está em baixo.",
+      "down_other": "{{count}} contentores estão em baixo."
+    },
+    "wants": {
+      "none": "Nada precisa de si.",
+      "some": "{{count}} coisa precisa de si.",
+      "some_other": "{{count}} coisas precisam de si."
+    },
+    "facts": {
+      "running": "{{running}} de {{total}} contentores em execução",
+      "updates": "{{count}} atualização de imagem disponível",
+      "updates_other": "{{count}} atualizações de imagem disponíveis",
+      "noUpdates": "sem atualizações de imagem pendentes",
+      "updatesUnchecked": "atualizações de imagem ainda não verificadas",
+      "noRestarts": "sem ciclos de reinício na frota",
+      "restarting": "{{count}} contentor a reiniciar",
+      "restarting_other": "{{count}} contentores a reiniciar"
+    },
+    "actions": {
+      "checkUpdates": "Procurar atualizações",
+      "liveLogs": "Registos em direto"
+    },
+    "state": {
+      "running": "Em execução",
+      "unhealthy": "Não saudável",
+      "paused": "Em pausa",
+      "exited": "Parado"
+    },
+    "cards": {
+      "unhealthy": "{{name}} falha a verificação de saúde",
+      "unhealthyDetail": "Ativo há {{uptime}} · continua a servir tráfego",
+      "unhealthyDetailPlain": "Continua a servir tráfego",
+      "dead": "{{name}} está morto",
+      "deadDetail": "O Docker não o conseguiu manter em execução",
+      "restarting": "{{name}} está a reiniciar",
+      "restartingDetail": "O Docker continua a tentar levantá-lo",
+      "snapshots": "{{count}} instantâneo está atrasado",
+      "snapshots_other": "{{count}} instantâneos estão atrasados",
+      "days": "{{count}} dia",
+      "days_other": "{{count}} dias",
+      "never": "nunca executado",
+      "exited": "{{count}} contentor está parado",
+      "exited_other": "{{count}} contentores estão parados",
+      "exitedDetail": "À espera de ser iniciado",
+      "updates": "{{count}} atualização de imagem está pronta",
+      "updates_other": "{{count}} atualizações de imagem estão prontas",
+      "updatesDetail": "Faça pull e recrie para aplicar",
+      "allClear": "Neste momento nada precisa de si",
+      "allClearDetail": "Todos os contentores estão em execução e todos os instantâneos atualizados"
+    }
+  }
+}

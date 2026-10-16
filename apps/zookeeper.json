@@ -4,7 +4,7 @@
   "description": "Centralized service for maintaining configuration, naming, and providing distributed synchronization.",
   "category": "Networking",
   "image": "zookeeper:latest",
-  "logo": "https://zookeeper.apache.org/images/zookeeper_small.gif",
+  "logo": "https://www.google.com/s2/favicons?domain=zookeeper.apache.org\u0026sz=128",
   "website": "https://zookeeper.apache.org",
   "docsUrl": "https://zookeeper.apache.org/documentation/",
   "ports": [
@@ -41,5 +41,9 @@
       "description": "Server ID (must be unique in ensemble)"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

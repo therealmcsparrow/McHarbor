@@ -10,12 +10,12 @@ type PreferenceRequest struct {
 
 // Preference is the response body for GET /autoheal/preference/{id}.
 type Preference struct {
-	ContainerID  string `json:"containerId"`
-	ContainerName string `json:"containerName"`
-	Enabled      bool   `json:"enabled"`
-	LastHealAt   string `json:"lastHealAt,omitempty"`
-	RestartCount int    `json:"restartCount"`
-	WasEverHealthy bool `json:"wasEverHealthy"`
+	ContainerID    string `json:"containerId"`
+	ContainerName  string `json:"containerName"`
+	Enabled        bool   `json:"enabled"`
+	LastHealAt     string `json:"lastHealAt,omitempty"`
+	RestartCount   int    `json:"restartCount"`
+	WasEverHealthy bool   `json:"wasEverHealthy"`
 }
 
 // HealEvent is one auto-heal action taken by the engine. Used for audit

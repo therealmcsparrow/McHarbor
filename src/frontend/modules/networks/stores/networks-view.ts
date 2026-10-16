@@ -17,6 +17,6 @@ export const useNetworksViewStore = create<NetworksViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-networks-view' }
-  )
+    { name: 'mcharbor-networks-view' },
+  ),
 );

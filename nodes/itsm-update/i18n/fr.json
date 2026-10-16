@@ -1,0 +1,9 @@
+{
+  "label": "Mettre à jour un ticket",
+  "description": "Ajouter une note au ticket ouvert par une clé, sans changer son état",
+  "config": {
+    "channel_id": "Canal de ticketing",
+    "dedup_key": "Clé du ticket",
+    "message": "Message"
+  }
+}

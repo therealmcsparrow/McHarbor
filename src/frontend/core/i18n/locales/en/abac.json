@@ -1,0 +1,215 @@
+{
+  "title": "RBAC policies",
+  "description": "Create and manage attribute-based access policies for McHarbor permissions.",
+  "actions": {
+    "new": "Create policy",
+    "edit": "Edit policy",
+    "delete": "Delete policy",
+    "test": "Test policy",
+    "enable": "Enable policy",
+    "disable": "Disable policy"
+  },
+  "table": {
+    "name": "Name",
+    "effect": "Effect",
+    "resourceType": "Resource",
+    "priority": "Priority",
+    "permissions": "Permissions",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "effect": {
+    "allow": "Allow",
+    "deny": "Deny"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "empty": {
+    "title": "No policies yet",
+    "description": "Create an ABAC policy to grant or deny permissions based on users, environments, resources, labels, and time."
+  },
+  "delete": {
+    "title": "Delete policy",
+    "description": "Delete {{name}}?",
+    "warning": "This permanently removes the policy and stops evaluating it for future authorization checks.",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "editor": {
+    "titleCreate": "Create policy",
+    "titleEdit": "Edit policy",
+    "name": "Name",
+    "namePlaceholder": "Production container access",
+    "resourceType": "Resource type",
+    "resourceContainer": "Container",
+    "resourceImage": "Image",
+    "resourceVolume": "Volume",
+    "resourceNetwork": "Network",
+    "resourceStack": "Stack",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional explanation for admins reviewing this policy",
+    "effect": "Effect",
+    "effectAllow": "Allow",
+    "effectDeny": "Deny",
+    "priority": "Priority",
+    "enabled": "Enabled",
+    "permissions": "Permissions",
+    "permissionsPlaceholder": "containers.view, containers.exec",
+    "permissionsHint": "Comma-separated permission keys this policy applies to.",
+    "expression": "Expression",
+    "cancel": "Cancel",
+    "save": "Save policy",
+    "saving": "Saving...",
+    "anyResource": "Any resource",
+    "pluginSource": "{{label}} · {{source}}",
+    "permissionsHintSelect": "The policy is evaluated only for the permissions you include.",
+    "include": "Include",
+    "includeAll": "Include all",
+    "clear": "Clear",
+    "noResolver": "McHarbor cannot load details for this type: only resource.type and resource.id are known."
+  },
+  "tester": {
+    "title": "Test {{name}}",
+    "description": "Run this policy expression against sample attributes before enabling it.",
+    "expressionLabel": "Expression",
+    "attributesLabel": "Attributes JSON",
+    "attributesAriaLabel": "Policy test attributes JSON",
+    "parseError": "Invalid JSON: {{error}}",
+    "matched": "Matched",
+    "denied": "Not matched",
+    "errorBadge": "Error",
+    "close": "Close",
+    "run": "Run test",
+    "running": "Running...",
+    "userLabelsTitle": "User labels",
+    "userIdPlaceholder": "User ID",
+    "lookup": "Look up",
+    "noLabels": "This user has no labels.",
+    "applyLabels": "Use these labels"
+  },
+  "toast": {
+    "created": "Policy created",
+    "updated": "Policy updated",
+    "deleted": "Policy deleted"
+  },
+  "reference": {
+    "title": "Expression reference",
+    "intro": "An expression returns true when the policy applies. Click any item to insert it at the cursor.",
+    "tabs": {
+      "variables": "Variables",
+      "helpers": "Functions",
+      "examples": "Examples"
+    },
+    "everywhere": "Available in every policy",
+    "forType": "For this resource type",
+    "insert": "Insert",
+    "types": {
+      "api_key": "API key",
+      "alert": "Alert rule",
+      "communication_channel": "Communication channel",
+      "container": "Container",
+      "backup_plan": "Container backup plan",
+      "desired_state": "Desired state",
+      "environment": "Environment",
+      "git_repo": "Git repository",
+      "group": "Group",
+      "identity_provider": "Identity provider",
+      "image": "Image",
+      "incident": "Incident",
+      "network": "Network",
+      "registry": "Registry",
+      "role": "Role",
+      "schedule": "Schedule",
+      "secret": "Secret",
+      "stack": "Stack",
+      "storage_location": "Storage location",
+      "user": "User",
+      "volume": "Volume",
+      "webhook": "Webhook",
+      "workflow": "Workflow"
+    },
+    "vars": {
+      "user_id": "Caller's user id",
+      "user_username": "Caller's username",
+      "user_email": "Caller's email address",
+      "user_roles": "Names of every role the caller holds, directly or through groups",
+      "user_groups": "Names of the caller's groups",
+      "user_labels": "Labels set on the user; read with hasLabel(user.labels, key)",
+      "env_id": "Environment of the request, empty for global actions",
+      "env_name": "Environment name",
+      "env_type": "Connection type: socket, tcp, agent …",
+      "request_method": "HTTP method",
+      "request_path": "Route path",
+      "request_ip": "Client address, honouring trusted proxies",
+      "request_apiKey": "The call was made with an API key",
+      "request_readOnly": "GET, HEAD or OPTIONS",
+      "now_hour": "Hour 0–23, server time",
+      "now_minute": "Minute 0–59",
+      "now_weekday": "0 = Sunday … 6 = Saturday",
+      "now_day": "Day of the month",
+      "now_month": "Month 1–12",
+      "now_year": "Year",
+      "now_date": "YYYY-MM-DD, UTC",
+      "now_unixTime": "Seconds since 1970",
+      "resource_type": "The resource type",
+      "resource_id": "The resource id from the route",
+      "resource_name": "Display name",
+      "resource_owner": "Owning user id, when the resource records one",
+      "resource_state": "Current state, when the resource has one",
+      "resource_environment": "Environment id the resource lives in",
+      "resource_labels": "Labels; read with hasLabel(resource.labels, key)",
+      "resource_image": "Image reference the container runs",
+      "resource_attrs_connectionType": "socket, tcp, ssh or agent"
+    },
+    "helpers": {
+      "hasLabel": "The label's value, or an empty string when it is absent.",
+      "labelIn": "Whether the label is one of the values.",
+      "inList": "Whether value equals any of the items.",
+      "hasRole": "Whether the user holds a role with this name.",
+      "inGroup": "Whether the user is a member of this group.",
+      "startsWith": "Prefix test.",
+      "endsWith": "Suffix test.",
+      "contains": "Substring test.",
+      "matches": "Regular expression test (RE2 syntax, 256 characters at most).",
+      "inCIDR": "Whether the IP lies in any of the networks.",
+      "between": "Inclusive range test.",
+      "isWeekend": "Saturday or Sunday, UTC."
+    },
+    "examples": {
+      "prodOnly": {
+        "title": "Only production-labelled resources",
+        "expression": "hasLabel(resource.labels, \"env\") == \"prod\""
+      },
+      "officeHours": {
+        "title": "Only during office hours",
+        "expression": "!isWeekend() && between(now.hour, 8, 18)"
+      },
+      "internalNetwork": {
+        "title": "Only from the internal network",
+        "expression": "inCIDR(request.ip, \"10.0.0.0/8\", \"192.168.0.0/16\")"
+      },
+      "noApiKeyWrites": {
+        "title": "No changes through API keys",
+        "expression": "request.apiKey && !request.readOnly"
+      },
+      "teamOwnership": {
+        "title": "The user's team owns the resource",
+        "expression": "hasLabel(resource.labels, \"team\") == hasLabel(user.labels, \"team\")"
+      },
+      "ownResources": {
+        "title": "Only resources the user owns",
+        "expression": "resource.owner == user.id"
+      },
+      "largeVms": {
+        "title": "Large virtual machines need the platform group",
+        "expression": "resource.attrs.vcpus > 8 && !inGroup(\"platform\")"
+      },
+      "namePattern": {
+        "title": "Names that follow a pattern",
+        "expression": "matches(resource.name, \"^web-[0-9]+$\")"
+      }
+    }
+  }
+}

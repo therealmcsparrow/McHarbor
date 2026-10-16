@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { PlainButton } from '@resources/components/ui/PlainButton';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
@@ -17,6 +18,8 @@ import {
   type DateRange,
   type DateRangePresetId,
 } from '@resources/utils/date-range';
+
+const CHECK_MARK = '✓';
 
 export type DateRangeFilterValue = {
   preset: DateRangePresetId;
@@ -36,12 +39,9 @@ type DateRangeFilterProps = {
 
 export function DateRangeFilter({ value, onChange, className }: DateRangeFilterProps) {
   const { t, i18n } = useTranslation('common');
-  const [open, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(false);
 
-  const resolved = useMemo(
-    () => resolveDateRange(value.preset, value.custom),
-    [value.preset, value.custom],
-  );
+  const resolved = useMemo(() => resolveDateRange(value.preset, value.custom), [value.preset, value.custom]);
 
   const isActive = resolved.from !== null || resolved.to !== null;
 
@@ -83,16 +83,16 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
   };
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [isOpen]);
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
+    <Popover.Root open={isOpen} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <Button
           variant={isActive ? 'default' : 'outline'}
@@ -104,47 +104,43 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
             <IconCalendar className="size-4 shrink-0" />
             <span className="truncate">{label}</span>
           </span>
-          <IconChevronDown className={cn('ml-2 size-4 shrink-0 transition-transform', open && 'rotate-180')} />
+          <IconChevronDown className={cn('ml-2 size-4 shrink-0 transition-transform', isOpen && 'rotate-180')} />
         </Button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           sideOffset={6}
           align="start"
-          className="z-50 w-72 rounded-lg border border-border bg-card shadow-lg animate-in fade-in-0 zoom-in-95"
+          className="mc-glass-overlay mc-menu z-50 w-72 overflow-hidden rounded-lg"
         >
           <div className="p-2">
-            <div className="mb-1 px-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="mb-1 px-2 pt-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               {t('dateRange.title')}
             </div>
             <div className="max-h-72 overflow-y-auto">
               {DATE_RANGE_PRESETS.map((preset) => {
                 const key = preset.i18nKey.replace(/^[^:]+:/, '');
                 return (
-                  <button
+                  <PlainButton
                     key={preset.id}
                     type="button"
                     onClick={() => handlePresetChange(preset.id)}
                     className={cn(
                       'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted/50',
-                      value.preset === preset.id
-                        ? 'bg-muted/70 font-medium text-foreground'
-                        : 'text-foreground',
+                      value.preset === preset.id ? 'bg-muted/70 font-medium text-foreground' : 'text-foreground',
                     )}
                   >
                     <span>{t(key)}</span>
-                    {value.preset === preset.id && <span className="text-xs text-primary">✓</span>}
-                  </button>
+                    {value.preset === preset.id && <span className="text-xs text-primary">{CHECK_MARK}</span>}
+                  </PlainButton>
                 );
               })}
             </div>
 
             {value.preset === 'custom' && (
-              <div className="mt-2 space-y-2 border-t border-border px-2 pb-1 pt-3">
+              <div className="mt-2 space-y-2 border-t border-border px-2 pt-3 pb-1">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    {t('dateRange.from')}
-                  </label>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{t('dateRange.from')}</label>
                   <Input
                     type="date"
                     value={formatDateInputValue(value.custom.from)}
@@ -153,9 +149,7 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                    {t('dateRange.to')}
-                  </label>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{t('dateRange.to')}</label>
                   <Input
                     type="date"
                     value={formatDateInputValue(value.custom.to)}

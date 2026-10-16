@@ -1,0 +1,46 @@
+{
+    "slug":  "tensorflow-serving",
+    "name":  "TensorFlow Serving",
+    "description":  "Model serving system for deploying trained TensorFlow models behind a REST and gRPC inference API.",
+    "category":  "Developer Tools",
+    "image":  "tensorflow/serving:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tensorflow.png",
+    "website":  "https://www.tensorflow.org/tfx/guide/serving",
+    "docsUrl":  "https://www.tensorflow.org/tfx/serving/docker",
+    "ports":  [
+                  {
+                      "host":  8501,
+                      "container":  8501,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8500,
+                      "container":  8500,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tensorflow-serving/models",
+                        "container":  "/models"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MODEL_NAME",
+                        "default":  "model",
+                        "description":  "Name of the model directory under /models to serve"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

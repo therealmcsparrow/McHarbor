@@ -1,7 +1,0 @@
-{
-  "label": "KV Delete",
-  "description": "Delete a value from the workflow key-value store",
-  "config": {
-    "key": "Key"
-  }
-}

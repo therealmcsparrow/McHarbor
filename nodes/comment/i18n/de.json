@@ -1,6 +1,6 @@
 {
   "label": "Kommentar",
-  "description": "Annotate a workflow without changing execution",
+  "description": "Einen Workflow annotieren, ohne die Ausführung zu ändern",
   "config": {
     "text": "Kommentar"
   }

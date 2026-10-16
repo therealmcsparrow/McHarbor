@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "label": "Piket",
+    "alerts": "Meldingen",
+    "fleet": "Vloot",
+    "approvals": "Goedkeuringen",
+    "device": "Apparaat"
+  },
+  "update": {
+    "ready": "Er is een nieuwe versie van McHarbor beschikbaar.",
+    "reload": "Herladen"
+  },
+  "stale": {
+    "offline": "Offline. Toont wat bekend was om {{time}}.",
+    "cached": "Toont opgeslagen gegevens van {{time}}. Ze kunnen verouderd zijn."
+  },
+  "state": {
+    "loading": "Laden",
+    "retry": "Opnieuw proberen",
+    "loadFailed": "Dit kon niet worden geladen.",
+    "noAccess": "Je hebt de machtiging {{permission}} nodig om dit te zien."
+  },
+  "alerts": {
+    "title": "Meldingen",
+    "empty": "Er is recent niets afgegaan.",
+    "firing": "Actief",
+    "resolved": "Opgelost",
+    "notification": "Bericht",
+    "openContainer": "Container openen",
+    "expand": "Het volledige bericht tonen",
+    "collapse": "Het volledige bericht verbergen"
+  },
+  "fleet": {
+    "title": "Vloot",
+    "empty": "Er zijn geen omgevingen geconfigureerd.",
+    "inactive": "Inactief",
+    "unreachable": "Onbereikbaar",
+    "reachable": "Bereikbaar",
+    "running": "Draait",
+    "stopped": "Gestopt",
+    "restarting": "Herstart",
+    "other": "Overig",
+    "problemsTitle": "Draait niet"
+  },
+  "container": {
+    "exitCode": "Afsluitcode",
+    "startedAt": "Gestart",
+    "finishedAt": "Beëindigd",
+    "restarts": "Herstarts",
+    "oomKilled": "Gestopt door de out-of-memory-killer",
+    "health": "Gezondheid",
+    "healthLog": "Recente gezondheidscontroles",
+    "noHealth": "Er is geen gezondheidscontrole ingesteld.",
+    "recentAlerts": "Recente meldingen voor deze container",
+    "logs": "Logs",
+    "restart": "Herstarten",
+    "restartTitle": "{{name}} herstarten?",
+    "restartDescription": "De container stopt en start opnieuw. Openstaande verbindingen ermee worden verbroken.",
+    "restartOffline": "Je bent offline, dus er kan niets worden herstart.",
+    "back": "Terug",
+    "error": "Docker meldde een fout voor deze container."
+  },
+  "logs": {
+    "title": "Logs",
+    "search": "Het logboek doorzoeken",
+    "follow": "Volgen",
+    "pause": "Pauzeren",
+    "empty": "Geen logregels.",
+    "noMatches": "Geen regel komt overeen met de zoekopdracht.",
+    "reconnecting": "Opnieuw verbinden met de logstream"
+  },
+  "approvals": {
+    "title": "Goedkeuringen",
+    "empty": "Er wachten geen verhogingsverzoeken.",
+    "approve": "Goedkeuren",
+    "deny": "Weigeren",
+    "requestedBy": "Aangevraagd door {{name}}",
+    "duration_one": "Gedurende {{count}} minuut",
+    "duration_other": "Gedurende {{count}} minuten",
+    "environment": "Omgeving {{name}}",
+    "note": "Notitie voor de aanvrager",
+    "approveTitle": "Deze verhoging goedkeuren?",
+    "denyTitle": "Deze verhoging weigeren?",
+    "approveDescription": "{{requester}} krijgt {{permission}} voor {{minutes}} minuten.",
+    "denyDescription": "{{requester}} krijgt {{permission}} niet."
+  },
+  "device": {
+    "title": "Dit apparaat",
+    "pushTitle": "Pushmeldingen",
+    "pushIntro": "Meldingen en goedkeuringsverzoeken komen op dit apparaat binnen, ook als McHarbor gesloten is.",
+    "transit": "Meldingen lopen via de pushdienst van je browserleverancier (Google, Apple, Mozilla of Microsoft). Het bericht is versleuteld voor dit apparaat en bevat alleen de meldingstekst en een link, maar de pushdienst weet wel dat er een melding is verzonden.",
+    "unsupported": "Deze browser kan geen pushmeldingen ontvangen.",
+    "insecure": "Pushmeldingen hebben een vertrouwd HTTPS-certificaat nodig. Open McHarbor met een openbaar vertrouwd certificaat om ze te gebruiken.",
+    "iosInstall": "Voeg McHarbor op iPhone en iPad eerst toe aan het beginscherm (Deel, dan Zet op beginscherm) en open het vanaf daar.",
+    "denied": "Meldingen voor McHarbor zijn geblokkeerd in de instellingen van deze browser.",
+    "label": "Apparaatnaam",
+    "labelPlaceholder": "Mijn telefoon",
+    "enable": "Inschakelen voor dit apparaat",
+    "disable": "Uitschakelen voor dit apparaat",
+    "enabled": "Pushmeldingen staan aan voor dit apparaat.",
+    "test": "Een testmelding versturen",
+    "testResult_one": "Verzonden naar {{sent}} apparaat, {{failed}} mislukt, {{removed}} verwijderd.",
+    "testResult_other": "Verzonden naar {{sent}} apparaten, {{failed}} mislukt, {{removed}} verwijderd.",
+    "devicesTitle": "Je apparaten",
+    "noDevices": "Nog geen apparaat ontvangt pushmeldingen.",
+    "lastSeen": "Laatste bezorging {{time}}",
+    "neverDelivered": "Nog niets bezorgd",
+    "failing_one": "{{count}} mislukte bezorging",
+    "failing_other": "{{count}} mislukte bezorgingen",
+    "revoke": "Intrekken",
+    "revokeLabel": "{{name}} intrekken",
+    "revokeTitle": "{{name}} intrekken?",
+    "revokeDescription": "Dit apparaat ontvangt geen pushmeldingen meer. Het kan vanaf het apparaat zelf weer worden ingeschakeld.",
+    "revoked": "Apparaat ingetrokken",
+    "layoutTitle": "Indeling",
+    "layoutAuto": "Automatisch (op schermbreedte)",
+    "layoutOncall": "Altijd de piketindeling",
+    "layoutDesktop": "Altijd de desktopindeling",
+    "openDesktop": "De desktopinterface openen",
+    "signOut": "Uitloggen",
+    "workerUnavailable": "Deze browser heeft de achtergrondworker van McHarbor niet gestart, die push nodig heeft. Laad de pagina opnieuw; als het blijft mislukken, wordt het certificaat waarschijnlijk niet vertrouwd door dit apparaat."
+  }
+}

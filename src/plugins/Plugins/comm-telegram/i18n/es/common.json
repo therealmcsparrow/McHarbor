@@ -1,0 +1,75 @@
+{
+  "config": {
+    "bot_token": { "help": "Token de la API de bots emitido por @BotFather en Telegram. Formato: <bot_id>:<token>. Se almacena cifrado en reposo." },
+    "parse_mode": { "help": "Opcional. Markdown o HTML para habilitar el formato enriquecido en Título + Mensaje. Déjelo en blanco para texto sin formato. El host no escapa previamente los caracteres especiales: cambie a texto sin formato si sus mensajes contienen caracteres reservados de Telegram." },
+    "disable_notification": { "help": "Opcional. Si está activado, el mensaje se envía sin sonido de notificación en el dispositivo del destinatario. Útil para alertas de baja prioridad." }
+  },
+  "page": {
+    "title": "Telegram",
+    "subtitle": "Enruta eventos de workflows, alertas y copias de seguridad a un chat de Telegram mediante la Bot API. El plugin gestiona Probar (comprobación de actividad con getMe) y Enviar (sendMessage); no hay flujo OAuth porque los bots usan un token bearer de larga duración.",
+    "registerHint": "Añada un canal desde la página Notificaciones > Canales del host y elija \"Telegram\" como channel_type."
+  },
+  "fields": {
+    "name": "Nombre del canal",
+    "botToken": "Token del bot",
+    "chatId": "ID del chat",
+    "parseMode": "Modo de análisis",
+    "disableNotification": "Envío silencioso"
+  },
+  "help": {
+    "name": "Cómo aparece este canal en las listas y reglas de alerta de McHarbor.",
+    "botToken": "Token de la Bot API de @BotFather en Telegram. Formato: <bot_id>:<token>. Cifrado en reposo.",
+    "chatId": "Identificador del chat destinatario: ID numérico de usuario/grupo o @channelname. Use getUpdates para descubrir un chat_id de chats privados.",
+    "parseMode": "Markdown o HTML habilita el formato enriquecido en Título + Mensaje. El texto plano pasa los caracteres tal cual.",
+    "disableNotification": "Si está activado, envía sin sonido de notificación en el dispositivo del destinatario. Útil para alertas de baja prioridad."
+  },
+  "toast": {
+    "registered": "Canal de Telegram guardado.",
+    "testPassed": "La prueba de conexión de Telegram se superó.",
+    "testFailed": "La prueba de conexión de Telegram falló: {{error}}"
+  },
+  "error": {
+    "required": "Obligatorio",
+    "noBotToken": "El token del bot es obligatorio. Obtenga uno de @BotFather en Telegram.",
+    "noChatId": "El ID del chat es obligatorio. Use getUpdates para chats privados o @channelname para canales públicos.",
+    "sendFailed": "Falló sendMessage de Telegram: {{error}}"
+  },
+  "title": "Bot API de Telegram",
+  "subtitle": "Propio del plugin",
+  "description": "Guarde este canal y luego use Probar la conexión para verificar el token del bot y el ID del chat. El host nunca envía un mensaje durante la prueba; getMe solo confirma que el token está activo.",
+  "placeholder": {
+    "name": "Telegram de operaciones"
+  },
+  "parseMode": {
+    "plain": "Texto plano",
+    "markdown": "Markdown",
+    "html": "HTML"
+  },
+  "silent": {
+    "off": "No (con sonido)",
+    "on": "Sí (envío silencioso)",
+    "title": "Envío silencioso",
+    "help": "Desactivar notificación",
+    "description": "Cuando el envío silencioso está activado, Telegram entrega el mensaje sin sonido y sin encender la pantalla. Útil para alertas rutinarias en las que no hace falta interrumpir al operador."
+  },
+  "tips": {
+    "title": "Consejos sobre el modo de análisis",
+    "help": "Markdown frente a HTML",
+    "markdown": "Escape los caracteres reservados",
+    "markdownSuffix": "con una barra invertida inicial.",
+    "html": "Escapar",
+    "plain": "Título + Mensaje se envían tal cual. No hace falta escapar nada."
+  },
+  "secretKeepHint": "Déjelo en blanco para conservar el valor almacenado.",
+  "guide": {
+    "title": "Guía de configuración de Telegram",
+    "step1": "Abra Telegram e inicie un chat con <code>@BotFather</code>. Envíe <code>/newbot</code> y siga las indicaciones (nombre para mostrar + nombre de usuario único que termine en \"bot\"). BotFather responde con el token del bot en el formato <code><bot_id>:<token></code>. Péguelo en el campo <b>Token del bot</b> de la izquierda.",
+    "step2": "Inicie un chat con su bot (busque el @usuario que acaba de crear) y envíe cualquier mensaje. El bot necesita al menos un mensaje entrante antes de poder publicar en ese chat: Telegram bloquea el contacto iniciado por bots hasta que el usuario habla primero.",
+    "step3": "Para un chat privado, obtenga el <code>chat_id</code> llamando a <code>https://api.telegram.org/bot<your_token>/getUpdates</code> después del paso 2: la respuesta incluye <code>\"chat\":{\"id\": <chat_id>}</code>. Para un canal público, use <code>@channelname</code> (la @ forma parte del identificador).",
+    "step4": "Para grupos: añada el bot como miembro y luego concédale el permiso <b>Post Messages</b> en los permisos del grupo. Sin ese permiso, <code>sendMessage</code> devuelve <code>403 Forbidden</code>.",
+    "step5": "Para canales: añada el bot como administrador con el permiso <b>Post Messages</b>. Los miembros normales no pueden publicar; el bot debe ser administrador.",
+    "step6": "Pegue el <code>chat_id</code> (o <code>@channelname</code>) en el campo <b>ID del chat</b> de la izquierda. Deje <b>Modo de análisis</b> en blanco a menos que sus mensajes solo contengan formato seguro para Telegram. Active <b>Envío silencioso</b> para alertas de baja prioridad, como la finalización de copias de seguridad.",
+    "step7": "Haga clic en <b>Guardar y probar la conexión</b>. El plugin ejecuta un <code>getMe</code> contra la API de bots para confirmar que el token está activo. El host <warn>NO envía un mensaje de prueba</warn>: <code>getMe</code> solo devuelve la identidad del bot. Si <code>getMe</code> devuelve <code>401</code>, vuelva a comprobar el token del bot.",
+    "step8": "Una vez guardado el canal, dirija los eventos de flujos de trabajo o alertas hacia él desde <b>Ajustes > Notificaciones > Reglas</b>. La entrega por Telegram es de tipo fire-and-forget: un envío fallido se registra en el registro de auditoría y se muestra en el toast del host, pero el host no lo reintenta."
+  }
+}

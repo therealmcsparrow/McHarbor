@@ -1,0 +1,51 @@
+{
+  "slug": "mongodb-community",
+  "name": "MongoDB Community Server",
+  "description": "MongoDB-maintained Community Edition build of the document-oriented NoSQL database.",
+  "category": "Databases",
+  "image": "mongodb/mongodb-community-server:8.0-ubi9",
+  "logo": "https://www.mongodb.com/assets/images/global/favicon.ico",
+  "website": "https://www.mongodb.com/products/self-managed/community-edition",
+  "docsUrl": "https://www.mongodb.com/docs/manual/administration/install-community/",
+  "minMemory": "1 GB",
+  "ports": [
+    {
+      "host": 27017,
+      "container": 27017,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mongodb-community/data",
+      "container": "/data/db"
+    },
+    {
+      "host": "/opt/appdata/mongodb-community/config",
+      "container": "/data/configdb"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MONGODB_INITDB_ROOT_USERNAME",
+      "default": "admin",
+      "description": "Root username created on first start"
+    },
+    {
+      "key": "MONGODB_INITDB_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password created on first start",
+      "secret": true
+    },
+    {
+      "key": "MONGODB_INITDB_DATABASE",
+      "default": "admin",
+      "description": "Database the initialization scripts run against"
+    }
+  ],
+  "version":  "8.0-ubi9",
+  "latest":  {
+      "version":  "8.0-ubi9",
+      "release_date":  "2026-09-10"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Kanalname" },
+    "region": { "label": "Service-Region", "help": "us oder eu. Muss der Region entsprechen, in der Ihr PagerDuty-Konto liegt." },
+    "routing_key": { "label": "Integrationsschlüssel (Routing)", "help": "32-stelliger Schlüssel aus der Events-API-V2-Integration des Dienstes." },
+    "rest_api_key": { "label": "REST-API-Schlüssel (schreibgeschützt)", "help": "Optional. Aktiviert Status-Abfragen und Incident-Links." },
+    "webhook_signing_secret": { "label": "Webhook-Signaturgeheimnis", "help": "Wird einmalig angezeigt, wenn das v3-Webhook-Abonnement erstellt wird." },
+    "update_on_repeat": { "label": "Bei wiederholtem Auslösen erneut triggern" },
+    "poll_interval_minutes": { "label": "Abfrageintervall (Minuten)", "help": "0 deaktiviert die Abfrage. Erfordert einen REST-Schlüssel." },
+    "severity_map": { "label": "Schweregrad-Zuordnung (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Kanalname",
+      "placeholder": "PagerDuty — Plattform"
+    },
+    "region": {
+      "label": "Service-Region",
+      "help": "Muss mit der Service-Region übereinstimmen, in der Ihr PagerDuty-Konto liegt.",
+      "us": "USA (Standard)",
+      "eu": "Europäische Union"
+    },
+    "routing_key": {
+      "label": "Integrationsschlüssel (Routing-Schlüssel)",
+      "placeholder": "Schlüssel mit 32 Zeichen",
+      "help": "Aus der Events-API-V2-Integration des Services. Verschlüsselt gespeichert."
+    },
+    "rest_api_key": {
+      "label": "REST-API-Schlüssel (schreibgeschützt)",
+      "placeholder": "Optional",
+      "help": "Optional. Aktiviert Statusabfrage, Incident-Nummern und Links."
+    },
+    "webhook_signing_secret": {
+      "label": "Webhook-Signaturgeheimnis",
+      "placeholder": "Optional",
+      "help": "Wird von PagerDuty einmal angezeigt, wenn das v3-Webhook-Abonnement erstellt wird."
+    },
+    "update_on_repeat": {
+      "label": "Bei wiederholtem Auslösen erneut triggern",
+      "help": "Wenn ein Alarm erneut auslöst, während sein Incident offen ist, wird ein weiterer Trigger mit demselben Schlüssel gesendet."
+    },
+    "poll_interval_minutes": {
+      "label": "Abfrageintervall (Minuten)",
+      "help": "0 schaltet die Abfrage aus. Die Abfrage benötigt einen REST-API-Schlüssel."
+    },
+    "severity_map": {
+      "label": "Schweregrad-Zuordnung (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Optional. Ordnet critical, warning und info den PagerDuty-Werten critical, error, warning oder info zu."
+    },
+    "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+    "errors": {
+      "required": "Erforderlich",
+      "routingKeyLength": "Der Routing-Schlüssel hat genau 32 Zeichen.",
+      "pollRange": "Geben Sie eine Zahl von 0 bis 60 ein."
+    }
+  },
+  "guide": {
+    "title": "Einrichtung des PagerDuty-Kanals",
+    "steps": {
+      "service": "Öffnen Sie in PagerDuty <b>Services → Service Directory</b> und wählen Sie den Service aus (oder erstellen Sie ihn), den McHarbor-Alarme alarmieren sollen.",
+      "integration": "Öffnen Sie beim Service den Reiter <b>Integrations</b>, wählen Sie <b>Add an integration</b>, dann <b>Events API V2</b> und speichern Sie.",
+      "routingKey": "Kopieren Sie den <b>Integration Key</b> (32 Zeichen) hier in <b>Integrationsschlüssel (Routing-Schlüssel)</b>.",
+      "region": "Wählen Sie <b>Europäische Union</b>, wenn Ihr PagerDuty-Konto in der EU-Service-Region liegt; andernfalls belassen Sie <b>USA</b>.",
+      "restKey": "Optional: Erstellen Sie unter <b>Integrations → API Access Keys</b> einen schreibgeschützten API-Schlüssel und fügen Sie ihn in <b>REST-API-Schlüssel</b> ein, um Abfrage und Incident-Links zu aktivieren.",
+      "inbound": "Speichern Sie diesen Kanal, öffnen Sie ihn erneut unter <b>Einstellungen → Integrationen → Kommunikation</b> und wählen Sie unter <b>Ticketstatus aus dem ITSM</b> die Option <b>Eingangs-URL erstellen</b>. Kopieren Sie die URL; sie endet auf <code>/api/incident-webhooks/</code> gefolgt von einem Token. Das daneben angezeigte Signaturgeheimnis wird von PagerDuty nicht verwendet.",
+      "webhook": "Öffnen Sie in PagerDuty <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, fügen Sie die Eingangs-URL ein, beschränken Sie ihn auf denselben Service, abonnieren Sie <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> und <code>incident.reopened</code> und kopieren Sie dann das <warn>einmal angezeigte</warn> Signaturgeheimnis in <b>Webhook-Signaturgeheimnis</b> dieses Kanals (oder in <b>Vom ITSM ausgestelltes Signaturgeheimnis</b>).",
+      "save": "Speichern Sie den Kanal und wählen Sie <b>Verbindung testen</b>. Es prüft die Konfiguration und den REST-Schlüssel, ohne jemanden zu alarmieren.",
+      "testEvent": "Um den Routing-Schlüssel zu prüfen, verwenden Sie auf der PagerDuty-Integrationsseite <b>Send Test Event</b>. Der Test von McHarbor löst nie einen Incident aus."
+    },
+    "note": "Die Alarmgruppierung in PagerDuty kann einen McHarbor-Alarm in den Incident eines anderen Alarms zusammenführen. Dieser Incident trägt den Schlüssel des anderen Alarms, sodass McHarbor sein Bestätigen oder Lösen nicht zurücklesen kann; der Alarm wird in PagerDuty dennoch gelöst, wenn er in McHarbor endet."
+  }
+}

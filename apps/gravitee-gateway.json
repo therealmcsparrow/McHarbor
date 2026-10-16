@@ -1,0 +1,36 @@
+{
+    "slug":  "gravitee-gateway",
+    "name":  "Gravitee Gateway",
+    "description":  "API gateway that enforces policies and routes traffic for published APIs.",
+    "category":  "Networking",
+    "image":  "graviteeio/apim-gateway:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.gravitee.io\u0026sz=128",
+    "website":  "https://www.gravitee.io/",
+    "docsUrl":  "https://www.gravitee.io/",
+    "ports":  [
+                  {
+                      "host":  8082,
+                      "container":  8082,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gravitee-gateway/config",
+                        "container":  "/opt/graviteeio-gateway/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

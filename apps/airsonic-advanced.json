@@ -1,0 +1,47 @@
+{
+    "slug":  "airsonic-advanced",
+    "name":  "Airsonic Advanced",
+    "description":  "Subsonic-API music streaming server with playlists, podcasts and multi-user support.",
+    "category":  "Media",
+    "image":  "docker.io/airsonicadvanced/airsonic-advanced:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/airsonic.png",
+    "website":  "https://github.com/airsonic-advanced/airsonic-advanced",
+    "docsUrl":  "https://github.com/airsonic-advanced/airsonic-advanced/wiki/Docker",
+    "ports":  [
+                  {
+                      "host":  4040,
+                      "container":  4040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/airsonic-advanced/config",
+                        "container":  "/airsonic"
+                    },
+                    {
+                        "host":  "/opt/appdata/airsonic-advanced/music",
+                        "container":  "/music"
+                    },
+                    {
+                        "host":  "/opt/appdata/airsonic-advanced/playlists",
+                        "container":  "/playlists"
+                    },
+                    {
+                        "host":  "/opt/appdata/airsonic-advanced/podcasts",
+                        "container":  "/podcasts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

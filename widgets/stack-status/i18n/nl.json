@@ -11,6 +11,8 @@
     "noStacksFound": "Geen stacks gevonden",
     "service_one": "{{count}} service",
     "service_other": "{{count}} services",
-    "viewAll": "Alles bekijken"
+    "viewAll": "Alles bekijken",
+    "runningOf": "{{running}} van {{total}} actief",
+    "more": "{{count}} meer"
   }
 }

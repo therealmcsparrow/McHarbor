@@ -1,0 +1,186 @@
+{
+  "title": "Compliance",
+  "description": "Operationele status voor auditors: bewaring, sleutels, back-ups, TLS, identiteit, pluginvertrouwen en hoge beschikbaarheid, gemeten op deze instantie.",
+  "generatedAt": "Gemeten {{time}}",
+  "refresh": "Vernieuwen",
+  "openSettings": "Openen",
+  "downloadReport": "Rapport downloaden",
+  "summary": {
+    "pass": "Geslaagd",
+    "warn": "Aandacht nodig",
+    "fail": "Mislukt",
+    "info": "Informatief",
+    "unknown": "Onbekend"
+  },
+  "status": {
+    "pass": "Geslaagd",
+    "warn": "Aandacht",
+    "fail": "Mislukt",
+    "info": "Info",
+    "unknown": "Onbekend"
+  },
+  "values": {
+    "yes": "Ja",
+    "no": "Nee",
+    "none": "—",
+    "noLimit": "Geen limiet",
+    "days_one": "{{count}} dag",
+    "days_other": "{{count}} dagen",
+    "percent": "{{value}}%",
+    "redacted": "Geredigeerd"
+  },
+  "sections": {
+    "audit": {
+      "title": "Auditbewaring en doorsturen",
+      "description": "Hoe lang het audittraject wordt bewaard en of het de machine verlaat."
+    },
+    "keys": {
+      "title": "Versleutelingssleutels",
+      "description": "Waar de sleutel voor versleuteling in rust vandaan komt en of back-ups zijn versleuteld."
+    },
+    "instanceBackup": {
+      "title": "Instantieback-up",
+      "description": "Schema's en de laatste geslaagde export van McHarbor zelf."
+    },
+    "tls": {
+      "title": "TLS",
+      "description": "Het certificaat dat deze node aanbiedt en wanneer het verloopt."
+    },
+    "passwords": {
+      "title": "Wachtwoordbeleid",
+      "description": "Regels waaraan elk lokaal wachtwoord moet voldoen."
+    },
+    "mfa": {
+      "title": "Meerfactorauthenticatie",
+      "description": "Aandeel van actieve lokale accounts met MFA ingesteld. Accounts van een identiteitsprovider gebruiken de MFA van die provider."
+    },
+    "identitySync": {
+      "title": "Identiteit en provisioning",
+      "description": "Ingeschakelde identiteitsproviders en gezondheid van SCIM-provisioning."
+    },
+    "plugins": {
+      "title": "Pluginondertekening",
+      "description": "Geïnstalleerde plugins zonder geldige handtekening van een vertrouwde sleutel."
+    },
+    "ha": {
+      "title": "Hoge beschikbaarheid",
+      "description": "Implementatiemodus en gereedheid van deze node."
+    },
+    "selfEnvAccess": {
+      "title": "Containertoegang tot de host van McHarbor",
+      "description": "Rollen met containers.manage in de omgeving waarop McHarbor zelf draait. Daar komt zo een rol via een container die de Docker-socket of de host mount bij de sleutels en database van McHarbor, dus dat staat gelijk aan beheerder, tenzij de rol ook host_self.manage heeft."
+    },
+    "supplyChain": {
+      "title": "SBOM en imageondertekening",
+      "description": "Release-images bevatten een SPDX-SBOM en worden ondertekend met keyless cosign-ondertekening. Verifieer ze met de commando's in Aan de slag → Releases verifiëren."
+    }
+  },
+  "facts": {
+    "retentionDays": "Auditbewaring",
+    "retentionPreset": "Bewaarvoorinstelling",
+    "forwardersEnabled": "Ingeschakelde forwarders",
+    "encryptionKeySource": "Bron van versleutelingssleutel",
+    "backupKeyConfigured": "Back-upsleutel geconfigureerd",
+    "backupKeyId": "Back-upsleutel-ID",
+    "schedulesEnabled": "Ingeschakelde schema's",
+    "lastSuccessAt": "Laatste geslaagde export",
+    "lastRunStatus": "Status laatste run",
+    "lastRunAt": "Laatste run",
+    "lastVerifyStatus": "Laatste verificatie",
+    "enabled": "Ingeschakeld",
+    "source": "Certificaatbron",
+    "minVersion": "Minimale TLS-versie",
+    "notAfter": "Verloopt",
+    "subject": "Onderwerp",
+    "daysRemaining": "Resterende dagen",
+    "minLength": "Minimale lengte",
+    "requireUpper": "Vereist hoofdletters",
+    "requireLower": "Vereist kleine letters",
+    "requireDigit": "Vereist een cijfer",
+    "requireSymbol": "Vereist een symbool",
+    "maxAgeDays": "Maximale leeftijd",
+    "historySize": "Wachtwoordgeschiedenis",
+    "localUsers": "Actieve lokale accounts",
+    "localUsersWithMfa": "Met MFA ingesteld",
+    "mfaAdoption": "MFA-adoptie",
+    "externalUsers": "Accounts van identiteitsproviders",
+    "providersEnabled": "Ingeschakelde identiteitsproviders",
+    "scimEndpoints": "Ingeschakelde SCIM-eindpunten",
+    "scimFailing": "Falende SCIM-eindpunten",
+    "scimLastSyncAt": "Laatste SCIM-synchronisatie",
+    "installed": "Geïnstalleerde plugins",
+    "unsigned": "Niet-ondertekende plugins",
+    "mode": "Modus",
+    "databaseDriver": "Database",
+    "pluginStore": "Pluginpakketopslag",
+    "role": "Rol van deze node",
+    "ready": "Gereed voor verkeer",
+    "nodeId": "Node-ID",
+    "sbomFormat": "SBOM-formaat",
+    "signing": "Ondertekening",
+    "selfEnvironments": "Omgevingen waarop McHarbor draait",
+    "containersManageRoles": "Rollen met containers.manage daar",
+    "adminEquivalentRoles": "Rollen gelijk aan beheerder (zonder host_self.manage)",
+    "containersManageUsers": "Gebruikers met een directe containers.manage-toekenning daar",
+    "adminEquivalentUsers": "Gebruikers gelijk aan beheerder (directe toekenning, zonder host_self.manage)"
+  },
+  "reasons": {
+    "sourceUnavailable": "De gegevens achter deze sectie konden niet worden gelezen. Het serverlog noemt de oorzaak.",
+    "retentionShort": "Auditrijen worden na minder dan een jaar verwijderd.",
+    "noForwarding": "Er is geen auditlog-forwarder ingeschakeld, dus het traject bestaat alleen op deze instantie.",
+    "encryptionKeyGenerated": "ENCRYPTION_KEY is niet ingesteld; de sleutel is in de gegevensmap gegenereerd en gaat er samen mee verloren.",
+    "encryptionKeyGeneratedShared": "ENCRYPTION_KEY is niet ingesteld op een gedeelde database; elke node moet dezelfde sleutel gebruiken.",
+    "noBackupKey": "Er is geen back-upversleutelingssleutel geconfigureerd.",
+    "noBackupSchedule": "Er is geen back-upschema voor de instantie ingeschakeld.",
+    "noSuccessfulBackup": "Er is nog nooit een instantieback-up voltooid.",
+    "backupStale": "De laatste geslaagde instantieback-up is meer dan zeven dagen oud.",
+    "lastBackupFailed": "De meest recente instantieback-up is mislukt.",
+    "verifyFailed": "De meest recente back-upverificatie is mislukt.",
+    "tlsDisabled": "TLS staat uit op deze listener. Dat is alleen acceptabel achter een TLS-afsluitende proxy op een privénetwerk.",
+    "certUnreadable": "Het aangeboden certificaat kon niet worden gelezen.",
+    "certExpired": "Het aangeboden certificaat is verlopen.",
+    "certExpiringSoon": "Het aangeboden certificaat verloopt binnen 30 dagen.",
+    "selfSigned": "Het aangeboden certificaat is zelfondertekend.",
+    "minLengthTooShort": "De minimale wachtwoordlengte is minder dan 8 tekens.",
+    "minLengthShort": "De minimale wachtwoordlengte is minder dan 12 tekens.",
+    "noPasswordHistory": "Hergebruik van wachtwoorden wordt niet voorkomen.",
+    "noLocalUsers": "Er zijn geen actieve lokale accounts.",
+    "mfaNone": "Geen enkel actief lokaal account heeft MFA ingesteld.",
+    "mfaPartial": "Sommige actieve lokale accounts hebben geen MFA ingesteld.",
+    "noIdentityProvider": "Er is geen identiteitsprovider of SCIM-eindpunt ingeschakeld.",
+    "scimSyncFailing": "De laatste synchronisatie van minstens één SCIM-eindpunt is mislukt.",
+    "unsignedPlugins": "Sommige geïnstalleerde plugins zijn zonder geldige handtekening geaccepteerd.",
+    "singleNode": "Dit is een single-node-implementatie.",
+    "pluginStoreLocal": "Active/passive met een lokale pluginopslag: een gepromoveerde node kan pluginpakketten missen.",
+    "releaseArtifacts": "Bij elke release gepubliceerd; niet gemeten op deze instantie.",
+    "selfEnvironmentNotFound": "Er kon geen omgeving worden gekoppeld aan de Docker-daemon waarop McHarbor draait, dus er wordt geen rol gemarkeerd.",
+    "containersManageIsAdmin": "Een rol heeft containers.manage in de omgeving waarop McHarbor draait, zonder host_self.manage. In die omgeving kan de rol een container starten die de Docker-socket of de host mount en de sleutels en database van McHarbor lezen, wat gelijkstaat aan beheerder. Ken dit alleen toe in andere omgevingen, of behandel de rol als beheerdersrol.",
+    "containersManageOverrideIsAdmin": "Een gebruiker heeft een directe containers.manage-toekenning in de omgeving waarop McHarbor draait, zonder host_self.manage. Een rolcontrole toont deze toekenning niet, maar ze geeft op dezelfde manier toegang tot de sleutels en database van McHarbor. Verwijder de override, beperk die tot een andere omgeving, of ken host_self.manage bewust toe."
+  },
+  "report": {
+    "title": "Compliancerapport downloaden",
+    "description": "Kies de secties, het formaat en of identificerende waarden moeten worden geredigeerd.",
+    "sections": "Secties",
+    "selectAll": "Alles selecteren",
+    "format": "Formaat",
+    "formatJson": "JSON",
+    "formatDocx": "Word-document (.docx)",
+    "formatPdf": "PDF-document (.pdf)",
+    "redact": "Identificerende waarden redigeren",
+    "redactHint": "Vervangt sleutel-ID's, node-ID's en certificaatonderwerpen door [redacted]. Geheimen worden hoe dan ook nooit opgenomen.",
+    "preview": "Wordt geredigeerd",
+    "previewNone": "Er wordt niets in de geselecteerde secties geredigeerd.",
+    "download": "Downloaden",
+    "failed": "Het rapport kon niet worden gegenereerd.",
+    "noSections": "Selecteer minstens één sectie.",
+    "htmlTitle": "McHarbor-compliancerapport",
+    "htmlVersion": "Versie {{version}} (build {{build}})",
+    "htmlGenerated": "Gegenereerd {{time}}",
+    "htmlRedacted": "Identificerende waarden zijn geredigeerd.",
+    "htmlNotRedacted": "Dit rapport is niet geredigeerd.",
+    "htmlFact": "Feit",
+    "htmlValue": "Waarde",
+    "htmlFindings": "Bevindingen",
+    "htmlStatus": "Status"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "../src/frontend/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "typeRoots": ["../src/frontend/node_modules/@types", "../src/frontend/node_modules"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../src/frontend/vite-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

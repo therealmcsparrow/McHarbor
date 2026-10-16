@@ -1,0 +1,40 @@
+{
+    "slug":  "ansible-runner",
+    "name":  "Ansible Runner",
+    "description":  "Standalone runner that executes Ansible playbooks and roles as one-shot jobs, the engine behind AWX.",
+    "category":  "CI/CD",
+    "image":  "quay.io/ansible/ansible-runner:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ansible.png",
+    "website":  "https://ansible-runner.readthedocs.io",
+    "docsUrl":  "https://ansible-runner.readthedocs.io/en/stable/install/#container",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ansible-runner/project",
+                        "container":  "/runner/project"
+                    },
+                    {
+                        "host":  "/opt/appdata/ansible-runner/inventory",
+                        "container":  "/runner/inventory"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RUNNER_PLAYBOOK",
+                        "default":  "site.yml",
+                        "description":  "Playbook to execute from the mounted project directory"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

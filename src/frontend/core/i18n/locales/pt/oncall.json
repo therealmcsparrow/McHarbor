@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "label": "Plantão",
+    "alerts": "Alertas",
+    "fleet": "Frota",
+    "approvals": "Aprovações",
+    "device": "Dispositivo"
+  },
+  "update": {
+    "ready": "Uma nova versão do McHarbor está pronta.",
+    "reload": "Recarregar"
+  },
+  "stale": {
+    "offline": "Offline. Exibindo o que era conhecido às {{time}}.",
+    "cached": "Exibindo dados salvos de {{time}}. Podem estar desatualizados."
+  },
+  "state": {
+    "loading": "Carregando",
+    "retry": "Tentar novamente",
+    "loadFailed": "Não foi possível carregar isto.",
+    "noAccess": "Você precisa da permissão {{permission}} para ver isto."
+  },
+  "alerts": {
+    "title": "Alertas",
+    "empty": "Nada foi disparado recentemente.",
+    "firing": "Disparado",
+    "resolved": "Resolvido",
+    "notification": "Aviso",
+    "openContainer": "Abrir contêiner",
+    "expand": "Mostrar a mensagem completa",
+    "collapse": "Ocultar a mensagem completa"
+  },
+  "fleet": {
+    "title": "Frota",
+    "empty": "Nenhum ambiente está configurado.",
+    "inactive": "Inativo",
+    "unreachable": "Inacessível",
+    "reachable": "Acessível",
+    "running": "Em execução",
+    "stopped": "Parado",
+    "restarting": "Reiniciando",
+    "other": "Outros",
+    "problemsTitle": "Não está em execução"
+  },
+  "container": {
+    "exitCode": "Código de saída",
+    "startedAt": "Iniciado",
+    "finishedAt": "Finalizado",
+    "restarts": "Reinícios",
+    "oomKilled": "Encerrado pelo OOM killer (falta de memória)",
+    "health": "Integridade",
+    "healthLog": "Verificações de integridade recentes",
+    "noHealth": "Nenhuma verificação de integridade está configurada.",
+    "recentAlerts": "Alertas recentes deste contêiner",
+    "logs": "Registros",
+    "restart": "Reiniciar",
+    "restartTitle": "Reiniciar {{name}}?",
+    "restartDescription": "O contêiner para e inicia novamente. As conexões abertas com ele são interrompidas.",
+    "restartOffline": "Você está offline, então nada pode ser reiniciado.",
+    "back": "Voltar",
+    "error": "O Docker reportou um erro para este contêiner."
+  },
+  "logs": {
+    "title": "Registros",
+    "search": "Pesquisar no log",
+    "follow": "Acompanhar",
+    "pause": "Pausar",
+    "empty": "Nenhuma linha de log.",
+    "noMatches": "Nenhuma linha corresponde à pesquisa.",
+    "reconnecting": "Reconectando ao fluxo de logs"
+  },
+  "approvals": {
+    "title": "Aprovações",
+    "empty": "Nenhuma solicitação de elevação está aguardando.",
+    "approve": "Aprovar",
+    "deny": "Negar",
+    "requestedBy": "Solicitado por {{name}}",
+    "duration_one": "Por {{count}} minuto",
+    "duration_other": "Por {{count}} minutos",
+    "environment": "Ambiente {{name}}",
+    "note": "Nota para o solicitante",
+    "approveTitle": "Aprovar esta elevação?",
+    "denyTitle": "Negar esta elevação?",
+    "approveDescription": "{{requester}} recebe {{permission}} por {{minutes}} minutos.",
+    "denyDescription": "{{requester}} não recebe {{permission}}."
+  },
+  "device": {
+    "title": "Este dispositivo",
+    "pushTitle": "Notificações push",
+    "pushIntro": "Alertas e solicitações de aprovação chegam a este dispositivo mesmo com o McHarbor fechado.",
+    "transit": "As notificações passam pelo serviço de push do fornecedor do seu navegador (Google, Apple, Mozilla ou Microsoft). A mensagem é criptografada para este dispositivo e contém apenas o texto do alerta e um link, mas o serviço de push fica sabendo que uma notificação foi enviada.",
+    "unsupported": "Este navegador não consegue receber notificações push.",
+    "insecure": "As notificações push exigem um certificado HTTPS confiável. Abra o McHarbor com um certificado publicamente confiável para usá-las.",
+    "iosInstall": "No iPhone e no iPad, adicione primeiro o McHarbor à Tela de Início (Compartilhar, depois Adicionar à Tela de Início) e abra-o a partir dela.",
+    "denied": "As notificações estão bloqueadas para o McHarbor nas configurações deste navegador.",
+    "label": "Nome do dispositivo",
+    "labelPlaceholder": "Meu celular",
+    "enable": "Ativar neste dispositivo",
+    "disable": "Desativar neste dispositivo",
+    "enabled": "As notificações push estão ativadas neste dispositivo.",
+    "test": "Enviar uma notificação de teste",
+    "testResult_one": "Enviada para {{sent}} dispositivo, {{failed}} com falha, {{removed}} removido.",
+    "testResult_other": "Enviada para {{sent}} dispositivos, {{failed}} com falha, {{removed}} removidos.",
+    "devicesTitle": "Seus dispositivos",
+    "noDevices": "Nenhum dispositivo recebe notificações push ainda.",
+    "lastSeen": "Última entrega {{time}}",
+    "neverDelivered": "Nada entregue ainda",
+    "failing_one": "{{count}} entrega com falha",
+    "failing_other": "{{count}} entregas com falha",
+    "revoke": "Revogar",
+    "revokeLabel": "Revogar {{name}}",
+    "revokeTitle": "Revogar {{name}}?",
+    "revokeDescription": "Este dispositivo deixa de receber notificações push. Elas podem ser ativadas novamente a partir do próprio dispositivo.",
+    "revoked": "Dispositivo revogado",
+    "layoutTitle": "Layout",
+    "layoutAuto": "Automático (pela largura da tela)",
+    "layoutOncall": "Sempre o layout de plantão",
+    "layoutDesktop": "Sempre o layout de desktop",
+    "openDesktop": "Abrir a interface de desktop",
+    "signOut": "Sair",
+    "workerUnavailable": "Este navegador não iniciou o worker em segundo plano do McHarbor, necessário para o push. Recarregue a página; se continuar falhando, o certificado provavelmente não é confiável para este dispositivo."
+  }
+}

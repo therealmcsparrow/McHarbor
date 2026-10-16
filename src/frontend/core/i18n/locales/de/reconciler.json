@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "Was überwacht werden soll",
+    "container": "Ein Container",
+    "stack": "Ein Stack",
+    "environment": "Alles in dieser Umgebung"
+  },
+  "kindHint": {
+    "container": "Drift, wenn der Container fehlt, gestoppt ist, ein anderes Image ausführt oder seine Konfiguration abweicht.",
+    "stack": "Drift, wenn ein Service aus der Compose-Datei des Stacks fehlt oder nicht läuft oder der Stack Container ausführt, die seine Datei nicht deklariert.",
+    "environment": "Drift, wenn hier ein Container läuft, den keine Container- oder Stack-Überwachung in dieser Umgebung abdeckt. Versehen Sie einen Container mit dem Label mcharbor.reconciler.ignore=true, um ihn auszunehmen."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Stack auswählen",
+  "target": {
+    "environment": "Gesamte Umgebung"
+  },
+  "class": {
+    "configuration": "Konfiguration",
+    "state": "Zustand",
+    "existence": "Existenz",
+    "image": "Image"
+  },
+  "details": {
+    "open": "Abweichungen anzeigen",
+    "title": "Was abgewichen ist: {{name}}",
+    "description": "Geprüft {{time}}.",
+    "field": "Feld",
+    "expected": "Erwartet",
+    "actual": "Tatsächlich",
+    "firstSeen": "Erstmals gesehen",
+    "none": "Bei der letzten Prüfung wurde keine Drift gefunden."
+  },
+  "observeOnly": "Stack- und Umgebungsüberwachungen können nicht direkt abgeglichen werden; schlagen Sie stattdessen eine Korrektur vor.",
+  "report": {
+    "title": "Drift-Bericht",
+    "description": "Jede bestätigte Drift über alle Überwachungen hinweg, das am längsten Abweichende zuerst.",
+    "open": "Drift-Bericht",
+    "back": "Zurück zu den Überwachungen",
+    "empty": "Nichts ist abgewichen.",
+    "classFilter": "Klasse",
+    "allClasses": "Alle Klassen",
+    "columns": {
+      "watch": "Überwachung",
+      "class": "Klasse",
+      "field": "Feld",
+      "expected": "Erwartet",
+      "actual": "Tatsächlich",
+      "firstSeen": "Erstmals gesehen",
+      "checked": "Geprüft"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Von einer Git-Quelle verwaltet: Löschen Sie stattdessen das Dokument im Repository.",
+  "mode": {
+    "column": "Reaktion",
+    "change": "Ändern, wie auf Drift reagiert wird",
+    "title": "Wie auf Drift reagiert wird: {{name}}",
+    "description": "Wählen Sie, was McHarbor tut, wenn diese Überwachung driftet.",
+    "label": "Bei Drift",
+    "observe": "Beobachten",
+    "propose": "Korrektur vorschlagen",
+    "enforce": "Erzwingen",
+    "save": "Speichern",
+    "confirmEnforce": "McHarbor automatisch korrigieren lassen",
+    "enforceWarning": "Erzwingen ändert Container, ohne jemanden zu fragen. Es greift nur ein, solange die Erzwingung in den Reconciler-Einstellungen aktiviert ist, innerhalb des Limits pro Durchlauf und der Abkühlzeit, und stoppt bei wiederholten Fehlern, bis jemand es zurücksetzt.",
+    "hint": {
+      "observe": "Die Drift aufzeichnen, darauf alarmieren und nichts ändern.",
+      "propose": "Zusätzlich einen Plan zur Wiederherstellung des Sollzustands schreiben, den jemand prüft und genehmigt.",
+      "enforce": "Den Plan automatisch anwenden, wenn jeder Schritt ohne Person ausgeführt werden kann; andernfalls einen Plan zur Prüfung schreiben."
+    }
+  },
+  "proposals": {
+    "open": "Pläne",
+    "proposeNow": "Korrektur vorschlagen",
+    "title": "Abgleichpläne",
+    "description": "Pläne zur Wiederherstellung des Sollzustands, die auf Prüfung warten, sowie das Protokoll jedes Plans, der von einer Person oder durch Erzwingung angewendet wurde.",
+    "statusFilter": "Status",
+    "allStatuses": "Alle Status",
+    "empty": "Keine Pläne.",
+    "errorTitle": "Warum der Plan fehlgeschlagen ist",
+    "stepError": "Warum dieser Schritt fehlgeschlagen ist",
+    "dialogTitle": "Plan für {{name}}",
+    "dialogDescription": "Geschrieben {{time}}.",
+    "staleNotice": "Die Drift hat sich geändert, seit dieser Plan geschrieben wurde, daher wurde er nicht angewendet. Dies ist der Plan für die Drift, wie sie jetzt ist; prüfen Sie ihn erneut.",
+    "drift": "Was abgewichen ist",
+    "plan": "Was der Plan tut",
+    "noSteps": "Nichts zu tun.",
+    "approveWarning": "Beim Genehmigen werden diese Schritte sofort auf die Umgebung angewendet. McHarbor prüft zuvor die Drift erneut und lehnt ab, falls sie sich geändert hat.",
+    "rejectNote": "Begründung (optional)",
+    "approve": "Genehmigen und anwenden",
+    "reject": "Ablehnen",
+    "confirmApprove": "Jetzt anwenden",
+    "confirmReject": "Plan ablehnen",
+    "columns": {
+      "watch": "Überwachung",
+      "status": "Status",
+      "origin": "Von",
+      "steps": "Schritte",
+      "created": "Geschrieben",
+      "resolvedBy": "Gelöst von"
+    },
+    "status": {
+      "pending": "Wartet auf Prüfung",
+      "applying": "Wird angewendet",
+      "applied": "Angewendet",
+      "failed": "Fehlgeschlagen",
+      "rejected": "Abgelehnt",
+      "superseded": "Ersetzt"
+    },
+    "origin": {
+      "propose": "Vorschlag",
+      "enforce": "Erzwingung"
+    }
+  },
+  "step": {
+    "start": "Starten",
+    "stop": "Stoppen",
+    "remove": "Entfernen",
+    "recreate": "Neu erstellen",
+    "stack_up": "Stack bereitstellen",
+    "manual": "Erfordert eine Person",
+    "plugin": "Ändern",
+    "disruptive": "Unterbricht den Dienst"
+  },
+  "stepResult": {
+    "done": "Erledigt",
+    "failed": "Fehlgeschlagen",
+    "skipped": "Übersprungen",
+    "manual": "Einer Person überlassen"
+  },
+  "manual": {
+    "missing": "Der Container existiert nicht, und ein Sollzustand enthält nicht genug, um ihn zu erstellen. Stellen Sie ihn bereit und prüfen Sie dann erneut.",
+    "compose_managed": "Der Container gehört zu einem Compose-Stack; ändern Sie den Stack statt des Containers.",
+    "ports": "Veröffentlichte Ports lassen sich nicht durch Neuerstellen ändern; bearbeiten Sie den Container oder seinen Stack.",
+    "mounts": "Einhängungen lassen sich nicht durch Neuerstellen ändern; bearbeiten Sie den Container oder seinen Stack.",
+    "networks": "Verbinden Sie den Container über die Container- oder Netzwerkseite mit seinen Netzwerken.",
+    "protected": "Dies ist ein geschützter Container (McHarbor oder sein Agent) und wird nie automatisch geändert.",
+    "stack_remove": "Das Entfernen eines Stacks wird nie geplant; fahren Sie ihn über die Stack-Seite herunter.",
+    "stack_stop": "Das Stoppen eines Stacks wird nie geplant; stoppen Sie ihn über die Stack-Seite.",
+    "git_compose": "Die Compose-Datei des Stacks stammt aus Git; stellen Sie ihn über seine GitOps-Pipeline bereit."
+  },
+  "refusal": {
+    "stale": "Die Drift hat sich geändert, seit dieser Plan geschrieben wurde. Stattdessen wurde ein neuer Plan geschrieben.",
+    "unknown": "Die Umgebung ist derzeit nicht erreichbar, daher wurde nichts geändert.",
+    "no_drift": "Es gibt keine Drift, auf die reagiert werden könnte.",
+    "cannot_act": "Dieser McHarbor-Node kann keine Änderungen anwenden.",
+    "not_pending": "Jemand hat diesen Plan bereits bearbeitet.",
+    "git_managed": "Diese Überwachung wird von einer Git-Quelle verwaltet. Ändern Sie sie im Repository.",
+    "enforce_route": "Erzwingen wird über die Reaktionseinstellung der Überwachung gewährt.",
+    "bad_mode": "Unbekannter Reaktionsmodus.",
+    "not_git_managed": "Diese Überwachung wird nicht von einer Git-Quelle verwaltet.",
+    "not_expressible": "Keine dieser Driften kann ins Repository zurückgeschrieben werden.",
+    "git_failed": "Git hat die Änderung abgelehnt. Prüfen Sie die Zugangsdaten und den Branch des Repositorys.",
+    "sync_failed": "Die Synchronisierung ist fehlgeschlagen; der Grund wird an der Quelle angezeigt.",
+    "confirm_passes_range": "Bestätigungsdurchläufe müssen zwischen 1 und 10 liegen.",
+    "actions_per_pass_range": "Aktionen pro Durchlauf müssen zwischen 1 und 25 liegen.",
+    "cooldown_range": "Die Abkühlzeit muss zwischen 0 und 86400 Sekunden liegen.",
+    "failure_threshold_range": "Der Fehlerschwellenwert muss zwischen 1 und 20 liegen.",
+    "source_fields_required": "Ein Name, ein Repository und eine Umgebung sind erforderlich.",
+    "invalid_branch": "Dieser Branch-Name ist ungültig.",
+    "path_escapes_repo": "Der Pfad muss innerhalb des Repositorys bleiben.",
+    "invalid": "Die Anfrage war ungültig."
+  },
+  "pullRequest": {
+    "action": "Drift in Git übernehmen",
+    "title": "Drift in Git übernehmen: {{name}}",
+    "description": "McHarbor schreibt das Dokument dieser Überwachung passend zum laufenden Zustand um, pusht es auf einen neuen Branch und öffnet einen Pull Request zur Prüfung. Es ändert sich nichts, bis jemand ihn mergt.",
+    "confirm": "Branch pushen und Request öffnen",
+    "branch": "Branch:",
+    "open": "Pull Request öffnen",
+    "noRequest": "Der Branch wurde gepusht, aber es wurde kein Pull Request geöffnet: {{error}}",
+    "changed": "Geändert: {{fields}}",
+    "skipped": "Nicht ausdrückbar, weiterhin Drift: {{fields}}"
+  },
+  "sources": {
+    "open": "Git-Quellen",
+    "title": "Git-Quellen",
+    "description": "Repositories, deren Dokumente den Sollzustand darstellen. Ein Commit ändert die Absicht innerhalb eines Reconciler-Durchlaufs; Zeilen aus Git werden im Repository bearbeitet.",
+    "add": "Git-Quelle hinzufügen",
+    "addTitle": "Git-Quelle hinzufügen",
+    "addDescription": "Jedes YAML- oder JSON-Dokument unter dem Pfad wird zu einer Überwachung in der aktuellen Umgebung.",
+    "name": "Name",
+    "repository": "Repository",
+    "repositoryPlaceholder": "Repository auswählen",
+    "branch": "Branch",
+    "path": "Verzeichnis",
+    "formatHint": "Ein Dokument enthält name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe oder propose) und config; eine Datei kann mehrere unter desiredStates auflisten. Enforce kann nicht aus Git gesetzt werden.",
+    "where": "Branch und Verzeichnis",
+    "state": "Zustand",
+    "failing": "Fehlerhaft",
+    "syncing": "Synchronisiert",
+    "paused": "Pausiert",
+    "errorTitle": "Warum die Synchronisierung fehlgeschlagen ist",
+    "rows": "Überwachungen",
+    "commit": "Commit",
+    "synced": "Letzte Synchronisierung",
+    "syncNow": "Jetzt synchronisieren",
+    "empty": "Keine Git-Quellen.",
+    "deleteTitle": "Git-Quelle löschen",
+    "deleteDescription": "Den Sollzustand nicht mehr aus {{name}} lesen. Die Überwachungen bleiben bestehen und können dann hier bearbeitet werden.",
+    "deleteConfirm": "Quelle löschen"
+  },
+  "settings": {
+    "title": "Reconciler-Einstellungen",
+    "description": "Wie Drift bestätigt wird und innerhalb welcher Grenzen die Erzwingung arbeitet.",
+    "confirmPasses": "Durchläufe zur Drift-Bestätigung",
+    "confirmPassesHint": "Drift wird erst aufgezeichnet, nachdem so viele aufeinanderfolgende Prüfungen sie sehen, sodass ein Rolling Update nicht gemeldet wird. Erhöhen Sie den Wert bei langsamen Hosts.",
+    "save": "Speichern",
+    "enforcement": "Erzwingung",
+    "enforcementHint": "Standardmäßig aus. Nur auf Erzwingen gesetzte Überwachungen werden bearbeitet, und nur innerhalb dieser Grenzen.",
+    "enforceEnabled": "Erzwingung aktiviert",
+    "maxActions": "Änderungen pro Durchlauf",
+    "cooldownMinutes": "Abkühlzeit pro Überwachung (Minuten)",
+    "threshold": "Fehler bis zum Stopp",
+    "saveEnforcement": "Erzwingung speichern",
+    "breakerOpen": "Die Erzwingung wurde um {{time}} nach wiederholten Fehlern gestoppt. Es wird nichts erzwungen, bis sie zurückgesetzt wird.",
+    "reset": "Zurücksetzen und fortsetzen",
+    "confirmReset": "Erzwingung fortsetzen"
+  },
+  "pick": {
+    "manual": "Manuell eingeben…",
+    "fromList": "Aus Liste wählen",
+    "container": "Container auswählen",
+    "containerHint": "Die Auswahl eines vorhandenen Containers übernimmt das Image und den Status, mit denen er jetzt läuft. Geben Sie einen Namen manuell ein, um einen noch nicht vorhandenen zu deklarieren.",
+    "image": "Image auswählen",
+    "select": "Auswählen…",
+    "loading": "Wird geladen…"
+  },
+  "plugin": {
+    "cluster": "Cluster",
+    "environment": "Umgebung",
+    "pinHint": "Fixieren Sie nur, was gehalten werden soll. Eine Eigenschaft auf „Nicht verwaltet“ wird nie geprüft.",
+    "useCurrent": "Aktuelle Werte verwenden",
+    "notManaged": "Nicht verwaltet",
+    "yes": "Ja",
+    "no": "Nein"
+  }
+}

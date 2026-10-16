@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "Destinos de copia de seguridad de TrueNAS",
+    "subtitle": "Haga copias de seguridad de contenedores en una instancia de TrueNAS mediante WebDAV (RFC 4918). TrueNAS expone WebDAV en la ruta configurada del recurso compartido (por defecto /webdav para el recurso WebDAV estándar). Los operadores se autentican con un usuario local de TrueNAS + contraseña mediante autenticación HTTP Basic. Las subidas fragmentadas usan PUT con Content-Range, admitido en el servidor por el servidor Samba de TrueNAS.",
+    "registerHint": "Haga clic en Probar la conexión para verificar que el endpoint WebDAV es accesible y que las credenciales son válidas."
+  },
+  "fields": {
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "folderId": "Subcarpeta del recurso compartido WebDAV"
+  },
+  "toast": {
+    "registered": "Plugin de TrueNAS registrado.",
+    "testPassed": "La prueba de conexión de TrueNAS se superó.",
+    "testFailed": "La prueba de conexión de TrueNAS falló: {{error}}"
+  },
+  "error": {
+    "noHost": "La URL base de TrueNAS es obligatoria.",
+    "noUsername": "El nombre de usuario de TrueNAS es obligatorio.",
+    "noPassword": "La contraseña de TrueNAS es obligatoria."
+  },
+  "form": {
+    "hostLabel": "URL base de TrueNAS",
+    "hostHelp": "URL base del servidor TrueNAS, p. ej. https://nas.local. No añadas una barra final.",
+    "usernameHelp": "Usuario local de TrueNAS. El usuario debe tener acceso de lectura y escritura al recurso compartido WebDAV configurado.",
+    "passwordHelp": "Contraseña del usuario local de TrueNAS. Almacenada cifrada en reposo por el servicio AES-256-GCM del host.",
+    "basePathLabel": "Subcarpeta (opcional)",
+    "basePathHelp": "Subcarpeta opcional bajo la raíz WebDAV del recurso compartido. Déjala vacía para usar la raíz del recurso compartido.",
+    "apiPathLabel": "Ruta WebDAV (avanzado)",
+    "apiPathHelp": "Sobrescribe la ruta WebDAV. Por defecto es /webdav. Los operadores con varios recursos compartidos WebDAV pueden establecerlo en /webdav/{share-name}.",
+    "introTitle": "Credenciales de TrueNAS",
+    "introBody": "TrueNAS usa una cuenta de usuario local para la autenticación WebDAV. El usuario debe tener acceso de lectura y escritura al recurso compartido WebDAV configurado. McHarbor almacena la contraseña cifrada en reposo."
+  },
+  "setup": {
+    "title": "Guía de configuración de TrueNAS",
+    "step1": "En TrueNAS, crea un recurso compartido WebDAV: <b>Services → SMB</b> → añade un recurso compartido. Establece la ruta en un directorio donde quieras guardar las copias de seguridad (p. ej. <code>/mnt/tank/backups</code>). TrueNAS expone el recurso compartido en <code>/webdav</code> de forma predeterminada una vez habilitado el servicio WebDAV (<b>Services → SMB → advanced settings</b> o mediante el servicio específico de WebDAV en versiones más recientes).",
+    "step2": "Crea un usuario local de TrueNAS (o usa uno existente) con acceso de lectura y escritura al directorio del recurso compartido. El directorio personal del usuario no importa; solo importa la ACL del recurso compartido.",
+    "step3": "En McHarbor, pega la URL base de TrueNAS (p. ej. <code>https://nas.local</code>, sin barra final), el nombre de usuario y la contraseña del usuario en el formulario de la izquierda. Opcional: establece una subcarpeta bajo la raíz WebDAV del recurso compartido (p. ej. <code>Backups/2026</code>) y deja que McHarbor cree las carpetas intermedias automáticamente.",
+    "step4": "Haz clic en <b>Test connection</b> para escribir y leer un archivo de prueba en la carpeta resuelta. El plugin ejecuta un <code>PROPFIND</code> de WebDAV autenticado con HTTP Basic contra <code>/webdav</code> para confirmar que el destino es accesible y que las credenciales son válidas.",
+    "step5": "En configuraciones con varios recursos compartidos, establece el <b>WebDAV path override</b> (p. ej. <code>/webdav/Backups</code>) para apuntar a la ruta del recurso compartido bajo la raíz WebDAV.",
+    "step6": "Lanza una copia de seguridad. El plugin sube el archivo por WebDAV mediante PUT fragmentado con <code>Content-Range</code>. El servidor WebDAV de TrueNAS basado en samba.org admite cargas fragmentadas, de modo que incluso las copias de más de 10 GB se transmiten sin almacenar en memoria toda la carga a la vez."
+  }
+}

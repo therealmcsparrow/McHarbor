@@ -4,7 +4,7 @@
     "description":  "Prometheus exporter for PostgreSQL server metrics with auto-discovery of databases.",
     "category":  "Monitoring",
     "image":  "prometheuscommunity/postgres-exporter:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgres.svg",
     "website":  "https://github.com/prometheus-community/postgres_exporter",
     "docsUrl":  "https://github.com/prometheus-community/postgres_exporter#docker",
     "ports":  [
@@ -30,5 +30,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

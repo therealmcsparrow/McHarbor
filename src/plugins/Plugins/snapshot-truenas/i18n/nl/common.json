@@ -1,0 +1,51 @@
+{
+  "form": {
+    "connectionSection": "TrueNAS-verbinding",
+    "targetSection": "Snapshotdoel",
+    "advancedSection": "Geavanceerd",
+    "apiUrl": {
+      "label": "API-URL",
+      "help": "Basis-URL van de TrueNAS-middleware-API. Voeg /api/v2.0 toe."
+    },
+    "apiKey": {
+      "label": "API-sleutel",
+      "help": "API-sleutel gegenereerd via Credentials → Local Users → <user> → API Keys. Versleuteld opgeslagen door de versleutelingsservice van de host."
+    },
+    "datasetPath": {
+      "label": "Datasetpad",
+      "help": "Pad naar de ZFS-dataset waarvan een snapshot wordt gemaakt. Snapshots worden recursief gemaakt en omvatten onderliggende datasets."
+    },
+    "verifyTls": {
+      "label": "TLS verifiëren",
+      "help": "Schakel uit om zelfondertekende certificaten te accepteren (standaard TrueNAS-installaties). Uit is gelijk aan --insecure."
+    },
+    "recursiveHint": "Snapshots zijn recursief: een snapshot van tank/backups omvat tank/backups/child1 en tank/backups/child2. De host maakt per back-uprun één snapshot; onderliggende datasets krijgen geen afzonderlijke snapshot."
+  },
+  "setup": {
+    "title": "Voordat je begint",
+    "intro": "snapshot-truenas praat via HTTPS met de TrueNAS-middleware-API. Controleer of de API vanaf de host bereikbaar is en vul daarna het formulier in.",
+    "steps": [
+      {
+        "title": "Controleer of de TrueNAS-middleware bereikbaar is",
+        "body": "Controleer vanaf de host waarop McHarbor draait de HTTPS-connectiviteit. Vervang nas.local door je TrueNAS-hostnaam:",
+        "code": "curl -k https://nas.local/api/v2.0/zfs/snapshot"
+      },
+      {
+        "title": "Maak een aparte gebruiker aan (aanbevolen)",
+        "body": "Credentials → Local Users → Add. Geef alleen toegang tot de datasets waarvan een snapshot moet worden gemaakt. Door het serviceaccount te isoleren kan de API-sleutel later veilig worden ingetrokken."
+      },
+      {
+        "title": "Genereer een API-sleutel",
+        "body": "Credentials → Local Users → <user> → API Keys → Add. Kopieer de gegenereerde sleutel — TrueNAS toont hem maar één keer. Plak hem in het veld API-sleutel op het formulier."
+      },
+      {
+        "title": "Bepaal of maak de dataset",
+        "body": "Storage → Pools → ⋮ → Add Dataset. Gebruik een aparte dataset (bijv. tank/backups) zodat de snapshotdruk de datasetlijst niet opblaast. Noteer het exacte pad — het is hoofdlettergevoelig."
+      },
+      {
+        "title": "Test de verbinding",
+        "body": "Klik na het opslaan van de configuratie op 'Verbinding testen' op het tabblad Snapshots. Een groen proefresultaat bevestigt dat de API-sleutel werkt en dat de dataset aan de TrueNAS-kant bestaat."
+      }
+    ]
+  }
+}

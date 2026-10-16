@@ -4,7 +4,7 @@
     "description":  "OIDC SSO provider that uses passkeys for passwordless authentication.",
     "category":  "Security",
     "image":  "ghcr.io/pocket-id/pocket-id:latest",
-    "logo":  "https://icon.horse/icon/pocket-id.org",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/pocket-id.svg",
     "website":  "https://pocket-id.org",
     "docsUrl":  "https://pocket-id.org/docs",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Listen port"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

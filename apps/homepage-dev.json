@@ -1,0 +1,40 @@
+{
+    "slug":  "homepage-dev",
+    "name":  "Homepage (Dev)",
+    "description":  "Dev channel build of Homepage. Modern application dashboard for homelab services.",
+    "category":  "Dashboards",
+    "image":  "ghcr.io/gethomepage/homepage:dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homepage.png",
+    "website":  "https://gethomepage.dev",
+    "docsUrl":  "https://gethomepage.dev",
+    "ports":  [
+                  {
+                      "host":  4004,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/homepage-dev/config",
+                        "container":  "/app/config"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "slug":  "firebird",
+    "name":  "Firebird",
+    "description":  "Open source relational database with a multi-generational architecture and low administration overhead.",
+    "category":  "Databases",
+    "image":  "jacobalberty/firebird:latest",
+    "logo":  "https://github.com/FirebirdSQL.png",
+    "website":  "https://firebirdsql.org",
+    "docsUrl":  "https://github.com/jacobalberty/docker-firebird",
+    "ports":  [
+                  {
+                      "host":  3050,
+                      "container":  3050,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/firebird/data",
+                        "container":  "/firebird/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ISC_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "SYSDBA superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "FIREBIRD_DATABASE",
+                        "default":  "database.fdb",
+                        "description":  "Default database file name"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

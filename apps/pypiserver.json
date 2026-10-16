@@ -1,0 +1,41 @@
+{
+    "slug":  "pypiserver",
+    "name":  "pypiserver",
+    "description":  "Minimal private PyPI-compatible package index for hosting and installing internal Python packages.",
+    "category":  "CI/CD",
+    "image":  "pypiserver/pypiserver:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pypi.png",
+    "website":  "https://pypi.org/project/pypiserver/",
+    "docsUrl":  "https://github.com/pypiserver/pypiserver#docker",
+    "ports":  [
+                  {
+                      "host":  8091,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pypiserver/packages",
+                        "container":  "/data/packages"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PYPISERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to upload packages",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

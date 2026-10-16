@@ -1,0 +1,20 @@
+{
+  "widgets": {
+    "snapshotStatus": {
+      "label": "Snapshot status",
+      "description": "Last successful snapshot per target, and what is overdue"
+    }
+  },
+  "snapshotStatusWidget": {
+    "title": "Snapshot status",
+    "never": "never",
+    "noPlans": "No snapshot plans configured",
+    "overdueCount": "{{count}} overdue",
+    "overdueCount_other": "{{count}} overdue",
+    "more": "{{count}} more",
+    "allCurrent": "All current",
+    "viewAll": "All backups",
+    "overdue": "Overdue",
+    "current": "Up to date"
+  }
+}

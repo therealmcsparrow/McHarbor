@@ -5,6 +5,7 @@ package middleware
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -15,7 +16,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/therealmcsparrow/mcharbor/core/httpx"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
+	"github.com/therealmcsparrow/mcharbor/core/requestid"
 )
 
 var timeNow = time.Now
@@ -33,8 +36,23 @@ func Logger(logger *slog.Logger) func(http.Handler) http.Handler {
 				"status", sw.status,
 				"duration_ms", timeNow().Sub(start).Milliseconds(),
 				"ip", clientIP(r),
+				"request_id", requestid.From(r.Context()),
 			)
 		})
+	}
+}
+
+// writeErrorEnvelope writes the standard failure envelope; encoding or write failures are logged because the response is already committed.
+func writeErrorEnvelope(ctx context.Context, w http.ResponseWriter, status int, msg, code string) {
+	body, err := json.Marshal(map[string]any{"success": false, "error": msg, "code": code, "requestId": requestid.From(ctx)})
+	if err != nil {
+		slog.ErrorContext(ctx, "encoding error envelope failed", "error", err)
+		body = []byte(`{"success":false}`)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if _, err := w.Write(body); err != nil {
+		slog.WarnContext(ctx, "writing error envelope failed", "error", err)
 	}
 }
 
@@ -42,68 +60,147 @@ func Logger(logger *slog.Logger) func(http.Handler) http.Handler {
 func Recovery(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				if err := recover(); err != nil {
-					logger.Error("panic recovered",
-						"error", err,
-						"stack", string(debug.Stack()),
-						"method", r.Method,
-						"path", r.URL.Path,
-					)
-					lang := i18n.FromContext(r.Context())
-					msg := i18n.T(lang, i18n.ErrPanicRecovery)
-					body, _ := json.Marshal(map[string]any{"success": false, "error": msg, "code": string(i18n.ErrPanicRecovery)}) // safe: simple map literal
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write(body)
-				}
-			}()
+			defer recoverPanic(logger, w, r)
 			next.ServeHTTP(sw(w), r)
 		})
 	}
 }
 
-// RateLimit is a simple token-bucket rate limiter per IP.
-// For auth endpoints, limit to 10 requests per minute.
-func RateLimit(requestsPerMinute int) func(http.Handler) http.Handler {
-	// Simple in-memory rate limiter
-	type bucket struct {
-		tokens    int
-		lastReset time.Time
+// recoverPanic must be the deferred call itself, because recover only stops a panic when its caller is the deferred function.
+func recoverPanic(logger *slog.Logger, w http.ResponseWriter, r *http.Request) {
+	err := recover()
+	if err == nil {
+		return
 	}
-	buckets := make(map[string]*bucket)
-	var mu sync.Mutex
+	ctx := r.Context()
+	logger.ErrorContext(ctx, "panic recovered",
+		"error", err,
+		"stack", string(debug.Stack()),
+		"method", r.Method,
+		"path", r.URL.Path,
+	)
+	msg := i18n.T(i18n.FromContext(ctx), i18n.ErrPanicRecovery)
+	writeErrorEnvelope(ctx, w, http.StatusInternalServerError, msg, string(i18n.ErrPanicRecovery))
+}
 
+// rateLimitMaxBuckets caps the per-client bucket map. Behind a trusted proxy
+// every distinct origin gets a bucket, so without a cap a long-lived process
+// accumulates one entry per address it has ever seen.
+const rateLimitMaxBuckets = 10000
+
+// rateLimitWindow is the period a bucket's allowance covers.
+const rateLimitWindow = time.Minute
+
+type rateBucket struct {
+	tokens    int
+	lastReset time.Time
+}
+
+// rateLimiter holds the per-client token buckets behind RateLimit. Stale
+// buckets are swept inline under mu when the map reaches maxBuckets, so no
+// background goroutine needs a lifecycle.
+type rateLimiter struct {
+	limit      int
+	maxBuckets int
+	mu         sync.Mutex
+	buckets    map[string]*rateBucket
+}
+
+func newRateLimiter(limit, maxBuckets int) *rateLimiter {
+	return &rateLimiter{limit: limit, maxBuckets: maxBuckets, buckets: make(map[string]*rateBucket)}
+}
+
+// allow spends one token from key's bucket and reports whether the request may
+// proceed.
+func (l *rateLimiter) allow(key string, now time.Time) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	b, ok := l.buckets[key]
+	if !ok || now.Sub(b.lastReset) > rateLimitWindow {
+		if !ok && len(l.buckets) >= l.maxBuckets {
+			l.sweep(now)
+		}
+		l.buckets[key] = &rateBucket{tokens: l.limit - 1, lastReset: now}
+		return true
+	}
+	if b.tokens <= 0 {
+		return false
+	}
+	b.tokens--
+	return true
+}
+
+// sweep drops every bucket whose window has passed. When every bucket is still
+// live it evicts the oldest, so the map never exceeds maxBuckets; the evicted
+// client merely gets a fresh allowance, which is the cheaper failure.
+func (l *rateLimiter) sweep(now time.Time) {
+	for key, b := range l.buckets {
+		if now.Sub(b.lastReset) > rateLimitWindow {
+			delete(l.buckets, key)
+		}
+	}
+	for len(l.buckets) >= l.maxBuckets {
+		oldestKey := ""
+		var oldest time.Time
+		for key, b := range l.buckets {
+			if oldestKey == "" || b.lastReset.Before(oldest) {
+				oldestKey, oldest = key, b.lastReset
+			}
+		}
+		delete(l.buckets, oldestKey)
+	}
+}
+
+// size reports the number of tracked buckets.
+func (l *rateLimiter) size() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.buckets)
+}
+
+// Limiter is RateLimit's per-key budget for a caller that only knows the key after it has
+// looked at the request, such as the node-to-node routes keying on the verified node id.
+type Limiter struct{ l *rateLimiter }
+
+// NewLimiter returns a Limiter allowing requestsPerMinute requests per key per window.
+func NewLimiter(requestsPerMinute int) *Limiter {
+	return &Limiter{l: newRateLimiter(requestsPerMinute, rateLimitMaxBuckets)}
+}
+
+// Allow spends one of key's tokens and reports whether the request may proceed.
+func (l *Limiter) Allow(key string) bool { return l.l.allow(key, timeNow()) }
+
+// RateLimit throttles requests per client, identified by clientKey. A nil
+// clientKey, or one that returns "", falls back to the socket peer, which is
+// correct only when nothing sits in front of the server.
+func RateLimit(requestsPerMinute int, clientKey func(*http.Request) string) func(http.Handler) http.Handler {
+	return rateLimitWith(newRateLimiter(requestsPerMinute, rateLimitMaxBuckets), clientKey)
+}
+
+func rateLimitWith(limiter *rateLimiter, clientKey func(*http.Request) string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip := remoteIP(r)
-			now := timeNow()
-
-			mu.Lock()
-			b, ok := buckets[ip]
-			if !ok || now.Sub(b.lastReset) > time.Minute {
-				buckets[ip] = &bucket{tokens: requestsPerMinute - 1, lastReset: now}
-				mu.Unlock()
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			if b.tokens <= 0 {
-				mu.Unlock()
+			if !limiter.allow(rateLimitKey(r, clientKey), timeNow()) {
 				lang := i18n.FromContext(r.Context())
 				msg := i18n.T(lang, i18n.ErrRateLimitExceed)
-				body, _ := json.Marshal(map[string]any{"success": false, "error": msg, "code": string(i18n.ErrRateLimitExceed)}) // safe: simple map literal
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusTooManyRequests)
-				w.Write(body)
+				writeErrorEnvelope(r.Context(), w, http.StatusTooManyRequests, msg, string(i18n.ErrRateLimitExceed))
 				return
 			}
-
-			b.tokens--
-			mu.Unlock()
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// rateLimitKey never returns "": an unattributable request is keyed on its
+// peer rather than sharing one bucket with every other unattributable request.
+func rateLimitKey(r *http.Request, clientKey func(*http.Request) string) string {
+	if clientKey != nil {
+		if key := clientKey(r); key != "" {
+			return key
+		}
+	}
+	return remoteIP(r)
 }
 
 // statusWriter wraps ResponseWriter to capture the status code.
@@ -145,19 +242,7 @@ func sw(w http.ResponseWriter) http.ResponseWriter {
 }
 
 func clientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		// Take the first IP
-		for i, c := range xff {
-			if c == ',' {
-				return strings.TrimSpace(xff[:i])
-			}
-		}
-		return strings.TrimSpace(xff)
-	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return strings.TrimSpace(xri)
-	}
-	return remoteIP(r)
+	return httpx.ClientIP(r)
 }
 
 func remoteIP(r *http.Request) string {
@@ -168,7 +253,8 @@ func remoteIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-// ClientIP extracts the client IP from the request.
+// ClientIP is a log-line convenience; a security decision (throttling, lockout)
+// must use the AppDeps.ResolveClientAddress resolver and its attribution source.
 func ClientIP(r *http.Request) string {
 	return clientIP(r)
 }
@@ -176,7 +262,14 @@ func ClientIP(r *http.Request) string {
 // ForceHTTPS redirects HTTP requests to HTTPS.
 // Checks X-Forwarded-Proto for reverse proxy setups and r.TLS for direct connections.
 // Skips /api/health to allow healthchecks over HTTP.
-func ForceHTTPS(logger *slog.Logger) func(http.Handler) http.Handler {
+//
+// `httpsHost` is the canonical "host[:port]" the redirect should
+// point at. When empty, the middleware falls back to r.Host — fine
+// for proxies that rewrite the Host header, but wrong when the
+// redirect listener binds a different port (e.g. :8080 → :8705).
+// Pass the main HTTPS listener's address to point the redirect at
+// the right place.
+func ForceHTTPS(logger *slog.Logger, httpsHost string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Skip health endpoint for healthchecks
@@ -185,10 +278,15 @@ func ForceHTTPS(logger *slog.Logger) func(http.Handler) http.Handler {
 				return
 			}
 
+			targetHost := httpsHost
+			if targetHost == "" {
+				targetHost = r.Host
+			}
+
 			// Check X-Forwarded-Proto (reverse proxy)
 			proto := r.Header.Get("X-Forwarded-Proto")
 			if proto != "" && proto != "https" {
-				target := "https://" + r.Host + r.RequestURI
+				target := "https://" + targetHost + r.RequestURI
 				logger.Debug("force HTTPS redirect", "from", r.URL.String(), "to", target)
 				http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 				return
@@ -196,7 +294,7 @@ func ForceHTTPS(logger *slog.Logger) func(http.Handler) http.Handler {
 
 			// Check direct TLS connection (no proxy)
 			if proto == "" && r.TLS == nil {
-				target := "https://" + r.Host + r.RequestURI
+				target := "https://" + targetHost + r.RequestURI
 				logger.Debug("force HTTPS redirect", "from", r.URL.String(), "to", target)
 				http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 				return
@@ -208,7 +306,14 @@ func ForceHTTPS(logger *slog.Logger) func(http.Handler) http.Handler {
 }
 
 // SecurityHeaders adds baseline browser hardening headers.
-func SecurityHeaders() func(http.Handler) http.Handler {
+//
+// `hstsMaxAge` is in seconds (the HSTS spec unit). When set to a
+// positive value, the Strict-Transport-Security header is emitted
+// with `max-age=<n>; includeSubDomains`. The header is opt-in
+// (default off) because enabling HSTS on the bare self-signed cert
+// would lock out operators whose only path back to the recovery
+// redirect listener is HTTP, e.g. after a cert upload mistake.
+func SecurityHeaders(hstsMaxAge int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			headers := w.Header()
@@ -216,6 +321,9 @@ func SecurityHeaders() func(http.Handler) http.Handler {
 			headers.Set("X-Content-Type-Options", "nosniff")
 			headers.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 			headers.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+			if hstsMaxAge > 0 {
+				headers.Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d; includeSubDomains", hstsMaxAge))
+			}
 			next.ServeHTTP(w, r)
 		})
 	}

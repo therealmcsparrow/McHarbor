@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "Wat te bewaken",
+    "container": "Eén container",
+    "stack": "Een stack",
+    "environment": "Alles in deze omgeving"
+  },
+  "kindHint": {
+    "container": "Afwijking wanneer de container ontbreekt, gestopt is, een andere image draait of de configuratie afwijkt.",
+    "stack": "Afwijking wanneer een service uit het compose-bestand van de stack ontbreekt of niet draait, of de stack containers draait die het bestand niet declareert.",
+    "environment": "Afwijking wanneer hier een container draait die door geen enkele container- of stackbewaking in deze omgeving wordt verklaard. Geef een container het label mcharbor.reconciler.ignore=true om hem buiten beschouwing te laten."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Kies een stack",
+  "target": {
+    "environment": "Hele omgeving"
+  },
+  "class": {
+    "configuration": "Configuratie",
+    "state": "Status",
+    "existence": "Bestaan",
+    "image": "Image"
+  },
+  "details": {
+    "open": "Tonen wat is afgeweken",
+    "title": "Wat is afgeweken: {{name}}",
+    "description": "Gecontroleerd {{time}}.",
+    "field": "Veld",
+    "expected": "Verwacht",
+    "actual": "Werkelijk",
+    "firstSeen": "Voor het eerst gezien",
+    "none": "Bij de laatste controle is geen afwijking gevonden."
+  },
+  "observeOnly": "Stack- en omgevingsbewakingen kunnen niet direct worden gereconcilieerd; stel in plaats daarvan een oplossing voor.",
+  "report": {
+    "title": "Afwijkingsrapport",
+    "description": "Elke bevestigde afwijking over alle bewakingen, met wat het langst fout is eerst.",
+    "open": "Afwijkingsrapport",
+    "back": "Terug naar bewakingen",
+    "empty": "Er is niets afgeweken.",
+    "classFilter": "Klasse",
+    "allClasses": "Alle klassen",
+    "columns": {
+      "watch": "Bewaking",
+      "class": "Klasse",
+      "field": "Veld",
+      "expected": "Verwacht",
+      "actual": "Werkelijk",
+      "firstSeen": "Voor het eerst gezien",
+      "checked": "Gecontroleerd"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Beheerd door een Git-bron: verwijder in plaats daarvan het document in de repository.",
+  "mode": {
+    "column": "Reactie",
+    "change": "Wijzigen hoe op afwijking wordt gereageerd",
+    "title": "Hoe op afwijking reageren: {{name}}",
+    "description": "Kies wat McHarbor doet wanneer deze bewaking afwijkt.",
+    "label": "Bij afwijking",
+    "observe": "Observeren",
+    "propose": "Een oplossing voorstellen",
+    "enforce": "Afdwingen",
+    "save": "Opslaan",
+    "confirmEnforce": "McHarbor het automatisch laten oplossen",
+    "enforceWarning": "Afdwingen wijzigt containers zonder iemand te vragen. Het handelt alleen als afdwingen is ingeschakeld in de reconciler-instellingen, binnen de limiet per ronde en de afkoelperiode, en stopt bij herhaalde fouten totdat iemand het reset.",
+    "hint": {
+      "observe": "De afwijking vastleggen, erop alarmeren en niets wijzigen.",
+      "propose": "Ook een plan schrijven om de gewenste staat te herstellen, dat iemand kan beoordelen en goedkeuren.",
+      "enforce": "Het plan automatisch toepassen wanneer elke stap zonder tussenkomst van een persoon kan worden uitgevoerd; anders een plan schrijven om te beoordelen."
+    }
+  },
+  "proposals": {
+    "open": "Plannen",
+    "proposeNow": "Een oplossing voorstellen",
+    "title": "Reconciliatieplannen",
+    "description": "Plannen om de gewenste staat te herstellen die op beoordeling wachten, en het overzicht van elk plan dat door een persoon of door afdwingen is toegepast.",
+    "statusFilter": "Status",
+    "allStatuses": "Alle statussen",
+    "empty": "Geen plannen.",
+    "errorTitle": "Waarom het plan is mislukt",
+    "stepError": "Waarom deze stap is mislukt",
+    "dialogTitle": "Plan voor {{name}}",
+    "dialogDescription": "Geschreven {{time}}.",
+    "staleNotice": "De afwijking is veranderd sinds dit plan is geschreven, dus het is niet toegepast. Dit is het plan voor de afwijking zoals die nu is; beoordeel het opnieuw.",
+    "drift": "Wat is afgeweken",
+    "plan": "Wat het plan doet",
+    "noSteps": "Niets te doen.",
+    "approveWarning": "Goedkeuren past deze stappen nu toe op de omgeving. McHarbor controleert eerst opnieuw op afwijking en weigert als die is veranderd.",
+    "rejectNote": "Waarom (optioneel)",
+    "approve": "Goedkeuren en toepassen",
+    "reject": "Afwijzen",
+    "confirmApprove": "Nu toepassen",
+    "confirmReject": "Plan afwijzen",
+    "columns": {
+      "watch": "Bewaking",
+      "status": "Status",
+      "origin": "Afkomstig van",
+      "steps": "Stappen",
+      "created": "Geschreven",
+      "resolvedBy": "Afgehandeld door"
+    },
+    "status": {
+      "pending": "Wacht op beoordeling",
+      "applying": "Wordt toegepast",
+      "applied": "Toegepast",
+      "failed": "Mislukt",
+      "rejected": "Afgewezen",
+      "superseded": "Vervangen"
+    },
+    "origin": {
+      "propose": "Voorstel",
+      "enforce": "Afdwingen"
+    }
+  },
+  "step": {
+    "start": "Starten",
+    "stop": "Stoppen",
+    "remove": "Verwijderen",
+    "recreate": "Opnieuw aanmaken",
+    "stack_up": "Stack deployen",
+    "manual": "Vereist een persoon",
+    "plugin": "Wijzigen",
+    "disruptive": "Onderbreekt de service"
+  },
+  "stepResult": {
+    "done": "Klaar",
+    "failed": "Mislukt",
+    "skipped": "Overgeslagen",
+    "manual": "Aan een persoon overgelaten"
+  },
+  "manual": {
+    "missing": "De container bestaat niet en de gewenste staat bevat niet genoeg om hem aan te maken. Deploy hem en controleer opnieuw.",
+    "compose_managed": "De container hoort bij een compose-stack; wijzig de stack in plaats van de container.",
+    "ports": "Gepubliceerde poorten kunnen niet worden gewijzigd door opnieuw aan te maken; bewerk de container of de stack.",
+    "mounts": "Koppelingen kunnen niet worden gewijzigd door opnieuw aan te maken; bewerk de container of de stack.",
+    "networks": "Koppel de container aan zijn netwerken vanaf de container- of netwerkpagina.",
+    "protected": "Dit is een beschermde container (McHarbor of zijn agent) en wordt nooit automatisch gewijzigd.",
+    "stack_remove": "Het verwijderen van een stack wordt nooit gepland; haal hem neer vanaf de stackpagina.",
+    "stack_stop": "Het stoppen van een stack wordt nooit gepland; stop hem vanaf de stackpagina.",
+    "git_compose": "Het compose-bestand van de stack komt uit Git; deploy het via de GitOps-pipeline."
+  },
+  "refusal": {
+    "stale": "De afwijking is veranderd sinds dit plan is geschreven. In plaats daarvan is een nieuw plan geschreven.",
+    "unknown": "De omgeving is nu niet bereikbaar, dus er is niets gewijzigd.",
+    "no_drift": "Er is geen afwijking om op te handelen.",
+    "cannot_act": "Deze McHarbor-node kan geen wijzigingen toepassen.",
+    "not_pending": "Iemand heeft dit plan al afgehandeld.",
+    "git_managed": "Deze bewaking wordt beheerd door een Git-bron. Wijzig hem in de repository.",
+    "enforce_route": "Afdwingen wordt toegekend via de reactie-instelling van de bewaking.",
+    "bad_mode": "Onbekende reactiemodus.",
+    "not_git_managed": "Deze bewaking wordt niet beheerd door een Git-bron.",
+    "not_expressible": "Niets van deze afwijking kan naar de repository worden teruggeschreven.",
+    "git_failed": "Git heeft de wijziging geweigerd. Controleer de inloggegevens en de branch van de repository.",
+    "sync_failed": "De synchronisatie is mislukt; de reden staat bij de bron.",
+    "confirm_passes_range": "Bevestigingsrondes moeten tussen 1 en 10 liggen.",
+    "actions_per_pass_range": "Acties per ronde moeten tussen 1 en 25 liggen.",
+    "cooldown_range": "De afkoeltijd moet tussen 0 en 86400 seconden liggen.",
+    "failure_threshold_range": "De foutdrempel moet tussen 1 en 20 liggen.",
+    "source_fields_required": "Een naam, een repository en een omgeving zijn verplicht.",
+    "invalid_branch": "Die branchnaam is ongeldig.",
+    "path_escapes_repo": "Het pad moet binnen de repository blijven.",
+    "invalid": "Het verzoek was ongeldig."
+  },
+  "pullRequest": {
+    "action": "Afwijking accepteren in Git",
+    "title": "Afwijking accepteren in Git: {{name}}",
+    "description": "McHarbor herschrijft het document van deze bewaking zodat het overeenkomt met wat draait, pusht het naar een nieuwe branch en opent een pull request ter beoordeling. Er verandert niets totdat iemand het merget.",
+    "confirm": "Branch pushen en verzoek openen",
+    "branch": "Branch:",
+    "open": "De pull request openen",
+    "noRequest": "De branch is gepusht, maar er is geen pull request geopend: {{error}}",
+    "changed": "Gewijzigd: {{fields}}",
+    "skipped": "Niet uitdrukbaar, nog steeds afwijking: {{fields}}"
+  },
+  "sources": {
+    "open": "Git-bronnen",
+    "title": "Git-bronnen",
+    "description": "Repositories waarvan de documenten de gewenste staat zijn. Een commit wijzigt de intentie binnen één reconciler-ronde; rijen uit Git worden in de repository bewerkt.",
+    "add": "Git-bron toevoegen",
+    "addTitle": "Een Git-bron toevoegen",
+    "addDescription": "Elk YAML- of JSON-document onder het pad wordt een bewaking in de huidige omgeving.",
+    "name": "Naam",
+    "repository": "Repository",
+    "repositoryPlaceholder": "Kies een repository",
+    "branch": "Branch",
+    "path": "Map",
+    "formatHint": "Een document bevat name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe of propose) en config; een bestand mag er meerdere opsommen onder desiredStates. Enforce kan niet vanuit Git worden ingesteld.",
+    "where": "Branch en map",
+    "state": "Status",
+    "failing": "Mislukt",
+    "syncing": "Synchroniseren",
+    "paused": "Gepauzeerd",
+    "errorTitle": "Waarom de synchronisatie is mislukt",
+    "rows": "Bewakingen",
+    "commit": "Commit",
+    "synced": "Laatste synchronisatie",
+    "syncNow": "Nu synchroniseren",
+    "empty": "Geen Git-bronnen.",
+    "deleteTitle": "Git-bron verwijderen",
+    "deleteDescription": "Stop met het lezen van de gewenste staat uit {{name}}. De bewakingen blijven bestaan en kunnen dan hier worden bewerkt.",
+    "deleteConfirm": "Bron verwijderen"
+  },
+  "settings": {
+    "title": "Reconciler-instellingen",
+    "description": "Hoe afwijking wordt bevestigd, en de limieten waarbinnen afdwingen werkt.",
+    "confirmPasses": "Rondes om afwijking te bevestigen",
+    "confirmPassesHint": "Afwijking wordt pas vastgelegd nadat zoveel opeenvolgende controles haar zien, zodat een rolling update niet wordt gemeld. Verhoog dit op trage hosts.",
+    "save": "Opslaan",
+    "enforcement": "Afdwingen",
+    "enforcementHint": "Standaard uit. Alleen bewakingen die op Afdwingen staan, worden bewerkt, en alleen binnen deze limieten.",
+    "enforceEnabled": "Afdwingen ingeschakeld",
+    "maxActions": "Wijzigingen per ronde",
+    "cooldownMinutes": "Afkoelperiode per bewaking (minuten)",
+    "threshold": "Fouten voor het stoppen",
+    "saveEnforcement": "Afdwingen opslaan",
+    "breakerOpen": "Afdwingen is gestopt na herhaalde fouten om {{time}}. Er wordt niets afgedwongen totdat het is gereset.",
+    "reset": "Resetten en hervatten",
+    "confirmReset": "Afdwingen hervatten"
+  },
+  "pick": {
+    "manual": "Handmatig invoeren…",
+    "fromList": "Kiezen uit lijst",
+    "container": "Selecteer een container",
+    "containerHint": "Als je een bestaande container kiest, worden de image en status ingevuld die hij nu heeft. Voer handmatig een naam in om er een te declareren die nog niet bestaat.",
+    "image": "Selecteer een image",
+    "select": "Selecteren…",
+    "loading": "Laden…"
+  },
+  "plugin": {
+    "cluster": "Cluster",
+    "environment": "Omgeving",
+    "pinHint": "Pin alleen wat vastgehouden moet worden. Een eigenschap die op \"Niet beheerd\" blijft staan, wordt nooit gecontroleerd.",
+    "useCurrent": "Huidige waarden gebruiken",
+    "notManaged": "Niet beheerd",
+    "yes": "Ja",
+    "no": "Nee"
+  }
+}

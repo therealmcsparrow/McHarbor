@@ -1,0 +1,16 @@
+{
+  "slug": "ai-provider-gemini",
+  "name": "Google Gemini",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Routes McHarbor AI chat completions through Google Gemini (2.5 Pro, 2.5 Flash, 2.0 Flash).",
+  "category": "AI providers",
+  "icon": "plugin.svg",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/ai-provider-gemini-1.0.0.tar.gz"
+    }
+  ]
+}

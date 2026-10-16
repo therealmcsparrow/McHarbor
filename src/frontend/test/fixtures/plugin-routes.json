@@ -1,0 +1,1538 @@
+[
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/environments",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/environments/{envId}/capability",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/environments/{envId}/probe",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/environments/{envId}/capability/install",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/environments/{envId}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/pools",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/pools/detect",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/default",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/pools/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/pools/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/pools/{id}/files",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/pools/{id}/files/content",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/pools/{id}/files/content",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/{id}/files/mkdir",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/{id}/files/rename",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/pools/{id}/files",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/networks",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/networks/detect",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/networks",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/networks/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/networks/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/networks/{id}/leases",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/images",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/images/library",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/images/upload",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/internal/library/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/images",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/images/{id}/fetch-all",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/images/catalog/reload",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/images/{id}/fetch",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/images/{id}/cache",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/images/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/locations",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/locations",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/locations/{envId}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "PUT",
+    "path": "/api/compute/locations/{envId}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "DELETE",
+    "path": "/api/compute/locations/{envId}",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/locations/{envId}/apply",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/overview",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/{poolId}/move/plan",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/{poolId}/move",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "GET",
+    "path": "/api/compute/pools/{poolId}/move",
+    "public": false
+  },
+  {
+    "slug": "addon-compute",
+    "method": "POST",
+    "path": "/api/compute/pools/{poolId}/repair",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/clusters",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "POST",
+    "path": "/api/kubernetes/clusters",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/clusters/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "PUT",
+    "path": "/api/kubernetes/clusters/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "DELETE",
+    "path": "/api/kubernetes/clusters/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/summary",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/pods/{namespace}/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/pods/{namespace}/{name}/logs",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "DELETE",
+    "path": "/api/kubernetes/pods/{namespace}/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "GET",
+    "path": "/api/kubernetes/deployments/{namespace}/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "POST",
+    "path": "/api/kubernetes/deployments/{namespace}/{name}/scale",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "POST",
+    "path": "/api/kubernetes/deployments/{namespace}/{name}/restart",
+    "public": false
+  },
+  {
+    "slug": "addon-kubernetes",
+    "method": "DELETE",
+    "path": "/api/kubernetes/deployments/{namespace}/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/reboot-drain",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/reboot-drain",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/display-profiles",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/display-profiles/{profileId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/display-profiles",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/display-profiles/{profileId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/display-profiles/{profileId}/duplicate",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/display-profiles/{profileId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/cloud-init",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/capability",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/stats",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/stats/history",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/block-jobs",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/backup-plans",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/backups",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/backups/{runId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/backup-plans",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/backup-plans/{planId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/backups",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/backup-plans/{planId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/backups/{runId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/backups/{runId}/restore",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/shares",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/share-roots",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/memory",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/vcpus",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/{id}/disks/{diskId}/throttle",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/disks/{diskId}/inspect",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/shares",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/shares/{shareId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/share-roots",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/guest-info",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/logs",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/start",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/shutdown",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/stop",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/reset",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/pause",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/resume",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/disks",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/disks",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PATCH",
+    "path": "/api/vms/{id}/disks/{diskId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/disks/{diskId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/media",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/guest-agent-disc",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/media/{diskId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/nics",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/nics",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PATCH",
+    "path": "/api/vms/{id}/nics/{nicId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/nics/{nicId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/snapshots/summary",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/snapshots",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/snapshots",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/snapshots/{snapId}/revert",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/snapshots/{snapId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/snapshot-schedules",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/snapshot-schedules",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/{id}/snapshot-schedules/{scheduleId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/snapshot-schedules/{scheduleId}/run",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/snapshot-schedules/{scheduleId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/imports",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/imports",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/imports/internal/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/backups/internal/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/backups/internal/download/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "PUT",
+    "path": "/api/vms/migrations/internal/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/migrations/internal/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/imports/{importId}/inspect",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/imports/{importId}/cancel",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/imports/{importId}/convert",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/imports/{importId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/clone",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/template",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/migrate",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/migration",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/migration/cancel",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/{id}/console.vv",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/pool-volumes",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "GET",
+    "path": "/api/vms/host-devices",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/devices",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "DELETE",
+    "path": "/api/vms/{id}/devices/{devId}",
+    "public": false
+  },
+  {
+    "slug": "addon-kvm",
+    "method": "POST",
+    "path": "/api/vms/{id}/diagnose",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/reboot-drain",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/reboot-drain",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/stats",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/processes",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "PUT",
+    "path": "/api/system-containers/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/start",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/shutdown",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/stop",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/restart",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/freeze",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/unfreeze",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "PUT",
+    "path": "/api/system-containers/{id}/limits",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/nics",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/nics",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/{id}/nics/{nicId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/mounts",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/mounts",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/{id}/mounts/{mountId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/snapshots",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/snapshots",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/snapshots/{snapId}/revert",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/{id}/snapshots/{snapId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/clone",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/template",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/diagnose",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/backup-plans",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/{id}/backups",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/backups/{runId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/backup-plans",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "PUT",
+    "path": "/api/system-containers/backup-plans/{planId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/backup-plans/{planId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/{id}/backups",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "DELETE",
+    "path": "/api/system-containers/backups/{runId}",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/backups/{runId}/restore",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/orphaned-backups",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/backups/{runId}/manifest",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "POST",
+    "path": "/api/system-containers/backups/{runId}/recreate",
+    "public": false
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "PUT",
+    "path": "/api/system-containers/backups/internal/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-lxc",
+    "method": "GET",
+    "path": "/api/system-containers/backups/internal/download/{grantId}",
+    "public": true
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/catalog",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/reports",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "POST",
+    "path": "/api/reporting/reports",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/subjects",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "POST",
+    "path": "/api/reporting/jobs",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/jobs/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/reports/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "DELETE",
+    "path": "/api/reporting/reports/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/reports/{id}/export",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/preview",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/settings",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "PUT",
+    "path": "/api/reporting/settings",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/ai/connections",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/schedules",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "POST",
+    "path": "/api/reporting/schedules",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/schedules/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "PUT",
+    "path": "/api/reporting/schedules/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "DELETE",
+    "path": "/api/reporting/schedules/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "POST",
+    "path": "/api/reporting/schedules/{id}/run",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/schedules/{id}/run",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/schedules/{id}/run/export",
+    "public": false
+  },
+  {
+    "slug": "addon-reporting",
+    "method": "GET",
+    "path": "/api/reporting/delivery-targets",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/capability",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/overview",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "PUT",
+    "path": "/api/swarm",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/init",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/join",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/leave",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/join-tokens",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/join-tokens/{kind}/rotate",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/unlock-key",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/unlock-key/rotate",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/unlock",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/services",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/services",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/services/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/services/{id}/logs",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/services/{id}/env",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "PUT",
+    "path": "/api/swarm/services/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/services/{id}/restart",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/services/{id}/rollback",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/services/{id}/scale",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "DELETE",
+    "path": "/api/swarm/services/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/tasks",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/tasks/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/tasks/{id}/logs",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/nodes",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/nodes/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "PUT",
+    "path": "/api/swarm/nodes/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/nodes/{id}/availability",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/nodes/{id}/role",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "DELETE",
+    "path": "/api/swarm/nodes/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/secrets",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/secrets",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/secrets/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "PUT",
+    "path": "/api/swarm/secrets/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "DELETE",
+    "path": "/api/swarm/secrets/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/configs",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/configs",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/configs/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "PUT",
+    "path": "/api/swarm/configs/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "DELETE",
+    "path": "/api/swarm/configs/{id}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/stacks",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "POST",
+    "path": "/api/swarm/stacks",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/stacks/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "DELETE",
+    "path": "/api/swarm/stacks/{name}",
+    "public": false
+  },
+  {
+    "slug": "addon-swarm",
+    "method": "GET",
+    "path": "/api/swarm/networks",
+    "public": false
+  },
+  {
+    "slug": "identity-ldap",
+    "method": "POST",
+    "path": "/api/identity-ldap/auth",
+    "public": true
+  }
+]

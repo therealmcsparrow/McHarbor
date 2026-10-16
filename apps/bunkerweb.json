@@ -1,0 +1,62 @@
+{
+    "slug":  "bunkerweb",
+    "name":  "BunkerWeb",
+    "description":  "Hardened reverse proxy and web application firewall with automated attack mitigation and a management UI.",
+    "category":  "Security",
+    "image":  "bunkerity/bunkerweb-all-in-one:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bunkerweb.png",
+    "website":  "https://www.bunkerweb.io",
+    "docsUrl":  "https://docs.bunkerweb.io/latest/quickstart-guide/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bunkerweb/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_USERNAME",
+                        "default":  "admin",
+                        "description":  "Web UI administrator username"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Web UI administrator password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ADMIN_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Web UI administrator email"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "",
+                        "description":  "Domain name(s) BunkerWeb protects, space separated"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

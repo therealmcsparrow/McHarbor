@@ -1,0 +1,31 @@
+{
+  "label": "Container-Trigger",
+  "description": "Workflow starten, wenn sich Status oder Gesundheit eines Containers ändert",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "watch": "Beobachten",
+    "status": "Statusereignis",
+    "health": "Health-Status"
+  },
+  "options": {
+    "watch": {
+      "status": "Statusänderungen",
+      "health": "Gesundheitsänderungen"
+    },
+    "status": {
+      "any": "Beliebig",
+      "start": "Start",
+      "stop": "Stopp",
+      "die": "Beenden (die)",
+      "health_status": "Gesundheitsstatus"
+    },
+    "health": {
+      "any": "Alle",
+      "healthy": "Fehlerfrei",
+      "unhealthy": "Fehlerhaft",
+      "starting": "Startet",
+      "none": "Kein Healthcheck"
+    }
+  }
+}

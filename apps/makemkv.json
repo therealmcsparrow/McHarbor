@@ -50,5 +50,9 @@
       "description": "MakeMKV beta key (leave blank to register on first run)"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

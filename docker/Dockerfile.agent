@@ -1,13 +1,59 @@
 # Copyright (c) 2026 McSparrow. All rights reserved.
 # McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-FROM golang:1.26.5-alpine AS builder
-WORKDIR /app
+# The agent is built with CGO enabled and statically linked against musl.
+#
+# CGO is not optional any more. libcontainer/nsenter — which the system
+# container path must import — carries a C constructor that runs before the Go
+# runtime starts, because the setns/clone dance for user namespaces cannot be
+# done safely from Go once the runtime has spawned threads. Building without it
+# produces a binary that compiles and then fails every container start.
+#
+# This does NOT affect the backend container. That is a separate Go module and
+# stays pure Go, so the modernc.org/sqlite (no-CGO) constraint there is
+# untouched.
+#
+# Static linking against musl is what keeps one binary working on both glibc and
+# musl hosts. A dynamically linked agent that runs on Debian and fails on Alpine
+# is a support problem, and the agent self-updates onto hosts nobody inspected
+# first.
+FROM golang:1.27.2-alpine AS builder
+
+# musl-dev supplies the C toolchain nsenter needs; libseccomp-dev supplies the
+# library behind the seccomp build tag below.
+RUN apk add --no-cache gcc musl-dev libseccomp-dev libseccomp-static pkgconfig
+
+WORKDIR /src/agent
 COPY src/agent/ .
-RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /mcharbor-agent .
+COPY src/cli /src/cli
+COPY BUILD /BUILD
+
+# The seccomp build tag is deliberate and its absence would be invisible.
+#
+# Built without it, libcontainer applies NO syscall filter at all. User
+# namespace isolation still applies, so containers are not unprotected — but
+# shipping a container runtime with its syscall filter quietly disabled is not a
+# posture to adopt by accident. The capability probe reports which way this
+# binary was built and the node capability panel shows it, so an operator can
+# always see what they have.
+RUN MCHARBOR_BUILD="$(tr -d '[:space:]' < /BUILD)" && \
+    go mod tidy && \
+    CGO_ENABLED=1 \
+    go build \
+      -tags "seccomp urfave_cli_no_docs" \
+      -ldflags="-s -w -linkmode external -extldflags '-static' -X main.agentBuild=$MCHARBOR_BUILD" \
+      -o /mcharbor-agent .
+
+# Verify the result really is static. A dynamically linked binary here would
+# work in this image and fail on the first Alpine host it self-updated onto,
+# which is exactly the failure that is hardest to attribute.
+RUN ! ldd /mcharbor-agent 2>/dev/null | grep -q "=>" || \
+    (echo "ERROR: agent binary is dynamically linked" && exit 1)
 
 FROM alpine:3.20
-RUN apk add --no-cache tini ca-certificates docker-cli docker-cli-compose
+RUN apk add --no-cache tini ca-certificates docker-cli docker-cli-compose iptables
 COPY --from=builder /mcharbor-agent /usr/local/bin/mcharbor-agent
+RUN ln -s mcharbor-agent /usr/local/bin/mcharbor
+ENV GODEBUG=cpu.avx512f=off,cpu.avx512vl=off
 ENTRYPOINT ["tini", "--"]
 CMD ["mcharbor-agent"]

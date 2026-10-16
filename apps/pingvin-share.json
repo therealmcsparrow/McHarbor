@@ -2,7 +2,7 @@
     "slug":  "pingvin-share",
     "name":  "Pingvin Share",
     "description":  "Simple self-hosted file sharing with expiring links.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "stonith404/pingvin-share:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pingvin-share.png",
     "website":  "https://stonith404.github.io/pingvin-share",
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

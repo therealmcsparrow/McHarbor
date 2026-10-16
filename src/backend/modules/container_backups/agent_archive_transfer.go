@@ -148,11 +148,11 @@ func (s *Service) receiveAgentArchive(ctx context.Context, entry agentArchiveTra
 	keepTemp := false
 	defer func() {
 		if !keepTemp {
-			_ = os.Remove(tmpName)
+			removeLogged(tmpName)
 		}
 	}()
 	if _, err := copyWithContext(ctx, tmp, reader); err != nil {
-		_ = tmp.Close()
+		closeLogged(tmp, "agent backup temp file")
 		return fmt.Errorf("receiving agent backup archive: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
@@ -174,7 +174,7 @@ func (s *Service) streamAgentArchive(ctx context.Context, writer io.Writer, sour
 	if err != nil {
 		return fmt.Errorf("opening agent restore archive: %w", err)
 	}
-	defer file.Close()
+	defer closeLogged(file, "agent restore archive")
 	_, err = copyWithContext(ctx, writer, file)
 	return err
 }

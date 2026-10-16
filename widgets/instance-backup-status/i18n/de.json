@@ -1,0 +1,21 @@
+{
+  "widgets": {
+    "instanceBackupStatus": {
+      "label": "Instanz-Backup",
+      "description": "Wann diese Instanz zuletzt exportiert und zuletzt als wiederherstellbar nachgewiesen wurde, und der letzte Lauf jedes Export-Zeitplans"
+    }
+  },
+  "instanceBackupWidget": {
+    "title": "Instanz-Backup",
+    "open": "Instanz-Backup",
+    "noAccess": "Erfordert die Berechtigung instance_backup.view",
+    "unavailable": "Der Exportverlauf kann nicht gelesen werden",
+    "lastExport": "Letzter Export {{when}}",
+    "never": "Nie exportiert",
+    "lastVerified": "Zuletzt verifiziert {{when}}",
+    "neverVerified": "Nie durch eine Wiederherstellungsprobe verifiziert",
+    "failed": "Letzter Lauf fehlgeschlagen",
+    "ran": "Lief {{when}}",
+    "notRun": "Noch nicht ausgeführt"
+  }
+}

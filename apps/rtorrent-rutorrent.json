@@ -1,0 +1,49 @@
+{
+    "slug":  "rtorrent-rutorrent",
+    "name":  "rTorrent + ruTorrent",
+    "description":  "rTorrent BitTorrent client paired with the ruTorrent web interface.",
+    "category":  "Media",
+    "image":  "crazymax/rtorrent-rutorrent:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rutorrent.png",
+    "website":  "https://github.com/crazy-max/docker-rtorrent-rutorrent",
+    "docsUrl":  "https://github.com/crazy-max/docker-rtorrent-rutorrent#usage",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rtorrent-rutorrent/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/rtorrent-rutorrent/config",
+                        "container":  "/config/rtorrent"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

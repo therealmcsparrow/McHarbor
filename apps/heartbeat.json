@@ -1,0 +1,37 @@
+{
+    "slug":  "heartbeat",
+    "name":  "Heartbeat",
+    "description":  "Lightweight uptime shipper that probes hosts and services and reports availability to Elasticsearch.",
+    "category":  "Monitoring",
+    "image":  "docker.elastic.co/beats/heartbeat:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/elastic-beats.png",
+    "website":  "https://www.elastic.co/beats/heartbeat",
+    "docsUrl":  "https://www.elastic.co/guide/en/beats/heartbeat/current/heartbeat-installation-configuration.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/heartbeat/heartbeat.yml",
+                        "container":  "/usr/share/heartbeat/heartbeat.yml",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOSTS",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "URL of the Elasticsearch cluster to ship uptime results to"
+                    }
+                ],
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

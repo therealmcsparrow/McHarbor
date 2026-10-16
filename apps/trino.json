@@ -1,0 +1,36 @@
+{
+    "slug":  "trino",
+    "name":  "Trino",
+    "description":  "Distributed SQL query engine for running fast interactive analytics across multiple data sources.",
+    "category":  "Analytics",
+    "image":  "trinodb/trino:latest",
+    "logo":  "https://github.com/trinodb.png",
+    "website":  "https://trino.io",
+    "docsUrl":  "https://trino.io/docs/current/installation/containers.html",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/trino/etc",
+                        "container":  "/etc/trino"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

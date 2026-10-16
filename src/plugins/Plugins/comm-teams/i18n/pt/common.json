@@ -1,0 +1,74 @@
+{
+  "config": {
+    "theme_color": { "help": "Opcional. Cor hexadecimal (sem #) usada na faixa de destaque esquerda do Adaptive Card. O padrão é o roxo da marca Teams. Útil para codificar por cores conforme o ambiente ou a severidade." }
+  },
+  "page": {
+    "title": "Microsoft Teamss",
+    "subtitle": "Encaminhe eventos de workflow, alerta e backup para um canal do Microsoft Teams por meio de um Adaptive Card publicado em uma URL de conector Incoming Webhook. O plugin trata Test (publica um Adaptive Card real com o themeColor configurado) e Send (publica Título + Mensagem como corpo do Adaptive Card). Não há fluxo OAuth porque os conectores Incoming Webhook são credenciais apenas de URL.",
+    "registerHint": "Adicione um canal na página Notificações > Canais do host e escolha \"teams\" como channel_type."
+  },
+  "fields": {
+    "webhookUrl":  "URL do webhook",
+    "themeColor":  "Cor do tema"
+  },
+  "help": {
+    "webhookUrl":  "URL do conector Incoming Webhook do Microsoft Teams. Menu do canal (...) → Connectors → Incoming Webhook → Configure → copie a URL. O UUID na URL é a credencial de autenticação — trate-o como um segredo.",
+    "themeColor":  "Cor hexadecimal (sem #) usada para a faixa de destaque à esquerda do Adaptive Card. O padrão é o roxo da marca Teams (5059C9)."
+  },
+  "toast": {
+    "registered": "Canal do Microsoft Teams salvo.",
+    "testPassed": "Teste de conexão do Microsoft Teams concluído com sucesso.",
+    "testFailed": "O teste de conexão do Microsoft Teams falhou: {{error}}"
+  },
+  "error": {
+    "noWebhook":   "A URL do webhook é obrigatória. Cole a URL do conector Incoming Webhook do Teams.",
+    "sendFailed":  "Falha ao publicar no webhook do Microsoft Teams: {{error}}",
+    "testFailed":  "O webhook do Microsoft Teams retornou {{status}}: {{body}}"
+  },
+  "form": {
+    "webhookTitle": "Webhook de entrada do Microsoft Teams",
+    "webhookHelp": "Adaptive Card",
+    "webhookBody": "O plugin publica um **Adaptive Card** na URL do webhook configurada. O título da notificação vira um cabeçalho TextBlock em negrito (tamanho Medium), a mensagem vira um corpo TextBlock com quebra de linha, e o cartão leva opcionalmente um themeColor na faixa de destaque esquerda. O Teams exibe o cartão diretamente no canal, sem instalação, sem permissões de aplicativo e sem fluxo de consentimento.",
+    "themeTitle": "Cor do tema",
+    "themeHelp": "Faixa de destaque do Adaptive Card",
+    "themeIntro": "O Teams exibe o `themeColor` configurado como uma faixa colorida na borda esquerda de cada Adaptive Card. Use-o para codificar por cores conforme o ambiente ou a severidade:",
+    "themePurple": "`5059C9` — roxo da marca Teams (padrão).",
+    "themeRed": "`DC3545` — vermelho, para alertas de produção e notificações de plantão.",
+    "themeGreen": "`28A745` — verde, para backups concluídos e notificações de sucesso.",
+    "themeAmber": "`FFC107` — âmbar, para avisos e serviço degradado.",
+    "themeOutro": "Use a forma hexadecimal de 6 caracteres sem o `#` inicial — os Adaptive Cards ignoram o `#` e o tratam como parte do nome da cor.",
+    "securityTitle": "Segurança da URL do webhook",
+    "securityHelp": "O UUID na URL É a credencial",
+    "securityIntro": "Qualquer pessoa com a URL do webhook pode publicar no canal — não há token separado nem chave de assinatura. Trate a URL como um segredo:",
+    "securityGit": "Não a faça commit no git (nem mesmo em repositórios privados).",
+    "securityShare": "Não a cole no Slack, em e-mails nem em comentários de tickets quando o destinatário não precisa publicar no seu canal.",
+    "securityRotate": "Faça a rotação excluindo o conector no Teams, criando um novo e colando aqui a nova URL. As URLs antigas falham com um 410 Gone do Teams assim que o conector é removido.",
+    "testTitle": "Testar a conexão",
+    "testHelp": "O que esperar",
+    "testBody": "A chamada de teste publica um Adaptive Card real (`Title: McHarbor test notification`, corpo `This is a test message from McHarbor.`) no seu canal. O Teams retorna `200 OK` quando o webhook funciona; o plugin converte qualquer resposta que não seja 2xx em um erro estruturado com o status do servidor e os primeiros 256 bytes do corpo da resposta. O cartão aparece no canal como uma mensagem visível — avise os assinantes antes de clicar em Testar para que não gere um ticket de alerta falso positivo.",
+    "fields": {
+      "webhook_url": {
+        "label": "URL do webhook",
+        "help": "URL do conector Incoming Webhook do Microsoft Teams. Menu do canal (...) → Connectors → Incoming Webhook → Configure → copie a URL. O UUID na URL é a credencial de autenticação — trate-o como um segredo."
+      },
+      "theme_color": {
+        "label": "Cor do tema",
+        "help": "Opcional. Cor hexadecimal (sem #) usada na faixa de destaque esquerda do Adaptive Card. O padrão é o roxo da marca Teams. Útil para codificar por cores conforme o ambiente ou a severidade."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Guia de configuração do Microsoft Teams"
+  },
+  "guide": {
+    "step1": { "body": "Abra o Microsoft Teams e acesse o canal onde deseja receber os alertas. Os conectores Incoming Webhook são restritos a um único canal — repita as etapas abaixo para cada canal em que deseja receber alertas." },
+    "step2": { "body": "Clique no menu do canal (••• ao lado do nome do canal) → <b>Connectors</b>. Role a lista até <b>Incoming Webhook</b> e clique em <b>Configure</b>. Dê um nome ao conector (por exemplo, <code>McHarbor Alerts</code>) e, se quiser, envie uma imagem que aparecerá ao lado de cada cartão publicado pelo conector." },
+    "step3": { "body": "Clique em <b>Create</b>. O Teams exibe a URL do webhook — copie-a agora. A URL contém o UUID do conector, que é a credencial de autenticação; <warn>você não a verá novamente depois de fechar a caixa de diálogo</warn>. Cole-a no campo <b>URL do webhook</b> à esquerda." },
+    "step4": { "body": "Clique em <b>Done</b> para fechar a caixa de diálogo de configuração. O conector agora está ativo e o canal passará a aceitar POSTs na URL. Não há uma etapa de \"publicação\" separada — o Teams ativa os conectores imediatamente." },
+    "step5": { "body": "Opcional: defina <b>Cor do tema</b> como um valor hexadecimal de 6 caracteres (sem #) para colorir a faixa de destaque esquerda do Adaptive Card. O padrão é o roxo da marca Teams (<code>5059C9</code>). Útil para distinguir rapidamente vários ambientes ou níveis de severidade." },
+    "step6": { "body": "Salve o canal. Clique em <b>Testar a conexão</b> — o plugin publica no seu canal um Adaptive Card com o título \"McHarbor test notification\" e o corpo \"This is a test message from McHarbor.\". O cartão deve aparecer em 1-2 segundos." },
+    "step7": { "body": "Se o teste retornar <code>400</code>, o payload está malformado — verifique se você não modificou a URL do webhook (por exemplo, adicionando parâmetros de consulta). Se retornar <code>404</code>, o conector foi excluído no Teams depois que você copiou a URL — crie-o novamente e atualize o campo. Se você vir <code>200 OK</code> na resposta, mas nenhum cartão no Teams, o conector está configurado para um canal diferente do que você está olhando." },
+    "step8": { "body": "Para restringir quais canais podem publicar: abra a caixa de diálogo de configuração do conector no Teams e use a opção <b>Restrict to channels</b>. É uma configuração por conector, do lado do Teams; o plugin não pode aplicá-la." },
+    "step9": { "body": "Depois de salvar o canal, direcione eventos de fluxo de trabalho ou de alerta para ele em <b>Configurações > Notificações > Regras</b>. A entrega para o Teams é do tipo \"disparar e esquecer\": um POST com falha é registrado no log de auditoria e exibido no toast do host, mas o host não tenta novamente." }
+  }
+}

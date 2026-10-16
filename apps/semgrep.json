@@ -1,0 +1,37 @@
+{
+    "slug":  "semgrep",
+    "name":  "Semgrep",
+    "description":  "Static analysis engine that finds bugs, security issues and anti-patterns in source code using pattern rules.",
+    "category":  "Security",
+    "image":  "semgrep/semgrep:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=semgrep.dev\u0026sz=128",
+    "website":  "https://semgrep.dev",
+    "docsUrl":  "https://semgrep.dev/docs/getting-started/quickstart",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/semgrep/src",
+                        "container":  "/src"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SEMGREP_APP_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Token linking scans to a Semgrep AppSec Platform account",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

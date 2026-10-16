@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Grype",
+    "description": "Anchore's Grype: kwetsbaarheden in OS- en taalpakketten, lokaal gescand."
+  },
+  "settings": {
+    "title": "Grype",
+    "subtitle": "Anchore's Grype: kwetsbaarheden in OS- en taalpakketten, lokaal gescand."
+  }
+}

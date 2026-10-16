@@ -1,0 +1,53 @@
+{
+  "operation": "Operation",
+  "envId": "EnvID",
+  "networkId": "NetworkID",
+  "name": "Name",
+  "mode": "Mode",
+  "bridge": "Bridge",
+  "vlanTag": 7,
+  "subnetCidr": "SubnetCIDR",
+  "gatewayIp": "GatewayIP",
+  "dhcpEnabled": true,
+  "dhcpRangeStart": "DHCPRangeStart",
+  "dhcpRangeEnd": "DHCPRangeEnd",
+  "natEnabled": true,
+  "uplinkLink": "UplinkLink",
+  "linkMode": "LinkMode",
+  "hostAccess": true,
+  "hostAccessIp": "HostAccessIP",
+  "hostLinkName": "HostLinkName",
+  "ipv6Enabled": true,
+  "hostAccessIpv6": "HostAccessIPv6",
+  "links": [
+    {
+      "name": "Name",
+      "kind": "Kind",
+      "mac": "MAC",
+      "mtu": 3,
+      "up": true,
+      "addresses": [
+        "Addresses"
+      ],
+      "master": "Master",
+      "managed": true,
+      "hasDefaultRoute": true,
+      "upper": [
+        "Upper"
+      ]
+    }
+  ],
+  "lease": {
+    "networkId": "NetworkID",
+    "mac": "MAC",
+    "ip": "IP",
+    "hostname": "Hostname",
+    "guestKind": "GuestKind",
+    "guestId": "GuestID",
+    "action": "Action",
+    "expiresAt": "2026-09-30T12:00:00Z"
+  },
+  "success": true,
+  "error": "Error",
+  "errorCode": "ErrorCode"
+}

@@ -1,0 +1,7 @@
+# Pool writes inside a loop in files that cannot carry a "// bounded by" marker.
+# Format: <repo-relative file>|<what bounds the loop>. Only for plugin-linked packages:
+# an edit there changes the build ID and unloads every installed plugin .so.
+src/backend/core/db/copy_constraints.go|one statement per table being copied, bounded by the schema
+src/backend/core/db/sqlite.go|connection pragmas, a fixed compiled-in list
+src/backend/core/db/squash.go|one migration record per squashed migration file
+src/backend/core/db/widen_integers.go|one ALTER per integer column found in the schema

@@ -1,0 +1,56 @@
+{
+  "slug": "slskd",
+  "name": "slskd",
+  "description": "Modern web client and daemon for the Soulseek file-sharing network.",
+  "category": "Media",
+  "image": "slskd/slskd:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/slskd.png",
+  "website": "https://github.com/slskd/slskd",
+  "docsUrl": "https://github.com/slskd/slskd/blob/master/docs/docker.md",
+  "ports": [
+    {
+      "host": 5030,
+      "container": 5030,
+      "protocol": "tcp"
+    },
+    {
+      "host": 50300,
+      "container": 50300,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/slskd/app",
+      "container": "/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SLSKD_REMOTE_CONFIGURATION",
+      "default": "true",
+      "description": "Allow editing the configuration from the web UI"
+    },
+    {
+      "key": "SLSKD_SLSK_USERNAME",
+      "default": "",
+      "description": "Soulseek network username"
+    },
+    {
+      "key": "SLSKD_SLSK_PASSWORD",
+      "default": "",
+      "description": "Soulseek network password",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

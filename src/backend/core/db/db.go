@@ -4,6 +4,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -40,6 +41,11 @@ type Config struct {
 // other change. Setting MCHARBOR_DB_DRIVER=mysql switches to
 // MySQL / MariaDB.
 func Open(cfg Config) (*sql.DB, error) {
+	return OpenContext(context.Background(), cfg)
+}
+
+// OpenContext is Open bound to the caller's context, so a cancelled start-up stops the connectivity checks and pool warm-up.
+func OpenContext(ctx context.Context, cfg Config) (*sql.DB, error) {
 	if cfg.Driver == "" {
 		cfg.Driver = DriverSQLite
 	}
@@ -53,19 +59,24 @@ func Open(cfg Config) (*sql.DB, error) {
 		if cfg.Path == "" {
 			return nil, fmt.Errorf("sqlite driver requires a non-empty path")
 		}
-		database, err = openSQLite(cfg.Path)
+		database, err = openSQLiteContext(ctx, cfg.Path)
 	case DriverPostgres:
 		if cfg.DSN == "" {
 			return nil, fmt.Errorf("postgres driver requires MCHARBOR_DB_DSN")
 		}
-		database, err = openPostgres(cfg.DSN)
+		database, err = openPostgresContext(ctx, cfg.DSN)
 	case DriverMySQL:
 		if cfg.DSN == "" {
 			return nil, fmt.Errorf("mysql driver requires MCHARBOR_DB_DSN")
 		}
-		database, err = openMySQL(cfg.DSN)
+		database, err = openMySQLContext(ctx, cfg.DSN)
+	case DriverMSSQL:
+		if cfg.DSN == "" {
+			return nil, fmt.Errorf("mssql driver requires MCHARBOR_DB_DSN")
+		}
+		database, err = openMSSQLContext(ctx, cfg.DSN)
 	default:
-		return nil, fmt.Errorf("unknown database driver %q (expected 'sqlite', 'postgres', or 'mysql')", cfg.Driver)
+		return nil, fmt.Errorf("unknown database driver %q (expected 'sqlite', 'postgres', 'mysql', or 'mssql')", cfg.Driver)
 	}
 	if err != nil {
 		return nil, err
@@ -83,7 +94,12 @@ func Open(cfg Config) (*sql.DB, error) {
 // entrypoint, tests) can use this when they don't have a Config
 // object handy.
 func OpenSQLite(dbPath string) (*sql.DB, error) {
-	return Open(Config{Driver: DriverSQLite, Path: dbPath})
+	return OpenContext(context.Background(), Config{Driver: DriverSQLite, Path: dbPath})
+}
+
+// OpenSQLiteContext is OpenSQLite bound to the caller's context, so a cancelled start-up stops the pool warm-up.
+func OpenSQLiteContext(ctx context.Context, dbPath string) (*sql.DB, error) {
+	return OpenContext(ctx, Config{Driver: DriverSQLite, Path: dbPath})
 }
 
 // Get returns the current database instance, or nil if Open has
@@ -114,7 +130,11 @@ func Close() error {
 // sql.Result. SQLite's driver never returns an error here, but
 // this centralizes the handling.
 func RowsAffected(r sql.Result) int64 {
-	n, _ := r.RowsAffected()
+	n, err := r.RowsAffected() //nolint:gocritic // this is the helper the ruleguard points callers at
+	if err != nil {
+		slog.Warn("reading rows affected failed", "error", err)
+		return 0
+	}
 	return n
 }
 
@@ -122,7 +142,12 @@ func RowsAffected(r sql.Result) int64 {
 // doesn't matter — both SQLite (WAL) and Postgres handle the
 // nested transactions the call sites use today.
 func Tx(db *sql.DB, fn func(tx *sql.Tx) error) error {
-	tx, err := db.Begin()
+	return TxContext(context.Background(), db, fn)
+}
+
+// TxContext is Tx bound to the caller's context, so a cancelled request rolls the transaction back.
+func TxContext(ctx context.Context, db *sql.DB, fn func(tx *sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("beginning transaction: %w", err)
 	}

@@ -17,7 +17,7 @@ export type StatsAreaChartProps = {
 };
 
 const StatsAreaChartImpl = lazy(() =>
-  import('./StatsAreaChartImpl').then((module) => ({ default: module.StatsAreaChartImpl }))
+  import('./StatsAreaChartImpl').then((module) => ({ default: module.StatsAreaChartImpl })),
 );
 
 export function StatsAreaChart(props: StatsAreaChartProps) {

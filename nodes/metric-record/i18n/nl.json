@@ -1,18 +1,25 @@
 {
-  "label": "Metric Record",
-  "description": "Persist a workflow metric sample from the current message",
+  "label": "Metriek vastleggen",
+  "description": "Bewaar een metriekmeting van de workflow uit het huidige bericht",
   "config": {
-    "metric_name": "Metric Name",
-    "property": "Property",
-    "metric_type": "Metric Type",
-    "unit": "Unit",
+    "metric_name": "Metrieknaam",
+    "property": "Eigenschap",
+    "metric_type": "Metriektype",
+    "unit": "Eenheid",
     "labels": "Labels"
   },
   "options": {
     "metric_type": {
       "gauge": "Gauge",
-      "counter": "Counter",
-      "event": "Event"
+      "counter": "Teller",
+      "event": "Gebeurtenis"
+    },
+    "unit": {
+      "ms": "Milliseconden",
+      "s": "Seconden",
+      "bytes": "Bytes",
+      "percent": "Procent",
+      "count": "Aantal"
     }
   }
 }

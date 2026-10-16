@@ -4,7 +4,7 @@
     "description":  "Real-time distributed OLAP datastore for low-latency analytics on streaming data.",
     "category":  "Databases",
     "image":  "apachepinot/pinot:latest",
-    "logo":  "https://icon.horse/icon/pinot.apache.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=pinot.apache.org\u0026sz=128",
     "website":  "https://pinot.apache.org",
     "docsUrl":  "https://docs.pinot.apache.org",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

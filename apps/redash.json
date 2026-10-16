@@ -4,7 +4,7 @@
   "description": "Connect to data sources, query them with SQL, build dashboards, and share insights with your team.",
   "category": "Databases",
   "image": "redash/redash:latest",
-  "logo": "https://redash.io/assets/images/redash_icon.png",
+  "logo": "https://cdn.simpleicons.org/redash",
   "website": "https://redash.io",
   "docsUrl": "https://redash.io/help/open-source/setup-guide",
   "ports": [
@@ -49,5 +49,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

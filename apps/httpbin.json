@@ -1,0 +1,32 @@
+{
+    "slug":  "httpbin",
+    "name":  "httpbin",
+    "description":  "Simple HTTP request and response testing service, useful for debugging clients and webhooks.",
+    "category":  "Utilities",
+    "image":  "mccutchen/go-httpbin:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=httpbin.org\u0026sz=128",
+    "website":  "https://httpbin.org",
+    "docsUrl":  "https://github.com/mccutchen/go-httpbin",
+    "ports":  [
+                  {
+                      "host":  8680,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Generic OpenID Connect",
+    "subtitle": "Federate McHarbor login to any compliant OpenID Connect provider — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP, and many more. The plugin fetches <issuer>/.well-known/openid-configuration at runtime to discover the authorization and token endpoints, then runs the standard OIDC authorization-code flow.",
+    "registerHint": "Add a provider from the host's Settings > Security > Identity Providers page and pick \"Generic OpenID Connect\" as the provider_type."
+  },
+  "fields": {
+    "issuer_url":    "Issuer URL",
+    "client_id":     "Client ID",
+    "client_secret": "Client Secret",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "issuer_url":    "The OIDC issuer URL — typically the base URL of your identity provider's user-facing portal (for example, https://login.example.com or https://your-tenant.auth0.com/). The plugin appends /.well-known/openid-configuration to discover the authorization endpoint, token endpoint, and JWKS URI.",
+    "client_id":     "OAuth client ID assigned by your IdP to the McHarbor application. Copy it from your IdP's application/client configuration screen.",
+    "client_secret": "OAuth client secret issued by your IdP. Stored encrypted at rest (AES-256-GCM).",
+    "scopes":        "Space-separated OAuth scopes. Defaults to 'openid profile email' which covers standard OIDC identity claims. Add 'groups' if your IdP exposes a group claim under that name (the host's group-mapping wizard reads the OIDC-asserted 'groups' claim)."
+  },
+  "guide": {
+    "title":    "Set up Generic OpenID Connect in McHarbor",
+    "subtitle": "Register a confidential OAuth client in your IdP and grant it the right to read basic profile claims (and optionally groups).",
+    "step1": {
+      "title": "Open your IdP's application registration",
+      "body":  "In your identity provider's admin console, navigate to Applications (or Clients / API Clients depending on the product) and create a new confidential web application. Pick a name like \"McHarbor SSO\" and choose the Web application type."
+    },
+    "step2": {
+      "title": "Set the redirect URI",
+      "body":  "Under Allowed Callback URLs / Redirect URIs, add the McHarbor callback URL shown on the provider edit page. The host appends /api/identity-providers/callback to your McHarbor base URL — copy it exactly to avoid silent auth-code mismatches."
+    },
+    "step3": {
+      "title": "Create a client secret",
+      "body":  "Generate a new client secret. Pick a sensible expiry (90 or 180 days) and set a calendar reminder. Copy the secret VALUE (not the secret ID) into the Client Secret field on the provider form. McHarbor stores it AES-256-GCM encrypted."
+    },
+    "step4": {
+      "title": "Copy the Client ID",
+      "body":  "From the application overview, copy the Client ID into the Client ID field on the provider form."
+    },
+    "step5": {
+      "title": "Copy the Issuer URL",
+      "body":  "The issuer URL is the base URL of your IdP — the same URL your users hit when they sign in. Common shapes: https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Paste it into the Issuer URL field. The plugin will fetch <issuer>/.well-known/openid-configuration to validate the configuration."
+    },
+    "step6": {
+      "title": "Test the connection",
+      "body":  "Back in McHarbor, click \"Test connection\" on the provider form. A green result means the OIDC discovery document resolved and the IdP accepted your credentials. You can now enable the provider and use \"Sign in with <your IdP>\" on the login page."
+    }
+  }
+}

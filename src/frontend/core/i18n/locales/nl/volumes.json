@@ -8,6 +8,18 @@
   "pruneUnused": "Ongebruikte opschonen",
   "pruneDescription": "Verwijder volumes die niet aan een container gekoppeld zijn.",
   "columns": {
+    "scope": "Scope",
+    "labels": "Labels",
+    "options": "Opties",
+    "status": "Status",
+    "size": "Grootte",
+    "refCount": "Verwijzingen",
+    "stack": "Stack",
+    "protected": "Beschermd",
+    "groupVolume": "Volume",
+    "usedBy": "Gebruikt door",
+    "groupRelations": "Relaties",
+    "groupStack": "Stack",
     "name": "Naam",
     "driver": "Driver",
     "usage": "Gebruik",
@@ -17,7 +29,8 @@
   },
   "badges": {
     "inUse": "in gebruik",
-    "unused": "ongebruikt"
+    "unused": "Ongebruikt",
+    "inUseCount": "{{count}} in gebruik"
   },
   "create": {
     "title": "Volume aanmaken",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Volume verwijderen",
     "removeDescription": "Dit verwijdert dit volume permanent, inclusief alle gegevens."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Volumesecties",
+      "overview": "Overzicht",
+      "containers": "Containers",
+      "configuration": "Configuratie"
+    },
+    "notFound": "Volume niet gevonden",
+    "backToVolumes": "Terug naar volumes",
+    "general": "Algemeen",
+    "name": "Naam",
+    "driver": "Driver",
+    "scope": "Bereik",
+    "mountpoint": "Koppelpunt",
+    "created": "Aangemaakt",
+    "usage": "Gebruik",
+    "status": "Status",
+    "size": "Grootte",
+    "sizeUnknown": "Niet gerapporteerd",
+    "sizeDescription": "De Docker-daemon rapporteert de grootte alleen wanneer hij gebruiksgegevens voor dit volume heeft verzameld.",
+    "mountedBy": "Gekoppeld door",
+    "mountedByContainers": "Containers die dit volume gebruiken",
+    "noContainers": "Er koppelt op dit moment geen container aan dit volume.",
+    "containerName": "Container",
+    "containerId": "Container-ID",
+    "mountPath": "Koppelpad",
+    "access": "Toegang",
+    "readWrite": "lezen-schrijven",
+    "readOnly": "alleen-lezen",
+    "options": "Opties",
+    "labels": "Labels",
+    "noConfiguration": "Dit volume heeft geen eigen opties of labels.",
+    "protectedCannotRemove": "Dit volume is beveiligd en kan niet worden verwijderd.",
+    "inUseCannotRemove": "Een container koppelt dit volume nog. Verwijder of stop die eerst."
   }
 }

@@ -4,7 +4,7 @@
     "description":  "Zigbee gateway software for the Phoscon ConBee and RaspBee adapters.",
     "category":  "Home Automation",
     "image":  "deconzcommunity/deconz:latest",
-    "logo":  "https://icon.horse/icon/phoscon.de",
+    "logo":  "https://www.google.com/s2/favicons?domain=phoscon.de\u0026sz=128",
     "website":  "https://phoscon.de",
     "docsUrl":  "https://github.com/deconz-community/deconz-docker",
     "ports":  [
@@ -47,5 +47,9 @@
                         "description":  "Enable VNC mode (1 to enable)"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

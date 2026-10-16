@@ -1,0 +1,40 @@
+{
+  "slug": "changedetection",
+  "name": "changedetection.io",
+  "description": "Watches web pages for content changes and sends notifications through Apprise.",
+  "category": "Monitoring",
+  "image": "ghcr.io/dgtlmoon/changedetection.io:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/changedetection.png",
+  "website": "https://changedetection.io",
+  "docsUrl": "https://github.com/dgtlmoon/changedetection.io/wiki",
+  "ports": [
+    {
+      "host": 5010,
+      "container": 5000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/changedetection/datastore",
+      "container": "/datastore"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "BASE_URL",
+      "default": "http://localhost:5010",
+      "description": "Public URL used in notification links"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

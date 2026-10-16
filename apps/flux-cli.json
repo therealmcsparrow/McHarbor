@@ -1,0 +1,37 @@
+{
+    "slug":  "flux-cli",
+    "name":  "Flux CLI",
+    "description":  "One-shot CLI for bootstrapping and managing Flux GitOps controllers against a Kubernetes cluster.",
+    "category":  "CI/CD",
+    "image":  "fluxcd/flux-cli:v2.3.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flux.png",
+    "website":  "https://fluxcd.io",
+    "docsUrl":  "https://fluxcd.io/flux/installation/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/flux-cli/kubeconfig",
+                        "container":  "/root/.kube",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KUBECONFIG",
+                        "default":  "/root/.kube/config",
+                        "description":  "Path to the kubeconfig used to reach the target cluster"
+                    }
+                ],
+    "version":  "v2.3.0",
+    "latest":  {
+        "version":  "v2.3.0",
+        "release_date":  "2026-09-29"
+    }
+}

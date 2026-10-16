@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Box destination",
+    "subtitle": "Backup snapshots are written to the Box folder ID you specify. Use folder_id \"0\" for the account root.",
+    "registerHint": "This plugin owns one LocationType: box. To change the folder later, save the destination and re-open it."
+  },
+  "fields": {
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "folderId": "Folder ID",
+    "refreshToken": "Refresh Token"
+  },
+  "form": {
+    "help": {
+      "clientId": "Client ID from the Box Developer Console for your app (Custom App or Server Authentication).",
+      "clientSecret": "Client Secret from the Box Developer Console. Treated as a write-only secret; the plugin never logs it back.",
+      "folderId": "Box folder ID where backups land. Use \"0\" for the account root.",
+      "refreshToken": "Long-lived refresh token issued after the OAuth consent flow. Leave empty until you have run Connect to Box."
+    }
+  },
+  "help": {
+    "clientId": "From the Box Developer Console: App → Configuration → OAuth 2.0.",
+    "clientSecret": "The Client Secret is shown once when the app is created — copy it now.",
+    "folderId": "Numeric Box folder ID. \"0\" = the account root. Find a folder's ID in the Box web UI URL.",
+    "refreshToken": "Filled in automatically by the Connect to Box flow. Do not edit manually.",
+    "oauthHint": "After saving, click \"Connect to Box\" to grant the plugin consent and store a refresh token. Without a refresh token the plugin falls back to client_credentials grant (requires Server Authentication configured on the Box app)."
+  },
+  "setup": {
+    "title": "Box setup guide",
+    "subtitle": "Wire a Box developer app to your McHarbor instance in six short steps. About 5 minutes.",
+    "step1": {
+      "title": "Create a Box app",
+      "body": "Open the Box Developer Console (developer.box.com) and create a new app. Choose \"Custom App\" for delegated user auth, or \"Server Authentication\" if you prefer app-only tokens (no per-user consent)."
+    },
+    "step2": {
+      "title": "Configure OAuth 2.0",
+      "body": "In the app settings, choose OAuth 2.0. Add the redirect URI your McHarbor instance serves (Settings → Storage → Connect to Box will display it). Pick a single primary environment for now (development or production)."
+    },
+    "step3": {
+      "title": "Request scopes",
+      "body": "Under \"Application Scopes\", enable file_readwrite (full read/write on all files and folders the user can access). Older apps may still use root_readwrite — both work with this plugin."
+    },
+    "step4": {
+      "title": "Submit app for authorization",
+      "body": "Custom Apps require a Box admin to authorize the app before users can grant consent. Have your Box admin click the \"Authorize\" button in the Developer Console, then approve the requested scopes."
+    },
+    "step5": {
+      "title": "Copy client_id + client_secret",
+      "body": "Back in McHarbor, paste the Client ID and Client Secret from the Box Developer Console into the destination form. Save the destination before proceeding."
+    },
+    "step6": {
+      "title": "Connect to grant consent",
+      "body": "Open the saved destination and click \"Connect to Box\". The plugin launches the OAuth consent flow against Box; after consent, Box redirects back with an authorization code that the host exchanges for a long-lived refresh token (stored encrypted in the destination)."
+    },
+    "footer": "Need folder-level scoping instead of account-wide? Use a Service Account scoped to a Box folder and paste the Service Account credentials into the destination form. The plugin uses whatever credentials are present at runtime."
+  },
+  "toast": {
+    "registered": "Box destination registered.",
+    "testPassed": "Box connection succeeded.",
+    "testFailed": "Box connection failed.",
+    "oauthGranted": "Box account connected. Refresh token stored.",
+    "oauthDenied": "Box authorization denied. Connect again to retry."
+  },
+  "error": {
+    "noClientId": "Client ID is required.",
+    "noClientSecret": "Client Secret is required.",
+    "invalidFolderId": "Folder ID must be numeric.",
+    "tokenFailed": "Could not exchange credentials for a Box access token. Verify client_id + client_secret and try again."
+  }
+}

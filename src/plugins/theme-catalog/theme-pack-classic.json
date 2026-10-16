@@ -1,0 +1,16 @@
+{
+  "slug": "theme-pack-classic",
+  "name": "Classic Theme Pack",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "McHarbor",
+  "homepage": "https://github.com/therealmcsparrow/McHarbor",
+  "description": "Installable collection of McHarbor's bundled editor-inspired themes.",
+  "category": "Themes",
+  "icon": "IconPalette",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///mnt/themes-catalog/theme-pack-classic-1.0.0.tar.gz"
+    }
+  ]
+}

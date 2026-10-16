@@ -1,0 +1,117 @@
+{
+  "page": {
+    "title": "Destino de armazenamento FTP/FTPS",
+    "subtitle": "Faça backup em um servidor FTP (RFC 959) ou FTPS (RFC 4217). Métodos de autenticação: anônimo, senha, FTPS explícito (AUTH TLS), FTPS implícito (porta 990) e certificado de cliente (mTLS).",
+    "registerHint": "Conecta a cada operação. As variantes TLS criptografam o canal de controle e as credenciais."
+  },
+  "menu": {
+    "root": "Destinos FTP/FTPS"
+  },
+  "config": {
+    "heading": "Conexão FTP",
+    "description": "Configure o servidor FTP, a porta e o método de autenticação. O plugin abre uma nova conexão por operação e a encerra no Quit.",
+    "field": {
+      "server": {
+        "label": "Servidor",
+        "placeholder": "ftp.example.com ou 10.0.0.5",
+        "help": "Nome do host ou IP do servidor FTP. O processo do host deve ter acesso de rede a ele (TCP/21 ou TCP/990)."
+      },
+      "port": {
+        "label": "Porta",
+        "placeholder": "21",
+        "help": "Porta TCP. Simples / TLS explícito usam 21. FTPS implícito usa 990."
+      },
+      "auth_method": {
+        "label": "Método de autenticação",
+        "help": "Como o cliente prova sua identidade ao servidor. Anônimo usa USER/PASS embutidos; client_cert usa um certificado TLS.",
+        "option": {
+          "anonymous": "Anônimo (sem credenciais)",
+          "password": "Usuário + Senha (FTP simples)",
+          "ftps_explicit": "Usuário + Senha sobre TLS (AUTH TLS)",
+          "ftps_implicit": "Usuário + Senha sobre TLS (porta 990)",
+          "client_cert": "Certificado de cliente (mTLS)"
+        }
+      },
+      "username": {
+        "label": "Nome de usuário",
+        "placeholder": "ftpuser",
+        "help": "Nome de usuário FTP. Obrigatório para as variantes com senha / FTPS. Para autenticação client_cert, opcional — depende do servidor."
+      },
+      "password": {
+        "label": "Senha",
+        "placeholder": "••••••••",
+        "help": "Senha FTP. Obrigatória para as variantes com senha / FTPS. Armazenada criptografada em repouso."
+      },
+      "tls_skip_verify": {
+        "label": "Ignorar verificação de TLS",
+        "help": "Desativa a verificação do certificado do servidor. Ative apenas para certificados autoassinados em que você confia.",
+        "value": "Ignorar a verificação do certificado do servidor TLS"
+      },
+      "client_cert_path": {
+        "label": "Caminho do certificado de cliente",
+        "placeholder": "/etc/ftp/client.crt",
+        "help": "Certificado de cliente codificado em PEM. O processo do host deve conseguir lê-lo."
+      },
+      "client_key_path": {
+        "label": "Caminho da chave do cliente",
+        "placeholder": "/etc/ftp/client.key",
+        "help": "Chave privada codificada em PEM correspondente ao certificado de cliente. O processo do host deve conseguir lê-la."
+      },
+      "path": {
+        "label": "Subdiretório",
+        "placeholder": "mcharbor",
+        "help": "Subdiretório opcional no servidor FTP. Deixe vazio para gravar no diretório pessoal do usuário."
+      },
+      "connect_timeout": {
+        "label": "Tempo limite de conexão",
+        "placeholder": "30s",
+        "help": "Tempo máximo de espera pelo handshake TCP/TLS. Mínimo 5s. Use um valor maior para redes de alta latência."
+      }
+    }
+  },
+  "guide": {
+    "title": "Guia de configuração de FTP/FTPS",
+    "description": "Prepare um servidor FTP/FTPS para uso com este plugin. O plugin abre uma conexão por operação de backup e a fecha no Quit.",
+    "section": {
+      "server": {
+        "title": "1. Confirme que o servidor FTP está acessível",
+        "body": "O host do McHarbor deve ter acesso de rede ao servidor FTP na porta configurada (21 para simples/explícito, 990 para implícito). Verifique com: ftp -inv <server> 21 ou openssl s_client -connect <server>:990 para TLS implícito."
+      },
+      "auth": {
+        "title": "2. Escolha um método de autenticação",
+        "body": "O FTP suporta vários modos de autenticação. Escolha o que corresponde à configuração do seu servidor.",
+        "body_anonymous": "O login anônimo usa a convenção FTP padrão (USER anonymous, PASS user@host). Use para espelhos públicos somente leitura. O acesso de gravação só é concedido se o servidor permitir gravações anônimas.",
+        "body_password": "FTP simples na TCP/21. Nome de usuário e senha trafegam em texto claro — use apenas em redes confiáveis. Para qualquer coisa que cruze uma rede não confiável, mude para FTPS explícito ou FTPS implícito.",
+        "body_ftps_explicit": "FTPS explícito (RFC 4217). O cliente se conecta na TCP/21 como no FTP simples e depois envia AUTH TLS para atualizar o canal de controle para TLS. O servidor responde 234, o handshake TLS começa e as credenciais trafegam dentro do túnel TLS. Este é o moderno 'FTP sobre TLS' que você quer.",
+        "body_ftps_implicit": "FTPS implícito. O cliente abre uma sessão TLS na TCP/990 desde o primeiro byte. Mais antigo que o FTPS explícito (anterior à RFC 4217), mas ainda exigido por alguns servidores e appliances corporativos. Recomendado apenas quando o servidor não suporta AUTH TLS.",
+        "body_client_cert": "Certificado de cliente (mTLS). O cliente apresenta um certificado TLS durante o handshake; o servidor identifica o cliente pelo subject do certificado. Nenhuma senha é enviada. O nome de usuário é opcional — a maioria dos servidores não exige USER após um handshake mTLS bem-sucedido, mas alguns exigem."
+      },
+      "credentials": {
+        "title": "3. Confirme usuário + senha",
+        "body": "O usuário deve ter acesso ao servidor FTP E permissão de gravação no subdiretório configurado. Para senha / FTPS explícito / FTPS implícito, as credenciais trafegam dentro do túnel TLS (FTPS) ou em claro (FTP simples)."
+      },
+      "cert": {
+        "title": "3. Provisione o certificado de cliente",
+        "body": "O servidor FTP deve estar configurado para exigir certificados de cliente. Coloque o certificado + chave no host nos caminhos configurados. O processo do host deve conseguir ler ambos os arquivos. O certificado deve estar codificado em PEM; a chave pode estar criptografada — o plugin não pede uma senha, então use uma chave sem criptografia ou remova a senha com openssl rsa -in client.key -out client-decrypted.key."
+      },
+      "tls": {
+        "title": "4. Confirme a configuração de TLS",
+        "body": "TLS versão 1.2+ é imposto. O servidor deve apresentar um certificado cujo Common Name ou SAN corresponda ao nome do host do servidor. Se o servidor usa um certificado autoassinado, ative 'Ignorar verificação de TLS' — mas saiba que isso desativa a detecção de MITM. Em produção, prefira um certificado assinado por uma CA do conjunto de confiança do host."
+      },
+      "path": {
+        "title": "5. Defina o subdiretório",
+        "body": "Vazio = diretório de trabalho atual do servidor (normalmente o diretório pessoal do usuário). Preenchido = um caminho relativo dentro do diretório pessoal do usuário (ou do chroot, em servidores que impõem um). O plugin faz cd no subdiretório após o login; um subdiretório desconhecido aparece como um erro 550."
+      },
+      "test": {
+        "title": "6. Teste a conexão",
+        "body": "Após salvar o destino, use o botão Testar na página Locais de armazenamento do host. O plugin conecta, faz login, grava um arquivo pequeno, lê de volta e o remove. Um Teste bem-sucedido confirma que a conexão, o método de autenticação e o subdiretório são todos válidos."
+      }
+    }
+  },
+  "toast": {
+    "saved": "Destino FTP salvo",
+    "saveFailed": "Não foi possível salvar o destino FTP: {{error}}",
+    "testPassed": "Conexão FTP bem-sucedida",
+    "testFailed": "Falha na conexão FTP: {{error}}"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "config": {
+    "name": { "help": "Nom d'affichage de ce canal de communication SMTP." },
+    "host": { "help": "Nom d'hôte ou adresse IP du relais SMTP." },
+    "port": { "help": "Port SMTP. Utilisez 587 pour STARTTLS, 465 pour TLS implicite ou 25 pour les relais simples/internes." },
+    "encryption": { "help": "L'une des valeurs starttls, ssl_tls ou none. STARTTLS est recommandé pour le port 587." },
+    "auth_method": { "help": "L'une des valeurs none, plain, login ou cram_md5." },
+    "username": { "help": "Nom d'utilisateur SMTP AUTH. Laissez vide lorsque l'authentification est none." },
+    "password": { "help": "Mot de passe ou mot de passe d'application SMTP AUTH. Stocké chiffré." },
+    "from_address": { "help": "Expéditeur de l'enveloppe et en-tête From." },
+    "from_name": { "help": "Nom d'affichage facultatif pour l'en-tête From." },
+    "to": { "help": "Adresses e-mail des destinataires, séparées par des virgules." },
+    "subject_prefix": { "help": "Préfixe facultatif ajouté à l'objet de chaque notification." }
+  },
+  "menu": {
+    "root": "SMTP"
+  },
+  "forms": {
+    "config": "Configuration SMTP",
+    "setupGuide": "Guide de configuration SMTP"
+  },
+  "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+  "usernameRequired": "Le nom d'utilisateur est obligatoire",
+  "passwordRequired": "Le mot de passe est obligatoire",
+  "title": "Envoi de notifications par SMTP",
+  "subtitle": "Canal de communication du plugin",
+  "description": "Ce plugin gère le canal de communication SMTP. Il enregistre les paramètres SMTP dans le canal lui-même et n'utilise pas l'ancienne interface de serveur e-mail de l'hôte, qui a été supprimée.",
+  "nameLabel": "Nom du canal",
+  "namePlaceholder": "E-mail d'exploitation",
+  "hostLabel": "Hôte SMTP",
+  "portLabel": "Port SMTP",
+  "encryptionLabel": "Chiffrement",
+  "authMethodLabel": "Authentification",
+  "usernameLabel": "Nom d'utilisateur",
+  "passwordLabel": "Mot de passe",
+  "fromAddressLabel": "Adresse d'expéditeur",
+  "fromNameLabel": "Nom de l'expéditeur",
+  "toLabel": "Destinataires",
+  "subjectPrefixLabel": "Préfixe de l'objet",
+  "securityTitle": "Sécurité",
+  "securityHelp": "TLS et SMTP AUTH",
+  "securityDescription": "Utilisez STARTTLS pour le port 587, SSL/TLS pour le port 465 et aucun chiffrement uniquement pour des relais internes de confiance.",
+  "testTitle": "Tester la connexion",
+  "testHelp": "Envoie un e-mail",
+  "testDescription": "L'action de test de l'hôte envoie un véritable e-mail via ce canal. Utilisez d'abord un destinataire de test si votre relais alerte une boîte aux lettres d'astreinte.",
+  "requiredField": "Obligatoire",
+  "setupGuideTitle": "Guide de configuration du canal de communication SMTP",
+  "guide": {
+    "step1": { "body": "Créez ou choisissez un compte de relais SMTP dédié aux notifications McHarbor. Préférez un mot de passe d'application ou un identifiant de relais à portée limitée plutôt que le mot de passe d'une boîte aux lettres personnelle." },
+    "step2": { "body": "Renseignez <b>Hôte SMTP</b> et <b>Port SMTP</b>. Utilisez le port <code>587</code> avec <code>encryption=starttls</code> pour la plupart des fournisseurs, le port <code>465</code> avec <code>encryption=ssl_tls</code> pour le TLS implicite, ou le port <code>25</code> avec <code>encryption=none</code> uniquement pour des relais internes de confiance." },
+    "step3": { "body": "Sélectionnez la méthode d'authentification prise en charge par votre relais : <code>none</code>, <code>plain</code>, <code>login</code> ou <code>cram_md5</code>. Renseignez <b>Nom d'utilisateur</b> et <b>Mot de passe</b> pour toutes les méthodes sauf <code>none</code>." },
+    "step4": { "body": "Définissez <b>Adresse d'expéditeur</b> sur un expéditeur stable, tel que <code>mcharbor@example.com</code>. Certains fournisseurs exigent que cette adresse corresponde au compte authentifié ou à une identité d'expéditeur vérifiée." },
+    "step5": { "body": "Ajoutez un ou plusieurs destinataires séparés par des virgules. Commencez par une boîte aux lettres de test, puis passez à votre liste de diffusion d'exploitation ou d'astreinte une fois la distribution confirmée." },
+    "step6": { "body": "Définissez éventuellement un <b>Préfixe de l'objet</b>, par exemple <code>[McHarbor Prod]</code>, afin de filtrer facilement les alertes dans les clients de messagerie et les systèmes de tickets." },
+    "step7": { "body": "Enregistrez le canal et cliquez sur <b>Tester la connexion</b>. Le plugin envoie un véritable e-mail de test par le même chemin SMTP que celui utilisé pour les événements réels de workflow, d'alerte et de sauvegarde." },
+    "step8": { "body": "Si le test échoue avec une erreur d'authentification, vérifiez le nom d'utilisateur, le mot de passe d'application, l'identité de l'expéditeur et les paramètres SMTP AUTH du fournisseur. Si STARTTLS échoue, confirmez l'association du port et du chiffrement." }
+  },
+  "encryptionOption": { "none": "Aucun" },
+  "authOption": { "none": "Aucune", "plain": "Simple", "login": "Login" }
+}

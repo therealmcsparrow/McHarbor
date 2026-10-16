@@ -1,0 +1,23 @@
+{
+  "widgets": {
+    "needsAttention": {
+      "label": "Requiere atención",
+      "description": "Los pocos elementos que realmente necesitan a una persona, por gravedad"
+    }
+  },
+  "needsAttentionWidget": {
+    "title": "Requiere atención",
+    "empty": "Ahora mismo no hay nada pendiente",
+    "unavailable": "No se puede leer el estado de los contenedores",
+    "more": "{{count}} más",
+    "reason": {
+      "unhealthy": "comprobación de estado fallida",
+      "restarting": "bucle de reinicio",
+      "dead": "muerto",
+      "exited": "detenido",
+      "snapshotOverdue": "copia atrasada",
+      "snapshotNever": "nunca copiado"
+    },
+    "viewAll": "Mostrar todo"
+  }
+}

@@ -1,0 +1,53 @@
+{
+    "slug":  "amp",
+    "name":  "AMP",
+    "description":  "Multi-game server management panel that can install, configure and monitor many different dedicated servers.",
+    "category":  "Gaming",
+    "image":  "cubecoders/ampbase:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/amp.png",
+    "website":  "https://cubecoders.com/AMP",
+    "docsUrl":  "https://cubecoders.com/AMPDocs",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/amp/data",
+                        "container":  "/home/amp/.ampdata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "AMP_USERNAME",
+                        "default":  "admin",
+                        "description":  "Initial administrator username"
+                    },
+                    {
+                        "key":  "AMP_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial administrator password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "AMP_LICENCE_KEY",
+                        "default":  "",
+                        "description":  "AMP license key (leave blank for the free Community edition)",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

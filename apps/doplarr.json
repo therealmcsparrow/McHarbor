@@ -1,0 +1,69 @@
+{
+    "slug":  "doplarr",
+    "name":  "Doplarr",
+    "description":  "Discord bot that lets a server's members request movies and shows through Sonarr, Radarr or Overseerr.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/doplarr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/doplarr.png",
+    "website":  "https://github.com/kiranshila/Doplarr",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-doplarr",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/doplarr/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DISCORD_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Discord bot token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SONARR_URL",
+                        "default":  "http://sonarr:8989",
+                        "description":  "Sonarr base URL"
+                    },
+                    {
+                        "key":  "SONARR_API_KEY",
+                        "default":  "change-me",
+                        "description":  "Sonarr API key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "RADARR_URL",
+                        "default":  "http://radarr:7878",
+                        "description":  "Radarr base URL"
+                    },
+                    {
+                        "key":  "RADARR_API_KEY",
+                        "default":  "change-me",
+                        "description":  "Radarr API key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

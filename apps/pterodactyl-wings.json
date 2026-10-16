@@ -1,0 +1,55 @@
+{
+    "slug":  "pterodactyl-wings",
+    "name":  "Pterodactyl Wings",
+    "description":  "Server daemon that runs game server containers on behalf of a Pterodactyl Panel.",
+    "category":  "Gaming",
+    "image":  "ghcr.io/pterodactyl/wings:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pterodactyl.png",
+    "website":  "https://pterodactyl.io",
+    "docsUrl":  "https://pterodactyl.io/wings/1.0/installing.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2022,
+                      "container":  2022,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pterodactyl-wings/config",
+                        "container":  "/etc/pterodactyl"
+                    },
+                    {
+                        "host":  "/opt/appdata/pterodactyl-wings/data",
+                        "container":  "/var/lib/pterodactyl"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WINGS_UID",
+                        "default":  "988",
+                        "description":  "UID Wings runs game server containers as"
+                    },
+                    {
+                        "key":  "WINGS_GID",
+                        "default":  "988",
+                        "description":  "GID Wings runs game server containers as"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

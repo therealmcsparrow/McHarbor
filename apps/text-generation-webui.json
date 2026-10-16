@@ -1,0 +1,49 @@
+{
+    "slug":  "text-generation-webui",
+    "name":  "Text Generation WebUI",
+    "description":  "Gradio web interface for chatting with local language models in GGUF, GPTQ, or EXL2 format; GPU strongly recommended.",
+    "category":  "AI & Voice",
+    "image":  "atinoda/text-generation-webui:default",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/oobabooga/text-generation-webui",
+    "docsUrl":  "https://github.com/oobabooga/text-generation-webui/wiki/09-%E2%80%90-Docker",
+    "ports":  [
+                  {
+                      "host":  7860,
+                      "container":  7860,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/text-generation-webui/models",
+                        "container":  "/app/models"
+                    },
+                    {
+                        "host":  "/opt/appdata/text-generation-webui/loras",
+                        "container":  "/app/loras"
+                    },
+                    {
+                        "host":  "/opt/appdata/text-generation-webui/characters",
+                        "container":  "/app/characters"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "EXTRA_LAUNCH_ARGS",
+                        "default":  "--listen --api",
+                        "description":  "Additional command-line arguments passed to the server"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "default",
+    "latest":  {
+        "version":  "default",
+        "release_date":  "2026-09-29"
+    }
+}

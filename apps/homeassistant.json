@@ -28,5 +28,9 @@
     }
   ],
   "minMemory": "1GB",
-  "version": "stable"
+  "version":  "stable",
+  "latest":  {
+      "version":  "stable",
+      "release_date":  "2026-09-10"
+  }
 }

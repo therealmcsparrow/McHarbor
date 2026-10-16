@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "DSM-Verbindung",
+    "targetSection": "Snapshot-Ziel",
+    "advancedSection": "Erweitert",
+    "dsmUrl": {
+      "label": "DSM-URL",
+      "help": "Basis-URL der Synology-DSM-Weboberfläche. Geben Sie den Port an, falls nicht Standard (Standard 5000 für HTTP, 5001 für HTTPS)."
+    },
+    "username": {
+      "label": "Benutzername",
+      "help": "DSM-Konto mit Berechtigung zur Verwaltung von Snapshots. Verwenden Sie ein eigenes Dienstkonto."
+    },
+    "password": {
+      "label": "Passwort",
+      "help": "DSM-Passwort oder anwendungsspezifisches Passwort."
+    },
+    "shareName": {
+      "label": "Freigegebener Ordner",
+      "help": "Name des freigegebenen Ordners, von dem ein Snapshot erstellt wird (ohne führenden Schrägstrich)."
+    },
+    "ignoreCert": {
+      "label": "Zertifikatsfehler ignorieren",
+      "help": "Erforderlich, wenn das DSM ein selbstsigniertes Zertifikat verwendet."
+    },
+    "appPasswordHint": "Empfehlung: Erstellen Sie ein anwendungsspezifisches Passwort unter DSM Systemsteuerung → Benutzer &amp; Team → Benutzer → App-Passwörter. Das beschränkt die Zugangsdaten auf Backup-Vorgänge und kann widerrufen werden, ohne das primäre Passwort zu ändern."
+  },
+  "setup": {
+    "title": "Bevor Sie beginnen",
+    "intro": "snapshot-synology kommuniziert mit der REST-API des DSM-7.x-Backup-Dienstes. Stellen Sie sicher, dass die DSM-Seite konfiguriert ist, und füllen Sie dann das Formular aus.",
+    "steps": [
+      {
+        "title": "Backup-Dienst-API aktivieren",
+        "body": "Systemsteuerung → Externer Zugriff → Zertifikat → Hinzufügen. Öffnen Sie Systemsteuerung → Backup-Dienst und stellen Sie sicher, dass der Dienst läuft. Die REST-API lauscht auf dem DSM-HTTPS-Port (Standard 5001)."
+      },
+      {
+        "title": "Anwendungsspezifisches Passwort erstellen",
+        "body": "Systemsteuerung → Benutzer &amp; Team → Benutzer → Konto → App-Passwörter → Hinzufügen. Benennen Sie es 'McHarbor snapshots' und gewähren Sie nur die erforderlichen Berechtigungen (DSM und Backup-Dienst). Das erzeugte Passwort tragen Sie in das Formular ein."
+      },
+      {
+        "title": "Freigegebenen Ordner wählen oder erstellen",
+        "body": "Öffnen Sie Systemsteuerung → Freigegebener Ordner. Erstellen Sie entweder einen Snapshot eines vorhandenen Ordners (empfohlen: ein leerer, für McHarbor-Backups reservierter Ordner) oder legen Sie einen neuen an. Notieren Sie den Ordnernamen exakt — auf dem DSM wird zwischen Groß- und Kleinschreibung unterschieden."
+      },
+      {
+        "title": "DSM-Erreichbarkeit vom Host prüfen",
+        "body": "Prüfen Sie vom Host, auf dem McHarbor läuft, die HTTPS-Verbindung. Ersetzen Sie nas.local durch Ihren DSM-Hostnamen:",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Verbindung testen",
+        "body": "Klicken Sie nach dem Speichern der Konfiguration im Reiter Snapshots auf 'Verbindung testen'. Ein grünes Prüfergebnis bestätigt, dass das DSM die Zugangsdaten akzeptiert hat und der freigegebene Ordner erreichbar ist."
+      }
+    ]
+  }
+}

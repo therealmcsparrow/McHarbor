@@ -4,7 +4,7 @@
   "description": "Modern, simple TCP tunnel in Rust that exposes local ports to a remote server.",
   "category": "Networking",
   "image": "ekzhang/bore:latest",
-  "logo": "https://github.com/ekzhang/bore/raw/master/img/bore.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
   "website": "https://github.com/ekzhang/bore",
   "docsUrl": "https://github.com/ekzhang/bore",
   "ports": [
@@ -22,5 +22,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

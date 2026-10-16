@@ -1,0 +1,28 @@
+{
+  "label": "Action conteneur",
+  "description": "Démarrer, arrêter, redémarrer, supprimer, renommer ou attendre un conteneur",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "action": "Action",
+    "timeout": "Délai d'expiration (secondes)",
+    "new_name": "Nouveau nom",
+    "unlock_protected": "Deverrouiller le conteneur protege",
+    "condition": "Condition"
+  },
+  "options": {
+    "action": {
+      "start": "Démarrer",
+      "stop": "Arrêter",
+      "restart": "Redémarrer",
+      "remove": "Supprimer",
+      "rename": "Renommer",
+      "wait": "Attendre"
+    },
+    "condition": {
+      "not-running": "Ne fonctionne pas",
+      "next-exit": "Prochaine sortie",
+      "removed": "Supprimé"
+    }
+  }
+}

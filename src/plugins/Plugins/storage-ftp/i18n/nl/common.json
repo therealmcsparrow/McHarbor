@@ -1,0 +1,117 @@
+{
+  "page": {
+    "title": "FTP/FTPS-opslagbestemming",
+    "subtitle": "Maak een back-up naar een FTP-server (RFC 959) of FTPS-server (RFC 4217). Authenticatiemethoden: anoniem, wachtwoord, FTPS-expliciet (AUTH TLS), FTPS-impliciet (poort 990) en clientcertificaat (mTLS).",
+    "registerHint": "Verbind per bewerking. TLS-varianten versleutelen het controlekanaal en de inloggegevens."
+  },
+  "menu": {
+    "root": "FTP/FTPS-bestemmingen"
+  },
+  "config": {
+    "heading": "FTP-verbinding",
+    "description": "Configureer de FTP-server, poort en authenticatiemethode. De plugin opent per bewerking een nieuwe verbinding en sluit die af bij Quit.",
+    "field": {
+      "server": {
+        "label": "Server",
+        "placeholder": "ftp.example.com of 10.0.0.5",
+        "help": "Hostnaam of IP van de FTP-server. Het hostproces moet er netwerktoegang toe hebben (TCP/21 of TCP/990)."
+      },
+      "port": {
+        "label": "Poort",
+        "placeholder": "21",
+        "help": "TCP-poort. Gewoon / expliciete TLS gebruiken 21. Impliciete FTPS gebruikt 990."
+      },
+      "auth_method": {
+        "label": "Authenticatiemethode",
+        "help": "Hoe de client zijn identiteit aan de server bewijst. Anoniem gebruikt ingebouwde USER/PASS; client_cert gebruikt een TLS-certificaat.",
+        "option": {
+          "anonymous": "Anoniem (geen inloggegevens)",
+          "password": "Gebruikersnaam + wachtwoord (gewone FTP)",
+          "ftps_explicit": "Gebruikersnaam + wachtwoord via TLS (AUTH TLS)",
+          "ftps_implicit": "Gebruikersnaam + wachtwoord via TLS (poort 990)",
+          "client_cert": "Clientcertificaat (mTLS)"
+        }
+      },
+      "username": {
+        "label": "Gebruikersnaam",
+        "placeholder": "ftpuser",
+        "help": "FTP-gebruikersnaam. Vereist voor wachtwoord- / FTPS-varianten. Voor client_cert-authenticatie optioneel — afhankelijk van de server."
+      },
+      "password": {
+        "label": "Wachtwoord",
+        "placeholder": "••••••••",
+        "help": "FTP-wachtwoord. Vereist voor wachtwoord- / FTPS-varianten. Versleuteld opgeslagen."
+      },
+      "tls_skip_verify": {
+        "label": "TLS-verificatie overslaan",
+        "help": "Schakel servercertificaatverificatie uit. Alleen inschakelen voor zelfondertekende certificaten die je vertrouwt.",
+        "value": "TLS-servercertificaatverificatie overslaan"
+      },
+      "client_cert_path": {
+        "label": "Pad naar clientcertificaat",
+        "placeholder": "/etc/ftp/client.crt",
+        "help": "PEM-gecodeerd clientcertificaat. Het hostproces moet het kunnen lezen."
+      },
+      "client_key_path": {
+        "label": "Pad naar clientsleutel",
+        "placeholder": "/etc/ftp/client.key",
+        "help": "PEM-gecodeerde privésleutel die bij het clientcertificaat hoort. Het hostproces moet hem kunnen lezen."
+      },
+      "path": {
+        "label": "Submap",
+        "placeholder": "mcharbor",
+        "help": "Optionele submap op de FTP-server. Laat leeg om naar de thuismap van de gebruiker te schrijven."
+      },
+      "connect_timeout": {
+        "label": "Verbindingstimeout",
+        "placeholder": "30s",
+        "help": "Maximale wachttijd voor de TCP/TLS-handshake. Minimaal 5s. Gebruik een hogere waarde voor netwerken met hoge latentie."
+      }
+    }
+  },
+  "guide": {
+    "title": "FTP/FTPS-installatiegids",
+    "description": "Bereid een FTP/FTPS-server voor op gebruik met deze plugin. De plugin opent per back-upbewerking een verbinding en sluit die af bij Quit.",
+    "section": {
+      "server": {
+        "title": "1. Controleer of de FTP-server bereikbaar is",
+        "body": "De McHarbor-host moet netwerktoegang hebben tot de FTP-server op de geconfigureerde poort (21 voor gewoon/expliciet, 990 voor impliciet). Controleer met: ftp -inv <server> 21 of openssl s_client -connect <server>:990 voor impliciete TLS."
+      },
+      "auth": {
+        "title": "2. Kies een authenticatiemethode",
+        "body": "FTP ondersteunt meerdere authenticatiemodi. Kies de modus die overeenkomt met de configuratie van je server.",
+        "body_anonymous": "Anoniem inloggen gebruikt de standaard FTP-conventie (USER anonymous, PASS user@host). Gebruik dit voor openbare alleen-lezen mirrors. Schrijftoegang wordt alleen verleend als de server anoniem schrijven toestaat.",
+        "body_password": "Gewone FTP op TCP/21. Gebruikersnaam en wachtwoord reizen in leesbare tekst — gebruik dit alleen op vertrouwde netwerken. Schakel voor alles wat een onvertrouwd netwerk kruist over op FTPS-expliciet of FTPS-impliciet.",
+        "body_ftps_explicit": "FTPS-expliciet (RFC 4217). De client verbindt op TCP/21 net als bij gewone FTP en stuurt daarna AUTH TLS om het controlekanaal naar TLS te upgraden. De server antwoordt 234, de TLS-handshake begint en de inloggegevens reizen binnen de TLS-tunnel. Dit is de moderne 'FTP over TLS' die je wilt.",
+        "body_ftps_implicit": "FTPS-impliciet. De client opent vanaf de eerste byte een TLS-sessie op TCP/990. Ouder dan FTPS-expliciet (van voor RFC 4217) maar nog steeds vereist door sommige bedrijfsservers en appliances. Alleen aanbevolen wanneer de server AUTH TLS niet ondersteunt.",
+        "body_client_cert": "Clientcertificaat (mTLS). De client presenteert tijdens de handshake een TLS-certificaat; de server identificeert de client aan de hand van het onderwerp van het certificaat. Er wordt geen wachtwoord verzonden. Gebruikersnaam is optioneel — de meeste servers vereisen na een geslaagde mTLS-handshake geen USER, sommige wel."
+      },
+      "credentials": {
+        "title": "3. Controleer gebruikersnaam + wachtwoord",
+        "body": "De gebruiker moet toegang hebben tot de FTP-server EN schrijfrechten in de geconfigureerde submap. Voor wachtwoord / FTPS-expliciet / FTPS-impliciet reizen de inloggegevens binnen de TLS-tunnel (FTPS) of in leesbare tekst (gewone FTP)."
+      },
+      "cert": {
+        "title": "3. Richt het clientcertificaat in",
+        "body": "De FTP-server moet zo zijn geconfigureerd dat clientcertificaten vereist zijn. Plaats het certificaat + de sleutel op de host op de geconfigureerde paden. Het hostproces moet beide bestanden kunnen lezen. Het certificaat moet PEM-gecodeerd zijn; de sleutel mag versleuteld zijn — de plugin vraagt niet om een wachtwoordzin, dus gebruik een onversleutelde sleutel of verwijder de wachtwoordzin met openssl rsa -in client.key -out client-decrypted.key."
+      },
+      "tls": {
+        "title": "4. Controleer de TLS-configuratie",
+        "body": "TLS-versie 1.2+ wordt afgedwongen. De server moet een certificaat presenteren waarvan de Common Name of SAN overeenkomt met de hostnaam van de server. Als de server een zelfondertekend certificaat gebruikt, schakel dan 'TLS-verificatie overslaan' in — maar besef dat dit MITM-detectie uitschakelt. Geef voor productie de voorkeur aan een certificaat dat is ondertekend door een CA in de vertrouwensbundel van de host."
+      },
+      "path": {
+        "title": "5. Stel de submap in",
+        "body": "Leeg = de huidige werkmap van de server (meestal de thuismap van de gebruiker). Niet leeg = een relatief pad binnen de thuismap van de gebruiker (of de chroot, bij servers die er een afdwingen). De plugin doet na het inloggen een cd naar de submap; een onbekende submap komt naar voren als een 550-fout."
+      },
+      "test": {
+        "title": "6. Test de verbinding",
+        "body": "Gebruik na het opslaan van de bestemming de knop Test op de pagina Opslaglocaties van de host. De plugin verbindt, logt in, schrijft een klein bestand, leest het terug en verwijdert het. Een geslaagde test bevestigt dat de verbinding, de authenticatiemethode en de submap allemaal geldig zijn."
+      }
+    }
+  },
+  "toast": {
+    "saved": "FTP-bestemming opgeslagen",
+    "saveFailed": "Kon FTP-bestemming niet opslaan: {{error}}",
+    "testPassed": "FTP-verbinding geslaagd",
+    "testFailed": "FTP-verbinding mislukt: {{error}}"
+  }
+}

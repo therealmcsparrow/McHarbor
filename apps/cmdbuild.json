@@ -1,0 +1,36 @@
+{
+    "slug":  "cmdbuild",
+    "name":  "CMDBuild",
+    "description":  "Configuration management database and asset management platform for IT and facility operations.",
+    "category":  "Business & ERP",
+    "image":  "itmicus/cmdbuild:4.1.0",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.cmdbuild.org\u0026sz=128",
+    "website":  "https://www.cmdbuild.org",
+    "docsUrl":  "https://github.com/nevarsin/docker-cmdbuild",
+    "ports":  [
+                  {
+                      "host":  8125,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cmdbuild/data",
+                        "container":  "/opt/cmdbuild/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "4.1.0",
+    "latest":  {
+        "version":  "4.1.0",
+        "release_date":  "2026-09-29"
+    }
+}

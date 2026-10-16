@@ -1,0 +1,49 @@
+{
+    "slug":  "allure",
+    "name":  "Allure Report",
+    "description":  "Test report server that renders Allure results into an interactive web report.",
+    "category":  "Developer Tools",
+    "image":  "frankescobar/allure-docker-service:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=allurereport.org\u0026sz=128",
+    "website":  "https://allurereport.org",
+    "docsUrl":  "https://github.com/fescobar/allure-docker-service",
+    "ports":  [
+                  {
+                      "host":  5050,
+                      "container":  5050,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/allure/results",
+                        "container":  "/app/allure-results"
+                    },
+                    {
+                        "host":  "/opt/appdata/allure/reports",
+                        "container":  "/app/default-reports"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CHECK_RESULTS_EVERY_SECONDS",
+                        "default":  "3",
+                        "description":  "How often to check for new results and regenerate the report"
+                    },
+                    {
+                        "key":  "KEEP_HISTORY",
+                        "default":  "1",
+                        "description":  "Keep historical test run data across reports"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

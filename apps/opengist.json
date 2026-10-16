@@ -1,0 +1,45 @@
+{
+    "slug":  "opengist",
+    "name":  "Opengist",
+    "description":  "Self-hosted pastebin powered by Git, with syntax highlighting and gist-style snippets.",
+    "category":  "Utilities",
+    "image":  "ghcr.io/thomiceli/opengist:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/opengist.png",
+    "website":  "https://github.com/thomiceli/opengist",
+    "docsUrl":  "https://github.com/thomiceli/opengist/wiki/Installation",
+    "ports":  [
+                  {
+                      "host":  6157,
+                      "container":  6157,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2222,
+                      "container":  2222,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opengist/data",
+                        "container":  "/opengist"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OG_GIT_DEFAULT_BRANCH",
+                        "default":  "main",
+                        "description":  "Default branch name for new gists"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

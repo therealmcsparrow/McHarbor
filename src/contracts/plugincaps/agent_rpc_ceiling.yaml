@@ -1,0 +1,83 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+send:
+  - {type: compute_config_request, slot: compute, budget: quick, operation: config}
+  - {type: compute_image_fetch, slot: compute_image, budget: transfer, floor: image_library, progress: [compute_image_progress], operation: fetch, cancel: compute_image_cancel}
+  - {type: compute_image_list, slot: compute_image, budget: quick, operation: list}
+  - {type: compute_image_remove, slot: compute_image, budget: quick, operation: remove}
+  - {type: compute_install_request, slot: compute, budget: long, floor: package_install, operation: install}
+  - {type: compute_migrate_request, slot: compute, budget: relocate, operation: migrate}
+  - {type: compute_probe_request, slot: compute, budget: quick, operation: probe}
+  - {type: ct_backup_restore, slot: ct, budget: transfer, floor: ct_backup}
+  - {type: ct_backup_run, slot: ct, budget: transfer, floor: ct_backup}
+  - {type: ct_cancel, slot: ct, budget: quick}
+  - {type: ct_clone_request, slot: ct, budget: long, progress: [ct_clone_progress]}
+  - {type: ct_create, slot: ct, budget: long, floor: ct_rootfs}
+  - {type: ct_delete, slot: ct, budget: long, floor: ct_rootfs}
+  - {type: ct_freeze, slot: ct, budget: quick}
+  - {type: ct_processes, slot: ct, budget: quick}
+  - {type: ct_query, slot: ct, budget: quick}
+  - {type: ct_restart, slot: ct, budget: quick}
+  - {type: ct_shutdown, slot: ct, budget: quick}
+  - {type: ct_snapshot_create, slot: ct, budget: long}
+  - {type: ct_snapshot_delete, slot: ct, budget: quick}
+  - {type: ct_snapshot_revert, slot: ct, budget: long}
+  - {type: ct_start, slot: ct, budget: quick}
+  - {type: ct_stop, slot: ct, budget: quick}
+  - {type: ct_unfreeze, slot: ct, budget: quick}
+  - {type: ct_update_limits, slot: ct, budget: quick}
+  - {type: host_device_list, slot: vm, budget: quick}
+  - {type: net_detect_request, slot: net, budget: quick, operation: detect}
+  - {type: net_ensure_request, slot: net, budget: long, floor: guest_networking}
+  - {type: net_remove_request, slot: net, budget: quick}
+  - {type: pool_browse_request, slot: pool, budget: quick, operation: browse}
+  - {type: pool_create_request, slot: pool, budget: long, operation: create}
+  - {type: pool_detect_request, slot: pool, budget: quick, operation: detect}
+  - {type: pool_file_request, slot: pool, budget: quick}
+  - {type: pool_remove_request, slot: pool, budget: long, operation: remove}
+  - {type: pool_stats_request, slot: pool, budget: quick, operation: stats}
+  - {type: vm_backup_restore, slot: vm, budget: transfer}
+  - {type: vm_backup_run, slot: vm, budget: transfer}
+  - {type: vm_cancel, slot: vm, budget: quick}
+  - {type: vm_clone_request, slot: vm, budget: long, progress: [vm_clone_progress]}
+  - {type: vm_cpu_set, slot: vm, budget: long}
+  - {type: vm_define, slot: vm, budget: long}
+  - {type: vm_delete, slot: vm, budget: long}
+  - {type: vm_disk_create, slot: vm, budget: long}
+  - {type: vm_disk_delete, slot: vm, budget: quick}
+  - {type: vm_disk_hotplug, slot: vm, budget: long}
+  - {type: vm_disk_list, slot: vm, budget: quick, floor: free_volume}
+  - {type: vm_disk_resize, slot: vm, budget: long}
+  - {type: vm_guest_agent_disc, slot: vm, budget: quick}
+  - {type: vm_guest_query, slot: vm, budget: quick}
+  - {type: vm_image_inspect, slot: vm, budget: long}
+  - {type: vm_import_convert, slot: vm, budget: transfer}
+  - {type: vm_import_discard, slot: vm, budget: quick}
+  - {type: vm_import_inspect, slot: vm, budget: transfer}
+  - {type: vm_import_stage, slot: vm, budget: transfer}
+  - {type: vm_log, slot: vm, budget: quick, floor: free_volume}
+  - {type: vm_media_change, slot: vm, budget: quick}
+  - {type: vm_memory_set, slot: vm, budget: long}
+  - {type: vm_migrate, slot: vm, budget: transfer, progress: [vm_migrate_progress]}
+  - {type: vm_nic_hotplug, slot: vm, budget: quick}
+  - {type: vm_pause, slot: vm, budget: quick}
+  - {type: vm_qemu_capability, slot: vm, budget: quick}
+  - {type: vm_query, slot: vm, budget: quick}
+  - {type: vm_reset, slot: vm, budget: quick}
+  - {type: vm_resume, slot: vm, budget: quick}
+  - {type: vm_shutdown, slot: vm, budget: quick}
+  - {type: vm_snapshot_create, slot: vm, budget: long}
+  - {type: vm_snapshot_delete, slot: vm, budget: quick}
+  - {type: vm_snapshot_revert, slot: vm, budget: long}
+  - {type: vm_spice_ticket, slot: vm, budget: quick}
+  - {type: vm_start, slot: vm, budget: quick}
+  - {type: vm_stats, slot: vm, budget: quick}
+  - {type: vm_stop, slot: vm, budget: quick}
+  - {type: vm_throttle_set, slot: vm, budget: quick}
+observe:
+  - {type: compute_migrate_progress, slot: compute}
+  - {type: ct_backup_progress, slot: ct}
+  - {type: net_lease_event, slot: net}
+  - {type: vm_event, slot: vm}
+  - {type: vm_import_progress, slot: vm}

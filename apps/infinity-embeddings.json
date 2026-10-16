@@ -1,0 +1,41 @@
+{
+    "slug":  "infinity-embeddings",
+    "name":  "Infinity",
+    "description":  "High-throughput inference server for text embedding, reranking, and classification models.",
+    "category":  "AI & Voice",
+    "image":  "michaelf34/infinity:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/michaelfeil/infinity",
+    "docsUrl":  "https://michaelfeil.eu/infinity/latest/",
+    "ports":  [
+                  {
+                      "host":  7997,
+                      "container":  7997,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/infinity-embeddings/cache",
+                        "container":  "/app/.cache"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "INFINITY_MODEL_ID",
+                        "default":  "BAAI/bge-small-en-v1.5",
+                        "description":  "Hugging Face model ID to serve"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

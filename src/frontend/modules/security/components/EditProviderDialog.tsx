@@ -1,8 +1,27 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
+//
+// EditProviderDialog — the edit counterpart to CreateProviderDialog.
+//
+// Before migration 125 this dialog carried one hardcoded branch per
+// provider type (`providerType === 'entra_id' ? tenantId : ...`), which
+// meant a newly installed identity plugin was editable only if the host
+// happened to have a column and a branch for each of its fields. It now
+// renders the plugin's own ConfigForm through PluginFormOutlet, seeded
+// from the row's `config` map, so a plugin with more or fewer fields
+// than the host knows about edits correctly with no host change.
+//
+// The host still owns what the host stores in typed columns: the
+// display name, auto-provisioning, and group mapping. Everything
+// protocol-specific belongs to the plugin.
+//
+// Secrets are never sent back to the browser — the API redacts them out
+// of `config`. A secret field left blank therefore means "keep what is
+// stored"; Service.mergeConfig implements that side of the contract.
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconHelpCircle } from '@tabler/icons-react';
 import {
   Dialog,
   DialogContent,
@@ -15,235 +34,139 @@ import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
 import { Switch } from '@resources/components/ui/Switch';
-import { useUpdateProvider, type IdentityProvider, type UpdateProviderInput, type GroupMapping } from '../hooks/useIdentityProviders';
+import { PluginFormOutlet } from '@core/plugins/PluginFormOutlet';
+import { SetupGuidePanel } from '@resources/components/SetupGuidePanel';
+import { useIdentityAdapters } from '@resources/hooks/useIdentityAdapters';
+import {
+  useUpdateProvider,
+  type IdentityProvider as IdentityProviderValue,
+  type UpdateProviderInput,
+  type GroupMapping,
+} from '../hooks/useIdentityProviders';
 import { GroupMappingEditor } from './GroupMappingEditor';
+import { ProviderEndpointUrls } from './identity/ProviderEndpointUrls';
+import { MappingPreviewPanel } from './identity/MappingPreviewPanel';
+import { MappingImpactConfirmDialog } from './identity/MappingImpactConfirmDialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 type EditProviderDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  provider: IdentityProvider;
+  provider: IdentityProviderValue;
 };
 
-export function EditProviderDialog({ open, onOpenChange, provider }: EditProviderDialogProps) {
+// seedConfig builds the map handed to the plugin's ConfigForm. Rows
+// written before migration 125 have an empty `config` but populated
+// typed columns, so the typed values go in first and the stored map
+// wins on top. Secrets are absent from both — blank means "unchanged".
+function seedConfig(provider: IdentityProviderValue): Record<string, string> {
+  const seed: Record<string, string> = {};
+  const put = (key: string, value?: string) => {
+    if (value) seed[key] = value;
+  };
+  put('client_id', provider.clientId);
+  put('tenant_id', provider.tenantId);
+  put('domain', provider.domain);
+  put('issuer_url', provider.issuerUrl);
+  put('metadata_url', provider.metadataUrl);
+  put('entity_id', provider.entityId);
+  put('scopes', provider.scopes);
+  return { ...seed, ...provider.config };
+}
+
+export function EditProviderDialog({ open: isOpen, onOpenChange, provider }: EditProviderDialogProps) {
   const { t } = useTranslation('security');
-  const [name, setName] = useState(provider.name);
-  const [clientId, setClientId] = useState(provider.clientId);
-  const [clientSecret, setClientSecret] = useState('');
-  const [tenantId, setTenantId] = useState(provider.tenantId ?? '');
-  const [domain, setDomain] = useState(provider.domain ?? '');
-  const [issuerUrl, setIssuerUrl] = useState(provider.issuerUrl ?? '');
-  const [metadataUrl, setMetadataUrl] = useState(provider.metadataUrl ?? '');
-  const [entityId, setEntityId] = useState(provider.entityId ?? '');
-  const [scopes, setScopes] = useState(provider.scopes);
+  const [itemName, setName] = useState(provider.name);
+  const [config, setConfig] = useState<Record<string, string>>(() => seedConfig(provider));
   const [autoProvision, setAutoProvision] = useState(provider.autoProvision);
   const [autoImportGroups, setAutoImportGroups] = useState(provider.autoImportGroups);
   const [groupMappingEnabled, setGroupMappingEnabled] = useState(provider.groupMappingEnabled);
   const [groupMappings, setGroupMappings] = useState<GroupMapping[]>(provider.groupMappings ?? []);
+  const [helpOpen, setHelpOpen] = useState(false);
   const updateProvider = useUpdateProvider();
+  const { data: adapters } = useIdentityAdapters();
 
-  const typeLabel = provider.providerType === 'entra_id'
-    ? t('identity.entraId')
-    : provider.providerType === 'google'
-      ? t('identity.google')
-      : provider.providerType === 'generic_oidc'
-        ? t('identity.genericOidc')
-        : t('identity.saml2');
-  const providerBaseUrl = `${window.location.origin}/api/identity-providers/${provider.id}`;
+  const spec = adapters?.[provider.providerType];
+  const capabilities = spec?.Capabilities;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const mappingConfig = { groupMappingEnabled, groupMappings, autoImportGroups, autoProvision };
+  const mappingChanged =
+    groupMappingEnabled !== provider.groupMappingEnabled ||
+    autoImportGroups !== provider.autoImportGroups ||
+    JSON.stringify(groupMappings) !== JSON.stringify(provider.groupMappings ?? []);
 
   function handleSave() {
+    if (mappingChanged && !confirmOpen) {
+      updateProvider.reset();
+      setConfirmOpen(true);
+      return;
+    }
     const input: UpdateProviderInput & { id: string } = { id: provider.id };
 
-    if (name !== provider.name) input.name = name;
-    if (clientId !== provider.clientId) input.clientId = clientId;
-    if (clientSecret) input.clientSecret = clientSecret;
-    if (scopes !== provider.scopes) input.scopes = scopes;
+    if (itemName !== provider.name) input.name = itemName;
     if (autoProvision !== provider.autoProvision) input.autoProvision = autoProvision;
-
-    if (provider.providerType === 'entra_id' && tenantId !== (provider.tenantId ?? '')) {
-      input.tenantId = tenantId;
-    }
-    if (provider.providerType === 'google' && domain !== (provider.domain ?? '')) {
-      input.domain = domain;
-    }
-    if (provider.providerType === 'generic_oidc' && issuerUrl !== (provider.issuerUrl ?? '')) {
-      input.issuerUrl = issuerUrl;
-    }
-    if (provider.providerType === 'saml_2_0' && metadataUrl !== (provider.metadataUrl ?? '')) {
-      input.metadataUrl = metadataUrl;
-    }
-    if (provider.providerType === 'saml_2_0' && entityId !== (provider.entityId ?? '')) {
-      input.entityId = entityId;
-    }
-
-    if (autoImportGroups !== provider.autoImportGroups) {
-      input.autoImportGroups = autoImportGroups;
-    }
+    if (autoImportGroups !== provider.autoImportGroups) input.autoImportGroups = autoImportGroups;
     if (groupMappingEnabled !== provider.groupMappingEnabled) {
       input.groupMappingEnabled = groupMappingEnabled;
     }
     input.groupMappings = groupMappings;
+    // Always sent: the host merges rather than replaces, so an
+    // untouched secret keeps its stored value.
+    input.config = config;
 
-    updateProvider.mutate(input, {
-      onSuccess: () => onOpenChange(false),
-    });
+    updateProvider.mutate(input, { onSuccess: () => onOpenChange(false) });
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t('identity.editProvider')}</DialogTitle>
-          <DialogDescription>{typeLabel}</DialogDescription>
+          <DialogDescription>{spec?.DisplayName ?? provider.providerType}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="edit-name" className="mb-1">{t('identity.name')}</Label>
-            <Input
-              variant="outline"
-              id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <Label htmlFor="edit-name" className="mb-1">
+              {t('identity.name')}
+            </Label>
+            <Input variant="outline" id="edit-name" value={itemName} onChange={(e) => setName(e.target.value)} />
           </div>
 
-          {provider.providerType === 'entra_id' && (
-            <div>
-              <Label htmlFor="edit-tenant" className="mb-1">{t('identity.tenantId')}</Label>
-              <Input
-                variant="outline"
-                id="edit-tenant"
-                value={tenantId}
-                onChange={(e) => setTenantId(e.target.value)}
+          <PluginFormOutlet
+            resource="identity_provider"
+            kind="config_form"
+            keyName={provider.providerType}
+            value={config}
+            onChange={setConfig}
+            i18nPrefix="plugin"
+          />
+
+          <p className="text-xs text-muted-foreground">{t('identity.secretsBlankHint')}</p>
+
+          {helpOpen && (
+            <SetupGuidePanel>
+              <PluginFormOutlet
+                resource="identity_provider"
+                kind="setup_guide"
+                keyName={provider.providerType}
+                value={config}
+                onChange={() => {
+                  /* setup guides are read-only; no-op to satisfy the outlet API */
+                }}
+                i18nPrefix="plugin"
               />
-            </div>
+            </SetupGuidePanel>
           )}
 
-          {provider.providerType === 'google' && (
-            <div>
-              <Label htmlFor="edit-domain" className="mb-1">{t('identity.domain')}</Label>
-              <Input
-                variant="outline"
-                id="edit-domain"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-              />
-            </div>
-          )}
-
-          {provider.providerType === 'generic_oidc' && (
-            <div>
-              <Label htmlFor="edit-issuer-url" className="mb-1">{t('identity.issuerUrl')}</Label>
-              <Input
-                variant="outline"
-                id="edit-issuer-url"
-                value={issuerUrl}
-                onChange={(e) => setIssuerUrl(e.target.value)}
-                placeholder={t('identity.issuerUrlPlaceholder')}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('identity.issuerUrlDescription')}
-              </p>
-            </div>
-          )}
-
-          {provider.providerType !== 'saml_2_0' && (
-          <div>
-            <Label htmlFor="edit-client-id" className="mb-1">{t('identity.clientId')}</Label>
-            <Input
-              variant="outline"
-              id="edit-client-id"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            />
-          </div>
-          )}
-
-          {provider.providerType !== 'saml_2_0' && (
-          <div>
-            <Label htmlFor="edit-secret" className="mb-1">{t('identity.clientSecret')}</Label>
-            <Input
-              variant="outline"
-              id="edit-secret"
-              type="password"
-              value={clientSecret}
-              onChange={(e) => setClientSecret(e.target.value)}
-              placeholder={t('identity.clientSecretPlaceholder')}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t('identity.callbackUrlHint', 'Leave blank to keep existing secret')}
-            </p>
-          </div>
-          )}
-
-          {provider.providerType === 'saml_2_0' && (
-            <>
-              <div>
-                <Label htmlFor="edit-metadata-url" className="mb-1">{t('identity.metadataUrl')}</Label>
-                <Input
-                  variant="outline"
-                  id="edit-metadata-url"
-                  value={metadataUrl}
-                  onChange={(e) => setMetadataUrl(e.target.value)}
-                  placeholder={t('identity.metadataUrlPlaceholder')}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t('identity.metadataUrlDescription')}
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="edit-entity-id" className="mb-1">{t('identity.entityId')}</Label>
-                <Input
-                  variant="outline"
-                  id="edit-entity-id"
-                  value={entityId}
-                  onChange={(e) => setEntityId(e.target.value)}
-                  placeholder={t('identity.entityIdPlaceholder')}
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t('identity.entityIdDescription')}
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-border p-3">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t('identity.serviceProviderMetadataUrl')}</p>
-                  <code className="mt-2 block rounded-md bg-muted px-3 py-2 text-xs text-foreground">
-                    {`${providerBaseUrl}/metadata`}
-                  </code>
-                </div>
-                <div className="mt-3">
-                  <p className="text-sm font-medium text-foreground">{t('identity.acsUrl')}</p>
-                  <code className="mt-2 block rounded-md bg-muted px-3 py-2 text-xs text-foreground">
-                    {`${providerBaseUrl}/acs`}
-                  </code>
-                </div>
-              </div>
-            </>
-          )}
-
-          {provider.providerType !== 'saml_2_0' && (
-          <div>
-            <Label htmlFor="edit-scopes" className="mb-1">{t('identity.scopes')}</Label>
-            <Input
-              variant="outline"
-              id="edit-scopes"
-              value={scopes}
-              onChange={(e) => setScopes(e.target.value)}
-            />
-          </div>
-          )}
+          <ProviderEndpointUrls providerId={provider.id} capabilities={capabilities} />
 
           <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
               <p className="text-sm font-medium text-foreground">{t('identity.autoProvision')}</p>
               <p className="text-xs text-muted-foreground">{t('identity.autoProvisionDescription')}</p>
             </div>
-            <Switch
-              checked={autoProvision}
-              onCheckedChange={setAutoProvision}
-            />
+            <Switch checked={autoProvision} onCheckedChange={setAutoProvision} />
           </div>
 
           <GroupMappingEditor
@@ -251,34 +174,48 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
             enabled={groupMappingEnabled}
             mappings={groupMappings}
             providerId={provider.id}
-            supportsFetchGroups={provider.providerType !== 'generic_oidc' && provider.providerType !== 'saml_2_0'}
+            supportsFetchGroups={Boolean(capabilities?.SupportsGroupFetch)}
             onAutoImportChange={setAutoImportGroups}
             onEnabledChange={setGroupMappingEnabled}
             onMappingsChange={setGroupMappings}
           />
+          <MappingPreviewPanel
+            providerId={provider.id}
+            providerType={provider.providerType}
+            config={mappingConfig}
+            canFetchGroups={Boolean(capabilities?.SupportsGroupFetch)}
+          />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common:cancel', 'Cancel')}
+        <DialogFooter className="flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button variant="ghost" onClick={() => setHelpOpen((current) => !current)} aria-expanded={helpOpen}>
+            <IconHelpCircle className="size-4" />
+            {helpOpen ? t('identity.hideSetupGuide') : t('identity.showSetupGuide')}
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={
-              !name ||
-              (
-                provider.providerType !== 'saml_2_0' &&
-                !clientId
-              ) ||
-              (provider.providerType === 'generic_oidc' && !issuerUrl) ||
-              (provider.providerType === 'saml_2_0' && !metadataUrl) ||
-              updateProvider.isPending
-            }
-          >
-            {updateProvider.isPending ? '...' : t('common:save', 'Save')}
-          </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t('common:actions.cancel')}
+            </Button>
+            <Button
+              permission={PERM.IDENTITY_PROVIDERS_MANAGE}
+              onClick={handleSave}
+              disabled={!itemName || updateProvider.isPending}
+            >
+              {updateProvider.isPending ? '...' : t('common:actions.save')}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
+      <MappingImpactConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        providerId={provider.id}
+        providerType={provider.providerType}
+        config={mappingConfig}
+        saving={updateProvider.isPending}
+        saveError={updateProvider.isError ? updateProvider.error.message : undefined}
+        onConfirm={handleSave}
+      />
     </Dialog>
   );
 }

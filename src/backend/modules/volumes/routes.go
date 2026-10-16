@@ -4,8 +4,7 @@
 package volumes
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
@@ -14,15 +13,16 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/volumes", func(r chi.Router) {
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesView)).Get("/", h.HandleList)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesManage)).Post("/", h.HandleCreate)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesManage)).Post("/prune", h.HandlePrune)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/volumes", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesView)).Get("/", h.HandleList, apispec.Scoped())
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesManage)).Post("/", h.HandleCreate, apispec.Scoped(), apispec.Request(CreateRequest{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesManage)).Post("/prune", h.HandlePrune, apispec.Scoped())
 
-			r.Route("/{name}", func(r chi.Router) {
-				r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesView)).Get("/", h.HandleInspect)
-				r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesDelete)).Delete("/", h.HandleRemove)
+			r.Route("/{name}", func(r *apispec.Router) {
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesView)).Get("/", h.HandleInspect, apispec.Scoped())
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermVolumesDelete)).Delete("/", h.HandleRemove, apispec.Scoped(),
+					apispec.Query("force", "Remove the volume even when it is in use."))
 			})
 		})
 	})

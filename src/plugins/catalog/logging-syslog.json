@@ -1,0 +1,16 @@
+{
+  "slug": "logging-syslog",
+  "name": "Syslog",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Forwards McHarbor audit events to a syslog collector (rsyslog, syslog-ng, QRadar, ArcSight) as RFC5424 messages over UDP, TCP, or TCP+TLS. Facility, tag, and per-event severity mapping are configurable. This is a log forwarder adapter owned by the plugin runtime; configure it in Settings > Integrations > Logging.",
+  "category": "Audit log forwarders",
+  "icon": "IconServerBolt",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/logging-syslog-1.0.0.tar.gz"
+    }
+  ]
+}

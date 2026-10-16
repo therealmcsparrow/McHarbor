@@ -1,0 +1,21 @@
+{
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "trigger",
+      "action": "schedule-trigger",
+      "label": "Every night",
+      "config": { "cron": "0 3 * * *", "timezone": "UTC" }
+    },
+    {
+      "id": "log",
+      "type": "action",
+      "action": "debug",
+      "label": "Log",
+      "config": {}
+    }
+  ],
+  "edges": [
+    { "id": "e1", "sourceNodeId": "trigger", "sourcePort": "output", "targetNodeId": "log", "targetPort": "input" }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "page": {
+    "title": "Een Dropbox-bestemming toevoegen",
+    "subtitle": "Maak een back-up naar Dropbox via de Dropbox API v2. Gebruikt een langlevend toegangstoken van een Dropbox-app.",
+    "registerHint": "Sla de inloggegevens op en klik daarna op Verbinding testen om de rondgang te controleren."
+  },
+  "fields": {
+    "accessToken": "Toegangstoken",
+    "basePath": "Basispad"
+  },
+  "help": {
+    "accessToken": "Gegenereerd toegangstoken van je Dropbox-app. Open in de Dropbox App Console je app en klik onder Settings → Generated access token op Generate. Versleuteld opgeslagen.",
+    "basePath": "Optionele map in Dropbox voor back-ups, bijv. /Backups/2026. Laat leeg om de hoofdmap van de app te gebruiken."
+  },
+  "toast": {
+    "registered": "Dropbox-bestemming opgeslagen.",
+    "testPassed": "Verbindingstest geslaagd.",
+    "testFailed": "Verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noAccessToken": "Toegangstoken is vereist."
+  },
+  "form": {
+    "introTitle": "Dropbox-toegangstoken",
+    "introBody": "Genereer een langlevend toegangstoken in de Dropbox App Console (je app → Settings → Generated access token). Plak het hier. McHarbor slaat het token versleuteld op.",
+    "basePathHelp": "Optionele map in Dropbox voor back-ups, bijv. /Backups/2026. Laat leeg om de app-hoofdmap te gebruiken. Bewust niet vooraf ingevuld."
+  },
+  "setup": {
+    "title": "Dropbox-installatiegids",
+    "step1": "Klik in de Dropbox App Console op <b>Create app</b>. Kies <b>Scoped access</b> (app-map of volledige Dropbox), kies de rechten <b>Files and content read/write</b> en geef een unieke appnaam op. Verstuur het formulier.",
+    "step2": "Schakel op het tabblad <b>Permissions</b> de scopes <code>files.content.read</code> en <code>files.content.write</code> in (plus eventuele andere die je toepassing nodig heeft — deze twee zijn het minimum voor back-ups). Klik op <b>Submit</b> om op te slaan.",
+    "step3": "Scrol op het tabblad <b>Settings</b> naar <b>Generated access token</b>. Klik op <b>Generate</b>. <warn>Dropbox toont het token maar één keer</warn> — kopieer het nu en plak het in het veld <b>Access Token</b> links. McHarbor slaat het token versleuteld op.",
+    "step4": "Optioneel: stel <b>Base Path</b> in op een map in Dropbox waar back-ups terechtkomen (bijv. <code>/Backups/2026</code>). Laat leeg om de app-hoofdmap te gebruiken (voor apps met App-map) of je Dropbox-hoofdmap (voor apps met Full Dropbox). Het formulier vult geen standaardwaarde vooraf in.",
+    "step5": "Klik op <b>Save</b>. Klik daarna op <b>Test connection</b> op de opslagkaart — McHarbor schrijft een testobject, wijzigt het en verwijdert het weer.",
+    "step6": "Mislukt Connect met \"<code>invalid_access_token</code>\"? Het token kan verlopen of ingetrokken zijn. Genereer een nieuw token in de Dropbox App Console en plak het opnieuw."
+  }
+}

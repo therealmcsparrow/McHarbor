@@ -1,0 +1,40 @@
+{
+    "slug":  "chirpstack-gateway-bridge",
+    "name":  "ChirpStack Gateway Bridge",
+    "description":  "Converts LoRa packet-forwarder UDP traffic from gateways into MQTT messages for a ChirpStack network server.",
+    "category":  "IoT & Industrial",
+    "image":  "chirpstack/chirpstack-gateway-bridge:4",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chirpstack.png",
+    "website":  "https://www.chirpstack.io",
+    "docsUrl":  "https://www.chirpstack.io/docs/chirpstack-gateway-bridge/install/docker.html",
+    "ports":  [
+                  {
+                      "host":  1700,
+                      "container":  1700,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/chirpstack-gateway-bridge/config",
+                        "container":  "/etc/chirpstack-gateway-bridge"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MQTT_BROKER_HOST",
+                        "default":  "",
+                        "description":  "Hostname of an existing MQTT broker"
+                    }
+                ],
+    "version":  "4",
+    "latest":  {
+        "version":  "4",
+        "release_date":  "2026-09-29"
+    }
+}

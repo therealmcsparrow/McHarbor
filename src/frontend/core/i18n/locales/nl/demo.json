@@ -1,0 +1,94 @@
+{
+  "title": "Demomodus",
+  "intro": "Demomodus schakelt deze McHarbor over op een aparte database gevuld met een gesimuleerd landschap, zodat elke pagina met realistische gegevens kan worden verkend. Alles erin is nep en er wordt niets echts aangeraakt.",
+  "errorTitle": "De status van de demomodus kon niet worden geladen",
+  "state": {
+    "label": "Status",
+    "active": "Actief",
+    "inactive": "Niet actief",
+    "activeSince": "Actief sinds {{date}}",
+    "data": "Demogegevens",
+    "dataPresent": "Aanwezig, bewaard voor het volgende bezoek",
+    "dataAbsent": "Nog geen",
+    "clusteredTitle": "Niet beschikbaar op een geclusterde instantie",
+    "clusteredBody": "Demomodus herstart McHarbor op een andere database, wat het cluster zou splitsen."
+  },
+  "estate": {
+    "title": "Wat het demolandschap bevat",
+    "liveTitle": "Wat het demolandschap nu bevat",
+    "environments": "Omgevingen",
+    "containers": "Containers",
+    "stacks": "Stacks",
+    "virtualMachines": "Virtuele machines",
+    "systemContainers": "LXC-systeemcontainers",
+    "clusters": "Kubernetes-clusters",
+    "pods": "Pods",
+    "deployments": "Kubernetes-deployments",
+    "swarmClusters": "Swarm-clusters",
+    "swarmNodes": "Swarm-nodes",
+    "swarmServices": "Swarm-services",
+    "historyDays": "Geschiedenisperiode",
+    "days_one": "{{value}} dag",
+    "days_other": "{{value}} dagen"
+  },
+  "config": {
+    "intro": "Groottes van het gesimuleerde landschap. Wijzigen ervan bouwt de demogegevens opnieuw op.",
+    "restoreDefaults": "Standaardwaarden herstellen",
+    "defaultHint": "Standaard: {{value}}.",
+    "historyHelp": "Dagen aan geschiedenis in de demo: auditlog, workflowruns, schemaruns, alerts en incidenten.",
+    "refused": "McHarbor heeft deze groottes geweigerd. Corrigeer het gemarkeerde veld en probeer het opnieuw.",
+    "groups": {
+      "estate": "Omgevingen en containers",
+      "compute": "Virtuele machines en LXC",
+      "kubernetes": "Kubernetes",
+      "swarm": "Swarm",
+      "history": "Geschiedenis"
+    },
+    "error": {
+      "range": "Voer een geheel getal in van {{min}} tot {{max}}.",
+      "swarmNodes": "Swarm heeft minstens één node per cluster nodig: voer {{min}} of meer in."
+    }
+  },
+  "notes": {
+    "realData": "Je echte gegevens worden nooit gewijzigd. Het verlaten van de demomodus herstart McHarbor terug op die gegevens, precies zoals ze waren.",
+    "restart": "Het starten, verlaten en resetten van de demomodus herstart McHarbor, dus iedereen die is aangemeld wordt kort losgekoppeld.",
+    "disabled": "Acties die echte systemen zouden raken zijn uitgeschakeld in de demomodus: de eigen hostservices en hostupdates van McHarbor, zelfupdate, instantieback-ups, databasemigratie, licentie-, opslaglocatie-, TLS-, tijdzone- en back-upsleutelinstellingen, en het installeren en verwijderen van plugins."
+  },
+  "actions": {
+    "enter": "Demomodus starten",
+    "exit": "Demomodus verlaten",
+    "reset": "Demogegevens resetten",
+    "applySizes": "Nieuwe groottes toepassen",
+    "resetShort": "Resetten"
+  },
+  "confirm": {
+    "enterTitle": "Demomodus starten?",
+    "enterDescription": "McHarbor herstart op een aparte database gevuld met een gesimuleerd landschap met de onderstaande groottes. Demogegevens die van een eerder bezoek zijn bewaard worden hergebruikt als de groottes ongewijzigd zijn; wijzigen ervan bouwt de demogegevens opnieuw op. Je echte gegevens worden niet aangeraakt. Iedereen die is aangemeld wordt kort losgekoppeld.",
+    "exitTitle": "Demomodus verlaten?",
+    "exitDescription": "McHarbor herstart terug op je echte gegevens. De demogegevens blijven bewaard, dus het volgende bezoek gaat verder waar dit eindigde. Iedereen die is aangemeld wordt kort losgekoppeld.",
+    "resetTitle": "Demogegevens resetten?",
+    "resetDescription": "De demodatabase wordt verwijderd en het volgende bezoek begint met een vers gegenereerd landschap. Je echte gegevens blijven ongemoeid.",
+    "resetActiveDescription": "Alles wat in de demomodus is gewijzigd wordt weggegooid en McHarbor herstart op een vers gegenereerd landschap. Je echte gegevens blijven ongemoeid. Iedereen die is aangemeld wordt kort losgekoppeld.",
+    "applySizesTitle": "Nieuwe demogroottes toepassen?",
+    "applySizesDescription": "De demo wordt opnieuw opgebouwd met de onderstaande groottes: alles wat in de demomodus is gewijzigd wordt weggegooid en McHarbor herstart op het nieuwe landschap. Je echte gegevens blijven ongemoeid. Iedereen die is aangemeld wordt kort losgekoppeld."
+  },
+  "toast": {
+    "enterSuccess": "Demomodus wordt gestart. McHarbor herstart.",
+    "exitSuccess": "Demomodus wordt verlaten. McHarbor herstart.",
+    "resetSuccess": "Demogegevens verwijderd.",
+    "resetRestart": "Demogegevens gereset. McHarbor herstart op een vers landschap.",
+    "restartRequired": "McHarbor kon zichzelf niet herstarten. Herstart het handmatig om de wijziging toe te passen."
+  },
+  "reason": {
+    "already_active": "Demomodus is al actief.",
+    "not_active": "Demomodus is niet actief.",
+    "clustered": "Demomodus is niet beschikbaar op een geclusterde instantie.",
+    "busy": "Er is al een andere wijziging van de demomodus bezig. Probeer het zo meteen opnieuw."
+  },
+  "banner": {
+    "title": "Demomodus",
+    "description": "Alles wat je ziet is gesimuleerd. Acties die echte systemen zouden raken zijn uitgeschakeld.",
+    "dismiss": "Negeren",
+    "show": "De demomodusbanner tonen"
+  }
+}

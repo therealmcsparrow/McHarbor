@@ -78,19 +78,21 @@ export function useStreamInstall() {
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   try {
-                    const event = JSON.parse(line.slice(6)) as InstallEvent;
-                    setProgress(event);
-                    if (event.message) {
-                      setLogs((prev) => [...prev, createLogEntry(event.message, event.phase)]);
+                    const evt = JSON.parse(line.slice(6)) as InstallEvent;
+                    setProgress(evt);
+                    if (evt.message) {
+                      setLogs((prev) => [...prev, createLogEntry(evt.message, evt.phase)]);
                     }
-                    if (event.status === 'done' || event.status === 'error') {
-                      if (event.status === 'done') {
-                        queryClient.invalidateQueries({ queryKey: ['app-store'] });
-                        queryClient.invalidateQueries({ queryKey: ['stacks'] });
+                    if (evt.status === 'done' || evt.status === 'error') {
+                      if (evt.status === 'done') {
+                        void queryClient.invalidateQueries({ queryKey: ['app-store'] });
+                        void queryClient.invalidateQueries({ queryKey: ['stacks'] });
                       }
                       return;
                     }
-                  } catch { /* skip malformed lines */ }
+                  } catch {
+                    /* skip malformed lines */
+                  }
                 }
               }
               return read();
@@ -102,9 +104,8 @@ export function useStreamInstall() {
           setProgress({ step: 0, total: 5, message: t('appStore.networkError'), status: 'error' });
         });
     },
-    [queryClient, t]
+    [queryClient, t],
   );
 
   return { installing, progress, logs, startInstall, abort, reset };
 }
-

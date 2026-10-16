@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
@@ -60,13 +59,17 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 			f.Until = t
 		}
 	}
-	f.Page, _ = strconv.Atoi(q.Get("page"))
-	f.PerPage, _ = strconv.Atoi(q.Get("perPage"))
+	if n, err := strconv.Atoi(q.Get("page")); err == nil {
+		f.Page = n
+	}
+	if n, err := strconv.Atoi(q.Get("perPage")); err == nil {
+		f.PerPage = n
+	}
 
 	items, total, err := h.service.List(r.Context(), f)
 	if err != nil {
 		h.app.Logger.Error("backup_log: list failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	response.OK(w, map[string]any{
@@ -75,6 +78,20 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 		"page":    f.Page,
 		"perPage": f.PerPage,
 	})
+}
+
+// RecordRequest is the body of POST /api/backup-logs: one log line a backup provider records.
+type RecordRequest struct {
+	EnvironmentID string `json:"environmentId"`
+	PlanID        string `json:"planId"`
+	PlanName      string `json:"planName"`
+	RunID         string `json:"runId"`
+	ContainerID   string `json:"containerId"`
+	ContainerName string `json:"containerName"`
+	Action        string `json:"action"`
+	Phase         string `json:"phase"`
+	Severity      string `json:"severity"`
+	Message       string `json:"message"`
 }
 
 // HandleRecord lets admin tooling (e.g. the McHarbor stacks module)
@@ -86,20 +103,9 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
 		return
 	}
-	var req struct {
-		EnvironmentID string `json:"environmentId"`
-		PlanID        string `json:"planId"`
-		PlanName      string `json:"planName"`
-		RunID         string `json:"runId"`
-		ContainerID   string `json:"containerId"`
-		ContainerName string `json:"containerName"`
-		Action        string `json:"action"`
-		Phase         string `json:"phase"`
-		Severity      string `json:"severity"`
-		Message       string `json:"message"`
-	}
+	var req RecordRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if req.Action == "" {
@@ -114,7 +120,7 @@ func (h *Handler) HandleRecord(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		h.app.Logger.Error("backup_log: record failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	response.OK(w, map[string]any{"id": id})
@@ -134,7 +140,7 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 	deleted, days, err := h.service.PurgeByRetention(r.Context())
 	if err != nil {
 		h.app.Logger.Error("backup_log: purge failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 	h.app.AuditLog.Log(r, audit.Entry{
@@ -158,11 +164,13 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 // feed is operator-visible but may contain environment ids.
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/backup-logs", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Post("/", h.HandleRecord)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/backup-logs", func(r *apispec.Router) {
+			// Both were previously ungated. The feed carries environment ids
+			// and container names, and HandleRecord is a mutating write.
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermBackupLogView)).Get("/", h.HandleList, apispec.Query("action", ""), apispec.Query("envId", ""), apispec.Query("from", ""), apispec.Query("perPage", ""), apispec.Query("planId", ""), apispec.Query("runId", ""), apispec.Query("search", ""), apispec.Query("severity", ""), apispec.Query("until", ""))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermBackupsManage)).Post("/", h.HandleRecord, apispec.Request(RecordRequest{}))
+			r.With(rbac.RequireGlobalPermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge, apispec.Query("vacuum", ""))
 		})
 	})
 }

@@ -1,0 +1,35 @@
+{
+    "slug":  "flexget",
+    "name":  "FlexGet",
+    "description":  "Automation engine that watches RSS and other sources to trigger downloads on a schedule.",
+    "category":  "Media",
+    "image":  "flexget/flexget:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flexget.png",
+    "website":  "https://flexget.com",
+    "docsUrl":  "https://flexget.com/Installation/Docker",
+    "ports":  [
+                  {
+                      "host":  5050,
+                      "container":  5050,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/flexget/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

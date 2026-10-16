@@ -1,0 +1,41 @@
+{
+    "slug":  "dremio",
+    "name":  "Dremio",
+    "description":  "Data lakehouse query engine that provides self-service SQL analytics directly on data lake storage.",
+    "category":  "Analytics",
+    "image":  "dremio/dremio-oss:latest",
+    "logo":  "https://github.com/dremio.png",
+    "website":  "https://www.dremio.com",
+    "docsUrl":  "https://docs.dremio.com/current/deploy/hosted-single-node/docker/",
+    "ports":  [
+                  {
+                      "host":  9047,
+                      "container":  9047,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  31010,
+                      "container":  31010,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dremio/data",
+                        "container":  "/opt/dremio/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

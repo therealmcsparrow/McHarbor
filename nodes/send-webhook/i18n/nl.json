@@ -1,6 +1,6 @@
 {
-  "label": "Send Webhook",
-  "description": "Send an outbound webhook with message data",
+  "label": "Webhook verzenden",
+  "description": "Verstuur een uitgaande webhook met berichtgegevens",
   "config": {
     "url": "URL",
     "method": "Methode",
@@ -18,8 +18,8 @@
       "DELETE": "DELETE"
     },
     "delivery_mode": {
-      "configured": "Configured Webhook",
-      "custom": "Other"
+      "configured": "Geconfigureerde webhook",
+      "custom": "Overig"
     }
   }
 }

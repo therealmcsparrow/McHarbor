@@ -1,0 +1,9 @@
+# Tools needed to sign catalog and plugin tarballs.
+#
+#   pip install -r scripts/requirements-signing.txt
+#
+# PyNaCl is used for ed25519 signing; PyYAML is needed for index.yaml
+# canonical-JSON reconstruction.
+
+PyNaCl>=1.5.0
+PyYAML>=6.0

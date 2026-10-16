@@ -1,0 +1,16 @@
+{
+  "slug": "storage-google-drive",
+  "name": "Google Drive",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Google Drive backup destination. OAuth refresh-token flow + Drive API v3 resumable upload so backups of any size are supported. List/Delete use the same API surface. Requires a Google Cloud project with the Drive API enabled and an OAuth client with the drive.file scope.",
+  "category": "Storage destinations",
+  "icon": "IconBrandGoogleDrive",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-google-drive-1.0.1.tar.gz"
+    }
+  ]
+}

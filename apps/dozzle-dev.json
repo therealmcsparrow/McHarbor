@@ -1,0 +1,36 @@
+{
+    "slug":  "dozzle-dev",
+    "name":  "Dozzle (Dev)",
+    "description":  "Dev channel build of Dozzle. Realtime log viewer for Docker containers with a web-based interface.",
+    "category":  "Developer Tools",
+    "image":  "amir20/dozzle:latest-dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dozzle.png",
+    "website":  "https://dozzle.dev",
+    "docsUrl":  "https://dozzle.dev/guide/getting-started",
+    "ports":  [
+                  {
+                      "host":  10999,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest-dev",
+    "latest":  {
+        "version":  "latest-dev",
+        "release_date":  "2026-09-29"
+    }
+}

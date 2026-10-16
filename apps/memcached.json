@@ -24,5 +24,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "1.6-alpine"
+    "version":  "1.6-alpine",
+    "latest":  {
+        "version":  "1.6-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

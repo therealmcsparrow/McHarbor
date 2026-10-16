@@ -2,69 +2,97 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
+import { IconBoxOff } from '@tabler/icons-react';
 import { useContainers } from '@modules/containers/hooks/useContainers';
 import { StatusBadge, CONTAINER_STATUS } from '@resources/components/ui/StatusBadge';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
+import {
+  ROW_HEIGHT,
+  ToneDot,
+  WidgetBadge,
+  WidgetEmpty,
+  WidgetFooterLink,
+  WidgetFrame,
+  WidgetList,
+  WidgetLoading,
+  WidgetRow,
+  useFittedRows,
+  type Tone,
+} from '@modules/dashboard/components/widget-kit';
+
+const STATE_TONE: Record<string, Tone> = {
+  running: 'success',
+  restarting: 'warning',
+  paused: 'warning',
+  created: 'info',
+  exited: 'danger',
+  dead: 'critical',
+};
+
+/** Running first, then whatever needs a look, then the rest by name. */
+const STATE_RANK: Record<string, number> = { restarting: 0, dead: 0, paused: 1, running: 2, created: 3, exited: 4 };
 
 export default function ContainerListWidget({ typeId: _typeId }: { colSpan: number; typeId: WidgetTypeId }) {
   const { t } = useTranslation('dashboard');
-  const { data: containers, isLoading } = useContainers(true);
+  const navigate = useNavigate();
+  const { data: containers = [], isLoading } = useContainers(true);
+  const { ref, capacity } = useFittedRows(ROW_HEIGHT);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('containerListWidget.loadingContainers')}
-      </div>
-    );
-  }
-
-  if (!containers || containers.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        {t('containerListWidget.noContainersFound')}
-      </div>
-    );
-  }
-
-  const visible = containers.slice(0, 10);
+  const sorted = [...containers].sort((a, b) => {
+    const ra = STATE_RANK[a.State ?? ''] ?? 9;
+    const rb = STATE_RANK[b.State ?? ''] ?? 9;
+    return ra - rb || (a.Names?.[0] ?? '').localeCompare(b.Names?.[0] ?? '');
+  });
+  const running = containers.filter((c) => c.State === 'running').length;
+  const shown = sorted.slice(0, capacity);
+  const remaining = sorted.length - shown.length;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <h3 className="shrink-0 px-4 pt-3 pb-2 text-sm font-semibold text-foreground">{t('containerListWidget.title')}</h3>
-      <div className="flex-1 overflow-y-auto px-4 pb-2">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="pb-1.5 font-medium">{t('containerListWidget.name')}</th>
-              <th className="pb-1.5 font-medium">{t('containerListWidget.image')}</th>
-              <th className="pb-1.5 font-medium">{t('containerListWidget.state')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((c) => (
-              <tr key={c.Id} className="border-b border-border/50 last:border-0">
-                <td className="max-w-[140px] truncate py-1.5 pr-2 text-foreground">
-                  {(c.Names?.[0] ?? '').replace(/^\//, '')}
-                </td>
-                <td className="max-w-[120px] truncate py-1.5 pr-2 text-muted-foreground">
-                  {c.Image?.split(':')[0]?.split('/').pop() ?? c.Image}
-                </td>
-                <td className="py-1.5">
-                  <StatusBadge status={c.State ?? 'unknown'} map={CONTAINER_STATUS} className="text-[10px] px-1.5 py-0.5" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {containers.length > 10 && (
-        <div className="shrink-0 border-t border-border px-4 py-2">
-          <Link to="/containers" className="text-xs text-primary hover:underline">
-            {t('containerListWidget.viewAll', { count: containers.length })} &rarr;
-          </Link>
-        </div>
+    <WidgetFrame
+      title={t('containerListWidget.title')}
+      badge={
+        containers.length > 0 ? (
+          <WidgetBadge tone={running === containers.length ? 'success' : 'neutral'}>
+            {t('containerListWidget.running', { running, total: containers.length })}
+          </WidgetBadge>
+        ) : undefined
+      }
+      footer={
+        <>
+          <span>{remaining > 0 ? t('containerListWidget.more', { count: remaining }) : null}</span>
+          <WidgetFooterLink label={t('containerListWidget.viewAllArrow')} onClick={() => navigate('/containers')} />
+        </>
+      }
+    >
+      {isLoading ? (
+        <WidgetLoading label={t('containerListWidget.loadingContainers')} />
+      ) : containers.length === 0 ? (
+        <WidgetEmpty
+          icon={<IconBoxOff className="size-5" aria-hidden="true" />}
+          title={t('containerListWidget.noContainersFound')}
+        />
+      ) : (
+        <WidgetList listRef={ref}>
+          {shown.map((c) => (
+            <li key={c.Id}>
+              <WidgetRow
+                leading={<ToneDot tone={STATE_TONE[c.State ?? ''] ?? 'neutral'} />}
+                title={(c.Names?.[0] ?? '').replace(/^\//, '')}
+                subtitle={c.Image?.split('@')[0]}
+                trailing={
+                  <StatusBadge
+                    status={c.State ?? 'unknown'}
+                    map={CONTAINER_STATUS}
+                    className="px-1.5 py-0.5 text-[10px]"
+                  />
+                }
+                onClick={() => navigate(`/containers/${c.Id}`)}
+              />
+            </li>
+          ))}
+        </WidgetList>
       )}
-    </div>
+    </WidgetFrame>
   );
 }

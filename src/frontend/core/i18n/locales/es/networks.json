@@ -6,12 +6,21 @@
   "tableView": "Vista de tabla",
   "cardView": "Vista de tarjeta",
   "columns": {
+    "attachable": "Conectable",
+    "ipamDriver": "Controlador IPAM",
+    "labels": "Etiquetas",
+    "builtIn": "Integrada",
+    "usedBy": "Usada por",
+    "groupRelations": "Relaciones",
+    "groupNetwork": "Red",
     "name": "Nombre",
     "id": "ID",
     "driver": "Conductor",
     "scope": "Alcance",
     "subnet": "Subred",
     "gateway": "Puerta",
+    "ipRange": "Rango de IP",
+    "options": "Opciones",
     "internal": "Interno",
     "containers": "Contenedores",
     "created": "Creado",
@@ -23,6 +32,11 @@
     "used": "En uso",
     "unused": "Sin usar",
     "builtIn": "Integrada"
+  },
+  "filters": {
+    "all": "Todos",
+    "used": "En uso",
+    "unused": "Sin uso"
   },
   "create": {
     "title": "Crear red",
@@ -38,6 +52,40 @@
     "parentInterface": "Interfaz para padres",
     "parentPlaceholder": "eth0",
     "parentHelp": "Interfaz de red del host a la que conectarse",
+    "parentSelect": "Seleccione una interfaz",
+    "parentLoading": "Leyendo las interfaces del host...",
+    "parentManual": "Introducir manualmente...",
+    "parentManualHelp": "Escriba el nombre de la interfaz exactamente como lo informa el host.",
+    "parentBackToList": "Volver a la lista",
+    "parentKind": {
+      "physical": "Física",
+      "bond": "Bond",
+      "vlan": "VLAN",
+      "unknown": "Interfaz"
+    },
+    "parentDown": "inactiva",
+    "parentInUseShort": "en uso",
+    "parentDetail": "{{kind}} \u00b7 MTU {{mtu}} \u00b7 {{addresses}}",
+    "parentNoAddress": "sin dirección IP",
+    "parentDownHelp": "Esta interfaz está actualmente inactiva. Actívela en el host antes de que los contenedores puedan usar la red.",
+    "parentInUse": "Ya es el padre de {{networks}}. Se permite una segunda red en la misma interfaz, pero rara vez es lo deseado.",
+    "parentDefaultRoute": "Esta es la interfaz de la ruta predeterminada del host. Los contenedores de la red alcanzarán la LAN, pero el propio host no podrá alcanzarlos.",
+    "parentNoneFound": "No se encontró ninguna interfaz física, bond o VLAN en este host.",
+    "parentNoAgent": "McHarbor no puede leer las interfaces de este host desde dentro de su contenedor. Instale el agente en el host para listarlas, o escriba el nombre de la interfaz.",
+    "parentAgentUnreachable": "El agente de este entorno no respondió, así que no se pueden listar sus interfaces. Compruebe que el agente está conectado (reinícielo en el host si está bloqueado) o escriba el nombre de la interfaz.",
+    "modeHelp": {
+      "macvlan": {
+        "bridge": "Los contenedores obtienen su propia MAC en la LAN y se comunican directamente entre sí. El host no puede alcanzarlos. Es la opción habitual.",
+        "vepa": "Todo el tráfico, incluido el de contenedor a contenedor, sale por el conmutador físico. Requiere un conmutador con hairpin (retransmisión reflectante) habilitado.",
+        "passthru": "Un contenedor toma por completo la interfaz padre. Solo es posible una red y un endpoint.",
+        "private": "Los contenedores quedan aislados entre sí incluso a través del conmutador. Solo pasa el tráfico exterior."
+      },
+      "ipvlan": {
+        "l2": "Los contenedores comparten la MAC del padre y obtienen su propia IP en la misma subred. Se comporta como macvlan bridge sin MAC adicionales.",
+        "l3": "El padre enruta entre las subredes de los contenedores. Sin difusión ni DHCP; las rutas a la subred del contenedor deben existir aguas arriba.",
+        "l3s": "Capa 3 con seguimiento de conexiones, de modo que netfilter y los puertos publicados funcionan. Algo más lento que l3."
+      }
+    },
     "mode": "Modo",
     "internal": "Interno",
     "internalHelp": "Restringir el acceso externo",
@@ -46,9 +94,21 @@
     "ipam": "Configuración IPAM",
     "addSubnet": "Agregar subred",
     "ipamRequired": "Por lo general, se requieren una subred y una puerta de enlace para las redes {{driver}}.",
+    "ipv6": "Habilitar IPv6",
+    "ipv6Hint": "Permite que la red tenga una subred IPv6: añade una abajo, p. ej. el /64 de tu LAN para macvlan, junto a la subred IPv4.",
     "subnetPlaceholder": "Subred (por ejemplo, 192.168.1.0/24)",
     "gatewayPlaceholder": "Puerta de enlace (por ejemplo, 192.168.1.1)",
-    "ipRangePlaceholder": "Rango de IP (opcional)",
+    "ipRangePlaceholder": "Rango de IP, CIDR (opcional, p. ej. 192.168.1.192/27)",
+    "errors": {
+      "invalidSubnet": "La subred debe estar en notación CIDR, por ejemplo 192.168.1.0/24.",
+      "invalidGateway": "La puerta de enlace debe ser una única dirección IP, por ejemplo 192.168.1.1, sin /prefijo.",
+      "invalidIpRange": "El rango de IP debe ser un bloque CIDR dentro de la subred, por ejemplo 192.168.1.192/27, no un rango inicio-fin.",
+      "invalidAuxAddress": "Las direcciones auxiliares deben ser direcciones IP individuales.",
+      "gatewayOutsideSubnet": "La puerta de enlace debe estar dentro de la subred.",
+      "ipRangeOutsideSubnet": "El rango de IP debe estar dentro de la subred.",
+      "ipv6SubnetNeedsEnable": "Una subred IPv6 requiere IPv6 habilitado en la red.",
+      "addressFamilyMismatch": "La puerta de enlace, el rango de IP o la dirección reservada deben ser de la misma versión de IP que su subred."
+    },
     "advanced": "Opciones avanzadas",
     "customOptions": "Opciones personalizadas",
     "customOptionsHelp": "Opciones específicas del controlador como pares clave-valor. El padre y el modo se configuran desde sus campos dedicados.",
@@ -57,7 +117,51 @@
     "optionKey": "Tecla de opción",
     "optionValue": "Valor de la opción",
     "labelKey": "Clave de etiqueta",
-    "labelValue": "Valor de etiqueta"
+    "labelValue": "Valor de etiqueta",
+    "removeSubnet": "Quitar subred"
+  },
+  "hostLink": {
+    "switch": "Crear una interfaz en el host",
+    "hint": "Añade una interfaz en el host junto al padre macvlan, para que el host pueda alcanzar los contenedores de esta red.",
+    "passthru": "No disponible en modo passthru: un contenedor se queda con la interfaz padre, así que el host no puede tener otra a su lado.",
+    "name": "Nombre de la interfaz",
+    "namePlaceholder": "mcvlan0",
+    "ipv4": "Dirección IPv4 del host",
+    "ipv4Placeholder": "p. ej. 192.168.1.250/24, fuera del rango de IP",
+    "ipv6": "Dirección IPv6 del host",
+    "ipv6Placeholder": "p. ej. 2001:db8:1::250/64",
+    "auto": "Automática (SLAAC)",
+    "autoHint": "Deja que el host configure su dirección IPv6 a partir de los anuncios del router en lugar de usar una dirección fija.",
+    "title": "Interfaz del host",
+    "parent": "Interfaz padre",
+    "state": "Estado",
+    "states": {
+      "present": "Presente",
+      "missing": "Falta",
+      "unknown": "Desconocido",
+      "none": "Ninguna"
+    },
+    "missingHint": "La interfaz no está en el host, por ejemplo tras un reinicio. Volver a aplicar la crea de nuevo con los ajustes guardados en esta red.",
+    "reapply": "Volver a aplicar",
+    "reapplying": "Aplicando...",
+    "applied": "Interfaz del host aplicada",
+    "unavailable": {
+      "agent_unreachable": "El agente de este entorno no respondió, así que la interfaz del host no se puede gestionar ahora.",
+      "agent_outdated": "El agente de este host es demasiado antiguo para gestionar interfaces del host. Actualiza el agente.",
+      "containerized": "McHarbor se ejecuta aquí dentro de un contenedor y no puede cambiar las interfaces del host. Conecta el host mediante un agente."
+    },
+    "errors": {
+      "invalidName": "El nombre de la interfaz debe tener de 1 a 15 letras, dígitos, puntos, guiones bajos o guiones, y no puede ser igual al padre.",
+      "nameReserved": "Ese nombre de interfaz empieza por un prefijo que McHarbor reserva para sus propias interfaces. Elige otro nombre.",
+      "needsMacvlan": "Una interfaz del host necesita una red macvlan con una interfaz padre.",
+      "addressInvalid": "La dirección del host debe ser un CIDR como 192.168.1.250/24, estar dentro de una subred de la red y ser de la misma versión de IP; para una dirección IPv6 hay que activar IPv6. Da a la interfaz al menos una dirección.",
+      "addressInRange": "La dirección del host está dentro del rango de IP de la red, del que Docker reparte direcciones a los contenedores. Elige una fuera de él.",
+      "passthru": "Una interfaz del host no se puede usar con el modo passthru de macvlan.",
+      "notConfigured": "Esta red no tiene interfaz del host.",
+      "nameTaken": "Ya existe en el host una interfaz con ese nombre que no creó McHarbor.",
+      "failed": "No se pudo aplicar la interfaz del host.",
+      "unavailable": "Las interfaces del host no se pueden gestionar aquí."
+    }
   },
   "toast": {
     "created": "Red creada",
@@ -79,11 +183,12 @@
     "description": "Esto eliminará permanentemente <bold>{{count}}</bold> redes.",
     "networks": "Redes",
     "andXMore": "y {{count}} más",
-    "inUse": "en uso",
-    "inUseWarning": "{{count}} red(es) seleccionada(s) aún están conectadas a contenedores en ejecución. La eliminación fallará para ellas a menos que primero se detengan o desconecten los contenedores.",
+    "inUseWarning_one": "{{count}} red seleccionada aún está conectada a contenedores en ejecución. La eliminación fallará para ella a menos que primero se detengan o desconecten los contenedores.",
+    "inUseWarning_other": "{{count}} redes seleccionadas aún están conectadas a contenedores en ejecución. La eliminación fallará para ellas a menos que primero se detengan o desconecten los contenedores.",
     "forceLabel": "Entiendo y quiero intentar la eliminación de todos modos",
     "removing": "Eliminando...",
-    "builtInSkipped": "{{count}} red(es) integrada(s) omitida(s) (no se pueden eliminar)",
+    "builtInSkipped_one": "{{count}} red integrada omitida (no se puede eliminar)",
+    "builtInSkipped_other": "{{count}} redes integradas omitidas (no se pueden eliminar)",
     "noneEligible": "Ninguna red es elegible para eliminar."
   },
   "actions": {
@@ -139,24 +244,31 @@
     "connect": "Conectar",
     "selectContainer": "Recipiente",
     "selectPlaceholder": "Seleccione un contenedor...",
-    "view": "Ver detalles"
+    "view": "Ver detalles",
+    "tabs": {
+      "ariaLabel": "Secciones de la red",
+      "overview": "Resumen",
+      "containers": "Contenedores",
+      "configuration": "Configuración"
+    },
+    "noConfiguration": "Esta red no tiene opciones ni etiquetas propias."
+  },
+  "keyValue": {
+    "removeRow": "Eliminar fila"
   },
   "networks": {
-    "filters": {
-      "all": "Todos",
-      "used": "En uso",
-      "unused": "Sin uso"
-    },
     "create": {
       "removeSubnet": "Quitar subred"
     }
   },
-  "filters": {
-    "all": "Todos",
-    "used": "En uso",
-    "unused": "Sin uso"
-  },
-  "keyValue": {
-    "removeRow": "Eliminar fila"
+  "recreate": {
+    "errors": {
+      "restored": "Docker rechazó la nueva configuración. Se restauró la red original y sus contenedores se reconectaron con sus direcciones; no cambió nada.",
+      "lost": "Docker rechazó la nueva configuración y no se pudo restaurar la red original. Sus contenedores están desconectados: vuelve a crear la red y reconéctalos."
+    },
+    "reconnectFailed_one": "No se pudo reconectar {{count}} contenedor: {{names}}",
+    "reconnectFailed_other": "No se pudieron reconectar {{count}} contenedores: {{names}}",
+    "addressesChanged_one": "{{count}} contenedor volvió con una dirección nueva porque la anterior está fuera de las nuevas subredes: {{names}}",
+    "addressesChanged_other": "{{count}} contenedores volvieron con direcciones nuevas porque las anteriores están fuera de las nuevas subredes: {{names}}"
   }
 }

@@ -1,0 +1,42 @@
+{
+    "slug":  "k3s",
+    "name":  "k3s",
+    "description":  "Lightweight, certified Kubernetes distribution that runs as a single binary, useful for local or edge clusters.",
+    "category":  "Developer Tools",
+    "image":  "rancher/k3s:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/k3s.png",
+    "website":  "https://k3s.io",
+    "docsUrl":  "https://docs.k3s.io/quick-start",
+    "ports":  [
+                  {
+                      "host":  6443,
+                      "container":  6443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/k3s/data",
+                        "container":  "/var/lib/rancher/k3s"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "K3S_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Cluster token used by nodes to join this server",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

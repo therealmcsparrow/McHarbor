@@ -2,9 +2,9 @@
     "slug":  "localai",
     "name":  "LocalAI",
     "description":  "OpenAI-compatible API for running LLMs, embeddings, and image generation locally on CPU or GPU.",
-    "category":  "AI \u0026 Voice",
+    "category":  "AI & Voice",
     "image":  "localai/localai:latest",
-    "logo":  "https://icon.horse/icon/localai.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/localai.svg",
     "website":  "https://localai.io",
     "docsUrl":  "https://localai.io/docs/",
     "ports":  [
@@ -38,5 +38,9 @@
                     }
                 ],
     "minMemory":  "4GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

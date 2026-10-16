@@ -1,0 +1,39 @@
+{
+    "slug":  "honeytrap",
+    "name":  "Honeytrap",
+    "description":  "Extensible honeypot framework that dynamically responds to attacks across many emulated network services.",
+    "category":  "Security",
+    "image":  "honeytrap/honeytrap:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/honeytrap/honeytrap",
+    "docsUrl":  "https://github.com/honeytrap/honeytrap/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/honeytrap/config",
+                        "container":  "/etc/honeytrap"
+                    },
+                    {
+                        "host":  "/opt/appdata/honeytrap/data",
+                        "container":  "/var/lib/honeytrap"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

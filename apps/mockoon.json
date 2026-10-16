@@ -4,7 +4,7 @@
     "description":  "Mock APIs locally and serve them with a single CLI binary.",
     "category":  "Developer Tools",
     "image":  "mockoon/cli:latest",
-    "logo":  "https://icon.horse/icon/mockoon.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=mockoon.com\u0026sz=128",
     "website":  "https://mockoon.com",
     "docsUrl":  "https://mockoon.com/cli/",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

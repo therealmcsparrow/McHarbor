@@ -4,7 +4,7 @@
     "description":  "Prometheus exporter that mines /proc to expose named process metrics and resource usage.",
     "category":  "Monitoring",
     "image":  "ncabatoff/process-exporter:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/ncabatoff/process-exporter",
     "docsUrl":  "https://github.com/ncabatoff/process-exporter#readme",
     "ports":  [
@@ -35,5 +35,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

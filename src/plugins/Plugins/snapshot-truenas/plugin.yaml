@@ -1,0 +1,51 @@
+# plugin.yaml — manifest for the snapshot-truenas plugin.
+#
+# Snapshot driver family — TrueNAS SCALE / CORE middleware API.
+# Filesystem-level ZFS snapshots over the TrueNAS REST API.
+#
+# Architecture (see core/plugin/adapters.go §SnapshotAdapter*):
+#   - RequiresAgent=false: the plugin calls TrueNAS' middleware API
+#     directly from the host process over HTTPS. No agent transport
+#     needed.
+#   - SupportsRemoteTarget=true: TrueNAS is a remote NAS target.
+#   - The plugin owns HTTP routing under /api/plugins/snapshot-truenas
+#     for the setup wizard / test connection actions; the host's
+#     container-backup admin UI is the primary surface.
+#
+# RBAC: snapshot plugins bypass the per-plugin permission registry
+# (mirrors mcharbor-storage-plugins-no-rbac). RegisterPermissions is
+# a no-op.
+schema: "mcharbor.plugin/v1"
+
+slug:     "snapshot-truenas"
+name:     "TrueNAS"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "TrueNAS SCALE / CORE snapshot repository via the middleware API. Filesystem-level ZFS snapshots without `docker pause`."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - snapshot.adapter.register
+  - audit.emit
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "snapshot-truenas"
+  forms:
+    - resource: "snapshot_config"
+      kind:     "config_form"
+      key:      "truenas"
+    - resource: "snapshot_config"
+      kind:     "setup_guide"
+      key:      "truenas"
+
+signature: ""
+checksum:  ""

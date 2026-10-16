@@ -12,7 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
+	"github.com/moby/moby/client"
+
+	"github.com/therealmcsparrow/mcharbor/core/db"
 )
 
 // Container-link reconciliation: plans and runs persist a
@@ -55,7 +57,7 @@ func (s *Service) resolveLiveContainerID(
 		return storedID, false
 	}
 
-	cli, err := s.client(envID)
+	cli, err := s.client(ctx, envID)
 	if err != nil {
 		// Orchestrator unreachable — keep the stored id and don't
 		// surface a stale badge. The user can retry later when the
@@ -75,7 +77,8 @@ func (s *Service) resolveLiveContainerID(
 	// Step 1: try the stored id directly.
 	if strings.TrimSpace(storedID) != "" {
 		inspectCtx, cancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
-		info, err := cli.ContainerInspect(inspectCtx, storedID)
+		infoRes, err := cli.ContainerInspect(inspectCtx, storedID, client.ContainerInspectOptions{})
+		info := infoRes.Container
 		cancel()
 		if err == nil {
 			liveName := strings.TrimPrefix(info.Name, "/")
@@ -104,7 +107,8 @@ func (s *Service) resolveLiveContainerID(
 	// Step 2: name-based lookup.
 	listCtx, cancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
 	defer cancel()
-	containers, err := cli.ContainerList(listCtx, container.ListOptions{All: true})
+	containersRes, err := cli.ContainerList(listCtx, client.ContainerListOptions{All: true})
+	containers := containersRes.Items
 	if err != nil {
 		if s.logger != nil {
 			s.logger.Warn("container link resolve: list containers failed",
@@ -254,13 +258,49 @@ func (s *Service) refreshPlanContainerIDForRun(
 	return true, nil
 }
 
+// RelinkContainer points every plan and run in envID that names containerName at
+// containerID, so a recreated container keeps its backups without anyone opening the page.
+// Runs with no name of their own match through their plan, as in the bulk relink.
+func (s *Service) RelinkContainer(ctx context.Context, envID, containerID, containerName string) (int64, error) {
+	name := strings.TrimSpace(strings.TrimPrefix(containerName, "/"))
+	if strings.TrimSpace(envID) == "" || strings.TrimSpace(containerID) == "" || name == "" {
+		return 0, nil
+	}
+	dbCtx, cancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
+	defer cancel()
+	now := time.Now().UTC().Format(time.RFC3339)
+	slashed := "/" + name
+
+	plans, err := s.db.ExecContext(dbCtx,
+		`UPDATE container_backup_plans SET container_id = ?, updated_at = ?
+		 WHERE environment_id = ? AND container_name IN (?, ?) AND container_id <> ?`,
+		containerID, now, envID, name, slashed, containerID,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("relinking plans for %s: %w", name, err)
+	}
+	runs, err := s.db.ExecContext(dbCtx,
+		`UPDATE container_backup_runs SET container_id = ?, updated_at = ?
+		 WHERE environment_id = ? AND container_id <> ?
+		   AND (COALESCE(container_name, '') IN (?, ?)
+		        OR (COALESCE(container_name, '') = '' AND plan_id IN (
+		            SELECT id FROM container_backup_plans
+		            WHERE environment_id = ? AND container_name IN (?, ?))))`,
+		containerID, now, envID, containerID, name, slashed, envID, name, slashed,
+	)
+	if err != nil {
+		return db.RowsAffected(plans), fmt.Errorf("relinking runs for %s: %w", name, err)
+	}
+	return db.RowsAffected(plans) + db.RowsAffected(runs), nil
+}
+
 // RelinkAllResult summarizes a bulk container-link reconciliation pass.
 type RelinkAllResult struct {
-	PlansChecked    int      `json:"plansChecked"`
-	PlansRefreshed  int      `json:"plansRefreshed"`
-	RunsChecked     int      `json:"runsChecked"`
-	RunsRefreshed   int      `json:"runsRefreshed"`
-	RefreshedRunIDs []string `json:"refreshedRunIds,omitempty"`
+	PlansChecked     int      `json:"plansChecked"`
+	PlansRefreshed   int      `json:"plansRefreshed"`
+	RunsChecked      int      `json:"runsChecked"`
+	RunsRefreshed    int      `json:"runsRefreshed"`
+	RefreshedRunIDs  []string `json:"refreshedRunIds,omitempty"`
 	RefreshedPlanIDs []string `json:"refreshedPlanIds,omitempty"`
 }
 
@@ -272,47 +312,14 @@ type RelinkAllResult struct {
 func (s *Service) RelinkAllStaleContainerLinks(ctx context.Context) (*RelinkAllResult, error) {
 	result := &RelinkAllResult{}
 
-	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, environment_id, container_id, container_name
-		 FROM container_backup_plans
-		 WHERE environment_id <> '' AND container_name <> ''`)
+	plans, err := s.relinkPlanRows(ctx)
 	if err != nil {
-		return result, fmt.Errorf("listing plans for relink: %w", err)
+		return result, err
 	}
-	type planRow struct {
-		id, envID, containerID, containerName string
-	}
-	var plans []planRow
-	for rows.Next() {
-		var p planRow
-		if err := rows.Scan(&p.id, &p.envID, &p.containerID, &p.containerName); err != nil {
-			rows.Close()
-			return result, fmt.Errorf("scanning plan row: %w", err)
-		}
-		plans = append(plans, p)
-	}
-	rows.Close()
-
-	runRows, err := s.db.QueryContext(ctx,
-		`SELECT id, environment_id, container_id, plan_id
-		 FROM container_backup_runs
-		 WHERE environment_id <> '' AND plan_id <> ''`)
+	runs, err := s.relinkRunRows(ctx)
 	if err != nil {
-		return result, fmt.Errorf("listing runs for relink: %w", err)
+		return result, err
 	}
-	type runRow struct {
-		id, envID, containerID, planID string
-	}
-	var runs []runRow
-	for runRows.Next() {
-		var r runRow
-		if err := runRows.Scan(&r.id, &r.envID, &r.containerID, &r.planID); err != nil {
-			runRows.Close()
-			return result, fmt.Errorf("scanning run row: %w", err)
-		}
-		runs = append(runs, r)
-	}
-	runRows.Close()
 
 	result.PlansChecked = len(plans)
 	result.RunsChecked = len(runs)
@@ -369,11 +376,11 @@ func (s *Service) RelinkAllStaleContainerLinks(ctx context.Context) (*RelinkAllR
 		resolveCtx, cancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
 		defer cancel()
 
-		// Look up the run's container_name via its plan (the run
-		// row doesn't store the name directly). For ad-hoc runs
-		// without a plan we skip — they have no name to match on.
-		var containerName string
-		if r.planID != "" {
+		// The run stores its own container_name; fall back to the
+		// plan's for rows written before migration 134 added that
+		// column. A run with neither has no name to match on.
+		containerName := strings.TrimSpace(r.containerName)
+		if containerName == "" && r.planID != "" {
 			dbCtx, dbCancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
 			if err := s.db.QueryRowContext(dbCtx,
 				"SELECT container_name FROM container_backup_plans WHERE id = ?",
@@ -430,4 +437,142 @@ func (s *Service) RelinkAllStaleContainerLinks(ctx context.Context) (*RelinkAllR
 	wg.Wait()
 
 	return result, nil
+}
+
+// backfillRunContainerNames fills the container_name of runs that
+// still have none and persists the result.
+//
+// A run stores its container name from the moment it is created, but
+// rows written before that column existed — and rows whose plan was
+// deleted, taking the joined name with it — come back empty, and the
+// UI then falls back to the bare container id. One container list per
+// call is enough to name every such row, and because the fix is
+// persisted the work happens at most once per run.
+//
+// Best-effort by contract: an unreachable orchestrator or a failed
+// UPDATE leaves the run exactly as it was and never fails the list.
+func (s *Service) backfillRunContainerNames(ctx context.Context, envID string, runs []BackupRun) {
+	if strings.TrimSpace(envID) == "" {
+		return
+	}
+	pending := 0
+	for i := range runs {
+		if strings.TrimSpace(runs[i].ContainerName) == "" && strings.TrimSpace(runs[i].ContainerID) != "" {
+			pending++
+		}
+	}
+	if pending == 0 {
+		return
+	}
+
+	cli, err := s.client(ctx, envID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Debug("run name backfill: docker client unavailable", "env", envID, "error", err)
+		}
+		return
+	}
+	listCtx, cancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
+	defer cancel()
+	containersRes, err := cli.ContainerList(listCtx, client.ContainerListOptions{All: true})
+	containers := containersRes.Items
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Debug("run name backfill: list containers failed", "env", envID, "error", err)
+		}
+		return
+	}
+	nameByID := make(map[string]string, len(containers))
+	for _, c := range containers {
+		if len(c.Names) == 0 {
+			continue
+		}
+		nameByID[c.ID] = strings.TrimPrefix(c.Names[0], "/")
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	// bounded by one page of backup runs; a failed name backfill repeats on the next listing
+	for i := range runs {
+		if strings.TrimSpace(runs[i].ContainerName) != "" {
+			continue
+		}
+		name := nameByID[runs[i].ContainerID]
+		if name == "" {
+			continue
+		}
+		dbCtx, dbCancel := context.WithTimeout(ctx, containerLinkResolveTimeout)
+		_, err := s.db.ExecContext(dbCtx,
+			"UPDATE container_backup_runs SET container_name = ?, updated_at = ? WHERE id = ?",
+			name, now, runs[i].ID,
+		)
+		dbCancel()
+		if err != nil {
+			if s.logger != nil {
+				s.logger.Warn("run name backfill: persist container_name failed",
+					"run", runs[i].ID, "name", name, "error", err)
+			}
+			continue
+		}
+		runs[i].ContainerName = name
+	}
+}
+
+type planRow struct {
+	id, envID, containerID, containerName string
+}
+
+type runRow struct {
+	id, envID, containerID, planID, containerName string
+}
+
+// relinkPlanRows reads every plan that names a container in an environment, for the bulk relink pass.
+func (s *Service) relinkPlanRows(ctx context.Context) ([]planRow, error) {
+	// No LIMIT: the relink pass has to see every plan. A cap would leave the
+	// plans past it pointing at a container id that no longer exists.
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, environment_id, container_id, container_name
+		 FROM container_backup_plans
+		 WHERE environment_id <> '' AND container_name <> ''`)
+	if err != nil {
+		return nil, fmt.Errorf("listing plans for relink: %w", err)
+	}
+	defer func() { db.CloseRows(rows) }()
+	var plans []planRow
+	for rows.Next() {
+		var p planRow
+		if err := rows.Scan(&p.id, &p.envID, &p.containerID, &p.containerName); err != nil {
+			return nil, fmt.Errorf("scanning plan row: %w", err)
+		}
+		plans = append(plans, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading plan rows for relink: %w", err)
+	}
+	return plans, nil
+}
+
+// relinkRunRows reads every run that can be matched to a container by plan or name, for the bulk relink pass.
+func (s *Service) relinkRunRows(ctx context.Context) ([]runRow, error) {
+	// No LIMIT: same sweep, over runs rather than plans.
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, environment_id, container_id, COALESCE(plan_id, ''), COALESCE(container_name, '')
+		 FROM container_backup_runs
+		 WHERE environment_id <> ''
+		   AND (COALESCE(plan_id, '') <> '' OR COALESCE(container_name, '') <> '')`)
+	if err != nil {
+		return nil, fmt.Errorf("listing runs for relink: %w", err)
+	}
+	defer func() { db.CloseRows(rows) }()
+	var runs []runRow
+	for rows.Next() {
+		var r runRow
+		if err := rows.Scan(&r.id, &r.envID, &r.containerID, &r.planID, &r.containerName); err != nil {
+			return nil, fmt.Errorf("scanning run row: %w", err)
+		}
+		runs = append(runs, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading run rows for relink: %w", err)
+	}
+	return runs, nil
 }

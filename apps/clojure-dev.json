@@ -4,7 +4,7 @@
     "description":  "Clojure with Leiningen on Temurin 21, modern Lisp dialect for the JVM with persistent data structures.",
     "category":  "Developer Tools",
     "image":  "clojure:temurin-21-lein",
-    "logo":  "https://icon.horse/icon/clojure.org",
+    "logo":  "https://cdn.simpleicons.org/clojure",
     "website":  "https://clojure.org",
     "docsUrl":  "https://clojure.org/guides/getting_started",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "temurin-21-lein"
+    "version":  "temurin-21-lein",
+    "latest":  {
+        "version":  "temurin-21-lein",
+        "release_date":  "2026-09-10"
+    }
 }

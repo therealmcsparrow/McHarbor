@@ -4,7 +4,7 @@
     "description":  "Modern, powerful load testing toolkit for APIs and microservices.",
     "category":  "Developer Tools",
     "image":  "artilleryio/artillery:latest",
-    "logo":  "https://icon.horse/icon/www.artillery.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.artillery.io\u0026sz=128",
     "website":  "https://www.artillery.io",
     "docsUrl":  "https://www.artillery.io/docs/guides/getting-started/installing-artillery",
     "ports":  [
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

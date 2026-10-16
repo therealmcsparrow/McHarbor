@@ -1,0 +1,17 @@
+{
+  "label": "Status do ticket",
+  "description": "Inicia quando um ITSM informa que um ticket vinculado mudou de estado",
+  "config": {
+    "channel_id": "Canal de tickets",
+    "states": "Estados"
+  },
+  "options": {
+    "states": {
+      "open": "Aberto",
+      "acknowledged": "Reconhecido",
+      "resolved": "Resolvido",
+      "closed": "Fechado",
+      "cancelled": "Cancelado"
+    }
+  }
+}

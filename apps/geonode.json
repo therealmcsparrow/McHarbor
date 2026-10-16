@@ -4,7 +4,7 @@
   "description": "Open-source geospatial content management system for publishing and sharing maps, layers, and documents.",
   "category": "Databases",
   "image": "geonode/geonode:latest",
-  "logo": "https://geonode.org/img/geonode-logo.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=geonode.org\u0026sz=128",
   "website": "https://geonode.org",
   "docsUrl": "https://docs.geonode.org/en/master/install/docker/index.html",
   "ports": [
@@ -48,5 +48,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

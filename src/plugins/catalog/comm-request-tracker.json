@@ -1,0 +1,16 @@
+{
+  "slug": "comm-request-tracker",
+  "name": "Request Tracker",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Creates, comments on and resolves Best Practical Request Tracker (RT) tickets from McHarbor alerts through REST2, with a signed Scrip callout or polling for status.",
+  "category": "Communication channels",
+  "icon": "IconTicket",
+  "versions": [
+    {
+      "version": "2026.09.01",
+      "download_url": "file:///app/ai-plugin-catalog/comm-request-tracker-2026.09.01.tar.gz"
+    }
+  ]
+}

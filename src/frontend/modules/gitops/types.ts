@@ -6,7 +6,7 @@ export type DeployMode = 'auto' | 'manual' | 'pr_preview';
 export type PromotionStatus = 'pending' | 'succeeded' | 'failed' | 'rolled_back' | 'skipped';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired';
 export type TriggerKind = 'auto' | 'manual' | 'pr_preview' | 'webhook';
-export type PreviewStatus = 'active' | 'demolished' | 'failed';
+export type PreviewStatus = 'active' | 'demolishing' | 'demolished' | 'failed' | 'expired' | 'refused';
 
 export type GitOpsStage = {
   id: string;
@@ -50,6 +50,9 @@ export type GitOpsPromotion = {
   finishedAt: string;
   createdAt: string;
   updatedAt: string;
+  environmentId: string;
+  stackName: string;
+  lastError: string;
 };
 
 export type GitOpsApproval = {
@@ -70,13 +73,20 @@ export type GitOpsApproval = {
 export type GitOpsPRPreview = {
   id: string;
   pipelineId: string;
+  repoId: string;
   prNumber: string;
   prTitle: string;
   sourceBranch: string;
   targetBranch: string;
   commitSha: string;
   previewEnvironmentId: string;
+  stackName: string;
   status: PreviewStatus;
+  url: string;
+  expiresAt: string;
+  tornDownBy: string;
+  lastError: string;
+  commentError: string;
   openedAt: string;
   closedAt: string;
 };
@@ -118,4 +128,15 @@ export type PromoteInput = {
 export type ApprovalInput = {
   note: string;
   resolvedBy: string;
+};
+
+export type WebhookSecretStatus = {
+  repoId: string;
+  configured: boolean;
+};
+
+/** The only response that carries a secret; it exists at generation time and never again. */
+export type WebhookSecretGenerated = {
+  repoId: string;
+  secret: string;
 };

@@ -1,6 +1,6 @@
 {
-  "label": "Registry Search",
-  "description": "Search a container registry for images",
+  "label": "Registry-Suche",
+  "description": "Eine Container-Registry nach Images durchsuchen",
   "config": {
     "environment": "Umgebung",
     "term": "Suchbegriff",
@@ -13,8 +13,8 @@
   },
   "options": {
     "registry_mode": {
-      "configured": "Configured Registry",
-      "custom": "Other"
+      "configured": "Konfigurierte Registry",
+      "custom": "Andere"
     }
   }
 }

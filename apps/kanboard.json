@@ -4,7 +4,7 @@
   "description": "Kanban-style project management focused on simplicity, visualization, and team efficiency.",
   "category": "Productivity",
   "image": "kanboard/kanboard:latest",
-  "logo": "https://kanboard.org/img/kanboard-logo.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kanboard.svg",
   "website": "https://kanboard.org",
   "docsUrl": "https://docs.kanboard.org",
   "ports": [
@@ -31,5 +31,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

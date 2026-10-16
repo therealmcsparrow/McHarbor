@@ -1,0 +1,64 @@
+{
+    "slug":  "counter-strike-2",
+    "name":  "Counter-Strike 2",
+    "description":  "Dedicated server for the tactical shooter Counter-Strike 2.",
+    "category":  "Gaming",
+    "image":  "joedwards32/cs2:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/counter-strike-2.png",
+    "website":  "https://www.counter-strike.net",
+    "docsUrl":  "https://github.com/joedwards32/CS2",
+    "ports":  [
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/counter-strike-2/data",
+                        "container":  "/home/steam/cs2-dedicated"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SRCDS_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Steam Game Server Login Token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "CS2_SERVERNAME",
+                        "default":  "My CS2 Server",
+                        "description":  "Server name shown in the server browser"
+                    },
+                    {
+                        "key":  "CS2_PW",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "CS2_RCONPW",
+                        "default":  "change-me",
+                        "description":  "RCON password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "codeproject-ai",
+    "name":  "CodeProject.AI Server",
+    "description":  "Local AI inference server offering object detection and face recognition to NVR tools such as Frigate and Blue Iris.",
+    "category":  "Home Automation",
+    "image":  "codeproject/ai-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/codeproject-ai-server.svg",
+    "website":  "https://www.codeproject.com/ai",
+    "docsUrl":  "https://www.codeproject.com/ai/docs/install/install_docker.html",
+    "ports":  [
+                  {
+                      "host":  32168,
+                      "container":  32168,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/codeproject-ai/data",
+                        "container":  "/etc/codeproject/ai"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

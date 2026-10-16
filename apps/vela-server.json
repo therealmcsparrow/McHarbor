@@ -1,0 +1,54 @@
+{
+    "slug":  "vela-server",
+    "name":  "Vela",
+    "description":  "Pipeline-based continuous integration server that runs build steps as containers, built by Target.",
+    "category":  "CI/CD",
+    "image":  "target/vela-server:latest",
+    "logo":  "https://icon.horse/icon/go-vela.github.io",
+    "website":  "https://go-vela.github.io",
+    "docsUrl":  "https://go-vela.github.io/docs/installation/server/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vela-server/data",
+                        "container":  "/vela/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VELA_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret used to authenticate workers with the server",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "VELA_SCM_CLIENT_ID",
+                        "default":  "change-me",
+                        "description":  "OAuth client ID for the source control provider",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "VELA_SCM_CLIENT_SECRET",
+                        "default":  "change-me",
+                        "description":  "OAuth client secret for the source control provider",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

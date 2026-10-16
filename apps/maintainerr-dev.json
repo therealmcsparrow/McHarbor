@@ -1,0 +1,35 @@
+{
+    "slug":  "maintainerr-dev",
+    "name":  "Maintainerr (Dev)",
+    "description":  "Dev channel build of Maintainerr. Rule-based cleanup for Plex and Jellyfin that removes unwatched media and tidies Sonarr and Radarr.",
+    "category":  "Media",
+    "image":  "ghcr.io/maintainerr/maintainerr:development",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/maintainerr.png",
+    "website":  "https://maintainerr.info",
+    "docsUrl":  "https://docs.maintainerr.info/latest/Installation",
+    "ports":  [
+                  {
+                      "host":  7246,
+                      "container":  6246,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/maintainerr-dev/data",
+                        "container":  "/opt/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "development",
+    "latest":  {
+        "version":  "development",
+        "release_date":  "2026-09-29"
+    }
+}

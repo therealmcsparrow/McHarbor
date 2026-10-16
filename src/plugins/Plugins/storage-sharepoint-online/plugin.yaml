@@ -1,0 +1,72 @@
+# plugin.yaml — manifest for the storage-sharepoint-online plugin.
+#
+# Microsoft family split (see mcharbor-storage-microsoft-split):
+#   - storage-onedrive-personal       -> /me/drive, consumers tenant
+#   - storage-onedrive-business       -> /users/{upn}/drive
+#   - storage-sharepoint-online       (this plugin) -> /sites/{site_id}/drive
+#
+# This plugin handles SharePoint document libraries ONLY — the
+# OneDrive for Business variant lives in storage-onedrive-business.
+# Both speak the tenant-scoped Microsoft Graph API
+# (login.microsoftonline.com/{tenant_id}/oauth2/v2.0/... plus
+# graph.microsoft.com/v1.0/sites/{site_id}/drive).
+#
+# RBAC is intentionally bypassed — see
+# mcharbor-storage-plugins-no-rbac. The host's storage_locations
+# admin UI is already gated by settings.manage / settings.view;
+# this plugin does not register any new permission keys and the
+# menu entry has no required_permission. RegisterPermissions is
+# implemented as a no-op.
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-sharepoint-online"
+name:     "SharePoint Online"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "SharePoint document library backup destination. Tenant-scoped Microsoft Graph API (/sites/{site_id}/drive). OAuth refresh-token flow + chunked upload session. Requires Sites.ReadWrite.All delegated permission. Install storage-onedrive-business separately for OneDrive for Business drives."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host. These are bootstrap
+# permissions only — they let the plugin register adapters and emit
+# audit events. They are NOT user-facing RBAC permissions;
+# storage_plugins intentionally do not register adds_permissions.
+# No `menu.sidebar.add` because this plugin does not register a
+# sidemenu entry — SharePoint destinations are managed from the
+# host's existing /settings/storage-locations page (the type
+# picker on that page lists every registered LocationType).
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+# No adds_permissions — see mcharbor-storage-plugins-no-rbac.
+
+# No consumes_permissions — see mcharbor-storage-plugins-no-rbac.
+
+contributes:
+  routes: []
+  # No `menu:` block — the plugin does not add a sidemenu entry.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-sharepoint-online"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "storage_location"
+      kind:     "config_form"
+      key:      "sharepoint"
+    - resource: "storage_location"
+      kind:     "setup_guide"
+      key:      "sharepoint"
+
+signature: ""
+checksum:  ""

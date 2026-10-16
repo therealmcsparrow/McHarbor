@@ -1,0 +1,35 @@
+{
+    "slug":  "frr",
+    "name":  "FRRouting",
+    "description":  "Routing suite implementing BGP, OSPF, and other protocols for software routers.",
+    "category":  "Networking",
+    "image":  "frrouting/frr:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=frrouting.org\u0026sz=128",
+    "website":  "https://frrouting.org/",
+    "docsUrl":  "https://docs.frrouting.org/en/latest/docker.html",
+    "ports":  [
+                  {
+                      "host":  179,
+                      "container":  179,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/frr/config",
+                        "container":  "/etc/frr"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

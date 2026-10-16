@@ -1,0 +1,45 @@
+{
+    "slug":  "cloudreve",
+    "name":  "Cloudreve",
+    "description":  "Self-hosted file management and sharing platform with support for multiple cloud storage backends.",
+    "category":  "Photos & Files",
+    "image":  "cloudreve/cloudreve:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/cloudreve.png",
+    "website":  "https://cloudreve.org",
+    "docsUrl":  "https://docs.cloudreve.org/en/getting-started/docker",
+    "ports":  [
+                  {
+                      "host":  8113,
+                      "container":  5212,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cloudreve/data",
+                        "container":  "/cloudreve/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/cloudreve/uploads",
+                        "container":  "/cloudreve/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CLOUDREVE_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial administrator password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

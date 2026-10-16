@@ -1,0 +1,48 @@
+{
+    "slug":  "prowler",
+    "name":  "Prowler",
+    "description":  "Cloud security posture tool that audits AWS, Azure, and GCP accounts against CIS and compliance benchmarks.",
+    "category":  "Security",
+    "image":  "prowlercloud/prowler:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=prowler.com\u0026sz=128",
+    "website":  "https://prowler.com",
+    "docsUrl":  "https://docs.prowler.com/projects/prowler-open-source/en/latest/#docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prowler/output",
+                        "container":  "/output"
+                    },
+                    {
+                        "host":  "/opt/appdata/prowler/aws-credentials",
+                        "container":  "/root/.aws",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "AWS_ACCESS_KEY_ID",
+                        "default":  "change-me",
+                        "description":  "AWS access key used for the scan",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "AWS_SECRET_ACCESS_KEY",
+                        "default":  "change-me",
+                        "description":  "AWS secret key used for the scan",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

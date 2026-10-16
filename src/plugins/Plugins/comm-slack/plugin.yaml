@@ -1,0 +1,50 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+# plugin.yaml — manifest for the comm-slack plugin.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-slack"
+name:     "Slack"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Slack communication channel. Delivers workflow, alert, and backup notifications to a Slack channel through an incoming webhook URL."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_slack"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Slack communication channels"
+    description: "Required to route workflow, alert, or backup events to a Slack communication channel."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-slack"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "slack"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "slack"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-slack"
+      channel_type: "slack"
+
+signature: ""
+checksum:  ""

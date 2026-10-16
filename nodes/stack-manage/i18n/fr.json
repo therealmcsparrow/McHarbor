@@ -1,0 +1,26 @@
+{
+  "label": "Gérer le stack",
+  "description": "Déployer, démarrer, arrêter ou supprimer un stack compose",
+  "config": {
+    "environment": "Environnement",
+    "action": "Action",
+    "stack_name": "Nom de la pile",
+    "compose_source": "Source Compose",
+    "compose_content": "Contenu Compose",
+    "compose_path": "Chemin Compose",
+    "remove_volumes": "Supprimer des volumes"
+  },
+  "options": {
+    "action": {
+      "deploy": "Déployer",
+      "up": "Démarrer (compose up)",
+      "down": "Arrêter (compose down)",
+      "remove": "Supprimer"
+    },
+    "compose_source": {
+      "message": "Message",
+      "inline": "YAML en ligne",
+      "file": "Chemin du fichier"
+    }
+  }
+}

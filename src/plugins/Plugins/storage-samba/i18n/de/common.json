@@ -1,0 +1,98 @@
+{
+  "page": {
+    "title": "Samba-/SMB-Ziel",
+    "subtitle": "Backup-Snapshots werden per Stream auf eine SMB/CIFS-Freigabe des konfigurierten Servers geschrieben. Unterstützt anonymen Gastzugang, einfache Benutzer-/Passwort-Authentifizierung und NTLMv2-Domänenauthentifizierung.",
+    "registerHint": "Dieses Plugin besitzt einen LocationType: samba. Wählen Sie eine Authentifizierungsmethode — guest für öffentliche Freigaben, basic für Arbeitsgruppen-Authentifizierung, domain für Active Directory."
+  },
+  "fields": {
+    "server": "Server",
+    "share": "Freigabe",
+    "path": "Pfad",
+    "authMethod": "Authentifizierung",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "domain": "Domäne",
+    "guestUser": "Gastbenutzer",
+    "guestPassword": "Gastpasswort"
+  },
+  "help": {
+    "server": "Hostname oder IP des Samba-Servers (z. B. `nas.local` oder `192.168.1.10`).",
+    "share": "Der in smb.conf exportierte Freigabename. Derselbe Name, den Sie mit `smbclient //server/<share>` verwenden würden.",
+    "path": "Unterverzeichnis innerhalb der Freigabe. Standardmäßig das Stammverzeichnis der Freigabe (`/`). Snapshots werden direkt unter diesem Pfad geschrieben.",
+    "authMethod": "Wie sich das Plugin an der Freigabe authentifiziert. Guest verwendet einen konfigurierten Gastbenutzer; basic ist NTLMv2-Benutzer/Passwort gegen die Arbeitsgruppe; domain ist NTLMv2 mit einer expliziten Windows-Domäne.",
+    "username": "Samba- oder AD-Konto. Bei Domänenauthentifizierung der reine Benutzername (ohne Präfix `DOMAIN\\` — verwenden Sie das Feld Domäne).",
+    "password": "Kontopasswort. Verschlüsselt in der cfg-Map des Ziels gespeichert.",
+    "domain": "Windows-/Active-Directory-Domäne. Wird als Authentifizierungs-Realm für NTLMv2 verwendet.",
+    "guestUser": "Kontoname, der für den Gastzugang übertragen wird. Standardmäßig `nobody` — passend zur Samba-Direktive `guest account =`.",
+    "guestPassword": "Passwort für das Gastkonto. Meist leer; einige Konfigurationen erfordern ein konkretes Passwort."
+  },
+  "auth": {
+    "guest": "Gast (kein Passwort)",
+    "basic": "Basic (Benutzer + Passwort)",
+    "domain": "Domäne (NTLMv2)"
+  },
+  "setup": {
+    "title": "Samba-/SMB-Einrichtungsanleitung",
+    "subtitle": "Die folgenden Schritte sind auf die gewählte Authentifizierungsmethode zugeschnitten. Ändern Sie das Feld auth_method, um andere Varianten zu sehen.",
+    "common": {
+      "step1": {
+        "title": "Erreichbarkeit von TCP 445 prüfen",
+        "body": "Führen Sie auf dem Host, auf dem McHarbor läuft, `Test-NetConnection nas.local -Port 445` (PowerShell) oder `nc -zv nas.local 445` (bash) aus. SMB/CIFS verwendet TCP 445; der NetBIOS-Port 139 ist veraltet und wird vom modernen Samba kaum noch genutzt."
+      },
+      "step2": {
+        "title": "Freigabe wählen oder erstellen",
+        "body": "Wenn Sie bereits eine Freigabe mit dem Namen z. B. `backups` haben, notieren Sie deren Namen. Um eine zu erstellen, ergänzen Sie auf dem Server in /etc/samba/smb.conf: `[backups] path = /srv/backups browseable = yes read only = no` und führen Sie dann `sudo systemctl restart smbd` aus."
+      },
+      "step3": {
+        "title": "Ziel speichern",
+        "body": "Tragen Sie in McHarbor Server (Hostname oder IP), Freigabe und Pfad ein (Standard ist das Stammverzeichnis der Freigabe). Wählen Sie die zu Ihrer Freigaberichtlinie passende Authentifizierungsmethode und speichern Sie."
+      }
+    },
+    "guest": {
+      "step1": {
+        "title": "Gastzugriff auf der Freigabe aktivieren",
+        "body": "Fügen Sie in smb.conf `guest ok = yes` zum Freigabeblock hinzu und setzen Sie global `map to guest = bad user`. Standardmäßig verwendet Samba `nobody` als Gastbenutzer; überschreiben Sie das mit `guest account = ...`, wenn Sie ein eigenes Konto haben."
+      },
+      "step2": {
+        "title": "Von einem anderen Host testen",
+        "body": "Probieren Sie `smbclient //nas.local/backups -U nobody%\"\"` auf einem Linux-Rechner, um zu bestätigen, dass der Gastzugriff funktioniert. Das McHarbor-Plugin sendet dieselben Zugangsdaten."
+      }
+    },
+    "basic": {
+      "step1": {
+        "title": "Lokalen Samba-Benutzer erstellen",
+        "body": "Führen Sie auf dem Server `sudo smbpasswd -a backup-user` aus. Das festgelegte Passwort tippt der Operator in McHarbor ein — Samba und das Systemkonto speichern denselben Hash."
+      },
+      "step2": {
+        "title": "Dem Benutzer Schreibzugriff auf den Freigabepfad gewähren",
+        "body": "Setzen Sie den Dateisystem-Besitzer: `sudo chown -R backup-user:backup-user /srv/backups`. Das McHarbor-Plugin läuft als der konfigurierte Benutzer, daher sind Lese- und Schreibrechte auf Betriebssystemebene erforderlich, auch wenn smb.conf den Benutzer zulässt."
+      }
+    },
+    "domain": {
+      "step1": {
+        "title": "Den Samba-Server der AD-Domäne beitreten lassen",
+        "body": "Verwenden Sie `net ads join -U administrator` (oder `samba-tool domain join`) auf dem Samba-Host. Stellen Sie sicher, dass `wbinfo -u` Domänenbenutzer auflistet. Das McHarbor-Plugin benötigt einen Samba-Server, der NTLMv2 gegen AD validiert, nicht gegen die lokale SAM."
+      },
+      "step2": {
+        "title": "Dem Backup-Benutzer Zugriff auf die Freigabe gewähren",
+        "body": "Setzen Sie in smb.conf im Freigabeblock `valid users = @CORP\\backup-users` (oder bestimmte UPNs). Das McHarbor-Plugin sendet den Benutzernamen in der hier konfigurierten Form — `DOMAIN\\user` wird NICHT unterstützt; verwenden Sie den reinen Benutzernamen + das Feld Domäne."
+      }
+    },
+    "footer": "go-smb2 v1.x handelt keine SMB3-Verschlüsselung aus. Verwenden Sie für die Freigabe ein privates LAN/VPN oder schalten Sie einen TLS-Tunnel (stunnel, wireguard) davor, wenn Schreibzugriffe über das Internet erforderlich sind."
+  },
+  "toast": {
+    "registered": "Samba-Ziel registriert.",
+    "testPassed": "SMB-Verbindung erfolgreich.",
+    "testFailed": "SMB-Verbindung fehlgeschlagen.",
+    "authMethodChanged": "Authentifizierungsmethode aktualisiert."
+  },
+  "error": {
+    "noServer": "Server ist erforderlich.",
+    "noShare": "Freigabe ist erforderlich.",
+    "noUsername": "Benutzername ist für diese Authentifizierungsmethode erforderlich.",
+    "noPassword": "Passwort ist für diese Authentifizierungsmethode erforderlich.",
+    "noDomain": "Domäne ist für die Domänenauthentifizierung erforderlich.",
+    "mountFailed": "Die Freigabe konnte nicht eingehängt werden. Prüfen Sie Server, Freigabename und Zugangsdaten.",
+    "permissionDenied": "Der SMB-Server hat den Vorgang abgelehnt. Prüfen Sie die Schreibberechtigung des Benutzers auf der Freigabe."
+  }
+}

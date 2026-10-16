@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Santé de la flotte",
+      "description": "Verdict en une ligne sur ce qui requiert votre attention, avec accès direct"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "Vérification de la flotte…",
+    "empty": "Aucun conteneur dans cet environnement.",
+    "unavailable": "État de la flotte indisponible",
+    "barLabel": "État de la flotte sur {{count}} conteneurs",
+    "subtitle": "{{count}} conteneur au total",
+    "subtitle_other": "{{count}} conteneurs au total",
+    "verdict": {
+      "allUp": "Tout ce qui est critique fonctionne.",
+      "down": "{{count}} conteneur est hors service.",
+      "down_other": "{{count}} conteneurs sont hors service."
+    },
+    "wants": {
+      "none": "Rien ne requiert votre attention.",
+      "some": "{{count}} chose requiert votre attention.",
+      "some_other": "{{count}} choses requièrent votre attention."
+    },
+    "facts": {
+      "running": "{{running}} conteneurs sur {{total}} en cours",
+      "updates": "{{count}} mise à jour d’image disponible",
+      "updates_other": "{{count}} mises à jour d’images disponibles",
+      "noUpdates": "aucune mise à jour d’image en attente",
+      "updatesUnchecked": "mises à jour d’images pas encore vérifiées",
+      "noRestarts": "aucune boucle de redémarrage dans la flotte",
+      "restarting": "{{count}} conteneur en redémarrage",
+      "restarting_other": "{{count}} conteneurs en redémarrage"
+    },
+    "actions": {
+      "checkUpdates": "Rechercher des mises à jour",
+      "liveLogs": "Journaux en direct"
+    },
+    "state": {
+      "running": "En cours",
+      "unhealthy": "Non sain",
+      "paused": "En pause",
+      "exited": "Arrêté"
+    },
+    "cards": {
+      "unhealthy": "{{name}} échoue à son contrôle de santé",
+      "unhealthyDetail": "Actif depuis {{uptime}} · dessert toujours du trafic",
+      "unhealthyDetailPlain": "Dessert toujours du trafic",
+      "dead": "{{name}} est mort",
+      "deadDetail": "Docker n’a pas réussi à le maintenir en vie",
+      "restarting": "{{name}} redémarre",
+      "restartingDetail": "Docker tente toujours de le relancer",
+      "snapshots": "{{count}} instantané est en retard",
+      "snapshots_other": "{{count}} instantanés sont en retard",
+      "days": "{{count}} jour",
+      "days_other": "{{count}} jours",
+      "never": "jamais exécuté",
+      "exited": "{{count}} conteneur est arrêté",
+      "exited_other": "{{count}} conteneurs sont arrêtés",
+      "exitedDetail": "En attente de démarrage",
+      "updates": "{{count}} mise à jour d’image est prête",
+      "updates_other": "{{count}} mises à jour d’images sont prêtes",
+      "updatesDetail": "Récupérez et recréez pour les appliquer",
+      "allClear": "Rien ne requiert votre attention pour l’instant",
+      "allClearDetail": "Chaque conteneur tourne et chaque instantané est à jour"
+    }
+  }
+}

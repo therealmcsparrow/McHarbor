@@ -36,5 +36,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "2-alpine"
+  "version":  "2-alpine",
+  "latest":  {
+      "version":  "2-alpine",
+      "release_date":  "2026-09-10"
+  }
 }

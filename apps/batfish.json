@@ -1,0 +1,41 @@
+{
+    "slug":  "batfish",
+    "name":  "Batfish",
+    "description":  "Analyzes network device configurations to find errors before they reach production.",
+    "category":  "Networking",
+    "image":  "batfish/allinone:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.batfish.org\u0026sz=128",
+    "website":  "https://www.batfish.org/",
+    "docsUrl":  "https://www.batfish.org/",
+    "ports":  [
+                  {
+                      "host":  9997,
+                      "container":  9997,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9996,
+                      "container":  9996,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/batfish/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

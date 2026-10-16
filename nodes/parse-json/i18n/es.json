@@ -1,7 +1,0 @@
-{
-  "label": "Analizar JSON",
-  "description": "Analizar una cadena JSON en un objeto o matriz",
-  "config": {
-    "property": "Propiedad"
-  }
-}

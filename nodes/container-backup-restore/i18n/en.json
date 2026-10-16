@@ -1,0 +1,11 @@
+{
+  "label": "Container Backup Restore",
+  "description": "Restore a completed container backup run into the container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container (filter)",
+    "run_id": "Backup Run",
+    "restore_items": "Restore Items",
+    "secret_key": "Secret Key"
+  }
+}

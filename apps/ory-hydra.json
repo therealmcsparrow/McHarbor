@@ -4,7 +4,7 @@
     "description":  "Open-source OAuth2 and OpenID Connect server with full spec compliance.",
     "category":  "Security",
     "image":  "oryd/hydra:latest",
-    "logo":  "https://icon.horse/icon/www.ory.sh",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/hydra.svg",
     "website":  "https://www.ory.sh/hydra",
     "docsUrl":  "https://www.ory.sh/hydra/docs",
     "ports":  [
@@ -60,5 +60,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

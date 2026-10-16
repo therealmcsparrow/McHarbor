@@ -9,6 +9,16 @@
   "pruneUnused": "Ungenutzte bereinigen",
   "pruneDescription": "Entfernt ungenutzte Images, die von keinen Containern referenziert werden.",
   "columns": {
+    "allTags": "Alle Tags",
+    "digests": "Digests",
+    "parentId": "Eltern-ID",
+    "sharedSize": "Geteilte Größe",
+    "labels": "Labels",
+    "containerCount": "Container",
+    "protected": "Geschützt",
+    "usedBy": "Verwendet von",
+    "groupRelations": "Beziehungen",
+    "groupImage": "Image",
     "repoTag": "Repository:Tag",
     "status": "Status",
     "repository": "Repository",
@@ -20,7 +30,7 @@
   },
   "badges": {
     "inUse": "in Verwendung",
-    "unused": "ungenutzt"
+    "unused": "Ungenutzt"
   },
   "pull": {
     "title": "Image herunterladen",
@@ -64,6 +74,10 @@
     "noLayerHistory": "Kein Ebenen-Verlauf",
     "noLabels": "Keine Labels",
     "noEnvVars": "Keine Umgebungsvariablen",
+    "revealValues": "Werte anzeigen",
+    "hideValues": "Werte ausblenden",
+    "envWithheld": "Werte, die wie Zugangsdaten aussehen, sind ausgeblendet. Das Anzeigen wird im Audit-Protokoll aufgezeichnet.",
+    "historyWithheld": "ENV- und Build-Argument-Werte, die wie Zugangsdaten aussehen, sind ausgeblendet. Das Anzeigen wird im Audit-Protokoll aufgezeichnet.",
     "fields": {
       "id": "ID",
       "tags": "Tags",
@@ -87,6 +101,17 @@
       "instruction": "Anweisung",
       "size": "Größe",
       "created": "Erstellt"
+    },
+    "tabs": {
+      "ariaLabel": "Image-Abschnitte",
+      "overview": "Übersicht",
+      "config": "Konfiguration",
+      "labels": "Labels",
+      "history": "Verlauf"
+    },
+    "badges": {
+      "tagged": "Getaggt",
+      "dangling": "Verwaist"
     }
   }
 }

@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Nome do canal" },
+    "region": { "label": "Região do serviço", "help": "us ou eu. Deve corresponder à região em que sua conta do PagerDuty está." },
+    "routing_key": { "label": "Chave de integração (roteamento)", "help": "Chave de 32 caracteres da integração Events API V2 do serviço." },
+    "rest_api_key": { "label": "Chave da API REST (somente leitura)", "help": "Opcional. Ativa a consulta de status e os links de incidentes." },
+    "webhook_signing_secret": { "label": "Segredo de assinatura do webhook", "help": "Exibido uma única vez quando a assinatura de webhook v3 é criada." },
+    "update_on_repeat": { "label": "Acionar novamente a cada novo disparo" },
+    "poll_interval_minutes": { "label": "Intervalo de consulta (minutos)", "help": "0 desativa a consulta. Requer uma chave REST." },
+    "severity_map": { "label": "Mapeamento de severidade (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Nome do canal",
+      "placeholder": "PagerDuty — Plataforma"
+    },
+    "region": {
+      "label": "Região do serviço",
+      "help": "Deve corresponder à região do serviço em que sua conta do PagerDuty está.",
+      "us": "Estados Unidos (padrão)",
+      "eu": "União Europeia"
+    },
+    "routing_key": {
+      "label": "Chave de integração (routing)",
+      "placeholder": "Chave de 32 caracteres",
+      "help": "Da integração Events API V2 do serviço. Armazenada criptografada."
+    },
+    "rest_api_key": {
+      "label": "Chave da API REST (somente leitura)",
+      "placeholder": "Opcional",
+      "help": "Opcional. Ativa a consulta de status, números de incidentes e links."
+    },
+    "webhook_signing_secret": {
+      "label": "Segredo de assinatura do webhook",
+      "placeholder": "Opcional",
+      "help": "Exibido uma única vez pelo PagerDuty quando a assinatura de webhook v3 é criada."
+    },
+    "update_on_repeat": {
+      "label": "Disparar novamente na repetição",
+      "help": "Quando um alerta dispara novamente enquanto seu incidente está aberto, envie outro trigger com a mesma chave."
+    },
+    "poll_interval_minutes": {
+      "label": "Intervalo de consulta (minutos)",
+      "help": "0 desativa a consulta. A consulta exige uma chave da API REST."
+    },
+    "severity_map": {
+      "label": "Mapa de severidade (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Opcional. Mapeia critical, warning e info para critical, error, warning ou info do PagerDuty."
+    },
+    "secretKeepHint": "Deixe em branco para manter o valor armazenado.",
+    "errors": {
+      "required": "Obrigatório",
+      "routingKeyLength": "A chave de routing tem exatamente 32 caracteres.",
+      "pollRange": "Informe um número de 0 a 60."
+    }
+  },
+  "guide": {
+    "title": "Configuração do canal PagerDuty",
+    "steps": {
+      "service": "No PagerDuty, abra <b>Services → Service Directory</b> e selecione (ou crie) o serviço que os alertas do McHarbor devem acionar.",
+      "integration": "No serviço, abra a aba <b>Integrations</b>, escolha <b>Add an integration</b>, selecione <b>Events API V2</b> e salve.",
+      "routingKey": "Copie a <b>Integration Key</b> (32 caracteres) para <b>Chave de integração (routing)</b> aqui.",
+      "region": "Escolha <b>União Europeia</b> se sua conta do PagerDuty estiver na região de serviço da UE; caso contrário, deixe <b>Estados Unidos</b>.",
+      "restKey": "Opcional: em <b>Integrations → API Access Keys</b>, crie uma chave de API somente leitura e cole-a em <b>Chave da API REST</b> para ativar a consulta e os links de incidentes.",
+      "inbound": "Salve este canal, abra-o novamente em <b>Configurações → Integrações → Comunicações</b> e, em <b>Status do ticket a partir do ITSM</b>, selecione <b>Criar URL de entrada</b>. Copie a URL; ela termina em <code>/api/incident-webhooks/</code> seguido de um token. O segredo de assinatura exibido ao lado não é usado pelo PagerDuty.",
+      "webhook": "No PagerDuty, abra <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, cole a URL de entrada, restrinja-a ao mesmo serviço, assine <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> e <code>incident.reopened</code>, depois copie o segredo de assinatura <warn>que ele mostra uma única vez</warn> para <b>Segredo de assinatura do webhook</b> neste canal (ou para <b>Segredo de assinatura emitido pelo ITSM</b>).",
+      "save": "Salve o canal e selecione <b>Testar conexão</b>. Ele verifica a configuração e a chave REST sem acionar ninguém.",
+      "testEvent": "Para comprovar a chave de routing, use <b>Send Test Event</b> na página de integração do PagerDuty. O teste do McHarbor nunca dispara um incidente."
+    },
+    "note": "O agrupamento de alertas no PagerDuty pode mesclar um alerta do McHarbor no incidente de outro alerta. Esse incidente carrega a chave do outro alerta, então o McHarbor não consegue ler de volta seu reconhecimento ou resolução; o alerta ainda é resolvido no PagerDuty quando se limpa no McHarbor."
+  }
+}

@@ -1,0 +1,35 @@
+{
+    "slug":  "vigil",
+    "name":  "Vigil",
+    "description":  "Status page and uptime monitoring system that probes services and publishes incident history.",
+    "category":  "Monitoring",
+    "image":  "valeriansaliou/vigil:latest",
+    "logo":  "https://github.com/valeriansaliou.png",
+    "website":  "https://github.com/valeriansaliou/vigil",
+    "docsUrl":  "https://github.com/valeriansaliou/vigil#configuration",
+    "ports":  [
+                  {
+                      "host":  8097,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vigil/config",
+                        "container":  "/etc/vigil"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

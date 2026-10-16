@@ -1,4 +1,19 @@
-﻿{
+{
+    "errorState":  {
+                       "title":  "Er is iets misgegaan",
+                       "description":  "De gevraagde gegevens konden niet worden geladen.",
+                       "retry":  "Opnieuw proberen",
+                       "copyErrorId":  "Fout-ID kopiëren",
+                       "copied":  "Gekopieerd",
+                       "errorIdLabel":  "Fout-ID"
+                   },
+    "degradedState":  {
+                          "title":  "Verbinding verslechterd",
+                          "description":  "Nieuwe pogingen: {{count}}. Laatste poging: {{time}}.",
+                          "unknownTime":  "onbekend",
+                          "chipError":  "Laadfout",
+                          "chipDegraded":  "Verslechterd"
+                      },
     "nav":  {
                 "dashboard":  "Dashboard",
                 "containers":  "Containers",
@@ -8,31 +23,63 @@
                 "stacks":  "Stacks",
                 "terminal":  "Terminal",
                 "backups":  "Back-ups",
-                "logging":  "Lifecycle Logboek",
+                "logging":  "Levenscycluslogboek",
                 "logs":  "Logboeken",
                 "environments":  "Omgevingen",
-                "blueprints":  "Blauwdrukken",
                 "git":  "Git",
                 "gitops":  "GitOps",
                 "reconciler":  "Reconciler",
+                "incidents":  "Incidenten",
+                "runbooks":  "Runbooks",
                 "workflows":  "Workflows",
                 "store":  "Store",
                 "activity":  "Activiteit",
                 "audit":  "Audit",
                 "settings":  "Instellingen",
                 "notifications":  "Meldingen",
-                "pods":  "Pods",
-                "deployments":  "Deployments",
-                "services":  "Services",
-                "namespaces":  "Namespaces",
+                "config":  "Configuratie",
+                "storage":  "Opslag",
+                "enterprise":  "Enterprise",
+                "enterpriseOverview":  "Overzicht",
+                "highAvailability":  "Hoge beschikbaarheid",
+                "compliance":  "Compliance",
+                "compliancePacks":  "Compliancepakketten",
+                "environmentVariables":  "Omgevingsvariabelen",
                 "security":  "Beveiliging",
                 "docker":  "Docker",
                 "navigation":  "Navigatie",
+                "more":  "Meer",
                 "collapseSidebar":  "Zijbalk inklappen",
                 "expandSidebar":  "Zijbalk uitklappen",
-                "securityScans":  "Beveiligingsscans"
+                "securityScans":  "Beveiligingsscans",
+                "badges":  {
+                               "containersRunning":  "{{count}} containers draaien",
+                               "containersDown":  "{{count}} containers gestopt of gepauzeerd",
+                               "images":  "{{count}} images",
+                               "volumes":  "{{count}} volumes",
+                               "networks":  "{{count}} netwerken",
+                               "stacks":  "{{count}} stacks",
+                               "securityScans":  "{{count}} kritieke of hoge kwetsbaarheden",
+                               "notifications":  "{{count}} ongelezen meldingen"
+                           },
+                "section":  {
+                                "docker":  "Docker",
+                                "plugins":  "Plugins",
+                                "operate":  "Beheren",
+                                "deliver":  "Uitrollen",
+                                "govern":  "Governance",
+                                "enterprise":  "Enterprise"
+                            },
+                "collapseSection":  "Inklappen",
+                "expandSection":  "Uitklappen"
             },
+    "numberInput":  {
+                        "decrease":  "Verlagen",
+                        "increase":  "Verhogen"
+                    },
     "actions":  {
+                    "enterFullscreen":  "Volledig scherm",
+                    "exitFullscreen":  "Volledig scherm verlaten",
                     "back":  "Terug",
                     "cancel":  "Annuleren",
                     "confirm":  "Bevestigen",
@@ -42,15 +89,15 @@
                     "save":  "Opslaan",
                     "edit":  "Bewerken",
                     "close":  "Sluiten",
-                    "expand":  "Uitvouwen",
+                    "expand":  "Uitklappen",
                     "start":  "Starten",
                     "stop":  "Stoppen",
                     "restart":  "Herstarten",
                     "pause":  "Pauzeren",
                     "unpause":  "Hervatten",
-                    "kill":  "BeÃ«indigen",
-                    "pull":  "Downloaden",
-                    "deploy":  "Deployen",
+                    "kill":  "Beëindigen",
+                    "pull":  "Ophalen",
+                    "deploy":  "Uitrollen",
                     "update":  "Bijwerken",
                     "refresh":  "Vernieuwen",
                     "review":  "Bekijken",
@@ -58,8 +105,23 @@
                     "saving":  "Opslaan...",
                     "deleting":  "Verwijderen...",
                     "signOut":  "Uitloggen",
-                    "locked":  "Vergrendeld"
+                    "locked":  "Vergrendeld",
+                    "apply":  "Toepassen",
+                    "clear":  "Wissen",
+                    "disable":  "Uitschakelen"
                 },
+    "tabContext":  {
+                       "switchToTab":  "Overschakelen naar {{tab}}",
+                       "reloadTab":  "{{tab}} herladen",
+                       "copyLink":  "Tabbladlink kopiëren",
+                       "openInNewTab":  "Tabblad in nieuw tabblad openen",
+                       "copySuccess":  "Tabbladlink gekopieerd",
+                       "copyFailed":  "Kan de tabbladlink niet kopiëren"
+                   },
+    "pageSidebar":  {
+                        "label":  "Zijpaneel",
+                        "empty":  "Dit zijpaneel is leeg."
+                    },
     "schedule":  {
                      "readableMode":  "Leesbaar",
                      "advancedMode":  "Geavanceerd",
@@ -72,7 +134,7 @@
                                    "day":  "dag(en)",
                                    "week":  "week/weken",
                                    "month":  "maand(en)",
-                                   "year":  "jaar"
+                                   "year":  "jaar/jaren"
                                },
                      "weekdays":  {
                                       "0":  "zondag",
@@ -100,9 +162,9 @@
                    "paused":  "Gepauzeerd",
                    "restarting":  "Herstarten",
                    "created":  "Aangemaakt",
-                   "exited":  "BeÃ«indigd",
+                   "exited":  "Beëindigd",
                    "dead":  "Dood",
-                   "removing":  "Verwijderen",
+                   "removing":  "Wordt verwijderd",
                    "healthy":  "Gezond",
                    "unhealthy":  "Ongezond",
                    "connected":  "Verbonden",
@@ -125,7 +187,12 @@
     "select":  {
                    "placeholder":  "Selecteer...",
                    "searchPlaceholder":  "Zoeken...",
-                   "noResults":  "Geen resultaten"
+                   "selectedCount_one":  "{{count}} geselecteerd",
+                   "selectedCount_other":  "{{count}} geselecteerd",
+                   "noResults":  "Geen resultaten",
+                   "typeToAddPlaceholder":  "Typ een waarde en druk op Enter...",
+                   "addCustom":  "“{{value}}” toevoegen",
+                   "typeToAdd":  "Typ een waarde om die toe te voegen"
                },
     "header":  {
                    "allEnvironments":  "Alle omgevingen",
@@ -133,6 +200,13 @@
                    "administrator":  "Beheerder",
                    "userMenu":  "Gebruikersmenu openen"
                },
+    "sidebar":  {
+                    "environments":  "Omgevingen",
+                    "envDefault":  "Standaard",
+                    "noEnvironments":  "Geen omgevingen",
+                    "envSwitcherAria":  "Omgeving wisselen (nu {{name}})",
+                    "envLabel":  "Omgeving"
+                },
     "notifications":  {
                           "title":  "Meldingen",
                           "open":  "Meldingen openen",
@@ -155,50 +229,87 @@
                           "columnType":  "Type",
                           "columnStatus":  "Status",
                           "columnDate":  "Datum",
+                          "columnAction":  "Actie",
+                          "columnEntityId":  "Entiteits-ID",
+                          "columnReadAt":  "Gelezen op",
+                          "columnsGroup":  "Melding",
                           "columnActions":  "Acties",
                           "statusRead":  "Gelezen",
                           "statusUnread":  "Ongelezen",
+                          "searchPlaceholder":  "Titel en bericht zoeken",
+                          "filterAll":  "Alle",
+                          "allLevels":  "Alle niveaus",
                           "typeAlert":  "Alert",
                           "typeContainer":  "Container",
                           "typeSystem":  "Systeem",
                           "level":  {
                                         "info":  "Info",
                                         "success":  "Succes",
-                                        "warning":  "Waarschuwing"
+                                        "warning":  "Waarschuwing",
+                                        "error":  "Fout"
                                     }
                       },
     "dataGrid":  {
-                     "search":  "Zoeken...",
                      "noData":  "Geen gegevens",
                      "loading":  "Laden...",
                      "showing":  "{{from}} tot {{to}} van {{total}}",
-                     "page":  "Pagina {{current}} van {{total}}",
                      "prev":  "Vorige",
                      "next":  "Volgende",
-                     "selectAll":  "Alles selecteren"
+                     "selectAll":  "Alles selecteren",
+                     "selectRow":  "Rij selecteren",
+                     "rowsPerPage":  "Rijen per pagina",
+                     "goToPage":  "Ga naar pagina",
+                     "pageOf":  "van {{total}}",
+                     "expandGroup":  "{{name}} uitklappen",
+                     "collapseGroup":  "{{name}} inklappen"
                  },
+    "table":  {
+                  "columns":  "Kolommen",
+                  "columnsLabel":  "Kolommen tonen of verbergen",
+                  "columnsAll":  "Alles tonen",
+                  "columnsNone":  "Alles verbergen",
+                  "density":  "Dichtheid",
+                  "densityLabel":  "Rijdichtheid",
+                  "densityCompact":  "Compact",
+                  "densityDefault":  "Standaard",
+                  "densityComfortable":  "Ruim",
+                  "refresh":  "Vernieuwen",
+                  "autoRefresh":  "Automatisch vernieuwen",
+                  "autoRefreshOff":  "Uit",
+                  "autoRefreshSeconds":  "{{count}}s",
+                  "export":  "Exporteren",
+                  "exportCsv":  "Exporteren als CSV",
+                  "exportJson":  "Exporteren als JSON",
+                  "exportCurrentPage":  "Alleen de huidige pagina",
+                  "activeFilters":  "Actieve filters",
+                  "removeFilter":  "Filter verwijderen"
+              },
     "batch":  {
-                  "selected":  "{{count}} geselecteerd",
                   "start":  "Starten",
                   "stop":  "Stoppen",
                   "restart":  "Herstarten",
                   "remove":  "Verwijderen",
                   "markRead":  "Markeren als gelezen",
                   "down":  "Down",
-                  "prune":  "Ongebruikte opschonen",
                   "updateSelected":  "Selectie bijwerken",
                   "reinstallSelected":  "Selectie opnieuw installeren",
+                  "recreateSelected":  "Selectie opnieuw aanmaken",
                   "confirmTitle":  "Batchactie bevestigen",
-                  "confirmDescription":  "Weet u zeker dat u {{count}} items wilt {{action}}?",
-                  "confirmPruneDescription":  "Verwijder ongebruikte resources die niet meer worden gebruikt.",
-                  "clearSelection":  "Selectie wissen"
+                  "confirmDescription":  "Weet je zeker dat je {{count}} items wilt {{action}}?",
+                  "confirmPruneDescription":  "Verwijder ongebruikte resources die niet meer worden gebruikt."
               },
     "errors":  {
-                   "somethingWentWrong":  "Er ging iets mis",
+                   "somethingWentWrong":  "Er is iets misgegaan",
                    "unexpectedError":  "Er is een onverwachte fout opgetreden.",
                    "reloadPage":  "Pagina herladen",
-                   "operationFailed":  "Bewerking mislukt"
+                   "operationFailed":  "Bewerking mislukt",
+                   "network":  "De McHarbor-server is niet bereikbaar.",
+                   "nonJson":  "De server antwoordde met HTTP {{status}} in plaats van een API-antwoord."
                },
+    "approvalHeld":  {
+                         "title":  "Ter goedkeuring verzonden",
+                         "sent":  "Ter goedkeuring verzonden. Een andere persoon moet verzoek {{id}} goedkeuren voordat het wordt uitgevoerd; volg het onder Beveiliging → Goedkeuringen."
+                     },
     "operations":  {
                        "progress":  "{{completed}} van {{total}} voltooid",
                        "running":  "{{action}} {{name}}",
@@ -226,10 +337,11 @@
                                    "scanUnavailable":  "Scannerinstellingen zijn nu niet beschikbaar.",
                                    "scanCached":  "Gecachte scanresultaten voor {{image}} worden hergebruikt.",
                                    "waitingForApiRecovery":  "McHarbor wordt herstart. Wachten tot de API weer online is...",
-                                   "apiRecoveryTimeout":  "McHarbor kwam niet meer online na de herstart."
+                                   "apiRecoveryTimeout":  "McHarbor kwam niet meer online na de herstart.",
+                                   "systemItem":  "systeem"
                                },
                        "itemStatus":  {
-                                          "pending":  "Wacht",
+                                          "pending":  "In afwachting",
                                           "running":  "Bezig",
                                           "success":  "Klaar",
                                           "error":  "Mislukt"
@@ -239,15 +351,19 @@
                                             "running":  "Bewerking wordt uitgevoerd",
                                             "success":  "Succesvol voltooid",
                                             "error":  "Bewerking mislukt"
-                                        }
+                                        },
+                       "itemProgress":  "{{done}} van {{total}}"
                    },
-    "commandPalette":  {
-                           "placeholder":  "Typ een opdracht of zoek...",
-                           "noResults":  "Geen resultaten gevonden."
-                       },
     "globalSearch":  {
+                         "title":  "Globaal zoeken",
+                         "description":  "Zoek opdrachten en resources in alle omgevingen.",
+                         "actions":  "Acties ({{count}})",
+                         "jumps":  "Paginalinks ({{count}})",
+                         "commands":  "Opdrachten ({{count}})",
                          "placeholder":  "Overal zoeken...",
                          "noResults":  "Geen resultaten gevonden.",
+                         "searchIn":  "Zoeken in pagina\u0027s",
+                         "searchInPage":  "Zoeken in {{page}}",
                          "navigate":  "Navigeren",
                          "open":  "Openen",
                          "close":  "Sluiten",
@@ -255,7 +371,10 @@
                          "images":  "Images ({{count}})",
                          "volumes":  "Volumes ({{count}})",
                          "networks":  "Netwerken ({{count}})",
-                         "stacks":  "Stacks ({{count}})"
+                         "stacks":  "Stacks ({{count}})",
+                         "pluginGroup":  "{{label}} ({{count}})",
+                         "sourcesUnavailable_one":  "{{count}} zoekbron is niet beschikbaar, dus de resultaten ervan ontbreken.",
+                         "sourcesUnavailable_other":  "{{count}} zoekbronnen zijn niet beschikbaar, dus de resultaten ervan ontbreken."
                      },
     "filters":  {
                     "modeContains":  "Bevat",
@@ -264,10 +383,11 @@
                     "savedFilters":  "Opgeslagen filters",
                     "saveFilter":  "Filter opslaan",
                     "deleteFilter":  "Filter verwijderen",
-                    "savePrompt":  "Naam voor dit filter",
                     "invalidRegex":  "Ongeldige reguliere expressie",
-                    "matchCount":  "{{count}} matches",
-                    "noMatches":  "Geen items komen overeen met het huidige filter."
+                    "matchCount":  "{{count}} overeenkomsten",
+                    "noMatches":  "Geen items komen overeen met het huidige filter.",
+                    "facets":  "Filters",
+                    "clear":  "Filters wissen"
                 },
     "containerOverview":  {
                               "total":  "{{count}} containers",
@@ -275,7 +395,8 @@
                               "environments":  "{{count}} omgevingen",
                               "navigate":  "Navigeren",
                               "open":  "Openen",
-                              "close":  "Sluiten"
+                              "close":  "Sluiten",
+                              "emptyMessage":  "Geen containers komen overeen met je zoekopdracht."
                           },
     "imageOverview":  {
                           "total":  "{{count}} images",
@@ -296,7 +417,7 @@
                  "loadMore":  "Meer laden"
              },
     "lifecycle":  {
-                      "title":  "Lifecycle Logboek",
+                      "title":  "Levenscycluslogboek",
                       "description":  "Docker-, image-, volume-, netwerk- en stack-levenscyclusgebeurtenissen voor alle omgevingen.",
                       "searchPlaceholder":  "Zoek op container-, image- of volumenaam",
                       "subjectTypeLabel":  "Type onderwerp",
@@ -310,34 +431,34 @@
                                           "stack":  "Stacks"
                                       },
                       "severity":  {
-                                       "all":  "Elke ernst",
+                                       "all":  "Alle ernstniveaus",
                                        "success":  "Succes",
                                        "info":  "Info",
                                        "warning":  "Waarschuwing",
                                        "error":  "Fout"
                                    },
                       "state":  {
-                                    "running":  "draaiend",
-                                    "stopped":  "gestopt",
-                                    "paused":  "gepauzeerd",
-                                    "created":  "aangemaakt",
-                                    "restarting":  "herstartend",
-                                    "removed":  "verwijderd",
-                                    "exited":  "afgesloten",
-                                    "available":  "beschikbaar",
+                                    "running":  "Actief",
+                                    "stopped":  "Gestopt",
+                                    "paused":  "Gepauzeerd",
+                                    "created":  "Aangemaakt",
+                                    "restarting":  "Herstarten",
+                                    "removed":  "Verwijderd",
+                                    "exited":  "Beëindigd",
+                                    "available":  "Beschikbaar",
                                     "in_use":  "in gebruik",
-                                    "dangling":  "zwevend",
-                                    "tagged":  "getagd",
-                                    "active":  "actief",
-                                    "up":  "actief",
+                                    "dangling":  "Zwevend",
+                                    "tagged":  "Getagd",
+                                    "active":  "Actief",
+                                    "up":  "Actief",
                                     "partial":  "gedeeltelijk actief",
-                                    "errored":  "mislukt"
+                                    "errored":  "Mislukt"
                                 },
                       "action":  {
                                      "start":  "gestart",
                                      "stop":  "gestopt",
-                                     "die":  "gestorven",
-                                     "kill":  "afgesloten",
+                                     "die":  "beëindigd",
+                                     "kill":  "geforceerd beëindigd",
                                      "pause":  "gepauzeerd",
                                      "unpause":  "hervat",
                                      "restart":  "herstart",
@@ -345,16 +466,16 @@
                                      "destroy":  "verwijderd",
                                      "pull":  "opgehaald",
                                      "load":  "geladen",
-                                     "import":  "geimporteerd",
+                                     "import":  "geïmporteerd",
                                      "tag":  "getagd",
-                                     "untag":  "onttagd",
+                                     "untag":  "tag verwijderd",
                                      "delete":  "verwijderd",
                                      "mount":  "gekoppeld",
                                      "unmount":  "ontkoppeld",
                                      "connect":  "verbonden",
-                                     "disconnect":  "verbroken",
-                                     "oom":  "afgesloten (OOM)",
-                                     "failed":  "mislukt",
+                                     "disconnect":  "verbinding verbroken",
+                                     "oom":  "geforceerd beëindigd (OOM)",
+                                     "failed":  "Mislukt",
                                      "error":  "fout opgetreden"
                                  },
                       "headerSubject":  "Onderwerp",
@@ -371,11 +492,11 @@
                       "detailSubject":  "Onderwerp",
                       "detailEvent":  "Gebeurtenis / actie",
                       "detailState":  "Status",
-                      "detailAttributes":  "Kenmerken"
+                      "detailAttributes":  "Attributen"
                   },
     "logs":  {
                  "title":  "Logboeken",
-                 "description":  "Bekijk container loguitvoer",
+                 "description":  "Bekijk de loguitvoer van containers",
                  "selectContainerPlaceholder":  "Selecteer een container...",
                  "autoScrollOn":  "Auto-scroll AAN",
                  "autoScrollOff":  "Auto-scroll UIT",
@@ -385,51 +506,150 @@
                  "oldestFirst":  "Oudste eerst",
                  "selectContainerPrompt":  "Selecteer een container om logboeken te bekijken",
                  "export":  "Exporteren",
-                 "searchPlaceholder":  "Logregels filteren..."
+                 "searchPlaceholder":  "Logregels filteren...",
+                 "filterPlaceholder":  "Logboeken filteren...",
+                 "filterLabel":  "Logregels filteren",
+                 "regex":  "Regex",
+                 "level":  "Logniveau",
+                 "levelAll":  "Alle niveaus",
+                 "levelDebug":  "Debug",
+                 "levelInfo":  "Info",
+                 "levelWarn":  "Waarschuwing",
+                 "levelError":  "Fout",
+                 "timeRange":  "Tijdsbereik",
+                 "allTime":  "Volledige periode",
+                 "last5Minutes":  "Laatste 5 min",
+                 "last15Minutes":  "Laatste 15 min",
+                 "lastHour":  "Laatste uur",
+                 "live":  "Live",
+                 "invalidRegex":  "Voer een geldige reguliere expressie in.",
+                 "visibleLineCount":  "{{count}} logregels getoond",
+                 "noMatchingLines":  "Geen overeenkomende logregels."
              },
     "activity":  {
                      "title":  "Activiteit",
-                     "description":  "Realtime container event feed",
-                     "searchPlaceholder":  "Events filteren...",
-                     "noEvents":  "Nog geen events geregistreerd.",
+                     "description":  "Realtime feed van containergebeurtenissen",
+                     "searchPlaceholder":  "Gebeurtenissen filteren...",
+                     "noEvents":  "Nog geen gebeurtenissen geregistreerd.",
                      "columnTimestamp":  "Tijdstip",
                      "columnEnvironment":  "Omgeving",
                      "columnAction":  "Actie",
                      "columnContainer":  "Container",
                      "columnImage":  "Image",
-                     "columnExitCode":  "Exit",
+                     "columnExitCode":  "Exitcode",
+                     "columnEventType":  "Gebeurtenistype",
+                     "columnContainerId":  "Container-ID",
+                     "columnCreatedAt":  "Aangemaakt op",
+                     "columnsGroup":  "Gebeurtenis",
                      "columnActions":  "Acties",
                      "viewDetails":  "Details bekijken",
-                     "detailsTitle":  "Event details",
+                     "detailsTitle":  "Gebeurtenisdetails",
                      "detailTimestamp":  "Tijdstip",
                      "detailEnvironment":  "Omgeving",
-                     "detailEventType":  "Event type",
+                     "detailEventType":  "Gebeurtenistype",
                      "detailAction":  "Actie",
                      "detailContainerId":  "Container-ID",
                      "detailContainer":  "Container",
                      "detailImage":  "Image",
                      "detailExitCode":  "Exitcode",
-                     "attributes":  "Attributen"
+                     "attributes":  "Attributen",
+                     "filters":  {
+                                     "environment":  "Omgeving",
+                                     "action":  "Actie",
+                                     "severity":  "Ernst",
+                                     "all":  "Alle",
+                                     "clear":  "Filters wissen"
+                                 }
                  },
     "audit":  {
                   "title":  "Auditlogboek",
                   "description":  "Volg alle gebruikersacties en systeemgebeurtenissen",
                   "columnTimestamp":  "Tijdstip",
+                  "columnSeverity":  "Ernst",
                   "columnUser":  "Gebruiker",
                   "columnAction":  "Actie",
                   "columnEntity":  "Entiteit",
+                  "columnEntityId":  "Entiteits-ID",
+                  "columnEntityName":  "Entiteitsnaam",
                   "columnEnvironment":  "Omgeving",
                   "columnIpAddress":  "IP-adres",
+                  "columnApiKey":  "API-sleutel",
+                  "viaApiKey":  "via API-sleutel {{name}}",
                   "columnDetails":  "Details",
+                  "columnUserId":  "Gebruikers-ID",
+                  "columnEntityType":  "Entiteitstype",
+                  "columnCreatedAt":  "Aangemaakt op",
+                  "columnsGroupActor":  "Uitvoerder",
+                  "columnsGroupEntity":  "Entiteit",
+                  "columnsGroupGeneral":  "Algemeen",
+                  "columnActions":  "Acties",
                   "searchPlaceholder":  "Zoek in auditlogboeken...",
-                  "noEntries":  "Nog geen auditlogboekitems geregistreerd.",
+                  "noEntries":  "Nog geen items in het auditlogboek vastgelegd.",
+                  "noAccessEntries":  "Nog geen audit-toegangsregels vastgelegd.",
+                  "eventsTab":  "Gebeurtenissen",
+                  "accessLogTab":  "Toegangslogboek",
+                  "overviewTab":  "Overzicht",
                   "filterAction":  "Actie",
-                  "filterEntityType":  "Entiteittype",
+                  "filterEntityType":  "Entiteitstype",
                   "allActions":  "Alle acties",
                   "allEntityTypes":  "Alle types",
-                  "detailsTitle":  "Audititem details",
+                  "allModules":  "Alle modules",
+                  "filterModule":  "Module",
+                  "actionBrowserTitle":  "Acties doorbladeren",
+                  "actionBrowserDescription":  "Kies een of meer canonieke auditacties om het gebeurtenislogboek te filteren.",
+                  "selectedActions":  "{{count}} acties",
+                  "clearActions":  "Acties wissen",
+                  "applyActions":  "Acties toepassen",
+                  "noCatalogActions":  "Geen gecatalogiseerde auditacties gevonden.",
+                  "searchActions":  "Acties zoeken",
+                  "noMatchingActions":  "Geen acties komen overeen met je zoekopdracht.",
+                  "pluginEventsTitle":  "Plugin-gebeurtenissen",
+                  "noPluginEvents":  "Nog geen plugin-auditgebeurtenissen vastgelegd.",
+                  "pluginLastSeen":  "Laatst gezien: {{time}}",
+                  "coverageTitle":  "Dekking",
+                  "coverageExport":  "JSON exporteren",
+                  "coverageCovered":  "Gedekt",
+                  "coverageNeedsWork":  "Werk nodig",
+                  "coverageRequired":  "Vereist",
+                  "coverageMapped":  "Gekoppeld",
+                  "coverageEvents":  "Gebeurtenissen",
+                  "coverageDescription":  "Gekoppelde routes gebruiken canonieke acties; fallback-middleware dekt muterende routes zonder auditregel op handlerniveau.",
+                  "coverageLoading":  "Dekking laden...",
+                  "detailsTitle":  "Details audititem",
                   "viewDetails":  "Details bekijken",
-                  "local":  "Lokaal"
+                  "local":  "Lokaal",
+                  "exportTitle":  "Ondertekende auditexport",
+                  "exportDescription":  "Download de huidige auditfilters als JSON, JSONL of CSV met checksum- en handtekeningmetadata.",
+                  "exportButton":  "Auditlogboek exporteren",
+                  "exportMetadata":  "Het antwoord bevat X-McHarbor-headers voor checksum en handtekening; elke export bevat een manifest met dezelfde handtekeningmetadata.",
+                  "exportSuccess":  "Auditexport gedownload",
+                  "exportFailed":  "Auditexport mislukt",
+                  "diffTitle":  "Statusverschil",
+                  "diffNoKeys":  "Geen gewijzigde sleutels vastgelegd",
+                  "stateBefore":  "Voor",
+                  "stateAfter":  "Na",
+                  "severity":  {
+                                   "info":  "Info",
+                                   "success":  "Succes",
+                                   "warning":  "Waarschuwing",
+                                   "error":  "Fout"
+                               },
+                  "coverage":  {
+                                   "loading":  "Auditdekking controleren...",
+                                   "title":  "Auditdekking",
+                                   "description":  "Hoeveel van het routeoppervlak dat geaudit moet worden ook echt aan een auditactie is gekoppeld.",
+                                   "percent":  "{{percent}}% gedekt",
+                                   "required":  "Routes die audit vereisen",
+                                   "mapped":  "Gekoppeld aan een actie",
+                                   "unmapped":  "Niet gekoppeld",
+                                   "pluginsTitle":  "Plugin-activiteit",
+                                   "eventCount":  "{{count}} gebeurtenissen",
+                                   "uninstalled":  "Gedeïnstalleerd",
+                                   "export":  "Export",
+                                   "lastSeen":  "Laatste gebeurtenis {{when}}"
+                               },
+                  "tabEvents":  "Gebeurtenissen",
+                  "tabCoverage":  "Dekking"
               },
     "dateRange":  {
                       "label":  "Datumbereik",
@@ -455,35 +675,9 @@
                       "presetLastYear":  "Vorig jaar",
                       "presetCustom":  "Aangepast bereik"
                   },
-    "blueprints":  {
-                       "title":  "Blauwdrukken",
-                       "description":  "Vooraf geconfigureerde applicatiestacks deployen",
-                       "noBlueprints":  "Geen blauwdrukken beschikbaar.",
-                       "noResults":  "Geen blauwdrukken gevonden voor uw zoekopdracht.",
-                       "searchPlaceholder":  "Zoek blauwdrukken...",
-                       "create":  "Blauwdruk aanmaken",
-                       "createTitle":  "Blauwdruk aanmaken",
-                       "editTitle":  "Blauwdruk bewerken",
-                       "nameLabel":  "Naam",
-                       "namePlaceholder":  "Mijn Applicatie",
-                       "descriptionLabel":  "Beschrijving",
-                       "descriptionPlaceholder":  "Een korte beschrijving van deze blauwdruk...",
-                       "categoryLabel":  "Categorie",
-                       "versionLabel":  "Versie",
-                       "composeLabel":  "Docker Compose",
-                       "deployTitle":  "Deploy {{name}}",
-                       "stackNameLabel":  "Stack naam",
-                       "deploying":  "Deployen...",
-                       "mutationSuccess":  "Blauwdruk gedeployed",
-                       "createSuccess":  "Blauwdruk aangemaakt",
-                       "updateSuccess":  "Blauwdruk bijgewerkt",
-                       "deleteSuccess":  "Blauwdruk verwijderd",
-                       "deleteTitle":  "Blauwdruk verwijderen",
-                       "deleteConfirm":  "Weet u zeker dat u \"{{name}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
-                   },
     "git":  {
-                "title":  "Git Repositories",
-                "description":  "Beheer Git-gekoppelde compose stacks",
+                "title":  "Git-repositories",
+                "description":  "Beheer aan Git gekoppelde Compose-stacks",
                 "addRepository":  "Repository toevoegen",
                 "searchPlaceholder":  "Zoek repositories...",
                 "noRepositories":  "Geen repositories geconfigureerd",
@@ -492,28 +686,39 @@
                 "columnBranch":  "Branch",
                 "columnStatus":  "Status",
                 "columnLastSynced":  "Laatst gesynchroniseerd",
+                "columnAutoSync":  "Automatisch synchroniseren",
+                "columnSyncInterval":  "Synchronisatie-interval",
+                "columnAuthType":  "Authenticatietype",
+                "columnCreatedAt":  "Aangemaakt op",
+                "columnUpdatedAt":  "Bijgewerkt op",
+                "columnEnvironment":  "Omgeving",
+                "columnLastDeployStatus":  "Status laatste deployment",
+                "columnLastDeployCommit":  "Commit laatste deployment",
+                "columnsGroupEnvironment":  "Omgeving",
+                "columnsGroupDeployment":  "Deployment",
+                "columnsGroup":  "Repository",
                 "columnActions":  "Acties",
                 "statusError":  "fout",
                 "statusSynced":  "gesynchroniseerd",
-                "statusPending":  "wachtend",
+                "statusPending":  "in afwachting",
                 "never":  "Nooit",
                 "syncTooltip":  "Synchroniseren",
                 "removeTooltip":  "Verwijderen",
-                "addTitle":  "Git Repository toevoegen",
-                "addDescription":  "Koppel een Git repository voor compose stack deployment.",
+                "addTitle":  "Git-repository toevoegen",
+                "addDescription":  "Koppel een Git-repository voor het uitrollen van Compose-stacks.",
                 "nameLabel":  "Naam",
-                "repoUrlLabel":  "Repository URL",
+                "repoUrlLabel":  "Repository-URL",
                 "branchLabel":  "Branch",
                 "adding":  "Toevoegen...",
                 "removeTitle":  "Repository verwijderen",
-                "removeDescription":  "Dit zal deze repositoryconfiguratie verwijderen.",
+                "removeDescription":  "Hiermee wordt deze repositoryconfiguratie verwijderd.",
                 "mutationSynced":  "Repository gesynchroniseerd",
                 "mutationAdded":  "Repository toegevoegd",
                 "mutationRemoved":  "Repository verwijderd"
             },
     "reconciler":  {
                        "title":  "Reconciler",
-                       "description":  "Beheer gewenste status declaraties en driftdetectie",
+                       "description":  "Beheer declaraties van de gewenste status en driftdetectie",
                        "addDesiredState":  "Gewenste status toevoegen",
                        "searchPlaceholder":  "Zoek gewenste statussen...",
                        "noDesiredStates":  "Geen gewenste statussen geconfigureerd",
@@ -521,28 +726,36 @@
                        "columnContainer":  "Container",
                        "columnImage":  "Image",
                        "columnStatus":  "Status",
-                       "columnLastReconciled":  "Laatst verzoend",
+                       "columnLastReconciled":  "Laatst afgestemd",
                        "columnDrift":  "Drift",
+                       "columnDescription":  "Beschrijving",
+                       "columnDesiredStatus":  "Gewenste status",
+                       "columnRestartPolicy":  "Herstartbeleid",
+                       "columnCreatedAt":  "Aangemaakt op",
+                       "columnUpdatedAt":  "Bijgewerkt op",
+                       "columnEnvironment":  "Omgeving",
+                       "columnsGroup":  "Status",
+                       "columnsGroupEnvironment":  "Omgeving",
                        "columnActions":  "Acties",
                        "never":  "Nooit",
                        "driftYes":  "Ja",
                        "driftNo":  "Nee",
-                       "reconcileTooltip":  "Verzoenen",
+                       "reconcileTooltip":  "Afstemmen",
                        "checkDriftTooltip":  "Drift controleren",
                        "deleteTooltip":  "Verwijderen",
                        "addTitle":  "Gewenste status toevoegen",
-                       "addDescription":  "Definieer de gewenste status van een container voor verzoening.",
+                       "addDescription":  "Definieer de gewenste status van een container voor afstemming.",
                        "nameLabel":  "Naam",
-                       "containerNameLabel":  "Container naam",
-                       "imageRefLabel":  "Image referentie",
+                       "containerNameLabel":  "Containernaam",
+                       "imageRefLabel":  "Image-referentie",
                        "desiredStatusLabel":  "Gewenste status",
                        "statusRunning":  "Actief",
                        "statusStopped":  "Gestopt",
                        "statusRemoved":  "Verwijderd",
                        "creating":  "Aanmaken...",
                        "deleteTitle":  "Gewenste status verwijderen",
-                       "deleteDescription":  "Dit zal deze gewenste statusdefinitie verwijderen.",
-                       "mutationReconciled":  "Verzoening voltooid",
+                       "deleteDescription":  "Hiermee wordt deze definitie van de gewenste status verwijderd.",
+                       "mutationReconciled":  "Afstemming voltooid",
                        "mutationDriftChecked":  "Driftcontrole voltooid",
                        "mutationCreated":  "Gewenste status aangemaakt",
                        "mutationDeleted":  "Gewenste status verwijderd"
@@ -554,54 +767,52 @@
                       "newWorkflow":  "Nieuwe workflow",
                       "noWorkflows":  "Nog geen workflows.",
                       "createFirst":  "Maak je eerste workflow",
-                      "lastRun":  "Laatste run {{time}}",
+                      "lastRun":  "Laatst uitgevoerd {{time}}",
                       "neverRun":  "Nooit uitgevoerd",
                       "updated":  "Bijgewerkt {{time}}",
                       "active":  "Actief",
                       "inactive":  "Inactief",
-                      "runs":  "Runs",
+                      "runs":  "Uitvoeringen",
                       "createTitle":  "Nieuwe workflow",
                       "createDescription":  "Maak een nieuwe automatiseringsworkflow.",
                       "nameLabel":  "Naam",
                       "descriptionLabel":  "Beschrijving (optioneel)",
                       "namePlaceholder":  "Mijn workflow",
                       "descriptionPlaceholder":  "Wat doet deze workflow?",
-                      "nameRequired":  "Workflownaam is verplicht.",
-                      "nameAria":  "Workflownaam",
-                      "descriptionAria":  "Workflowbeschrijving",
-                      "metadataSaved":  "Workflowgegevens opgeslagen",
-                      "metadataSaveFailed":  "Workflowgegevens opslaan mislukt",
                       "creating":  "Aanmaken...",
                       "deleteTitle":  "Workflow verwijderen",
-                      "deleteDescription":  "Dit zal deze workflow en alle bijbehorende gegevens permanent verwijderen.",
+                      "deleteDescription":  "Hiermee worden deze workflow en alle bijbehorende gegevens permanent verwijderd.",
                       "workflowNotFound":  "Workflow niet gevonden.",
                       "backToWorkflows":  "Terug naar workflows",
-                      "runsTitle":  "Runs",
-                      "runsCount":  "{{count}} runs",
+                      "runsTitle":  "Uitvoeringen",
+                      "runsCount":  "{{count}} uitvoeringen",
                       "openEditor":  "Editor openen",
-                      "filterPlaceholder":  "Filter runs...",
-                      "noRuns":  "Nog geen runs. Voer een workflow uit om runs hier te zien.",
+                      "filterPlaceholder":  "Uitvoeringen filteren...",
+                      "noRuns":  "Nog geen uitvoeringen. Voer een workflow uit om hier uitvoeringen te zien.",
                       "columnStatus":  "Status",
                       "columnTrigger":  "Trigger",
                       "columnNodes":  "Nodes",
                       "columnDuration":  "Duur",
                       "columnStarted":  "Gestart",
                       "columnError":  "Fout",
+                      "columnRunId":  "Uitvoerings-ID",
+                      "columnFinishedAt":  "Voltooid op",
+                      "columnsGroupRuns":  "Uitvoering",
                       "zoomOut":  "Uitzoomen",
                       "zoomIn":  "Inzoomen",
                       "undo":  "Ongedaan maken (Ctrl+Z)",
                       "redo":  "Opnieuw (Ctrl+Y)",
                       "saving":  "Opslaan...",
                       "stopExecution":  "Stoppen",
-                      "activeTooltip":  "Workflow is actief â€” autotriggers zijn ingeschakeld. Klik om te deactiveren.",
-                      "inactiveTooltip":  "Workflow is inactief â€” autotriggers zijn uitgeschakeld. Klik om te activeren.",
+                      "activeTooltip":  "Workflow is actief — automatische triggers zijn ingeschakeld. Klik om te deactiveren.",
+                      "inactiveTooltip":  "Workflow is inactief — automatische triggers zijn uitgeschakeld. Klik om te activeren.",
                       "searchNodes":  "Zoek nodes...",
-                      "noNodesMatch":  "Geen nodes gevonden.",
+                      "noNodesMatch":  "Geen nodes komen overeen met je zoekopdracht.",
                       "showUnavailableNodes":  "Niet-beschikbare nodes tonen",
                       "nodeUnavailable":  "Deze node vereist een service die nog niet is geconfigureerd. Stel deze eerst in bij Instellingen.",
-                      "nodeRequiresEmailServer":  "Deze node werkt alleen als er minstens Ã©Ã©n ingeschakelde e-mailserver is geconfigureerd in Instellingen.",
-                      "nodeRequiresCommunicationChannel":  "Deze node kan McHarbor interne meldingen gebruiken of een ingeschakeld communicatiekanaal dat is geconfigureerd in Instellingen.",
-                      "nodeRequiresEnvironment":  "Deze node werkt alleen als er minstens Ã©Ã©n compatibele omgeving is geconfigureerd in McHarbor.",
+                      "nodeRequiresEmailServer":  "Deze node werkt alleen als er minstens één ingeschakelde e-mailserver is geconfigureerd in Instellingen.",
+                      "nodeRequiresCommunicationChannel":  "Deze node kan interne McHarbor-meldingen gebruiken of een ingeschakeld communicatiekanaal dat is geconfigureerd in Instellingen.",
+                      "nodeRequiresEnvironment":  "Deze node werkt alleen als er minstens één compatibele omgeving is geconfigureerd in McHarbor.",
                       "requirementsSection":  "Vereisten",
                       "behaviorSection":  "Gedrag",
                       "technicalDetailsSection":  "Technische details",
@@ -612,6 +823,7 @@
                       "categoryLogic":  "Logica",
                       "categoryUtility":  "Hulpmiddelen",
                       "categoryIntegrations":  "Integraties",
+                      "categoryPlugin":  "Plugins",
                       "selectNodeToConfigure":  "Selecteer een node om te configureren.",
                       "settingsTab":  "Instellingen",
                       "helpTab":  "Help",
@@ -620,7 +832,7 @@
                       "labelField":  "Label",
                       "portLabels":  "Poortlabels",
                       "skipNode":  "Node overslaan",
-                      "skipNodeDescription":  "Invoer doorgeven zonder uitvoeren",
+                      "skipNodeDescription":  "Invoer doorgeven zonder uit te voeren",
                       "disableNode":  "Node uitschakelen",
                       "disableNodeDescription":  "De keten bij deze node blokkeren",
                       "debugOn":  "Debug AAN",
@@ -631,9 +843,9 @@
                       "input":  "Invoer",
                       "config":  "Configuratie",
                       "output":  "Uitvoer",
-                      "data":  "Data",
+                      "data":  "Gegevens",
                       "noDebugMessages":  "Nog geen debugberichten.",
-                      "noDebugDescription":  "Voer een workflow uit om uitvoeringstrace en payload gegevens hier te zien.",
+                      "noDebugDescription":  "Voer een workflow uit om hier de uitvoeringstrace en payloadgegevens te zien.",
                       "entries":  "{{count}} items",
                       "clear":  "Wissen",
                       "noErrors":  "Geen fouten.",
@@ -641,7 +853,7 @@
                       "helpAddingNodes":  "Nodes toevoegen",
                       "helpAddingNodesDesc":  "Sleep nodes vanuit het linkerpaneel naar het canvas. Elke node vertegenwoordigt een stap in je workflow.",
                       "helpConnectingNodes":  "Nodes verbinden",
-                      "helpConnectingNodesDesc":  "Sleep van een uitvoerpoort (rechterkant) naar een invoerpoort (linkerkant) om een verbinding te maken. Rechtsklik op een verbinding om een sniffer toe te voegen of te verwijderen.",
+                      "helpConnectingNodesDesc":  "Sleep van een uitvoerpoort (rechterkant) naar een invoerpoort (linkerkant) om een verbinding te maken. Klik met de rechtermuisknop op een verbinding om een sniffer toe te voegen of de verbinding te verwijderen.",
                       "helpKeyboardShortcuts":  "Sneltoetsen",
                       "helpDeleteSelected":  "Selectie verwijderen",
                       "helpUndo":  "Ongedaan maken",
@@ -651,10 +863,10 @@
                       "helpZoomInOut":  "In-/uitzoomen",
                       "helpExpressionVariables":  "Expressievariabelen",
                       "helpExpressionVariablesDesc":  "Gebruik puntnotatiepaden om te verwijzen naar gegevens in het msg-object dat tussen nodes wordt doorgegeven.",
-                      "helpMsgPayload":  "Belangrijkste datacontainer â€” nodes lezen en schrijven dit veld",
+                      "helpMsgPayload":  "Belangrijkste datacontainer — nodes lezen en schrijven dit veld",
                       "helpMsgTopic":  "Routeringssleutel ingesteld door de trigger (bijv. manual-trigger, webhook, schedule)",
-                      "helpMsgId":  "Uniek bericht-ID â€” automatisch gegenereerd bij de start, behouden door de keten",
-                      "helpFlowVars":  "Flow-variabelen (gedeeld binnen Ã©Ã©n uitvoering)",
+                      "helpMsgId":  "Uniek bericht-ID — automatisch gegenereerd bij de start van de flow, behouden door de keten",
+                      "helpFlowVars":  "Flow-variabelen (gedeeld binnen één uitvoering)",
                       "helpGlobalVars":  "Globale variabelen (gedeeld tussen uitvoeringen)",
                       "inputPorts":  "Invoerpoorten",
                       "outputPorts":  "Uitvoerpoorten",
@@ -665,7 +877,7 @@
                       "noOutputs":  "Deze node heeft geen uitgaande poorten naar volgende stappen.",
                       "noConfig":  "Geen configuratie",
                       "dragHint":  "Sleep nodes vanuit het paneel om te beginnen",
-                      "dragHintSub":  "Shift + sleep om te verplaatsen Â· Scroll om te zoomen",
+                      "dragHintSub":  "Shift + slepen om te verschuiven · Scrollen om te zoomen",
                       "groupName":  "Groepsnaam",
                       "editGroup":  "Groep bewerken",
                       "groupNameLabel":  "Naam",
@@ -685,7 +897,7 @@
                       "contextUnblockGroup":  "Groep deblokkeren",
                       "contextBlockGroup":  "Groep blokkeren",
                       "contextUngroup":  "Groepering opheffen",
-                      "contextUnskipNode":  "Node niet overslaan",
+                      "contextUnskipNode":  "Node niet meer overslaan",
                       "contextSkipNode":  "Node overslaan",
                       "contextEnableNode":  "Node inschakelen",
                       "contextDisableNode":  "Node uitschakelen",
@@ -695,7 +907,7 @@
                       "contextRemoveSniffer":  "Sniffer verwijderen",
                       "contextAddSniffer":  "Sniffer toevoegen",
                       "contextDeleteConnection":  "Verbinding verwijderen",
-                      "contextPlaceJunction":  "Knooppunt plaatsen",
+                      "contextPlaceJunction":  "Verbindingspunt plaatsen",
                       "selectEnvironment":  "Selecteer omgeving...",
                       "noEnvironmentsFound":  "Geen Docker-omgevingen gevonden",
                       "selectContainer":  "Selecteer container...",
@@ -706,10 +918,10 @@
                       "cronEveryHour":  "Elk uur",
                       "cronEveryDayMidnight":  "Elke dag om middernacht",
                       "cronEveryMonday9AM":  "Elke maandag om 9 uur",
-                      "cronEvery1stOfMonth":  "Elke 1e van de maand",
+                      "cronEvery1stOfMonth":  "Elke eerste dag van de maand",
                       "hidePresets":  "Presets verbergen",
                       "showPresets":  "Presets tonen",
-                      "nextRuns":  "Volgende runs",
+                      "nextRuns":  "Volgende uitvoeringen",
                       "timezonePreview":  "Tijdzone: {{timezone}}",
                       "invalidCronExpression":  "Ongeldige cron-expressie",
                       "scheduleSummary":  "Schema: {{summary}}",
@@ -720,16 +932,19 @@
                       "summaryWeeklyOn":  "Elke {{weekday}} om {{time}}",
                       "summaryMonthlyOn":  "Dag {{day}} van elke maand om {{time}}",
                       "summaryCustom":  "Aangepast schema",
-                      "dstChangeWarning":  "De komende runs kruisen een zomertijdwissel in deze tijdzone.",
-                      "extraConditions":  "Extra condities",
+                      "dstChangeWarning":  "De komende uitvoeringen vallen over een zomertijdwissel in deze tijdzone.",
+                      "extraConditions":  "Extra voorwaarden",
                       "addCondition":  "+ Toevoegen",
-                      "noExtraConditions":  "Geen extra condities. Twee standaard uitvoeren: Ja / Nee.",
+                      "noExtraConditions":  "Geen extra voorwaarden. Twee standaarduitvoerpoorten: Ja / Nee.",
                       "removeCondition":  "Voorwaarde verwijderen",
                       "field":  "Veld",
+                      "operator":  "Operator",
+                      "metric":  "Metriek",
                       "value":  "Waarde",
                       "selectPlaceholder":  "Selecteer...",
                       "operatorContains":  "Bevat",
                       "operatorStartsWith":  "Begint met",
+                      "operatorRegex":  "Komt overeen met regex",
                       "operatorIsEmpty":  "Is leeg",
                       "operatorIsNotEmpty":  "Is niet leeg",
                       "switchCases":  "Cases",
@@ -737,16 +952,16 @@
                       "noSwitchCases":  "Geen cases gedefinieerd. Voeg cases toe om uitvoerpoorten te maken.",
                       "switchCaseValue":  "Matchwaarde",
                       "switchCaseLabel":  "Label",
-                      "switchDefaultHint":  "Niet-overeenkomende berichten gaan naar de \"default\" uitvoer.",
+                      "switchDefaultHint":  "Niet-overeenkomende berichten gaan naar de \"default\"-uitvoer.",
                       "runWorkflow":  "Workflow uitvoeren",
                       "workflowRunning":  "Workflow wordt uitgevoerd...",
                       "mutationCreated":  "Workflow aangemaakt",
                       "mutationDeleted":  "Workflow verwijderd",
-                      "metricConditions":  "Metriekcondities",
-                      "addMetricCondition":  "+ Conditie toevoegen",
-                      "noMetricConditions":  "Geen condities gedefinieerd. Voeg een conditie toe om te triggeren op metriekdrempels.",
+                      "metricConditions":  "Metriekvoorwaarden",
+                      "addMetricCondition":  "+ Voorwaarde toevoegen",
+                      "noMetricConditions":  "Geen voorwaarden gedefinieerd. Voeg een voorwaarde toe om te triggeren op metriekdrempels.",
                       "selectLinkOutput":  "Selecteer link-uitvoer...",
-                      "noLinkOutputsFound":  "Geen link-uitvoeren gevonden",
+                      "noLinkOutputsFound":  "Geen link-uitvoer gevonden",
                       "conditionLabel":  "Voorwaarde {{count}}",
                       "selectColor":  "Kleur {{color}} selecteren",
                       "selectWebhook":  "Selecteer webhook...",
@@ -754,78 +969,145 @@
                       "selectRegistry":  "Selecteer registry...",
                       "useDefaultRegistry":  "Standaardregistry gebruiken",
                       "noRegistriesFound":  "Geen registries gevonden",
-                      "fieldTypeWebhookSelect":  "Selecteert een actieve geconfigureerde outbound webhook.",
+                      "fieldTypeWebhookSelect":  "Selecteert een actieve, geconfigureerde uitgaande webhook.",
                       "fieldTypeRegistrySelect":  "Gebruikt een geconfigureerde registry. Laat leeg om terug te vallen op de standaardregistry.",
                       "importWorkflow":  "Workflow importeren",
-                      "mutationExported":  "Workflow geexporteerd",
+                      "mutationExported":  "Workflow geëxporteerd",
                       "mutationExportFailed":  "Workflow exporteren mislukt",
-                      "mutationImported":  "Workflow geimporteerd",
+                      "mutationImported":  "Workflow geïmporteerd",
                       "mutationImportFailed":  "Workflow importeren mislukt",
+                      "selfHostRefusedTitle":  "Opslaan geweigerd",
+                      "selfHostAuthorized":  "Eigen host geautoriseerd",
+                      "selfHostAuthorizedHint":  "Laatst opgeslagen door iemand met host_self.manage, dus de nodes ervan mogen de eigen containers, stacks en host van McHarbor aansturen.",
                       "export":  "Exporteren",
-                      "defaultTransport":  "Standaard transport",
-                      "useDefaultCommunicationChannel":  "Gebruik standaard communicatiekanaal",
-                      "useDefaultEmailServer":  "Gebruik standaard e-mailserver",
-                      "useLocalWorkflowFiles":  "Gebruik lokale workflowbestanden",
+                      "defaultTransport":  "Standaardtransport",
+                      "useDefaultCommunicationChannel":  "Standaardcommunicatiekanaal gebruiken",
+                      "useDefaultEmailServer":  "Standaard-e-mailserver gebruiken",
+                      "useLocalWorkflowFiles":  "Lokale workflowbestanden gebruiken",
                       "selectCommunicationChannel":  "Selecteer communicatiekanaal",
                       "selectEmailServer":  "Selecteer e-mailserver",
                       "selectStorageLocation":  "Selecteer opslaglocatie",
                       "noCommunicationChannelsFound":  "Geen communicatiekanalen gevonden",
                       "noEmailServersFound":  "Geen e-mailservers gevonden",
                       "noStorageLocationsFound":  "Geen opslaglocaties gevonden",
+                      "selectStack":  "Selecteer stack...",
+                      "noStacksFound":  "Geen stacks gevonden",
+                      "selectImage":  "Selecteer image...",
+                      "noImagesFound":  "Geen images gevonden",
+                      "selectVolume":  "Selecteer volume...",
+                      "noVolumesFound":  "Geen volumes gevonden",
+                      "pluginSelectPlaceholder":  "Selecteren...",
+                      "pluginSelectEmpty":  "Niets om te selecteren",
+                      "pluginSelectUnavailable":  "De plugin die deze lijst levert is niet geïnstalleerd of niet ingeschakeld.",
+                      "scannerSelectPlaceholder":  "Scanner selecteren...",
+                      "scannerSelectDefault":  "Standaardscanner gebruiken",
+                      "scannerSelectUnavailable":  "Er is geen scannerplugin geïnstalleerd en geconfigureerd. Voeg er een toe onder Beveiliging → Scanners.",
+                      "emailChannelUnavailable":  "Geen enkele geïnstalleerde communicatieplugin kan e-mail versturen.",
+                      "useDefaultEmailChannel":  "Standaard e-mailkanaal gebruiken",
+                      "selectNetwork":  "Selecteer netwerk...",
+                      "noNetworksFound":  "Geen netwerken gevonden",
+                      "selectBackupPlan":  "Selecteer back-upplan...",
+                      "noBackupPlansFound":  "Geen back-upplannen gevonden",
+                      "selectBackupRun":  "Selecteer back-upuitvoering...",
+                      "noBackupRunsFound":  "Geen back-upuitvoeringen gevonden",
+                      "selectEnvironmentFirst":  "Selecteer eerst een omgeving",
+                      "useCustomValue":  "Voer een eigen waarde in...",
+                      "pickFromList":  "Kies",
+                      "services":  "services",
+                      "loadingOptions":  "Laden...",
+                      "protectedBadge":  "Beschermd",
+                      "builtInBadge":  "Ingebouwd",
+                      "enabledBadge":  "Ingeschakeld",
+                      "disabledBadge":  "Uitgeschakeld",
+                      "fieldTypeStorageLocationSelect":  "Gebruikt een geconfigureerde opslaglocatie. Laat leeg om lokale workflowbestanden te gebruiken.",
+                      "fieldTypeStackSelect":  "Selecteert een Compose-stack uit de gekozen omgeving.",
+                      "fieldTypeImageSelect":  "Selecteert een lokale image uit de gekozen omgeving.",
+                      "fieldTypeVolumeSelect":  "Selecteert een Docker-volume uit de gekozen omgeving.",
+                      "fieldTypePluginSelect":  "Selecteert een object uit een lijst die een geïnstalleerde plugin levert.",
+                      "fieldTypeScannerSelect":  "Selecteert een van de kwetsbaarheidsscanners die de geïnstalleerde scannerplugins leveren.",
+                      "fieldTypeNetworkSelect":  "Selecteert een Docker-netwerk uit de gekozen omgeving.",
+                      "fieldTypeBackupPlanSelect":  "Selecteert een opgeslagen container-back-upplan uit de gekozen omgeving.",
+                      "fieldTypeBackupRunSelect":  "Selecteert een container-back-upuitvoering uit de gekozen omgeving.",
                       "resetZoom":  "Zoom resetten",
                       "show":  "Tonen",
                       "hide":  "Verbergen",
-                      "showSensitiveField":  "Gevoelig veld tonen",
-                      "hideSensitiveField":  "Gevoelig veld verbergen",
+                      "showSensitiveField":  "{{field}} tonen",
+                      "hideSensitiveField":  "{{field}} verbergen",
                       "defaultPath":  "Standaardpad",
                       "primarySuccessPath":  "Primair succespad",
                       "errorPath":  "Foutpad",
                       "switchCasePath":  "Switch-case-pad",
                       "conditionTruePath":  "Waar-pad",
                       "conditionFalsePath":  "Onwaar-pad",
-                      "extraConditionPath":  "Extra conditiepad",
+                      "extraConditionPath":  "Extra voorwaardepad",
                       "genericInputPath":  "Generiek invoerpad",
                       "genericOutputPath":  "Generiek uitvoerpad",
-                      "helpActionBehavior1":  "Actieknopen voeren Ã©Ã©n bewerking uit (run, create, delete, ...) en geven het resultaat door aan de volgende knoop via het veld msg.payload.",
-                      "helpActionBehavior2":  "De meeste acties zijn getypeerd (Container, Image, Network, ...) en een connector valideert het invoerschema bij bewerken.",
-                      "helpIntegrationBehavior1":  "Integratieknopen roepen een achterliggende service aan (e-mail, webhook, opslag, ...) en leveren het resultaat via dezelfde msg.payload-overeenkomst.",
-                      "helpIntegrationBehavior2":  "Als een knoop referenties nodig heeft (API-sleutel, OAuth, ...), stel deze dan in via het configuratiepaneel van de knoop voordat je deze bedraadt.",
-                      "helpLogicBehavior1":  "Logica-knopen vertakken de stroom op basis van een vergelijking, switch of conditie-expressie; elke tak wordt een uitvoerpoort.",
-                      "helpLogicBehavior2":  "Gebruik extra condities om n-weg routering uit te drukken (slechts Ã©Ã©n tak vuurt per run).",
-                      "helpTriggerBehavior1":  "Triggerknopen starten de workflow (HTTP-webhook, planning, containergebeurtenis, ...). Elke workflow heeft precies Ã©Ã©n triggerknoop.",
-                      "helpTriggerBehavior2":  "HTTP-triggers stellen een token beschikbaar die bellers in de X-McHarbor-Trigger-Token header moeten opnemen; de token roteert wanneer je de trigger opnieuw opslaat.",
-                      "helpUtilityBehavior1":  "Hulpknopen transformeren, vertragen of filteren de msg-payload tussen twee operationele knopen.",
-                      "helpUtilityBehavior2":  "Vertragingen gebruiken de klok van de trigger; debounce/cooldown zijn handig wanneer de trigger event-gedreven is.",
+                      "helpActionBehavior1":  "Actienodes voeren één bewerking uit (run, create, delete, ...) en geven het resultaat via het veld msg.payload door aan de volgende node.",
+                      "helpActionBehavior2":  "De meeste acties zijn getypeerd (Container, Image, Network, ...) en een connector valideert het invoerschema tijdens het bewerken.",
+                      "helpIntegrationBehavior1":  "Integratienodes roepen een achterliggende service aan (e-mail, webhook, opslag, ...) en leveren het resultaat via hetzelfde msg.payload-contract.",
+                      "helpIntegrationBehavior2":  "Als een node inloggegevens nodig heeft (API-sleutel, OAuth, ...), stel die dan in via het configuratiepaneel van de node voordat je hem verbindt.",
+                      "helpLogicBehavior1":  "Logicanodes vertakken de flow op basis van een vergelijking, switch of voorwaarde-expressie; elke tak wordt een uitvoerpoort.",
+                      "helpLogicBehavior2":  "Gebruik extra voorwaarden voor n-wegroutering (per uitvoering wordt slechts één tak geactiveerd).",
+                      "helpTriggerBehavior1":  "Triggernodes starten de workflow (HTTP-webhook, schema, containergebeurtenis, ...). Elke workflow heeft precies één triggernode.",
+                      "helpTriggerBehavior2":  "HTTP-triggers stellen een geheim beschikbaar dat aanroepers in de header X-McHarbor-Trigger-Token moeten meesturen; het token wordt vernieuwd wanneer je de trigger opnieuw opslaat.",
+                      "helpUtilityBehavior1":  "Hulpnodes transformeren, vertragen of filteren de msg-payload tussen twee operationele nodes.",
+                      "helpUtilityBehavior2":  "Vertragingen gebruiken de klok van de trigger; debounce/cooldown zijn handig wanneer de trigger door gebeurtenissen wordt gestart.",
                       "fieldTypeCode":  "Code",
-                      "fieldTypeContainerSelect":  "Container selectie",
-                      "fieldTypeCommunicationChannelSelect":  "Communicatiekanaal selectie",
+                      "fieldTypeContainerSelect":  "Containerselectie",
+                      "fieldTypeCommunicationChannelSelect":  "Communicatiekanaalselectie",
                       "fieldTypeCron":  "Cron-expressie",
-                      "fieldTypeEmailServerSelect":  "E-mailserver selectie",
-                      "fieldTypeEnvironmentSelect":  "Omgeving selectie",
+                      "fieldTypeEmailServerSelect":  "E-mailserverselectie",
+                      "fieldTypeEnvironmentSelect":  "Omgevingsselectie",
                       "fieldTypeExpression":  "Expressie",
                       "fieldTypeJson":  "JSON",
                       "fieldTypeKeyValue":  "Sleutel/waarde",
-                      "fieldTypeLinkOutputSelect":  "Linkuitvoer selectie",
-                      "fieldTypeMetricConditions":  "Metric condities",
-                      "fieldTypeNumber":  "Nummer",
+                      "fieldTypeLinkOutputSelect":  "Linkuitvoerselectie",
+                      "fieldTypeMetricConditions":  "Metriekvoorwaarden",
+                      "fieldTypeNumber":  "Getal",
                       "fieldTypeSelect":  "Selecteren",
                       "fieldTypeText":  "Tekst",
                       "fieldTypeTextarea":  "Tekstveld",
                       "fieldTypeToggle":  "Schakelaar",
-                      "multiInputPath":  "Multi-invoerpad"
+                      "multiInputPath":  "Multi-invoerpad",
+                      "selectTimezone":  "Selecteer tijdzone...",
+                      "selectService":  "Selecteer service...",
+                      "noServicesFound":  "Geen services gevonden",
+                      "selectStackFirst":  "Selecteer eerst een stack",
+                      "selectContainerFirst":  "Selecteer eerst een container",
+                      "noMountsFound":  "Geen mounts gevonden",
+                      "serviceContainerCount_one":  "{{count}} container",
+                      "serviceContainerCount_other":  "{{count}} containers",
+                      "restoreItemConfig":  "Configuratie",
+                      "restoreItemImage":  "Image",
+                      "restoreItemFilesystem":  "Bestandssysteem",
+                      "restoreItemLogs":  "Logs",
+                      "fieldTypeMultiselect":  "Kies een of meer waarden uit de lijst.",
+                      "fieldTypeTimezoneSelect":  "Selecteert een IANA-tijdzone.",
+                      "fieldTypeContainerMountMultiselect":  "Selecteert een of meer mounts van de gekozen container.",
+                      "fieldTypeBackupRestoreItemMultiselect":  "Selecteert welke onderdelen van de gekozen back-upuitvoering worden hersteld.",
+                      "fieldTypeStackServiceSelect":  "Selecteert een Compose-service uit de gekozen stack.",
+                      "editDetailsTitle":  "Workflowdetails bewerken",
+                      "editDetailsDescription":  "Werk de naam en beschrijving van de workflow bij.",
+                      "editDetailsAria":  "Workflowdetails bewerken",
+                      "noDescription":  "Geen beschrijving",
+                      "mutationUpdated":  "Workflowdetails bijgewerkt",
+                      "mutationUpdateFailed":  "Workflowdetails bijwerken mislukt"
                   },
     "store":  {
                   "title":  "Store",
-                  "description":  "Blader en installeer apps, workflow-nodes en dashboardwidgets.",
+                  "description":  "Bekijk en installeer apps, workflow-nodes en dashboardwidgets.",
                   "tabApps":  "Apps",
                   "tabNodes":  "Nodes",
                   "tabWidgets":  "Widgets",
+                  "tabPlugins":  "Plugins",
                   "nodesDescription":  "Bekijk beschikbare workflow-nodetypes.",
                   "widgetsDescription":  "Bekijk beschikbare dashboardwidgettypes.",
                   "noNodes":  "Geen nodetypes beschikbaar.",
                   "noWidgets":  "Geen widgettypes beschikbaar.",
                   "builtin":  "Ingebouwd",
                   "downloaded":  "Gedownload",
+                  "plugin":  "Plugin",
+                  "pluginNodeFrom":  "Geleverd door de plugin {{plugin}}.",
                   "category":  "Categorie",
                   "ports":  "Poorten",
                   "size":  "Grootte",
@@ -835,44 +1117,54 @@
                   "widgetsCount_other":  "{{count}} widgets",
                   "searchNodes":  "Zoek nodes...",
                   "searchWidgets":  "Zoek widgets...",
-                  "nodesCount":  "Knooppunten ({{count}})",
-                  "widgetsCount":  "Widgets ({{count}})"
+                  "nodesCount":  "Nodes ({{count}})",
+                  "widgetsCount":  "Widgets ({{count}})",
+                  "widgetCatalogTitle":  "Widgetcatalogus",
+                  "widgetCatalogDescription":  "Ondertekende widgetbundels uit de plugincatalogus. Een geïnstalleerde widget draait in de browser van elke dashboardbezoeker, daarom vereist installeren een eigen machtiging.",
+                  "widgetUnsigned":  "Niet ondertekend door een vertrouwde sleutel",
+                  "widgetVersion":  "v{{version}}",
+                  "widgetInstallFailed":  "{{name}} kon niet worden geïnstalleerd",
+                  "widgetRemoveTitle":  "{{name}} verwijderen",
+                  "widgetRemoveDescription":  "{{name}} wordt verwijderd uit de widgetlijst en van elk dashboard waarop het staat.",
+                  "updateAvailable":  "Bijwerken",
+                  "installedVersion":  "geïnstalleerd: v{{version}}",
+                  "installed":  "Geïnstalleerd",
+                  "viewDetails":  "Details bekijken",
+                  "details":  "Details",
+                  "updateAction":  "Bijwerken",
+                  "searchPlugins":  "Plugins zoeken…",
+                  "emptyCategory":  "Nog geen plugins in deze categorie.",
+                  "noResults":  "Geen plugins komen overeen met je zoekopdracht."
               },
     "appStore":  {
-                     "title":  "Apps",
-                     "description":  "Blader en installeer populaire Docker-applicaties.",
                      "sync":  "Synchroniseren",
                      "searchPlaceholder":  "Zoek apps...",
                      "noApps":  "Geen apps gevonden.",
-                     "noInstalledApps":  "Geen geinstalleerde apps gevonden.",
+                     "noInstalledApps":  "Geen geïnstalleerde apps gevonden.",
                      "all":  "Alles",
-                     "installed":  "GeÃ¯nstalleerd",
-                     "installedOnly":  "Alleen geinstalleerd",
+                     "installedOnly":  "Alleen geïnstalleerd",
                      "install":  "Installeren",
-                     "installedIn":  "GeÃ¯nstalleerd",
+                     "installedIn":  "Geïnstalleerd",
                      "viewInstallations":  "Installaties bekijken",
-                     "installationsTitle":  "{{name}} installaties",
+                     "installationsTitle":  "Installaties van {{name}}",
                      "latestVersion":  "Laatste",
                      "updated":  "Bijgewerkt",
                      "owner":  "Eigenaar",
                      "distro":  "Distro",
-                     "installed30Days":  "30 dagen",
-                     "installedEver":  "Altijd",
                      "unknown":  "Onbekend",
-                     "uninstall":  "Deinstalleren",
-                     "uninstallTitle":  "App deinstalleren",
-                     "uninstallDescription":  "\"{{name}}\" deinstalleren uit {{environment}}?",
+                     "uninstall":  "Deïnstalleren",
+                     "uninstallTitle":  "App deïnstalleren",
+                     "uninstallDescription":  "\"{{name}}\" deïnstalleren van {{environment}}?",
                      "removalProgressTitle":  "{{name}} verwijderen",
                      "unknownEnvironment":  "Onbekende omgeving",
-                     "stack":  "Stack",
-                     "dockerImage":  "Docker Image",
+                     "dockerImage":  "Docker-image",
                      "ports":  "Poorten",
                      "volumes":  "Volumes",
                      "envVars":  "Omgevingsvariabelen",
                      "minMemory":  "Minimaal geheugen:",
                      "website":  "Website",
                      "docs":  "Documentatie",
-                     "installTitle":  "Installeer {{name}}",
+                     "installTitle":  "{{name}} installeren",
                      "installing":  "Installeren...",
                      "installDefaultsDesc":  "Installeer met standaardinstellingen of pas de configuratie aan.",
                      "installStepLabel":  "Stap {{step}} van {{total}}: {{title}}",
@@ -882,9 +1174,9 @@
                      "stepNetwork":  "Netwerk",
                      "stepEnvironment":  "Omgeving",
                      "stepReview":  "Overzicht",
-                     "stackNameLabel":  "Stack naam",
+                     "stackNameLabel":  "Stacknaam",
                      "environmentLabel":  "Omgeving",
-                     "installWithDefaults":  "Installeren met standaarden",
+                     "installWithDefaults":  "Installeren met standaardinstellingen",
                      "customize":  "Aanpassen",
                      "noPortsConfigured":  "Geen poorten geconfigureerd voor deze app.",
                      "hostPort":  "Hostpoort",
@@ -896,7 +1188,7 @@
                      "networkSettings":  "Netwerkinstellingen",
                      "networkMode":  "Netwerkmodus",
                      "networkModeDefault":  "Standaard Compose-netwerk",
-                     "networkModeBridge":  "Docker bridge",
+                     "networkModeBridge":  "Docker-bridge",
                      "networkModeHost":  "Hostnetwerk",
                      "networkModeNone":  "Geen netwerk",
                      "networkModeExisting":  "Bestaand netwerk",
@@ -905,7 +1197,7 @@
                      "loadingNetworks":  "Netwerken laden...",
                      "networkListError":  "Kan de geconfigureerde netwerken voor deze omgeving niet laden.",
                      "noConfiguredNetworks":  "Er zijn geen geconfigureerde netwerken gevonden voor deze omgeving. Voer handmatig een netwerknaam in.",
-                     "manualNetworkOverride":  "Handmatige netwerknaam overschrijven",
+                     "manualNetworkOverride":  "Netwerknaam handmatig overschrijven",
                      "networkName":  "Netwerknaam",
                      "networkAliases":  "Aliassen",
                      "ipv4Address":  "IPv4-adres",
@@ -916,7 +1208,6 @@
                      "envValue":  "Waarde",
                      "addEnvVar":  "Variabele toevoegen",
                      "catalogEnvVars":  "Catalogusvariabelen",
-                     "noEnvVars":  "Geen omgevingsvariabelen voor deze app.",
                      "notSet":  "(niet ingesteld)",
                      "reviewName":  "Naam",
                      "reviewImage":  "Image",
@@ -934,18 +1225,21 @@
                      "uninstallConnectFailed":  "Kan geen verbinding maken met verwijderstream",
                      "networkError":  "Netwerkfout tijdens installatie",
                      "uninstallNetworkError":  "Netwerkfout tijdens verwijderen",
-                     "preparing":  "Voorbereiden...",
                      "done":  "Klaar",
-                     "mutationInstalled":  "App geÃ¯nstalleerd",
-                     "mutationUninstalled":  "App gedeinstalleerd",
-                     "mutationSynced":  "Catalogus gesynchroniseerd"
+                     "mutationSynced":  "Catalogus gesynchroniseerd",
+                     "syncing":  "Synchroniseren...",
+                     "loadMore":  "Meer laden",
+                     "showingCount":  "{{shown}} van {{total}} apps weergegeven"
                  },
     "about":  {
                   "menuItem":  "Over"
               },
     "footer":  {
                    "documentation":  "Documentatie",
-                   "cores":  "cores"
+                   "cores":  "cores",
+                   "connected":  "Verbonden",
+                   "disconnected":  "Niet verbonden",
+                   "version":  "McHarbor v{{version}}"
                },
     "customNodes":  {
                         "title":  "Aangepaste nodes",
@@ -957,7 +1251,7 @@
                         "nodeLabel":  "Label",
                         "nodeDescription":  "Beschrijving",
                         "nodeCategory":  "Categorie",
-                        "nodeIcon":  "Icoon",
+                        "nodeIcon":  "Pictogram",
                         "inputPorts":  "Invoerpoorten",
                         "outputPorts":  "Uitvoerpoorten",
                         "script":  "Script",
@@ -965,8 +1259,8 @@
                         "testResult":  "Testresultaat",
                         "testInput":  "Testinvoerbericht",
                         "noCustomNodes":  "Nog geen aangepaste nodes. Maak er een aan om te beginnen.",
-                        "deleteConfirm":  "Weet u zeker dat u deze aangepaste node wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
-                        "scriptHelp":  "Schrijf JavaScript dat het inkomende bericht transformeert. Beschikbare globalen: msg, config, node, console.",
+                        "deleteConfirm":  "Weet je zeker dat je deze aangepaste node wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+                        "scriptHelp":  "Schrijf JavaScript dat het inkomende bericht transformeert. Beschikbare globale variabelen: msg, config, node, console.",
                         "toast":  {
                                       "created":  "Aangepaste node aangemaakt",
                                       "updated":  "Aangepaste node bijgewerkt",
@@ -981,7 +1275,9 @@
                    "no":  "Nee",
                    "all":  "Alles",
                    "resource":  "Resource",
-                   "optional":  "optioneel"
+                   "optional":  "optioneel",
+                   "actions":  "Acties",
+                   "never":  "Nooit"
                },
     "profile":  {
                     "menuItem":  "Profiel",
@@ -999,7 +1295,21 @@
                                     "toast":  {
                                                   "updated":  "Profiel bijgewerkt",
                                                   "updateFailed":  "Profiel bijwerken mislukt"
-                                              }
+                                              },
+                                    "idpLockedDescription":  "Weergavenaam en e-mailadres worden beheerd door je identiteitsprovider.",
+                                    "password":  {
+                                                     "title":  "Wachtwoord wijzigen",
+                                                     "current":  "Huidig wachtwoord",
+                                                     "new":  "Nieuw wachtwoord",
+                                                     "confirm":  "Nieuw wachtwoord bevestigen",
+                                                     "submit":  "Wachtwoord bijwerken",
+                                                     "changeSuccess":  "Wachtwoord bijgewerkt",
+                                                     "changeFailed":  "Wachtwoord bijwerken mislukt",
+                                                     "mismatch":  "De wachtwoorden komen niet overeen",
+                                                     "short":  "Het wachtwoord moet minstens 8 tekens lang zijn",
+                                                     "idpLockedDescription":  "Wachtwoorden van identiteitsprovider-accounts worden door je IdP beheerd."
+                                                 },
+                                    "description":  "Je weergavenaam en e-mailadres zoals andere McHarbor-gebruikers ze zien."
                                 },
                     "preferences":  {
                                         "title":  "Voorkeuren",
@@ -1008,7 +1318,39 @@
                                         "themeDarkDescription":  "Gebruik de donkere McHarbor-interface.",
                                         "themeSystemDescription":  "Volg de instelling van je browser of besturingssysteem.",
                                         "languageDescription":  "Taalwijzigingen worden direct toegepast en opgeslagen in je gebruikersprofiel."
-                                    }
+                                    },
+                    "tabs":  {
+                                 "ariaLabel":  "Profielsecties",
+                                 "overview":  "Overzicht",
+                                 "account":  "Account",
+                                 "appearance":  "Weergave",
+                                 "notifications":  "Meldingen",
+                                 "security":  "Beveiliging"
+                             },
+                    "badges":  {
+                                   "local":  "Lokaal account",
+                                   "idp":  "Identiteitsprovider",
+                                   "system":  "Systeemaccount",
+                                   "mfaOn":  "2FA aan",
+                                   "mfaOff":  "2FA uit"
+                               },
+                    "overview":  {
+                                     "quickActions":  "Snelle acties",
+                                     "quickActionsDescription":  "Spring meteen naar wat dit account nog nodig heeft.",
+                                     "identity":  "Identiteit",
+                                     "accountType":  "Accounttype",
+                                     "preferences":  "Voorkeuren",
+                                     "preferencesDescription":  "Wijzig deze op het tabblad Weergave. Ze worden op je gebruikersprofiel opgeslagen en gelden op elk apparaat waarop je inlogt."
+                                 },
+                    "appearance":  {
+                                       "title":  "Weergave"
+                                   },
+                    "security":  {
+                                     "mfaTitle":  "Tweefactorauthenticatie",
+                                     "passwordDescription":  "Kies een wachtwoord van minstens 8 tekens. Je blijft op dit apparaat ingelogd.",
+                                     "sessionsTitle":  "Actieve sessies",
+                                     "sessionsDescription":  "Elk apparaat dat op je account is ingelogd. Een sessie intrekken meldt dat apparaat direct af."
+                                 }
                 },
     "system":  {
                    "menu":  {
@@ -1016,26 +1358,66 @@
                             },
                    "restartDialog":  {
                                          "title":  "McHarbor herstarten?",
-                                         "description":  "McHarbor stopt en de Docker-daemon start een nieuwe container op zijn plaats. Je wordt verbroken en moet de pagina herladen zodra deze weer online is.",
-                                         "confirm":  "Herstarten"
+                                         "description":  "McHarbor stopt en start opnieuw. Deze pagina volgt het herstel en laadt automatisch opnieuw.",
+                                         "confirm":  "Herstarten",
+                                         "notSupervised":  "McHarbor draait niet onder systemd, dus niets zou het opnieuw starten. Herstart het op de host, bijvoorbeeld met sudo systemctl restart mcharbor."
                                      },
                    "toast":  {
-                                 "restartScheduled":  "McHarbor-herstart ingepland"
+                                 "restartScheduled":  "McHarbor-herstart ingepland",
+                                 "restartFailed":  "McHarbor kon niet opnieuw worden gestart"
                              }
                },
+    "restartProgress":  {
+                            "title":  "McHarbor wordt herstart",
+                            "description":  "Houd deze pagina open terwijl McHarbor wordt herstart.",
+                            "progressLabel":  "Voortgang herstart",
+                            "automaticReload":  "Deze pagina wordt automatisch herladen zodra McHarbor gereed is.",
+                            "reloadNow":  "Nu herladen",
+                            "phases":  {
+                                           "preparing":  {
+                                                             "title":  "Herstart voorbereiden",
+                                                             "description":  "Het huidige McHarbor-proces wordt gecontroleerd."
+                                                         },
+                                           "scheduled":  {
+                                                             "title":  "Herstart ingepland",
+                                                             "description":  "De herstartopdracht is geaccepteerd."
+                                                         },
+                                           "stopping":  {
+                                                            "title":  "McHarbor stoppen",
+                                                            "description":  "Wachten tot het huidige proces stopt."
+                                                        },
+                                           "starting":  {
+                                                            "title":  "McHarbor starten",
+                                                            "description":  "De service is offline terwijl het nieuwe proces start."
+                                                        },
+                                           "verifying":  {
+                                                             "title":  "Herstel controleren",
+                                                             "description":  "McHarbor reageert. De stabiliteit wordt gecontroleerd."
+                                                         },
+                                           "ready":  {
+                                                         "title":  "McHarbor is gereed",
+                                                         "description":  "De interface wordt herladen met de herstelde verbinding."
+                                                     },
+                                           "error":  {
+                                                         "title":  "Herstart kon niet worden bevestigd",
+                                                         "description":  "McHarbor was niet binnen de hersteltime-out weer beschikbaar."
+                                                     }
+                                       }
+                        },
     "clipboard":  {
-                      "manualCopyTitle":  "Handmatig kopiÃ«ren",
-                      "manualCopyDescription":  "Je browser blokkeert automatisch klembord-schrijven omdat deze pagina via gewoon HTTP wordt aangeboden. Gebruik het onderstaande veld om de waarde te kopiÃ«ren.",
-                      "manualCopyHint":  "De tekst is al geselecteerd â€” druk op Ctrl+C (Cmd+C op macOS) om te kopiÃ«ren.",
-                      "selectAndCopy":  "Selecteer \u0026 kopieer",
+                      "manualCopyTitle":  "Handmatig kopiëren",
+                      "manualCopyDescription":  "Je browser blokkeert automatisch schrijven naar het klembord omdat deze pagina via gewoon HTTP wordt aangeboden. Gebruik het onderstaande veld om de waarde te kopiëren.",
+                      "manualCopyHint":  "De tekst is al geselecteerd — druk op Ctrl+C (Cmd+C op macOS) om te kopiëren.",
+                      "selectAndCopy":  "Selecteren en kopiëren",
                       "copied":  "Gekopieerd",
-                      "close":  "Sluiten"
+                      "close":  "Sluiten",
+                      "copy":  "Kopiëren"
                   },
     "common":  {
                    "loading":  "Laden...",
                    "updateCheck":  {
                                        "title":  "McHarbor v{{version}} is beschikbaar",
-                                       "subtitle":  "Je draait v{{currentVersion}}.",
+                                       "subtitle":  "Je gebruikt v{{currentVersion}}.",
                                        "viewRelease":  "Release bekijken",
                                        "openSettings":  "Instellingen",
                                        "dismiss":  "Sluiten"
@@ -1044,156 +1426,48 @@
                    "remove":  "Verwijderen",
                    "profile":  {
                                    "account":  {
-                                                   "idpLockedDescription":  "Weergavenaam en e-mail worden beheurd door uw identiteitsprovider."
+                                                   "idpLockedDescription":  "Weergavenaam en e-mailadres worden beheerd door je identiteitsprovider."
                                                }
                                },
-                   "expand":  "Uitvouwen",
-                   "removeCondition":  "Conditie verwijderen"
+                   "expand":  "Uitklappen",
+                   "removeCondition":  "Voorwaarde verwijderen"
                },
     "settings":  {
-                     "about":  {
-                                   "selfUpdate":  {
-
-                                                  }
-                               },
-                     "toast":  {
-
-                               }
+                     "plugins":  {
+                                     "openAppStore":  "App Store openen",
+                                     "openAppStoreDesc":  "Plugins worden in de App Store beheerd. Installeer, werk bij en configureer ze op één plek."
+                                 },
+                     "tabs":  {
+                                  "plugins":  "Plugins"
+                              }
                  },
     "updateCheck":  {
                         "banner":  {
                                        "title":  "McHarbor v{{version}} is beschikbaar",
-                                       "subtitle":  "Je draait v{{currentVersion}}.",
+                                       "subtitle":  "Je gebruikt v{{currentVersion}}.",
                                        "viewRelease":  "Release bekijken",
                                        "openSettings":  "Instellingen",
                                        "dismiss":  "Sluiten"
                                    }
                     },
-    "wizard":  {
-                   "welcome":  {
-                                   "title":  "Welkom bij McHarbor",
-                                   "description":  "Jouw self-hosted containerbeheerplatform",
-                                   "body1":  "Welkom bij McHarbor â€” jouw self-hosted containerbeheerplatform.",
-                                   "body2":  "Deze snelle rondleiding stelt je eerste omgeving in, installeert een app en bouwt een dashboard.",
-                                   "body3":  "Duurt ongeveer 5 minuten. Je kunt elke stap overslaan en later terugkomen."
-                               },
-                   "environment":  {
-                                       "title":  "Voeg een omgeving toe",
-                                       "description":  "Verbind McHarbor met een Docker-host of Kubernetes-cluster",
-                                       "body1":  "Een omgeving is een Docker-host of Kubernetes-cluster die McHarbor beheert.",
-                                       "local":  "Lokaal: gebruik de Docker-socket van de host (meest gebruikelijk voor thuislabs).",
-                                       "agent":  "Externe agent: installeer mcharbor-agent op een externe host (werkt achter NAT).",
-                                       "kubernetes":  "Kubernetes: plak een kubeconfig of service-accounttoken.",
-                                       "cta":  "Voeg je eerste omgeving toe"
-                                   },
-                   "app":  {
-                               "title":  "Installeer een app",
-                               "description":  "Kies iets nuttigs uit de App Store",
-                               "body1":  "De App Store heeft 630+ apps met Ã©Ã©n klik â€” homepages, dashboards, databases en meer.",
-                               "recommended":  "Aanbevolen voor eerste installaties: Homepage (heimdall of homepage) â€” geeft je een mooi dashboard voor al je apps.",
-                               "cta":  "Bekijk de App Store"
-                           },
-                   "dashboard":  {
-                                     "title":  "Pas je dashboard aan",
-                                     "description":  "Voeg widgets toe om te zien wat ertoe doet",
-                                     "body1":  "Het dashboard toont live container-, host- en resourcemetingen. Voeg widgets toe via drag-and-drop.",
-                                     "widget1":  "Containerlijst â€” zie wat er draait en waar.",
-                                     "widget2":  "Hostinfo â€” CPU, RAM, schijf en Docker-versie.",
-                                     "widget3":  "Resourceoverzicht â€” totalen in Ã©Ã©n oogopslag voor alle omgevingen.",
-                                     "cta":  "Pas je dashboard aan"
-                                 },
-                   "notifications":  {
-                                         "title":  "Notificaties instellen (optioneel)",
-                                         "description":  "Krijg meldingen wanneer er iets misgaat",
-                                         "body1":  "McHarbor kan je waarschuwen wanneer containers stoppen, de schijf vol raakt of images updates hebben. Kies een kanaal:",
-                                         "slack":  "Slack, Discord, Teams â€” webhook-URL\u0027s",
-                                         "email":  "E-mail (SMTP)",
-                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
-                                         "optional":  "Je kunt kanalen later configureren in Instellingen â†’ Communicatie.",
-                                         "cta":  "Notificaties instellen (optioneel)"
-                                     },
-                   "finish":  {
-                                  "title":  "Je bent klaar!",
-                                  "description":  "Welkom aan boord.",
-                                  "heading":  "Je bent klaar!",
-                                  "body1":  "McHarbor is klaar voor gebruik. Druk op ? om de sneltoetsen te zien, of klik op de helpknop rechtsboven aan een pagina."
-                              },
-                   "step":  "Stap {{current}} van {{total}}",
-                   "skip":  "Installatie overslaan",
-                   "restart":  "Installatie opnieuw uitvoeren"
-               },
-    "help":  {
-                 "title":  "Help",
-                 "description":  "Vind documentatie en snelle tips.",
-                 "open":  "Help openen",
-                 "relatedLinks":  "Gerelateerde links",
-                 "keyboardShortcuts":  "Sneltoetsen",
-                 "containers":  {
-                                    "title":  "Containers",
-                                    "description":  "Beheer draaiende, gestopte en gepauzeerde containers. Start, stop, herstart en bekijk logs. Maak nieuwe containers van images of draai stacks vanuit compose-bestanden."
-                                },
-                 "images":  {
-                                "title":  "Images",
-                                "description":  "Blader door lokale images, haal op uit registries, scan op kwetsbaarheden en verwijder ongebruikte lagen."
-                            },
-                 "volumes":  {
-                                 "title":  "Volumes",
-                                 "description":  "Persistente data-opslag. Blader, maak aan, verwijder en inspecteer. Bind-mounts koppelen hostmappen aan containers."
-                             },
-                 "networks":  {
-                                  "title":  "Netwerken",
-                                  "description":  "Containernetwerken. Maak aangepaste netwerken, koppel containers en configureer DNS."
-                              },
-                 "stacks":  {
-                                "title":  "Stacks",
-                                "description":  "Multi-containerimplementaties vanuit Ã©Ã©n compose-bestand. Pull, deploy, update en koppel containers aan stacks."
-                            },
-                 "environments":  {
-                                      "title":  "Omgevingen",
-                                      "description":  "Verbind McHarbor met lokale Docker, externe agents of Kubernetes-clusters. Elke omgeving wordt onafhankelijk beheerd."
-                                  },
-                 "appstore":  {
-                                  "title":  "App Store",
-                                  "description":  "Installeer 630+ apps met Ã©Ã©n klik. Blader per categorie, installeer met Ã©Ã©n klik, beheer installaties via het dashboard."
-                              },
-                 "workflows":  {
-                                   "title":  "Workflows",
-                                   "description":  "Bouw Node-RED-stijl automatiseringen. Trigger op Docker-events, schema\u0027s, bestandsbewakingen of webhooks. Voeg aangepaste JavaScript-nodes toe voor geavanceerde logica."
-                               },
-                 "git":  {
-                             "title":  "Git-repositories",
-                             "description":  "Koppel git-repositories voor stack-implementaties. Configureer authenticatie, sync-intervallen en per-branch beleid."
-                         },
-                 "gitops":  {
-                                "title":  "GitOps-pipelines",
-                                "description":  "Promoveer commits tussen dev, staging en productie. Configureer fases, goedkeuringspoorten en PR-preview-omgevingen."
-                            },
-                 "dashboard":  {
-                                   "title":  "Dashboard",
-                                   "description":  "Live statistieken voor containers, hosts en resources. Voeg widgets toe via drag-and-drop. Pas de lay-out per omgeving aan."
-                               },
-                 "settings":  {
-                                  "title":  "Instellingen",
-                                  "description":  "Applicatie-instellingen: taal, thema, notificaties, back-ups, agents, beveiliging en integraties."
-                              }
-             },
+    "close":  "Sluiten",
+    "remove":  "Verwijderen",
     "shortcut":  {
-                     "commandPalette":  "Commando-palet",
-                     "globalSearch":  "Algemene zoekfunctie",
-                     "closeDialog":  "Dialoog sluiten",
                      "group":  {
                                    "navigation":  "Navigatie",
                                    "actions":  "Acties",
                                    "view":  "Weergave"
                                },
                      "cheatsheetTitle":  "Sneltoetsen",
-                     "cheatsheetDescription":  "Navigeer en handel snel met je toetsenbord."
+                     "cheatsheetDescription":  "Navigeer en voer acties snel uit met je toetsenbord."
                  },
     "bulk":  {
+                 "selectAllMatching":  "Alle {{count}} overeenkomende items selecteren",
                  "barLabel":  "Bulkacties",
                  "selected":  "{{selectedCount}} van {{totalCount}} geselecteerd",
                  "clear":  "Selectie wissen",
-                 "progress":  "{{done}} van {{total}} voltooid ({{success}} gelukt, {{failed}} mislukt, {{running}} bezig)"
+                 "progress":  "{{done}} van {{total}} voltooid ({{success}} gelukt, {{failed}} mislukt, {{running}} bezig)",
+                 "clearSelection":  "Selectie wissen"
              },
     "empty":  {
                   "noResults":  "Geen resultaten gevonden",
@@ -1205,10 +1479,120 @@
                      "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
                      "dismiss":  "Sluiten",
                      "gotIt":  "Begrepen",
+                     "2026_10_01":  {
+                                        "selfProtection":  {
+                                                               "title":  "Handelen op de eigen containers van McHarbor vereist host_self.manage",
+                                                               "description":  "Containers: in de omgeving waarop McHarbor draait, vereisen het aanmaken van een container die de host mount, een andere namespace joint of apparaten en capabilities toevoegt, en het herstarten, stoppen of terugzetten van de eigen containers van McHarbor nu ook host_self.manage. Achtergrondtaken op die containers worden geweigerd. Controleer daar de rollen met containers.manage of stacks.manage."
+                                        },
+                                        "rbacEnvScope":  {
+                                                               "title":  "Een rol voor één omgeving geeft geen globale sleutels meer",
+                                                               "description":  "Beveiliging → Gebruikers: een rol die aan één omgeving is toegewezen bevat alleen de sleutels van die omgeving, dus users.manage, roles.manage, dashboard.view en de andere globale sleutels vragen een globale toewijzing. Controleer je rollen met beperkt bereik."
+                                        },
+                                        "setupToken":  {
+                                                               "title":  "De installatie vraagt om een setuptoken",
+                                                               "description":  "Installatie bij eerste start: kopieer het eenmalige setuptoken naar het veld Setuptoken. Het native installatieprogramma toont het; lees het anders uit het McHarbor-log (journalctl -u mcharbor bij een native installatie, docker logs mcharbor in een container). Het verandert bij elke herstart van McHarbor."
+                                        },
+                                        "agentReleases":  {
+                                                               "title":  "Agents updaten alleen vanuit McHarbor",
+                                                               "description":  "Agent-installaties en -updates komen nu alleen van deze McHarbor. Download en verifieer agentversies onder Instellingen → Updates → Agents en kies het doel; hosts nemen nooit contact op met GitHub of een registry. Containeragents hebben één herinstallatie vanuit McHarbor nodig."
+                                                           },
+                                        "csp":  {
+                                                               "title":  "Er wordt nu een Content-Security-Policy verzonden",
+                                                               "description":  "McHarbor verzendt nu een Content-Security-Policy. Als een plugin van derden zich misdraagt, stel dan CONTENT_SECURITY_POLICY_REPORT_ONLY=true in en controleer de browserconsole voordat je het beleid versoepelt."
+                                                           },
+                                        "unsignedPlugins":  {
+                                                               "title":  "Niet-ondertekende plugins vereisen je uitdrukkelijke toestemming",
+                                                               "description":  "Het installeren of bijwerken van een plugin die door geen enkele vertrouwde sleutel wordt geverifieerd vereist nu een uitdrukkelijke bevestiging, en de server dwingt dit af. Niet-ondertekende installaties dragen een badge Niet ondertekend onder App Store → Plugins."
+                                                           },
+                                        "gitopsWebhookSecret":  {
+                                                               "title":  "GitOps-webhooks hebben nu een geheim nodig",
+                                                               "description":  "Een pull-request-webhook accepteerde niet-geauthenticeerde verzoeken: de handtekeningcontrole werd nooit uitgevoerd. Hij verifieert nu een HMAC over de ruwe body tegen een geheim per repository, en een repository zonder geheim wordt geweigerd. Genereer er een onder GitOps → Repositories en stel het in op de forge, anders geven leveringen 401 terug."
+                                                           },
+                                        "instanceBackup":  {
+                                                               "title":  "Instantieback-up en herstel",
+                                                               "description":  "Instellingen → Systeem → Instantieback-up exporteert deze hele instantie naar één versleuteld bestand — rollen, omgevingen, geheimen, de certificaatautoriteit die je agents vertrouwen — volgens een schema, naar een opslaglocatie, met na elke back-up een hersteltest. Herstel hem na het verlies van de host, op nieuwe hardware of een andere database, of herstel slechts één categorie."
+                                                           },
+                                        "incidents":  {
+                                                               "title":  "Incidenten en AI-verhaal",
+                                                               "description":  "Incidenten verzamelt de gebeurtenissen, logs, deployments, de audittrail, alerts en metrics van een falende container op één scherm, en de plugins Virtuele machines, Systeemcontainers, Kubernetes en Swarm genereren nu hun eigen; schakel het verhaal per omgeving in onder Incidenten → Verhaalinstellingen om je AI-model het te laten uitleggen, met het bewijs voor elke oorzaak."
+                                                           },
+                                        "reports":  {
+                                                               "title":  "Zestien extra rapporten",
+                                                               "description":  "Rapportage → Rapportstudio dekt nu incidenten, drift, disaster recovery van de instantie, hoge beschikbaarheid, ITSM-tickets, goedkeuringen, geheimen, workflows, webhooks en compliance, en de plugins voor VM's, systeemcontainers, compute en logdoorsturing voegen rapporten toe over hun eigen gegevens."
+                                                           },
+                                        "ha":  {
+                                                               "title":  "Hoge beschikbaarheid met active/passive",
+                                                               "description":  "Draai twee nodes op PostgreSQL waarvan één actief; bekijk elke node en draag over of laat een node leeglopen onder Enterprise → Hoge beschikbaarheid."
+                                                           },
+                                        "secrets":  {
+                                                        "title":  "Geheimenkluis",
+                                                        "description":  "Sla een inloggegeven één keer op onder Beveiliging → Secrets en verwijs ernaar als ${secret:NAME} vanuit een stack, een container of een workflow. McHarbor vult het server-side in bij de aanroep naar Docker, en de bestandsmodus houdt de waarde helemaal buiten de containeromgeving."
+                                                    },
+                                        "credentialsAtRest":  {
+                                                        "title":  "Opgeslagen inloggegevens versleuteld",
+                                                        "description":  "Bij de eerste start na de upgrade worden inloggegevens die zijn opgeslagen voordat hun kolom werd versleuteld — omgevingssleutels, agenttokens, wachtwoorden van registries en opslag, Kubernetes-kubeconfigs — ter plekke versleuteld. Geheimen van snapshotdrivers onder Instellingen → Momentopnamen worden nu ook versleuteld en na het opslaan niet meer getoond: laat het veld leeg om de opgeslagen waarde te behouden."
+                                                    },
+                                        "database":  {
+                                                         "title":  "PostgreSQL, MySQL en MariaDB",
+                                                         "description":  "SQLite blijft de standaard, maar McHarbor draait nu ook op PostgreSQL, MySQL of MariaDB. Instellingen → Systeem → Database kopieert elke rij naar de nieuwe backend en laat de oude onaangeroerd als je terugvaloptie."
+                                                     },
+                                        "tls":  {
+                                                         "title":  "HTTPS die je echt kunt vertrouwen",
+                                                         "description":  "McHarbor is nu zijn eigen certificaatautoriteit: een root van tien jaar ondertekent een certificaat van 90 dagen en vernieuwt het zonder herstart. Download de root via Instellingen → Beveiliging → HTTPS, installeer hem één keer per apparaat en de browserwaarschuwing is weg. Externe agents pinnen die root automatisch in plaats van verificatie over te slaan. Verbindingen onderhandelen nu over TLS 1.3, de voorkeursondergrens waarmee McHarbor wordt geleverd. TLS 1.2 blijft het minimaal ondersteunde — stel TLS_MIN_VERSION=1.2 in als een client ouder dan 2019 McHarbor moet bereiken."
+                                                     },
+                                        "hostUpdates":  {
+                                                         "title":  "Host-OS-updates",
+                                                         "description": "De omgevingspagina heeft een tabblad Updates: de distributie en kernel van je host, een geplande controle op openstaande updates van het besturingssysteem en een toepassing die de uitvoer in de pagina streamt. Nieuw in deze build: “Nieuwe pakketten installeren indien nodig” laat een upgrade de image- en headerpakketten installeren die een kernelupdate nodig heeft — zonder dit wordt je kernel gemeld als “achtergehouden” en nooit toegepast. Het geldt per omgeving, staat standaard uit en verwijdert nooit een pakket."
+                                                     },
+                                        "pluginCatalog":  {
+                                                        "title":  "Plugins komen uit de catalogus",
+                                                        "description":  "Er wordt geen enkele plugin meer met McHarbor meegeleverd. De Plugin Store downloadt ze van mcharbor.eu, waardoor de containerimage van 3,4 GB naar ongeveer 760 MB gaat. Na deze upgrade worden je geïnstalleerde plugins automatisch opnieuw gedownload; alles wat niet kon worden opgehaald staat onder Instellingen → Plugins als Herstel nodig, met een actie Herstellen."
+                                                    },
+                                        "plugins":  {
+                                                        "title":  "Pluginplatform",
+                                                        "description":  "Kubernetes, Swarm, opslag, communicatie, identiteit, scanners en AI-providers worden nu geleverd als ondertekende plugins die je installeert vanuit de Plugin Store."
+                                                    },
+                                        "compute":  {
+                                                        "title":  "Virtuele machines en containers",
+                                                        "description":  "Draai KVM-virtuele machines en volledige LXC-systeemcontainers op je eigen hosts. Opslagpools, hostnetwerken, geverifieerde gastimages, browserconsoles, snapshots en klonen — met containerlimieten die zonder herstart ingaan. Installeer de plugin Virtuele machines of Systeemcontainers om te beginnen."
+                                                    },
+                                        "rbac":  {
+                                                     "title":  "Rolgebaseerde toegangscontrole",
+                                                     "description":  "Rollen, presets, scopes per omgeving en per stack, eigenaartoewijzing en tijdelijke verhoging beschermen elke actie. Geweigerde knoppen blijven zichtbaar en leggen uit wat ontbreekt."
+                                                 },
+                                        "paletteSearch":  {
+                                                              "title":  "Ctrl+K doorzoekt je plugins",
+                                                              "description":  "Het opdrachtpalet toont nu de virtuele machines, systeemcontainers, Swarm-services, Kubernetes-pods en computehosts die geïnstalleerde plugins aanbieden, en hun acties, zoals een machine aanmaken of een cluster toevoegen, voor de machtigingen die je hebt."
+                                                          },
+                                        "hostIo":  {
+                                                               "title":  "Netwerk- en schijfgrafieken tonen live doorvoer",
+                                                               "description":  "Omgevingen → een omgeving → Overzicht: Netwerk en Schijf-I/O tonen bytes per seconde over de fysieke interfaces en schijven van de host, zodat verkeer van containers, virtuele machines en de host zelf allemaal meetelt."
+                                        },
+                                        "vmHistory":  {
+                                                               "title":  "Grafieken van virtuele machines openen met het laatste uur",
+                                                               "description":  "Virtuele machines → een machine → Overzicht: de grafieken voor CPU, geheugen, schijf en netwerk beginnen met een opgeslagen uur aan metingen en blijven bijwerken, en directe (macvlan) interfaces melden nu hun verkeer."
+                                        },
+                                        "restoreUploadSelection":  {
+                                                               "title":  "Herstellen uit bestand laat je kiezen wat je herstelt",
+                                                               "description":  "Containers → een container → Back-ups → Herstellen uit bestand: Back-up inlezen opent eerst het archief, daarna kies je de lagen en bestanden zoals bij elke andere back-up. Voorheen werd het hele archief hersteld zodra het was geüpload."
+                                        },
+                                        "vmVaultSecrets":  {
+                                                               "title":  "Wachtwoord en SSH-sleutels van een VM uit de kluis",
+                                                               "description":  "Virtuele machines → Virtuele machine aanmaken → Installatie bij eerste start: Uit de kluis kiest het wachtwoord en SSH-sleutels uit de kluis voegt sleutels toe, op naam van het secret (vereist secrets.view). De waarde wordt eenmalig gekopieerd bij het aanmaken; het secret later roteren verandert de machine niet."
+                                        },
+                                        "containerRestore":  {
+                                                               "title":  "Herstel een container met zijn configuratie",
+                                                               "description":  "Containers → een container → Back-ups → Herstellen: de configuratie kan nu worden hersteld; de container wordt ermee opnieuw aangemaakt, en de bestandssysteemlaag in hetzelfde herstel wordt in de nieuwe container teruggezet. Een aangevinkte map herstelt alles wat erin staat."
+                                        },
+                                        "accessibility":  {
+                                                               "title":  "Duidelijker voor schermlezers en toetsenbord",
+                                                               "description":  "Statusmeldingen, optiegroepen en voortgangsbalken worden nu door schermlezers voorgelezen, elk invoerveld is aan zijn label gekoppeld, en een uitgeschakelde knop kan nog steeds focus krijgen zodat de tooltip zegt welke rechten nodig zijn."
+                                        }
+                                    },
                      "2_0_7":  {
                                    "firstRun":  {
                                                     "title":  "Eerste-keer-wizard",
-                                                    "description":  "Een installatie van 5 minuten die je eerste omgeving toevoegt, een app installeert en notificaties configureert."
+                                                    "description":  "Een installatie van 5 minuten die je eerste omgeving toevoegt, een app installeert en meldingen configureert."
                                                 },
                                    "help":  {
                                                 "title":  "Hulp in de app",
@@ -1224,14 +1608,217 @@
                                                  },
                                    "bulk":  {
                                                 "title":  "Bulkacties",
-                                                "description":  "Selecteer meerdere items en voer acties in batch uit met een live voortgangsdialoog."
+                                                "description":  "Selecteer meerdere items en voer acties in batch uit met een dialoogvenster met live voortgang."
                                             }
                                }
                  },
-    "savedSearch":  {
-                        "save":  "Zoekopdracht opslaan",
-                        "saved":  "Opgeslagen",
-                        "apply":  "Zoekopdracht toepassen: {{name}}",
-                        "remove":  "Opgeslagen zoekopdracht verwijderen: {{name}}"
+    "banner":  {
+                   "dock":  "Inklappen naar werkbalk",
+                   "restore":  "Opnieuw openen"
+               },
+    "breadcrumb":  {
+                       "label":  "Kruimelpad",
+                       "switchSibling":  "Naar een ander item schakelen"
+                   },
+    "mfa":  {
+                "title":  "Tweefactorauthenticatie",
+                "description":  "Vereis naast je wachtwoord ook een eenmalige code uit een authenticator-app.",
+                "loading":  "Tweefactorstatus laden…",
+                "enabled":  "Tweefactorauthenticatie staat aan",
+                "disabled":  "Tweefactorauthenticatie staat uit",
+                "disabledHelp":  "Je account is alleen met een wachtwoord beveiligd.",
+                "enable":  "Inschakelen",
+                "disable":  "Uitschakelen",
+                "cancel":  "Annuleren",
+                "confirm":  "Verifiëren en inschakelen",
+                "copy":  "Kopiëren",
+                "copied":  "Gekopieerd",
+                "copyCodes":  "Alle codes kopiëren",
+                "enrolledAt":  "Ingeschakeld op {{date}}",
+                "lastUsedAt":  "Laatst gebruikt {{date}}",
+                "recoveryRemaining":  "Nog {{count}} herstelcodes over",
+                "disableTitle":  "Tweefactorauthenticatie uitschakelen",
+                "confirmDisable":  "Tweefactorauthenticatie uitschakelen? Je account is dan alleen met een wachtwoord beveiligd.",
+                "step1Title":  "1. Scan deze code",
+                "step1Help":  "Open je authenticator-app en scan de QR-code. Lukt scannen niet? Voer de instelsleutel handmatig in.",
+                "qrAlt":  "QR-code om tweefactorauthenticatie in te stellen",
+                "manualEntry":  "Instelsleutel",
+                "step2Title":  "2. Bewaar je herstelcodes",
+                "step2Help":  "Elke code werkt één keer, en alleen als je geen toegang meer hebt tot je authenticator. Bewaar ze veilig — je ziet ze alleen nu.",
+                "step3Title":  "3. Voer de code uit je app in",
+                "step3Help":  "Typ de zes cijfers die je authenticator nu toont.",
+                "confirmFailed":  "Die code klopt niet. Controleer de tijd op je apparaat en probeer het opnieuw.",
+                "beginFailed":  "Instellen kon niet worden gestart. Probeer het opnieuw.",
+                "disableFailed":  "Tweefactorauthenticatie uitschakelen is mislukt. Probeer het opnieuw.",
+                "footerHelp":  "Als je zowel je authenticator als je herstelcodes kwijtraakt, verlies je de toegang tot dit account."
+            },
+    "permission":  {
+                       "denied":  "Je hebt geen machtiging om dit te doen",
+                       "requires":  "Vereist de machtiging {{permission}}"
+                   },
+    "accessDenied":  {
+                         "title":  "Machtiging vereist",
+                         "description":  "Je hebt geen machtiging om dit onderdeel te bekijken."
+                     },
+    "repeater":  {
+                     "removeRowLabel":  "Rij verwijderen"
+                 },
+    "password":  {
+                     "requirements":  {
+                                          "title":  "Wachtwoordvereisten",
+                                          "minLength":  "Minimaal {{min}} tekens",
+                                          "requireUpper":  "Minimaal één hoofdletter",
+                                          "requireLower":  "Minimaal één kleine letter",
+                                          "requireDigit":  "Minimaal één cijfer",
+                                          "requireSymbol":  "Minimaal één symbool",
+                                          "noReuse":  "Niet een van je laatste {{history}} wachtwoorden"
+                                      },
+                     "policyNotMet":  "Dit wachtwoord voldoet niet aan het wachtwoordbeleid."
+                 },
+    "view":  {
+                 "label":  "Weergave",
+                 "table":  "Tabelweergave",
+                 "timeline":  "Tijdlijnweergave"
+             },
+    "placeholders":  {
+                         "networkName":  "frontend_net",
+                         "networkHostAliases":  "app, app.local",
+                         "ipv6Address":  "fd00::10",
+                         "repoName":  "mijn-project",
+                         "branch":  "main",
+                         "serviceName":  "mijn-service",
+                         "containerName":  "nginx-web",
+                         "image":  "nginx:latest"
+                     },
+    "toast":  {
+                  "error":  "Er is iets misgegaan"
+              },
+    "accessibility":  {
+                          "skipToMain":  "Naar de hoofdinhoud"
+                      },
+    "severity":  {
+                     "info":  "Info",
+                     "success":  "Succes",
+                     "warning":  "Waarschuwing",
+                     "error":  "Fout",
+                     "critical":  "Kritiek"
+                 },
+    "brand":  {
+                  "logoAlt":  "McHarbor"
+              },
+    "plugins":  {
+                    "addons":  "Add-ons",
+                    "tabMissing":  {
+                                       "title":  "Dit add-on-tabblad heeft niets om te tonen",
+                                       "body":  "De plugin {{slug}} declareert een tabblad met de naam {{tab}}, maar zijn bundel exporteert er geen component voor."
+                                   },
+                    "mountFailed":  "De add-on {{slug}} kon dit niet weergeven."
+                },
+    "setupToken":  {
+                       "label":  "Setuptoken",
+                       "hint":  "Wordt bij het opstarten in het McHarbor-log afgedrukt: journalctl -u mcharbor bij een native installatie, docker logs mcharbor in een container. Het native installatieprogramma toont het ook. Het verandert bij elke herstart van McHarbor.",
+                       "invalid":  "Het setuptoken ontbreekt of is verouderd. Kopieer het huidige uit het McHarbor-log; het verandert bij elke herstart van McHarbor."
+                   },
+    "favorites":  {
+                      "add":  "{{label}} aan favorieten toevoegen",
+                      "remove":  "{{label}} uit favorieten verwijderen"
+                  },
+    "statusError":  {
+                        "title":  "Foutdetails",
+                        "view":  "De fout bekijken",
+                        "description":  "Wat de server meldde toen dit mislukte."
+                    },
+    "errorDetails":  {
+                         "view":  "Meer info",
+                         "description":  "Alles wat de server over deze fout meldde. Vermeld het verzoek-ID wanneer je dit meldt.",
+                         "operation":  "Bewerking",
+                         "summary":  "Melding",
+                         "cause":  "Oorzaak",
+                         "code":  "Foutcode",
+                         "status":  "HTTP-status",
+                         "requestId":  "Verzoek-ID",
+                         "time":  "Tijdstip",
+                         "copyAll":  "Alles kopiëren"
+                     },
+    "tableViews":  {
+                       "addColumn":  "{{column}} toevoegen",
+                       "addColumnButton":  "Kolom toevoegen",
+                       "align":  {
+                                     "auto":  "Standaard",
+                                     "left":  "Links",
+                                     "center":  "Gecentreerd",
+                                     "right":  "Rechts"
+                                 },
+                       "apply":  "Toepassen",
+                       "available":  "Beschikbaar",
+                       "cellAlign":  "Uitlijning van inhoud",
+                       "sortable":  "Sorteerbaar",
+                       "sortableHint":  "Laat de kop van deze kolom de rijen sorteren.",
+                       "columnSettings":  "Kolominstellingen voor {{column}}",
+                       "deleteConfirm":  "Het opgeslagen filter \"{{name}}\" verwijderen? Dit kan niet ongedaan worden gemaakt.",
+                       "deleteTitle":  "Opgeslagen filter verwijderen",
+                       "editTable":  "Tabel bewerken",
+                       "editTableDescription":  "Kies welke kolommen deze tabel toont, in welke volgorde en hoe breed. Alleen jij ziet deze indeling.",
+                       "errors":  {
+                                      "saveLayout":  "De kolomindeling kon niet worden opgeslagen.",
+                                      "resetLayout":  "De kolomindeling kon niet worden hersteld.",
+                                      "saveFilter":  "Het filter kon niet worden opgeslagen.",
+                                      "deleteFilter":  "Het filter kon niet worden verwijderd."
+                                  },
+                       "groupGeneral":  "Algemeen",
+                       "headerAlign":  "Uitlijning van titel",
+                       "modified":  "Het huidige filter wijkt af van het opgeslagen filter",
+                       "moveDown":  "{{column}} omlaag verplaatsen",
+                       "moveUp":  "{{column}} omhoog verplaatsen",
+                       "nameLabel":  "Filternaam",
+                       "nameTooLong":  "Gebruik maximaal 80 tekens.",
+                       "noAvailable":  "Geen kolommen meer om toe te voegen.",
+                       "noSavedFilters":  "Nog geen opgeslagen filters.",
+                       "removeColumn":  "{{column}} verwijderen",
+                       "rename":  "Hernoemen",
+                       "reset":  "Standaard herstellen",
+                       "resetConfirm":  "Dit verwijdert je kolomindeling voor deze tabel en herstelt de standaardkolommen, -volgorde en -breedtes.",
+                       "resizeColumn":  "Formaat van {{column}} wijzigen",
+                       "saveCurrent":  "Huidig filter opslaan…",
+                       "searchColumns":  "Kolommen zoeken",
+                       "setDefault":  "Instellen als standaard",
+                       "shown":  "Getoond",
+                       "size":  {
+                                    "auto":  "Auto",
+                                    "xs":  "Extra smal",
+                                    "sm":  "Smal",
+                                    "md":  "Gemiddeld",
+                                    "lg":  "Breed",
+                                    "xl":  "Extra breed",
+                                    "2xl":  "Zeer breed",
+                                    "3xl":  "Breedst"
+                                },
+                       "toast":  {
+                                     "deleted":  "Filter verwijderd"
+                                 },
+                       "unavailable":  "Tabelinstellingen kunnen nu niet worden geladen. De standaardindeling wordt getoond.",
+                       "unsetDefault":  "Niet meer als standaard instellen",
+                       "updateCurrent":  "Bijwerken met huidig filter",
+                       "useAsDefault":  "Dit filter toepassen wanneer de tabel opent",
+                       "width":  "Breedte"
+                   },
+    "avatar":  {
+                   "fallbackAlt":  "Gebruikersavatar"
+               },
+    "passwordInput":  {
+                          "show":  "Wachtwoord tonen",
+                          "hide":  "Wachtwoord verbergen"
+                      },
+    "fileUpload":  {
+                       "dropHere":  "Zet bestanden hier neer",
+                       "browse":  "Bestanden kiezen",
+                       "remove":  "Bestand verwijderen",
+                       "accepted":  "Toegestaan: {{accept}}",
+                       "dragAndDrop":  "Sleep bestanden hierheen",
+                       "maxSize":  "Maximale grootte: {{size}}",
+                       "maxFiles":  "Maximaal aantal bestanden: {{count}}"
+                   },
+    "pluginMount":  {
+                        "failed":  "Deze pluginpagina kon niet worden weergegeven."
                     }
 }

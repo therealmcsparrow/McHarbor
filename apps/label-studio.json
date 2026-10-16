@@ -1,0 +1,47 @@
+{
+    "slug":  "label-studio",
+    "name":  "Label Studio",
+    "description":  "Data labeling tool for annotating text, images, audio, and video to build machine learning training datasets.",
+    "category":  "Developer Tools",
+    "image":  "heartexlabs/label-studio:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/label-studio.png",
+    "website":  "https://labelstud.io",
+    "docsUrl":  "https://labelstud.io/guide/start",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/label-studio/data",
+                        "container":  "/label-studio/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LABEL_STUDIO_USERNAME",
+                        "default":  "admin@example.com",
+                        "description":  "Email address for the default admin account"
+                    },
+                    {
+                        "key":  "LABEL_STUDIO_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the default admin account",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

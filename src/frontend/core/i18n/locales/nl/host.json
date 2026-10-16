@@ -1,0 +1,58 @@
+{
+  "toast": {
+    "pruned": "Opgeschoond"
+  },
+  "capacity": {
+    "title": "Capaciteitsvoorspelling",
+    "description": "Wanneer elk bestandssysteem en elke opslagbestemming zonder ruimte komt te zitten, bij de huidige snelheid.",
+    "window": "Geprojecteerd op basis van de laatste {{window}} dagen tegen de grens van {{ceiling}}%. Een onderwerp heeft {{required}} dagen historie nodig voordat er een datum wordt gegeven.",
+    "sentence": "{{subject}} bereikt {{ceiling}}% op {{date}} bij de huidige snelheid — over {{days}} dagen.",
+    "evidence": "Nu op {{percent}}% ({{used}} van {{total}}), groeit {{rate}}% per dag. Betrouwbaarheid van de fit R² {{r2}} over {{observed}} dagen.",
+    "usedOfTotal": "Nu op {{percent}}% ({{used}} van {{total}}).",
+    "usedBadge": "{{percent}}% in gebruik",
+    "loadFailed": "De capaciteitsvoorspelling kon niet worden gelezen.",
+    "denied": "Je hebt de machtiging {{permission}} nodig om de capaciteitsvoorspelling te zien.",
+    "kind": {
+      "rootfs": "Hostbestandssysteem",
+      "storageLocation": "Opslagbestemming"
+    },
+    "refusal": {
+      "no_fit": "Nog niet genoeg historie — een projectie heeft minstens twee metingen nodig.",
+      "short_series": "Nog niet genoeg historie — vereist {{required}} dagen, heeft {{observed}}.",
+      "noisy": "Het gebruik is te wisselvallig om er een datum uit te projecteren.",
+      "not_rising": "Het gebruik groeit niet, dus er is geen datum te geven.",
+      "already_over": "Al voorbij de limiet — dit vraagt nu aandacht, geen voorspelling.",
+      "beyond_horizon": "Meer dan 30 dagen weg, verder dan deze voorspelling durft te gokken."
+    },
+    "empty": {
+      "title": "Nog geen capaciteitshistorie",
+      "description": "Capaciteit wordt eenmaal per uur gemeten. Een projectie heeft een week ervan nodig, dus kom over een paar dagen terug."
+    },
+    "idle": {
+      "title": "Inactieve resources",
+      "description": "Containers die meer dan {{days}} dagen inactief zijn. Docker meldt nu {{reclaimable}} terug te winnen.",
+      "descriptionPlain": "Containers die gestopt zijn, of draaien zonder CPU en zonder verkeer, lang genoeg om terug te winnen.",
+      "loadFailed": "De lijst met inactieve resources kon niet worden gelezen.",
+      "days": "{{days}} dagen",
+      "sizesUnavailable": "Groottes van beschrijfbare lagen worden voor deze omgeving niet verzameld, dus wat elke container bevat is hier onbekend.",
+      "columns": {
+        "container": "Container",
+        "state": "Status",
+        "forHowLong": "Inactief sinds",
+        "holds": "Bevat"
+      },
+      "reason": {
+        "stopped": "Gestopt",
+        "quiet": "Geen verkeer"
+      },
+      "sizeUnknown": {
+        "agent_environment": "Grootte onbekend — niet verzameld voor agentomgevingen",
+        "not_sampled": "Grootte onbekend — nooit gemeten"
+      },
+      "empty": {
+        "title": "Niets inactief",
+        "description": "Elke container in deze omgeving heeft recent gedraaid."
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+    "slug":  "certbot",
+    "name":  "Certbot",
+    "description":  "Command-line client that automates obtaining and renewing free TLS certificates from Let's Encrypt.",
+    "category":  "Security",
+    "image":  "certbot/certbot:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=certbot.eff.org\u0026sz=128",
+    "website":  "https://certbot.eff.org",
+    "docsUrl":  "https://eff-certbot.readthedocs.io/en/stable/install.html#running-with-docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/certbot/etc",
+                        "container":  "/etc/letsencrypt"
+                    },
+                    {
+                        "host":  "/opt/appdata/certbot/lib",
+                        "container":  "/var/lib/letsencrypt"
+                    },
+                    {
+                        "host":  "/opt/appdata/certbot/webroot",
+                        "container":  "/var/www/certbot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CERTBOT_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Contact email used for Let's Encrypt renewal notices"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "goss",
+    "name":  "Goss",
+    "description":  "YAML-defined server validation tool for asserting a host or container matches its expected configuration.",
+    "category":  "Developer Tools",
+    "image":  "aelsabbahy/goss:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/goss-org/goss",
+    "docsUrl":  "https://github.com/goss-org/goss#installation",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/goss/tests",
+                        "container":  "/goss"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GOSS_FILES_PATH",
+                        "default":  "/goss",
+                        "description":  "Directory containing the goss.yaml test definitions"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

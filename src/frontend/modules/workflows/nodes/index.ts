@@ -4,7 +4,8 @@
 export {
   CATEGORY_COLORS,
   CATEGORY_TAG_COLORS,
-  CATEGORY_GLOW_RGB,
+  CATEGORY_GLOW_CLASS,
+  FALLBACK_GLOW_CLASS,
   NODE_DEFINITIONS,
   NODE_DEFINITION_MAP,
   NODE_REQUIREMENT_MAP,
@@ -14,3 +15,5 @@ export {
   getNodeRequirement,
   isNodeDefinitionAvailable,
 } from '@resources/nodes/registry';
+export { resolveNodeDefinition } from './resolve';
+export { useNodeDefinition } from '../hooks/useNodeDefinition';

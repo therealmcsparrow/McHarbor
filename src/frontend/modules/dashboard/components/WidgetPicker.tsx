@@ -13,11 +13,7 @@ import {
   DialogDescription,
 } from '@resources/components/ui/Dialog';
 import { cn } from '@resources/utils/cn';
-import {
-  WIDGET_CATEGORIES,
-  useWidgetDefinitions,
-  type WidgetTypeId,
-} from '../widgets/registry';
+import { WIDGET_CATEGORIES, useWidgetDefinitions, type WidgetTypeId } from '../widgets/registry';
 import { useDashboardLayoutStore } from '../stores/dashboard-layout';
 
 type WidgetPickerProps = {
@@ -25,7 +21,7 @@ type WidgetPickerProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function WidgetPicker({ open, onOpenChange }: WidgetPickerProps) {
+export function WidgetPicker({ open: isOpen, onOpenChange }: WidgetPickerProps) {
   const { t } = useTranslation('dashboard');
   const { widgets, addWidget, removeWidget } = useDashboardLayoutStore();
   const allDefinitions = useWidgetDefinitions();
@@ -41,7 +37,7 @@ export function WidgetPicker({ open, onOpenChange }: WidgetPickerProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl p-0">
         <DialogHeader>
           <DialogTitle>{t('addWidgets')}</DialogTitle>
@@ -53,7 +49,7 @@ export function WidgetPicker({ open, onOpenChange }: WidgetPickerProps) {
             if (catWidgets.length === 0) return null;
             return (
               <div key={cat.id} className="mb-5 last:mb-0">
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h3 className="mb-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   {t(cat.labelKey)}
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -66,10 +62,10 @@ export function WidgetPicker({ open, onOpenChange }: WidgetPickerProps) {
                         variant="ghost"
                         onClick={() => toggle(def.id)}
                         className={cn(
-                          'flex h-auto items-start gap-3 whitespace-normal rounded-lg border p-3 text-left transition-colors',
+                          'flex h-auto items-start gap-3 rounded-lg border p-3 text-left whitespace-normal transition-colors',
                           isActive
                             ? 'border-primary/50 bg-primary/5'
-                            : 'border-border hover:border-primary/30 hover:bg-accent/50'
+                            : 'border-border hover:border-primary/30 hover:bg-accent/50',
                         )}
                       >
                         <div className={cn('mt-0.5 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}>

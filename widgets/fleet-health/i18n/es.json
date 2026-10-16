@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Estado de la flota",
+      "description": "Veredicto de una línea sobre si algo requiere atención, con acceso directo"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "Comprobando la flota…",
+    "empty": "No hay contenedores en este entorno.",
+    "unavailable": "Estado de la flota no disponible",
+    "barLabel": "Estado de la flota en {{count}} contenedores",
+    "subtitle": "{{count}} contenedor en total",
+    "subtitle_other": "{{count}} contenedores en total",
+    "verdict": {
+      "allUp": "Todo lo crítico está en marcha.",
+      "down": "{{count}} contenedor está caído.",
+      "down_other": "{{count}} contenedores están caídos."
+    },
+    "wants": {
+      "none": "Nada requiere tu atención.",
+      "some": "{{count}} cosa requiere tu atención.",
+      "some_other": "{{count}} cosas requieren tu atención."
+    },
+    "facts": {
+      "running": "{{running}} de {{total}} contenedores en ejecución",
+      "updates": "{{count}} actualización de imagen disponible",
+      "updates_other": "{{count}} actualizaciones de imagen disponibles",
+      "noUpdates": "sin actualizaciones de imagen pendientes",
+      "updatesUnchecked": "actualizaciones de imagen aún sin comprobar",
+      "noRestarts": "sin bucles de reinicio en la flota",
+      "restarting": "{{count}} contenedor reiniciándose",
+      "restarting_other": "{{count}} contenedores reiniciándose"
+    },
+    "actions": {
+      "checkUpdates": "Buscar actualizaciones",
+      "liveLogs": "Registros en vivo"
+    },
+    "state": {
+      "running": "En ejecución",
+      "unhealthy": "Con problemas",
+      "paused": "En pausa",
+      "exited": "Detenido"
+    },
+    "cards": {
+      "unhealthy": "{{name}} no supera su comprobación de estado",
+      "unhealthyDetail": "Activo {{uptime}} · sigue atendiendo tráfico",
+      "unhealthyDetailPlain": "Sigue atendiendo tráfico",
+      "dead": "{{name}} está muerto",
+      "deadDetail": "Docker no pudo mantenerlo en ejecución",
+      "restarting": "{{name}} se está reiniciando",
+      "restartingDetail": "Docker sigue intentando levantarlo",
+      "snapshots": "{{count}} instantánea está atrasada",
+      "snapshots_other": "{{count}} instantáneas están atrasadas",
+      "days": "{{count}} día",
+      "days_other": "{{count}} días",
+      "never": "nunca ejecutada",
+      "exited": "{{count}} contenedor está detenido",
+      "exited_other": "{{count}} contenedores están detenidos",
+      "exitedDetail": "Esperando a que lo inicies",
+      "updates": "{{count}} actualización de imagen está lista",
+      "updates_other": "{{count}} actualizaciones de imagen están listas",
+      "updatesDetail": "Haz pull y recrea para aplicarlas",
+      "allClear": "Ahora mismo nada requiere tu atención",
+      "allClearDetail": "Todos los contenedores están en ejecución y todas las instantáneas al día"
+    }
+  }
+}

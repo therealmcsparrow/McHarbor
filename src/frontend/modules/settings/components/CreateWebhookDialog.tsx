@@ -17,15 +17,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@resources/components/ui/Dialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 type CreateWebhookDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function CreateWebhookDialog({ open, onOpenChange }: CreateWebhookDialogProps) {
+export function CreateWebhookDialog({ open: isOpen, onOpenChange }: CreateWebhookDialogProps) {
   const { t } = useTranslation('settings');
-  const { t: tc } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const createWebhook = useMutation({
@@ -50,12 +50,12 @@ export function CreateWebhookDialog({ open, onOpenChange }: CreateWebhookDialogP
           setWhUrl('');
           setWhEvents('container.start,container.stop');
         },
-      }
+      },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('webhooks.dialogTitle')}</DialogTitle>
@@ -92,9 +92,10 @@ export function CreateWebhookDialog({ open, onOpenChange }: CreateWebhookDialogP
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
           <Button
+            permission={PERM.WEBHOOKS_MANAGE}
             onClick={handleCreate}
             disabled={createWebhook.isPending || !whName.trim() || !whUrl.trim()}
           >

@@ -1,0 +1,290 @@
+{
+  "overview": {
+    "section": "Supportability",
+    "bundle": {
+      "title": "Support bundle",
+      "description": "Generate a redacted diagnostics package for McHarbor support."
+    },
+    "diagnostics": {
+      "title": "Diagnostics",
+      "description": "Run health checks with pass, warning and failure verdicts."
+    },
+    "inventory": {
+      "title": "State inventory",
+      "description": "What lives in the data directory, its size and whether it is backed up."
+    }
+  },
+  "status": {
+    "pass": "Pass",
+    "warn": "Warning",
+    "fail": "Fail",
+    "skip": "Skipped"
+  },
+  "check": {
+    "database": "Database",
+    "migrations": "Database migrations",
+    "data_dir": "Data directory",
+    "docker": "Docker reachability",
+    "agents": "Remote agents",
+    "plugins": "Plugins",
+    "identity": "Identity providers",
+    "outbound": "Outbound network",
+    "tls": "TLS certificate",
+    "backup_key": "Backup encryption key",
+    "encryption_key": "Data encryption key",
+    "readiness": "Readiness",
+    "target_migrations": "Migrations for the target version",
+    "plugin_compat": "Plugin compatibility",
+    "busy": "Running backups and exports"
+  },
+  "reason": {
+    "database": {
+      "ok": "The database answers.",
+      "unreachable": "The database does not answer. Check that it is running and that MCHARBOR_DB_DSN or DATABASE_PATH points at it."
+    },
+    "migrations": {
+      "ok": "Every migration this version ships has been applied.",
+      "pending": "Some migrations have not been applied. Restart McHarbor so it can apply them, and check the log if they keep failing.",
+      "ahead": "The database has migrations this version does not know. It was used by a newer McHarbor; do not run an older version against it.",
+      "unreadable": "The migration ledger could not be read. Check database connectivity first."
+    },
+    "data_dir": {
+      "ok": "The data directory exists, is writable and has room.",
+      "missing": "The data directory does not exist. Check DATA_DIR and the volume mount.",
+      "not_writable": "McHarbor cannot write to the data directory. Check the mount is not read-only and the process owns it.",
+      "low_space": "Less than 2 GB is free. Free space before running backups, exports or an upgrade."
+    },
+    "docker": {
+      "ok": "Every directly connected Docker host answered within 5 seconds.",
+      "some_unreachable": "Some Docker hosts did not answer within 5 seconds. Check the socket mount or TCP address of those environments.",
+      "unreachable": "No directly connected Docker host answered. Check the Docker socket mount and that the daemon is running.",
+      "none": "There are no directly connected Docker environments.",
+      "unreadable": "The environment list could not be read."
+    },
+    "agents": {
+      "ok": "Every agent environment has a connected agent.",
+      "disconnected": "Some agents are not connected to this node. Check the agent service on those hosts and their route to McHarbor.",
+      "none": "There are no agent environments.",
+      "unreadable": "The environment list could not be read."
+    },
+    "plugins": {
+      "ok": "Every enabled plugin loaded.",
+      "load_failed": "Some plugins failed to load. A plugin built for another McHarbor build must be updated or repaired from the Plugin Store.",
+      "runtime_off": "The plugin runtime is not active on this platform or has not started yet."
+    },
+    "identity": {
+      "configured": "External identity providers are enabled.",
+      "local_only": "Only local accounts can sign in. Add an identity provider under Security if you use single sign-on.",
+      "unreadable": "The identity provider list could not be read."
+    },
+    "outbound": {
+      "ok": "The catalog URL answered.",
+      "unreachable": "The catalog URL did not answer within 5 seconds. Check DNS, the proxy and the firewall for outbound HTTPS.",
+      "server_error": "The catalog URL answered with a server error. The catalog may be down; try again later.",
+      "not_configured": "No catalog URL is configured, so outbound access was not tested."
+    },
+    "tls": {
+      "ok": "The certificate is valid for more than 30 days.",
+      "expiring": "The certificate expires within 30 days. Upload a renewed certificate or regenerate the self-signed one.",
+      "expired": "The certificate has expired. Browsers and agents will refuse it until it is replaced.",
+      "missing": "No certificate file was found.",
+      "unreadable": "The certificate file could not be parsed.",
+      "disabled": "TLS is disabled (TLS_ENABLED=false). Terminate TLS at a reverse proxy."
+    },
+    "backup_key": {
+      "present": "A backup encryption key is loaded.",
+      "missing": "No backup encryption key is loaded, so backups cannot be encrypted. Mount one at BACKUP_ENCRYPTION_KEY_FILE."
+    },
+    "encryption_key": {
+      "env": "The data encryption key comes from ENCRYPTION_KEY.",
+      "auto_generated": "The data encryption key was generated into DATA_DIR/.encryption_key. Losing that file loses every stored secret, and each HA node would generate its own. Copy it into ENCRYPTION_KEY."
+    },
+    "readiness": {
+      "ok": "This node is ready to take traffic.",
+      "not_ready": "This node is not ready: see which readiness condition is false.",
+      "not_ready_yet": "The cluster service has not started yet."
+    },
+    "target_migrations": {
+      "target_unknown": "The target version's migrations cannot be known until its image is pulled. The current database is fully migrated.",
+      "pending": "This version still has unapplied migrations. Resolve them before upgrading.",
+      "ahead": "The database already carries migrations this version does not know.",
+      "unreadable": "The migration ledger could not be read."
+    },
+    "plugin_compat": {
+      "ok": "Every installed plugin declares support for the target version.",
+      "incompatible": "Some plugins do not declare support for the target version. They will not load until updated.",
+      "unknown": "Some plugins declare no readable version range. Check them after the upgrade.",
+      "unreadable": "The installed plugin list could not be read.",
+      "none": "No plugins are installed."
+    },
+    "busy": {
+      "idle": "No backup, export or support bundle is running.",
+      "running": "A backup, export or support bundle is running. An upgrade restarts McHarbor and would interrupt it."
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostics",
+    "description": "Health checks for this McHarbor node, each with what to do when it does not pass. Results are redacted and safe to share with support.",
+    "runAll": "Run all checks",
+    "runCheck": "Run {{check}}",
+    "copyJson": "Copy JSON",
+    "notRun": "Not run yet",
+    "duration": "{{ms}} ms",
+    "generatedAt": "Last run {{time}}",
+    "summary": "{{pass}} passed, {{warn}} warnings, {{fail}} failed"
+  },
+  "bundle": {
+    "title": "Support bundle",
+    "description": "Package redacted diagnostics for McHarbor support. Nothing leaves this server until you download the file.",
+    "categoriesTitle": "Include in the bundle",
+    "categoriesHint": "Keys, tokens, passwords, kubeconfigs, agent tokens and API keys are never collected, and every file is scrubbed for credentials before it is written.",
+    "noneSelected": "Choose at least one category.",
+    "preview": "Preview redaction",
+    "generate": "Generate bundle",
+    "estimate": "Estimated size: {{size}}",
+    "running": "Generating: {{progress}}%",
+    "category": {
+      "system": {
+        "title": "Version and configuration",
+        "description": "Version, build, platform and environment variables, with values shown only for variables known to be safe."
+      },
+      "logs": {
+        "title": "Recent server logs",
+        "description": "The last 500 log records this process kept in memory."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Enabled plugins and what the loader reported for each."
+      },
+      "cluster": {
+        "title": "Cluster",
+        "description": "Readiness and the high-availability topology."
+      },
+      "database": {
+        "title": "Database",
+        "description": "Driver, server version and the migration list."
+      },
+      "environments": {
+        "title": "Environments",
+        "description": "Names, connection types and agent versions. No addresses, sockets or credentials."
+      },
+      "audit": {
+        "title": "Permission denials",
+        "description": "How many requests were denied in the last day and week."
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "description": "The result of every diagnostics check."
+      }
+    },
+    "previewTitle": "Redaction preview",
+    "previewDescription": "This is exactly what the bundle will contain: {{count}} files, {{size}}.",
+    "previewTruncated": "Only the first 64 KB are shown; the bundle contains the whole file.",
+    "historyTitle": "Generated bundles",
+    "historyDescription": "The newest {{count}} bundles are kept; older ones are deleted automatically.",
+    "empty": "No bundles have been generated yet.",
+    "columns": {
+      "created": "Created",
+      "createdBy": "By",
+      "categories": "Contents",
+      "size": "Size",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "state": {
+      "running": "Generating",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "failed": "Generation failed. The server log has the details.",
+    "download": "Download",
+    "delete": "Delete",
+    "deleteTitle": "Delete this support bundle?",
+    "deleteDescription": "The bundle file is removed from this server. Copies already downloaded are not affected."
+  },
+  "inventory": {
+    "title": "State inventory",
+    "description": "Everything McHarbor keeps in its data directory: how large it is, whether McHarbor can write to it, whether an instance backup carries it and whether it can be cleaned up. Read-only.",
+    "dataDir": "Data directory",
+    "used": "Used by McHarbor",
+    "free": "Free on the volume",
+    "driver": "Database",
+    "columns": {
+      "category": "Category",
+      "path": "Path",
+      "size": "Size",
+      "writable": "Writable",
+      "backup": "Instance backup",
+      "cleanup": "Cleanup"
+    },
+    "missing": "Not present",
+    "files_one": "{{count}} file",
+    "files_other": "{{count}} files",
+    "truncated": "Size is a lower bound; the walk stopped early.",
+    "yes": "Yes",
+    "no": "No",
+    "category": {
+      "database": "Database",
+      "encryption_key": "Data encryption key",
+      "server_secret": "Server secret",
+      "tls": "TLS certificates",
+      "plugins": "Installed plugins",
+      "plugin_catalog": "Plugin catalog cache",
+      "stacks": "Stacks",
+      "files": "Uploaded files",
+      "custom_nodes": "Custom workflow nodes",
+      "widgets": "Dashboard widgets",
+      "widgets_state": "Widget state",
+      "workflow_nodes": "Workflow node state",
+      "git": "Git working copies",
+      "container_backups": "Container backups",
+      "backup_staging": "Backup staging",
+      "instance_backups": "Instance backups",
+      "restore_staging": "Restore staging",
+      "restore_ledger": "Restore ledger",
+      "restore_status": "Restore status",
+      "support_bundles": "Support bundles",
+      "other": "Other"
+    },
+    "backup": {
+      "included": "Included",
+      "partial": "Partly",
+      "excluded": "Not included",
+      "database": "As tables"
+    },
+    "cleanup": {
+      "no": "Keep",
+      "safe": "Safe to remove",
+      "managed": "Pruned by retention",
+      "regenerable": "Recreated on demand",
+      "unknown": "Unknown, not created by McHarbor"
+    }
+  },
+  "preUpgrade": {
+    "open": "Pre-upgrade check",
+    "title": "Pre-upgrade check",
+    "description": "What to know before upgrading from {{current}} to {{target}}. This check changes nothing and does not block the update.",
+    "rerun": "Run again",
+    "pluginsTitle": "Installed plugins",
+    "pluginRange": "Declares {{range}}",
+    "noRange": "No version range",
+    "compat": {
+      "yes": "Compatible",
+      "no": "Not compatible",
+      "unknown": "Unknown"
+    },
+    "rollbackTitle": "If the upgrade goes wrong",
+    "rollbackSqlite": "Take an instance backup first (Settings → System → Instance backup). SQLite migrations only move forward: to roll back, stop McHarbor, restore the backup or a copy of the data volume, and start the previous image tag.",
+    "rollbackExternal": "Take a dump of the external database first. Migrations only move forward: to roll back, stop every node, restore the dump and start the previous image tag on all nodes together.",
+    "rollbackImage": "The previous image stays in the local image cache, so it can be started again without a download.",
+    "rollbackKey": "Keep ENCRYPTION_KEY, MCHARBOR_SECRET and the backup key unchanged across the upgrade and any rollback.",
+    "compatTitle": "Before you upgrade",
+    "compatLink": "Compatibility matrix: supported databases, agent version floors, HA modes and tested Docker and Kubernetes versions"
+  },
+  "keyBanner": {
+    "title": "The data encryption key only exists inside the data directory",
+    "description": "ENCRYPTION_KEY is not set, so McHarbor generated DATA_DIR/.encryption_key. If that file is lost every stored secret is unreadable, and a second node would generate a different key. Copy the key into ENCRYPTION_KEY.",
+    "open": "Open diagnostics",
+    "dismiss": "Dismiss"
+  }
+}

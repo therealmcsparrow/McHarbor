@@ -1,0 +1,53 @@
+{
+    "slug":  "radarr-preview",
+    "name":  "Radarr (Preview)",
+    "description":  "Preview channel build of Radarr. Automatic movie downloading and management for Usenet and BitTorrent.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/radarr:preview",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radarr.png",
+    "website":  "https://radarr.video",
+    "docsUrl":  "https://wiki.servarr.com/radarr",
+    "ports":  [
+                  {
+                      "host":  8878,
+                      "container":  7878,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/radarr-preview/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/radarr-preview/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/radarr-preview/movies",
+                        "container":  "/movies"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "preview",
+    "latest":  {
+        "version":  "preview",
+        "release_date":  "2026-09-29"
+    }
+}

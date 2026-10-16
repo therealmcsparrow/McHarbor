@@ -5,12 +5,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { IconNetwork, IconRefresh } from '@tabler/icons-react';
-import { api } from '@core/api/client';
-import type { ContainerInfo, NetworkInfo } from '@core/types/docker';
 import { Button } from '@resources/components/ui/Button';
 import { Select } from '@resources/components/ui/Select';
-import { assertSuccess } from '@resources/utils/api-mutation';
 import type { AppNetworkMode, AppNetworkSettings } from '../types';
+import { fetchInstalledNetworks, splitCsv } from './installNetworkData';
+
+const MAC_PLACEHOLDER = '02:42:ac:14:00:10';
 
 interface InstallStepNetworkProps {
   network: AppNetworkSettings;
@@ -26,44 +26,7 @@ const networkModes: Array<{ value: AppNetworkMode; labelKey: string }> = [
   { value: 'existing', labelKey: 'appStore.networkModeExisting' },
 ];
 
-type InstalledNetworkOption = {
-  name: string;
-  driver: string;
-};
-
-function splitCsv(value: string): string[] {
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-async function fetchInstalledNetworks(selectedEnvId: string): Promise<InstalledNetworkOption[]> {
-  const params: Record<string, string> = selectedEnvId ? { env: selectedEnvId } : {};
-
-  try {
-    const networks = assertSuccess(await api.get<NetworkInfo[]>('/networks', params));
-    return networks.map((item) => ({ name: item.Name, driver: item.Driver }));
-  } catch (error) {
-    const containers = assertSuccess(
-      await api.get<ContainerInfo[]>('/containers', { ...params, all: 'true' }),
-    );
-    const names = new Set<string>();
-    containers.forEach((container) => {
-      Object.keys(container.NetworkSettings?.Networks ?? {}).forEach((networkName) => {
-        names.add(networkName);
-      });
-    });
-    if (names.size === 0) throw error;
-    return [...names].map((name) => ({ name, driver: '' }));
-  }
-}
-
-export function InstallStepNetwork({
-  network,
-  selectedEnvId,
-  onNetworkChange,
-}: InstallStepNetworkProps) {
+export function InstallStepNetwork({ network, selectedEnvId, onNetworkChange }: InstallStepNetworkProps) {
   const { t } = useTranslation('common');
   const [aliasText, setAliasText] = useState(network.aliases.join(', '));
 
@@ -75,12 +38,13 @@ export function InstallStepNetwork({
   });
 
   const networkOptions = useMemo(
-    () => (networksQuery.data ?? [])
-      .map((item) => ({
-        value: item.name,
-        label: item.driver ? `${item.name} (${item.driver})` : item.name,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label)),
+    () =>
+      (networksQuery.data ?? [])
+        .map((item) => ({
+          value: item.name,
+          label: item.driver ? `${item.name} (${item.driver})` : item.name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
     [networksQuery.data],
   );
 
@@ -120,9 +84,7 @@ export function InstallStepNetwork({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-foreground">
-          {t('appStore.networkMode')}
-        </label>
+        <label className="mb-1 block text-sm font-medium text-foreground">{t('appStore.networkMode')}</label>
         <Select
           value={network.mode}
           onChange={handleModeChange}
@@ -136,14 +98,12 @@ export function InstallStepNetwork({
         <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3">
           <div>
             <div className="mb-1 flex items-center justify-between gap-2">
-              <label className="block text-xs font-medium text-muted-foreground">
-                {t('appStore.existingNetwork')}
-              </label>
+              <label className="block text-xs font-medium text-muted-foreground">{t('appStore.existingNetwork')}</label>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-7 gap-1 px-2 text-xs"
+                className="gap-1 px-2 text-xs"
                 onClick={() => void networksQuery.refetch()}
                 disabled={!selectedEnvId || networksQuery.isFetching}
               >
@@ -166,7 +126,9 @@ export function InstallStepNetwork({
               />
             </div>
             {networksQuery.isError && (
-              <p className="mt-1 text-xs text-destructive">{t('appStore.networkListError')}</p>
+              <p className="mt-1 text-xs text-destructive">
+                {[t('appStore.networkListError'), networksQuery.error?.message].filter(Boolean).join(' — ')}
+              </p>
             )}
             {!networksQuery.isLoading && !networksQuery.isError && networkOptions.length === 0 && (
               <p className="mt-1 text-xs text-muted-foreground">{t('appStore.noConfiguredNetworks')}</p>
@@ -175,16 +137,14 @@ export function InstallStepNetwork({
 
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              {networkOptions.length > 0
-                ? t('appStore.manualNetworkOverride')
-                : t('appStore.networkName')}
+              {networkOptions.length > 0 ? t('appStore.manualNetworkOverride') : t('appStore.networkName')}
             </label>
             <input
               type="text"
               value={network.name}
-              onChange={(event) => update({ name: event.target.value })}
-              placeholder="frontend_net"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              onChange={(evt2) => update({ name: evt2.target.value })}
+              placeholder={t('placeholders.networkName')}
+              className="mc-control w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -195,9 +155,9 @@ export function InstallStepNetwork({
             <input
               type="text"
               value={aliasText}
-              onChange={(event) => handleAliasesChange(event.target.value)}
-              placeholder="app, app.local"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              onChange={(evt2) => handleAliasesChange(evt2.target.value)}
+              placeholder={t('placeholders.networkHostAliases')}
+              className="mc-control w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -209,9 +169,9 @@ export function InstallStepNetwork({
               <input
                 type="text"
                 value={network.ipv4Address}
-                onChange={(event) => update({ ipv4Address: event.target.value })}
+                onChange={(entry) => update({ ipv4Address: entry.target.value })}
                 placeholder="172.20.0.10"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="mc-control w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
               />
             </div>
             <div>
@@ -221,21 +181,19 @@ export function InstallStepNetwork({
               <input
                 type="text"
                 value={network.ipv6Address}
-                onChange={(event) => update({ ipv6Address: event.target.value })}
-                placeholder="fd00::10"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(eventItem) => update({ ipv6Address: eventItem.target.value })}
+                placeholder={t('placeholders.ipv6Address')}
+                className="mc-control w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                {t('appStore.macAddress')}
-              </label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{t('appStore.macAddress')}</label>
               <input
                 type="text"
                 value={network.macAddress}
-                onChange={(event) => update({ macAddress: event.target.value })}
-                placeholder="02:42:ac:14:00:10"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(evt) => update({ macAddress: evt.target.value })}
+                placeholder={MAC_PLACEHOLDER}
+                className="mc-control w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
               />
             </div>
           </div>

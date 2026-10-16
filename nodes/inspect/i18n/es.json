@@ -1,0 +1,23 @@
+{
+  "label": "Inspeccionar",
+  "description": "Inspeccionar un contenedor, imagen, red, volumen o stack",
+  "config": {
+    "environment": "Ambiente",
+    "resource": "Recurso",
+    "container": "Recipiente",
+    "image": "Imagen",
+    "name": "Nombre",
+    "stack_name": "Nombre de la pila",
+    "network": "Red",
+    "volume": "Volumen"
+  },
+  "options": {
+    "resource": {
+      "container": "Contenedor",
+      "image": "Imagen",
+      "network": "Red",
+      "volume": "Volumen",
+      "stack": "Stack"
+    }
+  }
+}

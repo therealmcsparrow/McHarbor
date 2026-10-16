@@ -2,7 +2,7 @@
     "slug":  "sftpgo",
     "name":  "SFTPGo",
     "description":  "SFTP, HTTP/S, FTP/S, and WebDAV server with a web admin UI.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "drakkan/sftpgo:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sftpgo.png",
     "website":  "https://sftpgo.com",
@@ -36,5 +36,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

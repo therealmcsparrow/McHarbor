@@ -1,0 +1,16 @@
+{
+  "slug": "addon-swarm",
+  "name": "Docker Swarm",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Manage Docker Swarm from McHarbor: services, tasks, nodes, secrets, configs, swarm stacks and overlay networks — with cluster init, join, leave, join-token and unlock-key lifecycle, service scaling, rolling restarts and rollback. Swarm is discovered by probing the daemon an environment is already connected to, so the add-on stores nothing and needs no credentials of its own.",
+  "category": "Orchestration",
+  "icon": "IconTopologyStar3",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/addon-swarm-1.0.0.tar.gz"
+    }
+  ]
+}

@@ -1,234 +1,142 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { ColumnDef } from '@tanstack/react-table';
-import {
-  IconTrash,
-  IconPlus,
-  IconLayoutGrid,
-  IconLayoutList,
-  IconFilterOff,
-  IconLock,
-} from '@tabler/icons-react';
-import type { VolumeInfo } from '@core/types/docker';
+import { IconPlus, IconLayoutGrid, IconLayoutList, IconFilterOff } from '@tabler/icons-react';
 import { isProtectedVolume } from '@core/utils/protection';
-import { PageHeader } from '@resources/layout/PageHeader';
-import { DataGrid, type BatchAction } from '@resources/components/DataGrid';
-import { Badge } from '@resources/components/ui/Badge';
+import { TablePage } from '@resources/layout/TablePage';
+import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
 import { Button } from '@resources/components/ui/Button';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
-import { formatDate } from '@resources/utils/format';
-import { useVolumes, useCreateVolume, useRemoveVolume, usePruneVolumes } from '../hooks/useVolumes';
+import { useVolumes, useCreateVolume, useRemoveVolume } from '../hooks/useVolumes';
+import { useVolumesPageConfig } from '../hooks/useVolumesPageConfig';
+import { PruneVolumesDialog } from '../components/PruneVolumesDialog';
+import { RemoveVolumeDialog } from '../components/RemoveVolumeDialog';
 import { useVolumesViewStore } from '../stores/volumes-view';
 import { CreateVolumeDialog } from '../components/CreateVolumeDialog';
 import { VolumeCardGrid } from '../components/VolumeCardGrid';
+import { PERM } from '@core/auth/permissionKeys';
 
 export default function VolumesPage() {
+  const navigate = useNavigate();
   const { t } = useTranslation('volumes');
-  const { t: tc } = useTranslation('common');
-  const { data: volumes = [], isLoading } = useVolumes();
+  const { data: volumes = [], isLoading, isFetching, refetch } = useVolumes();
   const createVolume = useCreateVolume();
   const removeVolume = useRemoveVolume();
-  const pruneVolumes = usePruneVolumes();
   const { viewMode, setViewMode } = useVolumesViewStore();
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
   const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
+  // A volume name can contain characters that are not path-safe, so it is
+  // encoded on the way into the URL and decoded by `useParams` on the way out.
+  const openVolume = useCallback(
+    (volumeName: string) => navigate(`/volumes/${encodeURIComponent(volumeName)}`),
+    [navigate],
+  );
+  const [query, setQuery] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('contains');
 
-  const columns = useMemo<ColumnDef<VolumeInfo, unknown>[]>(
-    () => [
-      {
-        accessorKey: 'Name',
-        header: t('columns.name'),
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="truncate font-medium">{row.original.Name}</span>
-            {isProtectedVolume(row.original) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <IconLock className="size-3.5 shrink-0 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>{tc('actions.locked')}</TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        ),
-      },
-      { accessorKey: 'Driver', header: t('columns.driver') },
-      {
-        id: 'usage',
-        header: t('columns.usage'),
-        cell: ({ row }) => {
-          const count = row.original.RefCount;
-          return count > 0 ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="success">{t('badges.inUse')}</Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                {count} {count === 1 ? 'container' : 'containers'}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <Badge variant="warning">{t('badges.unused')}</Badge>
-          );
-        },
-      },
-      {
-        accessorKey: 'Mountpoint',
-        header: t('columns.mountpoint'),
-        cell: ({ row }) => (
-          <span className="max-w-xs truncate font-mono text-xs text-muted-foreground">
-            {row.original.Mountpoint}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'CreatedAt',
-        header: t('columns.created'),
-        cell: ({ row }) => formatDate(row.original.CreatedAt),
-      },
-      {
-        id: 'actions',
-        header: () => <span className="ml-auto">{t('columns.actions')}</span>,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end">
-            <Button
-              variant="ghost"
-              size="icon"
-              title={tc('actions.remove')}
-              aria-label={tc('actions.remove')}
-              disabled={isProtectedVolume(row.original)}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (isProtectedVolume(row.original)) return;
-                setConfirmTarget(row.original.Name);
-              }}
-            >
-              <IconTrash className="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [t, tc]
+  const { columns, batchActions } = useVolumesPageConfig(setConfirmTarget, (volumeName) =>
+    removeVolume.mutate(volumeName),
   );
 
-  const batchActions = useMemo<BatchAction[]>(
-    () => [
-      {
-        label: tc('batch.remove'),
-        icon: IconTrash,
-        variant: 'destructive',
-        confirm: true,
-        onClick: (rows) => {
-          for (const row of rows as VolumeInfo[]) {
-            if (isProtectedVolume(row)) continue;
-            removeVolume.mutate(row.Name);
-          }
-        },
-      },
-    ],
-    [tc, removeVolume]
+  // The card view shares the table's query, match mode and fields; it used to
+  // have a separate box that matched Name/Driver with contains only.
+  const matcher = useMemo(() => createSearchMatcher(query, searchMode), [query, searchMode]);
+  const cardVolumes = useMemo(
+    () =>
+      query.trim() === ''
+        ? volumes
+        : volumes.filter(
+            (volume) => matchesSearchFields(query, searchMode, [volume.Name, volume.Driver, volume.Mountpoint]).matched,
+          ),
+    [volumes, query, searchMode],
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader
+    <>
+      <TablePage
+        id="volumes"
         title={t('title')}
         description={t('description', { count: volumes.length })}
         actions={
-          <>
-            <Button onClick={() => setCreateOpen(true)}>
-              <IconPlus className="h-4 w-4" /> {t('create.title')}
+          <div className="flex items-center rounded-lg border border-border">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="icon-sm"
+              onClick={() => setViewMode('table')}
+              aria-label={t('tableView')}
+            >
+              <IconLayoutList className="h-4 w-4" />
             </Button>
-            <Button variant="outline" onClick={() => setPruneConfirmOpen(true)}>
-              <IconFilterOff className="h-4 w-4" /> {t('pruneUnused')}
+            <Button
+              variant={viewMode === 'card' ? 'default' : 'ghost'}
+              size="icon-sm"
+              onClick={() => setViewMode('card')}
+              aria-label={t('cardView')}
+            >
+              <IconLayoutGrid className="h-4 w-4" />
             </Button>
-            <div className="h-6 w-px bg-border" />
-            <div className="flex items-center rounded-lg border border-border">
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'ghost'}
-                size="icon-sm"
-                onClick={() => setViewMode('table')}
-                aria-label={t('tableView')}
-              >
-                <IconLayoutList className="h-4 w-4" />
+          </div>
+        }
+        search={{
+          value: query,
+          onChange: setQuery,
+          mode: searchMode,
+          onModeChange: setSearchMode,
+          placeholder: t('searchPlaceholder'),
+          error: matcher.error !== null,
+          fields: (volume) => [volume.Name, volume.Driver, volume.Mountpoint],
+        }}
+        toolbar={{
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: () => void refetch(), isFetching },
+          export: { filename: 'mcharbor-volumes' },
+          // Shared by both views; the card view used to hand-roll its own copy.
+          actions: (
+            <>
+              <Button permission={PERM.VOLUMES_MANAGE} onClick={() => setCreateOpen(true)}>
+                <IconPlus className="h-4 w-4" /> {t('create.title')}
               </Button>
-              <Button
-                variant={viewMode === 'card' ? 'default' : 'ghost'}
-                size="icon-sm"
-                onClick={() => setViewMode('card')}
-                aria-label={t('cardView')}
-              >
-                <IconLayoutGrid className="h-4 w-4" />
+              <Button permission={PERM.VOLUMES_MANAGE} variant="outline" onClick={() => setPruneConfirmOpen(true)}>
+                <IconFilterOff className="h-4 w-4" /> {t('pruneUnused')}
               </Button>
+            </>
+          ),
+        }}
+        columns={columns}
+        data={volumes}
+        loading={isLoading}
+        empty={{ title: t('emptyMessage') }}
+        selectable
+        batchActions={batchActions}
+        getRowId={(row) => row.Name}
+        onRowClick={(row) => openVolume(row.Name)}
+        body={
+          viewMode === 'table' ? undefined : (
+            <div className="min-h-0 flex-1 overflow-auto" data-scroll-exempt>
+              <VolumeCardGrid
+                volumes={cardVolumes}
+                isLoading={isLoading}
+                onRemove={setConfirmTarget}
+                onOpen={openVolume}
+              />
             </div>
-          </>
+          )
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        {viewMode === 'table' ? (
-          <DataGrid
-            data={volumes}
-            columns={columns}
-            searchKey="Name"
-            searchPlaceholder={t('searchPlaceholder')}
-            loading={isLoading}
-            emptyMessage={t('emptyMessage')}
-            selectable
-            batchActions={batchActions}
-            getRowId={(row) => row.Name}
-            fillHeight
-          />
-        ) : (
-          <div className="min-h-0 flex-1 overflow-auto">
-            <VolumeCardGrid
-              volumes={volumes}
-              isLoading={isLoading}
-              onRemove={setConfirmTarget}
-            />
-          </div>
-        )}
-      </div>
+      <CreateVolumeDialog open={createOpen} onOpenChange={setCreateOpen} createVolume={createVolume} />
 
-      <CreateVolumeDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        createVolume={createVolume}
+      <RemoveVolumeDialog
+        volumeName={confirmTarget}
+        blocked={volumes.some((item) => item.Name === confirmTarget && isProtectedVolume(item))}
+        onOpenChange={(next) => !next && setConfirmTarget(null)}
       />
 
-      <ConfirmDialog
-        open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
-        title={t('confirm.removeTitle')}
-        description={t('confirm.removeDescription')}
-        onConfirm={() => {
-          if (confirmTarget) {
-            const volume = volumes.find((item) => item.Name === confirmTarget);
-            if (!volume || !isProtectedVolume(volume)) removeVolume.mutate(confirmTarget);
-          }
-          setConfirmTarget(null);
-        }}
-        loading={removeVolume.isPending}
-      />
-
-      <ConfirmDialog
-        open={pruneConfirmOpen}
-        onOpenChange={setPruneConfirmOpen}
-        title={t('pruneUnused')}
-        description={t('pruneDescription')}
-        confirmLabel={t('pruneUnused')}
-        onConfirm={() => {
-          pruneVolumes.mutate();
-          setPruneConfirmOpen(false);
-        }}
-        loading={pruneVolumes.isPending}
-      />
-    </div>
+      <PruneVolumesDialog open={pruneConfirmOpen} onOpenChange={setPruneConfirmOpen} />
+    </>
   );
 }

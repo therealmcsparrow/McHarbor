@@ -1,6 +1,6 @@
 {
-  "label": "Webhook Trigger",
-  "description": "Start a workflow from an incoming webhook request",
+  "label": "Webhook-Auslöser",
+  "description": "Einen Workflow durch eine eingehende Webhook-Anfrage starten",
   "config": {
     "method": "Methode",
     "path": "Pfad",

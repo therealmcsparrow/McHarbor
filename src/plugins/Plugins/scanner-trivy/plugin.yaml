@@ -1,0 +1,72 @@
+# plugin.yaml — manifest for the scanner-trivy plugin.
+#
+# Image vulnerability scanner backed by Aqua Security's Trivy CLI,
+# which ships in the McHarbor container image. Scans OS packages and
+# language dependencies and reports CVEs.
+#
+# Family: scanner-* (image vulnerability scanners). Siblings are
+# scanner-grype, which wraps a second local CLI, and scanner-clair,
+# which calls an external Clair v4 server. An operator installs
+# whichever engine they trust, or several — a scanner is a named
+# instance, so two of the same engine with different settings is a
+# supported arrangement rather than an accident.
+#
+# Trivy was the built-in default before the engines became plugins,
+# which is why the host auto-installs this one on an upgrade that had
+# scanning configured. See `RequiredBundled` in
+# modules/appstore/plugins/bundled.go.
+#
+# Database: owns nothing. The host stores the scan rows and the
+# findings, because the questions the scan ledger exists to answer —
+# severity trend across an estate, retention, was this image scanned
+# before install — span scanners and cannot live inside one. This
+# plugin therefore ships no migration and takes no scan history with it
+# when uninstalled.
+#
+# RBAC: declares no permissions. The Security > Scanners tab that
+# configures this plugin is gated by the host's settings.manage, and
+# running a scan is gated by scans.manage, so there is no discrete
+# capability left to grant. Same reasoning as the storage-adapter
+# family.
+schema: "mcharbor.plugin/v1"
+
+slug:     "scanner-trivy"
+name:     "Trivy"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Scan container images for vulnerabilities with Aqua Security's Trivy. Covers OS packages and language dependencies, runs entirely inside the McHarbor container, and needs no external service. Configure it in Security > Scanners."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   scanner.adapter.register  required — register ImageScannerAdapterSpec
+#   audit.emit                required — every plugin should audit
+#
+# No db.migrations.run: this plugin owns no tables.
+# No encryption.handle.read: Trivy needs no stored credential — registry
+# auth comes from the container's own Docker config, not from a secret
+# this plugin holds.
+permissions:
+  - scanner.adapter.register
+  - audit.emit
+
+# No adds_permissions — see the RBAC note in the header.
+# No consumes_permissions — this plugin reads no host table.
+
+contributes:
+  routes: []
+  # No `menu:` and no `forms:` — the host's Scanners tab renders this
+  # adapter's declared ConfigSchema generically, same as the storage and
+  # logging families, so there is no per-plugin form bundle to ship.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "scanner-trivy"
+  migrations: []
+
+signature: ""
+checksum:  ""

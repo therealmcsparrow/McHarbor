@@ -1,76 +1,30 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { IconRefresh, IconArrowUp, IconBrandGithub, IconCheck, IconDownload } from '@tabler/icons-react';
-import { Badge } from '@resources/components/ui/Badge';
+import { IconBrandGithub, IconSparkles, IconWorld } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
-import { Spinner } from '@resources/components/ui/Spinner';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { useCurrentUserPermissions, hasPermission, SYSTEM_RESTART_PERMISSION } from '@core/auth/useCurrentUserPermissions';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { api } from '@core/api/client';
-import { useCheckUpdate, useApplySelfUpdate } from '../hooks/useUpdates';
-import { SelfUpdateSettingsCard } from './SelfUpdateSettingsCard';
+import { SecurityPostureCard } from './SecurityPostureCard';
+import { FactoryResetCard } from './FactoryResetCard';
+import { frontendDeps } from './about-frontend-deps';
 import packageJson from '../../../package.json';
+import { assertSuccess } from '@resources/utils/api-mutation';
+import { getReleaseItems } from '@resources/components/whatsNewItems';
+import { useWhatsNewStore } from '@resources/stores/whats-new';
 
 type AboutData = {
   version: string;
+  build: string;
   goVersion: string;
   platform: string;
   dependencies: { name: string; version: string }[];
 };
 
+const websiteUrl = 'https://www.mcharbor.eu';
 const repositoryUrl = 'https://github.com/therealmcsparrow/mcharbor';
-
-const frontendDeps: { name: string; label: string }[] = [
-  { name: 'react', label: 'React' },
-  { name: 'react-dom', label: 'React DOM' },
-  { name: 'react-router', label: 'React Router' },
-  { name: 'vite', label: 'Vite' },
-  { name: 'typescript', label: 'TypeScript' },
-  { name: '@tanstack/react-query', label: 'TanStack Query' },
-  { name: '@tanstack/react-table', label: 'TanStack Table' },
-  { name: 'tailwindcss', label: 'Tailwind CSS' },
-  { name: 'zustand', label: 'Zustand' },
-  { name: '@radix-ui/react-dialog', label: 'Radix UI Dialog' },
-  { name: '@radix-ui/react-dropdown-menu', label: 'Radix UI Dropdown' },
-  { name: '@radix-ui/react-select', label: 'Radix UI Select' },
-  { name: '@radix-ui/react-tabs', label: 'Radix UI Tabs' },
-  { name: '@radix-ui/react-tooltip', label: 'Radix UI Tooltip' },
-  { name: '@radix-ui/react-popover', label: 'Radix UI Popover' },
-  { name: '@radix-ui/react-switch', label: 'Radix UI Switch' },
-  { name: '@radix-ui/react-checkbox', label: 'Radix UI Checkbox' },
-  { name: '@radix-ui/react-label', label: 'Radix UI Label' },
-  { name: '@radix-ui/react-separator', label: 'Radix UI Separator' },
-  { name: '@radix-ui/react-scroll-area', label: 'Radix UI Scroll Area' },
-  { name: '@radix-ui/react-slot', label: 'Radix UI Slot' },
-  { name: '@tabler/icons-react', label: 'Tabler Icons' },
-  { name: '@tailwindcss/forms', label: 'Tailwind Forms' },
-  { name: 'react-i18next', label: 'react-i18next' },
-  { name: 'i18next', label: 'i18next' },
-  { name: 'i18next-browser-languagedetector', label: 'i18next Language Detector' },
-  { name: 'recharts', label: 'Recharts' },
-  { name: 'react-grid-layout', label: 'React Grid Layout' },
-  { name: 'react-hook-form', label: 'React Hook Form' },
-  { name: '@codemirror/view', label: 'CodeMirror View' },
-  { name: '@codemirror/lang-javascript', label: 'CodeMirror JS' },
-  { name: '@codemirror/lang-yaml', label: 'CodeMirror YAML' },
-  { name: '@xterm/xterm', label: 'xterm.js' },
-  { name: '@xterm/addon-fit', label: 'xterm Fit' },
-  { name: '@xterm/addon-web-links', label: 'xterm Web Links' },
-  { name: 'sonner', label: 'Sonner' },
-  { name: 'cmdk', label: 'cmdk' },
-  { name: 'zod', label: 'Zod' },
-  { name: 'class-variance-authority', label: 'CVA' },
-  { name: 'clsx', label: 'clsx' },
-  { name: 'tailwind-merge', label: 'tailwind-merge' },
-  { name: 'eslint', label: 'ESLint' },
-  { name: 'prettier', label: 'Prettier' },
-  { name: '@vitejs/plugin-react', label: 'Vite React Plugin' },
-  { name: 'autoprefixer', label: 'Autoprefixer' },
-];
 
 function stripVersion(v: string): string {
   return v.replace(/^[\^~>=<]+/, '');
@@ -78,23 +32,17 @@ function stripVersion(v: string): string {
 
 export function AboutTab() {
   const { t } = useTranslation('settings');
-  const userPermissions = useCurrentUserPermissions();
-  const canSelfUpdate = hasPermission(userPermissions.data, SYSTEM_RESTART_PERMISSION);
 
-  const { data } = useQuery({
+  const { data, isError, error, refetch } = useQuery({
     queryKey: ['about'],
-    queryFn: () => api.get<AboutData>('/about').then((r) => r.data),
+    queryFn: () => api.get<AboutData>('/about').then(assertSuccess),
     staleTime: 60_000,
   });
 
-  const {
-    data: versionCheck,
-    refetch: checkUpdate,
-    isError: checkFailed,
-    isFetching: isChecking,
-  } = useCheckUpdate();
-  const applySelfUpdate = useApplySelfUpdate();
-  const [selfUpdateOpen, setSelfUpdateOpen] = useState(false);
+  const goVersion = data?.goVersion.replace('go', '') ?? '';
+  const showWhatsNew = useWhatsNewStore((state) => state.show);
+  const hasHighlights = data ? getReleaseItems(data.version).length > 0 : false;
+
   const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies } as Record<string, string>;
 
   return (
@@ -102,16 +50,24 @@ export function AboutTab() {
       {/* Branding header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
-          <img src="/logo_McHarbor.svg" alt="McHarbor" className="h-14" />
+          <img src="/logo_McHarbor.svg" alt={t('about.productName')} className="h-14" />
           <div>
-            <h2 className="text-xl font-bold text-foreground">McHarbor</h2>
-            <p className="text-sm text-muted-foreground">
-              {t('about.tagline')}
-            </p>
+            <h2 className="text-xl font-bold text-foreground">{t('about.productName')}</h2>
+            <p className="text-sm text-muted-foreground">{t('about.tagline')}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" asChild>
+            <a href={websiteUrl} target="_blank" rel="noreferrer">
+              <IconWorld className="size-4" />
+              {t('about.website')}
+            </a>
+          </Button>
+          <Button variant="outline" onClick={showWhatsNew} disabled={!hasHighlights}>
+            <IconSparkles className="size-4" />
+            {t('about.whatsNew')}
+          </Button>
           <Button variant="outline" asChild>
             <a href={repositoryUrl} target="_blank" rel="noreferrer">
               <IconBrandGithub className="size-4" />
@@ -121,15 +77,21 @@ export function AboutTab() {
           {data && (
             <>
               <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.version')}</p>
-                <p className="text-sm font-semibold text-foreground">v{data.version}</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">{t('about.version')}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {t('about.versionValue', { version: data.version })}
+                </p>
               </div>
               <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-muted-foreground">Go</p>
-                <p className="text-sm font-semibold text-foreground">{data.goVersion.replace('go', '')}</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">{t('about.build')}</p>
+                <p className="font-mono text-sm font-semibold text-foreground">{data.build}</p>
               </div>
               <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.platform')}</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">{t('about.goLabel')}</p>
+                <p className="text-sm font-semibold text-foreground">{goVersion}</p>
+              </div>
+              <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">{t('about.platform')}</p>
                 <p className="text-sm font-semibold text-foreground">{data.platform}</p>
               </div>
             </>
@@ -137,103 +99,12 @@ export function AboutTab() {
         </div>
       </div>
 
-      {/* Check for Updates */}
-      <div className="rounded-lg border border-border p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">{t('about.checkForUpdates')}</h3>
-            <p className="text-sm text-muted-foreground">{t('about.checkForUpdatesDescription')}</p>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => checkUpdate()}
-            disabled={isChecking}
-          >
-            {isChecking ? <Spinner size="sm" /> : <IconRefresh className="size-4" />}
-            {t('about.checkNow')}
-          </Button>
-        </div>
+      {isError && <ErrorState variant="banner" error={error} onRetry={() => void refetch()} />}
 
-        {checkFailed && (
-          <div className="mt-4 rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
-            {t('about.checkFailed')}
-          </div>
-        )}
+      <SecurityPostureCard />
 
-        {!checkFailed && versionCheck && (
-          <div className="mt-4 rounded-lg bg-muted p-4">
-            {versionCheck.updateAvailable ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <IconArrowUp className="size-4 text-emerald-400" />
-                  <span className="text-sm font-medium text-foreground">
-                    {t('about.updateAvailable', { version: versionCheck.latestVersion })}
-                  </span>
-                  <Badge variant="default">{t('about.newVersion')}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t('about.currentVersionLabel')}: v{versionCheck.currentVersion} &rarr; v{versionCheck.latestVersion}
-                </p>
-                {versionCheck.releaseNotes && (
-                  <p className="max-h-32 overflow-y-auto whitespace-pre-wrap text-xs text-muted-foreground">
-                    {versionCheck.releaseNotes}
-                  </p>
-                )}
-                {versionCheck.releaseUrl && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(versionCheck.releaseUrl, '_blank', 'noopener')}
-                  >
-                    {t('about.viewRelease')}
-                  </Button>
-                )}
-                {canSelfUpdate && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setSelfUpdateOpen(true)}
-                    disabled={applySelfUpdate.isPending}
-                    data-testid="self-update-button"
-                  >
-                    {applySelfUpdate.isPending ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      <IconDownload className="size-4" />
-                    )}
-                    {t('about.updateNow')}
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <IconCheck className="size-4 text-emerald-400" />
-                <span className="text-sm text-foreground">{t('about.upToDate')}</span>
-                <span className="text-xs text-muted-foreground">v{versionCheck.currentVersion}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Periodic update check */}
-      <SelfUpdateSettingsCard />
-
-      <ConfirmDialog
-        open={selfUpdateOpen}
-        onOpenChange={(open) => {
-          setSelfUpdateOpen(open);
-          if (!open && applySelfUpdate.isPending) return;
-        }}
-        title={t('about.selfUpdateConfirmTitle')}
-        description={t('about.selfUpdateConfirmDescription')}
-        confirmLabel={t('about.selfUpdateConfirm')}
-        variant="destructive"
-        loading={applySelfUpdate.isPending}
-        onConfirm={() => {
-          applySelfUpdate.mutate({});
-        }}
-      />
+      {/* Danger Zone — factory reset */}
+      <FactoryResetCard />
 
       {/* Backend dependencies */}
       {data && data.dependencies.length > 0 && (
@@ -281,7 +152,7 @@ export function AboutTab() {
 
       {/* Footer */}
       <div className="border-t border-border pt-4 text-sm text-muted-foreground">
-        © 2026 McSparrow. {t('about.allRightsReserved')}
+        {t('about.copyrightHolder')} {t('about.allRightsReserved')}
       </div>
     </div>
   );

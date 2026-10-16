@@ -20,7 +20,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types/build"
+	"github.com/moby/moby/client"
+	"github.com/therealmcsparrow/mcharbor/core/apppaths"
+	"github.com/therealmcsparrow/mcharbor/core/procenv"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -66,9 +69,12 @@ func (s *Service) executeHTTPRequest(ctx context.Context, node *CanvasNode, msg 
 		out["payload"] = map[string]interface{}{"error": "http request failed", "url": urlStr, "method": method}
 		return "error", out, nil
 	}
-	defer resp.Body.Close()
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading http response body", "url", urlStr, "error", readErr)
+	}
 	parsedBody := decodeWorkflowBody(resp.Header.Get("Content-Type"), respBody)
 
 	out := CloneMsg(msg)
@@ -90,7 +96,7 @@ func (s *Service) executeLoopRuntime(node *CanvasNode, msg Msg, flowCtx *FlowCon
 	}
 	summary, emissions, err := splitMessagesForPath(node.ID, msg, itemsField, "done")
 	if err != nil {
-		return "error", summary, nil
+		return "error", summary, nil //nolint:nilerr // a bad items field is reported on the error port, not as a hard node failure
 	}
 	if flowCtx != nil && flowCtx.Runtime != nil {
 		flowCtx.Runtime.setEmissions(node.ID, emissions)
@@ -105,7 +111,7 @@ func (s *Service) executeRangeRuntime(node *CanvasNode, msg Msg, flowCtx *FlowCo
 	}
 	summary, emissions, err := splitMessagesForPath(node.ID, msg, property, "output")
 	if err != nil {
-		return "error", summary, nil
+		return "error", summary, nil //nolint:nilerr // a bad property is reported on the error port, not as a hard node failure
 	}
 	if flowCtx != nil && flowCtx.Runtime != nil {
 		flowCtx.Runtime.setEmissions(node.ID, emissions)
@@ -122,7 +128,8 @@ func (s *Service) executeJoinRuntime(node *CanvasNode, msg Msg, flowCtx *FlowCon
 	if inputCount < 1 {
 		inputCount = 1
 	}
-	buffer := append(flowCtx.Runtime.joinBuffers[node.ID], DeepCloneMsg(msg))
+	buffer := flowCtx.Runtime.joinBuffers[node.ID]
+	buffer = append(buffer, DeepCloneMsg(msg))
 	flowCtx.Runtime.joinBuffers[node.ID] = buffer
 	if len(buffer) < inputCount {
 		return "", nil, nil
@@ -204,7 +211,7 @@ func (s *Service) executeAggregateRuntime(node *CanvasNode, msg Msg, flowCtx *Fl
 	return "output", out, nil
 }
 
-func (s *Service) executeRateLimitRuntime(node *CanvasNode, msg Msg, flowCtx *FlowContext) (string, Msg, error) {
+func (s *Service) executeRateLimitRuntime(ctx context.Context, node *CanvasNode, msg Msg, flowCtx *FlowContext) (string, Msg, error) {
 	limit := int(configFloat(node.Config, "limit", 10))
 	windowSeconds := int(configFloat(node.Config, "window_seconds", 60))
 	if limit <= 0 || windowSeconds <= 0 {
@@ -225,8 +232,11 @@ func (s *Service) executeRateLimitRuntime(node *CanvasNode, msg Msg, flowCtx *Fl
 
 	var timestamps []int64
 	var raw string
-	if err := s.db.QueryRow("SELECT value FROM workflow_kv WHERE key = ? LIMIT 1", key).Scan(&raw); err == nil && raw != "" {
-		_ = json.Unmarshal([]byte(raw), &timestamps)
+	if err := s.db.QueryRowContext(ctx, "SELECT value FROM workflow_kv WHERE key = ? LIMIT 1", key).Scan(&raw); err == nil && raw != "" {
+		if err := json.Unmarshal([]byte(raw), &timestamps); err != nil {
+			s.logger.Warn("workflows: rate limit state unreadable, starting a fresh window", "error", err, "workflowID", workflowID, "nodeID", node.ID)
+			timestamps = nil
+		}
 	}
 
 	pruned := timestamps[:0]
@@ -240,9 +250,12 @@ func (s *Service) executeRateLimitRuntime(node *CanvasNode, msg Msg, flowCtx *Fl
 	}
 
 	pruned = append(pruned, now.Unix())
-	valueBytes, _ := json.Marshal(pruned)
+	valueBytes, err := json.Marshal(pruned)
+	if err != nil {
+		return "", nil, fmt.Errorf("encoding rate limit state: %w", err)
+	}
 	expiresAt := now.Add(time.Duration(windowSeconds+60) * time.Second).Format("2006-01-02 15:04:05")
-	if _, err := s.db.Exec(
+	if _, err := s.db.ExecContext(ctx,
 		"INSERT OR REPLACE INTO workflow_kv (key, value, expires_at, updated_at) VALUES (?, ?, ?, datetime('now'))",
 		key, string(valueBytes), expiresAt,
 	); err != nil {
@@ -385,7 +398,7 @@ func (s *Service) executeSSHExecRuntime(ctx context.Context, node *CanvasNode, m
 		out["payload"] = map[string]interface{}{"error": "ssh connection failed", "host": endpoint.Host}
 		return "error", out, nil
 	}
-	defer client.Close()
+	defer func() { closeutil.Report(client.Close(), "client") }()
 
 	session, err := client.NewSession()
 	if err != nil {
@@ -394,7 +407,7 @@ func (s *Service) executeSSHExecRuntime(ctx context.Context, node *CanvasNode, m
 		out["payload"] = map[string]interface{}{"error": "ssh session failed", "host": endpoint.Host}
 		return "error", out, nil
 	}
-	defer session.Close()
+	defer func() { closeutil.Report(session.Close(), "session") }()
 
 	outputBytes, err := session.CombinedOutput(command)
 	out := CloneMsg(msg)
@@ -496,7 +509,7 @@ func (s *Service) executeStackDeployRuntime(ctx context.Context, node *CanvasNod
 	if strings.TrimSpace(stackName) == "" {
 		return "", nil, fmt.Errorf("stack name is required")
 	}
-	if envID != "" && s.pool.IsAgentEnv(envID) {
+	if envID != "" && s.pool.IsAgentEnvContext(ctx, envID) {
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
 		out["payload"] = map[string]interface{}{"error": "stack deploy is not supported for agent environments", "stack": stackName}
@@ -513,7 +526,11 @@ func (s *Service) executeStackDeployRuntime(ctx context.Context, node *CanvasNod
 	if err != nil {
 		return "", nil, fmt.Errorf("creating temp compose directory: %w", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer closeutil.RemoveAll(tempDir)
+
+	if guardErr := s.guardSelfCompose(ctx, envID, stackName, composeBytes, tempDir); guardErr != nil {
+		return "", nil, guardErr
+	}
 
 	composePath := filepath.Join(tempDir, "docker-compose.yml")
 	if err := os.WriteFile(composePath, composeBytes, 0o644); err != nil {
@@ -522,9 +539,11 @@ func (s *Service) executeStackDeployRuntime(ctx context.Context, node *CanvasNod
 
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", "docker-compose.yml", "-p", stackName, "up", "-d")
 	cmd.Dir = tempDir
-	cmd.Env = os.Environ()
+	// An allow-list, not McHarbor's whole environment: the compose file comes from the
+	// workflow and could interpolate ${ENCRYPTION_KEY} into an image name or a label.
+	cmd.Env = procenv.Child(os.Environ())
 	if envID != "" {
-		if host, err := s.pool.DockerHost(envID); err == nil && host != "" {
+		if host, err := s.pool.DockerHostContext(ctx, envID); err == nil && host != "" {
 			cmd.Env = append(filteredEnv(cmd.Env, "DOCKER_HOST"), "DOCKER_HOST="+host)
 		}
 	}
@@ -556,7 +575,7 @@ func (s *Service) executeStackDeployRuntime(ctx context.Context, node *CanvasNod
 }
 
 func (s *Service) executeImageBuildRuntime(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return "", nil, fmt.Errorf("docker connection failed: %w", err)
 	}
@@ -586,10 +605,10 @@ func (s *Service) executeImageBuildRuntime(ctx context.Context, node *CanvasNode
 		return "error", out, nil
 	}
 
-	buildCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	buildCtx, cancel := context.WithTimeout(ctx, nodeLongOpTimeout)
 	defer cancel()
 
-	resp, err := cli.ImageBuild(buildCtx, tarReader, build.ImageBuildOptions{
+	resp, err := cli.ImageBuild(buildCtx, tarReader, client.ImageBuildOptions{
 		Dockerfile: dockerfileName,
 		Tags:       []string{tag},
 		Remove:     true,
@@ -603,9 +622,12 @@ func (s *Service) executeImageBuildRuntime(ctx context.Context, node *CanvasNode
 		out["payload"] = map[string]interface{}{"error": "image build failed", "tag": tag}
 		return "error", out, nil
 	}
-	defer resp.Body.Close()
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
 
-	buildOutput, _ := io.ReadAll(resp.Body)
+	buildOutput, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		s.logger.Warn("workflows: reading image build output", "tag", tag, "error", readErr)
+	}
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	out["payload"] = map[string]interface{}{
@@ -801,10 +823,7 @@ func resolveWorkflowPath(path string) string {
 	if filepath.IsAbs(cleaned) {
 		return cleaned
 	}
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "/app/data"
-	}
+	dataDir := apppaths.DataDir()
 	return filepath.Join(dataDir, "files", cleaned)
 }
 
@@ -840,7 +859,7 @@ func tarDirectory(root string) (io.Reader, error) {
 			return err
 		}
 		if _, err := io.Copy(tw, file); err != nil {
-			file.Close()
+			closeutil.Report(file.Close(), "file")
 			return err
 		}
 		if err := file.Close(); err != nil {
@@ -849,7 +868,9 @@ func tarDirectory(root string) (io.Reader, error) {
 		return nil
 	})
 	if walkErr != nil {
-		_ = tw.Close()
+		if closeErr := tw.Close(); closeErr != nil {
+			return nil, fmt.Errorf("%w (closing archive: %w)", walkErr, closeErr)
+		}
 		return nil, walkErr
 	}
 	if err := tw.Close(); err != nil {
@@ -865,15 +886,15 @@ func writeValueToTempFile(raw interface{}) (string, func(), error) {
 		return "", func() {}, fmt.Errorf("creating temp upload file: %w", err)
 	}
 	if _, err := tmpFile.Write(payloadBytes); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpFile.Name())
+		closeutil.Report(tmpFile.Close(), "tmpFile")
+		closeutil.Remove(tmpFile.Name())
 		return "", func() {}, fmt.Errorf("writing temp upload file: %w", err)
 	}
 	if err := tmpFile.Close(); err != nil {
-		os.Remove(tmpFile.Name())
+		closeutil.Remove(tmpFile.Name())
 		return "", func() {}, fmt.Errorf("closing temp upload file: %w", err)
 	}
-	return tmpFile.Name(), func() { _ = os.Remove(tmpFile.Name()) }, nil
+	return tmpFile.Name(), func() { closeutil.Remove(tmpFile.Name()) }, nil
 }
 
 func buildTransferURL(protocol, host, remotePath, username, password string, port int) (string, error) {
@@ -1036,10 +1057,16 @@ func floatValue(raw interface{}) float64 {
 	case int32:
 		return float64(value)
 	case json.Number:
-		n, _ := value.Float64()
+		n, err := value.Float64()
+		if err != nil {
+			return 0
+		}
 		return n
 	case string:
-		n, _ := strconv.ParseFloat(strings.TrimSpace(value), 64)
+		n, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+		if err != nil {
+			return 0
+		}
 		return n
 	default:
 		return 0

@@ -1,0 +1,26 @@
+{
+  "label": "File",
+  "description": "Read or write a file in the workflow data directory",
+  "config": {
+    "operation": "Operation",
+    "path": "Path",
+    "encoding": "Encoding",
+    "output_property": "Output Property",
+    "property": "Property",
+    "mode": "Mode"
+  },
+  "options": {
+    "operation": {
+      "read": "Read",
+      "write": "Write"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Overwrite",
+      "append": "Append"
+    }
+  }
+}

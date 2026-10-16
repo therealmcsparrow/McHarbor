@@ -1,14 +1,14 @@
 {
-  "label": "Join",
-  "description": "Join multiple incoming branches into a single message",
+  "label": "Zusammenführen",
+  "description": "Mehrere eingehende Zweige zu einer einzigen Nachricht zusammenführen",
   "config": {
     "input_count": "Anzahl Eingänge",
     "combine_mode": "Kombinationsmodus"
   },
   "options": {
     "combine_mode": {
-      "last": "Last Message",
-      "merge": "Merge Objects",
+      "last": "Letzte Nachricht",
+      "merge": "Objekte zusammenführen",
       "array": "Array"
     }
   }

@@ -1,0 +1,72 @@
+# plugin.yaml — manifest for the storage-onedrive-personal plugin.
+#
+# Microsoft family split (see mcharbor-storage-microsoft-split):
+#   - storage-onedrive-personal       (this plugin) -> /me/drive, consumers tenant
+#   - storage-onedrive-business       -> /users/{upn}/drive
+#   - storage-sharepoint-online       -> /sites/{site_id}/drive
+#
+# This plugin handles only the Personal OneDrive endpoint
+# (onedrive_personal location type). The consumer endpoint lives
+# at login.microsoftonline.com/consumers/oauth2/v2.0/... and
+# graph.microsoft.com/v1.0/me/drive, so it stays separate from the
+# work / school tenant flows used by OneDrive Business and SharePoint.
+#
+# RBAC is intentionally bypassed — see mcharbor-storage-plugins-no-rbac.
+# The host's storage_locations admin UI is already gated by
+# settings.manage / settings.view; this plugin does not register
+# any new permission keys. The Plugin.RegisterPermissions hook is
+# implemented as a no-op so the host's plugin loader does not
+# complain about missing wiring.
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-onedrive-personal"
+name:     "OneDrive (Personal)"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "OneDrive Personal (consumer endpoint) backup destination. Talks to Microsoft Graph /me/drive for upload/download/delete/list and login.microsoftonline.com/consumers for OAuth tokens. Large uploads use Microsoft's chunked upload session so backups of any size are supported."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host. These are bootstrap
+# permissions only — they let the plugin register adapters and emit
+# audit events. They are NOT user-facing RBAC
+# permissions; storage_plugins intentionally do not register
+# adds_permissions.
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+# No adds_permissions — the plugin does not register new permission
+# keys. Settings.manage / settings.view on the host gates the admin
+# UI; per-plugin keys would only fragment that surface.
+
+# No consumes_permissions — the plugin does not check host RBAC keys.
+
+contributes:
+  routes: []
+  # No `menu:` block — destinations are managed from the host's
+  # existing /settings/storage-locations page.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-onedrive-personal"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "storage_location"
+      kind:     "config_form"
+      key:      "onedrive_personal"
+    - resource: "storage_location"
+      kind:     "setup_guide"
+      key:      "onedrive_personal"
+
+signature: ""
+checksum:  ""

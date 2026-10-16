@@ -1,0 +1,46 @@
+{
+    "slug":  "percona-server-mongodb",
+    "name":  "Percona Server for MongoDB",
+    "description":  "Drop-in MongoDB replacement from Percona with additional enterprise features, free and open source.",
+    "category":  "Databases",
+    "image":  "percona/percona-server-mongodb:6.0",
+    "logo":  "https://github.com/percona.png",
+    "website":  "https://www.percona.com/mongodb/software/percona-server-for-mongodb",
+    "docsUrl":  "https://docs.percona.com/percona-server-for-mongodb/6.0/",
+    "ports":  [
+                  {
+                      "host":  27020,
+                      "container":  27017,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/percona-server-mongodb/data",
+                        "container":  "/data/db"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MONGO_INITDB_ROOT_USERNAME",
+                        "default":  "admin",
+                        "description":  "Root username"
+                    },
+                    {
+                        "key":  "MONGO_INITDB_ROOT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Root password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "6.0",
+    "latest":  {
+        "version":  "6.0",
+        "release_date":  "2026-09-29"
+    }
+}

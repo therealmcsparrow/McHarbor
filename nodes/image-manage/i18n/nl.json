@@ -1,0 +1,30 @@
+{
+  "label": "Image beheren",
+  "description": "Pull, push, tag of verwijder een Docker-image",
+  "config": {
+    "environment": "Omgeving",
+    "action": "Actie",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry-URL",
+    "registry_username": "Registry-gebruikersnaam",
+    "registry_password": "Registry-wachtwoord",
+    "image": "Image",
+    "source": "Bronimage",
+    "target": "Doelimage",
+    "force": "Forceren",
+    "prune_children": "Onderliggende images opschonen"
+  },
+  "options": {
+    "action": {
+      "pull": "Pullen",
+      "push": "Pushen",
+      "tag": "Taggen",
+      "remove": "Verwijderen"
+    },
+    "registry_mode": {
+      "configured": "Geconfigureerde registry",
+      "custom": "Overig"
+    }
+  }
+}

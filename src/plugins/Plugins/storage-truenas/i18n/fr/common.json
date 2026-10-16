@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "Destinations de sauvegarde TrueNAS",
+    "subtitle": "Sauvegarde des conteneurs vers une instance TrueNAS via WebDAV (RFC 4918). TrueNAS expose WebDAV sur le chemin configuré du partage (par défaut /webdav pour le partage WebDAV standard). Les opérateurs s'authentifient avec un utilisateur TrueNAS local + mot de passe via l'authentification HTTP Basic. Les téléversements par blocs utilisent Content-Range PUT, pris en charge côté serveur par le serveur Samba de TrueNAS.",
+    "registerHint": "Cliquez sur Tester la connexion pour vérifier que le point de terminaison WebDAV est accessible et que les identifiants sont valides."
+  },
+  "fields": {
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "folderId": "Sous-dossier sur le partage WebDAV"
+  },
+  "toast": {
+    "registered": "Plugin TrueNAS enregistré.",
+    "testPassed": "Le test de connexion TrueNAS a réussi.",
+    "testFailed": "Le test de connexion TrueNAS a échoué : {{error}}"
+  },
+  "error": {
+    "noHost": "L'URL de base de TrueNAS est obligatoire.",
+    "noUsername": "Le nom d'utilisateur TrueNAS est obligatoire.",
+    "noPassword": "Le mot de passe TrueNAS est obligatoire."
+  },
+  "form": {
+    "hostLabel": "URL de base de TrueNAS",
+    "hostHelp": "URL de base du serveur TrueNAS, p. ex. https://nas.local. N'ajoutez pas de barre oblique finale.",
+    "usernameHelp": "Utilisateur local TrueNAS. L'utilisateur doit disposer d'un accès en lecture-écriture au partage WebDAV configuré.",
+    "passwordHelp": "Mot de passe de l'utilisateur local TrueNAS. Stocké chiffré au repos par le service AES-256-GCM de l'hôte.",
+    "basePathLabel": "Sous-dossier (facultatif)",
+    "basePathHelp": "Sous-dossier facultatif sous la racine WebDAV du partage. Laissez vide pour la racine du partage.",
+    "apiPathLabel": "Chemin WebDAV (avancé)",
+    "apiPathHelp": "Remplace le chemin WebDAV. Par défaut : /webdav. Les opérateurs disposant de plusieurs partages WebDAV peuvent le définir sur /webdav/{share-name}.",
+    "introTitle": "Identifiants TrueNAS",
+    "introBody": "TrueNAS utilise un compte utilisateur local pour l'authentification WebDAV. L'utilisateur doit disposer d'un accès en lecture-écriture au partage WebDAV configuré. McHarbor stocke le mot de passe chiffré au repos."
+  },
+  "setup": {
+    "title": "Guide de configuration de TrueNAS",
+    "step1": "Côté TrueNAS, créez un partage WebDAV : <b>Services → SMB</b> → ajoutez un partage. Définissez le chemin sur un répertoire où déposer les sauvegardes (p. ex. <code>/mnt/tank/backups</code>). TrueNAS expose par défaut le partage à l'adresse <code>/webdav</code> une fois le service WebDAV activé (<b>Services → SMB → advanced settings</b> ou via le service spécifique WebDAV dans les versions récentes).",
+    "step2": "Créez un utilisateur local TrueNAS (ou utilisez-en un existant) disposant d'un accès en lecture-écriture au répertoire du partage. Le répertoire personnel de l'utilisateur n'a pas d'importance — seule l'ACL du partage compte.",
+    "step3": "Dans McHarbor, collez l'URL de base de TrueNAS (p. ex. <code>https://nas.local</code> — sans barre oblique finale), le nom d'utilisateur et son mot de passe dans le formulaire à gauche. Facultatif : définissez un sous-dossier sous la racine WebDAV du partage (p. ex. <code>Backups/2026</code>) et laissez McHarbor créer automatiquement les dossiers intermédiaires.",
+    "step4": "Cliquez sur <b>Test connection</b> pour écrire et relire un fichier de test dans le dossier résolu. Le plugin exécute un <code>PROPFIND</code> WebDAV authentifié par HTTP Basic sur <code>/webdav</code> pour confirmer que la destination est joignable et que les identifiants sont valides.",
+    "step5": "Pour les configurations à plusieurs partages, définissez le <b>WebDAV path override</b> (p. ex. <code>/webdav/Backups</code>) afin de pointer vers le chemin du partage sous la racine WebDAV.",
+    "step6": "Déclenchez une sauvegarde. Le plugin envoie l'archive via WebDAV en PUT fragmenté avec <code>Content-Range</code>. Le serveur WebDAV de TrueNAS basé sur samba.org prend en charge les envois fragmentés, de sorte que même les sauvegardes de plus de 10 Go sont transmises en flux sans mettre toute la charge en mémoire tampon."
+  }
+}

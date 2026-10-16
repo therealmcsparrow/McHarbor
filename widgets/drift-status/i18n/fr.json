@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "driftStatus": {
+      "label": "Dérive",
+      "description": "Surveillances dont les conteneurs, stacks ou l'environnement ont dérivé par rapport à ce qui était déclaré"
+    }
+  },
+  "driftStatusWidget": {
+    "title": "Dérive",
+    "empty": "Tout correspond à ce qui a été déclaré",
+    "unavailable": "Impossible de lire le rapport de dérive",
+    "noAccess": "Nécessite la permission reconciler.view",
+    "more": "{{count}} de plus",
+    "viewReport": "Rapport de dérive",
+    "detail": "{{classes}} · depuis {{since}}"
+  }
+}

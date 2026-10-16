@@ -4,7 +4,9 @@
 package git
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
 )
 
 // Repo represents a git repository stored in the database.
@@ -25,11 +28,16 @@ type Repo struct {
 	AuthType      string `json:"authType"`      // none, token, ssh_key, basic
 	CredentialRef string `json:"credentialRef"` // encrypted credential reference
 	AutoSync      bool   `json:"autoSync"`
-	SyncInterval  int    `json:"syncInterval"`  // seconds between syncs
+	SyncInterval  int    `json:"syncInterval"` // seconds between syncs
 	LastSyncAt    string `json:"lastSyncAt"`
 	LastSyncError string `json:"lastSyncError"`
 	CreatedAt     string `json:"createdAt"`
 	UpdatedAt     string `json:"updatedAt"`
+	// EnvironmentName, LastDeployStatus and LastDeployCommit are joined in
+	// ListRepos only — RepoByID leaves them nil.
+	EnvironmentName  *string `json:"environmentName,omitempty"`
+	LastDeployStatus *string `json:"lastDeployStatus,omitempty"`
+	LastDeployCommit *string `json:"lastDeployCommit,omitempty"`
 }
 
 // Deployment represents a deployment triggered from a git sync.
@@ -72,32 +80,48 @@ type UpdateRepoInput struct {
 type Service struct {
 	db  *sql.DB
 	enc *encryption.Service
+	// vault reads this module's adopted credential through the secrets vault
+	// once Phase 5b's start-up backfill has linked it, and falls back to the
+	// legacy column until then. Built here rather than injected: every
+	// construction site already supplies the database and the encryption
+	// service, and a service built without it would quietly read the legacy
+	// column forever.
+	vault *secrets.Service
 }
 
 // NewService creates a new git service.
 func NewService(db *sql.DB, enc *encryption.Service) *Service {
-	return &Service{db: db, enc: enc}
+	svc := &Service{db: db, enc: enc}
+	if db != nil && enc != nil {
+		svc.vault = secrets.NewService(db, enc, nil)
+	}
+	return svc
 }
 
-// ListRepos returns all git repos with pagination.
-func (s *Service) ListRepos(page, perPage int) ([]Repo, int64, error) {
+// ListReposContext returns all git repos with pagination, bounded by ctx.
+func (s *Service) ListReposContext(ctx context.Context, page, perPage int) ([]Repo, int64, error) {
 	var total int64
-	err := s.db.QueryRow("SELECT COUNT(*) FROM git_repos").Scan(&total)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM git_repos").Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("counting git repos: %w", err)
 	}
 
 	offset := (page - 1) * perPage
-	rows, err := s.db.Query(
-		`SELECT id, name, url, branch, path, auth_type, credential_ref, auto_sync,
-		        sync_interval, last_sync_at, last_sync_error, created_at, updated_at
-		 FROM git_repos ORDER BY name ASC LIMIT ? OFFSET ?`,
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT g.id, g.name, g.url, g.branch, g.path, g.auth_type, g.credential_ref, g.auto_sync,
+		        g.sync_interval, g.last_sync_at, g.last_sync_error, g.created_at, g.updated_at,
+		        ge.name,
+		        (SELECT d.status FROM git_deployments d WHERE d.repo_id = g.id ORDER BY d.created_at DESC, d.id DESC LIMIT 1),
+		        (SELECT d.commit_sha FROM git_deployments d WHERE d.repo_id = g.id ORDER BY d.created_at DESC, d.id DESC LIMIT 1)
+		 FROM git_repos g
+		 LEFT JOIN environments ge ON ge.id = g.env_id
+		 ORDER BY g.name ASC LIMIT ? OFFSET ?`,
 		perPage, offset,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying git repos: %w", err)
 	}
-	defer rows.Close()
+	defer closeRows(rows)
 
 	var items []Repo
 	for rows.Next() {
@@ -105,8 +129,10 @@ func (s *Service) ListRepos(page, perPage int) ([]Repo, int64, error) {
 		var branch, path, authType, credRef, lastSyncAt, lastSyncError sql.NullString
 		var autoSync sql.NullBool
 		var syncInterval sql.NullInt64
+		var envName, lastDeployStatus, lastDeployCommit sql.NullString
 		if err := rows.Scan(&r.ID, &r.Name, &r.URL, &branch, &path, &authType, &credRef,
-			&autoSync, &syncInterval, &lastSyncAt, &lastSyncError, &r.CreatedAt, &r.UpdatedAt); err != nil {
+			&autoSync, &syncInterval, &lastSyncAt, &lastSyncError, &r.CreatedAt, &r.UpdatedAt,
+			&envName, &lastDeployStatus, &lastDeployCommit); err != nil {
 			return nil, 0, fmt.Errorf("scanning git repo: %w", err)
 		}
 		r.Branch = branch.String
@@ -120,7 +146,22 @@ func (s *Service) ListRepos(page, perPage int) ([]Repo, int64, error) {
 		r.SyncInterval = int(syncInterval.Int64)
 		r.LastSyncAt = lastSyncAt.String
 		r.LastSyncError = lastSyncError.String
+		if envName.Valid {
+			v := envName.String
+			r.EnvironmentName = &v
+		}
+		if lastDeployStatus.Valid {
+			v := lastDeployStatus.String
+			r.LastDeployStatus = &v
+		}
+		if lastDeployCommit.Valid {
+			v := lastDeployCommit.String
+			r.LastDeployCommit = &v
+		}
 		items = append(items, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterating git repos: %w", err)
 	}
 
 	if items == nil {
@@ -131,20 +172,20 @@ func (s *Service) ListRepos(page, perPage int) ([]Repo, int64, error) {
 }
 
 // RepoByID returns a single git repo.
-func (s *Service) RepoByID(id string) (*Repo, error) {
+func (s *Service) RepoByID(ctx context.Context, id string) (*Repo, error) {
 	var r Repo
 	var branch, path, authType, credRef, lastSyncAt, lastSyncError sql.NullString
 	var autoSync sql.NullBool
 	var syncInterval sql.NullInt64
 
-	err := s.db.QueryRow(
+	err := s.db.QueryRowContext(ctx,
 		`SELECT id, name, url, branch, path, auth_type, credential_ref, auto_sync,
 		        sync_interval, last_sync_at, last_sync_error, created_at, updated_at
 		 FROM git_repos WHERE id = ?`, id,
 	).Scan(&r.ID, &r.Name, &r.URL, &branch, &path, &authType, &credRef,
 		&autoSync, &syncInterval, &lastSyncAt, &lastSyncError, &r.CreatedAt, &r.UpdatedAt)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -167,7 +208,7 @@ func (s *Service) RepoByID(id string) (*Repo, error) {
 }
 
 // CreateRepo inserts a new git repo.
-func (s *Service) CreateRepo(input CreateRepoInput) (*Repo, error) {
+func (s *Service) CreateRepo(ctx context.Context, input CreateRepoInput) (*Repo, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 
@@ -188,7 +229,7 @@ func (s *Service) CreateRepo(input CreateRepoInput) (*Repo, error) {
 		credRef = encrypted
 	}
 
-	_, err := s.db.Exec(
+	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO git_repos (id, name, url, branch, path, auth_type, credential_ref,
 		 auto_sync, sync_interval, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, input.Name, input.URL, input.Branch, input.Path, input.AuthType,
@@ -198,12 +239,12 @@ func (s *Service) CreateRepo(input CreateRepoInput) (*Repo, error) {
 		return nil, fmt.Errorf("inserting git repo: %w", err)
 	}
 
-	return s.RepoByID(id)
+	return s.RepoByID(ctx, id)
 }
 
 // UpdateRepo modifies an existing git repo.
-func (s *Service) UpdateRepo(id string, input UpdateRepoInput) (*Repo, error) {
-	existing, err := s.RepoByID(id)
+func (s *Service) UpdateRepo(ctx context.Context, id string, input UpdateRepoInput) (*Repo, error) {
+	existing, err := s.RepoByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -225,9 +266,9 @@ func (s *Service) UpdateRepo(id string, input UpdateRepoInput) (*Repo, error) {
 	if input.Branch != nil {
 		branch = *input.Branch
 	}
-	path := existing.Path
+	repoPath := existing.Path
 	if input.Path != nil {
-		path = *input.Path
+		repoPath = *input.Path
 	}
 	authType := existing.AuthType
 	if input.AuthType != nil {
@@ -254,21 +295,21 @@ func (s *Service) UpdateRepo(id string, input UpdateRepoInput) (*Repo, error) {
 		syncInterval = *input.SyncInterval
 	}
 
-	_, err = s.db.Exec(
+	_, err = s.db.ExecContext(ctx,
 		`UPDATE git_repos SET name = ?, url = ?, branch = ?, path = ?, auth_type = ?,
-		 credential_ref = ?, auto_sync = ?, sync_interval = ?, updated_at = ? WHERE id = ?`,
-		name, url, branch, path, authType, credRef, autoSync, syncInterval, now, id,
+		 credential_ref = ?, credential_secret_id = NULL, auto_sync = ?, sync_interval = ?, updated_at = ? WHERE id = ?`,
+		name, url, branch, repoPath, authType, credRef, autoSync, syncInterval, now, id,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("updating git repo: %w", err)
 	}
 
-	return s.RepoByID(id)
+	return s.RepoByID(ctx, id)
 }
 
 // DeleteRepo removes a git repo.
-func (s *Service) DeleteRepo(id string) error {
-	result, err := s.db.Exec("DELETE FROM git_repos WHERE id = ?", id)
+func (s *Service) DeleteRepo(ctx context.Context, id string) error {
+	result, err := s.db.ExecContext(ctx, "DELETE FROM git_repos WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("deleting git repo: %w", err)
 	}
@@ -279,9 +320,9 @@ func (s *Service) DeleteRepo(id string) error {
 }
 
 // MarkSynced updates the sync timestamp for a repo.
-func (s *Service) MarkSynced(id string, syncError string) error {
+func (s *Service) MarkSynced(ctx context.Context, id string, syncError string) error {
 	now := time.Now().UTC().Format(time.RFC3339)
-	_, err := s.db.Exec(
+	_, err := s.db.ExecContext(ctx,
 		"UPDATE git_repos SET last_sync_at = ?, last_sync_error = ?, updated_at = ? WHERE id = ?",
 		now, syncError, now, id,
 	)
@@ -289,15 +330,15 @@ func (s *Service) MarkSynced(id string, syncError string) error {
 }
 
 // ListDeployments returns deployments for a repo with pagination.
-func (s *Service) ListDeployments(repoID string, page, perPage int) ([]Deployment, int64, error) {
+func (s *Service) ListDeployments(ctx context.Context, repoID string, page, perPage int) ([]Deployment, int64, error) {
 	var total int64
-	err := s.db.QueryRow("SELECT COUNT(*) FROM git_deployments WHERE repo_id = ?", repoID).Scan(&total)
+	err := s.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM git_deployments WHERE repo_id = ?", repoID).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("counting deployments: %w", err)
 	}
 
 	offset := (page - 1) * perPage
-	rows, err := s.db.Query(
+	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, repo_id, commit_sha, branch, status, message, created_at, updated_at
 		 FROM git_deployments WHERE repo_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
 		repoID, perPage, offset,
@@ -305,7 +346,7 @@ func (s *Service) ListDeployments(repoID string, page, perPage int) ([]Deploymen
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying deployments: %w", err)
 	}
-	defer rows.Close()
+	defer closeRows(rows)
 
 	var items []Deployment
 	for rows.Next() {
@@ -320,6 +361,9 @@ func (s *Service) ListDeployments(repoID string, page, perPage int) ([]Deploymen
 		d.Message = message.String
 		items = append(items, d)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("iterating deployments: %w", err)
+	}
 
 	if items == nil {
 		items = []Deployment{}
@@ -329,11 +373,11 @@ func (s *Service) ListDeployments(repoID string, page, perPage int) ([]Deploymen
 }
 
 // CreateDeployment records a new deployment.
-func (s *Service) CreateDeployment(repoID, commitSHA, branch, status, message string) (*Deployment, error) {
+func (s *Service) CreateDeployment(ctx context.Context, repoID, commitSHA, branch, status, message string) (*Deployment, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 
-	_, err := s.db.Exec(
+	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO git_deployments (id, repo_id, commit_sha, branch, status, message, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, repoID, commitSHA, branch, status, message, now, now,
@@ -349,6 +393,9 @@ func (s *Service) CreateDeployment(repoID, commitSHA, branch, status, message st
 }
 
 // decryptField decrypts a value if it is encrypted, logging on failure.
+//
+// The credential_ref read-through lives in decryptCredential below; this
+// helper stays for the callers that hold only the ciphertext.
 func (s *Service) decryptField(val string) string {
 	if val == "" {
 		return val
@@ -359,4 +406,26 @@ func (s *Service) decryptField(val string) string {
 		return val
 	}
 	return decrypted
+}
+
+// decryptCredential reads a repository's credential through the vault when
+// Phase 5b's backfill has adopted it, and falls back to the legacy
+// credential_ref column when it has not. A half-migrated database works.
+func (s *Service) decryptCredential(ctx context.Context, secretID sql.NullString, legacy string) string {
+	if s.vault == nil {
+		return s.decryptField(legacy)
+	}
+	value, err := s.vault.ReadThrough(ctx, secretID, legacy)
+	if err != nil {
+		slog.Warn("git: failed to read credential", "error", err)
+		return legacy
+	}
+	return value
+}
+
+// closeRows releases a result set and logs a failed Close, which a deferred call cannot return.
+func closeRows(rows *sql.Rows) {
+	if err := rows.Close(); err != nil {
+		slog.Warn("git: closing rows", "error", err)
+	}
 }

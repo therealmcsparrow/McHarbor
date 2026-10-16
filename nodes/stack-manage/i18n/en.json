@@ -1,0 +1,26 @@
+{
+  "label": "Stack Manage",
+  "description": "Deploy, start, stop or remove a compose stack",
+  "config": {
+    "environment": "Environment",
+    "action": "Action",
+    "stack_name": "Stack Name",
+    "compose_source": "Compose Source",
+    "compose_content": "Compose Content",
+    "compose_path": "Compose Path",
+    "remove_volumes": "Remove Volumes"
+  },
+  "options": {
+    "action": {
+      "deploy": "Deploy",
+      "up": "Start (compose up)",
+      "down": "Stop (compose down)",
+      "remove": "Remove"
+    },
+    "compose_source": {
+      "message": "Message",
+      "inline": "Inline YAML",
+      "file": "File Path"
+    }
+  }
+}

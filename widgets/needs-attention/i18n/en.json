@@ -1,0 +1,23 @@
+{
+  "widgets": {
+    "needsAttention": {
+      "label": "Needs attention",
+      "description": "The few items actually wanting a human, ranked by consequence"
+    }
+  },
+  "needsAttentionWidget": {
+    "title": "Needs attention",
+    "empty": "Nothing needs you right now",
+    "unavailable": "Unable to read container state",
+    "more": "{{count}} more",
+    "reason": {
+      "unhealthy": "health check failing",
+      "restarting": "restart loop",
+      "dead": "dead",
+      "exited": "stopped",
+      "snapshotOverdue": "snapshot overdue",
+      "snapshotNever": "never snapshotted"
+    },
+    "viewAll": "Show all"
+  }
+}

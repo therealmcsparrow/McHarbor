@@ -1,0 +1,44 @@
+{
+    "slug":  "pgbackrest",
+    "name":  "pgBackRest",
+    "description":  "Reliable backup and restore tool for PostgreSQL with full, differential and incremental backups.",
+    "category":  "Backups",
+    "image":  "woblerr/pgbackrest:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/postgresql.png",
+    "website":  "https://pgbackrest.org",
+    "docsUrl":  "https://pgbackrest.org/user-guide.html",
+    "ports":  [
+                  {
+                      "host":  8432,
+                      "container":  8432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pgbackrest/repo",
+                        "container":  "/var/lib/pgbackrest"
+                    },
+                    {
+                        "host":  "/opt/appdata/pgbackrest/config",
+                        "container":  "/etc/pgbackrest"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PGBACKREST_STANZA",
+                        "default":  "main",
+                        "description":  "Name of the backup stanza to manage"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

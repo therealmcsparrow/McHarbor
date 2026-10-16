@@ -1,0 +1,35 @@
+{
+    "slug":  "autobrr-dev",
+    "name":  "autobrr (Dev)",
+    "description":  "Dev channel build of autobrr. Automation for racing torrents from IRC announce channels.",
+    "category":  "Media",
+    "image":  "ghcr.io/autobrr/autobrr:dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/autobrr.png",
+    "website":  "https://autobrr.com",
+    "docsUrl":  "https://autobrr.com",
+    "ports":  [
+                  {
+                      "host":  8474,
+                      "container":  7474,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/autobrr-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

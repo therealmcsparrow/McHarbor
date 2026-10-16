@@ -1,0 +1,17 @@
+{
+  "label": "Ticketstatus",
+  "description": "Startet, wenn ein ITSM meldet, dass ein verknüpftes Ticket den Zustand geändert hat",
+  "config": {
+    "channel_id": "Ticketing-Kanal",
+    "states": "Zustände"
+  },
+  "options": {
+    "states": {
+      "open": "Offen",
+      "acknowledged": "Bestätigt",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen",
+      "cancelled": "Storniert"
+    }
+  }
+}

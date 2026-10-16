@@ -1,0 +1,39 @@
+{
+    "slug":  "motioneye",
+    "name":  "motionEye",
+    "description":  "Web interface for managing multiple network cameras and motion-triggered recordings.",
+    "category":  "Home Automation",
+    "image":  "ccrisan/motioneye:master-amd64",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/motioneye.png",
+    "website":  "https://github.com/motioneye-project/motioneye",
+    "docsUrl":  "https://github.com/motioneye-project/motioneye/wiki/Installation",
+    "ports":  [
+                  {
+                      "host":  8765,
+                      "container":  8765,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/motioneye/config",
+                        "container":  "/etc/motioneye"
+                    },
+                    {
+                        "host":  "/opt/appdata/motioneye/media",
+                        "container":  "/var/lib/motioneye"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "master-amd64",
+    "latest":  {
+        "version":  "master-amd64",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "baikal",
+  "name": "Baïkal",
+  "description": "Lightweight CalDAV and CardDAV server with a web admin interface.",
+  "category": "Productivity",
+  "image": "ckulka/baikal:nginx",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/baikal.png",
+  "website": "https://sabre.io/baikal/",
+  "docsUrl": "https://github.com/ckulka/baikal-docker",
+  "ports": [
+    {
+      "host": 8103,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/baikal/config",
+      "container": "/var/www/baikal/config"
+    },
+    {
+      "host": "/opt/appdata/baikal/data",
+      "container": "/var/www/baikal/Specific"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "nginx"
+}

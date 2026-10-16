@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Capacity Headroom",
+      "description": "When each filesystem and storage destination runs out of space"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Capacity Headroom",
+    "fullOn": "Full on {{date}} — {{days}} days",
+    "noProjection": "{{percent}}% used, no projection yet",
+    "noData": "No capacity history yet"
+  }
+}

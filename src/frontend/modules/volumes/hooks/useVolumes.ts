@@ -12,10 +12,25 @@ export function useVolumes() {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
     queryKey: ['volumes', envId],
+    queryFn: () => api.get<VolumeInfo[]>('/volumes', envId ? { env: envId } : {}).then((r) => assertSuccess(r) ?? []),
+    refetchInterval: 30_000,
+  });
+}
+
+/**
+ * useVolume inspects one volume. The backend route is `GET /volumes/{name}`
+ * (`volumes.HandleInspect`), which has always existed — there was simply no
+ * page asking for it until the volume detail page.
+ */
+export function useVolume(volumeName: string) {
+  const envId = useEnvironmentStore((s) => s.currentId);
+  return useQuery({
+    queryKey: ['volume', volumeName, envId],
     queryFn: () =>
       api
-        .get<VolumeInfo[]>('/volumes', envId ? { env: envId } : {})
-        .then((r) => r.data ?? []),
+        .get<VolumeInfo>(`/volumes/${encodeURIComponent(volumeName)}`, envId ? { env: envId } : {})
+        .then(assertSuccess),
+    enabled: Boolean(volumeName),
     refetchInterval: 30_000,
   });
 }
@@ -30,7 +45,7 @@ export function useCreateVolume() {
       api.post(`/volumes${envId ? `?env=${envId}` : ''}`, params).then(assertSuccess),
     meta: { success: t('toast.created') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['volumes'] });
+      void queryClient.invalidateQueries({ queryKey: ['volumes'] });
     },
   });
 }
@@ -41,11 +56,11 @@ export function useRemoveVolume() {
   const envId = useEnvironmentStore((s) => s.currentId);
 
   return useMutation({
-    mutationFn: (name: string) =>
-      api.del(`/volumes/${name}`, envId ? { env: envId } : {}).then(assertSuccess),
+    mutationFn: (volumeName: string) =>
+      api.del(`/volumes/${volumeName}`, envId ? { env: envId } : {}).then(assertSuccess),
     meta: { success: t('toast.removed') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['volumes'] });
+      void queryClient.invalidateQueries({ queryKey: ['volumes'] });
     },
   });
 }
@@ -56,11 +71,10 @@ export function usePruneVolumes() {
   const envId = useEnvironmentStore((s) => s.currentId);
 
   return useMutation({
-    mutationFn: () =>
-      api.post(`/volumes/prune${envId ? `?env=${envId}` : ''}`, {}).then(assertSuccess),
+    mutationFn: () => api.post(`/volumes/prune${envId ? `?env=${envId}` : ''}`, {}).then(assertSuccess),
     meta: { success: t('toast.pruned') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['volumes'] });
+      void queryClient.invalidateQueries({ queryKey: ['volumes'] });
     },
   });
 }

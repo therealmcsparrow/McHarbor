@@ -2,7 +2,7 @@
     "slug":  "seaweedfs",
     "name":  "SeaweedFS",
     "description":  "Fast distributed file system for billions of files with S3 API and FUSE mount support.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "chrislusf/seaweedfs:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/seaweedfs.svg",
     "website":  "https://github.com/chrislusf/seaweedfs",
@@ -37,5 +37,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

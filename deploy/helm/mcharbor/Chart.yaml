@@ -1,0 +1,20 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+apiVersion: v2
+name: mcharbor
+description: Self-hosted container management platform for Docker and Kubernetes, as a single node or an active/passive pair.
+type: application
+version: 0.1.0
+appVersion: "2026.10.01"
+kubeVersion: ">=1.27.0-0"
+keywords:
+  - docker
+  - kubernetes
+  - containers
+  - management
+sources:
+  - https://github.com/therealmcsparrow/mcharbor
+maintainers:
+  - name: McSparrow
+    email: development@mcsparrow.eu

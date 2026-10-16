@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": { "help": "Anzeigename für diesen Gmail-Kommunikationskanal." },
+    "client_id": { "help": "Google-OAuth-Client-ID mit Sendeberechtigung für die Gmail API." },
+    "client_secret": { "help": "Google-OAuth-Client-Secret. Wird im Ruhezustand verschlüsselt gespeichert." },
+    "from_address": { "help": "Gmail-Adresse des Benutzers, die als Absender der API verwendet wird." },
+    "from_name": { "help": "Optionaler Anzeigename für den From-Header." },
+    "to": { "help": "E-Mail-Adressen der Empfänger, durch Kommas getrennt." },
+    "subject_prefix": { "help": "Optionales Präfix, das jedem Benachrichtigungsbetreff vorangestellt wird." }
+  },
+  "title": "Gmail-Benachrichtigungszustellung",
+  "subtitle": "Vom Plugin verwaltet",
+  "description": "Dieses Plugin verwaltet Gmail. Es speichert Gmail-API-Einstellungen im Kanal selbst und verwendet nicht die entfernte E-Mail-Server-Oberfläche des Hosts.",
+  "nameLabel": "Kanalname",
+  "namePlaceholder": "Betriebs-Gmail",
+  "clientIdLabel": "Client-ID",
+  "clientSecretLabel": "Client-Secret",
+  "fromAddressLabel": "Absenderadresse",
+  "fromNameLabel": "Absendername",
+  "toLabel": "Empfänger",
+  "subjectPrefixLabel": "Betreffpräfix",
+  "securityTitle": "Sicherheit",
+  "securityHelp": "OAuth-Client-Anmeldedaten",
+  "securityDescription": "Das Client-Secret wird im Ruhezustand verschlüsselt gespeichert. Verwenden Sie einen eigenen Google-Cloud-OAuth-Client und beschränken Sie den Zugriff auf Sendeberechtigungen der Gmail-API.",
+  "testTitle": "Verbindung testen",
+  "testHelp": "Sendet eine E-Mail",
+  "testDescription": "Die Testaktion des Hosts sendet eine echte E-Mail über diesen Gmail-Kanal. Verwenden Sie zuerst einen Testempfänger, wenn Ihr Postfach eine Bereitschaftsliste erreicht.",
+  "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+  "requiredField": "Erforderlich",
+  "setupGuideTitle": "Einrichtungsanleitung für den Gmail-Kommunikationskanal",
+  "guide": {
+    "step1": { "body": "Erstellen oder wählen Sie ein Google-Cloud-Projekt, das ausschließlich für die McHarbor-Benachrichtigungszustellung vorgesehen ist." },
+    "step2": { "body": "Aktivieren Sie die <b>Gmail API</b> für dieses Projekt und erstellen Sie OAuth-Client-Anmeldedaten für die Absenderintegration." },
+    "step3": { "body": "Erteilen Sie dem Client die Gmail-Sendeberechtigung und <warn>beschränken Sie das Client-Secret auf McHarbor-Administratoren</warn>." },
+    "step4": { "body": "Setzen Sie <b>Absenderadresse</b> auf den Gmail-Benutzer, der die Benachrichtigungen versendet. Einige Google-Workspace-Richtlinien verlangen, dass diese Adresse ein verifizierter oder delegierter Absender ist." },
+    "step5": { "body": "Fügen Sie einen oder mehrere Empfänger hinzu, durch Kommas getrennt. Beginnen Sie mit einem Test-Postfach und wechseln Sie zu Ihrer Operations- oder Bereitschafts-Verteilerliste, sobald die Zustellung bestätigt ist." },
+    "step6": { "body": "Legen Sie optional ein <b>Betreffpräfix</b> fest, zum Beispiel <code>[McHarbor Prod]</code>, damit Warnungen in Mailprogrammen und Ticketsystemen leicht gefiltert werden können." },
+    "step7": { "body": "Speichern Sie den Kanal und klicken Sie auf <b>Verbindung testen</b>. Das Plugin sendet eine echte Test-E-Mail über denselben Gmail-API-Pfad, der für Live-Workflow-, Alarm- und Backup-Ereignisse genutzt wird." },
+    "step8": { "body": "Schlägt der Test mit einem OAuth-Fehler fehl, prüfen Sie Client-ID, Client-Secret, die Aktivierung der Gmail API, das Absenderpostfach und die Workspace-Richtlinie für den E-Mail-Versand per API." }
+  }
+}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -32,9 +33,11 @@ func NewHandler(app *router.AppDeps) *Handler {
 //
 // Supported query parameters:
 //
-//	env - environment ID (empty = default)
-//	from - RFC3339 timestamp, inclusive lower bound
-//	to   - RFC3339 timestamp, inclusive upper bound
+//	env         - environment ID (empty = default)
+//	from        - RFC3339 timestamp, inclusive lower bound
+//	to          - RFC3339 timestamp, inclusive upper bound
+//	search      - free-text query matched against container, action and environment
+//	search_mode - `contains` (default) or `exact`; regex stays client-side
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	user := auth.RequireAuth(r)
 	if user == nil {
@@ -57,10 +60,23 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, total, err := h.service.List(page, perPage, envID, from, to)
+	search := strings.TrimSpace(q.Get("search"))
+	searchMode := strings.TrimSpace(q.Get("search_mode"))
+	if len(search) > 255 || !db.ValidSearchMode(searchMode) {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	events, total, err := h.service.List(r.Context(), page, perPage, ListFilter{
+		EnvironmentID: envID,
+		From:          from,
+		To:            to,
+		Search:        search,
+		SearchMode:    searchMode,
+	})
 	if err != nil {
 		h.app.Logger.Error("failed to list activity events", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -93,7 +109,7 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 
 	var req CreateRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -110,10 +126,10 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	evt, err := h.service.Create(req)
+	evt, err := h.service.Create(r.Context(), req)
 	if err != nil {
 		h.app.Logger.Error("failed to create activity event", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -142,7 +158,7 @@ func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
 	deleted, days, err := h.service.PurgeByRetention(r.Context())
 	if err != nil {
 		h.app.Logger.Error("failed to purge activity events", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 

@@ -14,6 +14,10 @@ type Group struct {
 	Roles       []GroupRole   `json:"roles,omitempty"`
 	CreatedAt   string        `json:"createdAt"`
 	UpdatedAt   string        `json:"updatedAt"`
+	// RoleNames is populated only by List, from a GROUP_CONCAT join — a
+	// lighter-weight name list than Roles, which Get alone fills with full
+	// GroupRole records. Omitted (not an empty array) on every other path.
+	RoleNames []string `json:"roleNames,omitempty"`
 }
 
 // GroupMember represents a user in a group.

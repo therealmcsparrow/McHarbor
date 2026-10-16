@@ -8,6 +8,9 @@
   "activityFeedWidget": {
     "title": "Feed de actividad",
     "loadingActivity": "Cargando actividad...",
-    "noRecentActivity": "Ninguna actividad reciente"
+    "noRecentActivity": "Ninguna actividad reciente",
+    "more": "{{count}} más",
+    "viewAll": "Ver actividad",
+    "justNow": "ahora mismo"
   }
 }

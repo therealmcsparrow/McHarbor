@@ -1,0 +1,19 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "vmRoot": "VMRoot",
+      "ctRoot": "CTRoot",
+      "imageRoot": "ImageRoot"
+    }
+  ],
+  "wire": {
+    "operation": "config",
+    "envId": "env-1",
+    "roots": {
+      "vmRoot": "VMRoot",
+      "ctRoot": "CTRoot",
+      "imageRoot": "ImageRoot"
+    }
+  }
+}

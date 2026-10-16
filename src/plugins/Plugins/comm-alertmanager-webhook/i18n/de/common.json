@@ -1,0 +1,67 @@
+{
+  "config": {
+    "name": { "label": "Kanalname" },
+    "webhook_url": { "label": "Empfänger-URL", "help": "Alertmanager-Webhook-URL des Empfängers. Enthält oft ein Token und wird daher verschlüsselt gespeichert." },
+    "profile": { "label": "Empfängerprofil", "help": "generic, grafana_irm, squadcast, zenduty oder keep." },
+    "receiver_name": { "label": "Empfängername", "help": "Wird als Feld receiver der Payload gesendet." },
+    "auth_mode": { "label": "Authentifizierung", "help": "none, bearer oder basic." },
+    "bearer_token": { "label": "Bearer-Token" },
+    "basic_username": { "label": "Benutzername für Basic-Authentifizierung" },
+    "basic_password": { "label": "Passwort für Basic-Authentifizierung" },
+    "hmac_secret": { "label": "HMAC-Signaturgeheimnis", "help": "Optional. Fügt X-McHarbor-Signature: t=<unix>,v1=<hex> für benutzerdefinierte Gateways hinzu." },
+    "allow_http": { "label": "Unverschlüsseltes HTTP erlauben", "help": "Nur für einen Empfänger in einem vertrauenswürdigen privaten Netzwerk, etwa selbst gehostetes Keep." },
+    "update_on_repeat": { "label": "Auslösende Alarme bei Wiederholung erneut senden" },
+    "test_sends_alert": { "label": "Verbindungstest sendet einen Test-Alarm", "help": "Wenn aktiviert, löst Test einen Info-Alarm namens McHarborConnectionTest aus und löst ihn sofort wieder auf." },
+    "severity_map": { "label": "Schweregrad-Zuordnung (JSON)" }
+  },
+  "form": {
+    "name": { "label": "Kanalname", "placeholder": "Grafana IRM — Platform" },
+    "webhook_url": { "label": "Empfänger-URL", "placeholder": "https://…", "help": "Die Alertmanager-Webhook-URL, die Ihr Bereitschaftstool Ihnen gibt. Wird verschlüsselt gespeichert, da sie meist ein Token enthält." },
+    "profile": { "label": "Empfängerprofil" },
+    "receiver_name": { "label": "Empfängername", "placeholder": "mcharbor", "help": "Wird als Feld receiver der Payload gesendet." },
+    "auth_mode": { "label": "Authentifizierung", "none": "Keine (Token in der URL)", "bearer": "Bearer-Token", "basic": "Basic-Authentifizierung" },
+    "bearer_token": { "label": "Bearer-Token", "placeholder": "Token" },
+    "basic_username": { "label": "Benutzername", "placeholder": "api_key" },
+    "basic_password": { "label": "Passwort", "placeholder": "Passwort oder API-Schlüssel" },
+    "hmac_secret": { "label": "HMAC-Signaturgeheimnis", "placeholder": "Optional", "help": "Fügt X-McHarbor-Signature: t=<unix>,v1=<hex HMAC-SHA256 von t.body> für Gateways hinzu, die es prüfen." },
+    "allow_http": { "label": "Unverschlüsseltes http zulassen (nur vertrauenswürdiges privates Netzwerk)" },
+    "update_on_repeat": { "label": "Firing bei Wiederholung erneut senden", "help": "Wenn ein Alarm erneut auslöst, während er offen ist, wird derselbe Alarm erneut gesendet, wie Alertmanager es im Wiederholungsintervall tut." },
+    "test_sends_alert": { "label": "Verbindungstest sendet einen Testalarm", "help": "Löst einen Info-Alarm namens McHarborConnectionTest aus und löst ihn sofort wieder auf. Standardmäßig aus, da er eine Alarmierung auslösen kann." },
+    "severity_map": { "label": "Schweregrad-Zuordnung (JSON)", "placeholder": "{\"critical\":\"P1\"}", "help": "Optional. Benennt die Schweregrad-Label-Werte critical, warning und info für Empfänger um, die auf andere Werte konfiguriert sind." },
+    "secretKeepHint": "Leer lassen, um den gespeicherten Wert beizubehalten.",
+    "insecureWarning": "Alarme und Zugangsdaten werden unverschlüsselt übertragen. Verwenden Sie dies nur für einen Empfänger in einem vertrauenswürdigen privaten Netzwerk.",
+    "errors": { "https": "Verwenden Sie eine https-URL oder aktivieren Sie unverschlüsseltes http für einen privaten Empfänger.", "trailingSlash": "Grafana-IRM-Integrations-URLs enden auf /." }
+  },
+  "profiles": {
+    "generic": { "label": "Generischer Alertmanager-Empfänger", "hint": "Sendet Standard-Alertmanager-Webhook-v4-Payloads, eine Gruppe pro McHarbor-Bedingung." },
+    "grafana_irm": { "label": "Grafana Cloud IRM / Grafana OnCall", "hint": "Gruppiert nach groupKey und löst bei resolved automatisch auf. Die URL muss ihren abschließenden Schrägstrich behalten." },
+    "squadcast": { "label": "Squadcast (SolarWinds Incident Response)", "hint": "Sendet immer labels.severity, annotations.summary und annotations.description, die Squadcast benötigt." },
+    "zenduty": { "label": "Zenduty (Xurrent IMR)", "hint": "Zenduty gruppiert nach alertname, daher hängt McHarbor eine kurze Bedingungs-ID an, um Bedingungen getrennt zu halten." },
+    "keep": { "label": "Beibehalten", "hint": "Verwendet Basic-Authentifizierung mit dem Benutzernamen api_key und Ihrem Keep-API-Schlüssel als Passwort." }
+  },
+  "guide": {
+    "title": "Einrichtung des Alertmanager-Webhook-Kanals",
+    "general": {
+      "oneWay": "<warn>Dieser Kanal arbeitet in eine Richtung</warn>: McHarbor öffnet und löst Alarme beim Empfänger, dort vorgenommene Bestätigungen fließen jedoch nicht zurück. Verwenden Sie einen eigenen PagerDuty-, incident.io-, Rootly-, Splunk-On-Call- oder xMatters-Kanal, wenn Sie das benötigen.",
+      "profile": "Wählen Sie das zu Ihrem Tool passende Profil, fügen Sie dessen URL ein und speichern Sie.",
+      "test": "Der <b>Verbindungstest</b> prüft DNS, Erreichbarkeit und TLS, ohne etwas zu senden, es sei denn, Sie aktivieren „<b>Verbindungstest sendet einen Testalarm</b>“."
+    },
+    "grafana_irm": {
+      "create": "Öffnen Sie in Grafana Cloud <b>IRM (OnCall) → Integrations → New integration</b> und wählen Sie <b>Alertmanager Prometheus</b>.",
+      "copy": "Kopieren Sie die <b>OnCall Integration URL</b> aus dem Abschnitt <b>HTTP Endpoint</b>, einschließlich des abschließenden Schrägstrichs, in <b>Empfänger-URL</b>.",
+      "templates": "Behalten Sie die Standardvorlagen für Gruppierung und automatische Auflösung bei; sie passen zu den Payloads von McHarbor mit einer Gruppe pro Bedingung."
+    },
+    "squadcast": {
+      "create": "Öffnen Sie in Squadcast <b>Services → Ihr Service → Alert Sources → Add</b>, wählen Sie <b>Prometheus</b> und kopieren Sie die <b>Webhook-URL</b> in <b>Empfänger-URL</b>.",
+      "resolve": "Wiederherstellungen in McHarbor lösen den Squadcast-Vorfall automatisch auf."
+    },
+    "zenduty": {
+      "create": "Öffnen Sie in Zenduty (Xurrent IMR) den <b>Service Ihres Teams → Integrations → Add Integration</b>, wählen Sie <b>Prometheus</b> und kopieren Sie die Webhook-URL in <b>Empfänger-URL</b>.",
+      "grouping": "Zenduty gruppiert nach <code>alertname</code>; das Zenduty-Profil hängt eine kurze Bedingungs-ID an, damit zwei Container nie einen Vorfall teilen."
+    },
+    "keep": {
+      "create": "Erstellen Sie in Keep einen API-Schlüssel, setzen Sie die <b>Empfänger-URL</b> auf <code><Ihr Keep-Backend>/alerts/event/prometheus</code> und wählen Sie <b>Basic-Authentifizierung</b> mit dem Benutzernamen <code>api_key</code>.",
+      "private": "Wenn Keep in Ihrem privaten Netzwerk über http läuft, aktivieren Sie „<b>Unverschlüsseltes http zulassen</b>“."
+    }
+  }
+}

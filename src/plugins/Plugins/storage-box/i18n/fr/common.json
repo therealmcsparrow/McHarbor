@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Destination Box",
+    "subtitle": "Les instantanés de sauvegarde sont écrits dans le dossier Box dont vous indiquez l'ID. Utilisez folder_id « 0 » pour la racine du compte.",
+    "registerHint": "Ce plugin gère un seul LocationType : box. Pour changer de dossier plus tard, enregistrez la destination et rouvrez-la."
+  },
+  "fields": {
+    "clientId": "ID client",
+    "clientSecret": "Secret client",
+    "folderId": "ID du dossier",
+    "refreshToken": "Jeton d'actualisation"
+  },
+  "form": {
+    "help": {
+      "clientId": "ID client de la Box Developer Console pour votre application (Custom App ou Server Authentication).",
+      "clientSecret": "Client Secret de la Box Developer Console. Traité comme un secret en écriture seule ; le plugin ne le journalise jamais.",
+      "folderId": "ID du dossier Box où sont déposées les sauvegardes. Utilisez \"0\" pour la racine du compte.",
+      "refreshToken": "Refresh token de longue durée émis après le flux de consentement OAuth. Laissez vide tant que vous n'avez pas exécuté Se connecter à Box."
+    }
+  },
+  "help": {
+    "clientId": "Depuis la Box Developer Console : App → Configuration → OAuth 2.0.",
+    "clientSecret": "Le secret client n'est affiché qu'une fois, à la création de l'application — copiez-le maintenant.",
+    "folderId": "ID numérique du dossier Box. « 0 » = la racine du compte. Trouvez l'ID d'un dossier dans l'URL de l'interface web de Box.",
+    "refreshToken": "Renseigné automatiquement par le flux Se connecter à Box. Ne le modifiez pas manuellement.",
+    "oauthHint": "Après l'enregistrement, cliquez sur « Se connecter à Box » pour accorder le consentement au plugin et stocker un jeton d'actualisation. Sans jeton d'actualisation, le plugin se rabat sur le grant client_credentials (nécessite Server Authentication configuré sur l'application Box)."
+  },
+  "setup": {
+    "title": "Guide de configuration de Box",
+    "subtitle": "Reliez une application développeur Box à votre instance McHarbor en six courtes étapes. Environ 5 minutes.",
+    "step1": {
+      "title": "Créer une application Box",
+      "body": "Ouvrez la Box Developer Console (developer.box.com) et créez une nouvelle application. Choisissez « Custom App » pour l'authentification déléguée par utilisateur, ou « Server Authentication » si vous préférez des jetons d'application seule (sans consentement par utilisateur)."
+    },
+    "step2": {
+      "title": "Configurer OAuth 2.0",
+      "body": "Dans les paramètres de l'application, choisissez OAuth 2.0. Ajoutez l'URI de redirection servie par votre instance McHarbor (Paramètres → Stockage → Se connecter à Box l'affichera). Choisissez pour l'instant un seul environnement principal (développement ou production)."
+    },
+    "step3": {
+      "title": "Demander les scopes",
+      "body": "Sous « Application Scopes », activez file_readwrite (lecture/écriture complète sur tous les fichiers et dossiers auxquels l'utilisateur peut accéder). Les anciennes applications peuvent encore utiliser root_readwrite — les deux fonctionnent avec ce plugin."
+    },
+    "step4": {
+      "title": "Soumettre l'application pour autorisation",
+      "body": "Les Custom Apps exigent qu'un administrateur Box autorise l'application avant que les utilisateurs puissent donner leur consentement. Demandez à votre administrateur Box de cliquer sur le bouton « Authorize » dans la Developer Console, puis d'approuver les scopes demandés."
+    },
+    "step5": {
+      "title": "Copier client_id + client_secret",
+      "body": "De retour dans McHarbor, collez l'ID client et le secret client de la Box Developer Console dans le formulaire de la destination. Enregistrez la destination avant de continuer."
+    },
+    "step6": {
+      "title": "Se connecter pour accorder le consentement",
+      "body": "Ouvrez la destination enregistrée et cliquez sur « Se connecter à Box ». Le plugin lance le flux de consentement OAuth auprès de Box ; après le consentement, Box redirige avec un code d'autorisation que l'hôte échange contre un jeton d'actualisation de longue durée (stocké chiffré dans la destination)."
+    },
+    "footer": "Besoin d'une portée au niveau d'un dossier plutôt que du compte entier ? Utilisez un Service Account limité à un dossier Box et collez les identifiants du Service Account dans le formulaire de la destination. Le plugin utilise les identifiants présents à l'exécution."
+  },
+  "toast": {
+    "registered": "Destination Box enregistrée.",
+    "testPassed": "Connexion à Box réussie.",
+    "testFailed": "Échec de la connexion à Box.",
+    "oauthGranted": "Compte Box connecté. Jeton d'actualisation stocké.",
+    "oauthDenied": "Autorisation Box refusée. Reconnectez-vous pour réessayer."
+  },
+  "error": {
+    "noClientId": "L'ID client est obligatoire.",
+    "noClientSecret": "Le secret client est obligatoire.",
+    "invalidFolderId": "L'ID du dossier doit être numérique.",
+    "tokenFailed": "Impossible d'échanger les identifiants contre un jeton d'accès Box. Vérifiez client_id + client_secret et réessayez."
+  }
+}

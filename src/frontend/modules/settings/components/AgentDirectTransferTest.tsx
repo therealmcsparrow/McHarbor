@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconArrowRight, IconPlugConnected, IconRoute } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
@@ -12,6 +12,7 @@ import { Spinner } from '@resources/components/ui/Spinner';
 import { useAgents, useDirectTransferTest } from '../hooks/useAgentSettings';
 import type { AgentInfo, DirectTransferTestResult } from '../types';
 import { AgentDirectTransferTestDialog } from './AgentDirectTransferTestDialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 function agentLabel(agent: AgentInfo) {
   return agent.hostname ? `${agent.envName} (${agent.hostname})` : agent.envName;
@@ -21,47 +22,32 @@ export function AgentDirectTransferTest() {
   const { t } = useTranslation('settings');
   const { data: agents = [], isLoading } = useAgents();
   const transferTest = useDirectTransferTest();
-  const [sourceEnvId, setSourceEnvId] = useState('');
-  const [targetEnvId, setTargetEnvId] = useState('');
+  const [sourceChoice, setSourceEnvId] = useState('');
+  const [targetChoice, setTargetEnvId] = useState('');
   const [result, setResult] = useState<DirectTransferTestResult | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [requestError, setRequestError] = useState('');
 
-  const connectedAgents = useMemo(
-    () => agents.filter((agent) => agent.status === 'connected'),
-    [agents]
-  );
+  const connectedAgents = useMemo(() => agents.filter((agent) => agent.status === 'connected'), [agents]);
 
   const sourceOptions = useMemo(
     () => connectedAgents.map((agent) => ({ value: agent.envId, label: agentLabel(agent) })),
-    [connectedAgents]
+    [connectedAgents],
   );
+
+  const sourceEnvId = sourceChoice || sourceOptions[0]?.value || '';
 
   const targetOptions = useMemo(
     () =>
       connectedAgents
         .filter((agent) => agent.envId !== sourceEnvId)
         .map((agent) => ({ value: agent.envId, label: agentLabel(agent) })),
-    [connectedAgents, sourceEnvId]
+    [connectedAgents, sourceEnvId],
   );
 
-  useEffect(() => {
-    const firstSource = sourceOptions[0];
-    if (!sourceEnvId && firstSource) {
-      setSourceEnvId(firstSource.value);
-    }
-  }, [sourceEnvId, sourceOptions]);
-
-  useEffect(() => {
-    if (targetOptions.length === 0) {
-      setTargetEnvId('');
-      return;
-    }
-    const firstTarget = targetOptions[0];
-    if (firstTarget && (!targetEnvId || !targetOptions.some((option) => option.value === targetEnvId))) {
-      setTargetEnvId(firstTarget.value);
-    }
-  }, [targetEnvId, targetOptions]);
+  const targetEnvId = targetOptions.some((option) => option.value === targetChoice)
+    ? targetChoice
+    : (targetOptions[0]?.value ?? '');
 
   const canRun = Boolean(sourceEnvId && targetEnvId && sourceEnvId !== targetEnvId);
 
@@ -77,7 +63,7 @@ export function AgentDirectTransferTest() {
         onError: (error) => {
           setRequestError(error instanceof Error ? error.message : t('agent.directTransferTest.requestFailed'));
         },
-      }
+      },
     );
   };
 
@@ -87,13 +73,9 @@ export function AgentDirectTransferTest() {
         <div>
           <div className="flex items-center gap-2">
             <IconRoute className="size-5 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">
-              {t('agent.directTransferTest.title')}
-            </h3>
+            <h3 className="text-base font-semibold text-foreground">{t('agent.directTransferTest.title')}</h3>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('agent.directTransferTest.description')}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{t('agent.directTransferTest.description')}</p>
         </div>
         <Badge variant={connectedAgents.length >= 2 ? 'success' : 'secondary'}>
           {t('agent.directTransferTest.connectedCount', { count: connectedAgents.length })}
@@ -138,7 +120,7 @@ export function AgentDirectTransferTest() {
             </div>
           </div>
 
-          <Button onClick={handleRun} disabled={!canRun || transferTest.isPending}>
+          <Button permission={PERM.SETTINGS_MANAGE} onClick={handleRun} disabled={!canRun || transferTest.isPending}>
             {transferTest.isPending ? (
               <>
                 <Spinner className="mr-2 size-4" />

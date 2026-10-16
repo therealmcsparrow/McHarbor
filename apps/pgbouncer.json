@@ -1,0 +1,61 @@
+{
+    "slug":  "pgbouncer",
+    "name":  "PgBouncer",
+    "description":  "Lightweight connection pooler for PostgreSQL that reduces backend connection overhead.",
+    "category":  "Databases",
+    "image":  "edoburu/pgbouncer:latest",
+    "logo":  "https://github.com/pgbouncer.png",
+    "website":  "https://www.pgbouncer.org",
+    "docsUrl":  "https://www.pgbouncer.org/config.html",
+    "ports":  [
+                  {
+                      "host":  6432,
+                      "container":  6432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pgbouncer/config",
+                        "container":  "/etc/pgbouncer"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB_HOST",
+                        "default":  "postgres",
+                        "description":  "Upstream Postgres host"
+                    },
+                    {
+                        "key":  "DB_PORT",
+                        "default":  "5432",
+                        "description":  "Upstream Postgres port"
+                    },
+                    {
+                        "key":  "DB_USER",
+                        "default":  "postgres",
+                        "description":  "Upstream Postgres user"
+                    },
+                    {
+                        "key":  "DB_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Upstream Postgres password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POOL_MODE",
+                        "default":  "transaction",
+                        "description":  "Pooling mode"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

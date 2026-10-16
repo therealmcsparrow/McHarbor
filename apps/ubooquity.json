@@ -1,0 +1,58 @@
+{
+    "slug":  "ubooquity",
+    "name":  "Ubooquity",
+    "description":  "Free home server for comics and ebooks with a web reader and admin console.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/ubooquity:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ubooquity.png",
+    "website":  "https://vaemendis.net/ubooquity",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-ubooquity",
+    "ports":  [
+                  {
+                      "host":  2202,
+                      "container":  2202,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2203,
+                      "container":  2203,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ubooquity/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/ubooquity/comics",
+                        "container":  "/comics"
+                    },
+                    {
+                        "host":  "/opt/appdata/ubooquity/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

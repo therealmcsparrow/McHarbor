@@ -1,7 +1,7 @@
 {
-  "label": "Try Catch",
-  "description": "Guard downstream execution and route failures into a catch branch",
+  "label": "Try-catch",
+  "description": "Bewaak de verdere uitvoering en stuur fouten naar een catch-tak",
   "config": {
-    "error_property": "Error Property"
+    "error_property": "Foutproperty"
   }
 }

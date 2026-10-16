@@ -1,0 +1,37 @@
+{
+  "widgets": {
+    "workloadHeatmap": {
+      "label": "Mapa de calor de cargas",
+      "description": "Un cuadrado por contenedor, coloreado por estado"
+    }
+  },
+  "workloadHeatmapWidget": {
+    "title": "Estados de las cargas",
+    "count_one": "{{count}} contenedor",
+    "count_other": "{{count}} contenedores",
+    "empty": "No se encontraron contenedores",
+    "emptyHint": "Las cargas aparecerán aquí en cuanto este entorno tenga alguna.",
+    "gridLabel_one": "{{count}} contenedor, agrupado por estado",
+    "gridLabel_other": "{{count}} contenedores, agrupados por estado",
+    "cellLabel": "{{name}} — {{state}}",
+    "open": "Abrir contenedor",
+    "none": "Ninguno",
+    "state": {
+      "running": "En ejecución",
+      "created": "Creado",
+      "removing": "Eliminándose",
+      "paused": "En pausa",
+      "restarting": "Reiniciando",
+      "exited": "Detenido",
+      "dead": "Muerto"
+    },
+    "field": {
+      "status": "Estado",
+      "stack": "Stack",
+      "ports": "Puertos",
+      "ip": "Dirección IP",
+      "created": "Creado",
+      "id": "ID"
+    }
+  }
+}

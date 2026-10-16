@@ -1,0 +1,31 @@
+{
+    "slug":  "hadolint",
+    "name":  "Hadolint",
+    "description":  "Lints Dockerfiles against best practices, catching insecure and inefficient instructions before an image builds.",
+    "category":  "Security",
+    "image":  "hadolint/hadolint:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/hadolint/hadolint",
+    "docsUrl":  "https://github.com/hadolint/hadolint#usage",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hadolint/project",
+                        "container":  "/src"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

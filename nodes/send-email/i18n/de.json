@@ -1,11 +1,11 @@
 {
-  "label": "Send Email",
-  "description": "Send an email through a configured email server",
+  "label": "E-Mail senden",
+  "description": "Eine E-Mail über einen konfigurierten E-Mail-Server senden",
   "config": {
     "server_id": "E-Mail-Server",
     "to": "An",
     "subject": "Betreff",
-    "body": "Body",
+    "body": "Inhalt",
     "delivery_mode": "Zustellung",
     "smtp_host": "SMTP-Host",
     "smtp_port": "SMTP-Port",
@@ -18,16 +18,16 @@
   },
   "options": {
     "delivery_mode": {
-      "configured": "Configured Email Server",
-      "custom": "Other"
+      "configured": "Konfigurierter E-Mail-Server",
+      "custom": "Andere"
     },
     "smtp_encryption": {
-      "none": "None",
+      "none": "Keine",
       "starttls": "STARTTLS",
       "ssl_tls": "SSL/TLS"
     },
     "smtp_auth_method": {
-      "none": "None",
+      "none": "Keine",
       "plain": "Plain",
       "login": "Login",
       "cram_md5": "CRAM-MD5"

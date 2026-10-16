@@ -4,7 +4,7 @@
   "description": "Event-driven declarative orchestrator for data pipelines, ETL, and infrastructure automation.",
   "category": "Databases",
   "image": "kestra/kestra:latest",
-  "logo": "https://kestra.io/docs/logo.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kestra.svg",
   "website": "https://kestra.io",
   "docsUrl": "https://kestra.io/docs/installation/docker",
   "ports": [
@@ -57,5 +57,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

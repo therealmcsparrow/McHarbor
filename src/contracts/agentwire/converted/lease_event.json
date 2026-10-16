@@ -1,0 +1,13 @@
+{
+  "envId": "env-1",
+  "guestKind": "GuestKind",
+  "guestId": "GuestID",
+  "kind": "lease_Action",
+  "detail": {
+    "hostname": "Hostname",
+    "ip": "IP",
+    "mac": "MAC",
+    "networkId": "NetworkID"
+  },
+  "at": "0001-01-01T00:00:00Z"
+}

@@ -1,16 +1,22 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { InfoRow } from '@resources/components/ui/InfoRow';
 import { Badge } from '@resources/components/ui/Badge';
-import { Button } from '@resources/components/ui/Button';
+import { Select } from '@resources/components/ui/Select';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { ContainerInspect, NetworkInfo } from '@core/types/docker';
 import type { EditFormData } from '../../types/edit-form';
 import type { NetworkConnectPayload } from './NetworkTab';
 import { NetworkTabNetworksSection } from './NetworkTabNetworksSection';
+import { NetworkDnsCard } from './NetworkDnsCard';
+import { NetworkExtraHostsCard } from './NetworkExtraHostsCard';
+
+export type ConfigPart = 'dns' | 'extraHosts' | 'networks';
+
+const DEFAULT_PARTS: ConfigPart[] = ['dns', 'extraHosts', 'networks'];
 
 type NetworkTabConfigSectionProps = {
   availableNetworks: NetworkInfo[];
@@ -22,6 +28,10 @@ type NetworkTabConfigSectionProps = {
   dnsSearch: string[];
   editing: boolean;
   editData?: EditFormData | null;
+  allowLiveNetworkActionsInEdit: boolean;
+  readOnly?: boolean;
+  /** The cards to render, in this order; the configuration editor splits them across two columns. */
+  parts?: ConfigPart[];
   extraHostKeys: string[];
   extraHosts: string[];
   joinableNetworks: NetworkInfo[];
@@ -33,10 +43,6 @@ type NetworkTabConfigSectionProps = {
   selectedNetwork: string;
   setSelectedNetwork: (value: string) => void;
 };
-
-function splitCsvValue(value: string): string[] {
-  return value ? value.split(',').map((item) => item.trim()) : [];
-}
 
 const builtinNetworkModes = new Set(['bridge', 'host', 'none']);
 
@@ -50,6 +56,9 @@ export function NetworkTabConfigSection({
   dnsSearch,
   editing,
   editData,
+  allowLiveNetworkActionsInEdit,
+  readOnly = false,
+  parts = DEFAULT_PARTS,
   extraHostKeys,
   extraHosts,
   joinableNetworks,
@@ -64,137 +73,88 @@ export function NetworkTabConfigSection({
   const { t } = useTranslation('containers');
   const selectedNetworkMode = editData?.networkMode ?? '';
   const networkModeOptions = [
-    ...Array.from(builtinNetworkModes).map((mode) => ({ value: mode, label: mode })),
+    ...Array.from(builtinNetworkModes).map((mode) => ({
+      value: mode,
+      label: mode,
+    })),
     ...availableNetworks
       .filter((network) => !builtinNetworkModes.has(network.Name))
-      .map((network) => ({ value: network.Name, label: `${network.Name} (${network.Driver})` }))
+      .map((network) => ({
+        value: network.Name,
+        label: `${network.Name} (${network.Driver})`,
+      }))
       .sort((a, b) => a.label.localeCompare(b.label)),
   ];
   const shouldAddCurrentNetworkMode =
     !!selectedNetworkMode && !networkModeOptions.some((option) => option.value === selectedNetworkMode);
 
-  return (
-    <>
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.dnsConfig')}</h3>
-        {editing ? (
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">{t('networkTab.networkMode')}</label>
-            <select
-              value={selectedNetworkMode}
-              onChange={(event) => onFieldChange?.('networkMode', event.target.value)}
-              className="mt-1 w-full rounded-md border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
-            >
-              {networkModeOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-              {shouldAddCurrentNetworkMode && (
-                <option value={selectedNetworkMode}>{selectedNetworkMode}</option>
-              )}
-            </select>
-          </div>
-        ) : (
-          <>
-            <InfoRow label={t('networkTab.hostname')}>{container.Config?.Hostname ?? '-'}</InfoRow>
-            <InfoRow label={t('networkTab.networkMode')}>
-              <Badge variant="secondary">{container.HostConfig?.NetworkMode ?? '-'}</Badge>
-            </InfoRow>
-          </>
-        )}
-      </div>
+  // Network mode is part of how the container joins networks, so it heads the Networks card.
+  const modeContent = editing ? (
+    <div className="mb-4">
+      <label className="text-xs font-medium text-muted-foreground">{t('networkTab.networkMode')}</label>
+      <Select
+        value={selectedNetworkMode}
+        onChange={(next) => onFieldChange?.('networkMode', next)}
+        options={[
+          ...networkModeOptions,
+          ...(shouldAddCurrentNetworkMode ? [{ value: selectedNetworkMode, label: selectedNetworkMode }] : []),
+        ]}
+        ariaLabel={t('networkTab.networkMode')}
+        variant="outline"
+        className="mt-1 text-xs"
+      />
+    </div>
+  ) : (
+    <div className="mb-4">
+      <InfoRow label={t('networkTab.hostname')}>{container.Config?.Hostname ?? '-'}</InfoRow>
+      <InfoRow label={t('networkTab.networkMode')}>
+        <Badge variant="secondary">{container.HostConfig?.NetworkMode ?? '-'}</Badge>
+      </InfoRow>
+    </div>
+  );
 
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.dns')}</h3>
-        {editing ? (
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('networkTab.dnsServers')}</label>
-              <input
-                type="text"
-                value={dns.join(', ')}
-                onChange={(event) => onFieldChange?.('dns', splitCsvValue(event.target.value))}
-                placeholder="8.8.8.8, 8.8.4.4"
-                className="mt-1 w-full rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('networkTab.dnsSearch')}</label>
-              <input
-                type="text"
-                value={dnsSearch.join(', ')}
-                onChange={(event) => onFieldChange?.('dnsSearch', splitCsvValue(event.target.value))}
-                className="mt-1 w-full rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">{t('networkTab.dnsOptionsLabel')}</label>
-              <input
-                type="text"
-                value={dnsOptions.join(', ')}
-                onChange={(event) => onFieldChange?.('dnsOptions', splitCsvValue(event.target.value))}
-                className="mt-1 w-full rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-              />
-            </div>
-          </div>
-        ) : (
-          <>
-            <InfoRow label={t('networkTab.dnsServers')}>{dns.length > 0 ? dns.join(', ') : '-'}</InfoRow>
-            <InfoRow label={t('networkTab.dnsSearch')}>{dnsSearch.length > 0 ? dnsSearch.join(', ') : '-'}</InfoRow>
-            {dnsOptions.length > 0 && <InfoRow label={t('networkTab.dnsOptionsLabel')}>{dnsOptions.join(', ')}</InfoRow>}
-          </>
-        )}
-      </div>
-
-      <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.extraHosts')}</h3>
-        {editing ? (
-          <div className="space-y-2">
-            {extraHosts.map((host, index) => (
-              <div key={extraHostKeys[index]} className="flex gap-2">
-                <input
-                  type="text"
-                  value={host}
-                  onChange={(event) => onExtraHostChange(index, event.target.value)}
-                  placeholder="hostname:IP"
-                  className="flex-1 rounded-md border border-border bg-muted px-2 py-1.5 font-mono text-xs text-foreground focus:border-primary focus:outline-none"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemoveExtraHost(index)}
-                  aria-label={t("network.removeHost")}
-                  className="size-7 text-muted-foreground hover:text-red-500"
-                >
-                  <IconTrash className="size-3.5" />
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" size="sm" onClick={onAddExtraHost} className="mt-1">
-              <IconPlus className="mr-1 size-3.5" />
-              {t('networkTab.addExtraHost')}
-            </Button>
-          </div>
-        ) : extraHosts.length > 0 ? (
-          <div className="space-y-1">
-            {extraHosts.map((host) => (
-              <div key={host} className="rounded-md bg-muted px-3 py-1.5 font-mono text-xs text-foreground">{host}</div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t('networkTab.noExtraHosts')}</p>
-        )}
-      </div>
-
+  const cards: Record<ConfigPart, ReactNode> = {
+    dns: (
+      <NetworkDnsCard
+        dns={dns}
+        dnsOptions={dnsOptions}
+        dnsSearch={dnsSearch}
+        editing={editing}
+        onFieldChange={onFieldChange}
+      />
+    ),
+    extraHosts: (
+      <NetworkExtraHostsCard
+        editing={editing}
+        extraHostKeys={extraHostKeys}
+        extraHosts={extraHosts}
+        onAddExtraHost={onAddExtraHost}
+        onExtraHostChange={onExtraHostChange}
+        onRemoveExtraHost={onRemoveExtraHost}
+      />
+    ),
+    networks: (
       <NetworkTabNetworksSection
         connectMutation={connectMutation}
         disconnectMutation={disconnectMutation}
         editing={editing}
+        readOnly={readOnly}
+        allowLiveActionsInEdit={allowLiveNetworkActionsInEdit}
         joinableNetworks={joinableNetworks}
         networks={networks}
         selectedNetwork={selectedNetwork}
         setSelectedNetwork={setSelectedNetwork}
+        modeContent={modeContent}
         t={t}
       />
+    ),
+  };
+
+  return (
+    <>
+      {parts.map((part) => (
+        <Fragment key={part}>{cards[part]}</Fragment>
+      ))}
     </>
   );
 }

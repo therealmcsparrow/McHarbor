@@ -1,0 +1,33 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "ai-provider-openai"
+name:     "OpenAI"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Routes McHarbor AI chat completions through OpenAI /v1/chat/completions. GPT-4o, GPT-4o mini, o-series."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - ai.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+capabilities:
+  outbound_http: true
+
+contributes:
+  routes: []
+  menu: []
+  widgets: []
+  nodes: []
+
+signature: ""
+checksum:  ""

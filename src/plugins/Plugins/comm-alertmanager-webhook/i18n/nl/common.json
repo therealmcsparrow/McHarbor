@@ -1,0 +1,67 @@
+{
+  "config": {
+    "name": { "label": "Kanaalnaam" },
+    "webhook_url": { "label": "Ontvanger-URL", "help": "Alertmanager-webhook-URL van de ontvanger. Bevat vaak een token en wordt daarom versleuteld opgeslagen." },
+    "profile": { "label": "Ontvangerprofiel", "help": "generic, grafana_irm, squadcast, zenduty of keep." },
+    "receiver_name": { "label": "Ontvangernaam", "help": "Wordt verzonden als het receiver-veld van de payload." },
+    "auth_mode": { "label": "Authenticatie", "help": "none, bearer of basic." },
+    "bearer_token": { "label": "Bearer-token" },
+    "basic_username": { "label": "Gebruikersnaam voor basisauthenticatie" },
+    "basic_password": { "label": "Wachtwoord voor basisauthenticatie" },
+    "hmac_secret": { "label": "HMAC-ondertekeningsgeheim", "help": "Optioneel. Voegt X-McHarbor-Signature: t=<unix>,v1=<hex> toe voor aangepaste gateways." },
+    "allow_http": { "label": "Gewone http toestaan", "help": "Alleen voor een ontvanger op een vertrouwd privénetwerk, zoals zelf gehost Keep." },
+    "update_on_repeat": { "label": "Actieve melding opnieuw verzenden bij herhaling" },
+    "test_sends_alert": { "label": "Verbinding testen verstuurt een testmelding", "help": "Indien ingeschakeld activeert Test een informatieve melding met de naam McHarborConnectionTest en lost die direct op." },
+    "severity_map": { "label": "Ernstmapping (JSON)" }
+  },
+  "form": {
+    "name": { "label": "Kanaalnaam", "placeholder": "Grafana IRM — Platform" },
+    "webhook_url": { "label": "Ontvanger-URL", "placeholder": "https://…", "help": "De Alertmanager-webhook-URL die je on-calltool je geeft. Versleuteld opgeslagen omdat hij meestal een token bevat." },
+    "profile": { "label": "Ontvangerprofiel" },
+    "receiver_name": { "label": "Ontvangernaam", "placeholder": "mcharbor", "help": "Wordt verzonden als het receiver-veld van de payload." },
+    "auth_mode": { "label": "Authenticatie", "none": "Geen (token in URL)", "bearer": "Bearer-token", "basic": "Basisauthenticatie" },
+    "bearer_token": { "label": "Bearer-token", "placeholder": "Token" },
+    "basic_username": { "label": "Gebruikersnaam", "placeholder": "api_key" },
+    "basic_password": { "label": "Wachtwoord", "placeholder": "Wachtwoord of API-sleutel" },
+    "hmac_secret": { "label": "HMAC-ondertekeningsgeheim", "placeholder": "Optioneel", "help": "Voegt X-McHarbor-Signature: t=<unix>,v1=<hex HMAC-SHA256 of t.body> toe voor gateways die dit verifiëren." },
+    "allow_http": { "label": "Gewoon http toestaan (alleen vertrouwd privénetwerk)" },
+    "update_on_repeat": { "label": "Firing opnieuw verzenden bij herhaling", "help": "Wanneer een alert opnieuw afgaat terwijl hij open is, wordt dezelfde alert opnieuw verzonden, zoals Alertmanager doet op zijn herhaalinterval." },
+    "test_sends_alert": { "label": "Verbinding testen verstuurt een testalert", "help": "Laat een info-alert met de naam McHarborConnectionTest afgaan en lost hem direct op. Standaard uit omdat het kan pagen." },
+    "severity_map": { "label": "Ernstmapping (JSON)", "placeholder": "{\"critical\":\"P1\"}", "help": "Optioneel. Hernoemt de waarden critical, warning en info van het severity-label voor ontvangers die op andere waarden zijn ingesteld." },
+    "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+    "insecureWarning": "Alerts en inloggegevens worden onversleuteld verzonden. Gebruik dit alleen voor een ontvanger op een vertrouwd privénetwerk.",
+    "errors": { "https": "Gebruik een https-URL, of schakel gewoon http in voor een privéontvanger.", "trailingSlash": "Integratie-URL's van Grafana IRM eindigen op /." }
+  },
+  "profiles": {
+    "generic": { "label": "Generieke Alertmanager-ontvanger", "hint": "Verstuurt standaard Alertmanager-webhook-v4-payloads, één groep per McHarbor-conditie." },
+    "grafana_irm": { "label": "Grafana Cloud IRM / Grafana OnCall", "hint": "Groepeert op groupKey en lost automatisch op bij resolved. De URL moet zijn afsluitende slash behouden." },
+    "squadcast": { "label": "Squadcast (SolarWinds Incident Response)", "hint": "Verstuurt altijd labels.severity, annotations.summary en annotations.description, die Squadcast vereist." },
+    "zenduty": { "label": "Zenduty (Xurrent IMR)", "hint": "Zenduty groepeert op alertname, dus McHarbor voegt een korte condition-ID toe om condities uit elkaar te houden." },
+    "keep": { "label": "Behouden", "hint": "Gebruikt Basic-authenticatie met gebruikersnaam api_key en je Keep-API-sleutel als wachtwoord." }
+  },
+  "guide": {
+    "title": "Alertmanager-webhookkanaal instellen",
+    "general": {
+      "oneWay": "<warn>Dit kanaal werkt één kant op</warn>: McHarbor opent en lost alerts op bij de ontvanger, maar bevestigingen die daar worden gedaan stromen niet terug. Gebruik een eigen PagerDuty-, incident.io-, Rootly-, Splunk On-Call- of xMatters-kanaal als je dat nodig hebt.",
+      "profile": "Kies het profiel dat bij je tool past, plak de URL ervan en sla op.",
+      "test": "<b>Verbinding testen</b> controleert DNS, bereikbaarheid en TLS zonder iets te versturen, tenzij je <b>Verbinding testen verstuurt een testalert</b> inschakelt."
+    },
+    "grafana_irm": {
+      "create": "Open in Grafana Cloud <b>IRM (OnCall) → Integrations → New integration</b> en kies <b>Alertmanager Prometheus</b>.",
+      "copy": "Kopieer de <b>OnCall Integration URL</b> uit de sectie <b>HTTP Endpoint</b>, inclusief de afsluitende slash, naar <b>Ontvanger-URL</b>.",
+      "templates": "Behoud de standaardtemplates voor groepering en automatisch oplossen; ze komen overeen met de payloads van McHarbor met één groep per conditie."
+    },
+    "squadcast": {
+      "create": "Open in Squadcast <b>Services → jouw service → Alert Sources → Add</b>, kies <b>Prometheus</b> en kopieer de <b>Webhook URL</b> naar <b>Ontvanger-URL</b>.",
+      "resolve": "Herstel in McHarbor lost het Squadcast-incident automatisch op."
+    },
+    "zenduty": {
+      "create": "Open in Zenduty (Xurrent IMR) de <b>service van je team → Integrations → Add Integration</b>, kies <b>Prometheus</b> en kopieer de webhook-URL naar <b>Ontvanger-URL</b>.",
+      "grouping": "Zenduty groepeert op <code>alertname</code>; het Zenduty-profiel voegt een korte condition-ID toe zodat twee containers nooit één incident delen."
+    },
+    "keep": {
+      "create": "Maak in Keep een API-sleutel aan, stel <b>Ontvanger-URL</b> in op <code><je Keep-backend>/alerts/event/prometheus</code> en kies <b>Basic-authenticatie</b> met gebruikersnaam <code>api_key</code>.",
+      "private": "Als Keep via http op je privénetwerk draait, schakel dan <b>Gewoon http toestaan</b> in."
+    }
+  }
+}

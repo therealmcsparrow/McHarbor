@@ -2,7 +2,7 @@
     "slug":  "lychee",
     "name":  "Lychee",
     "description":  "Self-hosted photo-management system with a clean responsive interface.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "lycheeorg/lychee:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lychee.png",
     "website":  "https://lycheeorg.github.io",
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,57 @@
+{
+    "slug":  "saml-jackson",
+    "name":  "SAML Jackson",
+    "description":  "SAML and OIDC to OAuth2 conversion service that lets apps add enterprise SSO without native SAML support.",
+    "category":  "Identity & SSO",
+    "image":  "boxyhq/jackson:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=boxyhq.com\u0026sz=128",
+    "website":  "https://boxyhq.com/docs/jackson",
+    "docsUrl":  "https://boxyhq.com/docs/jackson/deploy/docker",
+    "ports":  [
+                  {
+                      "host":  5225,
+                      "container":  5225,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/saml-jackson/data",
+                        "container":  "/app/npm/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JACKSON_API_KEYS",
+                        "default":  "change-me",
+                        "description":  "Comma-separated API keys required to call the Jackson admin API",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "NEXTAUTH_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret used to sign the admin portal session",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DB_ENGINE",
+                        "default":  "sql",
+                        "description":  "Database engine used by Jackson's internal store"
+                    },
+                    {
+                        "key":  "DB_TYPE",
+                        "default":  "sqlite",
+                        "description":  "Database type for the internal store"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mcharbor.dev/schemas/plugin-v1.schema.json",
+  "title": "McHarborPluginManifest",
+  "description": "Manifest grammar for a McHarbor plugin. Mirrors .references/plugins/architecture.md \u00a75.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "slug",
+    "name",
+    "version",
+    "author",
+    "mcharbor"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "mcharbor.plugin/v1",
+      "description": "Manifest schema URI. Must be exactly mcharbor.plugin/v1."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$",
+      "description": "Lowercase, hyphenated identifier. 3\u201364 chars."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+][a-zA-Z0-9.]+)?$",
+      "description": "Semver, optionally with a pre-release/build suffix."
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "license": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "mcharbor": {
+      "type": "string",
+      "pattern": "^[><=~^]*[0-9]+\\.[0-9]+\\.[0-9]+(\\s*[><=~^]*[0-9]+\\.[0-9]+\\.[0-9]+)?$",
+      "description": "Semver range expression, e.g. >=2.1.0 <3.0.0."
+    },
+    "go": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "docker.read",
+          "docker.write",
+          "k8s.read",
+          "k8s.write",
+          "audit.read",
+          "audit.write",
+          "secrets.read",
+          "secrets.write",
+          "identity.read",
+          "identity.write",
+          "env.read",
+          "env.write",
+          "ai.invoke",
+          "snapshot.adapter.register",
+          "catalog.source.register"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "adds_permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{0,62}[a-z0-9]$"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "global",
+              "env",
+              "stack"
+            ],
+            "default": "global"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 64
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "consumes_permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_.]{0,62}[a-z0-9]$"
+      },
+      "uniqueItems": true
+    },
+    "adds_abac_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "when",
+          "then"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+          },
+          "when": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "then": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "config_schema": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "type",
+          "label"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{0,62}[a-z0-9]$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "int",
+              "bool",
+              "secret"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "default": true,
+          "secret": {
+            "type": "boolean"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "contributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "method",
+              "path"
+            ],
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^/api/[a-z0-9-]+(/.*)?$"
+              },
+              "requires_permission": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "public": {
+                "type": "boolean"
+              },
+              "audit_required": {
+                "type": "boolean"
+              },
+              "audit_action": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_.]{0,62}[a-z0-9]$"
+              },
+              "audit_entity_type": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_.]{0,62}[a-z0-9]$"
+              },
+              "audit_severity": {
+                "type": "string",
+                "enum": ["info", "success", "warning", "error"]
+              }
+            }
+          }
+        },
+        "menu": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "label_key"
+            ],
+            "properties": {
+              "parent": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "label_key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^/[a-z0-9-]+(/.*)?$"
+              },
+              "icon": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "required_permission": {
+                "type": "string",
+                "maxLength": 64
+              }
+            }
+          }
+        },
+        "widgets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "themes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "css_path"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "css_path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "swatch_hue": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 360
+              },
+              "default_variant": {
+                "type": "string",
+                "enum": [
+                  "light",
+                  "dark"
+                ]
+              },
+              "has_dark": {
+                "type": "boolean"
+              },
+              "has_light": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "catalogs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind",
+              "name",
+              "url"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "docker_app",
+                  "plugin",
+                  "theme",
+                  "vm_image"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^(https://|/).+"
+              }
+            }
+          }
+        },
+        "migrations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "i18n_namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scim_schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "uri",
+              "name",
+              "attributes"
+            ],
+            "properties": {
+              "uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "attributes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    },
+                    "type": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 64
+                    },
+                    "required": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "signature": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

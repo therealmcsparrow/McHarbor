@@ -1,0 +1,28 @@
+{
+  "label": "Acción de contenedor",
+  "description": "Iniciar, detener, reiniciar, eliminar, renombrar o esperar un contenedor",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "action": "Acción",
+    "timeout": "Tiempo de espera (segundos)",
+    "new_name": "Nuevo nombre",
+    "unlock_protected": "Desbloquear contenedor protegido",
+    "condition": "Condición"
+  },
+  "options": {
+    "action": {
+      "start": "Iniciar",
+      "stop": "Detener",
+      "restart": "Reiniciar",
+      "remove": "Eliminar",
+      "rename": "Renombrar",
+      "wait": "Esperar"
+    },
+    "condition": {
+      "not-running": "No corriendo",
+      "next-exit": "La próxima salida",
+      "removed": "Remoto"
+    }
+  }
+}

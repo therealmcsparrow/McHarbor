@@ -1,14 +1,14 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconSearch } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { LogViewer } from '@resources/components/LogViewer';
-import { useStackLogs } from '../../hooks/useStacks';
+import { useStackLogs } from '@resources/hooks/useStacks';
 
 type LogsTabProps = {
   stackName: string;
@@ -20,14 +20,16 @@ export function LogsTab({ stackName }: LogsTabProps) {
   const [activeService, setActiveService] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
 
-  useEffect(() => {
+  const [appliedStackName, setAppliedStackName] = useState(stackName);
+  if (appliedStackName !== stackName) {
+    setAppliedStackName(stackName);
     setActiveService(null);
     setFilter('');
-  }, [stackName]);
+  }
 
   const serviceNames = logs ? Object.keys(logs).sort() : [];
   const selectedService = activeService ?? serviceNames[0] ?? null;
-  const rawLogs = selectedService && logs ? logs[selectedService] ?? '' : '';
+  const rawLogs = selectedService && logs ? (logs[selectedService] ?? '') : '';
   const logLines = rawLogs.split('\n').filter(Boolean);
   const filteredLines = filter
     ? logLines.filter((line) => line.toLowerCase().includes(filter.toLowerCase()))
@@ -45,19 +47,19 @@ export function LogsTab({ stackName }: LogsTabProps) {
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1 overflow-x-auto">
-          {serviceNames.map((name) => (
+          {serviceNames.map((serviceName) => (
             <Button
-              key={name}
-              variant={selectedService === name ? 'default' : 'outline'}
+              key={serviceName}
+              variant={selectedService === serviceName ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setActiveService(name)}
+              onClick={() => setActiveService(serviceName)}
             >
-              {name}
+              {serviceName}
             </Button>
           ))}
         </div>
         <div className="relative flex-1">
-          <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <IconSearch className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={t('logs.filterPlaceholder')}
             value={filter}
@@ -68,6 +70,7 @@ export function LogsTab({ stackName }: LogsTabProps) {
       </div>
 
       <LogViewer
+        colorizeSeverity
         lines={filteredLines}
         emptyMessage={filter ? t('logs.noMatchingLines') : t('logs.noLogsAvailable')}
         className="min-h-0 flex-1"

@@ -1,0 +1,39 @@
+{
+  "operation": "Operation",
+  "envId": "EnvID",
+  "imageId": "ImageID",
+  "kind": "Kind",
+  "sourceUrl": "SourceURL",
+  "checksumUrl": "ChecksumURL",
+  "checksum": "Checksum",
+  "checksumAlgo": "ChecksumAlgo",
+  "signatureUrl": "SignatureURL",
+  "allowUnverified": true,
+  "fromLibrary": true,
+  "filename": "Filename",
+  "libraryUrl": "LibraryURL",
+  "libraryToken": "LibraryToken",
+  "poolId": "PoolID",
+  "localPath": "LocalPath",
+  "targetPath": "TargetPath",
+  "bytesDone": 9,
+  "bytesTotal": 10,
+  "percent": 7,
+  "phase": "Phase",
+  "sizeBytes": 9,
+  "verified": true,
+  "signed": true,
+  "cached": [
+    {
+      "imageId": "ImageID",
+      "kind": "Kind",
+      "localPath": "LocalPath",
+      "sizeBytes": 9,
+      "verified": true,
+      "inUse": true,
+      "lastUsedAt": "2026-09-30T12:00:00Z"
+    }
+  ],
+  "success": true,
+  "error": "Error"
+}

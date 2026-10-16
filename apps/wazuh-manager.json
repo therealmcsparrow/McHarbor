@@ -1,0 +1,65 @@
+{
+    "slug":  "wazuh-manager",
+    "name":  "Wazuh Manager",
+    "description":  "Host-based intrusion detection and SIEM manager that collects, analyzes, and correlates agent security data.",
+    "category":  "Security",
+    "image":  "wazuh/wazuh-manager:4.9.2",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wazuh.png",
+    "website":  "https://wazuh.com",
+    "docsUrl":  "https://documentation.wazuh.com/current/deployment-options/docker/docker-installation.html",
+    "ports":  [
+                  {
+                      "host":  1514,
+                      "container":  1514,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  1515,
+                      "container":  1515,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  55000,
+                      "container":  55000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wazuh-manager/etc",
+                        "container":  "/var/ossec/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/wazuh-manager/logs",
+                        "container":  "/var/ossec/logs"
+                    },
+                    {
+                        "host":  "/opt/appdata/wazuh-manager/queue",
+                        "container":  "/var/ossec/queue"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "API_USERNAME",
+                        "default":  "wazuh-wui",
+                        "description":  "Wazuh REST API username"
+                    },
+                    {
+                        "key":  "API_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Wazuh REST API password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "4.9.2",
+    "latest":  {
+        "version":  "4.9.2",
+        "release_date":  "2026-09-29"
+    }
+}

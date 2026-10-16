@@ -1,7 +1,0 @@
-{
-  "label": "Parse JSON",
-  "description": "Parse a JSON string into an object or array",
-  "config": {
-    "property": "Property"
-  }
-}

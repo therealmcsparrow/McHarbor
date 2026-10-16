@@ -34,7 +34,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	nodes, err := h.svc.List()
 	if err != nil {
 		h.app.Logger.Error("custom-nodes: list failed", "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrCustomNodeListFailed)
+		response.InternalErrorCause(w, r, i18n.ErrCustomNodeListFailed, err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.app.Logger.Error("custom-nodes: get failed", "error", err, "key", key)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		response.InternalErrorCause(w, r, i18n.ErrInternalServer, err)
 		return
 	}
 
@@ -71,7 +71,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var input CreateCustomNodeInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -110,7 +110,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	var input UpdateCustomNodeInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleTest(w http.ResponseWriter, r *http.Request) {
 	var input TestCustomNodeInput
 	if err := response.DecodeBody(r, &input); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 
@@ -192,7 +192,7 @@ func (h *Handler) HandleTest(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		h.app.Logger.Warn("custom-nodes: test failed", "error", err)
-		out.Error = i18n.T(i18n.FromRequest(r), i18n.ErrInternalServer)
+		out.Error = i18n.T(i18n.FromContext(ctx), i18n.ErrInternalServer)
 		if result != nil {
 			out.Port = result.Port
 			out.Msg = result.Msg

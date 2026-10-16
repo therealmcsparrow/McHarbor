@@ -1,0 +1,73 @@
+{
+  "form": {
+    "introTitle": "Consentement Microsoft 365",
+    "introBody": "Enregistrez cet emplacement, puis utilisez Se connecter pour accorder le consentement du compte. McHarbor stocke les jetons renvoyés chiffrés.",
+    "tenant_id": {
+      "label": "ID du locataire",
+      "help": "ID de tenant Microsoft Entra (GUID). Disponible dans le centre d'administration Entra > Overview. Le flux de consentement OAuth redirige vers login.microsoftonline.com/{tenant_id}/…"
+    },
+    "client_id": {
+      "label": "ID client",
+      "help": "Application (client) ID de l'inscription d'application Entra avec les autorisations déléguées Files.ReadWrite et Sites.ReadWrite et un URI de redirection Web pointant vers cet hôte McHarbor."
+    },
+    "client_secret": {
+      "label": "Secret client",
+      "help": "Valeur du client secret du centre d'administration Entra → App registrations → Certificates & secrets. Stockée chiffrée au repos."
+    },
+    "drive_id": {
+      "label": "ID du lecteur",
+      "help": "Facultatif. Identifiant de lecteur Graph complet. Laissez vide pour utiliser la bibliothèque de documents par défaut du site (résolue via le Site ID)."
+    },
+    "base_path": {
+      "label": "Chemin de base",
+      "help": "Facultatif. Chemin Graph dans le lecteur, p. ex. /Backups/2026. Laissez vide pour utiliser la racine du lecteur. Volontairement non prérempli."
+    },
+    "site_id": {
+      "label": "ID du site SharePoint",
+      "help": "ID de site Graph, p. ex. contoso.sharepoint.com,guid1,guid2. Obligatoire lorsque Drive ID est vide. À récupérer via /sites/{hostname}:/sites/{path} dans Graph Explorer."
+    }
+  },
+  "setup": {
+    "title": "Guide de configuration de SharePoint Online",
+    "step1": "Dans le centre d'administration Microsoft Entra, ouvrez <b>App registrations > New registration</b>. Choisissez <b>Accounts in this organizational directory only</b> comme type de compte pris en charge et copiez le <b>Tenant ID</b> depuis la page <b>Overview</b> — collez-le dans le champ <b>Tenant ID</b> à gauche.",
+    "step2": "Sous <b>Certificates & secrets</b>, créez un nouveau client secret. Copiez la <b>Value</b> (et non le <b>Secret ID</b>) — collez-la dans le champ <b>Client Secret</b> à gauche. Copiez l'<b>Application (client) ID</b> dans le champ <b>Client ID</b>.",
+    "step3": "Accordez à l'application les autorisations d'application <code>Files.ReadWrite.All</code>, <code>Sites.ReadWrite.All</code> et <code>User.Read</code> (consentement de l'administrateur requis). Le flux OAuth demandera <code>offline_access</code> au nom de l'opérateur.",
+    "step4": "Définissez le <b>SharePoint Site ID</b> sur l'identifiant de site Graph (p. ex. <code>contoso.sharepoint.com,guid1,guid2</code>). Laissez vide si vous indiquez plutôt un <b>Drive ID</b> — le Drive ID est prioritaire lorsque les deux sont présents.",
+    "step5": "Laissez <b>Base Path</b> vide pour la racine du lecteur, ou saisissez un chemin Graph explicite comme <code>/Backups/2026</code>. Le formulaire ne préremplit aucune valeur par défaut.",
+    "step6": "Cliquez sur <b>Save and connect</b> (ou <b>Connect</b> sur la carte de stockage). Microsoft vous demandera de vous connecter et d'accorder les scopes demandés. McHarbor stocke le refresh token renvoyé chiffré et <warn>ne l'affiche plus jamais</warn>.",
+    "step7": "Cliquez sur <b>Test connection</b> pour écrire et relire un objet de test dans la bibliothèque de documents choisie."
+  },
+  "page": {
+    "title": "Destinations de sauvegarde SharePoint Online",
+    "subtitle": "Sauvegarde des conteneurs vers des bibliothèques de documents SharePoint d'un tenant professionnel/scolaire. Le plugin gère le test, le téléversement, le téléchargement, la suppression et le listage au moment de la sauvegarde. Les grosses sauvegardes utilisent la session de téléversement par blocs de Microsoft, il n'y a donc aucune limite de taille.",
+    "registerHint": "Ajoutez une destination depuis la page Emplacements de stockage de l'hôte et choisissez « SharePoint » comme type."
+  },
+  "fields": {
+    "clientId":     "ID de l'application (client) Azure AD",
+    "clientSecret": "Secret client Azure AD",
+    "refreshToken": "Jeton d'actualisation (fourni par le flux de consentement OAuth)",
+    "tenantId":     "ID du tenant Azure AD",
+    "siteId":       "ID du site SharePoint (identifiant de site Graph)",
+    "driveId":      "ID du lecteur (laissez vide pour utiliser la bibliothèque de documents par défaut du site)"
+  },
+  "help": {
+    "clientId":     "Enregistrez une application sur https://entra.microsoft.com → App registrations. L'application doit avoir les permissions déléguées Files.ReadWrite.All, Sites.ReadWrite.All et User.Read.",
+    "clientSecret": "Générez un secret client dans l'enregistrement d'application Azure AD. Il est chiffré au repos par le service AES-256-GCM de l'hôte.",
+    "refreshToken": "Après avoir enregistré la destination, cliquez sur « Enregistrer et connecter » pour terminer le flux de consentement Microsoft et stocker un jeton d'actualisation de longue durée.",
+    "tenantId":     "Trouvez l'ID de votre tenant sur https://entra.microsoft.com → Tenant properties.",
+    "siteId":       "Identifiant de site Graph, p. ex. contoso.sharepoint.com,guid1,guid2. Requis lorsque l'ID du lecteur est vide.",
+    "driveId":      "Facultatif. Laissez vide pour cibler la bibliothèque de documents par défaut du site via /sites/{site_id}/drive."
+  },
+  "toast": {
+    "registered": "Plugin SharePoint Online enregistré.",
+    "testPassed": "Le test de connexion SharePoint Online a réussi.",
+    "testFailed": "Le test de connexion SharePoint Online a échoué : {{error}}"
+  },
+  "error": {
+    "noClientId":     "L'ID de l'application (client) Azure AD est obligatoire.",
+    "noClientSecret": "Le secret client Azure AD est obligatoire.",
+    "noRefreshToken": "Le jeton d'actualisation est obligatoire. Exécutez d'abord « Enregistrer et connecter ».",
+    "noTenantId":     "L'ID du tenant Azure AD est obligatoire pour les destinations SharePoint Online.",
+    "noSiteId":       "L'ID du site SharePoint ou l'ID du lecteur est obligatoire pour les destinations SharePoint Online."
+  }
+}

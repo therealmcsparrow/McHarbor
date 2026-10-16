@@ -10,7 +10,7 @@ type CronSchedulePreviewProps = {
 };
 
 const CronSchedulePreviewImpl = lazy(() =>
-  import('./CronSchedulePreviewImpl').then((module) => ({ default: module.CronSchedulePreviewImpl }))
+  import('./CronSchedulePreviewImpl').then((module) => ({ default: module.CronSchedulePreviewImpl })),
 );
 
 export function CronSchedulePreview({ expression, timezone, className }: CronSchedulePreviewProps) {

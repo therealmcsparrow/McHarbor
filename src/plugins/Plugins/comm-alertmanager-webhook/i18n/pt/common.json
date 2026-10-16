@@ -1,0 +1,67 @@
+{
+  "config": {
+    "name": { "label": "Nome do canal" },
+    "webhook_url": { "label": "URL do receptor", "help": "URL de webhook do Alertmanager do receptor. Geralmente contém um token, por isso é armazenada criptografada." },
+    "profile": { "label": "Perfil do receptor", "help": "generic, grafana_irm, squadcast, zenduty ou keep." },
+    "receiver_name": { "label": "Nome do receptor", "help": "Enviado como o campo receiver do payload." },
+    "auth_mode": { "label": "Autenticação", "help": "none, bearer ou basic." },
+    "bearer_token": { "label": "Token Bearer" },
+    "basic_username": { "label": "Nome de usuário da autenticação Basic" },
+    "basic_password": { "label": "Senha da autenticação Basic" },
+    "hmac_secret": { "label": "Segredo de assinatura HMAC", "help": "Opcional. Adiciona X-McHarbor-Signature: t=<unix>,v1=<hex> para gateways personalizados." },
+    "allow_http": { "label": "Permitir http simples", "help": "Somente para um receptor em uma rede privada confiável, como o Keep auto-hospedado." },
+    "update_on_repeat": { "label": "Reenviar o alerta ativo a cada repetição" },
+    "test_sends_alert": { "label": "Testar a conexão envia um alerta de teste", "help": "Quando ativado, Testar dispara um alerta informativo chamado McHarborConnectionTest e o resolve imediatamente." },
+    "severity_map": { "label": "Mapa de severidade (JSON)" }
+  },
+  "form": {
+    "name": { "label": "Nome do canal", "placeholder": "Grafana IRM — Plataforma" },
+    "webhook_url": { "label": "URL do receptor", "placeholder": "https://…", "help": "A URL de webhook do Alertmanager fornecida pela sua ferramenta de plantão. Armazenada criptografada porque geralmente contém um token." },
+    "profile": { "label": "Perfil do receptor" },
+    "receiver_name": { "label": "Nome do receptor", "placeholder": "mcharbor", "help": "Enviado como o campo receiver do payload." },
+    "auth_mode": { "label": "Autenticação", "none": "Nenhuma (token na URL)", "bearer": "Token Bearer", "basic": "Autenticação Basic" },
+    "bearer_token": { "label": "Token Bearer", "placeholder": "Token" },
+    "basic_username": { "label": "Nome de usuário", "placeholder": "api_key" },
+    "basic_password": { "label": "Senha", "placeholder": "Senha ou chave de API" },
+    "hmac_secret": { "label": "Segredo de assinatura HMAC", "placeholder": "Opcional", "help": "Adiciona X-McHarbor-Signature: t=<unix>,v1=<hex HMAC-SHA256 de t.body> para gateways que o verificam." },
+    "allow_http": { "label": "Permitir http simples (somente rede privada confiável)" },
+    "update_on_repeat": { "label": "Reenviar alerta ativo na repetição", "help": "Quando um alerta dispara novamente enquanto está aberto, envie o mesmo alerta de novo, como o Alertmanager faz em seu intervalo de repetição." },
+    "test_sends_alert": { "label": "O teste de conexão envia um alerta de teste", "help": "Dispara e resolve imediatamente um alerta informativo chamado McHarborConnectionTest. Desativado por padrão porque pode acionar o plantão." },
+    "severity_map": { "label": "Mapa de severidade (JSON)", "placeholder": "{\"critical\":\"P1\"}", "help": "Opcional. Renomeia os valores de rótulo de severidade critical, warning e info para receptores configurados com outros valores." },
+    "secretKeepHint": "Deixe em branco para manter o valor armazenado.",
+    "insecureWarning": "Alertas e credenciais trafegam sem criptografia. Use isto apenas para um receptor em uma rede privada confiável.",
+    "errors": { "https": "Use uma URL https ou ative http simples para um receptor privado.", "trailingSlash": "As URLs de integração do Grafana IRM terminam em /." }
+  },
+  "profiles": {
+    "generic": { "label": "Receptor Alertmanager genérico", "hint": "Envia payloads padrão de webhook v4 do Alertmanager, um grupo por condição do McHarbor." },
+    "grafana_irm": { "label": "Grafana Cloud IRM / Grafana OnCall", "hint": "Agrupa por groupKey e resolve automaticamente em resolved. A URL deve manter a barra final." },
+    "squadcast": { "label": "Squadcast (SolarWinds Incident Response)", "hint": "Sempre envia labels.severity, annotations.summary e annotations.description, exigidos pelo Squadcast." },
+    "zenduty": { "label": "Zenduty (Xurrent IMR)", "hint": "O Zenduty agrupa por alertname, então o McHarbor acrescenta um ID curto de condição para manter as condições separadas." },
+    "keep": { "label": "Manter", "hint": "Usa autenticação Basic com o nome de usuário api_key e sua chave de API do Keep como senha." }
+  },
+  "guide": {
+    "title": "Configuração do canal de webhook do Alertmanager",
+    "general": {
+      "oneWay": "<warn>Este canal é de mão única</warn>: o McHarbor abre e resolve alertas no receptor, mas os reconhecimentos feitos lá não retornam. Use um canal dedicado de PagerDuty, incident.io, Rootly, Splunk On-Call ou xMatters quando precisar disso.",
+      "profile": "Escolha o perfil que corresponde à sua ferramenta, cole a URL dela e salve.",
+      "test": "O <b>teste de conexão</b> verifica DNS, alcance e TLS sem enviar nada, a menos que você ative <b>O teste de conexão envia um alerta de teste</b>."
+    },
+    "grafana_irm": {
+      "create": "No Grafana Cloud, abra <b>IRM (OnCall) → Integrations → New integration</b> e escolha <b>Alertmanager Prometheus</b>.",
+      "copy": "Copie a <b>OnCall Integration URL</b> da seção <b>HTTP Endpoint</b>, incluindo a barra final, para <b>URL do receptor</b>.",
+      "templates": "Mantenha os templates padrão de agrupamento e resolução automática; eles correspondem aos payloads de um grupo por condição do McHarbor."
+    },
+    "squadcast": {
+      "create": "No Squadcast, abra <b>Services → seu serviço → Alert Sources → Add</b>, escolha <b>Prometheus</b> e copie a <b>Webhook URL</b> para <b>URL do receptor</b>.",
+      "resolve": "As recuperações no McHarbor resolvem o incidente do Squadcast automaticamente."
+    },
+    "zenduty": {
+      "create": "No Zenduty (Xurrent IMR), abra o <b>serviço da sua equipe → Integrations → Add Integration</b>, escolha <b>Prometheus</b> e copie a URL do webhook para <b>URL do receptor</b>.",
+      "grouping": "O Zenduty agrupa por <code>alertname</code>; o perfil Zenduty acrescenta um ID curto de condição para que dois contêineres nunca compartilhem um incidente."
+    },
+    "keep": {
+      "create": "No Keep, crie uma chave de API, defina a <b>URL do receptor</b> como <code><seu backend do Keep>/alerts/event/prometheus</code> e escolha <b>autenticação Basic</b> com o nome de usuário <code>api_key</code>.",
+      "private": "Se o Keep roda na sua rede privada via http, ative <b>Permitir http simples</b>."
+    }
+  }
+}

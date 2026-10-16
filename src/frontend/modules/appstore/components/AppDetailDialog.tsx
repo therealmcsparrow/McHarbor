@@ -15,7 +15,10 @@ import {
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { AppInstallationsList } from './AppInstallations';
+import { AppLogo } from './AppLogo';
 import type { AppTemplate } from '../types';
+
+const DEFAULT_PROTOCOL = 'tcp';
 
 interface AppDetailDialogProps {
   app: AppTemplate | null;
@@ -24,38 +27,22 @@ interface AppDetailDialogProps {
   onInstall: (app: AppTemplate) => void;
 }
 
-export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetailDialogProps) {
+export function AppDetailDialog({ app, open: isOpen, onOpenChange, onInstall }: AppDetailDialogProps) {
   const { t } = useTranslation('common');
+  const roSuffix = ` (${t('card.readOnlyShort', { ns: 'plugins' })})`;
   if (!app) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg p-0">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-              {app.logo ? (
-                <img
-                  src={app.logo}
-                  alt={app.name}
-                  className="h-8 w-8 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <span className="text-lg font-bold text-muted-foreground">
-                  {app.name.charAt(0)}
-                </span>
-              )}
-            </div>
+            <AppLogo appName={app.name} logo={app.logo} imgClassName="h-8 w-8" />
             <div>
               <DialogTitle>{app.name}</DialogTitle>
               <DialogDescription className="mt-0.5 flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">{app.category}</Badge>
-                {app.version && (
-                  <Badge variant="outline">{app.version}</Badge>
-                )}
+                {app.version && <Badge variant="outline">{app.version}</Badge>}
               </DialogDescription>
             </div>
           </div>
@@ -75,7 +62,7 @@ export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetai
               <div className="space-y-1">
                 {app.ports.map((p) => (
                   <div key={`${p.host}-${p.container}-${p.protocol}`} className="text-xs text-muted-foreground">
-                    {p.host}:{p.container}/{p.protocol || 'tcp'}
+                    {p.host}:{p.container}/{p.protocol || DEFAULT_PROTOCOL}
                   </div>
                 ))}
               </div>
@@ -87,9 +74,12 @@ export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetai
               <h4 className="mb-1 text-xs font-medium text-foreground">{t('appStore.volumes')}</h4>
               <div className="space-y-1">
                 {app.volumes.map((v) => (
-                  <div key={`${v.host}-${v.container}-${v.readOnly ? 'ro' : 'rw'}`} className="text-xs text-muted-foreground">
+                  <div
+                    key={`${v.host}-${v.container}-${v.readOnly ? 'ro' : 'rw'}`}
+                    className="text-xs text-muted-foreground"
+                  >
                     {v.host} &rarr; {v.container}
-                    {v.readOnly && ' (ro)'}
+                    {v.readOnly && roSuffix}
                   </div>
                 ))}
               </div>
@@ -117,7 +107,6 @@ export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetai
           )}
 
           <AppInstallationsList installations={app.installations ?? []} />
-
         </DialogBody>
         <DialogFooter className="justify-between">
           <div className="flex items-center gap-2">
@@ -160,4 +149,3 @@ export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetai
     </Dialog>
   );
 }
-

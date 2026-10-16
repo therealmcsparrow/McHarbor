@@ -1,0 +1,161 @@
+{
+  "attestation": {
+    "title": "Freigabe der Zugriffsprüfung",
+    "description": "Halten Sie fest, dass die Zugriffsprüfung durchgeführt und ihr Ergebnis akzeptiert wurde. Die unten berechneten Berechtigungen sind die Grundlage der Prüfung; die Freigabe ist ihr Nachweis."
+  },
+  "effective": {
+    "title": "Effektiver Zugriff",
+    "description": "Wählen Sie einen Benutzer und einen Geltungsbereich, um alle dort gehaltenen Berechtigungen und deren Herkunft zu sehen.",
+    "user": "Benutzer",
+    "userPlaceholder": "Benutzer auswählen",
+    "environment": "Umgebung",
+    "allEnvironments": "Global (keine Umgebung)",
+    "stack": "Stack",
+    "noStack": "Gesamte Umgebung",
+    "filter": "Berechtigungen filtern",
+    "showAll": "Berechtigungen anzeigen, die der Benutzer nicht besitzt",
+    "empty": "Wählen Sie einen Benutzer, um seine effektiven Berechtigungen zu sehen.",
+    "noMatches": "Keine Berechtigung entspricht diesem Filter.",
+    "noSource": "Keine Zuweisung",
+    "wildcard": "{{username}} besitzt eine Platzhalter-Rolle, die jede Berechtigung gewährt, auch später hinzugefügte.",
+    "breakGlass": "{{username}} hat eine offene Break-Glass-Sitzung: Bis zu deren Ende werden alle Berechtigungen gewährt.",
+    "abac": "Attributrichtlinien werden in dieser Installation durchgesetzt und können eine Anfrage, die diese Rollen erlauben, weiterhin ablehnen.",
+    "overridesNote": "Gehalten ist das, was die Routenprüfungen durchsetzen: Rollen, genehmigte Erhöhungen und Break-Glass. Mit Überschreibungen wendet die Zuweisungs- und Ablehnungsüberschreibungen pro Benutzer so an wie die Richtlinien-Engine; Routenprüfungen lesen Überschreibungen derzeit nicht.",
+    "summary": "{{held}} von {{total}} Berechtigungen gehalten",
+    "held": "Gehalten",
+    "notHeld": "Nicht gehalten",
+    "columns": {
+      "permission": "Berechtigung",
+      "held": "Gehalten",
+      "authorize": "Mit Überschreibungen",
+      "sources": "Gewährt durch"
+    },
+    "source": {
+      "roleDirect": "Rolle {{role}}",
+      "roleGroup": "Rolle {{role}} über Gruppe {{group}}",
+      "wildcard": "Platzhalter",
+      "scopeGlobal": "global",
+      "scopeEnvironment": "in {{environment}}",
+      "scopeStack": "auf Stack {{stack}}",
+      "elevation": "Erhöhung bis {{until}}",
+      "breakGlass": "Break-Glass-Sitzung",
+      "overrideGrant": "Zuweisungsüberschreibung",
+      "overrideDeny": "Ablehnungsüberschreibung",
+      "conditional": "nur für {{resource}}",
+      "expires": "läuft ab {{until}}"
+    }
+  },
+  "catalog": {
+    "exportCsv": "Katalog exportieren (CSV)",
+    "exportJson": "Katalog exportieren (JSON)",
+    "exportFailed": "Der Berechtigungskatalog konnte nicht exportiert werden.",
+    "exported": "Berechtigungskatalog exportiert"
+  },
+  "endpoints": {
+    "title": "Beim Identitätsanbieter zu registrierende Adressen",
+    "intro": "Registrieren Sie diese Adressen auf Seiten des Identitätsanbieters. Sie richten sich nach der öffentlichen Adresse, unter der McHarbor erreichbar ist.",
+    "oidcRedirect": "Redirect-URI (OIDC)",
+    "oidcRedirectHint": "Wird von allen OpenID-Connect-Anbietern dieser Installation gemeinsam genutzt.",
+    "acs": "Assertion-Consumer-Service-URL (SAML)",
+    "spMetadata": "Metadaten-URL des Service Providers (SAML)",
+    "login": "Direkte Anmelde-URL",
+    "samlAfterSave": "Die SAML-ACS- und Metadaten-URLs enthalten die Anbieter-ID und erscheinen daher erst nach dem Speichern des Anbieters."
+  },
+  "metadata": {
+    "title": "IdP-Metadaten importieren",
+    "description": "Fügen Sie die SAML-Metadaten-URL oder das XML des Identitätsanbieters ein. McHarbor liest sie aus, füllt die von diesem Plugin akzeptierten Felder aus und zeigt den Rest zur Kontrolle an.",
+    "url": "Metadaten-URL",
+    "urlPlaceholder": "https://idp.example.com/saml/metadata",
+    "xml": "Oder Metadaten-XML einfügen",
+    "xmlPlaceholder": "<EntityDescriptor ...>",
+    "import": "Metadaten lesen",
+    "prefillReady": "{{count}} Feld kann aus diesen Metadaten ausgefüllt werden.",
+    "applyPrefill": "Formular ausfüllen",
+    "copyManually": "Dieses Plugin hat kein Feld für diese Werte. Kopieren Sie sie daher dorthin, wo das Plugin sie verlangt.",
+    "entityId": "IdP-Entity-ID",
+    "sso": "Single-Sign-on-URL ({{binding}})",
+    "slo": "Single-Logout-URL ({{binding}})",
+    "certificate": "Zertifikat-Fingerabdruck, SHA-256 ({{use}})",
+    "anyUse": "beliebige Verwendung",
+    "expires": "läuft ab {{date}}",
+    "nameIdFormats": "NameID-Formate: {{formats}}",
+    "reason": {
+      "invalid_url": "Die Metadaten-URL muss eine http- oder https-Adresse sein.",
+      "fetch_failed": "Die Metadaten-URL konnte nicht abgerufen werden. Prüfen Sie, ob McHarbor sie erreichen kann; Details stehen im Serverprotokoll.",
+      "not_saml_metadata": "Dies ist kein SAML-Metadatendokument.",
+      "no_idp_descriptor": "Die Metadaten beschreiben keinen Identitätsanbieter (kein IDPSSODescriptor).",
+      "input_missing": "Geben Sie eine Metadaten-URL ein oder fügen Sie das XML ein."
+    }
+  },
+  "preview": {
+    "title": "Gruppenzuordnung in der Vorschau anzeigen",
+    "description": "Geben Sie die Gruppen ein, mit denen sich ein Benutzer anmelden würde, um zu sehen, welche McHarbor-Gruppen und -Rollen er erhielte.",
+    "sampleGroups": "Anbietergruppen, eine pro Zeile",
+    "samplePlaceholder": "engineering\nplatform-admins",
+    "useTestGroups": "Die {{count}} Gruppen aus dem Verbindungstest verwenden",
+    "run": "Vorschau",
+    "groupsJoined": "Beigetretene Gruppen",
+    "noGroups": "Diese Gruppen führen zu keiner McHarbor-Gruppe.",
+    "newGroup": "wird bei der ersten Anmeldung erstellt",
+    "from": "aus {{groups}}",
+    "noRoles": "Diese Gruppe hat keine Rollen.",
+    "defaultRole": "Ein neu bereitgestellter Benutzer erhält zusätzlich die Standardrolle {{role}}.",
+    "unmapped": "Nicht zugeordnet: {{groups}}",
+    "scopeGlobal": "global",
+    "scopeEnvironment": "Umgebung {{environment}}",
+    "scopeStack": "Stack {{stack}}",
+    "loadGroups": "Gruppen vom Anbieter laden"
+  },
+  "impact": {
+    "title": "Wer Rollen erhält oder verliert",
+    "summary": "{{evaluated}} Benutzer anhand ihrer letzten Anmeldung ausgewertet: {{changed}} würden sich ändern, {{unchanged}} nicht.",
+    "users": "Betroffene Benutzer",
+    "legend_one": "{{gained}} Rolle erhalten, {{lost}} verloren",
+    "legend_other": "{{gained}} Rollen erhalten, {{lost}} verloren",
+    "joined": "Tritt bei: {{groups}}",
+    "left": "Verlässt: {{groups}}",
+    "unknown": "Nicht ausgewertet, seit der Erfassung von Gruppenclaims wurde keine Anmeldung aufgezeichnet: {{users}}",
+    "confirmTitle": "Neue Gruppenzuordnung anwenden?",
+    "confirmDescription": "Diese Änderungen gelten für jeden Benutzer ab seiner nächsten Anmeldung.",
+    "nextSignIn": "Das Entfernen einer Zuordnung entfernt keine bereits dadurch erstellten Mitgliedschaften; nur Gruppen, die eine Zuordnung noch nennt, werden mit dem Anbieter abgeglichen.",
+    "confirm": "Zuordnung speichern"
+  },
+  "wizard": {
+    "progress": "Einrichtungsfortschritt",
+    "steps": {
+      "type": "Anbieter auswählen",
+      "configure": "Konfigurieren",
+      "access": "Zugriff und Gruppen",
+      "review": "Prüfen und speichern",
+      "done": "Anbieter gespeichert"
+    },
+    "next": "Weiter",
+    "finish": "Fertigstellen",
+    "defaultRole": "Standardrolle für neue Benutzer",
+    "defaultRoleHint": "Wird Konten zugewiesen, die durch automatische Bereitstellung erstellt werden.",
+    "noDefaultRole": "Keine Standardrolle",
+    "fetchGroupsAfterSave": "Dieser Anbieter kann seine Gruppen auflisten. Nach dem Speichern kann der Bearbeitungsdialog sie für die Zuordnung abrufen.",
+    "review": {
+      "description": "Prüfen Sie die Einstellungen, bevor der Anbieter gespeichert wird.",
+      "name": "Name",
+      "type": "Typ",
+      "fields": "Konfigurierte Felder",
+      "autoProvision": "Automatische Bereitstellung",
+      "defaultRole": "Standardrolle",
+      "autoImport": "Gruppen nach Namen importieren",
+      "mappings": "Gruppenzuordnungen",
+      "yes": "Ja",
+      "no": "Nein",
+      "none": "Keine",
+      "disabledNote": "Der Anbieter wird deaktiviert gespeichert, sodass sich niemand damit anmelden kann, bis Sie ihn aktivieren."
+    },
+    "done": {
+      "title": "{{name}} ist gespeichert",
+      "description": "Registrieren Sie die folgenden Adressen beim Identitätsanbieter und aktivieren und testen Sie anschließend die Verbindung.",
+      "enable": "Anbieter aktivieren",
+      "enableFirst": "Aktivieren Sie den Anbieter, um die Verbindung zu testen.",
+      "test": "Verbindung testen",
+      "previewHint": "Zuordnung anhand echter Gruppen in der Vorschau prüfen: Führen Sie den Verbindungstest aus oder laden Sie die Gruppen des Anbieters."
+    }
+  }
+}

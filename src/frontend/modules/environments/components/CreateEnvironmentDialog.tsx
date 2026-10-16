@@ -1,7 +1,6 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
@@ -13,15 +12,14 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
-import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
-import { useCreateEnvironment, useDeployAgent, useCreateInstallToken } from '../hooks/useEnvironmentActions';
-import type { CreateEnvironmentData, InstallTokenResponse } from '../hooks/useEnvironmentActions';
-import { AgentDockerImage } from '../constants';
+import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
+import { useCreateEnvironmentFields } from '../hooks/useCreateEnvironmentFields';
+import { useCreateEnvironmentSubmit } from '../hooks/useCreateEnvironmentSubmit';
 import { DockerConnectionFields } from './DockerConnectionFields';
-import { KubernetesConnectionFields } from './KubernetesConnectionFields';
-
-type DeployMethod = 'manual' | 'ssh' | 'script';
+import { CreateEnvironmentSshSection } from './CreateEnvironmentSshSection';
+import { CreateEnvironmentAgentImport } from './CreateEnvironmentAgentImport';
+import { PERM } from '@core/auth/permissionKeys';
 
 interface CreateEnvironmentDialogProps {
   open: boolean;
@@ -30,144 +28,24 @@ interface CreateEnvironmentDialogProps {
   onInstallScript?: (data: InstallTokenResponse) => void;
 }
 
-export function CreateEnvironmentDialog({ open, onOpenChange, onAgentToken, onInstallScript }: CreateEnvironmentDialogProps) {
+export function CreateEnvironmentDialog({
+  open: isOpen,
+  onOpenChange,
+  onAgentToken,
+  onInstallScript,
+}: CreateEnvironmentDialogProps) {
   const { t } = useTranslation('environments');
-  const { t: tc } = useTranslation('common');
-  const createEnv = useCreateEnvironment();
-  const deployAgent = useDeployAgent();
-  const createInstallToken = useCreateInstallToken();
-
-  const [orchestratorType, setOrchestratorType] = useState<'docker' | 'kubernetes'>('docker');
-  const [envName, setEnvName] = useState('');
-  const [connType, setConnType] = useState('socket');
-  const [socketPath, setSocketPath] = useState('/var/run/docker.sock');
-  const [host, setHost] = useState('');
-  const [port, setPort] = useState('2375');
-  const [kubeconfig, setKubeconfig] = useState('');
-  const [k8sNamespace, setK8sNamespace] = useState('default');
-  const [k8sServerUrl, setK8sServerUrl] = useState('');
-  const [k8sBearerToken, setK8sBearerToken] = useState('');
-  const [k8sConnMethod, setK8sConnMethod] = useState<'kubeconfig' | 'bearer'>('kubeconfig');
-
-  // Agent deploy fields
-  const [deployMethod, setDeployMethod] = useState<DeployMethod>('manual');
-  const [sshHost, setSSHHost] = useState('');
-  const [sshPort, setSSHPort] = useState('22');
-  const [sshUser, setSSHUser] = useState('root');
-  const [hostKeyFingerprint, setHostKeyFingerprint] = useState('');
-  const [sshAuthType, setSSHAuthType] = useState<'key' | 'password'>('key');
-  const [sshKey, setSSHKey] = useState('');
-  const [sshPassword, setSSHPassword] = useState('');
-  const [sshDeployAs, setSSHDeployAs] = useState<'docker' | 'binary'>('docker');
-
-  const resetForm = () => {
-    setEnvName('');
-    setOrchestratorType('docker');
-    setConnType('socket');
-    setSocketPath('/var/run/docker.sock');
-    setHost('');
-    setPort('2375');
-    setKubeconfig('');
-    setK8sNamespace('default');
-    setK8sServerUrl('');
-    setK8sBearerToken('');
-    setK8sConnMethod('kubeconfig');
-    setDeployMethod('manual');
-    setSSHHost('');
-    setSSHPort('22');
-    setSSHUser('root');
-    setHostKeyFingerprint('');
-    setSSHAuthType('key');
-    setSSHKey('');
-    setSSHPassword('');
-    setSSHDeployAs('docker');
-  };
-
-  const isSSHDeployReady =
-    sshHost.trim() !== '' &&
-    sshUser.trim() !== '' &&
-    hostKeyFingerprint.trim() !== '' &&
-    ((sshAuthType === 'key' && sshKey.trim() !== '') || (sshAuthType === 'password' && sshPassword !== ''));
-
-  const handleCreate = () => {
-    if (!envName.trim()) return;
-
-    if (orchestratorType === 'kubernetes') {
-      const data: CreateEnvironmentData = {
-        name: envName.trim(),
-        orchestratorType: 'kubernetes',
-        k8sNamespace: k8sNamespace || 'default',
-      };
-      if (k8sConnMethod === 'kubeconfig') {
-        data.kubeconfig = kubeconfig;
-      } else {
-        data.k8sServerUrl = k8sServerUrl;
-        data.k8sBearerToken = k8sBearerToken;
-      }
-      createEnv.mutate(data, {
-        onSuccess: () => { onOpenChange(false); resetForm(); },
-      });
-    } else {
-      const data: CreateEnvironmentData = {
-        name: envName.trim(),
-        orchestratorType: 'docker',
-        connectionType: connType,
-      };
-      if (connType === 'socket') {
-        data.socketPath = socketPath;
-      } else if (connType !== 'agent') {
-        data.host = host;
-        data.port = parseInt(port) || 2375;
-      }
-      createEnv.mutate(data, {
-        onSuccess: (resp) => {
-          onOpenChange(false);
-          resetForm();
-          if (resp && typeof resp === 'object' && 'agentToken' in resp && resp.agentToken) {
-            const agentToken = resp.agentToken as string;
-            const envId = (resp as { environment?: { id: string } }).environment?.id;
-
-            if (deployMethod === 'ssh' && envId) {
-              // Auto-deploy via SSH after environment creation
-              deployAgent.mutate({
-                envId,
-                data: {
-                  sshHost,
-                  sshPort: parseInt(sshPort) || 22,
-                  sshUser,
-                  hostKeyFingerprint,
-                  sshAuthType,
-                  sshKey: sshAuthType === 'key' ? sshKey : undefined,
-                  sshPassword: sshAuthType === 'password' ? sshPassword : undefined,
-                  method: sshDeployAs,
-                  agentImage: sshDeployAs === 'docker' ? AgentDockerImage : undefined,
-                },
-              });
-              // Still show the token dialog as backup
-              onAgentToken(agentToken);
-            } else if (deployMethod === 'script' && envId) {
-              // Generate install script token
-              createInstallToken.mutate(envId, {
-                onSuccess: (tokenResp) => {
-                  onInstallScript?.(tokenResp);
-                },
-              });
-              // Also show the agent token
-              onAgentToken(agentToken);
-            } else {
-              // Manual — just show the token
-              onAgentToken(agentToken);
-            }
-          }
-        },
-      });
-    }
-  };
-
-  const isPending = createEnv.isPending || deployAgent.isPending;
+  const f = useCreateEnvironmentFields();
+  const submit = useCreateEnvironmentSubmit(f, { onOpenChange, onAgentToken, onInstallScript });
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) resetForm(); onOpenChange(isOpen); }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) f.resetForm();
+        onOpenChange(next);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('create.title')}</DialogTitle>
@@ -178,80 +56,77 @@ export function CreateEnvironmentDialog({ open, onOpenChange, onAgentToken, onIn
             <Label className="mb-2">{t('create.name')}</Label>
             <Input
               type="text"
-              value={envName}
-              onChange={(e) => setEnvName(e.target.value)}
-              placeholder={orchestratorType === 'kubernetes' ? t('create.namePlaceholderK8s') : t('create.namePlaceholderDocker')}
-            />
-          </div>
-          <div>
-            <Label className="mb-2">{t('create.platformLabel')}</Label>
-            <Select
-              value={orchestratorType}
-              onChange={(v) => setOrchestratorType(v as 'docker' | 'kubernetes')}
-              options={[
-                { value: 'docker', label: t('platform.docker') },
-                { value: 'kubernetes', label: t('platform.kubernetes') },
-              ]}
+              value={f.envName}
+              onChange={(e) => f.setEnvName(e.target.value)}
+              placeholder={t('create.namePlaceholderDocker')}
             />
           </div>
 
-          {orchestratorType === 'docker' ? (
+          <>
             <DockerConnectionFields
-              connType={connType}
-              onConnTypeChange={setConnType}
-              socketPath={socketPath}
-              onSocketPathChange={setSocketPath}
-              host={host}
-              onHostChange={setHost}
-              port={port}
-              onPortChange={setPort}
-              deployMethod={deployMethod}
-              onDeployMethodChange={setDeployMethod}
-              sshHost={sshHost}
-              onSSHHostChange={setSSHHost}
-              sshPort={sshPort}
-              onSSHPortChange={setSSHPort}
-              sshUser={sshUser}
-              onSSHUserChange={setSSHUser}
-              hostKeyFingerprint={hostKeyFingerprint}
-              onHostKeyFingerprintChange={setHostKeyFingerprint}
-              sshAuthType={sshAuthType}
-              onSSHAuthTypeChange={setSSHAuthType}
-              sshKey={sshKey}
-              onSSHKeyChange={setSSHKey}
-              sshPassword={sshPassword}
-              onSSHPasswordChange={setSSHPassword}
-              sshDeployAs={sshDeployAs}
-              onSSHDeployAsChange={setSSHDeployAs}
+              connType={f.connType}
+              onConnTypeChange={f.setConnType}
+              socketPath={f.socketPath}
+              onSocketPathChange={f.setSocketPath}
+              host={f.host}
+              onHostChange={f.setHost}
+              port={f.port}
+              onPortChange={f.setPort}
+              deployMethod={f.deployMethod}
+              onDeployMethodChange={f.setDeployMethod}
+              sshHost={f.sshHost}
+              onSSHHostChange={f.setSSHHost}
+              sshPort={f.sshPort}
+              onSSHPortChange={f.setSSHPort}
+              sshUser={f.sshUser}
+              onSSHUserChange={f.setSSHUser}
+              hostKeyFingerprint={f.hostKeyFingerprint}
+              onHostKeyFingerprintChange={f.setHostKeyFingerprint}
+              sshAuthType={f.sshAuthType}
+              onSSHAuthTypeChange={f.setSSHAuthType}
+              sshKey={f.sshKey}
+              onSSHKeyChange={f.setSSHKey}
+              sshPassword={f.sshPassword}
+              onSSHPasswordChange={f.setSSHPassword}
+              sshDeployAs={f.sshDeployAs}
+              onSSHDeployAsChange={f.setSSHDeployAs}
             />
-          ) : (
-            <KubernetesConnectionFields
-              connMethod={k8sConnMethod}
-              onConnMethodChange={setK8sConnMethod}
-              kubeconfig={kubeconfig}
-              onKubeconfigChange={setKubeconfig}
-              k8sServerUrl={k8sServerUrl}
-              onServerUrlChange={setK8sServerUrl}
-              k8sBearerToken={k8sBearerToken}
-              onBearerTokenChange={setK8sBearerToken}
-              k8sNamespace={k8sNamespace}
-              onNamespaceChange={setK8sNamespace}
-            />
-          )}
+
+            {f.deployMethod === 'ssh' && (
+              <CreateEnvironmentSshSection
+                f={f}
+                probing={submit.probing}
+                installing={submit.installing}
+                onProbe={submit.handleProbePrereqs}
+                onInstall={submit.handleInstallPrereqs}
+              />
+            )}
+
+            {f.connType === 'agent' && <CreateEnvironmentAgentImport f={f} />}
+          </>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => { onOpenChange(false); resetForm(); }}>
-            {tc('actions.cancel')}
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+              f.resetForm();
+            }}
+          >
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
           <Button
-            onClick={handleCreate}
+            permission={PERM.ENVIRONMENTS_MANAGE}
+            onClick={submit.handleCreate}
             disabled={
-              isPending ||
-              !envName.trim() ||
-              (orchestratorType === 'docker' && connType === 'agent' && deployMethod === 'ssh' && !isSSHDeployReady)
+              submit.isPending ||
+              !f.envName.trim() ||
+              (f.connType === 'agent' && f.deployMethod === 'ssh' && !f.isSSHDeployReady) ||
+              (f.connType === 'agent' && f.deployMethod === 'ssh' && !f.prereqGate.ready) ||
+              (f.connType === 'agent' && f.importAgentToken && f.existingAgentToken.trim() === '')
             }
           >
-            {isPending ? t('create.adding') : t('create.submit')}
+            {submit.isPending ? t('create.adding') : t('create.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

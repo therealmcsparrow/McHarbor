@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "LDAP / Active Directory",
+    "subtitle": "Verbindet die McHarbor-Anmeldung mit jedem LDAP-v3-Verzeichnis oder Active Directory. Das Plugin übernimmt den Ablauf Suchen-dann-erneut-Binden gegen das konfigurierte Verzeichnis und legt Benutzer beim ersten erfolgreichen Bind an.",
+    "registerHint": "Fügen Sie auf der Seite Einstellungen > Sicherheit > Identitätsanbieter des Hosts einen Anbieter hinzu und wählen Sie „LDAP“ als provider_type."
+  },
+  "fields": {
+    "url":              "LDAP-Server-URL",
+    "bind_dn":          "Bind-DN",
+    "bind_password":    "Bind-Passwort",
+    "user_base_dn":     "Benutzer-Basis-DN",
+    "user_filter":      "Benutzersuchfilter",
+    "user_attr":        "Benutzernamen-Attribut",
+    "email_attr":       "E-Mail-Attribut",
+    "name_attr":        "Anzeigenamen-Attribut",
+    "start_tls":        "StartTLS verwenden",
+    "skip_tls_verify":  "TLS-Prüfung überspringen",
+    "group_base_dn":    "Gruppen-Basis-DN",
+    "group_filter":     "Gruppenfilter",
+    "group_attr":       "Gruppennamen-Attribut"
+  },
+  "help": {
+    "url":              "LDAP-Server-URL. Verwenden Sie ldaps://host:636 für implizites TLS oder ldap://host:389 für unverschlüsselt (aktivieren Sie dann unten StartTLS, um zu upgraden).",
+    "bind_dn":          "DN des Dienstkontos für Suchen. Leer = anonymer Bind (die meisten Verzeichnisse verweigern anonym die Rückgabe von Benutzereinträgen). Beispiel: cn=mcharbor-svc,ou=service,dc=example,dc=com.",
+    "bind_password":    "Passwort des Dienstkontos. Im Ruhezustand verschlüsselt gespeichert (AES-256-GCM).",
+    "user_base_dn":     "Basis-DN, unter dem Benutzereinträge liegen. Das Plugin beschränkt Benutzersuchen auf diesen Teilbaum. Beispiel: ou=users,dc=example,dc=com.",
+    "user_filter":      "LDAP-Filtervorlage zum Nachschlagen eines Benutzers anhand seines Anmeldenamens. Der Platzhalter %s wird durch den maskierten Benutzernamen ersetzt. Standard: (uid=%s) für OpenLDAP. Für Active Directory: (sAMAccountName=%s) oder (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)).",
+    "user_attr":        "Attribut, das den Anmeldenamen enthält. Standard: uid (OpenLDAP). Active Directory: sAMAccountName.",
+    "email_attr":       "Attribut, das die E-Mail des Benutzers enthält. Standard: mail. Wird für Bereitstellung und Benachrichtigungsweiterleitung verwendet.",
+    "name_attr":        "Attribut, das den Anzeigenamen des Benutzers enthält. Standard: cn. Wird für Audit-Log-Einträge und das Benutzer-Dropdown verwendet.",
+    "start_tls":        "Stuft eine unverschlüsselte ldap://-Verbindung über die erweiterte StartTLS-Operation auf TLS hoch. Ohne Wirkung, wenn die URL bereits ldaps:// ist.",
+    "skip_tls_verify":  "Zertifikatsprüfung überspringen. Nur für Test/Entwicklung — NICHT in der Produktion aktivieren.",
+    "group_base_dn":    "Basis-DN für Gruppensuchen. Standardmäßig der Benutzer-Basis-DN, wenn leer. Beispiel: ou=groups,dc=example,dc=com.",
+    "group_filter":     "Filtervorlage zum Abrufen der Gruppen, denen ein Benutzer angehört. Der Platzhalter %s wird durch den vollständigen DN des Benutzers ersetzt. Standard: (|(member=%s)(uniqueMember=%s)) funktioniert für OpenLDAP posixGroup und groupOfUniqueNames. Active Directory: (member:1.2.840.113556.1.4.1941:=<userDN>) benötigt einen LDAP-Server, der das memberOf-Overlay unterstützt.",
+    "group_attr":       "Attribut, das im Gruppen-Mapper von McHarbor als Gruppenname verwendet wird. Standard: cn. Active Directory: sAMAccountName, wenn Ihre Gruppen Sicherheitsprinzipale sind."
+  },
+  "guide": {
+    "title":    "LDAP-/Active-Directory-Anmeldung in McHarbor einrichten",
+    "subtitle": "Erstellen Sie ein schreibgeschütztes Dienstkonto, richten Sie McHarbor auf Ihr Verzeichnis aus und ordnen Sie die Benutzer- und Gruppenattribute den vom Host erwarteten Claims zu.",
+    "step1": {
+      "title": "Schreibgeschütztes Dienstkonto erstellen",
+      "body":  "Die meisten Verzeichnisse verweigern anonymen Binds die Rückgabe von Benutzereinträgen. Erstellen Sie ein eigenes Dienstkonto mit Lesezugriff auf Benutzerobjekte in Ihrem Verzeichnis: OpenLDAP — fügen Sie unter ou=service,dc=example,dc=com einen posixAccount-Eintrag mit gehashtem userPassword hinzu; Active Directory — erstellen Sie einen Benutzer in einer OU für Dienstkonten und deaktivieren Sie die interaktive Anmeldung und den Passwortablauf. Notieren Sie den vollständigen DN und das Passwort — sie kommen in die Felder Bind-DN / Bind-Passwort im Anbieterformular."
+    },
+    "step2": {
+      "title": "Benutzer-Basis-DN ermitteln",
+      "body":  "Wählen Sie den Teilbaum, unter dem alle Benutzereinträge liegen. Bei einem typischen flachen Aufbau ist das ou=users,dc=example,dc=com. Bei einem tiefen Baum über mehrere OUs (Active Directory) ist es meist der Domain-NC: dc=example,dc=com. Das Plugin beschränkt jede Benutzersuche auf diesen DN; ist er zu weit gefasst, leidet die Performance, ist er zu eng, führt das zu „Benutzer nicht gefunden“ für Benutzer außerhalb des Teilbaums."
+    },
+    "step3": {
+      "title": "Benutzerfilter und Benutzernamen-Attribut festlegen",
+      "body":  "Der Standardfilter (uid=%s) zielt auf das Attribut uid bei OpenLDAP-posixAccount-Einträgen. Active Directory verwendet sAMAccountName; ändern Sie den Filter auf (sAMAccountName=%s) und das Benutzernamen-Attribut auf sAMAccountName. Bei AD-Forests mit mehreren Domains im selben Baum ist ein strengerer Filter wie (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)) sicherer."
+    },
+    "step4": {
+      "title": "E-Mail- und Anzeigenamen-Attribute festlegen",
+      "body":  "Standard sind mail und cn, die bei OpenLDAP und AD ohne Anpassung passen. Wenn Ihr Verzeichnis ein anderes Schema verwendet (mail vs. userPrincipalName, displayName vs. cn), ändern Sie E-Mail-Attribut und Anzeigenamen-Attribut entsprechend. Das Plugin liest diese Attribute einmal pro Anmeldung; ein fehlender Wert lässt den entsprechenden Claim leer, blockiert die Authentifizierung aber nicht."
+    },
+    "step5": {
+      "title": "TLS konfigurieren",
+      "body":  "LDAPS (ldaps://host:636) ist der einfachste Weg — der TLS-Handshake ist Teil der Verbindung. StartTLS (ldap://host:389 + StartTLS-Schalter an) ist die Alternative für Verzeichnisse, die auf einem einzigen Port lauschen. Wenn das Serverzertifikat selbstsigniert oder von einer internen CA ausgestellt ist, lassen Sie TLS-Prüfung überspringen in der Produktion AUS und importieren Sie stattdessen die CA-Kette in den Trust Store des Hosts."
+    },
+    "step6": {
+      "title": "Gruppensuche konfigurieren (optional)",
+      "body":  "Lassen Sie Gruppen-Basis-DN + Gruppenfilter leer, wenn Sie nur die Benutzerauthentifizierung benötigen. Um Verzeichnisgruppen McHarbor-Rollen zuzuordnen, tragen Sie den Basis-DN (Standard ist der Benutzer-Basis-DN) und eine Filtervorlage ein, die zum Mitgliedschaftsattribut Ihrer Gruppen passt. Der Standard (|(member=%s)(uniqueMember=%s)) funktioniert für OpenLDAP. Ändern Sie bei Active Directory den Filter auf (member:1.2.840.113556.1.4.1941:=<userDN>) und stellen Sie sicher, dass das Verzeichnis das memberOf-Overlay unterstützt."
+    },
+    "step7": {
+      "title": "Verbindung testen",
+      "body":  "Klicken Sie im Anbieterformular auf „Verbindung testen“. Ein grünes Ergebnis bedeutet, dass der Bind erfolgreich war, der Benutzer-Basis-DN aufgelöst wurde und die Filtersyntax akzeptiert wurde. Melden Sie sich ab und verwenden Sie das LDAP-Anmeldeformular auf der Anmeldeseite; beim ersten erfolgreichen Bind wird automatisch ein McHarbor-Benutzerdatensatz angelegt und das Sitzungs-Cookie ausgestellt."
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+    "slug":  "kener",
+    "name":  "Kener",
+    "description":  "Self-hosted status page with monitors, incident timelines, and status badges.",
+    "category":  "Monitoring",
+    "image":  "rajnandan1/kener:latest",
+    "logo":  "https://github.com/rajnandan1.png",
+    "website":  "https://kener.ing",
+    "docsUrl":  "https://kener.ing/docs/introduction",
+    "ports":  [
+                  {
+                      "host":  3020,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kener/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ORIGIN",
+                        "default":  "http://localhost:3020",
+                        "description":  "Public URL the status page is served from"
+                    },
+                    {
+                        "key":  "API_TOKEN",
+                        "default":  "change-me",
+                        "description":  "API token for programmatic incident and monitor updates",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

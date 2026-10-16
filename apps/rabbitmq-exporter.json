@@ -1,0 +1,48 @@
+{
+    "slug":  "rabbitmq-exporter",
+    "name":  "RabbitMQ Exporter",
+    "description":  "Prometheus exporter that reports RabbitMQ queue, node, and connection metrics via the management API.",
+    "category":  "Monitoring",
+    "image":  "kbudde/rabbitmq-exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rabbitmq.png",
+    "website":  "https://github.com/kbudde/rabbitmq_exporter",
+    "docsUrl":  "https://github.com/kbudde/rabbitmq_exporter#configuration",
+    "ports":  [
+                  {
+                      "host":  9419,
+                      "container":  9419,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RABBIT_URL",
+                        "default":  "http://rabbitmq:15672",
+                        "description":  "URL of the RabbitMQ management API"
+                    },
+                    {
+                        "key":  "RABBIT_USER",
+                        "default":  "guest",
+                        "description":  "Username for the RabbitMQ management API"
+                    },
+                    {
+                        "key":  "RABBIT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the RabbitMQ management API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

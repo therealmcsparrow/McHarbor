@@ -4,7 +4,7 @@
     "description":  "Loki log shipping agent that tails local log files and pushes them to a Loki instance.",
     "category":  "Monitoring",
     "image":  "grafana/promtail:latest",
-    "logo":  "https://icon.horse/icon/grafana.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=grafana.com\u0026sz=128",
     "website":  "https://grafana.com/docs/loki/latest/clients/promtail/",
     "docsUrl":  "https://grafana.com/docs/loki/latest/clients/promtail/configuration/",
     "ports":  [
@@ -39,5 +39,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

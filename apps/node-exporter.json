@@ -4,7 +4,7 @@
     "description":  "Prometheus exporter for host hardware and OS metrics.",
     "category":  "Monitoring",
     "image":  "prom/node-exporter:latest",
-    "logo":  "https://icon.horse/icon/prometheus.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=prometheus.io\u0026sz=128",
     "website":  "https://prometheus.io/docs/guides/node-exporter/",
     "docsUrl":  "https://prometheus.io/docs/guides/node-exporter/",
     "ports":  [
@@ -38,5 +38,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

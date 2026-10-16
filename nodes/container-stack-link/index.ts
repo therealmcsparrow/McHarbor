@@ -12,8 +12,8 @@ export const containerStackLink: NodeDefinition = {
   configSchema: [
     { key: 'environment', label: 'Environment', type: 'environment-select', required: true },
     { key: 'container', label: 'Container', type: 'container-select', required: true },
-    { key: 'stack_name', label: 'Stack Name', type: 'text', required: true },
-    { key: 'service_name', label: 'Service Name', type: 'text', required: false },
+    { key: 'stack_name', label: 'Stack Name', type: 'stack-select', required: true },
+    { key: 'service_name', label: 'Service Name', type: 'stack-service-select', allowCustom: true, required: false },
   ],
   inputPorts: ['input'],
   outputPorts: ['output', 'error'],

@@ -4,7 +4,7 @@
     "description":  "Open-source real-time NoSQL database that pushes JSON queries to client applications.",
     "category":  "Databases",
     "image":  "rethinkdb:latest",
-    "logo":  "https://icon.horse/icon/rethinkdb.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=rethinkdb.com\u0026sz=128",
     "website":  "https://rethinkdb.com",
     "docsUrl":  "https://rethinkdb.com/docs",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

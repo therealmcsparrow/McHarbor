@@ -1,0 +1,153 @@
+{
+  "config": {
+    "method": { "help": "Quel type de connexion WhatsApp utiliser. Cloud = API Meta Cloud officielle. Gateway = votre propre serveur Baileys/wa-gateway. Bot = plateforme de l'API WhatsApp Business (type 360dialog/Twilio). SaaS = un fournisseur de messagerie tiers." },
+    "recipient_phone": { "help": "Numéro de téléphone du destinataire au format E.164 (par ex. +14155551234). Utilisé par toutes les méthodes." },
+    "phone_number_id": { "help": "Uniquement API Meta Cloud. Le Phone Number ID numérique de Meta Business Manager (WhatsApp > Phone Numbers). Utilisé pour construire /v21.0/<phone_number_id>/messages." },
+    "access_token": { "help": "Uniquement API Meta Cloud. Jeton d'accès permanent d'un utilisateur système issu de Meta Business Manager. Stocké chiffré au repos." },
+    "gateway_url": { "help": "Uniquement passerelle auto-hébergée. URL de base de votre propre passerelle WhatsApp (Baileys, wa-gateway, etc.). Le plugin envoie en POST {title, message, phone} vers <gateway_url>/send." },
+    "gateway_token": { "help": "Uniquement passerelle auto-hébergée. Jeton Bearer / clé d'API présenté sous la forme Authorization: Bearer <token>. Stocké chiffré au repos." },
+    "business_api_url": { "help": "Uniquement Business Bot Platform. Point de terminaison complet de la route d'envoi de messages de la plateforme (par ex. https://waba.360dialog.com/v1/messages ou la base de votre API WhatsApp Twilio)." },
+    "api_key": { "help": "Uniquement Business Bot Platform. Clé d'API de la plateforme, envoyée dans l'en-tête D360-API-KEY (ou X-API-Key, selon la plateforme). Stockée chiffrée au repos." },
+    "provider_url": { "help": "Uniquement SaaS tiers. URL de base du point de terminaison d'envoi de messages du fournisseur. Le plugin envoie en POST {to, from, body} vers <provider_url>/messages." },
+    "provider_api_key": { "help": "Uniquement SaaS tiers. Clé d'API du fournisseur (ou Account SID + Auth Token pour Twilio). Stockée chiffrée au repos." },
+    "provider_from": { "help": "Uniquement SaaS tiers. Identifiant d'expéditeur attendu par le fournisseur (numéro « From » WhatsApp de Twilio, originator MessageBird, app id Gupshup, etc.)." }
+  },
+  "page": {
+    "title": "WhatsApps",
+    "subtitle": "Achemine les événements de workflow, d'alerte et de sauvegarde vers un numéro de téléphone WhatsApp via l'une des quatre méthodes de connexion : Meta Cloud API, passerelle auto-hébergée, plateforme WhatsApp Business API, ou fournisseur SaaS tiers. Le plugin gère Test (aller-retour d'identifiants peu coûteux) et Send (vrai message au destinataire) — il n'y a pas de flux OAuth car les fournisseurs WhatsApp utilisent des jetons de longue durée.",
+    "registerHint": "Ajoutez un canal depuis la page Notifications > Canaux de l'hôte et choisissez « WhatsApp » comme channel_type."
+  },
+  "methods": {
+    "cloud":   "Cloud API",
+    "gateway": "Passerelle auto-hébergée",
+    "bot":     "Plateforme de bot Business",
+    "saas":    "SaaS tiers"
+  },
+  "fields": {
+    "method":           "Méthode de connexion",
+    "recipientPhone":   "Téléphone du destinataire",
+    "phoneNumberId":    "ID du numéro de téléphone",
+    "accessToken":      "Jeton d'accès",
+    "gatewayUrl":       "URL de la passerelle",
+    "gatewayToken":     "Jeton de la passerelle",
+    "businessApiUrl":   "URL de l'API Business",
+    "apiKey":           "Clé d'API",
+    "providerUrl":      "URL du fournisseur",
+    "providerApiKey":   "Clé d'API du fournisseur",
+    "providerFrom":     "Expéditeur du fournisseur"
+  },
+  "help": {
+    "method":           "La surface de connexion WhatsApp à utiliser. Cloud = API Meta Cloud officielle. Gateway = votre propre serveur Baileys/wa-gateway. Bot = plateforme WhatsApp Business API. SaaS = un fournisseur de messagerie tiers.",
+    "recipientPhone":   "Numéro de téléphone du destinataire au format E.164. Utilisé par toutes les méthodes.",
+    "phoneNumberId":    "ID numérique du numéro de téléphone issu de Meta Business Manager. Obligatoire pour la méthode Cloud API.",
+    "accessToken":      "Jeton d'accès permanent d'utilisateur système issu de Meta Business Manager. Obligatoire pour la méthode Cloud API. Chiffré au repos.",
+    "gatewayUrl":       "URL de base de votre passerelle WhatsApp auto-hébergée. Obligatoire pour la méthode passerelle.",
+    "gatewayToken":     "Jeton Bearer / clé d'API de la passerelle auto-hébergée. Obligatoire pour la méthode passerelle. Chiffré au repos.",
+    "businessApiUrl":   "Point de terminaison complet de la route d'envoi de message de la plateforme. Obligatoire pour la méthode Business Bot.",
+    "apiKey":           "Clé d'API de la plateforme (D360-API-KEY pour 360dialog, Bearer pour les plateformes de type OAuth). Obligatoire pour la méthode Business Bot. Chiffrée au repos.",
+    "providerUrl":      "URL de base du fournisseur SaaS tiers. Obligatoire pour la méthode SaaS.",
+    "providerApiKey":   "Clé d'API du fournisseur (pour Twilio, utilisez « <SID>:<AuthToken> » pour passer à l'authentification HTTP Basic). Obligatoire pour la méthode SaaS. Chiffrée au repos.",
+    "providerFrom":     "Identifiant d'expéditeur attendu par le fournisseur (Twilio WhatsApp From, MessageBird originator, Gupshup app id). Obligatoire pour la méthode SaaS."
+  },
+  "toast": {
+    "registered": "Canal WhatsApp enregistré.",
+    "testPassed": "Le test de connexion WhatsApp a réussi.",
+    "testFailed": "Le test de connexion WhatsApp a échoué : {{error}}"
+  },
+  "error": {
+    "noRecipient":  "Le téléphone du destinataire est obligatoire. Utilisez le format E.164 (p. ex. +14155551234).",
+    "noCredentials": "Identifiants manquants pour la méthode de connexion sélectionnée.",
+    "sendFailed":   "L'envoi WhatsApp a échoué : {{error}}"
+  },
+  "form": {
+    "channelTitle": "Canal WhatsApp",
+    "channelHelp": "WhatsApp Business API",
+    "channelBody": "Choisissez le type de connexion correspondant à la configuration de votre compte WhatsApp. Cloud API est la voie officielle de Meta. Gateway convient aux déploiements Baileys / wa-gateway auto-hébergés. Bot couvre les plateformes de type 360dialog. SaaS couvre Twilio, MessageBird, Gupshup et les fournisseurs similaires.",
+    "methodTitle": "Méthode de connexion",
+    "methodHelp": "Quatre types de connexion pris en charge",
+    "differTitle": "En quoi les quatre méthodes diffèrent",
+    "differHelp": "Ce qui change d'un type de connexion à l'autre",
+    "differCloud": "**Cloud API** — envoie en POST vers `https://graph.facebook.com/v21.0/<phone_number_id>/messages` avec un jeton `Bearer`. Utilisez le jeton permanent d'utilisateur système de Meta Business Manager.",
+    "differGateway": "**Passerelle auto-hébergée** — envoie en POST `{ phone, title, message }` vers `<gateway_url>/send`. Votre passerelle est responsable de la communication avec l'API WhatsApp Web / multi-appareils sous-jacente.",
+    "differBot": "**Business Bot Platform** — envoie en POST un corps au format Cloud API vers `<business_api_url>` avec l'en-tête `D360-API-KEY`. 360dialog et les fournisseurs similaires exposent une interface compatible Cloud API.",
+    "differSaas": "**SaaS tiers** — envoie en POST `{ to, from, body }` vers `<provider_url>/messages`. Les opérateurs Twilio doivent définir la clé d'API sur `<SID>:<AuthToken>` : le plugin passe alors automatiquement à l'authentification HTTP Basic.",
+    "methods": {
+      "cloud": {
+        "label": "Cloud API",
+        "sub": "API Meta Cloud officielle"
+      },
+      "gateway": {
+        "label": "Passerelle auto-hébergée",
+        "sub": "Votre propre serveur de passerelle WhatsApp"
+      },
+      "bot": {
+        "label": "Business Bot Platform",
+        "sub": "Plateforme de l'API WhatsApp Business"
+      },
+      "saas": {
+        "label": "SaaS tiers",
+        "sub": "Fournisseur de messagerie SaaS"
+      }
+    },
+    "fields": {
+      "recipient_phone": {
+        "label": "Téléphone du destinataire",
+        "help": "Numéro de téléphone du destinataire au format E.164. Utilisé par toutes les méthodes de connexion."
+      },
+      "phone_number_id": {
+        "label": "ID du numéro de téléphone",
+        "help": "Phone Number ID numérique de Meta Business Manager (WhatsApp > Phone Numbers). Le plugin envoie en POST vers /v21.0/<phone_number_id>/messages."
+      },
+      "access_token": {
+        "label": "Jeton d'accès",
+        "help": "Jeton d'accès permanent d'un utilisateur système issu de Meta Business Manager. Envoyé sous la forme Authorization: Bearer <token>. Chiffré au repos."
+      },
+      "gateway_url": {
+        "label": "URL de la passerelle",
+        "help": "URL de base de votre passerelle WhatsApp auto-hébergée. Le plugin envoie en POST {phone, title, message} vers <gateway_url>/send."
+      },
+      "gateway_token": {
+        "label": "Jeton de la passerelle",
+        "help": "Jeton Bearer / clé d'API présenté sous la forme Authorization: Bearer <token>. Chiffré au repos."
+      },
+      "business_api_url": {
+        "label": "URL de l'API Business",
+        "help": "Point de terminaison complet de la route d'envoi de messages de la plateforme. Envoyé en POST <business_api_url>."
+      },
+      "api_key": {
+        "label": "Clé d'API",
+        "help": "Clé d'API de la plateforme. Envoyée dans l'en-tête D360-API-KEY (et en Bearer pour les plateformes de type OAuth). Chiffrée au repos."
+      },
+      "provider_url": {
+        "label": "URL du fournisseur",
+        "help": "URL de base du fournisseur. Le plugin envoie en POST {to, from, body} vers <provider_url>/messages."
+      },
+      "provider_api_key": {
+        "label": "Clé d'API du fournisseur",
+        "help": "Clé d'API du fournisseur. Pour Twilio, définissez « <AccountSID>:<AuthToken> » afin de passer à l'authentification Basic. Chiffrée au repos."
+      },
+      "provider_from": {
+        "label": "Expéditeur du fournisseur",
+        "help": "Identifiant d'expéditeur attendu par le fournisseur (From WhatsApp de Twilio, originator MessageBird, app id Gupshup)."
+      }
+    }
+  },
+  "setupGuide": {
+    "title": "Guide de configuration de WhatsApp"
+  },
+  "guide": {
+    "step1": { "body": "Choisissez une méthode de connexion à gauche. <b>Cloud API</b> = voie officielle de Meta (jeton permanent d'utilisateur système). <b>Gateway</b> = votre propre serveur Baileys/wa-gateway. <b>Bot</b> = une plateforme de l'API WhatsApp Business (360dialog, etc.). <b>SaaS</b> = Twilio, MessageBird, Gupshup ou un fournisseur similaire." },
+    "step2": { "body": "Saisissez le numéro de téléphone du destinataire au format E.164 (par ex. <code>+14155551234</code>). Toutes les méthodes utilisent ce champ : il n'existe pas de destinataire distinct par méthode." },
+    "step3": { "body": "Uniquement Cloud API : dans Meta Business Manager, ouvrez <b>WhatsApp > Phone Numbers</b> et copiez le <b>Phone Number ID</b> numérique. Le plugin envoie en POST vers <code>/v21.0/<phone_number_id>/messages</code>." },
+    "step4": { "body": "Uniquement Cloud API : créez dans <b>Business Settings > System Users</b> un jeton d'accès permanent d'utilisateur système avec les autorisations <code>whatsapp_business_management</code> + <code>whatsapp_business_messaging</code>. Collez-le dans le champ <b>Jeton d'accès</b>. Le jeton n'expire jamais ; pour le renouveler, émettez-en un nouveau dans Business Manager." },
+    "step5": { "body": "Uniquement Cloud API : enregistrez votre téléphone expéditeur avec au moins un modèle de message dans Meta Business Manager. WhatsApp bloque les 24 premières heures des conversations initiées par l'entreprise ; les modèles contournent cette fenêtre." },
+    "step6": { "body": "Uniquement Gateway : déployez une instance Baileys / wa-gateway qui expose un point de terminaison JSON POST sur <code>/send</code> acceptant <code>{ phone, title, message }</code> et un point de terminaison <code>/test</code> renvoyant 2xx pour les jetons bearer valides. Le plugin utilise l'authentification Bearer sur <code><gateway_url>/send</code>." },
+    "step7": { "body": "Uniquement Gateway : configurez la passerelle avec votre session multi-appareils WhatsApp (scannez le code QR avec l'application WhatsApp). La passerelle est responsable du maintien de la session." },
+    "step8": { "body": "Uniquement Bot : choisissez une plateforme qui expose un point de terminaison d'envoi compatible Cloud API (360dialog est la plus courante). Créez un compte, configurez un expéditeur WhatsApp Business et copiez l'URL du point de terminaison de l'API dans <b>URL de l'API Business</b>." },
+    "step9": { "body": "Uniquement Bot : copiez la clé d'API de la plateforme dans le champ <b>Clé d'API</b>. Le plugin l'envoie sous la forme <code>D360-API-KEY</code> (convention 360dialog) ainsi que <code>Authorization: Bearer</code> en secours pour les plateformes de type OAuth." },
+    "step10": { "body": "Uniquement SaaS : créez un compte chez votre fournisseur (Twilio, MessageBird, Gupshup, Plivo, …) et provisionnez un expéditeur compatible WhatsApp. Copiez l'identifiant de l'expéditeur (Twilio : « <code>whatsapp:+14155550000</code> », MessageBird : originator, Gupshup : app id) dans le champ <b>Expéditeur du fournisseur</b>." },
+    "step11": { "body": "Uniquement SaaS : copiez la clé d'API du fournisseur dans le champ <b>Clé d'API du fournisseur</b>. Pour Twilio, définissez-la sur « <code><AccountSID>:<AuthToken></code> » : le plugin détecte les deux-points et passe automatiquement de Bearer à l'authentification HTTP Basic." },
+    "step12": { "body": "Collez les identifiants de la méthode choisie dans les champs correspondants. Cliquez sur <b>Enregistrer</b>, puis sur <b>Tester la connexion</b>. Le test effectue un aller-retour léger sur les identifiants (GET pour Cloud API, POST /test pour la passerelle, GET /contacts pour le bot, POST à blanc pour SaaS) et ne délivre jamais de vrai message au téléphone du destinataire." },
+    "step13": { "body": "Une fois le canal enregistré, acheminez-y les événements de workflow ou d'alerte depuis <b>Paramètres > Notifications > Règles</b>. La livraison est de type fire-and-forget : un envoi échoué est consigné dans le journal d'audit et affiché dans le toast de l'hôte, mais l'hôte ne réessaie pas." }
+  }
+}

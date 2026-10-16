@@ -1,6 +1,6 @@
 {
-  "label": "Link In",
-  "description": "Receive the latest message from a link output in another workflow",
+  "label": "Link-Eingang",
+  "description": "Die letzte Nachricht von einem Link-Ausgang in einem anderen Workflow empfangen",
   "config": {
     "source": "Quellausgabe"
   }

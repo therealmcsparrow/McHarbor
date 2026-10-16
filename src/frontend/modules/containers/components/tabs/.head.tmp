@@ -1,0 +1,335 @@
+// Copyright (c) 2026 McSparrow. All rights reserved.
+// McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  IconChevronDown,
+  IconChevronRight,
+  IconClock,
+  IconDatabaseExport,
+  IconDownload,
+  IconPencil,
+  IconPlayerPlay,
+  IconPlayerStop,
+  IconRestore,
+  IconTrash,
+  IconUpload,
+} from "@tabler/icons-react";
+import { Badge } from "@resources/components/ui/Badge";
+import { Button } from "@resources/components/ui/Button";
+import { PERM } from "@core/auth/permissionKeys";
+import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@resources/components/ui/Dialog";
+import { Input } from "@resources/components/ui/Input";
+import { Spinner } from "@resources/components/ui/Spinner";
+import { Switch } from "@resources/components/ui/Switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@resources/components/ui/Tooltip";
+import { describeCron } from "@resources/utils/schedule";
+import { formatDate } from "@resources/utils/format";
+import { useLocaleFormat } from "@resources/hooks/useLocaleFormat";
+import { useStorageLocations } from "../../../settings/hooks/useStorageLocations";
+import { BackupSelectionFields } from "../BackupSelectionFields";
+import {
+  mandatoryLocalStorage,
+  planToInput,
+  withMandatoryStorage,
+} from "../plan-utils";
+import { BackupRunDestinations } from "./BackupRunDestinations";
+import { RestoreProgressView, RestoreRunDialog } from "../RestoreRunDialog";
+import {
+  type ContainerBackupInput,
+  type ContainerBackupOption,
+  type ContainerBackupPlan,
+  type ContainerBackupRun,
+  containerBackupDownloadUrl,
+  useCancelContainerBackupRun,
+  useContainerBackupOptions,
+  useContainerBackupPlans,
+  useContainerBackupRun,
+  useContainerBackupRuns,
+  useCreateContainerBackupPlan,
+  useDeleteContainerBackupPlan,
+  useDeleteContainerBackupRun,
+  useRunContainerBackup,
+  useRunContainerBackupPlan,
+  useRetryDestinationUpload,
+  useUpdateContainerBackupPlan,
+  useUploadRestoreContainerBackup,
+} from "../../hooks/useContainerBackups";
+
+type BackupsTabProps = {
+  containerId: string;
+  containerName: string;
+};
+
+const DEFAULT_INPUT: ContainerBackupInput = {
+  name: "",
+  storageLocationId: "",
+  storageLocationIds: [],
+  includeConfig: true,
+  includeLogs: false,
+  includeFilesystem: false,
+  includeImage: false,
+  selectedMounts: [],
+  cron: "",
+  enabled: true,
+  retentionCount: 0,
+  retentionDays: 0,
+};
+
+function defaultInput(
+  options: ContainerBackupOption[],
+  containerName: string,
+): ContainerBackupInput {
+  return {
+    ...DEFAULT_INPUT,
+    name: `${containerName} backup`,
+    includeLogs: options.some(
+      (option) => option.type === "logs" && option.default,
+    ),
+    includeFilesystem: options.some(
+      (option) => option.type === "filesystem" && option.default,
+    ),
+    includeImage: options.some(
+      (option) => option.type === "image" && option.default,
+    ),
+    selectedMounts: options
+      .filter((option) => option.key.startsWith("mount:") && option.default)
+      .map((option) => option.key.slice("mount:".length)),
+  };
+}
+
+function formatBytes(value: number) {
+  if (!value) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.min(
+    Math.floor(Math.log(value) / Math.log(1024)),
+    units.length - 1,
+  );
+  return `${(value / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function retentionSummary(
+  plan: ContainerBackupPlan,
+  t: (key: string, options?: Record<string, number>) => string,
+) {
+  if (plan.retentionCount > 0 && plan.retentionDays > 0) {
+    return t("backups.retentionCountDays", {
+      count: plan.retentionCount,
+      days: plan.retentionDays,
+    });
+  }
+  if (plan.retentionCount > 0) {
+    return t("backups.retentionCountOnly", { count: plan.retentionCount });
+  }
+  if (plan.retentionDays > 0) {
+    return t("backups.retentionDaysOnly", { days: plan.retentionDays });
+  }
+  return t("backups.retentionForever");
+}
+
+function backupProgressDescription(
+  run: ContainerBackupRun,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  if (run.status !== "running" || !run.progressStage) {
+    return "";
+  }
+  if (run.progressMessage) {
+    return run.progressMessage;
+  }
+  return t(`backups.progress.${run.progressStage}`, {
+    defaultValue: run.progressMessage ?? "",
+  });
+}
+
+// Human-readable mapping for restore_* progress stages emitted by the
+// backend. The container_backup service writes these to the run record
+// throughout the restore pipeline.
+//
+// Kept here so BackupsTab can still map stage codes for any code
+// path that uses describeRestoreStage directly. The full restore
+// dialog now lives in RestoreRunDialog.tsx and uses the same map.
+//
+// (Removed inline RestoreProgressView — moved to
+// RestoreRunDialog.tsx so the cross-environment Backups page can
+// reuse it without copy-paste.)
+
+export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
+  const { t } = useTranslation("containers");
+  const { t: tc } = useTranslation("common");
+  const formatPrefs = useLocaleFormat();
+  const { data: optionData, isLoading: optionsLoading } =
+    useContainerBackupOptions(containerId);
+  const { data: plans = [], isLoading: plansLoading } =
+    useContainerBackupPlans(containerId);
+  const { data: runs = [], isLoading: runsLoading } =
+    useContainerBackupRuns(containerId);
+  const { data: storageLocations = [], isLoading: storageLocationsLoading } =
+    useStorageLocations();
+  const runManual = useRunContainerBackup(containerId);
+  const createPlan = useCreateContainerBackupPlan(containerId);
+  const updatePlan = useUpdateContainerBackupPlan();
+  const runPlan = useRunContainerBackupPlan();
+  const deletePlan = useDeleteContainerBackupPlan();
+  const deleteRun = useDeleteContainerBackupRun();
+  const cancelRun = useCancelContainerBackupRun();
+  const uploadRestoreBackup = useUploadRestoreContainerBackup(containerId);
+  const retryDestinationUpload = useRetryDestinationUpload();
+  const [manualInput, setManualInput] =
+    useState<ContainerBackupInput>(DEFAULT_INPUT);
+  const [scheduleInput, setScheduleInput] = useState<ContainerBackupInput>({
+    ...DEFAULT_INPUT,
+    cron: "0 3 * * *",
+  });
+  const [manualOpen, setManualOpen] = useState(true);
+  const [scheduleOpen, setScheduleOpen] = useState(true);
+  const [editTarget, setEditTarget] = useState<ContainerBackupPlan | null>(null);
+  const [editInput, setEditInput] = useState<ContainerBackupInput>(DEFAULT_INPUT);
+  const [deleteTarget, setDeleteTarget] = useState<ContainerBackupPlan | null>(
+    null,
+  );
+  const [deleteRunTarget, setDeleteRunTarget] =
+    useState<ContainerBackupRun | null>(null);
+  const [cancelRunTarget, setCancelRunTarget] =
+    useState<ContainerBackupRun | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<ContainerBackupRun | null>(
+    null,
+  );
+  const [uploadRestoreOpen, setUploadRestoreOpen] = useState(false);
+  const [uploadRestoreFile, setUploadRestoreFile] = useState<File | null>(null);
+  const [uploadRestoreKey, setUploadRestoreKey] = useState("");
+  const [uploadRestoreRunId, setUploadRestoreRunId] = useState<string | null>(
+    null,
+  );
+
+  const options = useMemo(
+    () => optionData?.options ?? [],
+    [optionData?.options],
+  );
+  const requiredLocalStorage = useMemo(
+    () => mandatoryLocalStorage(storageLocations),
+    [storageLocations],
+  );
+  const requiredLocalStorageId = requiredLocalStorage?.id;
+  const manualBackupRunning = useMemo(
+    () =>
+      runs.some(
+        (run) =>
+          run.operation === "backup" && run.status === "running" && !run.planId,
+      ),
+    [runs],
+  );
+  const { data: uploadRestoreRun, isLoading: uploadRestoreRunLoading } =
+    useContainerBackupRun(containerId, uploadRestoreRunId ?? undefined);
+  const uploadRestoreIsActive = uploadRestoreRun?.status === "running";
+
+  useEffect(() => {
+    if (options.length === 0) return;
+    const next = defaultInput(options, containerName);
+    setManualInput(withMandatoryStorage(next, requiredLocalStorageId));
+    setScheduleInput(
+      withMandatoryStorage(
+        { ...next, cron: "0 3 * * *", enabled: true },
+        requiredLocalStorageId,
+      ),
+    );
+  }, [containerName, options, requiredLocalStorageId]);
+
+  useEffect(() => {
+    if (!editTarget) return;
+    setEditInput(
+      withMandatoryStorage(planToInput(editTarget), requiredLocalStorageId),
+    );
+  }, [editTarget, requiredLocalStorageId]);
+
+  function updateEditInput(patch: Partial<ContainerBackupInput>) {
+    setEditInput((current) =>
+      withMandatoryStorage({ ...current, ...patch }, requiredLocalStorageId),
+    );
+  }
+
+  function openEditPlan(plan: ContainerBackupPlan) {
+    setEditTarget(plan);
+  }
+
+  function closeEditPlan() {
+    setEditTarget(null);
+  }
+
+  function saveEditPlan() {
+    if (!editTarget) return;
+    updatePlan.mutate(
+      { id: editTarget.id, body: editInput },
+      {
+        onSuccess: () => setEditTarget(null),
+      },
+    );
+  }
+
+  useEffect(() => {
+    if (!editTarget) return;
+    setEditInput(
+      withMandatoryStorage(planToInput(editTarget), requiredLocalStorageId),
+    );
+  }, [editTarget, requiredLocalStorageId]);
+
+  function updateManualInput(patch: Partial<ContainerBackupInput>) {
+    setManualInput((current) =>
+      withMandatoryStorage({ ...current, ...patch }, requiredLocalStorageId),
+    );
+  }
+
+  function updateScheduleInput(patch: Partial<ContainerBackupInput>) {
+    setScheduleInput((current) =>
+      withMandatoryStorage({ ...current, ...patch }, requiredLocalStorageId),
+    );
+  }
+
+  if (
+    optionsLoading ||
+    plansLoading ||
+    runsLoading ||
+    storageLocationsLoading
+  ) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner />
+      </div>
+    );
+  }
+
+  function handleRestore(run: ContainerBackupRun) {
+    setRestoreTarget(run);
+  }
+
+  function closeUploadRestoreDialog() {
+    setUploadRestoreOpen(false);
+    setUploadRestoreFile(null);
+    setUploadRestoreKey("");
+    setUploadRestoreRunId(null);
+  }
+
+  function restoreUploadedBackup() {
+    if (!uploadRestoreFile) return;
+    uploadRestoreBackup.mutate(
+      { file: uploadRestoreFile, secretKey: uploadRestoreKey },
+      {
+        onSuccess: (result) => {
+          // The backend creates a new restore run and immediately starts
+          // restoring. Switch the dialog into the same progress view used
+          // for the in-place restore so the user sees live status.
+          setUploadRestoreRunId(result.runId);
+        },
+      },
+    );
+  }

@@ -1,6 +1,6 @@
 {
-  "label": "Change",
-  "description": "Set or delete a value on msg, flow, or global scope",
+  "label": "Wijzigen",
+  "description": "Stel een waarde in of verwijder hem in de msg-, flow- of global-scope",
   "config": {
     "action_type": "Actie",
     "scope": "Scope",
@@ -9,8 +9,8 @@
   },
   "options": {
     "action_type": {
-      "set": "Set",
-      "delete": "Delete"
+      "set": "Instellen",
+      "delete": "Verwijderen"
     },
     "scope": {
       "msg": "msg",

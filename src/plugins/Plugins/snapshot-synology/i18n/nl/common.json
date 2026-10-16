@@ -1,0 +1,55 @@
+{
+  "form": {
+    "connectionSection": "DSM-verbinding",
+    "targetSection": "Snapshotdoel",
+    "advancedSection": "Geavanceerd",
+    "dsmUrl": {
+      "label": "DSM-URL",
+      "help": "Basis-URL van de Synology DSM-webinterface. Vermeld de poort als die niet standaard is (standaard 5000 voor HTTP, 5001 voor HTTPS)."
+    },
+    "username": {
+      "label": "Gebruikersnaam",
+      "help": "DSM-account met machtiging om snapshots te beheren. Gebruik een aparte serviceaccount."
+    },
+    "password": {
+      "label": "Wachtwoord",
+      "help": "DSM-wachtwoord of app-specifiek wachtwoord."
+    },
+    "shareName": {
+      "label": "Gedeelde map",
+      "help": "Naam van de gedeelde map waarvan een snapshot wordt gemaakt (zonder beginnende slash)."
+    },
+    "ignoreCert": {
+      "label": "Certificaatfouten negeren",
+      "help": "Vereist wanneer de DSM een zelfondertekend certificaat gebruikt."
+    },
+    "appPasswordHint": "Aanbeveling: maak een app-specifiek wachtwoord aan via DSM Control Panel → User &amp; Team → User → App Passwords. Dit beperkt de inloggegevens tot back-upbewerkingen en kan worden ingetrokken zonder het primaire wachtwoord te wijzigen."
+  },
+  "setup": {
+    "title": "Voordat je begint",
+    "intro": "snapshot-synology praat met de DSM 7.x Backup Service REST API. Controleer of de DSM-kant is geconfigureerd en vul daarna het formulier in.",
+    "steps": [
+      {
+        "title": "Schakel de Backup Service API in",
+        "body": "Control Panel → External Access → Certificate → Add. Open Control Panel → Backup Service en controleer of de service draait. De REST API luistert op de DSM-HTTPS-poort (standaard 5001)."
+      },
+      {
+        "title": "Maak een app-specifiek wachtwoord aan",
+        "body": "Control Panel → User &amp; Team → User → Account → App Passwords → Add. Geef het het label 'McHarbor snapshots' en verleen alleen de benodigde machtigingen (DSM en Backup Service). Het gegenereerde wachtwoord plak je in het formulier."
+      },
+      {
+        "title": "Kies of maak een gedeelde map",
+        "body": "Open Control Panel → Shared Folder. Maak een snapshot van een bestaande map (aanbevolen: een lege map gereserveerd voor McHarbor-back-ups) of maak een nieuwe aan. Noteer de mapnaam exact — hij is hoofdlettergevoelig op de DSM."
+      },
+      {
+        "title": "Controleer de bereikbaarheid van de DSM vanaf de host",
+        "body": "Controleer vanaf de host waarop McHarbor draait de HTTPS-connectiviteit. Vervang nas.local door je DSM-hostnaam:",
+        "code": "curl -k https://nas.local:5001/webapi/entry.cgi?api=SYNO.API.Info&version=1&method=query"
+      },
+      {
+        "title": "Test de verbinding",
+        "body": "Klik na het opslaan van de configuratie op 'Verbinding testen' op het tabblad Snapshots. Een groen proefresultaat bevestigt dat de DSM de inloggegevens heeft geaccepteerd en dat de gedeelde map bereikbaar is."
+      }
+    ]
+  }
+}

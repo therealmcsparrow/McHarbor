@@ -8,22 +8,29 @@ import type { InAppNotification } from '@resources/hooks/useInAppNotifications';
 import { cn } from '@resources/utils/cn';
 import { formatDate, timeAgo } from '@resources/utils/format';
 
+import { Hint } from './ui/Hint';
+
 function toneClasses(level: InAppNotification['level']) {
   switch (level) {
     case 'success':
       return {
-        dot: 'bg-emerald-500',
-        ring: 'border-emerald-500/30 bg-emerald-500/10',
+        dot: 'bg-success',
+        ring: 'border-success/30 bg-success/10',
       };
     case 'warning':
       return {
-        dot: 'bg-amber-500',
-        ring: 'border-amber-500/30 bg-amber-500/10',
+        dot: 'bg-warning',
+        ring: 'border-warning/30 bg-warning/10',
+      };
+    case 'error':
+      return {
+        dot: 'bg-destructive',
+        ring: 'border-destructive/30 bg-destructive/10',
       };
     default:
       return {
-        dot: 'bg-sky-500',
-        ring: 'border-sky-500/30 bg-sky-500/10',
+        dot: 'bg-info',
+        ring: 'border-info/30 bg-info/10',
       };
   }
 }
@@ -45,14 +52,8 @@ export function InAppNotificationListItem({
   const tone = toneClasses(notification.level);
 
   return (
-    <article
-      className={cn(
-        'flex gap-3 px-4 py-3',
-        !notification.read && 'bg-muted/20',
-        className,
-      )}
-    >
-      <div className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border', tone.ring)}>
+    <article className={cn('flex gap-3 px-4 py-3', !notification.read && 'bg-muted/20', className)}>
+      <div className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center border', tone.ring)}>
         <span className={cn('size-2 rounded-full', tone.dot)} />
       </div>
 
@@ -60,7 +61,7 @@ export function InAppNotificationListItem({
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground">{notification.title}</p>
-            <p className="mt-1 break-words text-sm text-muted-foreground">{notification.message}</p>
+            <p className="mt-1 text-sm break-words text-muted-foreground">{notification.message}</p>
           </div>
 
           {!notification.read && onMarkRead && (
@@ -77,9 +78,9 @@ export function InAppNotificationListItem({
           )}
         </div>
 
-        <p className="mt-2 text-xs text-muted-foreground" title={formatDate(notification.createdAt)}>
-          {timeAgo(notification.createdAt)}
-        </p>
+        <Hint text={formatDate(notification.createdAt)}>
+          <p className="mt-2 text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</p>
+        </Hint>
       </div>
     </article>
   );

@@ -1,0 +1,56 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+# example-plugin — the smallest viable McHarbor plugin.
+#
+# This plugin:
+#   - registers NO adapters, routes, menu items, widgets, or nodes;
+#   - exposes a single config field (greeting) so the host's
+#     "add plugin" wizard has something to render;
+#   - emits a one-line audit record on Init + Shutdown so the
+#     lifecycle is observable in the host's audit log;
+#   - ships a minimal UMD bundle that renders one field, so the
+#     form outlet flow is exercised end-to-end.
+#
+# Scaffolded by `mcharbor plugin dev new`. Install the frontend deps,
+# then build the per-plugin tarball. The host loads the .so via
+# `plugin.Open` and the form outlet via the UMD bundle; no host
+# recompile is needed for a new plugin.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "example-plugin"
+name:     "Example Plugin"
+version:  "1.0.0"
+author:   "McSparrow"
+license:  "McHarbor"
+description: "Minimal plugin template. No-op adapter, single config field, lifecycle audit. Use as a starting point for new plugins."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host. `audit.emit` is the
+# only one a no-op plugin needs; everything else is omitted.
+permissions:
+  - audit.emit
+
+# No adds_permissions — this plugin does not expose any user-facing
+# capabilities. The host's settings.manage is sufficient for the
+# operator to install / configure / remove the plugin itself.
+
+contributes:
+  routes: []
+  menu: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "example-plugin"
+  # The form slot pointing at the host's Settings > Plugins page.
+  # The bundle name is slug-derived, so no `frontend:` field is
+  # needed here.
+  forms:
+    - resource: "plugin"
+      kind:     "config_form"
+
+signature: ""
+checksum:  ""

@@ -1,0 +1,45 @@
+{
+    "slug":  "pufferpanel",
+    "name":  "PufferPanel",
+    "description":  "Open-source web panel for deploying and managing game servers, with a plugin-based support for many games.",
+    "category":  "Gaming",
+    "image":  "pufferpanel/pufferpanel:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pufferpanel.png",
+    "website":  "https://pufferpanel.com",
+    "docsUrl":  "https://docs.pufferpanel.com/docs/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5657,
+                      "container":  5657,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pufferpanel/config",
+                        "container":  "/etc/pufferpanel"
+                    },
+                    {
+                        "host":  "/opt/appdata/pufferpanel/servers",
+                        "container":  "/var/lib/pufferpanel"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

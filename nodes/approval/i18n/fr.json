@@ -2,7 +2,7 @@
   "label": "Porte d'approbation",
   "description": "Route un workflow selon une approbation ou un rejet explicite",
   "config": {
-    "decision": "Decision",
+    "decision": "Décision",
     "reason": "Raison"
   },
   "options": {

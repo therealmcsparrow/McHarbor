@@ -4,6 +4,7 @@
 package widgets
 
 import (
+	"crypto/ed25519"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -18,6 +19,11 @@ type Service struct {
 	widgetsDir string
 	statePath  string
 	logger     *slog.Logger
+	// catalogDirs are the local plugin catalog directories whose widgets/
+	// sub-directory is the widget catalog; trustKeys verify its bundles.
+	catalogDirs []string
+	trustKeys   []ed25519.PublicKey
+	cache       verifyCache
 }
 
 // NewService creates a new widget service backed by $DATA_DIR/widgets/.
@@ -32,8 +38,16 @@ func NewService(dataDir string, logger *slog.Logger) *Service {
 // validKey matches safe directory names: lowercase letters, digits, hyphens.
 var validKey = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 
-// validLang matches ISO 639-1 language codes (2-5 lowercase letters).
-var validLang = regexp.MustCompile(`^[a-z]{2,5}$`)
+// Plugin-contributed widgets are registered by the plugin runtime as
+// `plugin:<slug>:<key>` (see bridge-widgets.ts) and never get a directory
+// under $DATA_DIR/widgets/. They are still toggleable from the Store, so
+// their composite key is accepted here — state only, no filesystem path.
+var validPluginKey = regexp.MustCompile(`^plugin:[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9-]*$`)
+
+// isPluginKey reports whether key names a plugin-contributed widget.
+func isPluginKey(key string) bool {
+	return validPluginKey.MatchString(key)
+}
 
 // validateKey rejects keys that could escape the widgets directory.
 func validateKey(key string) error {
@@ -43,7 +57,7 @@ func validateKey(key string) error {
 	if strings.Contains(key, "/") || strings.Contains(key, "\\") || strings.Contains(key, "..") {
 		return fmt.Errorf("invalid widget key: path traversal not allowed")
 	}
-	if !validKey.MatchString(key) {
+	if !validKey.MatchString(key) && !isPluginKey(key) {
 		return fmt.Errorf("invalid widget key: must be lowercase alphanumeric with hyphens")
 	}
 	return nil
@@ -150,6 +164,9 @@ func (s *Service) List() ([]WidgetDefinitionWithI18n, error) {
 		} else {
 			def.Enabled = true
 		}
+		if def.Source == SourceDownloaded {
+			def.Verified = s.verifyInstalled(entry.Name()) == nil
+		}
 
 		trans := s.readTranslations(dir)
 
@@ -159,52 +176,25 @@ func (s *Service) List() ([]WidgetDefinitionWithI18n, error) {
 		})
 	}
 
+	// Plugin widgets are described by the plugin runtime, not by a directory
+	// here, so only their availability override is ours to report. The state
+	// file holds a key exactly when the widget is disabled; without these
+	// entries the Store and the dashboard would both read "enabled".
+	for key, enabled := range state {
+		if !isPluginKey(key) {
+			continue
+		}
+		result = append(result, WidgetDefinitionWithI18n{
+			WidgetDefinition: WidgetDefinition{
+				Key:      key,
+				Category: "plugin",
+				Source:   "plugin",
+				Enabled:  enabled,
+			},
+		})
+	}
+
 	return result, nil
-}
-
-// Install writes a new widget definition and its translations to disk.
-func (s *Service) Install(input InstallWidgetInput) error {
-	if err := validateKey(input.Definition.Key); err != nil {
-		return err
-	}
-
-	dir := filepath.Join(s.widgetsDir, input.Definition.Key)
-	if _, err := os.Stat(dir); err == nil {
-		return fmt.Errorf("widget %q already exists", input.Definition.Key)
-	}
-
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("creating widget dir: %w", err)
-	}
-
-	defBytes, err := json.MarshalIndent(input.Definition, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshalling definition: %w", err)
-	}
-	if err := os.WriteFile(filepath.Join(dir, "definition.json"), defBytes, 0o644); err != nil {
-		return fmt.Errorf("writing definition: %w", err)
-	}
-
-	if len(input.Translations) > 0 {
-		i18nDir := filepath.Join(dir, "i18n")
-		if err := os.MkdirAll(i18nDir, 0o755); err != nil {
-			return fmt.Errorf("creating i18n dir: %w", err)
-		}
-		for lang, trans := range input.Translations {
-			if !validLang.MatchString(lang) {
-				continue // skip invalid lang codes
-			}
-			langBytes, err := json.MarshalIndent(trans, "", "  ")
-			if err != nil {
-				return fmt.Errorf("marshalling %s translation: %w", lang, err)
-			}
-			if err := os.WriteFile(filepath.Join(i18nDir, lang+".json"), langBytes, 0o644); err != nil {
-				return fmt.Errorf("writing %s translation: %w", lang, err)
-			}
-		}
-	}
-
-	return nil
 }
 
 // SetEnabled stores the availability state for a widget definition.
@@ -213,12 +203,16 @@ func (s *Service) SetEnabled(key string, enabled bool) error {
 		return err
 	}
 
-	defPath := filepath.Join(s.widgetsDir, key, "definition.json")
-	if _, err := os.Stat(defPath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("widget not found")
+	// Plugin widgets have no definition.json — their descriptor lives in the
+	// plugin runtime — so only disk-backed widgets are checked for existence.
+	if !isPluginKey(key) {
+		defPath := filepath.Join(s.widgetsDir, key, "definition.json")
+		if _, err := os.Stat(defPath); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("widget not found")
+			}
+			return fmt.Errorf("stat widget definition: %w", err)
 		}
-		return fmt.Errorf("stat widget definition: %w", err)
 	}
 
 	state, err := s.readState()
@@ -232,45 +226,6 @@ func (s *Service) SetEnabled(key string, enabled bool) error {
 		state[key] = false
 	}
 
-	if err := s.writeState(state); err != nil {
-		return fmt.Errorf("writing widget state: %w", err)
-	}
-
-	return nil
-}
-
-// Uninstall removes a non-builtin widget definition from disk.
-func (s *Service) Uninstall(key string) error {
-	if err := validateKey(key); err != nil {
-		return err
-	}
-
-	dir := filepath.Join(s.widgetsDir, key)
-
-	defPath := filepath.Join(dir, "definition.json")
-	defBytes, err := os.ReadFile(defPath)
-	if err != nil {
-		return fmt.Errorf("widget not found")
-	}
-
-	var def WidgetDefinition
-	if err := json.Unmarshal(defBytes, &def); err != nil {
-		return fmt.Errorf("reading widget definition: %w", err)
-	}
-
-	if def.Source == "builtin" {
-		return fmt.Errorf("cannot delete built-in widget")
-	}
-
-	if err := os.RemoveAll(dir); err != nil {
-		return fmt.Errorf("removing widget dir: %w", err)
-	}
-
-	state, err := s.readState()
-	if err != nil {
-		return fmt.Errorf("reading widget state: %w", err)
-	}
-	delete(state, key)
 	if err := s.writeState(state); err != nil {
 		return fmt.Errorf("writing widget state: %w", err)
 	}

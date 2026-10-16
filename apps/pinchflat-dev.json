@@ -1,0 +1,39 @@
+{
+    "slug":  "pinchflat-dev",
+    "name":  "Pinchflat (Dev)",
+    "description":  "Dev channel build of Pinchflat. Downloads YouTube channels and playlists automatically for Plex, Jellyfin or Kodi.",
+    "category":  "Media",
+    "image":  "ghcr.io/kieraneglin/pinchflat:dev",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pinchflat.png",
+    "website":  "https://github.com/kieraneglin/pinchflat",
+    "docsUrl":  "https://github.com/kieraneglin/pinchflat#docker",
+    "ports":  [
+                  {
+                      "host":  9945,
+                      "container":  8945,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pinchflat-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/pinchflat-dev/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

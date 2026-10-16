@@ -7,11 +7,9 @@ import { persist } from 'zustand/middleware';
 type Environment = {
   id: string;
   name: string;
-  orchestratorType: 'docker' | 'kubernetes';
   connectionType: string;
   isDefault: boolean;
   dockerVersion: string | null;
-  k8sVersion: string | null;
   scheduledUpdateCheckEnabled: boolean;
   automaticImagePruningEnabled: boolean;
   trackContainerEventsEnabled: boolean;
@@ -20,6 +18,8 @@ type Environment = {
   dockerDiskUsageNotificationsEnabled: boolean;
   dockerDiskUsageThresholdPercent: number;
   timezone?: string;
+  agentStatus?: string | null;
+  lastConnected?: string | null;
 };
 
 type EnvironmentState = {
@@ -49,6 +49,6 @@ export const useEnvironmentStore = create<EnvironmentState>()(
           return { environments };
         }),
     }),
-    { name: 'mcharbor-environment' }
-  )
+    { name: 'mcharbor-environment' },
+  ),
 );

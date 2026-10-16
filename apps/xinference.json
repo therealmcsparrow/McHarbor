@@ -1,0 +1,36 @@
+{
+    "slug":  "xinference",
+    "name":  "Xinference",
+    "description":  "Inference server for large language, embedding, and multimodal models with a unified API; GPU recommended for larger models.",
+    "category":  "AI & Voice",
+    "image":  "xprobe/xinference:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/xorbitsai/inference",
+    "docsUrl":  "https://inference.readthedocs.io/en/latest/getting_started/using_docker_image.html",
+    "ports":  [
+                  {
+                      "host":  9997,
+                      "container":  9997,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/xinference/cache",
+                        "container":  "/root/.xinference"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

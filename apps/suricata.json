@@ -4,7 +4,7 @@
     "description":  "High-performance network IDS, IPS, and network security monitoring engine.",
     "category":  "Security",
     "image":  "jasonish/suricata:latest",
-    "logo":  "https://icon.horse/icon/suricata.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=suricata.io\u0026sz=128",
     "website":  "https://suricata.io",
     "docsUrl":  "https://docs.suricata.io",
     "ports":  [
@@ -41,5 +41,9 @@
                     }
                 ],
     "minMemory":  "512MB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

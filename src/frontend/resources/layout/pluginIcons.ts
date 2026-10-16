@@ -1,0 +1,102 @@
+// Copyright (c) 2026 McSparrow. All rights reserved.
+// McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+import { IconPuzzle } from '@tabler/icons-react';
+import type { IconType } from './sidebar-data';
+import {
+  IconActivity,
+  IconAdjustments,
+  IconArchive,
+  IconBell,
+  IconBolt,
+  IconBox,
+  IconBoxMultiple,
+  IconBrandDocker,
+  IconChartLine,
+  IconClock,
+  IconCloud,
+  IconCloudNetwork,
+  IconCopy,
+  IconCpu,
+  IconDatabase,
+  IconDeviceDesktop,
+  IconDeviceFloppy,
+  IconFolder,
+  IconFolders,
+  IconHistory,
+  IconKey,
+  IconLayoutDashboard,
+  IconLock,
+  IconMail,
+  IconNetwork,
+  IconPhoto,
+  IconRocket,
+  IconRoute,
+  IconServer2,
+  IconServerBolt,
+  IconSettings,
+  IconShield,
+  IconShieldLock,
+  IconStack2,
+  IconTemplate,
+  IconTerminal,
+  IconTopologyStar3,
+  IconWorld,
+  IconGitMerge,
+  IconGitBranch,
+  IconWorldUpload,
+} from '@tabler/icons-react';
+
+// Plugin manifests cross the wasm/plugin boundary as serializable
+// strings, so we resolve them to React components at render time.
+// Unknown names fall back to IconPuzzle so a typo or removed icon
+// can never crash the sidebar.
+const REGISTRY: Record<string, IconType> = {
+  IconPuzzle,
+  IconActivity,
+  IconAdjustments,
+  IconArchive,
+  IconBell,
+  IconBolt,
+  IconBox,
+  IconBoxMultiple,
+  IconBrandDocker,
+  IconChartLine,
+  IconClock,
+  IconCloud,
+  IconCloudNetwork,
+  IconCopy,
+  IconCpu,
+  IconDatabase,
+  IconDeviceDesktop,
+  IconDeviceFloppy,
+  IconFolder,
+  IconFolders,
+  IconHistory,
+  IconKey,
+  IconLayoutDashboard,
+  IconLock,
+  IconMail,
+  IconNetwork,
+  IconPhoto,
+  IconRocket,
+  IconRoute,
+  IconServer2,
+  IconServerBolt,
+  IconSettings,
+  IconShield,
+  IconShieldLock,
+  IconStack2,
+  IconTemplate,
+  IconTerminal,
+  IconTopologyStar3,
+  IconWorld,
+  IconGitMerge,
+  IconGitBranch,
+  IconWorldUpload,
+};
+
+export function resolvePluginIcon(itemName: string | undefined | null): IconType {
+  if (!itemName) return IconPuzzle;
+  return REGISTRY[itemName] ?? IconPuzzle;
+}

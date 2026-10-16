@@ -1,0 +1,36 @@
+{
+    "slug":  "vitess",
+    "name":  "Vitess",
+    "description":  "Database clustering system that horizontally scales MySQL through sharding and connection pooling.",
+    "category":  "Databases",
+    "image":  "vitess/lite:latest",
+    "logo":  "https://github.com/vitessio.png",
+    "website":  "https://vitess.io",
+    "docsUrl":  "https://vitess.io/docs/get-started/local-docker/",
+    "ports":  [
+                  {
+                      "host":  15000,
+                      "container":  15000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vitess/data",
+                        "container":  "/vt/vtdataroot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

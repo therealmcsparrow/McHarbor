@@ -1,0 +1,45 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-alertmanager-webhook"
+name:     "Alertmanager webhook"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Generic on-call channel. Sends McHarbor alerts as Prometheus Alertmanager webhook v4 payloads, one group per condition, to any receiver that ingests Alertmanager: Grafana Cloud IRM, Squadcast, Zenduty, Keep and others."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.26"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_alertmanager_webhook"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Alertmanager webhook channels"
+    description: "Required to route alert, workflow, or incident events to an Alertmanager-compatible receiver."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-alertmanager-webhook"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "alertmanager_webhook"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "alertmanager_webhook"
+
+signature: ""
+checksum:  ""

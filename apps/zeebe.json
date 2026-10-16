@@ -1,0 +1,46 @@
+{
+    "slug":  "zeebe",
+    "name":  "Zeebe",
+    "description":  "Cloud-native workflow engine for orchestrating microservices with BPMN process models.",
+    "category":  "Message Queues",
+    "image":  "camunda/zeebe:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=camunda.com\u0026sz=128",
+    "website":  "https://camunda.com/platform/zeebe/",
+    "docsUrl":  "https://docs.camunda.io/docs/self-managed/zeebe-deployment/install/",
+    "ports":  [
+                  {
+                      "host":  26500,
+                      "container":  26500,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9600,
+                      "container":  9600,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zeebe/data",
+                        "container":  "/usr/local/zeebe/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZEEBE_BROKER_GATEWAY_ENABLE",
+                        "default":  "true",
+                        "description":  "Enable the embedded gRPC gateway"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

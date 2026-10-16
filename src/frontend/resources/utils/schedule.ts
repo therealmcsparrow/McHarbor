@@ -13,6 +13,28 @@ export function localDateTimeValue(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+export function readableStartOnWeekday(weekday: number, hour: number, minute: number, now = new Date()) {
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+  date.setDate(date.getDate() + ((weekday - date.getDay() + 7) % 7));
+  return date;
+}
+
+export function readableStartOnMonthDay(day: number, hour: number, minute: number, now = new Date()) {
+  for (let offset = 0; offset < 12; offset += 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() + offset, day, hour, minute);
+    if (date.getDate() === day) return date;
+  }
+  return null;
+}
+
+export function readableStartOnDate(month: number, day: number, hour: number, minute: number, now = new Date()) {
+  for (let offset = 0; offset < 8; offset += 1) {
+    const date = new Date(now.getFullYear() + offset, month - 1, day, hour, minute);
+    if (date.getMonth() === month - 1 && date.getDate() === day) return date;
+  }
+  return null;
+}
+
 export function cronFromReadableSchedule(interval: number, unit: ScheduleUnit, startsAtValue: string) {
   const date = startsAtValue ? new Date(startsAtValue) : new Date();
   const minute = Number.isFinite(date.getMinutes()) ? date.getMinutes() : 0;
@@ -47,14 +69,24 @@ export function describeCron(expression: string | undefined, t: ScheduleT) {
   if (/^\d+$/.test(minute) && hour === '*' && day === '*' && month === '*' && weekday === '*') {
     return t('schedule.readable.everyHourAt', { minute: pad(Number(minute)) });
   }
-  if (/^\d+$/.test(minute) && /^\/?\d+$/.test(hour.replace('*', '')) && hour.startsWith('*/') && day === '*' && month === '*' && weekday === '*') {
+  if (
+    /^\d+$/.test(minute) &&
+    /^\/?\d+$/.test(hour.replace('*', '')) &&
+    hour.startsWith('*/') &&
+    day === '*' &&
+    month === '*' &&
+    weekday === '*'
+  ) {
     return t('schedule.readable.everyNHoursAt', { count: hour.slice(2), minute: pad(Number(minute)) });
   }
   if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && day === '*' && month === '*' && weekday === '*') {
     return t('schedule.readable.everyDayAt', { time: `${pad(Number(hour))}:${pad(Number(minute))}` });
   }
   if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && day.startsWith('*/') && month === '*' && weekday === '*') {
-    return t('schedule.readable.everyNDaysAt', { count: day.slice(2), time: `${pad(Number(hour))}:${pad(Number(minute))}` });
+    return t('schedule.readable.everyNDaysAt', {
+      count: day.slice(2),
+      time: `${pad(Number(hour))}:${pad(Number(minute))}`,
+    });
   }
   if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && day === '*' && month === '*' && /^\d+$/.test(weekday)) {
     return t('schedule.readable.everyWeekdayAt', {

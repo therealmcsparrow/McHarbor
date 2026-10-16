@@ -1,9 +1,9 @@
 {
-  "label": "Host Exec",
-  "description": "Run a host command through a temporary container",
+  "label": "Host-Exec",
+  "description": "Einen Host-Befehl über einen temporären Container ausführen",
   "config": {
     "environment": "Umgebung",
-    "command": "Command",
+    "command": "Befehl",
     "timeout": "Timeout (Sekunden)"
   }
 }

@@ -6,23 +6,17 @@ package versions
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"os"
-	"strings"
-	"time"
-
-	"github.com/docker/docker/client"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
-// errSelfUpdateNotLocal is returned when the McHarbor container cannot
-// be reached via the local Docker socket (e.g. only remote agent
-// environments are registered).
-var errSelfUpdateNotLocal = errors.New("mcharbor self-update requires a local Docker socket")
+// errSelfUpdateNotLocal aliases the core error so the handler can keep
+// matching it with errors.Is.
+var errSelfUpdateNotLocal = coredocker.ErrSelfUpdateNotLocal
 
 // Service collects version information for the local instance and agents.
 type Service struct {
@@ -36,8 +30,8 @@ func NewService(db *sql.DB, agentPool *coreagent.AgentPool) *Service {
 }
 
 // Info returns the local McHarbor version plus all agent environment versions.
-func (s *Service) Info() (*VersionInfo, error) {
-	agents, err := s.ListAgents()
+func (s *Service) Info(ctx context.Context) (*VersionInfo, error) {
+	agents, err := s.ListAgents(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +46,8 @@ func (s *Service) Info() (*VersionInfo, error) {
 }
 
 // ListAgents returns version information for all agent-type environments.
-func (s *Service) ListAgents() ([]AgentVersion, error) {
-	rows, err := s.db.Query(`
+func (s *Service) ListAgents(ctx context.Context) ([]AgentVersion, error) {
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, name, agent_status, agent_hostname, agent_os, agent_arch,
 		       agent_version, docker_version, agent_last_seen
 		FROM environments
@@ -64,7 +58,7 @@ func (s *Service) ListAgents() ([]AgentVersion, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying agent versions: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var agents []AgentVersion
 	for rows.Next() {
@@ -120,54 +114,19 @@ func (s *Service) applyLiveAgentMetadata(a *AgentVersion) {
 	a.DockerVersion = conn.DockerVer
 }
 
-// SelfUpdate schedules a McHarbor self-update by spawning the detached
-// helper container (see core/docker.ScheduleDetachedSelfUpdateHelperForImage).
-// The helper stops and recreates the current McHarbor container with the
-// requested image (or the current image if none was supplied). The call
-// returns ErrSelfUpdateNotLocal when the McHarbor container is not
-// reachable via the local Docker socket.
+// SelfUpdate schedules a McHarbor self-update via the shared
+// core/docker.ApplyLocalSelfUpdate helper (also used by the automatic
+// installer). The call returns errSelfUpdateNotLocal when the McHarbor
+// container is not reachable via the local Docker socket.
 func (s *Service) SelfUpdate(ctx context.Context, targetImage string) (SelfUpdateResult, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	res, err := coredocker.ApplyLocalSelfUpdate(ctx, targetImage)
 	if err != nil {
-		return SelfUpdateResult{}, fmt.Errorf("creating local docker client: %w", err)
+		return SelfUpdateResult{}, err
 	}
-	defer cli.Close()
-
-	inspectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	current, err := coredocker.CurrentMcHarborContainer(inspectCtx, cli)
-	if err != nil {
-		return SelfUpdateResult{}, errSelfUpdateNotLocal
-	}
-
-	name := ""
-	if current.Name != "" {
-		name = strings.TrimPrefix(current.Name, "/")
-	}
-
-	target := strings.TrimSpace(targetImage)
-	if target == "" {
-		target = current.Config.Image
-	}
-
-	dataDir := ""
-	if env := os.Getenv("DATA_DIR"); env != "" {
-		dataDir = env
-	}
-	dockerHost := os.Getenv("DOCKER_HOST")
-
-	output, err := coredocker.ScheduleDetachedSelfUpdateHelperForImage(
-		ctx, cli, current, dataDir, dockerHost, "update", target,
-	)
-	if err != nil {
-		return SelfUpdateResult{}, fmt.Errorf("scheduling self-update helper: %w", err)
-	}
-
 	return SelfUpdateResult{
-		ContainerID:   current.ID,
-		ContainerName: name,
-		TargetImage:   target,
-		Output:        output,
+		ContainerID:   res.ContainerID,
+		ContainerName: res.ContainerName,
+		TargetImage:   res.TargetImage,
+		Output:        res.Output,
 	}, nil
 }

@@ -1,0 +1,16 @@
+﻿go : # github.com/therealmcsparrow/mcharbor/core/apppaths [github.com/therealmcsparrow/mcharbor/core/apppaths.test]
+At line:1 char:398
++ ... N='auto'; $env:GOWORK='off'; go test ./core/apppaths/ -v 2>&1 | tee t ...
++                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (# github.com/th.../apppaths.test]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+core\apppaths\apppaths_test.go:12:12: undefined: DataDir
+core\apppaths\apppaths_test.go:21:12: undefined: DataDir
+core\apppaths\apppaths_test.go:21:30: undefined: DefaultDataDir
+core\apppaths\apppaths_test.go:22:44: undefined: DefaultDataDir
+core\apppaths\apppaths_test.go:30:12: undefined: DataDir
+core\apppaths\apppaths_test.go:30:30: undefined: DefaultDataDir
+core\apppaths\apppaths_test.go:31:44: undefined: DefaultDataDir
+FAIL	github.com/therealmcsparrow/mcharbor/core/apppaths [build failed]
+FAIL

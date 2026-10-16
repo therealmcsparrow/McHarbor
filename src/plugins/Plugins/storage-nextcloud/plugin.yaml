@@ -1,0 +1,50 @@
+# plugin.yaml — manifest for the storage-nextcloud plugin.
+#
+# Nextcloud exposes a WebDAV endpoint for file operations
+# (`/remote.php/dav/files/{username}/`) and supports OAuth 2.0 for
+# delegated auth. The plugin accepts both OAuth refresh-token flow
+# (with the operator creating an OAuth2 client in
+# `_oAuth2` > Clients) and direct app-password authentication (the
+# "App passwords" section under Personal settings → Security).
+#
+# RBAC: storage plugins bypass the per-plugin permission registry
+# (see mcharbor-storage-plugins-no-rbac), so RegisterPermissions is a
+# no-op.
+schema: "mcharbor.plugin/v1"
+
+slug:     "storage-nextcloud"
+name:     "Nextcloud"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Back up containers to a Nextcloud instance via WebDAV (RFC 4918). Two auth modes: OAuth 2.0 refresh-token flow (with the operator creating an OAuth2 client in /settings/admin/oauth2) or direct app-password authentication (the operator generates an app password in Personal settings → Security). Chunked uploads use the WebDAV PUT stream with Content-Length + Content-Range; large uploads work because Nextcloud's WebDAV server supports chunked ranges server-side. Same Test round-trip shape (write / change / delete) as the SharePoint and Google Drive plugins."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Bootstrap permissions only — they let the plugin register its
+# adapter and emit audit events. They are NOT user-facing RBAC.
+permissions:
+  - storage.adapter.register
+  - audit.emit
+
+# No adds_permissions | No consumes_permissions
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "storage-nextcloud"
+  forms:
+    - resource: "storage_location"
+      kind: "config_form"
+      key: "nextcloud"
+    - resource: "storage_location"
+      kind: "setup_guide"
+      key: "nextcloud"
+
+signature: ""
+checksum:  ""

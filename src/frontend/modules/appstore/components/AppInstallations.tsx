@@ -7,13 +7,7 @@ import { IconChevronRight, IconTrash } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@resources/components/ui/Dialog';
+import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@resources/components/ui/Dialog';
 import { InstallProgress } from './InstallProgress';
 import { useStreamUninstall } from '../hooks/useStreamUninstall';
 import type { AppInstallation } from '../types';
@@ -33,7 +27,7 @@ function getEnvironmentLabel(installation: AppInstallation, fallback: string) {
 
 export function AppInstallationsSummary({ installations, appName }: AppInstallationsSummaryProps) {
   const { t } = useTranslation('common');
-  const [open, setOpen] = useState(false);
+  const [dialogOpen, setOpen] = useState(false);
 
   if (installations.length === 0) {
     return null;
@@ -41,12 +35,10 @@ export function AppInstallationsSummary({ installations, appName }: AppInstallat
 
   return (
     <>
-      <div className="rounded-md border border-teal-500/30 bg-teal-500/10 px-3 py-2 text-teal-800 dark:text-teal-300">
+      <div className="rounded-md border border-chart-1/30 bg-chart-1/10 px-3 py-2 text-chart-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
-              {t('appStore.installedIn')}
-            </span>
+            <span className="text-[11px] font-semibold tracking-[0.12em] uppercase">{t('appStore.installedIn')}</span>
             <Badge variant="success" className="shrink-0">
               {installations.length}
             </Badge>
@@ -54,7 +46,7 @@ export function AppInstallationsSummary({ installations, appName }: AppInstallat
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 shrink-0 text-teal-800 hover:bg-teal-500/15 dark:text-teal-300"
+            className="size-7 shrink-0 text-chart-1 hover:bg-chart-1/15"
             aria-label={t('appStore.viewInstallations')}
             onClick={() => setOpen(true)}
           >
@@ -65,7 +57,7 @@ export function AppInstallationsSummary({ installations, appName }: AppInstallat
       <AppInstallationsDialog
         appName={appName}
         installations={installations}
-        open={open}
+        open={dialogOpen}
         onOpenChange={setOpen}
       />
     </>
@@ -75,7 +67,7 @@ export function AppInstallationsSummary({ installations, appName }: AppInstallat
 function AppInstallationsDialog({
   appName,
   installations,
-  open,
+  open: openState,
   onOpenChange,
 }: {
   appName: string;
@@ -86,7 +78,7 @@ function AppInstallationsDialog({
   const { t } = useTranslation('common');
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={openState} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0">
         <DialogHeader>
           <DialogTitle>{t('appStore.installationsTitle', { name: appName })}</DialogTitle>
@@ -109,9 +101,7 @@ export function AppInstallationsList({ installations }: AppInstallationsListProp
     return null;
   }
 
-  const selectedEnvironment = selected
-    ? getEnvironmentLabel(selected, t('appStore.unknownEnvironment'))
-    : '';
+  const selectedEnvironment = selected ? getEnvironmentLabel(selected, t('appStore.unknownEnvironment')) : '';
 
   return (
     <>
@@ -127,13 +117,14 @@ export function AppInstallationsList({ installations }: AppInstallationsListProp
                   {installation.stackName || installation.stackId}
                 </div>
                 <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {t('appStore.environmentLabel')}: {getEnvironmentLabel(installation, t('appStore.unknownEnvironment'))}
+                  {t('appStore.environmentLabel')}:{' '}
+                  {getEnvironmentLabel(installation, t('appStore.unknownEnvironment'))}
                 </div>
               </div>
               <Button
                 size="sm"
                 variant="destructive"
-                className="h-8 shrink-0 gap-1"
+                className="shrink-0 gap-1"
                 disabled={uninstalling}
                 onClick={() => setSelected(installation)}
               >

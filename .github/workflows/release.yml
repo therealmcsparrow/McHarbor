@@ -15,11 +15,17 @@ on:
     branches:
       - release
   workflow_dispatch:
+    inputs:
+      architectures:
+        description: Architectures to build native packages for
+        default: amd64
+        type: string
 
 permissions:
   contents: read
   packages: write
   id-token: write
+  pull-requests: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -51,13 +57,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.27.2'
           cache: true
 
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: src/frontend/package-lock.json
 
@@ -68,6 +74,55 @@ jobs:
       - name: Verify Go vet
         working-directory: src/backend
         run: go vet ./...
+
+      - name: Permission and route contract
+        working-directory: src/backend
+        run: go test ./core/rbac/ ./core/apispec/ ./api/
+
+      - name: OpenAPI document is current
+        working-directory: src/backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATA_DIR="$(mktemp -d)" MCHARBOR_EMIT_OPENAPI="$PWD/api/openapi.json" go run .
+          if [[ -n "$(git status --porcelain -- api/openapi.json api/unrecorded-routes.txt)" ]]; then
+            echo "::error::src/backend/api/openapi.json is stale. Regenerate: cd src/backend && DATA_DIR=\$(mktemp -d) MCHARBOR_EMIT_OPENAPI=api/openapi.json go run ."
+            git diff --stat -- api/openapi.json || true
+            exit 1
+          fi
+
+      - name: OpenAPI document is valid
+        run: npx -y @redocly/cli@2 lint --extends=minimal src/backend/api/openapi.json
+
+      - name: Terraform provider matches the current spec
+        working-directory: src/terraform-provider-mcharbor
+        shell: bash
+        env:
+          GOWORK: 'off'
+        run: |
+          set -euo pipefail
+          go generate ./...
+          if [[ -n "$(git status --porcelain -- .)" ]]; then
+            echo "::error::src/terraform-provider-mcharbor generated code is stale. Run: cd src/terraform-provider-mcharbor && GOWORK=off go generate ./..."
+            git status --porcelain -- .
+            exit 1
+          fi
+          go vet ./...
+          go test ./...
+
+      - name: OpenAPI document generates a Go client
+        shell: bash
+        run: |
+          set -euo pipefail
+          spec="$GITHUB_WORKSPACE/src/backend/api/openapi.json"
+          work="$(mktemp -d)"
+          cd "$work"
+          go mod init example.com/mcharborclient
+          mkdir client
+          printf 'package: client\noutput: client/client.gen.go\ngenerate:\n  client: true\n  models: true\n' > cfg.yaml
+          go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0 -config cfg.yaml "$spec"
+          go mod tidy
+          go build ./...
 
       - name: Verify Agent build
         working-directory: src/agent
@@ -81,9 +136,106 @@ jobs:
         working-directory: src/frontend
         run: npx tsc -b
 
+      - name: Frontend tests
+        working-directory: src/frontend
+        run: npm test
+
       - name: Verify frontend build
         working-directory: src/frontend
         run: npm run build
+
+      - name: Prepare ruleguard DSL
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd scripts/lint/ruleguard && GOWORK=off go mod download)
+          gopath="$(go env GOPATH)"
+          dsl="$gopath/pkg/mod/github.com/quasilyte/go-ruleguard/dsl@v0.3.23"
+          mkdir -p "$gopath/src/github.com/quasilyte/go-ruleguard/dsl"
+          cp -r "$dsl"/. "$gopath/src/github.com/quasilyte/go-ruleguard/dsl/"
+          GO111MODULE=off go install github.com/quasilyte/go-ruleguard/dsl
+
+      - name: golangci-lint (backend)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/backend
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: golangci-lint (agent)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/agent
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: golangci-lint (cli)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/cli
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: govulncheck
+        shell: bash
+        env:
+          GOWORK: off
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          status=0
+          for dir in src/backend src/agent; do
+            (cd "$dir" && "$(go env GOPATH)/bin/govulncheck" ./...) || status=1
+          done
+          exit "$status"
+
+      - name: Lint (Oxlint) and format check
+        working-directory: src/frontend
+        run: npm run lint && npm run format:check
+
+      - name: Unused files and exports (knip report)
+        working-directory: src/frontend
+        continue-on-error: true
+        run: npm run knip:report
+
+      - name: i18n keys resolve and locales are in sync
+        run: |
+          node scripts/sanity/i18n/verify-keys.mjs
+          node scripts/sanity/i18n/sync-locales.mjs
+
+      - name: i18n translation ratchet
+        shell: pwsh
+        run: ./scripts/sanity/i18n-untranslated/check.ps1 -Ratchet .instructions/sanity/baselines/i18n-untranslated-ratchet.json
+
+      - name: Hook guardrail tests
+        run: node --test scripts/hooks/__tests__/*.test.mjs
+
+      - name: Sanity checks
+        shell: pwsh
+        run: ./scripts/sanity/run-all.ps1 -Check security,code-quality,modularity,ui-consistency,error-visualization,copyright,code-comments,go-standards,react-standards,permissions,plugin-host-coupling,plugin-isolation,duplication -FailOn fail -SkipNetwork
+
+      - name: Upload sanity reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-reports
+          path: .results/sanity/*
+          if-no-files-found: ignore
+
+      - name: gitleaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz | tar -xz -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" detect --no-git -s src --config .gitleaks.toml --redact --verbose
 
       - name: Verify version lockstep
         shell: bash
@@ -109,11 +261,62 @@ jobs:
           fi
           echo "CHANGELOG entry found for ${version}."
 
+  migrations:
+    name: Migrations on all database backends
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: mcharbor
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: mcharbor
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -ptest --silent" --health-interval 5s --health-timeout 5s --health-retries 30
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: test
+          MARIADB_DATABASE: mcharbor
+        ports: ['3307:3306']
+        options: >-
+          --health-cmd "mariadb-admin ping -ptest --silent" --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache: true
+
+      - name: Migrate from empty on SQLite, PostgreSQL, MySQL and MariaDB
+        working-directory: src/backend
+        env:
+          GOWORK: 'off'
+          MCHARBOR_TEST_PG_DSN: postgres://postgres:test@localhost:5432/mcharbor?sslmode=disable
+          MCHARBOR_TEST_MYSQL_DSN: root:test@tcp(localhost:3306)/mcharbor?parseTime=true&loc=UTC
+          MCHARBOR_TEST_MARIADB_DSN: root:test@tcp(localhost:3307)/mcharbor?parseTime=true&loc=UTC
+        run: go test ./core/db/ -run 'TestMigrate' -count=1 -v
+
   publish-release-image:
     name: Publish release image
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, migrations]
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -138,12 +341,15 @@ jobs:
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push release image
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          sbom: true
+          provenance: mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/mcharbor:release
             ghcr.io/${{ github.repository_owner }}/mcharbor:release-${{ steps.versions.outputs.release_sha }}
@@ -153,11 +359,49 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.ref=release
 
+      - name: Generate image SBOM
+        uses: anchore/sbom-action@v0.17.8
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/mcharbor@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: mcharbor-${{ steps.versions.outputs.app_version }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign image and attest SBOM (keyless)
+        shell: bash
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/mcharbor@${{ steps.build.outputs.digest }}
+          SBOM: mcharbor-${{ steps.versions.outputs.app_version }}.spdx.json
+        run: |
+          set -euo pipefail
+          cosign sign --yes "$IMAGE"
+          cosign attest --yes --type spdxjson --predicate "$SBOM" "$IMAGE"
+          cosign sign-blob --yes --bundle "$SBOM.cosign.bundle" "$SBOM"
+
+      - name: Upload image SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcharbor-image-sbom
+          path: |
+            mcharbor-${{ steps.versions.outputs.app_version }}.spdx.json
+            mcharbor-${{ steps.versions.outputs.app_version }}.spdx.json.cosign.bundle
+          retention-days: 90
+
   publish-release-agent:
     name: Publish release agent
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -182,12 +426,15 @@ jobs:
           password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Build and push release agent
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile.agent
           platforms: linux/amd64,linux/arm64
           push: true
+          sbom: true
+          provenance: mode=max
           tags: |
             ghcr.io/${{ github.repository_owner }}/mcharbor-agent:release
             ghcr.io/${{ github.repository_owner }}/mcharbor-agent:release-${{ steps.version.outputs.release_sha }}
@@ -196,3 +443,213 @@ jobs:
             org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.ref=release
+
+      - name: Generate agent image SBOM
+        uses: anchore/sbom-action@v0.17.8
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/mcharbor-agent@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: mcharbor-agent-${{ steps.version.outputs.agent_version }}.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign agent image and attest SBOM (keyless)
+        shell: bash
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/mcharbor-agent@${{ steps.build.outputs.digest }}
+          SBOM: mcharbor-agent-${{ steps.version.outputs.agent_version }}.spdx.json
+        run: |
+          set -euo pipefail
+          cosign sign --yes "$IMAGE"
+          cosign attest --yes --type spdxjson --predicate "$SBOM" "$IMAGE"
+          cosign sign-blob --yes --bundle "$SBOM.cosign.bundle" "$SBOM"
+
+      - name: Upload agent image SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcharbor-agent-image-sbom
+          path: |
+            mcharbor-agent-${{ steps.version.outputs.agent_version }}.spdx.json
+            mcharbor-agent-${{ steps.version.outputs.agent_version }}.spdx.json.cosign.bundle
+          retention-days: 90
+
+  publish-release-agent-binaries:
+    name: Publish signed agent release
+    runs-on: ubuntu-latest
+    needs: publish-release-agent
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read agent version and build
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"
+          echo "build=$(tr -d '[:space:]' < BUILD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build agent binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/agent dist/agent-arm64
+          docker buildx build --target agentexport --output type=local,dest=dist/agent -f docker/Dockerfile .
+          docker buildx build --platform linux/arm64 --target agentexport --output type=local,dest=dist/agent-arm64 -f docker/Dockerfile .
+          mv dist/agent-arm64/mcharbor-agent-linux-amd64 dist/agent/mcharbor-agent-linux-arm64
+          build="${{ steps.version.outputs.build }}"
+          for platform in darwin/amd64 darwin/arm64 windows/amd64; do
+            os="${platform%%/*}"
+            arch="${platform##*/}"
+            out="$GITHUB_WORKSPACE/dist/agent/mcharbor-agent-$os-$arch"
+            [ "$os" = "windows" ] && out="$out.exe"
+            (cd src/agent && GOWORK=off CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
+              go build -tags urfave_cli_no_docs -ldflags "-s -w -X main.agentBuild=$build" -o "$out" .)
+          done
+
+      - name: Write release metadata and checksums
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.publish-release-agent.outputs.digest }}
+        run: |
+          set -euo pipefail
+          cd dist/agent
+          version="${{ steps.version.outputs.agent_version }}"
+          build="${{ steps.version.outputs.build }}"
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          printf '%s\n' "$build" > BUILD
+          if [ -n "$IMAGE_DIGEST" ]; then
+            printf '%s\n' "ghcr.io/$owner/mcharbor-agent@$IMAGE_DIGEST" > image.txt
+          fi
+          sha256sum BUILD mcharbor-agent-* $( [ -f image.txt ] && echo image.txt ) > SHA256SUMS
+          printf '{"version":"%s","build":"%s"}\n' "$version" "$build" > latest.json
+          cat SHA256SUMS
+
+      - name: Sign SHA256SUMS
+        shell: bash
+        env:
+          AGENT_SIGNING_KEY: ${{ secrets.AGENT_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$AGENT_SIGNING_KEY" ]; then
+            echo "::error::The AGENT_SIGNING_KEY secret is not set. Every McHarbor refuses an unsigned agent release."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/agent-signing.key"
+          printf '%s' "$AGENT_SIGNING_KEY" | base64 -d > "$key"
+          trust=()
+          if [ -f signing/agent-signing.pub ]; then
+            trust=(-trust "$GITHUB_WORKSPACE/signing/agent-signing.pub")
+          fi
+          (cd src/backend && GOWORK=off go run ./cmd/pluginsigner -file "$GITHUB_WORKSPACE/dist/agent/SHA256SUMS" -key "$key" "${trust[@]}")
+          rm -f "$key"
+          test -s dist/agent/SHA256SUMS.sig
+
+      - name: Upload agent release
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcharbor-agent-release
+          path: dist/agent/*
+          retention-days: 90
+
+      - name: Publish to the agent repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "AGENT_RELEASE_TOKEN is not set; the signed release is available as the workflow artifact only."
+            exit 0
+          fi
+          tag="v${{ steps.version.outputs.agent_version }}"
+          repo="therealmcsparrow/mcharbor-agent"
+          if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/agent/* --repo "$repo" --clobber
+          else
+            gh release create "$tag" dist/agent/* --repo "$repo" --title "McHarbor agent $tag" \
+              --notes "Signed agent release. Verify SHA256SUMS.sig against the key pinned in McHarbor." --latest
+          fi
+
+  build-packages:
+    name: Build native packages
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Read version
+        id: versions
+        shell: bash
+        run: echo "app_version=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Build glibc payload and tarball
+        run: MCHARBOR_TARBALL=1 bash scripts/development/build-mcharbor.sh
+
+
+      - name: Package deb and rpm
+        env:
+          MCHARBOR_VERSION: ${{ steps.versions.outputs.app_version }}
+          MCHARBOR_ARCH: amd64
+          MCHARBOR_PAYLOAD: dist/payload
+        run: |
+          mkdir -p dist/packages
+          for pkg in deb rpm; do
+            docker run --rm -v "$PWD:/w" -w /w \
+              -e MCHARBOR_VERSION -e MCHARBOR_ARCH -e MCHARBOR_PAYLOAD \
+              goreleaser/nfpm:v2.47.0 package -f packaging/nfpm.yaml -p "$pkg" -t dist/packages
+          done
+
+      - name: Generate packages SBOM
+        uses: anchore/sbom-action@v0.17.8
+        with:
+          path: dist/packages
+          format: spdx-json
+          output-file: dist/packages/mcharbor-packages.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate checksums
+        working-directory: dist/packages
+        run: sha256sum * > SHA256SUMS
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Sign checksums (keyless)
+        working-directory: dist/packages
+        run: cosign sign-blob --yes --bundle SHA256SUMS.cosign.bundle SHA256SUMS
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcharbor-packages-amd64
+          path: dist/packages/*
+          retention-days: 30

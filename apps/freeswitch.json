@@ -1,0 +1,55 @@
+{
+    "slug":  "freeswitch",
+    "name":  "FreeSWITCH",
+    "description":  "Software telephony platform for building voice, video and SMS applications and PBX systems.",
+    "category":  "Communications",
+    "image":  "drachtio/drachtio-freeswitch-mrf:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=freeswitch.com\u0026sz=128",
+    "website":  "https://freeswitch.com",
+    "docsUrl":  "https://github.com/drachtio/drachtio-freeswitch-mrf",
+    "ports":  [
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  8021,
+                      "container":  8021,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  16384,
+                      "container":  16484,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/freeswitch/conf",
+                        "container":  "/etc/freeswitch"
+                    },
+                    {
+                        "host":  "/opt/appdata/freeswitch/log",
+                        "container":  "/var/log/freeswitch"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

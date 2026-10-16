@@ -1,0 +1,87 @@
+# plugin.yaml — manifest for the comm-telegram plugin.
+#
+# Single-channel Telegram notification adapter. The plugin owns one
+# ChannelType ("telegram") and registers a NotificationAdapterClient
+# that delivers Title + Message payloads to a chat via the Bot API
+# (https://api.telegram.org/bot<token>/...).
+#
+# Family: comm-* (notification channels). Distinct from storage-*
+# adapters: comm plugins implement plugin.NotificationAdapterClient
+# (Test + Send only) and never see Upload/Download/Delete/List.
+#
+# RBAC: comm channels register one adds_permission so operators can
+# grant "send alerts to this channel" as a discrete, auditable
+# capability. The menu sidebar entry is gated on that permission
+# and the host's "channels" admin UI is gated on settings.manage.
+#
+# Naming: Telegram uses bot_token for auth; chat_id can be a
+# numeric user/group ID or a @channelname. parse_mode +
+# disable_notification are optional formatting hints.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-telegram"
+name:     "Telegram"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Telegram Bot API notification channel. Delivers workflow and backup events to a chat via bot_token + chat_id. Supports Markdown/HTML parse_mode and silent sends. Install this plugin to add 'Telegram' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   notification.adapter.register  required — register NotificationAdapterSpec
+#   encryption.handle.read         optional — for fields typed `secret` in
+#                                   ConfigSchema (the host encrypts them at
+#                                   rest via AES-256-GCM automatically; this
+#                                   perm lets the plugin read them back).
+#   audit.emit                     required — every plugin should audit.
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+# Adds one permission key. Operators with channels.use_comm_telegram
+# (or the broader channels:send) can route events to this channel.
+# Hosts that don't use RBAC for comm plugins can ignore this block.
+adds_permissions:
+  - key:      "channels.use_comm_telegram"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Telegram channels"
+    description: "Required to route workflow, alert, or backup events to a Telegram channel."
+
+# No consumes_permissions — this plugin never gates itself on another
+# plugin's permission.
+
+contributes:
+  routes: []
+  # No `menu:` block — comm channels are managed from the host's
+  # Settings > Notifications > Channels page, which lists every
+  # registered ChannelType.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-telegram"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "telegram"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "telegram"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-telegram"
+      channel_type: "telegram"
+
+signature: ""
+checksum:  ""

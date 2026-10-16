@@ -1,0 +1,35 @@
+{
+    "slug":  "suggestarr",
+    "name":  "SuggestArr",
+    "description":  "Recommendation engine that automatically requests similar content in Jellyseerr or Overseerr based on watch history.",
+    "category":  "Media",
+    "image":  "ghcr.io/giuseppe99barchetta/suggestarr:latest",
+    "logo":  "https://opengraph.githubassets.com/1/giuseppe99barchetta/SuggestArr",
+    "website":  "https://github.com/giuseppe99barchetta/SuggestArr",
+    "docsUrl":  "https://github.com/giuseppe99barchetta/SuggestArr#installation",
+    "ports":  [
+                  {
+                      "host":  5001,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/suggestarr/config",
+                        "container":  "/app/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

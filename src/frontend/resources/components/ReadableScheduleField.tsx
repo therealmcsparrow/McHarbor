@@ -14,7 +14,12 @@ import {
   cronFromReadableSchedule,
   describeCron,
   localDateTimeValue,
+  readableStartOnDate,
+  readableStartOnMonthDay,
+  readableStartOnWeekday,
 } from '@resources/utils/schedule';
+
+const CRON_PLACEHOLDER = '0 3 * * *';
 
 type ReadableScheduleFieldProps = {
   value: string;
@@ -24,16 +29,41 @@ type ReadableScheduleFieldProps = {
   timezone?: string | null;
 };
 
+function inRange(field: string, min: number, max: number) {
+  if (field === '*') return true;
+  const step = field.startsWith('*/');
+  const raw = step ? field.slice(2) : field;
+  if (!/^\d+$/.test(raw)) return true;
+  const value = Number(raw);
+  return value >= (step ? 2 : min) && value <= max;
+}
+
 function parseReadableCron(value: string) {
+  const fallback = { advanced: true, interval: 1, unit: 'day' as ScheduleUnit, startsAt: localDateTimeValue() };
   const fields = value.trim().split(/\s+/);
   if (fields.length !== 5) {
-    return { advanced: true, interval: 1, unit: 'day' as ScheduleUnit, startsAt: localDateTimeValue() };
+    return fallback;
   }
   const [minute, hour, day, month, weekday] = fields as [string, string, string, string, string];
+  if (
+    !inRange(minute, 0, 59) ||
+    !inRange(hour, 0, 23) ||
+    !inRange(day, 1, 31) ||
+    !inRange(month, 1, 12) ||
+    !inRange(weekday, 0, 6)
+  ) {
+    return fallback;
+  }
   const now = new Date();
   let interval = 1;
   let unit: ScheduleUnit;
-  let startsAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(hour) || 0, Number(minute) || 0);
+  let startsAt: Date | null = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    Number(hour) || 0,
+    Number(minute) || 0,
+  );
 
   if (/^\d+$/.test(minute) && hour === '*' && day === '*' && month === '*' && weekday === '*') {
     unit = 'hour';
@@ -49,16 +79,31 @@ function parseReadableCron(value: string) {
     interval = Number(day.slice(2)) || 1;
   } else if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && day === '*' && month === '*' && /^\d+$/.test(weekday)) {
     unit = 'week';
-  } else if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && /^\d+$/.test(day) && month === '*' && weekday === '*') {
+    startsAt = readableStartOnWeekday(Number(weekday), Number(hour), Number(minute), now);
+  } else if (
+    /^\d+$/.test(minute) &&
+    /^\d+$/.test(hour) &&
+    /^\d+$/.test(day) &&
+    (month === '*' || month.startsWith('*/')) &&
+    weekday === '*'
+  ) {
     unit = 'month';
-    startsAt = new Date(now.getFullYear(), now.getMonth(), Number(day), Number(hour), Number(minute));
-  } else if (/^\d+$/.test(minute) && /^\d+$/.test(hour) && /^\d+$/.test(day) && /^\d+$/.test(month) && weekday === '*') {
+    interval = month === '*' ? 1 : Number(month.slice(2)) || 1;
+    startsAt = readableStartOnMonthDay(Number(day), Number(hour), Number(minute), now);
+  } else if (
+    /^\d+$/.test(minute) &&
+    /^\d+$/.test(hour) &&
+    /^\d+$/.test(day) &&
+    /^\d+$/.test(month) &&
+    weekday === '*'
+  ) {
     unit = 'year';
-    startsAt = new Date(now.getFullYear(), Number(month) - 1, Number(day), Number(hour), Number(minute));
+    startsAt = readableStartOnDate(Number(month), Number(day), Number(hour), Number(minute), now);
   } else {
-    return { advanced: true, interval: 1, unit: 'day' as ScheduleUnit, startsAt: localDateTimeValue() };
+    return fallback;
   }
 
+  if (!startsAt) return fallback;
   return { advanced: false, interval, unit, startsAt: localDateTimeValue(startsAt) };
 }
 
@@ -66,7 +111,7 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
   const { t } = useTranslation('common');
   const parsed = useMemo(() => parseReadableCron(value), [value]);
   const [advanced, setAdvanced] = useState(parsed.advanced);
-  const [interval, setInterval] = useState(parsed.interval);
+  const [interval, setIntervalValue] = useState(parsed.interval);
   const [unit, setUnit] = useState<ScheduleUnit>(parsed.unit);
   const [startsAt, setStartsAt] = useState(parsed.startsAt);
   const onChangeRef = useRef(onChange);
@@ -75,18 +120,17 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  useEffect(() => {
+  const parsedKey = [parsed.advanced, parsed.interval, parsed.unit, parsed.startsAt].join('|');
+  const [syncedKey, setSyncedKey] = useState(parsedKey);
+  if (syncedKey !== parsedKey) {
+    setSyncedKey(parsedKey);
     setAdvanced(parsed.advanced);
-    setInterval(parsed.interval);
+    setIntervalValue(parsed.interval);
     setUnit(parsed.unit);
     setStartsAt(parsed.startsAt);
-  }, [parsed.advanced, parsed.interval, parsed.unit, parsed.startsAt]);
+  }
 
-  useEffect(() => {
-    if (unit === 'year' && interval !== 1) {
-      setInterval(1);
-    }
-  }, [interval, unit]);
+  if (unit === 'year' && interval !== 1) setIntervalValue(1);
 
   useEffect(() => {
     if (advanced) return;
@@ -105,35 +149,25 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
     <div className="space-y-2">
       {label && <Label className="mb-1 text-xs text-muted-foreground">{label}</Label>}
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant={!advanced ? 'default' : 'outline'}
-          onClick={() => setAdvanced(false)}
-        >
+        <Button type="button" size="sm" variant={!advanced ? 'default' : 'outline'} onClick={() => setAdvanced(false)}>
           {t('schedule.readableMode')}
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={advanced ? 'default' : 'outline'}
-          onClick={() => setAdvanced(true)}
-        >
+        <Button type="button" size="sm" variant={advanced ? 'default' : 'outline'} onClick={() => setAdvanced(true)}>
           {t('schedule.advancedMode')}
         </Button>
       </div>
       {advanced ? (
         <Input
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="0 3 * * *"
+          onChange={(evt) => onChange(evt.target.value)}
+          placeholder={CRON_PLACEHOLDER}
           variant="outline"
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(120px,0.45fr)_minmax(150px,0.55fr)_minmax(220px,1fr)]">
           <div>
             <Label className="mb-1 text-xs text-muted-foreground">{t('schedule.every')}</Label>
-            <NumberInput value={interval} onChange={setInterval} min={1} max={unit === 'year' ? 1 : 31} />
+            <NumberInput value={interval} onChange={setIntervalValue} min={1} max={unit === 'year' ? 1 : 31} />
           </div>
           <div>
             <Label className="mb-1 text-xs text-muted-foreground">{t('schedule.unit')}</Label>
@@ -150,17 +184,19 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
             <Input
               type="datetime-local"
               value={startsAt}
-              onChange={(event) => setStartsAt(event.target.value)}
+              onChange={(evt) => setStartsAt(evt.target.value)}
               variant="outline"
             />
           </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">
-        {hint ?? t('schedule.generatedCron', { value })}
-      </p>
+      <p className="text-xs text-muted-foreground">{hint ?? t('schedule.generatedCron', { value })}</p>
       <p className="text-xs text-muted-foreground">{describeCron(value, t)}</p>
-      <CronSchedulePreview expression={value} timezone={timezone} className="rounded-md border border-border/60 bg-muted/30 p-2" />
+      <CronSchedulePreview
+        expression={value}
+        timezone={timezone}
+        className="rounded-md border border-border/60 bg-muted/30 p-2"
+      />
     </div>
   );
 }

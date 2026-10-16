@@ -1,16 +1,16 @@
 {
-  "label": "FTP Upload",
-  "description": "Upload workflow data or a saved file with FTP or SFTP",
+  "label": "FTP-Upload",
+  "description": "Workflow-Daten oder eine gespeicherte Datei per FTP oder SFTP hochladen",
   "config": {
     "host": "Host",
     "port": "Port",
-    "username": "Username",
-    "password": "Password",
-    "protocol": "Protocol",
-    "remote_path": "Remote Path",
-    "source_mode": "Source Mode",
-    "property": "Property",
-    "local_path": "Local Path"
+    "username": "Benutzername",
+    "password": "Passwort",
+    "protocol": "Protokoll",
+    "remote_path": "Remote-Pfad",
+    "source_mode": "Quellmodus",
+    "property": "Eigenschaft",
+    "local_path": "Lokaler Pfad"
   },
   "options": {
     "protocol": {
@@ -18,8 +18,8 @@
       "sftp": "SFTP"
     },
     "source_mode": {
-      "payload": "Message Property",
-      "file": "File Path"
+      "payload": "Nachrichteneigenschaft",
+      "file": "Dateipfad"
     }
   }
 }

@@ -1,0 +1,31 @@
+{
+    "slug":  "earthly",
+    "name":  "Earthly",
+    "description":  "Repeatable, containerized build automation tool combining a Dockerfile-like syntax with Makefile-style targets.",
+    "category":  "Developer Tools",
+    "image":  "earthly/earthly:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=earthly.dev\u0026sz=128",
+    "website":  "https://earthly.dev",
+    "docsUrl":  "https://docs.earthly.dev/docs/earthly-command",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/earthly/cache",
+                        "container":  "/root/.earthly"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -20,21 +20,28 @@ const ResourceSummaryWidget = lazy(() => import('@widgets/resource-summary/Resou
 const HostInfoWidget = lazy(() => import('@widgets/host-info/HostInfoWidget'));
 const MetricChartWidget = lazy(() => import('@widgets/metric-chart/MetricChartWidget'));
 const ActivityFeedWidget = lazy(() => import('@widgets/activity-feed/ActivityFeedWidget'));
+const LifecycleFeedWidget = lazy(() => import('@widgets/lifecycle-feed/LifecycleFeedWidget'));
 const ContainerListWidget = lazy(() => import('@widgets/container-list/ContainerListWidget'));
 const StackStatusWidget = lazy(() => import('@widgets/stack-status/StackStatusWidget'));
 const ResourceDonutWidget = lazy(() => import('@widgets/resource-donut/ResourceDonutWidget'));
 const TopConsumersWidget = lazy(() => import('@widgets/top-consumers/TopConsumersWidget'));
 const ContainerStatesWidget = lazy(() => import('@widgets/container-states/ContainerStatesWidget'));
+const WorkloadHeatmapWidget = lazy(() => import('@widgets/workload-heatmap/WorkloadHeatmapWidget'));
 const RestartTrackerWidget = lazy(() => import('@widgets/restart-tracker/RestartTrackerWidget'));
 const PortMapWidget = lazy(() => import('@widgets/port-map/PortMapWidget'));
 const ContainerAgeWidget = lazy(() => import('@widgets/container-age/ContainerAgeWidget'));
 const StorageBreakdownWidget = lazy(() => import('@widgets/storage-breakdown/StorageBreakdownWidget'));
+const CapacityHeadroomWidget = lazy(() => import('@widgets/capacity-headroom/CapacityHeadroomWidget'));
 const WorkflowRunsWidget = lazy(() => import('@widgets/workflow-runs/WorkflowRunsWidget'));
 const QuickActionsWidget = lazy(() => import('@widgets/quick-actions/QuickActionsWidget'));
 const AlertSummaryWidget = lazy(() => import('@widgets/alert-summary/AlertSummaryWidget'));
 const VulnerabilitySummaryWidget = lazy(() => import('@widgets/vulnerability-summary/VulnerabilitySummaryWidget'));
-const PodStatusWidget = lazy(() => import('@widgets/pod-status/PodStatusWidget'));
-const DeploymentStatusWidget = lazy(() => import('@widgets/deployment-status/DeploymentStatusWidget'));
+const FleetHealthWidget = lazy(() => import('@widgets/fleet-health/FleetHealthWidget'));
+const NeedsAttentionWidget = lazy(() => import('@widgets/needs-attention/NeedsAttentionWidget'));
+const DriftStatusWidget = lazy(() => import('@widgets/drift-status/DriftStatusWidget'));
+const InstanceBackupStatusWidget = lazy(() => import('@widgets/instance-backup-status/InstanceBackupStatusWidget'));
+const UpdateQueueWidget = lazy(() => import('@widgets/update-queue/UpdateQueueWidget'));
+const SnapshotStatusWidget = lazy(() => import('@widgets/snapshot-status/SnapshotStatusWidget'));
 
 function resolveWidgetComponent(typeId: WidgetTypeId): ComponentType<WidgetProps> {
   switch (typeId) {
@@ -56,6 +63,8 @@ function resolveWidgetComponent(typeId: WidgetTypeId): ComponentType<WidgetProps
       return MetricChartWidget;
     case 'activity-feed':
       return ActivityFeedWidget;
+    case 'lifecycle-feed':
+      return LifecycleFeedWidget;
     case 'container-list':
       return ContainerListWidget;
     case 'stack-status':
@@ -67,6 +76,8 @@ function resolveWidgetComponent(typeId: WidgetTypeId): ComponentType<WidgetProps
       return TopConsumersWidget;
     case 'container-states':
       return ContainerStatesWidget;
+    case 'workload-heatmap':
+      return WorkloadHeatmapWidget;
     case 'restart-tracker':
       return RestartTrackerWidget;
     case 'port-map':
@@ -75,6 +86,8 @@ function resolveWidgetComponent(typeId: WidgetTypeId): ComponentType<WidgetProps
       return ContainerAgeWidget;
     case 'storage-breakdown':
       return StorageBreakdownWidget;
+    case 'capacity-headroom':
+      return CapacityHeadroomWidget;
     case 'workflow-runs':
       return WorkflowRunsWidget;
     case 'quick-actions':
@@ -83,10 +96,26 @@ function resolveWidgetComponent(typeId: WidgetTypeId): ComponentType<WidgetProps
       return AlertSummaryWidget;
     case 'vulnerability-summary':
       return VulnerabilitySummaryWidget;
-    case 'pod-status':
-      return PodStatusWidget;
-    case 'deployment-status':
-      return DeploymentStatusWidget;
+    case 'fleet-health':
+      return FleetHealthWidget;
+    case 'needs-attention':
+      return NeedsAttentionWidget;
+    case 'drift-status':
+      return DriftStatusWidget;
+    case 'instance-backup-status':
+      return InstanceBackupStatusWidget;
+    case 'update-queue':
+      return UpdateQueueWidget;
+    case 'snapshot-status':
+      return SnapshotStatusWidget;
+    default:
+      // Plugin-supplied widget ids (`plugin:<slug>:<key>`) live in
+      // the registry store but never go through this resolver — the
+      // widget registry mounts their components directly. Returning
+      // a no-op component lets the type checker accept the widened
+      // WidgetTypeId union without losing exhaustiveness for known
+      // ids.
+      return () => null;
   }
 }
 
@@ -110,10 +139,4 @@ export function getWidgetDefinitionMap(): Record<string, WidgetDefinition> {
   return useWidgetRegistryStore.getState().definitionMap;
 }
 
-export {
-  BUILTIN_WIDGET_DEFINITIONS,
-  WIDGET_CATEGORIES,
-  type WidgetCategory,
-  type WidgetProps,
-  type WidgetTypeId,
-};
+export { BUILTIN_WIDGET_DEFINITIONS, WIDGET_CATEGORIES, type WidgetCategory, type WidgetProps, type WidgetTypeId };

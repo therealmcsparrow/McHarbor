@@ -20,7 +20,14 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/therealmcsparrow/mcharbor-agent/internal/errlog"
 )
+
+// backupConsistencyLive mirrors the host's ConsistencyLive plan mode: the
+// operator accepted a possibly torn archive in exchange for the container
+// never being paused. Any other value (including the empty string a
+// pre-3.0 host sends) keeps the pause.
+const backupConsistencyLive = "live"
 
 type agentBackupProgressWriter struct {
 	writer     io.Writer
@@ -81,15 +88,42 @@ func (a *Agent) runBackupArchiveAndUploads(ctx context.Context, conn *websocket.
 	// proceed without it in that case. The unpause uses a fresh
 	// background context so we still release the container if the
 	// caller's context was cancelled mid-backup.
-	paused := pauseAgentContainerForBackup(ctx, a.proxy, payload.ContainerID, a.logger)
-	defer func() {
-		unpauseCtx, unpauseCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer unpauseCancel()
-		unpauseAgentContainerAfterBackup(unpauseCtx, a.proxy, payload.ContainerID, paused, a.logger)
-	}()
+	// A snapshot that yielded readable paths already froze this
+	// container's data, so pausing it would cost downtime and buy
+	// nothing. "live" is the operator accepting a torn copy rather than
+	// any downtime at all. Otherwise pause is how the archive stays
+	// consistent.
+	paused := false
+	switch {
+	case len(payload.SnapshotMounts) > 0:
+		a.logger.Info("container backup: reading from filesystem snapshot, container left running",
+			"container", payload.ContainerID, "mounts", len(payload.SnapshotMounts))
+	case strings.EqualFold(strings.TrimSpace(payload.ConsistencyMode), backupConsistencyLive):
+		a.logger.Info("agent backup: live consistency mode, container left running",
+			"container", payload.ContainerID)
+	default:
+		paused = pauseAgentContainerForBackup(ctx, a.proxy, payload.ContainerID, a.logger)
+	}
+	// The pause only has to cover the archive write — uploads read the
+	// finished temp file, not the container. Releasing it there instead of
+	// at function exit keeps a slow remote destination from holding the
+	// container frozen for the whole transfer. The deferred call is the
+	// safety net for the error and cancellation paths; release is
+	// idempotent, so whichever runs first wins.
+	var releaseOnce sync.Once
+	release := func() {
+		releaseOnce.Do(func() {
+			unpauseCtx, unpauseCancel := context.WithTimeout(context.WithoutCancel(ctx), hostOpTimeout)
+			defer unpauseCancel()
+			unpauseAgentContainerAfterBackup(unpauseCtx, a.proxy, payload.ContainerID, paused, a.logger)
+		})
+	}
+	defer release()
 
-	if err := a.writeAgentBackupArchive(ctx, conn, tmp, cryptoSvc, payload); err != nil {
-		return 0, err
+	archiveErr := a.writeAgentBackupArchive(ctx, conn, tmp, cryptoSvc, payload)
+	release()
+	if archiveErr != nil {
+		return 0, archiveErr
 	}
 	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
 		return 0, fmt.Errorf("rewinding temporary backup archive: %w", err)
@@ -288,11 +322,21 @@ func (a *Agent) writeAgentBackupEntries(ctx context.Context, tw *agentBackupProg
 			return fmt.Errorf("invalid backup mount path")
 		}
 		tw.stage = "mounts"
+		entryName := "mounts/" + safeAgentArchiveName(cleanMount) + ".tar"
+		// When the host froze this mount, read the frozen copy from
+		// disk: it is the point-in-time view the backup was promised,
+		// and it is why the container was never paused.
+		if frozenPath := strings.TrimSpace(payload.SnapshotMounts[cleanMount]); frozenPath != "" {
+			if err := writeAgentFrozenMount(ctx, tw, entryName, frozenPath, cleanMount); err != nil {
+				return err
+			}
+			continue
+		}
 		reader, _, err := a.proxy.CopyArchiveFromContainer(ctx, payload.ContainerID, cleanMount)
 		if err != nil {
 			return fmt.Errorf("copying mounted data %s: %w", cleanMount, err)
 		}
-		if err := writeAgentBackupStream(ctx, tw, "mounts/"+safeAgentArchiveName(cleanMount)+".tar", reader); err != nil {
+		if err := writeAgentBackupStream(ctx, tw, entryName, reader); err != nil {
 			return err
 		}
 	}
@@ -313,7 +357,7 @@ func writeAgentBackupBytes(tw *agentBackupProgressWriter, name string, data []by
 const agentMemorySpoolLimit = 64 * 1024 * 1024 // 64 MiB
 
 func writeAgentBackupStream(ctx context.Context, tw *agentBackupProgressWriter, name string, reader io.ReadCloser) error {
-	defer reader.Close()
+	defer errlog.Close(reader)
 
 	// Fast path for entries that fit in memory: write the tar header and
 	// the entry data in one pass with no disk I/O.
@@ -341,8 +385,8 @@ func writeAgentBackupStream(ctx context.Context, tw *agentBackupProgressWriter, 
 	}
 	tmpPath := tmp.Name()
 	defer func() {
-		_ = tmp.Close()
-		_ = os.Remove(tmpPath)
+		errlog.Close(tmp)
+		errlog.Log(os.Remove(tmpPath))
 	}()
 	if _, err := tmp.Write(buf.Bytes()); err != nil {
 		return fmt.Errorf("spooling backup entry %s: %w", name, err)
@@ -354,7 +398,7 @@ func writeAgentBackupStream(ctx context.Context, tw *agentBackupProgressWriter, 
 	if err != nil {
 		return fmt.Errorf("opening backup entry temp file: %w", err)
 	}
-	defer in.Close()
+	defer errlog.Close(in)
 	if _, err := in.Seek(0, io.SeekStart); err != nil {
 		return fmt.Errorf("rewinding backup entry %s: %w", name, err)
 	}
@@ -421,15 +465,17 @@ func (a *Agent) uploadAgentBackupArchive(ctx context.Context, conn *websocket.Co
 		req.Header.Set("Authorization", "Bearer "+destination.Token)
 		req.Header.Set("Content-Type", "application/x-tar")
 		req.ContentLength = size
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := a.httpClient.Do(req)
 		if err == nil {
-			defer resp.Body.Close()
+			defer func() { errlog.Log(resp.Body.Close()) }()
 			if resp.StatusCode < 300 {
-				_, _ = io.Copy(io.Discard, resp.Body)
+				if _, drainErr := io.Copy(io.Discard, resp.Body); drainErr != nil {
+					slog.Debug("backup upload: draining response body failed", "error", drainErr)
+				}
 				sendBackupProgress(conn, transferID, "uploading", destination.Name, size, size)
 				return nil
 			}
-			body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 			err = fmt.Errorf("backup upload to %s returned status %d: %s", destination.Name, resp.StatusCode, strings.TrimSpace(string(body)))
 		} else {
 			err = fmt.Errorf("uploading backup archive to %s: %w", destination.Name, err)
@@ -525,13 +571,13 @@ func (a *Agent) runBackupRestoreArchive(ctx context.Context, conn *websocket.Con
 		return nil, fmt.Errorf("building restore archive download request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+payload.ArchiveToken)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("downloading restore archive: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return nil, fmt.Errorf("restore archive download returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	reader := &agentBackupProgressReader{reader: resp.Body, conn: conn, transferID: payload.TransferID, stage: "restore_download", total: payload.ArchiveSize}
@@ -545,7 +591,7 @@ func (a *Agent) runBackupRestoreArchive(ctx context.Context, conn *websocket.Con
 	if err != nil {
 		return nil, err
 	}
-	defer decrypted.Close()
+	defer errlog.Close(decrypted)
 	sendBackupProgress(conn, payload.TransferID, "restore_apply", "", 0, 0)
 	return a.applyBackupArchive(ctx, payload, decrypted)
 }
@@ -554,7 +600,7 @@ func (a *Agent) applyBackupArchive(ctx context.Context, payload BackupPayload, r
 	tr := tar.NewReader(reader)
 	mountTargets := map[string]string{}
 	restored := []string{}
-	wanted := agentRestoreSelection(payload.RestoreItems)
+	plan := newAgentRestorePlan(payload.RestoreItems)
 	for {
 		header, err := tr.Next()
 		if errors.Is(err, io.EOF) {
@@ -570,7 +616,7 @@ func (a *Agent) applyBackupArchive(ctx context.Context, payload BackupPayload, r
 		case header.Name == "manifest.json":
 			mountTargets = agentRestoreMountTargets(tr)
 		case header.Name == "image/image.tar":
-			if !wanted("image") {
+			if !plan.wantsUnit("image") {
 				continue
 			}
 			if err := a.applyBackupEntry(ctx, payload.ContainerID, "", tr, header.Size, true); err != nil {
@@ -578,7 +624,17 @@ func (a *Agent) applyBackupArchive(ctx context.Context, payload BackupPayload, r
 			}
 			restored = append(restored, "image")
 		case header.Name == "container/filesystem.tar":
-			if !wanted("filesystem") {
+			if !plan.wantsUnit("filesystem") {
+				continue
+			}
+			if !plan.isWhole("filesystem") {
+				applied, err := a.applyBackupSubsetEntry(ctx, payload.ContainerID, "/", tr, plan.subsetPaths("filesystem"))
+				if err != nil {
+					return nil, err
+				}
+				if applied {
+					restored = append(restored, plan.subsetItems("filesystem")...)
+				}
 				continue
 			}
 			if err := a.applyBackupEntry(ctx, payload.ContainerID, "/", tr, header.Size, false); err != nil {
@@ -590,17 +646,28 @@ func (a *Agent) applyBackupArchive(ctx context.Context, payload BackupPayload, r
 			if target == "" {
 				return nil, fmt.Errorf("backup mount target is missing")
 			}
-			if !wanted("mount:" + target) {
+			unit := "mount:" + target
+			if !plan.wantsUnit(unit) {
 				continue
 			}
 			restoreTarget := filepath.Dir(target)
 			if restoreTarget == "." {
 				restoreTarget = "/"
 			}
+			if !plan.isWhole(unit) {
+				applied, err := a.applyBackupSubsetEntry(ctx, payload.ContainerID, restoreTarget, tr, plan.subsetPaths(unit))
+				if err != nil {
+					return nil, err
+				}
+				if applied {
+					restored = append(restored, plan.subsetItems(unit)...)
+				}
+				continue
+			}
 			if err := a.applyBackupEntry(ctx, payload.ContainerID, restoreTarget, tr, header.Size, false); err != nil {
 				return nil, err
 			}
-			restored = append(restored, "mount:"+target)
+			restored = append(restored, unit)
 		}
 	}
 	if len(restored) == 0 {
@@ -616,8 +683,8 @@ func (a *Agent) applyBackupEntry(ctx context.Context, containerID, target string
 	}
 	tmpPath := tmp.Name()
 	defer func() {
-		_ = tmp.Close()
-		_ = os.Remove(tmpPath)
+		errlog.Close(tmp)
+		errlog.Log(os.Remove(tmpPath))
 	}()
 	if _, err := copyAgentBackupWithContext(ctx, tmp, reader); err != nil {
 		return fmt.Errorf("spooling restore entry: %w", err)
@@ -645,7 +712,7 @@ func (r *agentBackupProgressReader) Read(p []byte) (int, error) {
 
 func sendBackupProgress(conn *websocket.Conn, transferID, stage, storageID string, bytes, total int64) {
 	writeMu.Lock()
-	_ = conn.WriteJSON(WSMessage{
+	errlog.Log(conn.WriteJSON(WSMessage{
 		Type: MsgTransferProgress,
 		Backup: &BackupPayload{
 			TransferID:        transferID,
@@ -654,7 +721,7 @@ func sendBackupProgress(conn *websocket.Conn, transferID, stage, storageID strin
 			Bytes:             bytes,
 			Size:              total,
 		},
-	})
+	}))
 	writeMu.Unlock()
 }
 
@@ -699,20 +766,50 @@ func copyAgentBackupWithContext(ctx context.Context, writer io.Writer, reader io
 	}
 }
 
-func agentRestoreSelection(items []string) func(string) bool {
-	if len(items) == 0 {
-		return func(string) bool { return true }
+// applyBackupSubsetEntry writes only the selected entries of one inner tar into
+// the container, and reports whether anything was applied.
+//
+// The filtered tar is spooled first because CopyArchiveToContainer needs a
+// length, which is not known until the filter has run. When the selection
+// matches no entry nothing is copied, so a stale pick can never blank a live
+// directory.
+func (a *Agent) applyBackupSubsetEntry(ctx context.Context, containerID, target string, reader io.Reader, paths []string) (bool, error) {
+	if len(paths) == 0 {
+		return false, nil
 	}
-	selected := map[string]bool{}
-	for _, item := range items {
-		item = strings.TrimSpace(item)
-		if item != "" {
-			selected[item] = true
-		}
+	tmp, err := os.CreateTemp("", "mcharbor-agent-restore-subset-*.tar")
+	if err != nil {
+		return false, fmt.Errorf("creating restore subset temp file: %w", err)
 	}
-	return func(item string) bool {
-		return selected[item]
+	tmpPath := tmp.Name()
+	defer func() {
+		errlog.Close(tmp)
+		errlog.Log(os.Remove(tmpPath))
+	}()
+
+	writer := tar.NewWriter(tmp)
+	matched, err := agentFilterTarSubset(writer, tar.NewReader(reader), paths)
+	if err != nil {
+		return false, err
 	}
+	if err := writer.Close(); err != nil {
+		return false, fmt.Errorf("closing restore subset archive: %w", err)
+	}
+	if matched == 0 {
+		a.logger.Warn("restore subset matched no archive entries", "container", containerID, "target", target, "paths", strings.Join(paths, ","))
+		return false, nil
+	}
+	info, err := tmp.Stat()
+	if err != nil {
+		return false, fmt.Errorf("sizing restore subset archive: %w", err)
+	}
+	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+		return false, fmt.Errorf("rewinding restore subset archive: %w", err)
+	}
+	if err := a.proxy.CopyArchiveToContainer(ctx, containerID, target, tmp, info.Size()); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func agentRestoreMountTargets(reader io.Reader) map[string]string {

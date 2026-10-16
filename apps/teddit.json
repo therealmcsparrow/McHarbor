@@ -4,7 +4,7 @@
     "description":  "Privacy-respecting, ad-free Reddit alternative front-end with infinite scroll and lightweight design.",
     "category":  "Media",
     "image":  "teddit/teddit:latest",
-    "logo":  "https://icon.horse/icon/codeberg.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=codeberg.org\u0026sz=128",
     "website":  "https://codeberg.org/teddit/teddit",
     "docsUrl":  "https://codeberg.org/teddit/teddit#teddit",
     "ports":  [
@@ -36,5 +36,9 @@
                         "description":  "Redirect NSFW subreddits to the old Reddit interface"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

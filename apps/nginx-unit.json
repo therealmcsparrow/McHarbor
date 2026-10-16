@@ -1,0 +1,39 @@
+{
+    "slug":  "nginx-unit",
+    "name":  "NGINX Unit",
+    "description":  "Application server that runs web applications and serves as a lightweight reverse proxy.",
+    "category":  "Networking",
+    "image":  "nginx/unit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nginx.png",
+    "website":  "https://unit.nginx.org/",
+    "docsUrl":  "https://unit.nginx.org/installation/#docker-images",
+    "ports":  [
+                  {
+                      "host":  8500,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nginx-unit/state",
+                        "container":  "/var/lib/unit"
+                    },
+                    {
+                        "host":  "/opt/appdata/nginx-unit/config",
+                        "container":  "/docker-entrypoint.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

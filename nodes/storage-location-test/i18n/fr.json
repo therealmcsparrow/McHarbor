@@ -1,0 +1,9 @@
+{
+  "label": "Tester l'emplacement de stockage",
+  "description": "Exécute le test de connexion d'un emplacement de stockage et lit éventuellement sa capacité",
+  "config": {
+    "storage_location_id": "Emplacement de stockage",
+    "include_usage": "Inclure l'utilisation",
+    "fail_on_warn": "Échouer en cas d’avertissement"
+  }
+}

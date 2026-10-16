@@ -1,153 +1,166 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconLock,
-  IconUsers,
-  IconUsersGroup,
-  IconShieldCheck,
-  IconKey,
-  IconFingerprint,
-  IconBug,
-} from '@tabler/icons-react';
 import { PageHeader } from '@resources/layout/PageHeader';
-import { Button } from '@resources/components/ui/Button';
-import { cn } from '@resources/utils/cn';
+import { PageActionsSlotProvider } from '@resources/layout/PageActionsSlot';
+import { PluginTabPanel } from '@core/plugins/PluginTabPanel';
+import { isPluginTabId, parsePluginTabId, usePluginPageTabs, type PluginTabId } from '@core/plugins/usePluginPageTabs';
+import { Card } from '@resources/components/ui/Card';
+import { useTabCommands } from '@resources/hooks/useTabCommands';
+import { useTabFromUrl } from '@resources/hooks/useTabFromUrl';
+import {
+  SECURITY_GROUPS,
+  groupForSecurityTab,
+  securityTabIDs,
+  securityTabIcons,
+  securityTabLabelKeys,
+  type SecurityGroupId,
+  type SecurityTabId,
+} from '../components/security-tab-groups';
+import { SecuritySectionHero } from '../components/SecuritySectionHero';
+import { SecurityTabs } from '../components/SecurityTabs';
 import { UsersTab } from '../components/UsersTab';
 import { GroupsTab } from '../components/GroupsTab';
 import { RolesTab } from '../components/RolesTab';
 import { APIKeysTab } from '../components/APIKeysTab';
+import { ElevationsTab } from '../components/ElevationsTab';
 import { IdentityTab } from '../components/IdentityTab';
 import { ScannersTab } from '../components/ScannersTab';
 import { HttpsTab } from '../components/HttpsTab';
-
-type Section = 'https' | 'management' | 'identity' | 'scanning';
-
-const MANAGEMENT_TABS = [
-  { id: 'users', icon: IconUsers },
-  { id: 'groups', icon: IconUsersGroup },
-  { id: 'roles', icon: IconShieldCheck },
-  { id: 'api-keys', icon: IconKey },
-] as const;
-
-type ManagementTabId = (typeof MANAGEMENT_TABS)[number]['id'];
-
-const TAB_LABELS: Record<ManagementTabId, string> = {
-  users: 'tabs.users',
-  groups: 'tabs.groups',
-  roles: 'tabs.roles',
-  'api-keys': 'tabs.apiKeys',
-};
+import { PasswordSettingsSection } from '../components/PasswordSettingsSection';
+import { SecretsTab } from '../secrets/components/SecretsTab';
+import { PoliciesSection } from '@resources/components/security/PoliciesSection';
+import { EndpointsSection } from '@resources/components/security/EndpointsSection';
+import { EffectiveAccessTab } from '../components/access/EffectiveAccessTab';
+import { ApprovalsTab } from '../components/governance/ApprovalsTab';
+import { ApprovalRulesTab } from '../components/governance/ApprovalRulesTab';
+import { PolicySimulatorTab } from '../components/governance/PolicySimulatorTab';
+import { UserLifecycleTab } from '../components/governance/UserLifecycleTab';
+import { BreakGlassTab } from '../components/governance/BreakGlassTab';
+import { PolicyConflictWarnings } from '../components/governance/PolicyConflictWarnings';
 
 export default function SecurityPage() {
   const { t } = useTranslation('security');
-  const [section, setSection] = useState<Section>('https');
-  const [managementTab, setManagementTab] = useState<ManagementTabId>('users');
+  const [urlTab, setUrlTab] = useTabFromUrl<SecurityTabId | PluginTabId>(securityTabIDs, 'https', {
+    storageKey: 'mcharbor-tabs:security',
+    accepts: isPluginTabId,
+  });
+
+  const pluginTabs = usePluginPageTabs('security');
+  // Only honour a plugin tab the installed plugins still declare.
+  const pluginTab = isPluginTabId(urlTab) && pluginTabs.some((tab) => tab.id === urlTab) ? urlTab : null;
+  const showBuiltIn = pluginTab === null;
+  const [lastBuiltInTab, setLastBuiltInTab] = useState<SecurityTabId>('https');
+  if (!isPluginTabId(urlTab) && urlTab !== lastBuiltInTab) setLastBuiltInTab(urlTab);
+  const activeTab: SecurityTabId = isPluginTabId(urlTab) ? lastBuiltInTab : urlTab;
+  const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null);
+  const setActiveTab = (tab: SecurityTabId) => setUrlTab(tab);
+  const setPluginTab = (id: string) => setUrlTab(id as PluginTabId);
+
+  // Leaving Management and coming back used to drop you on Users every
+  // time, because the sub-tab was re-derived from the active tab and fell
+  // back to a constant. Remember where you were instead.
+  const lastManagementTab = useRef<SecurityTabId>('users');
+  useEffect(() => {
+    if (groupForSecurityTab(activeTab) === 'management') {
+      lastManagementTab.current = activeTab;
+    }
+  }, [activeTab]);
+  const entryTabFor = useCallback(
+    (group: SecurityGroupId): SecurityTabId =>
+      group === 'management' ? lastManagementTab.current : SECURITY_GROUPS[group][0]!,
+    [],
+  );
+
+  const tabCommands = useMemo(
+    () =>
+      securityTabIDs.map((tabId) => ({
+        id: tabId,
+        label: t(securityTabLabelKeys[tabId]),
+        icon: securityTabIcons[tabId],
+      })),
+    [t],
+  );
+
+  useTabCommands({
+    pageId: 'security',
+    pageLabel: t('title'),
+    tabs: tabCommands,
+    onTabChange: setActiveTab,
+    keywords: ['security'],
+  });
 
   return (
-    <div className="space-y-6">
-      <PageHeader title={t('title')} description={t('description')} />
+    <div className="flex min-h-0 flex-col gap-4">
+      <PageHeader
+        title={t('title')}
+        description={<SecuritySectionHero activeTab={activeTab} />}
+        actions={<div ref={setActionsSlot} className="flex items-center gap-2" />}
+      />
 
-      {/* Section selector */}
-      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSection('https')}
-          className={cn(
-            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            section === 'https'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
+      {/* The hero, the same one the container detail page opens with:
+          identity at the top of the content and the navigation inside the
+          same card, so the card reads as one object — this is the section,
+          this is where it sits, these are its siblings. */}
+      <Card className="flex-none overflow-visible">
+        <SecurityTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          pluginTabs={pluginTabs}
+          activePluginTab={pluginTab}
+          onPluginTabChange={setPluginTab}
+          entryTabFor={entryTabFor}
+          ariaLabel={t('nav.sections')}
+        />
+      </Card>
+
+      {/* Bare canvas, as on the container detail page: every security
+          destination already brings its own surface — a TablePage, an
+          `mc-glass` section, a card list. A wrapper here would nest one
+          card inside another. */}
+      <PageActionsSlotProvider element={actionsSlot}>
+        <div
+          id="security-detail-panel"
+          role="tabpanel"
+          aria-labelledby={`security-tab-${activeTab}`}
+          className="flex min-w-0 flex-col gap-6"
         >
-          <IconLock className="size-4" />
-          {t('sections.https')}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSection('management')}
-          className={cn(
-            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            section === 'management'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <IconUsersGroup className="size-4" />
-          {t('sections.management')}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSection('identity')}
-          className={cn(
-            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            section === 'identity'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <IconFingerprint className="size-4" />
-          {t('sections.identity')}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setSection('scanning')}
-          className={cn(
-            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            section === 'scanning'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <IconBug className="size-4" />
-          {t('sections.scanning')}
-        </Button>
-      </div>
+          {pluginTab !== null &&
+            (() => {
+              const parsed = parsePluginTabId(pluginTab);
+              if (!parsed) return null;
+              return (
+                <PluginTabPanel
+                  slug={parsed.slug}
+                  tabKey={parsed.tabKey}
+                  context={{ pageId: 'security', tabKey: parsed.tabKey }}
+                />
+              );
+            })()}
 
-      {/* HTTPS section */}
-      {section === 'https' && <HttpsTab />}
-
-      {/* Management sub-tabs */}
-      {section === 'management' && (
-        <>
-          <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1">
-            {MANAGEMENT_TABS.map((tab) => (
-              <Button
-                key={tab.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => setManagementTab(tab.id)}
-                className={cn(
-                  'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  managementTab === tab.id
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <tab.icon className="size-4" />
-                {t(TAB_LABELS[tab.id])}
-              </Button>
-            ))}
-          </div>
-
-          {managementTab === 'users' && <UsersTab />}
-          {managementTab === 'groups' && <GroupsTab />}
-          {managementTab === 'roles' && <RolesTab />}
-          {managementTab === 'api-keys' && <APIKeysTab />}
-        </>
-      )}
-
-      {/* Identity section */}
-      {section === 'identity' && <IdentityTab />}
-
-      {/* Scanning section */}
-      {section === 'scanning' && <ScannersTab />}
+          {showBuiltIn && activeTab === 'https' && <HttpsTab />}
+          {showBuiltIn && activeTab === 'users' && <UsersTab />}
+          {showBuiltIn && activeTab === 'groups' && <GroupsTab />}
+          {showBuiltIn && activeTab === 'roles' && <RolesTab />}
+          {showBuiltIn && activeTab === 'policies' && <PolicyConflictWarnings subject="policy" />}
+          {showBuiltIn && activeTab === 'policies' && <PoliciesSection />}
+          {showBuiltIn && activeTab === 'scim' && <EndpointsSection />}
+          {showBuiltIn && activeTab === 'api-keys' && <APIKeysTab />}
+          {showBuiltIn && activeTab === 'elevations' && <ElevationsTab />}
+          {showBuiltIn && activeTab === 'access' && <EffectiveAccessTab />}
+          {showBuiltIn && activeTab === 'approvals' && <ApprovalsTab />}
+          {showBuiltIn && activeTab === 'approval-rules' && <ApprovalRulesTab />}
+          {showBuiltIn && activeTab === 'simulator' && <PolicySimulatorTab />}
+          {showBuiltIn && activeTab === 'lifecycle' && <UserLifecycleTab />}
+          {showBuiltIn && activeTab === 'break-glass' && <BreakGlassTab />}
+          {showBuiltIn && activeTab === 'identity' && <IdentityTab />}
+          {showBuiltIn && activeTab === 'scanning' && <ScannersTab />}
+          {showBuiltIn && activeTab === 'password' && <PasswordSettingsSection />}
+          {showBuiltIn && activeTab === 'secrets' && <SecretsTab />}
+        </div>
+      </PageActionsSlotProvider>
     </div>
   );
 }

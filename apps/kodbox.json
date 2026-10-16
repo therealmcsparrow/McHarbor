@@ -1,0 +1,35 @@
+{
+    "slug":  "kodbox",
+    "name":  "kodbox",
+    "description":  "Web-based file manager and online office suite for browsing, editing, and sharing files.",
+    "category":  "Photos & Files",
+    "image":  "kodcloud/kodbox:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=kodcloud.com\u0026sz=128",
+    "website":  "https://kodcloud.com",
+    "docsUrl":  "https://github.com/kalcaddle/kodbox",
+    "ports":  [
+                  {
+                      "host":  8115,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kodbox/data",
+                        "container":  "/var/www/html"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

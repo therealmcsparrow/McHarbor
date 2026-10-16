@@ -1,0 +1,58 @@
+{
+    "slug":  "mc-backup",
+    "name":  "Minecraft Backup Manager",
+    "description":  "Sidecar that periodically backs up a running Minecraft server's world data.",
+    "category":  "Gaming",
+    "image":  "itzg/mc-backup:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/minecraft.png",
+    "website":  "https://github.com/itzg/docker-mc-backup",
+    "docsUrl":  "https://github.com/itzg/docker-mc-backup",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mc-backup/data",
+                        "container":  "/data",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/opt/appdata/mc-backup/backups",
+                        "container":  "/backups"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BACKUP_INTERVAL",
+                        "default":  "1h",
+                        "description":  "How often to run a backup"
+                    },
+                    {
+                        "key":  "RCON_HOST",
+                        "default":  "mc-server",
+                        "description":  "Hostname of the Minecraft server to notify via RCON"
+                    },
+                    {
+                        "key":  "RCON_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "RCON password of the target server",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PRUNE_BACKUPS_DAYS",
+                        "default":  "7",
+                        "description":  "Delete backups older than this many days"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

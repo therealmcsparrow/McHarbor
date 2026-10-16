@@ -1,6 +1,6 @@
 {
-  "label": "Metric Trigger",
-  "description": "Start a workflow when container metrics are checked",
+  "label": "Metriektrigger",
+  "description": "Start een workflow wanneer containermetrieken worden gecontroleerd",
   "config": {
     "environment": "Omgeving",
     "container": "Container",
@@ -11,8 +11,8 @@
   },
   "options": {
     "logic": {
-      "and": "AND",
-      "or": "OR"
+      "and": "EN",
+      "or": "OF"
     }
   }
 }

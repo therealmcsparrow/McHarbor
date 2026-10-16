@@ -4,7 +4,7 @@
     "description":  "All-in-one groupware with wiki, CMS, forums, blogs, and CRM features.",
     "category":  "Documents",
     "image":  "tikiwiki/tikiwiki:latest",
-    "logo":  "https://icon.horse/icon/tiki.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=tiki.org\u0026sz=128",
     "website":  "https://tiki.org",
     "docsUrl":  "https://hub.docker.com/r/tikiwiki/tikiwiki",
     "ports":  [
@@ -53,5 +53,9 @@
                     }
                 ],
     "minMemory":  "1GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,20 +1,21 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useRef, useCallback } from "react";
-import { useCanvasStore } from "../stores/canvasStore";
-import { useExecutionStore } from "../stores/executionStore";
-import { WorkflowNode } from "./WorkflowNode";
-import { WorkflowEdge } from "./WorkflowEdge";
-import { GroupLayer } from "./GroupLayer";
-import { GroupDialog } from "./GroupDialog";
-import { EditGroupDialog } from "./EditGroupDialog";
-import { SelectionOverlay } from "./SelectionOverlay";
-import { CanvasEmptyState } from "./CanvasEmptyState";
-import { CanvasContextMenus } from "./CanvasContextMenus";
-import { useCanvasInteractions } from "./useCanvasInteractions";
-import { useCanvasContextMenus } from "./useCanvasContextMenus";
-import { ct } from "../canvas-theme";
+import { cssVars } from '@resources/utils/cssVars';
+import { useRef, useCallback } from 'react';
+import { useCanvasStore } from '../stores/canvasStore';
+import { useExecutionStore } from '../stores/executionStore';
+import { WorkflowNode } from './WorkflowNode';
+import { WorkflowEdge } from './WorkflowEdge';
+import { GroupLayer } from './GroupLayer';
+import { GroupDialog } from './GroupDialog';
+import { EditGroupDialog } from './EditGroupDialog';
+import { SelectionOverlay } from './SelectionOverlay';
+import { CanvasEmptyState } from './CanvasEmptyState';
+import { CanvasContextMenus } from './CanvasContextMenus';
+import { useCanvasInteractions } from './useCanvasInteractions';
+import { useCanvasContextMenus } from './useCanvasContextMenus';
+import { ct } from '../canvas-theme';
 
 interface WorkflowCanvasProps {
   onExecute?: (triggerNodeId: string) => void;
@@ -24,7 +25,7 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const nodes = useCanvasStore((s) => s.nodes);
   const edges = useCanvasStore((s) => s.edges);
-  const viewport = useCanvasStore((s) => s.viewport);
+  const canvasViewport = useCanvasStore((s) => s.viewport);
   const selectedNodeIds = useCanvasStore((s) => s.selectedNodeIds);
   const selectedEdgeIds = useCanvasStore((s) => s.selectedEdgeIds);
   const groups = useCanvasStore((s) => s.groups);
@@ -46,12 +47,13 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
   return (
     <div
       ref={canvasRef}
-      className={`canvas-grid relative h-full w-full overflow-hidden ${ct.canvasBg} ${interactions.isPanning ? "cursor-grabbing" : ""}`}
-      style={{
-        backgroundImage: `radial-gradient(circle, ${ct.gridDot} 1px, transparent 1px)`,
-        backgroundSize: `${20 * viewport.zoom}px ${20 * viewport.zoom}px`,
-        backgroundPosition: `${viewport.x}px ${viewport.y}px`,
-      }}
+      role="presentation"
+      className={`canvas-grid relative h-full w-full overflow-hidden [background-image:var(--grid)] [background-size:var(--grid-size)] [background-position:var(--grid-pos)] ${ct.canvasBg} ${interactions.isPanning ? 'cursor-grabbing' : ''}`}
+      style={cssVars({
+        grid: `radial-gradient(circle, ${ct.gridDot} 1px, transparent 1px)`,
+        'grid-size': `${20 * canvasViewport.zoom}px ${20 * canvasViewport.zoom}px`,
+        'grid-pos': `${canvasViewport.x}px ${canvasViewport.y}px`,
+      })}
       onMouseDown={(e) => {
         if (e.button === 1) e.preventDefault();
         interactions.onCanvasMouseDown(e);
@@ -67,16 +69,14 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
     >
       {/* Edges SVG layer */}
       <svg className="pointer-events-none absolute inset-0 overflow-visible">
-        <g
-          transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}
-        >
+        <g transform={`translate(${canvasViewport.x}, ${canvasViewport.y}) scale(${canvasViewport.zoom})`}>
           {edges.map((edge) => (
             <WorkflowEdge
               key={edge.id}
               edge={edge}
               nodes={nodes}
               isSelected={selectedEdgeIds.has(edge.id)}
-              viewportZoom={viewport.zoom}
+              viewportZoom={canvasViewport.zoom}
               isTraversed={traversedEdges.has(edge.id)}
               isAnimating={animatingEdges.has(edge.id)}
               onClick={interactions.onEdgeClick}
@@ -102,17 +102,15 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
       <GroupLayer
         groups={groups}
         nodes={nodes}
-        viewport={viewport}
+        viewport={canvasViewport}
         onGroupContextMenu={menus.onGroupContextMenu}
         onGroupDragStart={interactions.onGroupDragStart}
       />
 
       {/* Nodes layer */}
       <div
-        className="[transform-origin:0_0]"
-        style={{
-          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-        }}
+        className="[transform-origin:0_0] [transform:var(--vt)]"
+        style={cssVars({ vt: `translate(${canvasViewport.x}px, ${canvasViewport.y}px) scale(${canvasViewport.zoom})` })}
       >
         {nodes.map((node) => (
           <WorkflowNode
@@ -120,7 +118,7 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
             node={node}
             isSelected={selectedNodeIds.has(node.id)}
             isConnecting={interactions.connectPreview !== null}
-            isExecuting={isExecuting && nodeStates[node.id] === "running"}
+            isExecuting={isExecuting && nodeStates[node.id] === 'running'}
             executionStatus={nodeStates[node.id]}
             onSelect={(e) => interactions.onNodeSelect(node.id, e)}
             onDragStart={interactions.onNodeDragStart}
@@ -133,12 +131,7 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
         ))}
       </div>
 
-      {interactions.selectionRect && (
-        <SelectionOverlay
-          rect={interactions.selectionRect}
-          viewport={viewport}
-        />
-      )}
+      {interactions.selectionRect && <SelectionOverlay rect={interactions.selectionRect} viewport={canvasViewport} />}
       {nodes.length === 0 && <CanvasEmptyState />}
 
       <CanvasContextMenus menus={menus} />
@@ -150,7 +143,7 @@ export function WorkflowCanvas({ onExecute }: WorkflowCanvasProps) {
           onCommit={menus.commitGroup}
           onCancel={() => {
             menus.setGroupDialog(null);
-            menus.setGroupName("");
+            menus.setGroupName('');
           }}
           inputRef={menus.groupInputRef}
         />

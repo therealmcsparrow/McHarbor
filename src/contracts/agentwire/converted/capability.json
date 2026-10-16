@@ -1,0 +1,57 @@
+{
+  "os": "OS",
+  "arch": "Arch",
+  "kernelVersion": "KernelVersion",
+  "agentVersion": "AgentVersion",
+  "supported": true,
+  "unsupportedWhy": "UnsupportedWhy",
+  "canRunVms": true,
+  "canRunContainers": true,
+  "seccompBuiltIn": true,
+  "supervisorMode": "SupervisorMode",
+  "hostCpus": 8,
+  "hostMemoryBytes": 15,
+  "hostSockets": 11,
+  "hostPhysicalCores": 17,
+  "items": [
+    {
+      "key": "Key",
+      "present": true,
+      "detail": "Detail",
+      "remediation": "Remediation",
+      "critical": true,
+      "blocks": "Blocks",
+      "installable": true
+    }
+  ],
+  "qemuBinaries": [
+    {
+      "path": "Path",
+      "arch": "Arch",
+      "version": "Version",
+      "machineTypes": [
+        "MachineTypes"
+      ],
+      "kvmAccel": true
+    }
+  ],
+  "bridges": [
+    {
+      "name": "Name",
+      "kind": "Kind",
+      "mac": "MAC",
+      "mtu": 3,
+      "up": true,
+      "addresses": [
+        "Addresses"
+      ],
+      "master": "Master",
+      "managed": true,
+      "hasDefaultRoute": true,
+      "upper": [
+        "Upper"
+      ]
+    }
+  ],
+  "probedAt": "2026-09-30T12:00:00Z"
+}

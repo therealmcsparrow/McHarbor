@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { IconLink, IconUnlink } from '@tabler/icons-react';
@@ -38,12 +38,12 @@ type LinkContainerDialogProps = {
 };
 
 function containerLabel(container: ContainerInfo) {
-  const name = container.Names?.[0]?.replace(/^\//, '') ?? container.Id.slice(0, 12);
-  return `${name} (${container.Image})`;
+  const itemName = container.Names?.[0]?.replace(/^\//, '') ?? container.Id.slice(0, 12);
+  return `${itemName} (${container.Image})`;
 }
 
 export function LinkContainerDialog({
-  open,
+  open: isOpen,
   onOpenChange,
   initialContainerId = '',
   initialStackName = '',
@@ -51,16 +51,13 @@ export function LinkContainerDialog({
   fixedStack = false,
 }: LinkContainerDialogProps) {
   const { t } = useTranslation('stacks');
-  const { t: tc } = useTranslation('common');
   const envId = useEnvironmentStore((state) => state.currentId);
   const { data: containers = [] } = useContainers(true);
   const { data: stacks = [] } = useQuery({
     queryKey: ['stacks', envId, 'link-dialog'],
     queryFn: () =>
-      api
-        .get<StackOption[]>('/stacks', envId ? { env: envId } : {})
-        .then((response) => response.data ?? []),
-    enabled: open,
+      api.get<StackOption[]>('/stacks', envId ? { env: envId } : {}).then((response) => response.data ?? []),
+    enabled: isOpen,
   });
   const link = useLinkContainerToStack();
   const unlink = useUnlinkContainerFromStack();
@@ -68,12 +65,16 @@ export function LinkContainerDialog({
   const [stackName, setStackName] = useState(initialStackName);
   const [serviceName, setServiceName] = useState('');
 
-  useEffect(() => {
-    if (!open) return;
-    setContainerId(initialContainerId);
-    setStackName(initialStackName);
-    setServiceName('');
-  }, [open, initialContainerId, initialStackName]);
+  const resetKey = `${isOpen}|${initialContainerId}|${initialStackName}`;
+  const [lastResetKey, setLastResetKey] = useState(resetKey);
+  if (lastResetKey !== resetKey) {
+    setLastResetKey(resetKey);
+    if (isOpen) {
+      setContainerId(initialContainerId);
+      setStackName(initialStackName);
+      setServiceName('');
+    }
+  }
 
   const containerOptions = useMemo(
     () => containers.map((container) => ({ value: container.Id, label: containerLabel(container) })),
@@ -110,7 +111,7 @@ export function LinkContainerDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('link.title')}</DialogTitle>
@@ -129,18 +130,13 @@ export function LinkContainerDialog({
           </div>
           <div>
             <Label className="mb-2">{t('link.stack')}</Label>
-            <Select
-              value={stackName}
-              onChange={setStackName}
-              options={stackOptions}
-              disabled={fixedStack}
-            />
+            <Select value={stackName} onChange={setStackName} options={stackOptions} disabled={fixedStack} />
           </div>
           <div>
             <Label className="mb-2">{t('link.serviceName')}</Label>
             <Input
               value={serviceName}
-              onChange={(event) => setServiceName(event.target.value)}
+              onChange={(evt) => setServiceName(evt.target.value)}
               placeholder={t('link.serviceNamePlaceholder')}
             />
           </div>
@@ -148,7 +144,7 @@ export function LinkContainerDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {tc('actions.cancel')}
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
           {fixedContainer && (
             <Button variant="outline" onClick={handleUnlink} disabled={!containerId || isPending}>
@@ -158,7 +154,7 @@ export function LinkContainerDialog({
           )}
           <Button onClick={handleSubmit} disabled={!canSubmit}>
             <IconLink className="h-4 w-4" />
-            {isPending ? tc('actions.processing') : t('link.save')}
+            {isPending ? t('actions.processing', { ns: 'common' }) : t('link.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

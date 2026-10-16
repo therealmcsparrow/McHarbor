@@ -4,7 +4,7 @@
     "description":  "Buildbot worker that executes jobs dispatched by the Buildbot master.",
     "category":  "Developer Tools",
     "image":  "buildbot/buildbot-worker:latest",
-    "logo":  "https://icon.horse/icon/buildbot.net",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/buildbot.svg",
     "website":  "https://buildbot.net",
     "docsUrl":  "https://docs.buildbot.net/current/tutorial/docker.html",
     "ports":  [
@@ -43,5 +43,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

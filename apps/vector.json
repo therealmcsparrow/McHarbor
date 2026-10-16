@@ -1,0 +1,40 @@
+{
+    "slug":  "vector",
+    "name":  "Vector",
+    "description":  "High-performance observability data pipeline for collecting, transforming, and routing logs and metrics.",
+    "category":  "Monitoring",
+    "image":  "timberio/vector:latest-alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vector.png",
+    "website":  "https://vector.dev",
+    "docsUrl":  "https://vector.dev/docs/setup/installation/platforms/docker/",
+    "ports":  [
+                  {
+                      "host":  8686,
+                      "container":  8686,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vector/vector.toml",
+                        "container":  "/etc/vector/vector.toml",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/opt/appdata/vector/data",
+                        "container":  "/var/lib/vector"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest-alpine",
+    "latest":  {
+        "version":  "latest-alpine",
+        "release_date":  "2026-09-29"
+    }
+}

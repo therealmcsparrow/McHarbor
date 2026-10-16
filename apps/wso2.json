@@ -4,7 +4,7 @@
     "description":  "Enterprise identity and access management with OAuth2, OIDC, and SAML.",
     "category":  "Security",
     "image":  "wso2/wso2is:latest",
-    "logo":  "https://icon.horse/icon/wso2.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=wso2.com\u0026sz=128",
     "website":  "https://wso2.com/identity-server",
     "docsUrl":  "https://is.docs.wso2.com",
     "ports":  [
@@ -38,5 +38,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

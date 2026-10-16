@@ -12,6 +12,14 @@ type Role struct {
 	IsSystem    bool     `json:"isSystem"`
 	CreatedAt   string   `json:"createdAt"`
 	UpdatedAt   string   `json:"updatedAt"`
+	// UserCount, GroupCount and APIKeyCount are populated only by List, from
+	// a COUNT(DISTINCT ...) join, so the table can show a role's blast
+	// radius without a second round trip per row. Pointers so a genuinely
+	// unused role's real zero still serializes; nil (omitted) elsewhere,
+	// Get included.
+	UserCount   *int `json:"userCount,omitempty"`
+	GroupCount  *int `json:"groupCount,omitempty"`
+	APIKeyCount *int `json:"apiKeyCount,omitempty"`
 }
 
 // CreateRoleInput is the request body for creating a role.

@@ -1,0 +1,43 @@
+{
+    "slug":  "youtube-dl-material",
+    "name":  "YoutubeDL-Material",
+    "description":  "Web interface for yt-dlp that downloads and organizes video and audio with subscriptions.",
+    "category":  "Media",
+    "image":  "tzahi12345/youtubedl-material:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/youtube-dl.png",
+    "website":  "https://github.com/tzahi12345/YoutubeDL-Material",
+    "docsUrl":  "https://github.com/tzahi12345/YoutubeDL-Material#option-2-docker",
+    "ports":  [
+                  {
+                      "host":  17442,
+                      "container":  17442,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/youtube-dl-material/config",
+                        "container":  "/app/appdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/youtube-dl-material/audio",
+                        "container":  "/app/audio"
+                    },
+                    {
+                        "host":  "/opt/appdata/youtube-dl-material/video",
+                        "container":  "/app/video"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

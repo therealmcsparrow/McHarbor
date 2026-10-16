@@ -1,0 +1,30 @@
+{
+  "label": "Netzwerk verwalten",
+  "description": "Netzwerk erstellen oder entfernen, Container verbinden oder trennen",
+  "config": {
+    "environment": "Umgebung",
+    "action": "Aktion",
+    "name": "Name",
+    "driver": "Treiber",
+    "internal": "Intern",
+    "subnet": "Subnetz",
+    "network": "Netzwerk",
+    "container": "Container"
+  },
+  "options": {
+    "action": {
+      "create": "Erstellen",
+      "remove": "Entfernen",
+      "connect": "Verbinden",
+      "disconnect": "Trennen"
+    },
+    "driver": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "macvlan": "Macvlan",
+      "ipvlan": "IPvlan",
+      "host": "Host",
+      "none": "Keiner"
+    }
+  }
+}

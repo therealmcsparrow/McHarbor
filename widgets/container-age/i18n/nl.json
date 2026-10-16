@@ -10,6 +10,12 @@
     "container": "Container",
     "age": "Leeftijd",
     "state": "Status",
-    "noContainers": "Geen containers gevonden"
+    "noContainers": "Geen containers gevonden",
+    "oldestFirst": "Oudste eerst",
+    "more": "{{count}} meer",
+    "viewAll": "Alle containers",
+    "createdAgo": "Aangemaakt {{when}}",
+    "days": "{{count}} dag",
+    "days_other": "{{count}} dagen"
   }
 }

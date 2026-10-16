@@ -4,31 +4,27 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const rateLimit: NodeDefinition = {
-  "key": "rate-limit",
-  "label": "Rate Limit",
-  "category": "logic",
-  "description": "Throttle workflow throughput with a simple rate policy",
-  "icon": "IconHourglass",
-  "configSchema": [
+  key: 'rate-limit',
+  label: 'Rate Limit',
+  category: 'logic',
+  description: 'Throttle workflow throughput with a simple rate policy',
+  icon: 'IconHourglass',
+  configSchema: [
     {
-      "key": "limit",
-      "label": "Limit",
-      "type": "number",
-      "required": false,
-      "default": 10
+      key: 'limit',
+      label: 'Limit',
+      type: 'number',
+      required: false,
+      default: 10,
     },
     {
-      "key": "window_seconds",
-      "label": "Window (seconds)",
-      "type": "number",
-      "required": false,
-      "default": 60
-    }
+      key: 'window_seconds',
+      label: 'Window (seconds)',
+      type: 'number',
+      required: false,
+      default: 60,
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output'],
 };

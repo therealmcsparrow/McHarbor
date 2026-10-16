@@ -1,7 +1,9 @@
 {
-  "label": "Backup Download Info",
-  "description": "Validate a completed backup run and return its download metadata",
+  "label": "Informações de download do backup",
+  "description": "Valida uma execução de backup concluída e retorna seus metadados de download",
   "config": {
-    "run_id": "Run ID"
+    "environment": "Ambiente",
+    "container": "Contêiner (filtro)",
+    "run_id": "Execução de backup"
   }
 }

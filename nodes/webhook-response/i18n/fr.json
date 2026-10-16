@@ -5,5 +5,15 @@
     "status_code": "Code d'état",
     "content_type": "Type de contenu",
     "body": "Corps"
+  },
+  "options": {
+    "content_type": {
+      "application/json": "JSON",
+      "text/plain": "Texte brut",
+      "text/html": "HTML",
+      "application/xml": "XML",
+      "application/x-www-form-urlencoded": "Formulaire (encodé URL)",
+      "application/octet-stream": "Binaire (octet-stream)"
+    }
   }
 }

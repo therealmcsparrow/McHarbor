@@ -2,7 +2,7 @@
     "slug":  "syncthing",
     "name":  "Syncthing",
     "description":  "Continuous decentralized file synchronization.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "lscr.io/linuxserver/syncthing:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/syncthing.png",
     "website":  "https://docs.linuxserver.io/images/docker-syncthing/",
@@ -41,5 +41,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,80 @@
+# plugin.yaml — manifest for the logging-syslog plugin.
+#
+# Audit log forwarder that emits each audit event as an RFC5424
+# syslog message over UDP, TCP, or TCP+TLS: rsyslog, syslog-ng, IBM
+# QRadar, Micro Focus ArcSight, or any collector that speaks syslog.
+#
+# Family: logging-* (audit log forwarders). Sibling of logging-siem,
+# which does the same job over HTTP. An operator installs whichever
+# their log pipeline speaks, or both.
+#
+# Wire format: RFC5424, with octet-counted framing on the stream
+# transports (TCP and TLS) per RFC6587 section 3.4.1, and a bare
+# datagram on UDP. PRI is computed as facility*8 + severity from the
+# configured facility and the event's own audit severity, so an
+# `error` audit event arrives as syslog severity 3 and a routine
+# `info` event as 6 — a collector's existing severity rules apply
+# without extra configuration.
+#
+# Database: owns plugin_logging_syslog_delivery_history. Reads the
+# host's audit_logs table read-only, joined against that history to
+# find undelivered events — see consumes_permissions below.
+#
+# RBAC: declares no permissions. The Settings > Integrations > Logging
+# tab that configures this plugin is gated by the host's
+# settings.manage, and forwarding is driven by the host's worker
+# rather than invoked per-operator, so there is no discrete capability
+# to grant. Same reasoning as the storage-adapter family.
+schema: "mcharbor.plugin/v1"
+
+slug:     "logging-syslog"
+name:     "Syslog"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Forward McHarbor audit events to a syslog collector (rsyslog, syslog-ng, QRadar, ArcSight) as RFC5424 messages over UDP, TCP, or TCP+TLS. Facility, tag, and per-event severity mapping are configurable. Configure it in Settings > Integrations > Logging."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   logging.adapter.register  required — register LogForwarderAdapterSpec
+#   db.migrations.run         required — create the delivery history table
+#   audit.emit                required — every plugin should audit
+#
+# No encryption.handle.read: syslog has no credential. Authentication
+# on the TLS transport is by server certificate, which the plugin
+# verifies against the system trust store rather than a stored secret.
+permissions:
+  - logging.adapter.register
+  - db.migrations.run
+  - audit.emit
+  # The forwarder delivery report for the Reporting plugin's Report Studio.
+  - reporting.adapter.register
+
+# No adds_permissions — see the RBAC note in the header.
+
+# audit.read is declared because this plugin reads the host's
+# audit_logs table. It has to: the set of "events not yet delivered"
+# is a join between the host's event table and this plugin's own
+# delivery history, and neither side can compute it alone. Declaring
+# it makes that access auditable rather than incidental.
+consumes_permissions:
+  - audit.read
+
+contributes:
+  routes: []
+  # No `menu:` and no `forms:` — the host's Logging tab renders this
+  # adapter's declared ConfigSchema generically, same as the storage
+  # family, so there is no per-plugin form bundle to ship.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "logging-syslog"
+  migrations:
+    - "migrations/0001_init.sql"
+
+signature: ""
+checksum:  ""

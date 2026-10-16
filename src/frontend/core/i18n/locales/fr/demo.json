@@ -1,0 +1,94 @@
+{
+  "title": "Mode démo",
+  "intro": "Le mode démo bascule ce McHarbor sur une base de données distincte remplie d'un parc simulé, afin que chaque page puisse être explorée avec des données réalistes. Tout y est fictif et rien de réel n'est touché.",
+  "errorTitle": "Impossible de charger l'état du mode démo",
+  "state": {
+    "label": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "activeSince": "Actif depuis le {{date}}",
+    "data": "Données de démo",
+    "dataPresent": "Présentes, conservées pour la prochaine visite",
+    "dataAbsent": "Aucune pour l'instant",
+    "clusteredTitle": "Indisponible sur une instance en cluster",
+    "clusteredBody": "Le mode démo redémarre McHarbor sur une autre base de données, ce qui scinderait le cluster."
+  },
+  "estate": {
+    "title": "Ce que contient le parc de démo",
+    "liveTitle": "Ce que contient le parc de démo en ce moment",
+    "environments": "Environnements",
+    "containers": "Conteneurs",
+    "stacks": "Stacks",
+    "virtualMachines": "Machines virtuelles",
+    "systemContainers": "Conteneurs système LXC",
+    "clusters": "Clusters Kubernetes",
+    "pods": "Pods",
+    "deployments": "Déploiements Kubernetes",
+    "swarmClusters": "Clusters Swarm",
+    "swarmNodes": "Nœuds Swarm",
+    "swarmServices": "Services Swarm",
+    "historyDays": "Période d'historique",
+    "days_one": "{{value}} jour",
+    "days_other": "{{value}} jours"
+  },
+  "config": {
+    "intro": "Tailles du parc simulé. Les modifier reconstruit les données de démo.",
+    "restoreDefaults": "Rétablir les valeurs par défaut",
+    "defaultHint": "Par défaut : {{value}}.",
+    "historyHelp": "Jours d'historique contenus dans la démo : journal d'audit, exécutions de flux de travail, exécutions planifiées, alertes et incidents.",
+    "refused": "McHarbor a refusé ces tailles. Corrigez le champ en surbrillance et réessayez.",
+    "groups": {
+      "estate": "Environnements et conteneurs",
+      "compute": "Machines virtuelles et LXC",
+      "kubernetes": "Kubernetes",
+      "swarm": "Swarm",
+      "history": "Historique"
+    },
+    "error": {
+      "range": "Saisissez un nombre entier de {{min}} à {{max}}.",
+      "swarmNodes": "Swarm nécessite au moins un nœud par cluster : saisissez {{min}} ou plus."
+    }
+  },
+  "notes": {
+    "realData": "Vos données réelles ne sont jamais modifiées. Quitter le mode démo redémarre McHarbor sur elles, exactement comme elles étaient.",
+    "restart": "Entrer dans le mode démo, le quitter et le réinitialiser redémarrent McHarbor ; toutes les personnes connectées sont donc brièvement déconnectées.",
+    "disabled": "Les actions qui toucheraient des systèmes réels sont désactivées en mode démo : services et mises à jour de l'hôte propre à McHarbor, mise à jour automatique, sauvegardes d'instance, migration de base de données, licence, emplacements de stockage, TLS, fuseau horaire, paramètres de clé de sauvegarde, et installation et désinstallation de plugins."
+  },
+  "actions": {
+    "enter": "Entrer en mode démo",
+    "exit": "Quitter le mode démo",
+    "reset": "Réinitialiser les données de démo",
+    "applySizes": "Appliquer les nouvelles tailles",
+    "resetShort": "Réinitialiser"
+  },
+  "confirm": {
+    "enterTitle": "Entrer en mode démo ?",
+    "enterDescription": "McHarbor redémarre sur une base de données distincte remplie d'un parc simulé aux tailles ci-dessous. Les données de démo conservées d'une visite précédente sont réutilisées si les tailles sont inchangées ; les modifier reconstruit les données de démo. Vos données réelles ne sont pas touchées. Toutes les personnes connectées sont brièvement déconnectées.",
+    "exitTitle": "Quitter le mode démo ?",
+    "exitDescription": "McHarbor redémarre sur vos données réelles. Les données de démo sont conservées, la prochaine visite reprendra donc là où celle-ci s'est arrêtée. Toutes les personnes connectées sont brièvement déconnectées.",
+    "resetTitle": "Réinitialiser les données de démo ?",
+    "resetDescription": "La base de données de démo est supprimée, et la prochaine visite repartira d'un parc fraîchement généré. Vos données réelles ne sont pas affectées.",
+    "resetActiveDescription": "Tout ce qui a été modifié en mode démo est jeté et McHarbor redémarre sur un parc fraîchement généré. Vos données réelles ne sont pas affectées. Toutes les personnes connectées sont brièvement déconnectées.",
+    "applySizesTitle": "Appliquer les nouvelles tailles de démo ?",
+    "applySizesDescription": "La démo est reconstruite avec les tailles ci-dessous : tout ce qui a été modifié en mode démo est jeté et McHarbor redémarre sur le nouveau parc. Vos données réelles ne sont pas affectées. Toutes les personnes connectées sont brièvement déconnectées."
+  },
+  "toast": {
+    "enterSuccess": "Entrée en mode démo. McHarbor redémarre.",
+    "exitSuccess": "Sortie du mode démo. McHarbor redémarre.",
+    "resetSuccess": "Données de démo supprimées.",
+    "resetRestart": "Données de démo réinitialisées. McHarbor redémarre sur un parc neuf.",
+    "restartRequired": "McHarbor n'a pas pu redémarrer lui-même. Redémarrez-le manuellement pour appliquer la modification."
+  },
+  "reason": {
+    "already_active": "Le mode démo est déjà actif.",
+    "not_active": "Le mode démo n'est pas actif.",
+    "clustered": "Le mode démo est indisponible sur une instance en cluster.",
+    "busy": "Une autre modification du mode démo est déjà en cours. Réessayez dans un instant."
+  },
+  "banner": {
+    "title": "Mode démo",
+    "description": "Tout ce que vous voyez est simulé. Les actions qui toucheraient des systèmes réels sont désactivées.",
+    "dismiss": "Ignorer",
+    "show": "Afficher la bannière du mode démo"
+  }
+}

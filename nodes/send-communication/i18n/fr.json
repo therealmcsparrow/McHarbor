@@ -1,0 +1,10 @@
+{
+  "label": "Envoyer un message",
+  "description": "Envoyer un message via un canal de communication configuré",
+  "config": {
+    "channel_id": "Canal de communication",
+    "recipient": "Destinataire",
+    "title": "Titre",
+    "message": "Message"
+  }
+}

@@ -1,0 +1,55 @@
+{
+    "slug":  "gitea-dev",
+    "name":  "Gitea (Dev)",
+    "description":  "Dev channel build of Gitea. Lightweight self-hosted Git service. Fork of Gogs, painless to set up.",
+    "category":  "Developer Tools",
+    "image":  "gitea/gitea:dev",
+    "logo":  "https://about.gitea.com/gitea.png",
+    "website":  "https://about.gitea.com",
+    "docsUrl":  "https://docs.gitea.com",
+    "ports":  [
+                  {
+                      "host":  4200,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3222,
+                      "container":  22,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gitea-dev/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "USER_UID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "USER_GID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "GITEA__database__DB_TYPE",
+                        "default":  "sqlite3",
+                        "description":  "Database type"
+                    }
+                ],
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -15,6 +15,9 @@ import {
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { PERM } from '@core/auth/permissionKeys';
+
+const REPO_URL_PLACEHOLDER = 'https://github.com/user/repo.git';
 
 type CreateRepoDialogProps = {
   open: boolean;
@@ -22,7 +25,7 @@ type CreateRepoDialogProps = {
   createRepo: UseMutationResult<unknown, Error, { name: string; url: string; branch: string }>;
 };
 
-export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoDialogProps) {
+export function CreateRepoDialog({ open: isOpen, onOpenChange, createRepo }: CreateRepoDialogProps) {
   const { t } = useTranslation('common');
   const [repoName, setRepoName] = useState('');
   const [repoUrl, setRepoUrl] = useState('');
@@ -39,12 +42,12 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
           setRepoUrl('');
           setRepoBranch('main');
         },
-      }
+      },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('git.addTitle')}</DialogTitle>
@@ -57,7 +60,7 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
               type="text"
               value={repoName}
               onChange={(e) => setRepoName(e.target.value)}
-              placeholder="my-project"
+              placeholder={t('placeholders.repoName')}
             />
           </div>
           <div>
@@ -66,7 +69,7 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
               type="text"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
-              placeholder="https://github.com/user/repo.git"
+              placeholder={REPO_URL_PLACEHOLDER}
             />
           </div>
           <div>
@@ -75,7 +78,7 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
               type="text"
               value={repoBranch}
               onChange={(e) => setRepoBranch(e.target.value)}
-              placeholder="main"
+              placeholder={t('placeholders.branch')}
             />
           </div>
         </div>
@@ -83,7 +86,11 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('actions.cancel')}
           </Button>
-          <Button onClick={handleCreate} disabled={createRepo.isPending || !repoName.trim() || !repoUrl.trim()}>
+          <Button
+            permission={PERM.GIT_MANAGE}
+            onClick={handleCreate}
+            disabled={createRepo.isPending || !repoName.trim() || !repoUrl.trim()}
+          >
             {createRepo.isPending ? t('git.adding') : t('git.addRepository')}
           </Button>
         </DialogFooter>
@@ -91,4 +98,3 @@ export function CreateRepoDialog({ open, onOpenChange, createRepo }: CreateRepoD
     </Dialog>
   );
 }
-

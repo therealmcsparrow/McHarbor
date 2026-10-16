@@ -4,7 +4,7 @@
   "description": "Modern and powerful wiki app built on Node.js with a beautiful interface.",
   "category": "Productivity",
   "image": "ghcr.io/requarks/wiki:2",
-  "logo": "https://js.wiki/img/logo.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wikijs.svg",
   "website": "https://js.wiki",
   "docsUrl": "https://docs.requarks.io",
   "ports": [
@@ -36,5 +36,9 @@
       "description": "SQLite file path"
     }
   ],
-  "version": "2"
+  "version":  "2",
+  "latest":  {
+      "version":  "2",
+      "release_date":  "2026-09-10"
+  }
 }

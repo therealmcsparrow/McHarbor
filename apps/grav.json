@@ -1,0 +1,35 @@
+{
+    "slug":  "grav",
+    "name":  "Grav",
+    "description":  "Flat-file content management system with no database requirement and Markdown-based content.",
+    "category":  "Web Apps",
+    "image":  "getgrav/grav:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grav.png",
+    "website":  "https://getgrav.org",
+    "docsUrl":  "https://learn.getgrav.org/17/basics/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8108,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/grav/user",
+                        "container":  "/var/www/html/user"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

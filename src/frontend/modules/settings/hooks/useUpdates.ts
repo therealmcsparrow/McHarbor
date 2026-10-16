@@ -5,75 +5,26 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, type PaginatedData } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
+import { runWithMcHarborRestart } from '@resources/stores/mcharbor-restart';
 
-export type VersionCheck = {
-  currentVersion: string;
-  latestVersion: string;
-  updateAvailable: boolean;
-  releaseUrl?: string;
-  publishedAt?: string;
-  releaseNotes?: string;
-};
+import type {
+  VersionCheck,
+  SelfUpdateState,
+  SelfUpdateSettings,
+  AgentUpdateResponse,
+  UpdatePolicy,
+  CreatePolicyInput,
+  UpdatePolicyInput,
+  FactoryResetResponse,
+  SelfUpdateApplyResponse,
+} from './updates-types';
+import { updatesKeys } from './queryKeys';
 
-export type SelfUpdateState = VersionCheck & {
-  lastCheckedAt?: string;
-  lastError?: string;
-  nextCheckAt?: string;
-  intervalHours: number;
-  notifiedVersion?: string;
-};
-
-export type SelfUpdateSettings = {
-  intervalHours: number;
-  channelIds: string[];
-  lastSeenVersion: string;
-  enabled: boolean;
-};
-
-export type NotificationChannel = {
-  id: string;
-  name: string;
-  type: string;
-  enabled: boolean;
-};
-
-export type UpdatePolicy = {
-  id: string;
-  name: string;
-  containerMatch: string;
-  imageMatch: string;
-  schedule: string;
-  strategy: string;
-  autoRestart: boolean;
-  enabled: boolean;
-  lastRunAt: string;
-  lastRunStatus: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type CreatePolicyInput = {
-  name: string;
-  containerMatch: string;
-  imageMatch: string;
-  schedule: string;
-  strategy: string;
-  autoRestart: boolean;
-};
-
-export type UpdatePolicyInput = {
-  name?: string;
-  containerMatch?: string;
-  imageMatch?: string;
-  schedule?: string;
-  strategy?: string;
-  autoRestart?: boolean;
-  enabled?: boolean;
-};
+export * from './updates-types';
 
 export function useCheckUpdate() {
   return useQuery({
-    queryKey: ['updates', 'check'],
+    queryKey: updatesKeys.check,
     queryFn: async () => {
       const res = await api.get<VersionCheck>('/updates/check');
       if (!res.success || !res.data) {
@@ -92,7 +43,7 @@ export function useCheckUpdate() {
 // banner react within a minute of a new release appearing.
 export function useSelfUpdateState(intervalMs = 60_000) {
   return useQuery({
-    queryKey: ['updates', 'self'],
+    queryKey: updatesKeys.self,
     queryFn: async () => {
       const res = await api.get<SelfUpdateState>('/updates/state');
       if (!res.success || !res.data) {
@@ -108,7 +59,7 @@ export function useSelfUpdateState(intervalMs = 60_000) {
 
 export function useSelfUpdateSettings() {
   return useQuery({
-    queryKey: ['updates', 'self', 'settings'],
+    queryKey: updatesKeys.selfSettings,
     queryFn: async () => {
       const res = await api.get<SelfUpdateSettings>('/updates/settings');
       if (!res.success || !res.data) {
@@ -123,11 +74,76 @@ export function useSaveSelfUpdateSettings() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('settings');
   return useMutation({
-    mutationFn: (input: SelfUpdateSettings) =>
-      api.put('/updates/settings', input).then(assertSuccess),
+    mutationFn: (input: SelfUpdateSettings) => api.put('/updates/settings', input).then(assertSuccess),
     meta: { success: t('toast.updateCheckSettingsSaved') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['updates', 'self'] });
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.self });
+    },
+  });
+}
+
+// useUpdateAgentsNow asks every connected, outdated remote agent to
+// replace itself right away (POST /api/updates/agents/update). The call
+// returns once each agent acknowledged or failed; agents that started an
+// update reconnect with the new version a little later.
+export function useUpdateAgentsNow() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () =>
+      api.post<AgentUpdateResponse>('/updates/agents/update', {}).then((res) => {
+        if (!res.success || !res.data) {
+          throw new Error(res.error ?? 'agent update failed');
+        }
+        return res.data;
+      }),
+    meta: {
+      success: (data: unknown) => {
+        const r = data as AgentUpdateResponse | undefined;
+        return r?.message ?? t('toast.agentUpdateTriggered');
+      },
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.self });
+      void queryClient.invalidateQueries({ queryKey: ['agents'] });
+      void queryClient.invalidateQueries({ queryKey: ['versions'] });
+    },
+  });
+}
+
+// useResetSystem triggers a McHarbor factory reset via
+// POST /api/system/reset. The backend requires the literal string
+// "RESET" in the `confirm` field as a double-confirmation guard;
+// the helper container wipes `/app/data` and recreates the McHarbor
+// container. Like the self-update mutation, onSuccess fires before
+// the API process exits so the toast can surface the scheduled
+// message before the websocket is torn down.
+export function useResetSystem() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: (confirmToken: string) =>
+      runWithMcHarborRestart(() =>
+        api
+          .post<FactoryResetResponse>('/system/reset', {
+            confirm: confirmToken,
+          })
+          .then((res) => {
+            if (!res.success) {
+              throw new Error(res.error ?? 'factory reset failed');
+            }
+            return assertSuccess(res);
+          }),
+      ),
+    meta: {
+      success: (data: unknown) => {
+        const r = data as FactoryResetResponse | undefined;
+        return r?.message ?? t('about.toast.resetScheduled');
+      },
+      error: t('about.toast.resetFailed'),
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries();
     },
   });
 }
@@ -136,25 +152,13 @@ export function useDismissUpdate() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('settings');
   return useMutation({
-    mutationFn: (version: string) =>
-      api.post('/updates/dismiss', { version }).then(assertSuccess),
+    mutationFn: (version: string) => api.post('/updates/dismiss', { version }).then(assertSuccess),
     meta: { success: t('toast.updateCheckDismissed') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['updates', 'self'] });
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.self });
     },
   });
 }
-
-export type SelfUpdateApplyResponse = {
-  message: string;
-  code: string;
-  result: {
-    containerId: string;
-    containerName: string;
-    targetImage: string;
-    output: string;
-  };
-};
 
 // useApplySelfUpdate triggers a McHarbor self-update via
 // POST /api/versions/self-update. The current process exits shortly
@@ -167,21 +171,20 @@ export function useApplySelfUpdate() {
   const { t } = useTranslation('settings');
   return useMutation({
     mutationFn: (input: { image?: string }) =>
-      api
-        .post<SelfUpdateApplyResponse>('/versions/self-update', input)
-        .then((res) => {
+      runWithMcHarborRestart(() =>
+        api.post<SelfUpdateApplyResponse>('/versions/self-update', input).then((res) => {
           if (!res.success) {
             throw new Error(res.error ?? 'self-update failed');
           }
           return assertSuccess(res);
         }),
+      ),
     meta: {
       success: (data: unknown) => {
         const r = data as SelfUpdateApplyResponse | undefined;
         return r?.message ?? t('about.toast.selfUpdateScheduled');
       },
-      error: (err: Error) =>
-        err.message || t('about.toast.selfUpdateFailed'),
+      error: t('about.toast.selfUpdateFailed'),
     },
     onSuccess: () => {
       void queryClient.invalidateQueries();
@@ -191,11 +194,8 @@ export function useApplySelfUpdate() {
 
 export function useUpdatePolicies() {
   return useQuery({
-    queryKey: ['updates', 'policies'],
-    queryFn: () =>
-      api
-        .get<PaginatedData<UpdatePolicy>>('/updates')
-        .then((r) => r.data?.items ?? []),
+    queryKey: updatesKeys.policies,
+    queryFn: () => api.get<PaginatedData<UpdatePolicy>>('/updates').then((r) => r.data?.items ?? []),
   });
 }
 
@@ -203,11 +203,10 @@ export function useCreateUpdatePolicy() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('settings');
   return useMutation({
-    mutationFn: (input: CreatePolicyInput) =>
-      api.post('/updates', input).then(assertSuccess),
+    mutationFn: (input: CreatePolicyInput) => api.post('/updates', input).then(assertSuccess),
     meta: { success: t('toast.policyCreated') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['updates', 'policies'] });
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.policies });
     },
   });
 }
@@ -220,7 +219,7 @@ export function useUpdateUpdatePolicy() {
       api.put(`/updates/${id}`, input).then(assertSuccess),
     meta: { success: t('toast.policyUpdated') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['updates', 'policies'] });
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.policies });
     },
   });
 }
@@ -232,7 +231,7 @@ export function useDeleteUpdatePolicy() {
     mutationFn: (id: string) => api.del(`/updates/${id}`).then(assertSuccess),
     meta: { success: t('toast.policyDeleted') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['updates', 'policies'] });
+      void queryClient.invalidateQueries({ queryKey: updatesKeys.policies });
     },
   });
 }

@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "LDAP / Active Directory",
+    "subtitle": "Federeer de McHarbor-login naar elke LDAP v3-directory of Active Directory. De plugin verzorgt de zoek-en-dan-opnieuw-binden-authenticatieflow tegen de geconfigureerde directory en richt gebruikers in bij de eerste geslaagde bind.",
+    "registerHint": "Voeg een provider toe via de pagina Instellingen > Beveiliging > Identiteitsproviders van de host en kies \"LDAP\" als provider_type."
+  },
+  "fields": {
+    "url":              "LDAP-server-URL",
+    "bind_dn":          "Bind-DN",
+    "bind_password":    "Bind-wachtwoord",
+    "user_base_dn":     "Gebruikersbasis-DN",
+    "user_filter":      "Gebruikerszoekfilter",
+    "user_attr":        "Gebruikersnaamattribuut",
+    "email_attr":       "E-mailattribuut",
+    "name_attr":        "Weergavenaamattribuut",
+    "start_tls":        "StartTLS gebruiken",
+    "skip_tls_verify":  "TLS-verificatie overslaan",
+    "group_base_dn":    "Groepsbasis-DN",
+    "group_filter":     "Groepsfilter",
+    "group_attr":       "Groepsnaamattribuut"
+  },
+  "help": {
+    "url":              "LDAP-server-URL. Gebruik ldaps://host:636 voor impliciete TLS, of ldap://host:389 voor gewoon (schakel dan hieronder StartTLS in om te upgraden).",
+    "bind_dn":          "DN van het serviceaccount dat voor zoekopdrachten wordt gebruikt. Leeg = anonieme bind (de meeste directory's weigeren anoniem gebruikersvermeldingen terug te geven). Voorbeeld: cn=mcharbor-svc,ou=service,dc=example,dc=com.",
+    "bind_password":    "Wachtwoord van het serviceaccount. Versleuteld opgeslagen (AES-256-GCM).",
+    "user_base_dn":     "Basis-DN waaronder gebruikersvermeldingen staan. De plugin beperkt gebruikerszoekopdrachten tot deze substructuur. Voorbeeld: ou=users,dc=example,dc=com.",
+    "user_filter":      "LDAP-filtertemplate om een gebruiker op te zoeken via zijn inlognaam. De placeholder %s wordt vervangen door de geëscapete gebruikersnaam. Standaard: (uid=%s) voor OpenLDAP. Voor Active Directory: (sAMAccountName=%s) of (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)).",
+    "user_attr":        "Attribuut dat de inlognaam bevat. Standaard: uid (OpenLDAP). Active Directory: sAMAccountName.",
+    "email_attr":       "Attribuut dat het e-mailadres van de gebruiker bevat. Standaard: mail. Gebruikt voor inrichting en meldingsroutering.",
+    "name_attr":        "Attribuut dat de weergavenaam van de gebruiker bevat. Standaard: cn. Gebruikt voor auditlogvermeldingen en het gebruikersmenu.",
+    "start_tls":        "Upgrade een gewone ldap://-verbinding naar TLS via de StartTLS-uitgebreide bewerking. Heeft geen effect als de URL al ldaps:// is.",
+    "skip_tls_verify":  "Sla certificaatverificatie over. Alleen voor test/ontwikkeling — schakel dit NIET in op productie.",
+    "group_base_dn":    "Basis-DN voor groepszoekopdrachten. Standaard Gebruikersbasis-DN als het leeg is. Voorbeeld: ou=groups,dc=example,dc=com.",
+    "group_filter":     "Filtertemplate om de groepen op te halen waartoe een gebruiker behoort. De placeholder %s wordt vervangen door de volledige DN van de gebruiker. Standaard: (|(member=%s)(uniqueMember=%s)) werkt voor OpenLDAP posixGroup en groupOfUniqueNames. Active Directory: (member:1.2.840.113556.1.4.1941:=<userDN>) vereist een LDAP-server die de memberOf-overlay ondersteunt.",
+    "group_attr":       "Attribuut dat als groepsnaam wordt gebruikt in de groepsmapper van McHarbor. Standaard: cn. Active Directory: sAMAccountName als je groepen security principals zijn."
+  },
+  "guide": {
+    "title":    "LDAP- / Active Directory-aanmelding instellen in McHarbor",
+    "subtitle": "Maak een alleen-lezen serviceaccount aan, wijs McHarbor naar je directory en koppel de gebruikers- en groepsattributen aan de claims die de host verwacht.",
+    "step1": {
+      "title": "Maak een alleen-lezen serviceaccount aan",
+      "body":  "De meeste directory's weigeren gebruikersvermeldingen terug te geven aan anonieme binds. Maak een apart serviceaccount aan met leestoegang tot gebruikersobjecten in je directory: OpenLDAP — voeg een posixAccount-vermelding toe onder ou=service,dc=example,dc=com met een gehasht userPassword; Active Directory — maak een gebruiker aan onder een OU voor serviceaccounts en schakel interactief inloggen + wachtwoordverloop uit. Noteer de volledige DN en het wachtwoord — ze gaan in de velden Bind-DN / Bind-wachtwoord op het providerformulier."
+    },
+    "step2": {
+      "title": "Zoek de gebruikersbasis-DN",
+      "body":  "Kies de substructuur waaronder alle gebruikersvermeldingen staan. Voor een gangbare platte indeling is dit ou=users,dc=example,dc=com. Voor een diepe boom die meerdere OU's omspant (Active Directory) is dit meestal de domein-NC: dc=example,dc=com. De plugin beperkt elke gebruikerszoekopdracht tot deze DN, dus te breed maken schaadt de prestaties; te smal maken veroorzaakt \"gebruiker niet gevonden\" voor gebruikers buiten de substructuur."
+    },
+    "step3": {
+      "title": "Stel het gebruikersfilter en het gebruikersnaamattribuut in",
+      "body":  "Het standaardfilter (uid=%s) richt zich op het uid-attribuut van OpenLDAP posixAccount-vermeldingen. Active Directory gebruikt sAMAccountName; wijzig het filter naar (sAMAccountName=%s) en het gebruikersnaamattribuut naar sAMAccountName. Voor AD-forests met meerdere domeinen in dezelfde boom is een strenger filter als (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s)) veiliger."
+    },
+    "step4": {
+      "title": "Stel de attributen voor e-mail en weergavenaam in",
+      "body":  "De standaard is mail en cn, wat direct overeenkomt met OpenLDAP en AD. Als je directory een ander schema gebruikt (mail vs userPrincipalName, displayName vs cn), wijzig dan het e-mailattribuut en het weergavenaamattribuut dienovereenkomstig. De plugin leest deze attributen één keer per login; een ontbrekende waarde laat de bijbehorende claim leeg maar blokkeert de authenticatie niet."
+    },
+    "step5": {
+      "title": "Configureer TLS",
+      "body":  "LDAPS (ldaps://host:636) is de eenvoudigste weg — de TLS-handshake maakt deel uit van de verbinding. StartTLS (ldap://host:389 + StartTLS-schakelaar aan) is het alternatief voor directory's die op één poort luisteren. Als het servercertificaat zelfondertekend is of door een interne CA is uitgegeven, laat dan TLS-verificatie overslaan op productie UIT en importeer in plaats daarvan de CA-keten in de vertrouwensopslag van de host."
+    },
+    "step6": {
+      "title": "Configureer groepszoekopdrachten (optioneel)",
+      "body":  "Laat Groepsbasis-DN + Groepsfilter leeg als je alleen gebruikersauthenticatie nodig hebt. Om directorygroepen aan McHarbor-rollen te koppelen, vul je de basis-DN in (standaard Gebruikersbasis-DN) en een filtertemplate die past bij het lidmaatschapsattribuut van je groep. De standaard (|(member=%s)(uniqueMember=%s)) werkt voor OpenLDAP. Wijzig voor Active Directory het filter naar (member:1.2.840.113556.1.4.1941:=<userDN>) en zorg dat de directory de memberOf-overlay ondersteunt."
+    },
+    "step7": {
+      "title": "Test de verbinding",
+      "body":  "Klik op \"Verbinding testen\" op het providerformulier. Een groen resultaat betekent dat de bind is geslaagd, de gebruikersbasis-DN is opgelost en de filtersyntaxis is geaccepteerd. Meld je af en gebruik het LDAP-inlogformulier op de inlogpagina; bij de eerste geslaagde bind wordt automatisch een McHarbor-gebruikersrecord ingericht en wordt de sessiecookie uitgegeven."
+    }
+  }
+}

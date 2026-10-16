@@ -4,7 +4,7 @@
     "description":  "Redpanda Kafka-compatible streaming platform for local development and testing.",
     "category":  "Developer Tools",
     "image":  "redpandadata/redpanda:latest",
-    "logo":  "https://icon.horse/icon/redpanda.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=redpanda.com\u0026sz=128",
     "website":  "https://redpanda.com",
     "docsUrl":  "https://docs.redpanda.com/current/get-started/quick-start-docker/",
     "ports":  [
@@ -33,5 +33,9 @@
                     }
                 ],
     "minMemory":  "1GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

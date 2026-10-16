@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { Switch } from '@resources/components/ui/Switch';
 import { useContainer, useRemoveContainer } from '../hooks/useContainers';
 import { useNetworks } from '@resources/hooks/useNetworks';
 import { findOrphanedNetworks } from '@core/utils/network';
+import { PERM } from '@core/auth/permissionKeys';
 
 type ContainerTarget = {
   id: string;
@@ -35,7 +36,7 @@ type RemoveContainerDialogProps = {
 
 export function RemoveContainerDialog({
   container,
-  open,
+  open: isOpen,
   onOpenChange,
   onSuccess,
 }: RemoveContainerDialogProps) {
@@ -48,21 +49,21 @@ export function RemoveContainerDialog({
   const [removeNetwork, setRemoveNetwork] = useState(false);
 
   const { data: inspect } = useContainer(container?.id ?? '');
-  const orphans = useMemo(
-    () => (inspect ? findOrphanedNetworks(inspect, networks) : []),
-    [inspect, networks],
-  );
+  const orphans = useMemo(() => (inspect ? findOrphanedNetworks(inspect, networks) : []), [inspect, networks]);
   const hasOrphans = orphans.length > 0;
 
   // Reset toggles when dialog opens with a new container
-  useEffect(() => {
-    if (open) {
+  const resetKey = `${isOpen}|${container?.id ?? ''}`;
+  const [appliedResetKey, setAppliedResetKey] = useState(resetKey);
+  if (appliedResetKey !== resetKey) {
+    setAppliedResetKey(resetKey);
+    if (isOpen) {
       setRemoveVolumes(false);
       setRemoveImage(false);
       setRemoveStack(false);
       setRemoveNetwork(false);
     }
-  }, [open, container?.id]);
+  }
 
   if (!container) return null;
 
@@ -81,12 +82,12 @@ export function RemoveContainerDialog({
           onOpenChange(false);
           onSuccess?.();
         },
-      }
+      },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('removeDialog.title')}</DialogTitle>
@@ -159,7 +160,10 @@ export function RemoveContainerDialog({
                     ) : (
                       <>
                         <span className="font-mono text-foreground">
-                          {orphans.slice(0, 2).map((o) => o.name).join(', ')}
+                          {orphans
+                            .slice(0, 2)
+                            .map((o) => o.name)
+                            .join(', ')}
                           {orphans.length > 2 ? `, +${orphans.length - 2}` : ''}
                         </span>
                         {' — '}
@@ -178,7 +182,12 @@ export function RemoveContainerDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('actions.cancel', { ns: 'common' })}
           </Button>
-          <Button variant="destructive" onClick={handleRemove} disabled={removeMutation.isPending}>
+          <Button
+            variant="destructive"
+            onClick={handleRemove}
+            disabled={removeMutation.isPending}
+            permission={PERM.CONTAINERS_DELETE}
+          >
             {removeMutation.isPending ? t('removeDialog.removing') : t('actions.remove')}
           </Button>
         </DialogFooter>

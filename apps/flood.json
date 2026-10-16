@@ -1,0 +1,35 @@
+{
+    "slug":  "flood",
+    "name":  "Flood",
+    "description":  "Modern web interface for managing rTorrent, qBittorrent or Transmission downloads.",
+    "category":  "Media",
+    "image":  "jesec/flood:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flood.png",
+    "website":  "https://flood.js.org",
+    "docsUrl":  "https://github.com/jesec/flood#docker",
+    "ports":  [
+                  {
+                      "host":  3001,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/flood/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

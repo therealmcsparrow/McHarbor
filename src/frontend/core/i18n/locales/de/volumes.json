@@ -8,6 +8,18 @@
   "pruneUnused": "Ungenutzte bereinigen",
   "pruneDescription": "Entfernt Volumes, die keinem Container zugeordnet sind.",
   "columns": {
+    "scope": "Geltungsbereich",
+    "labels": "Labels",
+    "options": "Optionen",
+    "status": "Status",
+    "size": "Größe",
+    "refCount": "Referenzen",
+    "stack": "Stack",
+    "protected": "Geschützt",
+    "groupVolume": "Volume",
+    "usedBy": "Verwendet von",
+    "groupRelations": "Beziehungen",
+    "groupStack": "Stack",
     "name": "Name",
     "driver": "Treiber",
     "usage": "Nutzung",
@@ -17,7 +29,8 @@
   },
   "badges": {
     "inUse": "in Verwendung",
-    "unused": "ungenutzt"
+    "unused": "Ungenutzt",
+    "inUseCount": "{{count}} in Verwendung"
   },
   "create": {
     "title": "Volume erstellen",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Volume entfernen",
     "removeDescription": "Dies entfernt dieses Volume dauerhaft, einschließlich aller darin gespeicherten Daten."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Volume-Abschnitte",
+      "overview": "Übersicht",
+      "containers": "Container",
+      "configuration": "Konfiguration"
+    },
+    "notFound": "Volume nicht gefunden",
+    "backToVolumes": "Zurück zu den Volumes",
+    "general": "Allgemein",
+    "name": "Name",
+    "driver": "Treiber",
+    "scope": "Geltungsbereich",
+    "mountpoint": "Einhängepunkt",
+    "created": "Erstellt",
+    "usage": "Nutzung",
+    "status": "Status",
+    "size": "Größe",
+    "sizeUnknown": "Nicht gemeldet",
+    "sizeDescription": "Der Docker-Daemon meldet die Größe nur, wenn er Nutzungsdaten für dieses Volume erfasst hat.",
+    "mountedBy": "Eingehängt von",
+    "mountedByContainers": "Container, die dieses Volume verwenden",
+    "noContainers": "Derzeit hängt kein Container dieses Volume ein.",
+    "containerName": "Container",
+    "containerId": "Container-ID",
+    "mountPath": "Einhängepfad",
+    "access": "Zugriff",
+    "readWrite": "Lesen/Schreiben",
+    "readOnly": "schreibgeschützt",
+    "options": "Optionen",
+    "labels": "Labels",
+    "noConfiguration": "Dieses Volume trägt keine eigenen Optionen oder Labels.",
+    "protectedCannotRemove": "Dieses Volume ist geschützt und kann nicht entfernt werden.",
+    "inUseCannotRemove": "Ein Container hängt dieses Volume noch ein. Entfernen oder stoppen Sie ihn zuerst."
   }
 }

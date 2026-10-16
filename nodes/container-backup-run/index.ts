@@ -16,7 +16,7 @@ export const containerBackupRun: NodeDefinition = {
     { key: 'include_logs', label: 'Include Logs', type: 'toggle', required: false, default: false },
     { key: 'include_filesystem', label: 'Include Filesystem', type: 'toggle', required: false, default: false },
     { key: 'include_image', label: 'Include Image', type: 'toggle', required: false, default: false },
-    { key: 'selected_mounts', label: 'Selected Mounts', type: 'text', required: false },
+    { key: 'selected_mounts', label: 'Selected Mounts', type: 'container-mount-multiselect', required: false },
   ],
   inputPorts: ['input'],
   outputPorts: ['output', 'error'],

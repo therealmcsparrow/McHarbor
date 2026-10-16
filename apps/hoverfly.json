@@ -4,7 +4,7 @@
     "description":  "Lightweight API simulation tool for intercepting and modifying HTTP traffic.",
     "category":  "Developer Tools",
     "image":  "spectolabs/hoverfly:latest",
-    "logo":  "https://icon.horse/icon/hoverfly.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=hoverfly.io\u0026sz=128",
     "website":  "https://hoverfly.io",
     "docsUrl":  "https://hoverfly.io/docs/pages/installation/docker/",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

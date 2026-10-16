@@ -1,0 +1,73 @@
+{
+  "form": {
+    "introTitle": "Consentimento do Microsoft 365",
+    "introBody": "Salve este local e use Conectar para conceder o consentimento da conta. O McHarbor armazena os tokens retornados criptografados.",
+    "tenant_id": {
+      "label": "ID do tenant",
+      "help": "ID do tenant do Microsoft Entra (GUID). Disponível no centro de administração do Entra > Overview. O fluxo de consentimento OAuth redireciona para login.microsoftonline.com/{tenant_id}/…"
+    },
+    "client_id": {
+      "label": "ID do cliente",
+      "help": "Application (client) ID do registro de aplicativo do Entra com as permissões delegadas Files.ReadWrite e Sites.ReadWrite e um URI de redirecionamento Web apontando para este host McHarbor."
+    },
+    "client_secret": {
+      "label": "Segredo do cliente",
+      "help": "Valor do client secret do centro de administração do Entra → App registrations → Certificates & secrets. Armazenado criptografado em repouso."
+    },
+    "drive_id": {
+      "label": "ID do drive",
+      "help": "Opcional. Identificador de drive do Graph totalmente qualificado. Deixe em branco para usar a biblioteca de documentos padrão do site (resolvida via Site ID)."
+    },
+    "base_path": {
+      "label": "Caminho base",
+      "help": "Opcional. Caminho do Graph dentro do drive, por exemplo /Backups/2026. Deixe em branco para usar a raiz do drive. Intencionalmente não preenchido."
+    },
+    "site_id": {
+      "label": "ID do site do SharePoint",
+      "help": "ID do site do Graph, por exemplo contoso.sharepoint.com,guid1,guid2. Obrigatório quando Drive ID está em branco. Obtido em /sites/{hostname}:/sites/{path} no Graph Explorer."
+    }
+  },
+  "setup": {
+    "title": "Guia de configuração do SharePoint Online",
+    "step1": "No centro de administração do Microsoft Entra, abra <b>App registrations > New registration</b>. Escolha <b>Accounts in this organizational directory only</b> como tipo de conta compatível e copie o <b>Tenant ID</b> da página <b>Overview</b> — cole-o no campo <b>Tenant ID</b> à esquerda.",
+    "step2": "Em <b>Certificates & secrets</b>, crie um novo client secret. Copie o <b>Value</b> (não o <b>Secret ID</b>) — cole-o no campo <b>Client Secret</b> à esquerda. Copie o <b>Application (client) ID</b> para o campo <b>Client ID</b>.",
+    "step3": "Conceda ao aplicativo as permissões de aplicativo <code>Files.ReadWrite.All</code>, <code>Sites.ReadWrite.All</code> e <code>User.Read</code> (consentimento do administrador necessário). O fluxo OAuth solicitará <code>offline_access</code> em nome do operador.",
+    "step4": "Defina o <b>SharePoint Site ID</b> como o identificador de site do Graph (por exemplo, <code>contoso.sharepoint.com,guid1,guid2</code>). Deixe em branco se você informar um <b>Drive ID</b> — o Drive ID tem precedência quando ambos estão presentes.",
+    "step5": "Deixe <b>Base Path</b> em branco para a raiz do drive, ou informe um caminho do Graph explícito como <code>/Backups/2026</code>. O formulário não preenche nenhum valor padrão.",
+    "step6": "Clique em <b>Save and connect</b> (ou em <b>Connect</b> no cartão de armazenamento). A Microsoft pedirá que você entre e conceda os scopes solicitados. O McHarbor armazena o refresh token retornado criptografado e <warn>nunca o mostra novamente</warn>.",
+    "step7": "Clique em <b>Test connection</b> para gravar e ler um objeto de teste na biblioteca de documentos escolhida."
+  },
+  "page": {
+    "title": "Destinos de backup do SharePoint Online",
+    "subtitle": "Faça backup de contêineres em bibliotecas de documentos do SharePoint em um tenant corporativo/escolar. O plugin trata Test, Upload, Download, Exclusão e Listagem no momento do backup. Backups grandes usam a sessão de upload em partes da Microsoft, então não há limite de tamanho.",
+    "registerHint": "Adicione um destino na página Locais de armazenamento do host e escolha \"SharePoint\" como tipo."
+  },
+  "fields": {
+    "clientId":     "ID do aplicativo (cliente) do Azure AD",
+    "clientSecret": "Segredo do cliente do Azure AD",
+    "refreshToken": "Refresh token (entregue pelo fluxo de consentimento OAuth)",
+    "tenantId":     "ID do tenant do Azure AD",
+    "siteId":       "ID do site do SharePoint (identificador de site do Graph)",
+    "driveId":      "ID do drive (deixe vazio para usar a biblioteca de documentos padrão do site)"
+  },
+  "help": {
+    "clientId":     "Registre um aplicativo em https://entra.microsoft.com → App registrations. O aplicativo deve ter as permissões delegadas Files.ReadWrite.All, Sites.ReadWrite.All e User.Read.",
+    "clientSecret": "Gere um segredo do cliente no registro de aplicativo do Azure AD. Ele é criptografado em repouso pelo serviço AES-256-GCM do host.",
+    "refreshToken": "Após salvar o destino, clique em \"Salvar e conectar\" para concluir o fluxo de consentimento da Microsoft e armazenar um refresh token de longa duração.",
+    "tenantId":     "Encontre o ID do seu tenant em https://entra.microsoft.com → Tenant properties.",
+    "siteId":       "Identificador de site do Graph, ex.: contoso.sharepoint.com,guid1,guid2. Obrigatório quando o ID do drive está em branco.",
+    "driveId":      "Opcional. Deixe vazio para usar a biblioteca de documentos padrão do site via /sites/{site_id}/drive."
+  },
+  "toast": {
+    "registered": "Plugin do SharePoint Online registrado.",
+    "testPassed": "Teste de conexão do SharePoint Online concluído com sucesso.",
+    "testFailed": "O teste de conexão do SharePoint Online falhou: {{error}}"
+  },
+  "error": {
+    "noClientId":     "O ID do aplicativo (cliente) do Azure AD é obrigatório.",
+    "noClientSecret": "O segredo do cliente do Azure AD é obrigatório.",
+    "noRefreshToken": "O refresh token é obrigatório. Execute \"Salvar e conectar\" primeiro.",
+    "noTenantId":     "O ID do tenant do Azure AD é obrigatório para destinos SharePoint Online.",
+    "noSiteId":       "O ID do site do SharePoint ou o ID do drive é obrigatório para destinos SharePoint Online."
+  }
+}

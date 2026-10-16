@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "capacityHeadroom": {
+      "label": "Folga de capacidade",
+      "description": "Quando cada sistema de arquivos e destino de armazenamento ficará sem espaço"
+    }
+  },
+  "capacityHeadroomWidget": {
+    "title": "Folga de capacidade",
+    "fullOn": "Cheio em {{date}} — {{days}} dias",
+    "noProjection": "{{percent}}% usado, ainda sem projeção",
+    "noData": "Ainda sem histórico de capacidade"
+  }
+}

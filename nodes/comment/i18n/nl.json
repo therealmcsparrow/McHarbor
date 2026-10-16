@@ -1,6 +1,6 @@
 {
   "label": "Opmerking",
-  "description": "Annotate a workflow without changing execution",
+  "description": "Annoteer een workflow zonder de uitvoering te wijzigen",
   "config": {
     "text": "Opmerking"
   }

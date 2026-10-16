@@ -15,7 +15,7 @@ export function MiniChart({ label, value, data, color }: MiniChartProps) {
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between">
         <span className="text-[10px] text-muted-foreground">{label}</span>
-        <span className="text-[10px] tabular-nums text-foreground">{value}</span>
+        <span className="text-[10px] text-foreground tabular-nums">{value}</span>
       </div>
       <div className="h-5">
         <Sparkline data={data.length >= 2 ? data : [0, 0]} width={120} height={20} color={color} />

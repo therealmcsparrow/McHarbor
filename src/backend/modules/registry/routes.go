@@ -4,8 +4,8 @@
 package registry
 
 import (
-	"github.com/go-chi/chi/v5"
-
+	"github.com/therealmcsparrow/mcharbor/core/apispec"
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -13,14 +13,14 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
-	app.RegisterProtectedRoutes(func(r chi.Router) {
-		r.Route("/registries", func(r chi.Router) {
-			r.Get("/", h.HandleList)
-			r.Post("/", h.HandleCreate)
-			r.Get("/{id}", h.HandleGet)
-			r.Put("/{id}", h.HandleUpdate)
-			r.Delete("/{id}", h.HandleDelete)
-			r.Post("/{id}/test", h.HandleTestConnection)
+	app.RegisterProtectedRoutes(func(r *apispec.Router) {
+		r.Route("/registries", func(r *apispec.Router) {
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryView)).Get("/", h.HandleList, apispec.Paginated())
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryManage)).Post("/", h.HandleCreate, apispec.Request(CreateRegistryInput{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryView)).Get("/{id}", h.HandleGet)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryManage)).Put("/{id}", h.HandleUpdate, apispec.Request(UpdateRegistryInput{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryManage)).Delete("/{id}", h.HandleDelete)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRegistryManage)).Post("/{id}/test", h.HandleTestConnection)
 		})
 	})
 }

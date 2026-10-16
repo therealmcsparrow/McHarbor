@@ -1,9 +1,0 @@
-{
-  "label": "Analyser CSV",
-  "description": "Analyser le texte CSV ou TSV en lignes structurées",
-  "config": {
-    "property": "Propriété",
-    "delimiter": "Délimiteur",
-    "has_headers": "A des en-têtes"
-  }
-}

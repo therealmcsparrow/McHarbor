@@ -1,0 +1,16 @@
+{
+  "slug": "storage-samba",
+  "name": "Samba",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "McHarbor",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Backup destination backed by an SMB/CIFS share (samba.org). Anonymous, basic user/password, or NTLMv2 domain auth via go-smb2.",
+  "category": "Storage destinations",
+  "icon": "IconFolderShare",
+  "versions": [
+    {
+      "version": "1.0.1",
+      "download_url": "file:///app/ai-plugin-catalog/storage-samba-1.0.1.tar.gz"
+    }
+  ]
+}

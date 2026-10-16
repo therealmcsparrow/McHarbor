@@ -1,0 +1,28 @@
+# Build outputs
+dist/
+*.so
+*.dll
+*.tar.gz
+*.tar.gz.sig
+
+# Vendored deps
+vendor/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local signing key — never commit
+signing/
+*.key
+*.pub
+
+# Node
+node_modules/
+tsconfig.tsbuildinfo
+
+# Per-plugin scratch
+**/coverage/
+**/.nyc_output/

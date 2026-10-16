@@ -15,19 +15,19 @@ export type SeverityStyle = {
 
 export const SEVERITY_STYLES: Record<string, SeverityStyle> = {
   info: {
-    dot: 'bg-sky-500',
-    pill: 'bg-sky-500/10 ring-1 ring-inset ring-sky-500/30',
-    text: 'text-sky-700 dark:text-sky-300',
+    dot: 'bg-info',
+    pill: 'bg-info/10 ring-1 ring-inset ring-info/30',
+    text: 'text-info',
   },
   success: {
-    dot: 'bg-emerald-500',
-    pill: 'bg-emerald-500/10 ring-1 ring-inset ring-emerald-500/30',
-    text: 'text-emerald-700 dark:text-emerald-300',
+    dot: 'bg-success',
+    pill: 'bg-success/10 ring-1 ring-inset ring-success/30',
+    text: 'text-success',
   },
   warning: {
-    dot: 'bg-amber-500',
-    pill: 'bg-amber-500/10 ring-1 ring-inset ring-amber-500/30',
-    text: 'text-amber-700 dark:text-amber-300',
+    dot: 'bg-warning',
+    pill: 'bg-warning/10 ring-1 ring-inset ring-warning/30',
+    text: 'text-warning',
   },
   error: {
     dot: 'bg-destructive',

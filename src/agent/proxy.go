@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -19,6 +20,17 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/therealmcsparrow/mcharbor-agent/internal/errlog"
+)
+
+// responseChunkSize is the payload size of one streamed response frame, and
+// largeResponseThreshold the buffered-body size above which a response is sent
+// as a stream rather than a single frame. The threshold sits well under the
+// server's 17 MB read limit, which base64 in JSON reaches at roughly 12.7 MB
+// of body.
+const (
+	responseChunkSize      = 32 * 1024
+	largeResponseThreshold = 4 * 1024 * 1024
 )
 
 type DockerContainerInspect struct {
@@ -49,7 +61,8 @@ func NewProxy(dockerHost string, logger *slog.Logger) *Proxy {
 	if strings.HasPrefix(dockerHost, "unix://") {
 		socketPath := strings.TrimPrefix(dockerHost, "unix://")
 		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
-			return net.Dial("unix", socketPath)
+			var dialer net.Dialer
+			return dialer.DialContext(ctx, "unix", socketPath)
 		}
 	}
 
@@ -61,7 +74,6 @@ func NewProxy(dockerHost string, logger *slog.Logger) *Proxy {
 	}
 }
 
-// DetectDockerVersion tries to get the Docker API version from the local daemon.
 // Prune runs a Docker prune operation locally. Mirrors the server-side logic
 // in src/backend/modules/metrics/service.go so per-resource totals can be
 // aggregated identically. Returns ItemsDeleted and SpaceReclaimed.
@@ -91,9 +103,9 @@ func (p *Proxy) Prune(ctx context.Context, payload PrunePayload) (PrunePayload, 
 		if err != nil {
 			return 0, 0, err
 		}
-		defer resp.Body.Close()
+		defer func() { errlog.Log(resp.Body.Close()) }()
 		if resp.StatusCode >= 300 {
-			respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			respBody := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 			return 0, 0, fmt.Errorf("prune %s returned status %d: %s", path, resp.StatusCode, strings.TrimSpace(string(respBody)))
 		}
 		var report struct {
@@ -181,8 +193,9 @@ func (p *Proxy) Prune(ctx context.Context, payload PrunePayload) (PrunePayload, 
 	return out, nil
 }
 
-func (p *Proxy) DetectDockerVersion() string {
-	req, err := http.NewRequest("GET", "http://docker/version", nil)
+// DetectDockerVersion tries to get the Docker API version from the local daemon.
+func (p *Proxy) DetectDockerVersion(ctx context.Context) string {
+	req, err := http.NewRequestWithContext(ctx, "GET", "http://docker/version", nil)
 	if err != nil {
 		return "unknown"
 	}
@@ -190,8 +203,8 @@ func (p *Proxy) DetectDockerVersion() string {
 	if err != nil {
 		return "unknown"
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	defer func() { errlog.Log(resp.Body.Close()) }()
+	body := errlog.ReadAll(resp.Body)
 	// Simple extraction — the version JSON contains "ApiVersion":"X.XX"
 	s := string(body)
 	idx := strings.Index(s, `"ApiVersion":"`)
@@ -218,8 +231,8 @@ func (p *Proxy) SaveImage(ctx context.Context, ref string) (io.ReadCloser, error
 		return nil, fmt.Errorf("saving image %s: %w", ref, err)
 	}
 	if resp.StatusCode >= 300 {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		defer func() { errlog.Log(resp.Body.Close()) }()
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return nil, fmt.Errorf("saving image %s returned status %d: %s", ref, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return resp.Body, nil
@@ -235,9 +248,9 @@ func (p *Proxy) LoadImage(ctx context.Context, body io.Reader) error {
 	if err != nil {
 		return fmt.Errorf("loading image: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("loading image returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
@@ -259,9 +272,9 @@ func (p *Proxy) InspectContainer(ctx context.Context, containerID string) (Docke
 	if err != nil {
 		return DockerContainerInspect{}, fmt.Errorf("inspecting container %s: %w", containerID, err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return DockerContainerInspect{}, fmt.Errorf("inspecting container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	var inspect DockerContainerInspect
@@ -296,9 +309,9 @@ func (p *Proxy) ListContainersByName(ctx context.Context, name string) (string, 
 	if err != nil {
 		return "", fmt.Errorf("listing containers: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return "", fmt.Errorf("listing containers returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	var entries []dockerContainerListEntry
@@ -377,8 +390,8 @@ func (p *Proxy) ContainerLogs(ctx context.Context, containerID string) (io.ReadC
 		return nil, fmt.Errorf("reading container logs: %w", err)
 	}
 	if resp.StatusCode >= 300 {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		defer func() { errlog.Log(resp.Body.Close()) }()
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return nil, fmt.Errorf("reading container logs returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return resp.Body, nil
@@ -398,8 +411,8 @@ func (p *Proxy) ExportContainer(ctx context.Context, containerID string) (io.Rea
 		return nil, fmt.Errorf("exporting container filesystem: %w", err)
 	}
 	if resp.StatusCode >= 300 {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		defer func() { errlog.Log(resp.Body.Close()) }()
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return nil, fmt.Errorf("exporting container filesystem returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return resp.Body, nil
@@ -426,9 +439,9 @@ func (p *Proxy) PauseContainer(ctx context.Context, containerID string) error {
 	if err != nil {
 		return fmt.Errorf("pausing container: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("pausing container returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return nil
@@ -448,9 +461,9 @@ func (p *Proxy) UnpauseContainer(ctx context.Context, containerID string) error 
 	if err != nil {
 		return fmt.Errorf("unpausing container: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("unpausing container returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return nil
@@ -476,8 +489,8 @@ func (p *Proxy) CopyArchiveFromContainer(ctx context.Context, containerID, sourc
 		return nil, 0, fmt.Errorf("copying archive from container %s: %w", containerID, err)
 	}
 	if resp.StatusCode >= 300 {
-		defer resp.Body.Close()
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		defer func() { errlog.Log(resp.Body.Close()) }()
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return nil, 0, fmt.Errorf("copying archive from container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	return resp.Body, resp.ContentLength, nil
@@ -507,9 +520,9 @@ func (p *Proxy) CopyArchiveToContainer(ctx context.Context, containerID, targetP
 	if err != nil {
 		return fmt.Errorf("restoring archive to container %s: %w", containerID, err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("restoring archive to container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
@@ -534,14 +547,14 @@ func (p *Proxy) RemoveContainer(ctx context.Context, containerID string) error {
 	if err != nil {
 		return fmt.Errorf("removing container %s: %w", containerID, err)
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusNotFound {
 		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
 			return fmt.Errorf("reading container remove response: %w", err)
 		}
 		return nil
 	}
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 	return fmt.Errorf("removing container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
 }
 
@@ -560,10 +573,14 @@ func (p *Proxy) HandleRequestStream(ctx context.Context, conn *websocket.Conn, i
 }
 
 func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn, id string, wsReq *WSHTTPRequest, bodyReader io.Reader) {
+	trace := startRequestTrace(wsReq)
+	defer trace.finish(conn, id, p.logger)
+
 	var cleanup func()
 	if shouldSpoolRequestBody(wsReq, bodyReader) {
 		spooledBody, bodyCleanup, err := p.spoolRequestBody(bodyReader)
 		if err != nil {
+			trace.fail(err)
 			p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
 			return
 		}
@@ -582,6 +599,7 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 
 	req, err := http.NewRequestWithContext(ctx, wsReq.Method, urlStr, bodyReader)
 	if err != nil {
+		trace.fail(err)
 		p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
 		return
 	}
@@ -595,12 +613,15 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 		req.Header.Set(k, v)
 	}
 
+	trace.markDaemonStart()
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
+		trace.markDaemonEnd(0, err)
 		p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
 		return
 	}
-	defer resp.Body.Close()
+	trace.markDaemonEnd(resp.StatusCode, nil)
+	defer func() { errlog.Log(resp.Body.Close()) }()
 
 	// Check if this is a streaming response
 	if isStreamingResponse(wsReq, resp) {
@@ -611,6 +632,7 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 	// Regular response — read full body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		trace.fail(err)
 		p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
 		return
 	}
@@ -620,6 +642,19 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 		if len(v) > 0 {
 			headers[k] = v[0]
 		}
+	}
+
+	// A body this size does not fit in one frame. JSON base64s it, so the
+	// server's 17 MB read limit is really about 12.7 MB of body, and tripping
+	// it does not fail this one request — gorilla closes the whole connection,
+	// taking every other in-flight operation with it. The chunked path is the
+	// same one streaming responses already use and the server dispatches both
+	// off the same pending entry, so this is invisible to the caller.
+	if len(body) > largeResponseThreshold {
+		p.logger.Info("proxy: large response sent as stream",
+			"id", id, "bytes", len(body))
+		p.sendBufferedResponseAsStream(ctx, conn, id, resp.StatusCode, headers, body)
+		return
 	}
 
 	msg := WSMessage{
@@ -633,7 +668,56 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 	}
 
 	writeMu.Lock()
-	conn.WriteJSON(msg)
+	errlog.Log(conn.WriteJSON(msg))
+	writeMu.Unlock()
+}
+
+// sendBufferedResponseAsStream ships an already-read body through the
+// start/chunk/end messages instead of a single oversized frame.
+func (p *Proxy) sendBufferedResponseAsStream(ctx context.Context, conn *websocket.Conn, id string, status int, headers map[string]string, body []byte) {
+	startMsg := WSMessage{
+		Type: MsgHTTPResponseStart,
+		ID:   id,
+		StreamStart: &WSStreamStart{
+			StatusCode: status,
+			Headers:    headers,
+		},
+	}
+	writeMu.Lock()
+	startErr := conn.WriteJSON(startMsg)
+	writeMu.Unlock()
+	if startErr != nil {
+		p.logger.Warn("proxy: large response start write failed", "id", id, "error", startErr)
+		return
+	}
+
+	for offset := 0; offset < len(body); offset += responseChunkSize {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		end := offset + responseChunkSize
+		if end > len(body) {
+			end = len(body)
+		}
+		chunk := make([]byte, end-offset)
+		copy(chunk, body[offset:end])
+		writeMu.Lock()
+		writeErr := conn.WriteJSON(WSMessage{
+			Type:        MsgHTTPResponseChunk,
+			ID:          id,
+			StreamChunk: &WSStreamChunk{Data: chunk},
+		})
+		writeMu.Unlock()
+		if writeErr != nil {
+			p.logger.Warn("proxy: large response chunk write failed", "id", id, "error", writeErr)
+			return
+		}
+	}
+
+	writeMu.Lock()
+	errlog.Log(conn.WriteJSON(WSMessage{Type: MsgHTTPResponseEnd, ID: id}))
 	writeMu.Unlock()
 }
 
@@ -656,11 +740,11 @@ func (p *Proxy) handleStreamingResponse(ctx context.Context, conn *websocket.Con
 		},
 	}
 	writeMu.Lock()
-	conn.WriteJSON(startMsg)
+	errlog.Log(conn.WriteJSON(startMsg))
 	writeMu.Unlock()
 
 	// Stream chunks
-	buf := make([]byte, 32*1024)
+	buf := make([]byte, responseChunkSize)
 streamLoop:
 	for {
 		select {
@@ -696,26 +780,44 @@ streamLoop:
 	// Send stream end
 	endMsg := WSMessage{Type: MsgHTTPResponseEnd, ID: id}
 	writeMu.Lock()
-	conn.WriteJSON(endMsg)
+	errlog.Log(conn.WriteJSON(endMsg))
 	writeMu.Unlock()
 }
 
 // sendErrorResponse sends an error response for a failed request.
 func (p *Proxy) sendErrorResponse(conn *websocket.Conn, id string, status int, err error) {
-	p.logger.Error("proxy error", "id", id, "error", err)
+	// A cancelled request is routine, not a fault: either the server withdrew
+	// it with http_cancel, or this connection is tearing down and the deferred
+	// cancel loop in Connect is releasing everything still in flight. Logging
+	// that at Error turns one ordinary server restart into a wall of red — a
+	// stats sweep alone contributes one line per running container, all in the
+	// same second — and buries the disconnect that actually explains them.
+	if errors.Is(err, context.Canceled) {
+		p.logger.Debug("proxy request cancelled", "id", id)
+	} else {
+		p.logger.Error("proxy error", "id", id, "error", err)
+	}
 
-	body := fmt.Sprintf(`{"message":"%s"}`, err.Error())
+	// A transport error quotes the URL ("Get \"http://docker/...\": EOF"), so the
+	// body must be marshalled: a hand-formatted string turns the daemon's real
+	// failure into an unparseable reply the server can only report as bad JSON.
+	body, marshalErr := json.Marshal(struct {
+		Message string `json:"message"`
+	}{Message: err.Error()})
+	if marshalErr != nil {
+		body = []byte(`{"message":"agent proxy error"}`)
+	}
 	msg := WSMessage{
 		Type: MsgHTTPResponse,
 		ID:   id,
 		HTTPResponse: &WSHTTPResponse{
 			StatusCode: status,
 			Headers:    map[string]string{"Content-Type": "application/json"},
-			Body:       []byte(body),
+			Body:       body,
 		},
 	}
 	writeMu.Lock()
-	conn.WriteJSON(msg)
+	errlog.Log(conn.WriteJSON(msg))
 	writeMu.Unlock()
 }
 
@@ -804,21 +906,21 @@ func isOneShotStatsRequest(req *WSHTTPRequest) bool {
 
 // HandleExec starts an exec attach session and streams I/O over WebSocket.
 func (p *Proxy) HandleExec(ctx context.Context, wsConn *websocket.Conn, sessionID, execID string) {
-	rawConn, reader, err := p.rawExecAttach(execID)
+	rawConn, reader, err := p.rawExecAttach(ctx, execID)
 	if err != nil {
 		p.logger.Error("exec attach failed", "sessionID", sessionID, "error", err)
 		endMsg := WSMessage{Type: MsgExecEnd, ID: sessionID}
 		writeMu.Lock()
-		wsConn.WriteJSON(endMsg)
+		errlog.Log(wsConn.WriteJSON(endMsg))
 		writeMu.Unlock()
 		return
 	}
-	defer rawConn.Close()
+	defer errlog.Close(rawConn)
 	done := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
-			rawConn.Close()
+			errlog.Close(rawConn)
 		case <-done:
 		}
 	}()
@@ -869,7 +971,7 @@ execLoop:
 	// Send exec_end
 	endMsg := WSMessage{Type: MsgExecEnd, ID: sessionID}
 	writeMu.Lock()
-	wsConn.WriteJSON(endMsg)
+	errlog.Log(wsConn.WriteJSON(endMsg))
 	writeMu.Unlock()
 }
 
@@ -879,14 +981,16 @@ func (p *Proxy) WriteExecInput(sessionID string, data []byte) {
 	conn, ok := p.execConns[sessionID]
 	p.execMu.RUnlock()
 	if ok {
-		conn.Write(data)
+		if _, err := conn.Write(data); err != nil {
+			errlog.Log(err)
+		}
 	}
 }
 
 // ResizeExec resizes an exec session terminal via the Docker API.
-func (p *Proxy) ResizeExec(execID string, cols, rows uint) {
-	url := fmt.Sprintf("http://docker/exec/%s/resize?h=%d&w=%d", execID, rows, cols)
-	req, err := http.NewRequest("POST", url, nil)
+func (p *Proxy) ResizeExec(ctx context.Context, execID string, cols, rows uint) {
+	endpoint := fmt.Sprintf("http://docker/exec/%s/resize?h=%d&w=%d", execID, rows, cols)
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, nil)
 	if err != nil {
 		p.logger.Warn("exec resize request failed", "execID", execID, "error", err)
 		return
@@ -896,7 +1000,7 @@ func (p *Proxy) ResizeExec(execID string, cols, rows uint) {
 		p.logger.Warn("exec resize failed", "execID", execID, "error", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
 		p.logger.Warn("exec resize response read failed", "execID", execID, "error", err)
 	}
@@ -909,24 +1013,26 @@ func (p *Proxy) CloseExec(sessionID string) {
 	delete(p.execConns, sessionID)
 	p.execMu.Unlock()
 	if ok {
-		conn.Close()
+		errlog.Close(conn)
 	}
 }
 
 // rawExecAttach performs a raw HTTP exec attach to the Docker socket.
-func (p *Proxy) rawExecAttach(execID string) (net.Conn, *bufio.Reader, error) {
+func (p *Proxy) rawExecAttach(ctx context.Context, execID string) (net.Conn, *bufio.Reader, error) {
 	var conn net.Conn
 	var err error
+	var dialer net.Dialer
 
-	if strings.HasPrefix(p.dockerHost, "unix://") {
+	switch {
+	case strings.HasPrefix(p.dockerHost, "unix://"):
 		socketPath := strings.TrimPrefix(p.dockerHost, "unix://")
-		conn, err = net.Dial("unix", socketPath)
-	} else if strings.HasPrefix(p.dockerHost, "tcp://") {
+		conn, err = dialer.DialContext(ctx, "unix", socketPath)
+	case strings.HasPrefix(p.dockerHost, "tcp://"):
 		addr := strings.TrimPrefix(p.dockerHost, "tcp://")
-		conn, err = net.Dial("tcp", addr)
-	} else {
+		conn, err = dialer.DialContext(ctx, "tcp", addr)
+	default:
 		// Try unix socket at the raw path
-		conn, err = net.Dial("unix", p.dockerHost)
+		conn, err = dialer.DialContext(ctx, "unix", p.dockerHost)
 	}
 
 	if err != nil {
@@ -946,21 +1052,21 @@ func (p *Proxy) rawExecAttach(execID string) (net.Conn, *bufio.Reader, error) {
 	)
 
 	if _, err = conn.Write([]byte(req)); err != nil {
-		conn.Close()
+		errlog.Close(conn)
 		return nil, nil, fmt.Errorf("writing request: %w", err)
 	}
 
 	reader := bufio.NewReader(conn)
 	resp, err := http.ReadResponse(reader, nil)
 	if err != nil {
-		conn.Close()
+		errlog.Close(conn)
 		return nil, nil, fmt.Errorf("reading response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusSwitchingProtocols {
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		conn.Close()
+		respBody := errlog.ReadAll(resp.Body)
+		errlog.Log(resp.Body.Close())
+		errlog.Close(conn)
 		return nil, nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
 	}
 

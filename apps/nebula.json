@@ -1,0 +1,35 @@
+{
+    "slug":  "nebula",
+    "name":  "Nebula",
+    "description":  "Overlay networking tool that builds an encrypted mesh between hosts across networks.",
+    "category":  "Networking",
+    "image":  "nebulaoss/nebula:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nebula.png",
+    "website":  "https://github.com/slackhq/nebula",
+    "docsUrl":  "https://github.com/slackhq/nebula",
+    "ports":  [
+                  {
+                      "host":  4242,
+                      "container":  4242,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nebula/config",
+                        "container":  "/etc/nebula"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

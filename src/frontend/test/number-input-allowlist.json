@@ -1,0 +1,14 @@
+[
+  {
+    "file": "src/frontend/resources/components/TablePagination.tsx",
+    "reason": "Go-to-page jump box sits between the Prev and Next buttons, which already are its steppers; +/- would duplicate them."
+  },
+  {
+    "file": "src/plugins/Plugins/comm-glpi/frontend/src/fields.tsx",
+    "reason": "The 'id' field kind renders GLPI record IDs (entities_id, itilcategories_id, default_assignment_group); an ID is looked up, not stepped."
+  },
+  {
+    "file": "src/plugins/Plugins/comm-itop/frontend/src/fields.tsx",
+    "reason": "The 'id' field kind renders iTop record IDs (team_id, agent_id, service_id, default_assignment_group); an ID is looked up, not stepped."
+  }
+]

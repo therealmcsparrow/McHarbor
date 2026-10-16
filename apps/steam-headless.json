@@ -1,0 +1,60 @@
+{
+    "slug":  "steam-headless",
+    "name":  "Steam Headless",
+    "description":  "Containerized Linux desktop with Steam and GPU-accelerated game streaming for remote play.",
+    "category":  "Gaming",
+    "image":  "ghcr.io/games-on-whales/steam:edge",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/steam.png",
+    "website":  "https://github.com/games-on-whales/gow",
+    "docsUrl":  "https://games-on-whales.github.io/gow/",
+    "ports":  [
+                  {
+                      "host":  47989,
+                      "container":  47989,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  47990,
+                      "container":  47990,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  48010,
+                      "container":  48010,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/steam-headless/config",
+                        "container":  "/home/retro/.config"
+                    },
+                    {
+                        "host":  "/opt/appdata/steam-headless/games",
+                        "container":  "/home/retro/.steam"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DISPLAY_SIZEW",
+                        "default":  "1920",
+                        "description":  "Virtual display width"
+                    },
+                    {
+                        "key":  "DISPLAY_SIZEH",
+                        "default":  "1080",
+                        "description":  "Virtual display height"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "edge",
+    "latest":  {
+        "version":  "edge",
+        "release_date":  "2026-09-29"
+    }
+}

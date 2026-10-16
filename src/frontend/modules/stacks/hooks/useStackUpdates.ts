@@ -4,10 +4,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
-import type {
-  BatchProgressContext,
-  BatchProgressLogLevel,
-} from '@resources/hooks/useBatchProgressOperation';
+import type { BatchProgressContext, BatchProgressLogLevel } from '@resources/hooks/useBatchProgressOperation';
 import { useOperationScans } from '@resources/hooks/useOperationScans';
 import { useReactiveQueryData } from '@resources/hooks/useReactiveQueryData';
 import { assertSuccess } from '@resources/utils/api-mutation';
@@ -61,8 +58,9 @@ const selfUpdateRecoveryTimeoutMs = 60_000;
 const selfUpdatePollIntervalMs = 2_000;
 
 function isSelfUpdateTarget(target: StackOperationTarget) {
-  return target.name.toLowerCase() === 'mcharbor'
-    || target.images.some((image) => image.toLowerCase().includes('/mcharbor'));
+  return (
+    target.name.toLowerCase() === 'mcharbor' || target.images.some((image) => image.toLowerCase().includes('/mcharbor'))
+  );
 }
 
 async function delay(ms: number) {
@@ -105,7 +103,7 @@ export function useCheckStackUpdates() {
       api
         .post<StackUpdateResult[]>(
           `/stacks/check-updates${envId ? `?env=${envId}` : ''}`,
-          stackNames ? { stackNames } : {}
+          stackNames ? { stackNames } : {},
         )
         .then((r) => r.data ?? []),
     meta: { success: t('updates.checkComplete') },
@@ -143,23 +141,13 @@ export function useStackOperationActions() {
     log?.(tc('operations.log.preparing'), {
       detail: tc('operations.log.preparing'),
     });
-    log?.(
-      mode === 'update'
-        ? tc('operations.log.redeployingStack')
-        : tc('operations.log.forceRecreatingStack'),
-      {
-        detail:
-          mode === 'update'
-            ? tc('operations.log.redeployingStack')
-            : tc('operations.log.forceRecreatingStack'),
-      },
-    );
+    log?.(mode === 'update' ? tc('operations.log.redeployingStack') : tc('operations.log.forceRecreatingStack'), {
+      detail: mode === 'update' ? tc('operations.log.redeployingStack') : tc('operations.log.forceRecreatingStack'),
+    });
 
     let result: ComposeResult;
     try {
-      result = await api
-        .post<ComposeResult>(`/stacks/${target.name}/${mode}${envQuery}`)
-        .then(assertSuccess);
+      result = await api.post<ComposeResult>(`/stacks/${target.name}/${mode}${envQuery}`).then(assertSuccess);
     } catch (error) {
       if (!isSelfUpdateTarget(target)) {
         throw error;
@@ -196,17 +184,14 @@ export function useStackOperationActions() {
 
     if (mode === 'update') {
       const updatedNames = new Set(targets.map((target) => target.name));
-      queryClient.setQueryData<Map<string, StackUpdateResult> | undefined>(
-        ['stack-updates', envId],
-        (current) => {
-          if (!current) return current;
-          const next = new Map(current);
-          for (const name of updatedNames) {
-            next.delete(name);
-          }
-          return next;
-        },
-      );
+      queryClient.setQueryData<Map<string, StackUpdateResult> | undefined>(['stack-updates', envId], (current) => {
+        if (!current) return current;
+        const next = new Map(current);
+        for (const updatedName of updatedNames) {
+          next.delete(updatedName);
+        }
+        return next;
+      });
     }
 
     queryClient.removeQueries({ queryKey: ['container-updates', envId] });

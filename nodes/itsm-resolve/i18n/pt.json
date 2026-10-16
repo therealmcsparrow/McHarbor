@@ -1,0 +1,9 @@
+{
+  "label": "Resolver ticket",
+  "description": "Resolve o ticket aberto por uma chave",
+  "config": {
+    "channel_id": "Canal de tickets",
+    "dedup_key": "Chave do ticket",
+    "message": "Mensagem"
+  }
+}

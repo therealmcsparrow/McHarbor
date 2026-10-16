@@ -1,0 +1,50 @@
+{
+    "slug":  "powerdns-authoritative",
+    "name":  "PowerDNS Authoritative",
+    "description":  "Authoritative DNS server that answers queries from its own zone data over multiple backend types.",
+    "category":  "Networking",
+    "image":  "powerdns/pdns-auth-49:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/powerdns.png",
+    "website":  "https://www.powerdns.com/auth.html",
+    "docsUrl":  "https://doc.powerdns.com/authoritative/docker.html",
+    "ports":  [
+                  {
+                      "host":  5300,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5300,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/powerdns-authoritative/config",
+                        "container":  "/etc/powerdns"
+                    },
+                    {
+                        "host":  "/opt/appdata/powerdns-authoritative/data",
+                        "container":  "/var/lib/powerdns"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PDNS_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key for the built-in webserver/API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

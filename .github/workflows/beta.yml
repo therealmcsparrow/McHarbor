@@ -13,11 +13,17 @@ on:
     branches:
       - beta
   workflow_dispatch:
+    inputs:
+      architectures:
+        description: Architectures to build native packages for
+        default: amd64
+        type: string
 
 permissions:
   contents: read
   packages: write
   id-token: write
+  pull-requests: read
 
 concurrency:
   group: beta-${{ github.ref }}
@@ -45,13 +51,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.27.2'
           cache: true
 
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: src/frontend/package-lock.json
 
@@ -62,6 +68,55 @@ jobs:
       - name: Verify Go vet
         working-directory: src/backend
         run: go vet ./...
+
+      - name: Permission and route contract
+        working-directory: src/backend
+        run: go test ./core/rbac/ ./core/apispec/ ./api/
+
+      - name: OpenAPI document is current
+        working-directory: src/backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          DATA_DIR="$(mktemp -d)" MCHARBOR_EMIT_OPENAPI="$PWD/api/openapi.json" go run .
+          if [[ -n "$(git status --porcelain -- api/openapi.json api/unrecorded-routes.txt)" ]]; then
+            echo "::error::src/backend/api/openapi.json is stale. Regenerate: cd src/backend && DATA_DIR=\$(mktemp -d) MCHARBOR_EMIT_OPENAPI=api/openapi.json go run ."
+            git diff --stat -- api/openapi.json || true
+            exit 1
+          fi
+
+      - name: OpenAPI document is valid
+        run: npx -y @redocly/cli@2 lint --extends=minimal src/backend/api/openapi.json
+
+      - name: Terraform provider matches the current spec
+        working-directory: src/terraform-provider-mcharbor
+        shell: bash
+        env:
+          GOWORK: 'off'
+        run: |
+          set -euo pipefail
+          go generate ./...
+          if [[ -n "$(git status --porcelain -- .)" ]]; then
+            echo "::error::src/terraform-provider-mcharbor generated code is stale. Run: cd src/terraform-provider-mcharbor && GOWORK=off go generate ./..."
+            git status --porcelain -- .
+            exit 1
+          fi
+          go vet ./...
+          go test ./...
+
+      - name: OpenAPI document generates a Go client
+        shell: bash
+        run: |
+          set -euo pipefail
+          spec="$GITHUB_WORKSPACE/src/backend/api/openapi.json"
+          work="$(mktemp -d)"
+          cd "$work"
+          go mod init example.com/mcharborclient
+          mkdir client
+          printf 'package: client\noutput: client/client.gen.go\ngenerate:\n  client: true\n  models: true\n' > cfg.yaml
+          go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.5.0 -config cfg.yaml "$spec"
+          go mod tidy
+          go build ./...
 
       - name: Verify Agent build
         working-directory: src/agent
@@ -75,9 +130,106 @@ jobs:
         working-directory: src/frontend
         run: npx tsc -b
 
+      - name: Frontend tests
+        working-directory: src/frontend
+        run: npm test
+
       - name: Verify frontend build
         working-directory: src/frontend
         run: npm run build
+
+      - name: Prepare ruleguard DSL
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd scripts/lint/ruleguard && GOWORK=off go mod download)
+          gopath="$(go env GOPATH)"
+          dsl="$gopath/pkg/mod/github.com/quasilyte/go-ruleguard/dsl@v0.3.23"
+          mkdir -p "$gopath/src/github.com/quasilyte/go-ruleguard/dsl"
+          cp -r "$dsl"/. "$gopath/src/github.com/quasilyte/go-ruleguard/dsl/"
+          GO111MODULE=off go install github.com/quasilyte/go-ruleguard/dsl
+
+      - name: golangci-lint (backend)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/backend
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: golangci-lint (agent)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/agent
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: golangci-lint (cli)
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOWORK: off
+        with:
+          version: v2.14.0
+          install-mode: goinstall
+          working-directory: src/cli
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+
+      - name: govulncheck
+        shell: bash
+        env:
+          GOWORK: off
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          status=0
+          for dir in src/backend src/agent; do
+            (cd "$dir" && "$(go env GOPATH)/bin/govulncheck" ./...) || status=1
+          done
+          exit "$status"
+
+      - name: Lint (Oxlint) and format check
+        working-directory: src/frontend
+        run: npm run lint && npm run format:check
+
+      - name: Unused files and exports (knip report)
+        working-directory: src/frontend
+        continue-on-error: true
+        run: npm run knip:report
+
+      - name: i18n keys resolve and locales are in sync
+        run: |
+          node scripts/sanity/i18n/verify-keys.mjs
+          node scripts/sanity/i18n/sync-locales.mjs
+
+      - name: i18n translation ratchet
+        shell: pwsh
+        run: ./scripts/sanity/i18n-untranslated/check.ps1 -Ratchet .instructions/sanity/baselines/i18n-untranslated-ratchet.json
+
+      - name: Hook guardrail tests
+        run: node --test scripts/hooks/__tests__/*.test.mjs
+
+      - name: Sanity checks
+        shell: pwsh
+        run: ./scripts/sanity/run-all.ps1 -Check security,code-quality,modularity,ui-consistency,error-visualization,copyright,code-comments,go-standards,react-standards,permissions,plugin-host-coupling,plugin-isolation,duplication -FailOn fail -SkipNetwork
+
+      - name: Upload sanity reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanity-reports
+          path: .results/sanity/*
+          if-no-files-found: ignore
+
+      - name: gitleaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz | tar -xz -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" detect --no-git -s src --config .gitleaks.toml --redact --verbose
 
       - name: Verify version lockstep
         shell: bash
@@ -92,10 +244,57 @@ jobs:
           fi
           echo "All version sources match: $version"
 
+  migrations:
+    name: Migrations on all database backends
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: mcharbor
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: mcharbor
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -ptest --silent" --health-interval 5s --health-timeout 5s --health-retries 30
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: test
+          MARIADB_DATABASE: mcharbor
+        ports: ['3307:3306']
+        options: >-
+          --health-cmd "mariadb-admin ping -ptest --silent" --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache: true
+
+      - name: Migrate from empty on SQLite, PostgreSQL, MySQL and MariaDB
+        working-directory: src/backend
+        env:
+          GOWORK: 'off'
+          MCHARBOR_TEST_PG_DSN: postgres://postgres:test@localhost:5432/mcharbor?sslmode=disable
+          MCHARBOR_TEST_MYSQL_DSN: root:test@tcp(localhost:3306)/mcharbor?parseTime=true&loc=UTC
+          MCHARBOR_TEST_MARIADB_DSN: root:test@tcp(localhost:3307)/mcharbor?parseTime=true&loc=UTC
+        run: go test ./core/db/ -run 'TestMigrate' -count=1 -v
+
   publish-beta-image:
     name: Publish beta image
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, migrations]
     if: github.event_name == 'push'
     steps:
       - name: Checkout
@@ -177,3 +376,48 @@ jobs:
             org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.ref=beta
+
+  build-packages:
+    name: Build native packages
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Read version
+        id: versions
+        shell: bash
+        run: echo "app_version=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Build glibc payload and tarball
+        run: MCHARBOR_TARBALL=1 bash scripts/development/build-mcharbor.sh
+
+
+      - name: Package deb and rpm
+        env:
+          MCHARBOR_VERSION: ${{ steps.versions.outputs.app_version }}
+          MCHARBOR_ARCH: amd64
+          MCHARBOR_PAYLOAD: dist/payload
+        run: |
+          mkdir -p dist/packages
+          for pkg in deb rpm; do
+            docker run --rm -v "$PWD:/w" -w /w \
+              -e MCHARBOR_VERSION -e MCHARBOR_ARCH -e MCHARBOR_PAYLOAD \
+              goreleaser/nfpm:v2.47.0 package -f packaging/nfpm.yaml -p "$pkg" -t dist/packages
+          done
+
+      - name: Generate checksums
+        working-directory: dist/packages
+        run: sha256sum * > SHA256SUMS
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcharbor-packages-amd64
+          path: dist/packages/*
+          retention-days: 30

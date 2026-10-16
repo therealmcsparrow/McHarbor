@@ -4,8 +4,8 @@
   "config": {
     "property": "Propriété",
     "operation": "Opération",
-    "arg1": "Arg 1",
-    "arg2": "Arg 2"
+    "arg1": "Arg. 1",
+    "arg2": "Arg. 2"
   },
   "options": {
     "operation": {

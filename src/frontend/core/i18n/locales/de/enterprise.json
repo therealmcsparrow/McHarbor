@@ -1,0 +1,461 @@
+{
+  "title": "Enterprise-Übersicht",
+  "description": "Prüfen Sie die Enterprise-Bereitschaft in den Bereichen Identität, Audit, Backup, Plugins, Speicher und HA-Grundlagen.",
+  "actions": {
+    "open": "Öffnen"
+  },
+  "values": {
+    "ready": "Bereit",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert"
+  },
+  "status": {
+    "success": "Konfiguriert",
+    "warning": "Erfordert Aufmerksamkeit",
+    "secondary": "Wird geprüft"
+  },
+  "sections": {
+    "surfaces": "Enterprise-Bereiche"
+  },
+  "cards": {
+    "ha": {
+      "title": "Hochverfügbarkeit",
+      "description": "Datenbankmodus und Status der Cluster-Koordination."
+    },
+    "identity": {
+      "title": "Identitätsanbieter",
+      "description": "Konfigurierte SSO/OIDC/SAML/LDAP-Anbieter."
+    },
+    "scim": {
+      "title": "SCIM-Bereitstellung",
+      "description": "Bereitstellungs-Endpunkte und Synchronisationsstatus."
+    },
+    "audit": {
+      "title": "Audit-Ereignisse",
+      "description": "Durchsuchbare Spur privilegierter Aktionen."
+    },
+    "auditExport": {
+      "title": "Signierter Audit-Export",
+      "description": "Gefilterter CSV/JSON-Export mit Prüfsummen-Metadaten."
+    },
+    "siem": {
+      "title": "Audit-Log-Weiterleitung",
+      "description": "Audit-Protokoll per Logging-Plugin extern uebertragen."
+    },
+    "backups": {
+      "title": "Backup-Aktivität",
+      "description": "Verlauf der Backup- und Wiederherstellungsvorgänge."
+    },
+    "storage": {
+      "title": "Speicherorte",
+      "description": "Konfigurierte Backup- und Artefaktziele."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Geladene Beiträge der Plugin-Laufzeit."
+    },
+    "apiKeys": {
+      "title": "API-Schlüssel",
+      "description": "Automatisierungs-Zugangsdaten mit begrenztem Geltungsbereich."
+    }
+  },
+  "links": {
+    "security": {
+      "title": "Sicherheit",
+      "description": "Benutzer, Rollen, TLS, Identität und Härtung."
+    },
+    "identity": {
+      "title": "Identitätsanbieter",
+      "description": "Enterprise-Anmeldeanbieter konfigurieren und testen."
+    },
+    "scim": {
+      "title": "SCIM",
+      "description": "Benutzer und Gruppen aus externen Verzeichnissen bereitstellen."
+    },
+    "policies": {
+      "title": "Rollen und Richtlinien",
+      "description": "Das Verhalten von RBAC- und ABAC-Richtlinien prüfen."
+    },
+    "audit": {
+      "title": "Audit-Center",
+      "description": "Privilegierte Aktionen und Ablehnungen nachverfolgen."
+    },
+    "auditExport": {
+      "title": "Signierter Audit-Export",
+      "description": "Überprüfbare Audit-Nachweise herunterladen."
+    },
+    "siem": {
+      "title": "Audit-Log-Weiterleitung",
+      "description": "Audit-Log-Weiterleitung und Zustellverlauf konfigurieren."
+    },
+    "apiKeys": {
+      "title": "API-Schlüssel",
+      "description": "API-Zugangsdaten mit begrenztem Geltungsbereich verwalten."
+    },
+    "backups": {
+      "title": "Backups",
+      "description": "Backup-Läufe und Wiederherstellungsbereitschaft prüfen."
+    },
+    "storage": {
+      "title": "Speicher",
+      "description": "Externe Backup-Ziele verwalten."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Enterprise-Erweiterungen installieren und untersuchen."
+    },
+    "ha": {
+      "title": "HA-Grundlagen",
+      "description": "Aktueller Knoten, Datenbank und Singleton-Führung."
+    },
+    "license": {
+      "title": "Lizenz",
+      "description": "Lizenztyp, Umfang und aktuelle Nutzung."
+    }
+  },
+  "haWizard": {
+    "title": "HA-Migrationsassistent",
+    "description": "Wechseln Sie zwischen Singleton-SQLite und Aktiv-Aktiv-HA mit einer vom Betreiber gesteuerten Migrations-Checkliste.",
+    "errorTitle": "Der HA-Migrationsplan konnte nicht geladen werden",
+    "mode": {
+      "singleton": "Singleton",
+      "ha": "Hochverfügbarkeit"
+    },
+    "summary": {
+      "database": "Datenbank",
+      "node": "Knoten",
+      "target": "Empfohlenes Ziel"
+    },
+    "direction": {
+      "toHA": "Von Singleton zu HA",
+      "toSingleton": "Von HA zu Singleton"
+    },
+    "resources": {
+      "title": "Ressourcen für Betreiber",
+      "composeTemplate": {
+        "title": "HA-Compose-Vorlage",
+        "description": "Prüfen oder starten Sie das mitgelieferte Zwei-Knoten-PostgreSQL-HA-Beispiel, bevor Sie es für die Produktion anpassen."
+      },
+      "envExample": {
+        "title": "Umgebungsvorlage",
+        "description": "Kopieren Sie diese Platzhalterdatei nach ha.env und tragen Sie echte Secrets, Datenbank-Zugangsdaten und knotenspezifische Werte ein."
+      },
+      "backupKey": {
+        "title": "Gemeinsamer Backup-Schlüssel",
+        "description": "Erzeugen Sie einen Backup-Verschlüsselungsschlüssel und binden Sie dieselbe Datei auf jedem McHarbor-Knoten ein."
+      },
+      "documentation": {
+        "title": "Migrationsdokumentation",
+        "description": "Folgen Sie dem vollständigen Leitfaden zu gemeinsamer Datenbank, gemeinsamem Archiv, Rollback und Produktionshärtung."
+      },
+      "postgresImport": {
+        "title": "PostgreSQL-Importbefehle",
+        "description": "Nutzen Sie diese Befehle als Ausgangspunkt für einen Testimport und einen Rollback-Dump, wenn PostgreSQL die HA-Datenbank ist."
+      },
+      "mysqlImport": {
+        "title": "MySQL/MariaDB-Importbefehle",
+        "description": "Nutzen Sie diese Befehle als Ausgangspunkt für einen Testimport und einen Rollback-Dump, wenn MySQL oder MariaDB die HA-Datenbank ist."
+      }
+    },
+    "actions": {
+      "previous": "Zurück",
+      "next": "Weiter",
+      "copyCommand": "Befehl kopieren",
+      "copyValue": "Wert kopieren",
+      "copied": "In die Zwischenablage kopiert",
+      "manualCopy": "Manuell kopieren"
+    },
+    "checkStatus": {
+      "pass": "Bereit",
+      "attention": "Erfordert Aufmerksamkeit"
+    },
+    "checks": {
+      "title": "Bereitschaftsprüfungen",
+      "database": {
+        "title": "Externe Datenbank",
+        "detail": "Verwenden Sie PostgreSQL, MySQL/MariaDB oder SQL Server mit MCHARBOR_DB_DSN auf jedem HA-Knoten."
+      },
+      "nodeId": {
+        "title": "Stabile Knoten-ID",
+        "detail": "Setzen Sie MCHARBOR_NODE_ID pro Knoten für lesbare Protokolle und Clusterstatus."
+      },
+      "sharedSecret": {
+        "title": "Gemeinsames Sitzungsgeheimnis",
+        "detail": "Verwenden Sie dasselbe MCHARBOR_SECRET auf jedem Knoten, damit Sitzungen einen Failover überstehen."
+      },
+      "encryptionKey": {
+        "title": "Gemeinsamer Verschlüsselungsschlüssel",
+        "detail": "Setzen Sie auf jedem Knoten denselben ENCRYPTION_KEY; ein Knoten, dessen Schlüssel nicht zur Datenbank passt, verweigert den Start."
+      },
+      "backupKey": {
+        "title": "Gemeinsamer Backup-Schlüssel",
+        "detail": "Binden Sie dasselbe Backup-Verschlüsselungs-Secret auf jedem Knoten ein, bevor Sie knotenübergreifend wiederherstellen."
+      },
+      "databaseReachable": {
+        "title": "Datenbank erreichbar",
+        "detail": "Die aktuelle Datenbank muss antworten, bevor Migration oder Rollback beginnen."
+      }
+    },
+    "steps": {
+      "progress": "Schritt {{current}} von {{total}}",
+      "prepare": {
+        "badge": "Planen",
+        "title": "Gemeinsame Dienste vorbereiten",
+        "description": "Legen Sie eine PostgreSQL- oder MySQL-Datenbank an, wählen Sie ein gemeinsames Archivziel, erzeugen Sie stabile Secrets und prüfen Sie docker-compose.ha.yml, bevor Sie den Singleton-Knoten stoppen."
+      },
+      "snapshot": {
+        "badge": "Backup",
+        "title": "Singleton sichern",
+        "description": "Stoppen Sie Schreibvorgänge, sichern Sie die SQLite-Datenbank und bewahren Sie das Datenverzeichnis auf, bevor Sie Daten exportieren."
+      },
+      "import": {
+        "badge": "Importieren",
+        "title": "In die gemeinsame Datenbank importieren",
+        "description": "Laden Sie den SQLite-Dump zunächst in eine Testdatenbank in PostgreSQL oder MySQL/MariaDB und lassen Sie McHarbor beim ersten HA-Start die ausstehenden Migrationen ausführen."
+      },
+      "configure": {
+        "badge": "Konfigurieren",
+        "title": "Jeden Knoten konfigurieren",
+        "description": "Setzen Sie MCHARBOR_DB_DRIVER, MCHARBOR_DB_DSN, MCHARBOR_NODE_ID, MCHARBOR_SECRET und den gemeinsamen Backup-Schlüssel auf jedem McHarbor-Knoten."
+      },
+      "start": {
+        "badge": "Starten",
+        "title": "Hinter dem Load Balancer starten",
+        "description": "Starten Sie zuerst einen Knoten, prüfen Sie, ob der Clusterstatus gesund ist, und fügen Sie dann die übrigen Knoten zum Load Balancer hinzu."
+      },
+      "drain": {
+        "badge": "Entleeren",
+        "title": "HA-Verkehr entleeren",
+        "description": "Nehmen Sie alle Knoten bis auf einen aus dem Load Balancer und pausieren Sie geplante Schreibvorgänge während des Rollback-Fensters."
+      },
+      "export": {
+        "badge": "Exportieren",
+        "title": "Die gemeinsame Datenbank exportieren",
+        "description": "Erzeugen Sie einen Dump der PostgreSQL- oder MySQL/MariaDB-Datenbank und wandeln Sie ihn zurück in SQLite-kompatibles SQL, oder stellen Sie den SQLite-Snapshot von vor der HA wieder her, wenn keine HA-Schreibvorgänge erhalten bleiben sollen."
+      },
+      "restore": {
+        "badge": "Wiederherstellen",
+        "title": "SQLite-Daten wiederherstellen",
+        "description": "Legen Sie die wiederhergestellte SQLite-Datenbank unter DATA_DIR ab und halten Sie das gemeinsame Archivziel eingebunden, wenn Backup-Dateien außerhalb des Knotens liegen."
+      },
+      "singleNodeEnv": {
+        "badge": "Starten",
+        "title": "Die Umgebung zurückstellen",
+        "description": "Entfernen Sie MCHARBOR_DB_DRIVER und MCHARBOR_DB_DSN, halten Sie MCHARBOR_SECRET stabil und starten Sie dann den Singleton-Knoten."
+      }
+    },
+    "gaps": {
+      "title": "Lücken auf der Roadmap",
+      "agentRouting": {
+        "title": "Agenten an mehr als einem aktiven Knoten",
+        "description": "Ein Remote-Agent hält eine Verbindung zu einem Knoten. Bei Active/Active wird jeder Docker-Aufruf und jede Terminal-, Konsolen- und Protokollsitzung an diesen Knoten weitergeleitet. Eine offene Sitzung endet, wenn sich ihr Agent mit einem anderen Knoten neu verbindet, und muss neu geöffnet werden; das Agent-Selbst-Update wirkt nur von dem Knoten aus, der den Agenten hält."
+      },
+      "mysqlRuntime": {
+        "title": "MySQL und MariaDB zur Laufzeit",
+        "description": "PostgreSQL, MySQL 8.4 und MariaDB 11 betreiben die gesamte Anwendung; Laufzeitanweisungen werden am Treiber übersetzt. Einige nur für SQLite gedachte Migrationsanweisungen (partielle eindeutige Indizes, Audit-WORM-Trigger) haben kein MySQL-Äquivalent und werden übersprungen, weshalb PostgreSQL die vollständigste Wahl bleibt."
+      }
+    }
+  },
+  "ha": {
+    "title": "Hochverfügbarkeit",
+    "description": "Jeder McHarbor-Knoten, welcher aktiv ist, ob jeder für Datenverkehr bereit ist, und die Steuerungen zum Übergeben oder Leeren.",
+    "singleNode": "Diese Instanz läuft auf SQLite, das nicht zwischen Knoten geteilt werden kann. Hochverfügbarkeit erfordert auf jedem Knoten PostgreSQL, MySQL/MariaDB oder SQL Server.",
+    "facts": {
+      "mode": "Modus",
+      "thisNode": "Dieser Knoten",
+      "database": "Datenbank",
+      "readiness": "Bereitschaft",
+      "pluginStore": "Plugin-Pakete"
+    },
+    "mode": {
+      "peer": "Peers",
+      "active-passive": "Active/Passive"
+    },
+    "role": {
+      "peer": "Peer",
+      "active": "Aktiv",
+      "standby": "Standby"
+    },
+    "state": {
+      "running": "Läuft",
+      "draining": "Wird geleert",
+      "stopped": "Gestoppt"
+    },
+    "check": {
+      "database": "Datenbank antwortet",
+      "coordinator": "Sperrsitzung aktiv",
+      "accepting": "Wird nicht geleert",
+      "serving": "Kein Standby"
+    },
+    "reachable": "Erreichbar",
+    "unreachable": "Nicht erreichbar",
+    "ready": "Bereit",
+    "notReady": "Nicht bereit",
+    "thisNode": "Dieser Knoten",
+    "notResponding": "Antwortet nicht",
+    "nodesTitle": "Knoten",
+    "searchPlaceholder": "Knoten, Hosts, Versionen suchen...",
+    "empty": "Bisher hat sich noch kein Knoten gemeldet.",
+    "health": {
+      "up": "Aktiv",
+      "degraded": "Beeinträchtigt",
+      "down": "Ausgefallen"
+    },
+    "facet": {
+      "drift": "Versionsabweichung"
+    },
+    "filter": {
+      "allRoles": "Alle Rollen"
+    },
+    "columns": {
+      "health": "Zustand",
+      "advertiseUrl": "Advertise-URL",
+      "started": "Gestartet",
+      "node": "Knoten",
+      "role": "Rolle",
+      "state": "Zustand",
+      "heartbeat": "Letzter Heartbeat",
+      "version": "Version",
+      "agents": "Agenten",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "makeActive": "Aktiv schalten",
+      "drain": "Leeren",
+      "resume": "Fortsetzen"
+    },
+    "confirm": {
+      "failover": {
+        "title": "{{node}} zum aktiven Knoten machen?",
+        "description": "Der aktive Knoten gibt seine Sperre und jeden Singleton-Job frei, und {{node}} übernimmt innerhalb von Sekunden. Benutzer und Agenten verbinden sich über den Load Balancer neu.",
+        "confirm": "Aktiv schalten"
+      },
+      "drain": {
+        "title": "{{node}} leeren?",
+        "description": "{{node}} meldet sich nicht mehr als bereit, sodass der Load Balancer keinen neuen Datenverkehr mehr sendet. Ein aktiver Knoten übergibt zuerst.",
+        "confirm": "Leeren"
+      },
+      "resume": {
+        "title": "{{node}} fortsetzen?",
+        "description": "{{node}} meldet sich wieder als bereit und kann Datenverkehr annehmen oder aktiv werden.",
+        "confirm": "Fortsetzen"
+      }
+    },
+    "splitBrain": {
+      "title": "Mehr als ein Knoten beansprucht, aktiv zu sein",
+      "description": "Die Knoten {{nodes}} melden beide die aktive Rolle. Failover und Leeren sind deaktiviert, bis nur noch einer übrig ist; prüfen Sie die Datenbankverbindung jedes Knotens."
+    },
+    "jobsTitle": "Singleton-Jobs auf diesem Knoten",
+    "jobsDescription": "Jobs, die knotenübergreifend genau einmal laufen müssen, und welche davon dieser Knoten derzeit ausführt.",
+    "jobsNone": "Dieser Knoten führt keinen davon aus.",
+    "banner": {
+      "title": "Dies ist ein Standby-Knoten",
+      "description": "{{node}} ist ein Standby: Er bedient Lesezugriffe, und Änderungen werden abgelehnt, bis er aktiv wird. Verwenden Sie die Adresse des Load Balancers, um Änderungen vorzunehmen."
+    },
+    "pluginStore": {
+      "local": "Nur dieser Knoten",
+      "database": "Gemeinsame Datenbank",
+      "shared-fs": "Gemeinsames Dateisystem",
+      "object": "Speicherort"
+    },
+    "pluginStoreLocal": "Plugin-Pakete werden nur auf jedem Knoten einzeln gehalten. Ein Standby kann kein Plugin laden, das installiert wurde, als er nicht aktiv war; setzen Sie MCHARBOR_PLUGIN_STORE auf jedem Knoten auf database, shared-fs:<path> oder object:<storage location id>.",
+    "readiness": {
+      "title": "HA-Bereitschaft",
+      "description": "Prüft diesen Cluster gegen einen Zielmodus. Ein fehlschlagendes Gate blockiert das Ziel; eine Warnung nicht.",
+      "targetLabel": "Zielmodus",
+      "target": {
+        "active-active": "Active/Active",
+        "active-passive": "Active/Passive"
+      },
+      "status": {
+        "pass": "Bestanden",
+        "warn": "Warnung",
+        "fail": "Fehlgeschlagen"
+      },
+      "verdict": {
+        "ready": "Jedes Gate ist für dieses Ziel bestanden.",
+        "notReady": "Mindestens ein Gate schlägt für dieses Ziel fehl."
+      },
+      "activeActiveDisabled": "Active/Active bleibt deaktiviert, solange ein Gate fehlschlägt. Beheben Sie jedes fehlschlagende Gate unten und setzen Sie dann MCHARBOR_HA_MODE=active-active auf jedem Knoten; Warnungen blockieren es nicht.",
+      "routing": {
+        "check": "Knotenübergreifendes Routing nachweisen",
+        "proven": "Ein Aufruf an die Umgebung {{env}} wurde von Knoten {{node}} ausgeführt, daher funktioniert die Weiterleitung von hier aus.",
+        "failed": "Der letzte knotenübergreifende Aufruf ist fehlgeschlagen: {{error}}",
+        "unproven_one": "{{nodes}} Knoten hält Agenten, die dieser Knoten nicht hält. Bisher wurde nichts weitergeleitet.",
+        "unproven_other": "{{nodes}} Knoten halten Agenten, die dieser Knoten nicht hält. Bisher wurde nichts weitergeleitet.",
+        "nothingToRoute": "Kein Agent wird von einem anderen Knoten gehalten, daher gibt es nichts weiterzuleiten und nichts nachzuweisen."
+      },
+      "gate": {
+        "externalDatabase": {
+          "title": "Gemeinsame Datenbank",
+          "pass": "PostgreSQL, MySQL oder MariaDB ist konfiguriert und antwortet von diesem Knoten.",
+          "fail": "SQLite kann nicht geteilt werden, oder die gemeinsame Datenbank antwortet nicht. Setzen Sie MCHARBOR_DB_DRIVER und MCHARBOR_DB_DSN auf jedem Knoten."
+        },
+        "encryptionKey": {
+          "title": "Derselbe Verschlüsselungsschlüssel auf jedem Knoten",
+          "pass": "Der Schlüssel stammt aus ENCRYPTION_KEY und entspricht der Schlüsselprüfung, die jeder Knoten beim Start verifiziert.",
+          "fail": "Der Schlüssel wird pro Knoten erzeugt oder passt nicht zur Datenbank. Setzen Sie auf jedem Knoten denselben ENCRYPTION_KEY."
+        },
+        "pluginStore": {
+          "title": "Gemeinsamer Plugin-Paketspeicher",
+          "pass": "Jeder Knoten kann installierte Plugin-Pakete abrufen.",
+          "fail": "Plugin-Pakete liegen nur auf dem Knoten, der sie installiert hat. Setzen Sie MCHARBOR_PLUGIN_STORE auf einen gemeinsamen Speicher."
+        },
+        "sameVersion": {
+          "title": "Gleiche Version und gleicher Build",
+          "pass": "Jeder aktive Knoten führt dieselbe Version und denselben Build aus.",
+          "warn": "Die Knotenregistrierung konnte nicht gelesen werden, daher sind die Versionen unbekannt.",
+          "fail": "Aktive Knoten führen unterschiedliche Versionen oder Builds aus. Aktualisieren Sie jeden Knoten auf dasselbe Image."
+        },
+        "agentRouting": {
+          "title": "Remote-Agent-Routing",
+          "pass": "Jeder Agent-Aufruf erreicht den Knoten, der den Agenten hält. Bei einem aktiven Knoten verbindet sich jeder Agent mit diesem; bei Active/Active wurden Docker-Aufrufe und das Sitzungs-Relay für Terminals, die Gastkonsole, Host-Protokolle und Agent-Nachrichten beide durch einen zurückgekehrten Aufruf nachgewiesen.",
+          "warn": "Docker-API-Aufrufe werden an den Knoten weitergeleitet, der den Agenten hält, aber das Sitzungs-Relay, das Terminal-Exec, das Host-Terminal, die Gastkonsole, Host-Protokolle und Agent-Nachrichten trägt, wurde von diesem Knoten aus nicht nachgewiesen, oder sein letzter Versuch ist fehlgeschlagen. Führen Sie die Routing-Prüfung aus; bis sie besteht, erreichen diese Sitzungen nur diesen Knoten.",
+          "fail": "Ein Agent, der von einem anderen Knoten gehalten wird, ist von hier aus nicht erreichbar: Der Knoten-zu-Knoten-Hop ist nicht konfiguriert, oder sein letzter echter Aufruf ist fehlgeschlagen. Setzen Sie auf jedem Knoten dasselbe MCHARBOR_SECRET und eine erreichbare MCHARBOR_ADVERTISE_URL."
+        },
+        "nodeLinkTransport": {
+          "title": "Verschlüsselte Knoten-zu-Knoten-Aufrufe",
+          "pass": "Signierte Knoten-zu-Knoten-Aufrufe laufen nie unverschlüsselt über das Netzwerk: Entweder ist nur ein Knoten aktiv, oder jeder aktive Knoten meldet eine https-Adresse.",
+          "warn": "Knoten-zu-Knoten-Aufrufe laufen mit abgeschwächtem TLS: MCHARBOR_NODE_LINK_ALLOW_HTTP=1 erlaubt ihnen, Knoten mit einfacher http-Adresse zu erreichen, oder MCHARBOR_NODE_LINK_SKIP_VERIFY=1 akzeptiert jedes Peer-Zertifikat. Jeder auf dem Weg kann sie dann mitlesen und gestreamte Anfragekörper, Agent-Antworten sowie weitergeleitete Terminal-, Konsolen- und Protokollsitzungen fälschen, was nur TLS verhindert. Hinterlegen Sie stattdessen die CA der Knoten mit MCHARBOR_NODE_LINK_CA_FILE oder nutzen Sie dies nur in einem vertrauenswürdigen privaten Netzwerk.",
+          "fail": "Knoten-zu-Knoten-Aufrufe werden abgelehnt: Einige aktive Knoten melden eine Adresse, die nicht https ist, oder MCHARBOR_NODE_LINK_CA_FILE auf diesem Knoten kann nicht geladen werden. Geben Sie diesen Knoten eine https-MCHARBOR_ADVERTISE_URL (oder setzen Sie MCHARBOR_NODE_LINK_ALLOW_HTTP=1 auf jedem Knoten für ein vertrauenswürdiges privates Netzwerk) und verweisen Sie MCHARBOR_NODE_LINK_CA_FILE auf ein lesbares PEM-Zertifikat oder entfernen Sie die Variable."
+        },
+        "sessions": {
+          "title": "Sitzungen",
+          "pass": "Sitzungen liegen in der gemeinsamen Datenbank, daher sind Sticky Sessions nicht erforderlich."
+        },
+        "perNodeState": {
+          "title": "Konsolen-Tickets und Ratenbegrenzungen",
+          "pass": "Ein Knoten bedient, daher verhalten sich Tickets im Arbeitsspeicher und Ratenbegrenzungen wie bei einem einzelnen Knoten.",
+          "warn": "Konsolen-Tickets liegen in der gemeinsamen Datenbank, sodass jeder Knoten ein Ticket einlösen kann, das ein beliebiger Knoten ausgestellt hat. Ratenbegrenzungszähler und das Limit der Konsolen-Betrachter bleiben absichtlich pro Knoten: Das effektive Limit ist das konfigurierte mal die Anzahl der Knoten.",
+          "fail": "Die Tabelle der Konsolen-Tickets antwortete von diesem Knoten nicht, daher könnte eine hier geöffnete Konsole anderswo nicht eingelöst werden."
+        },
+        "coordinator": {
+          "title": "Koordinator-Sperre",
+          "pass": "Die Sperrsitzung, die den aktiven Knoten und Singleton-Jobs bestimmt, antwortet.",
+          "fail": "Die Sperrsitzung ist nicht verfügbar. Sie erfordert eine externe Datenbank."
+        }
+      }
+    },
+    "startup": {
+      "title": "Startzustand",
+      "description": "Was dieser Knoten beim Start festgestellt hat ({{time}}).",
+      "haModeRefused": "MCHARBOR_HA_MODE=active-active wurde angefordert und abgelehnt, weil seine Bereitschafts-Gates fehlschlagen; dieser Knoten läuft als Active/Passive.",
+      "database": "Datenbank",
+      "dataDir": "Datenverzeichnis",
+      "writable": "Beschreibbar",
+      "notWritable": "Nicht beschreibbar",
+      "free": "{{size}} frei",
+      "keySource": "Verschlüsselungsschlüssel",
+      "key": {
+        "env": "Aus ENCRYPTION_KEY",
+        "file": "Im Datenverzeichnis erzeugt"
+      },
+      "tls": "TLS",
+      "tlsMode": {
+        "off": "Aus",
+        "https": "HTTPS",
+        "https-only": "Nur HTTPS"
+      }
+    }
+  }
+}

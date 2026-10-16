@@ -1,0 +1,105 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+#
+# All-plugins packager. Produces a dev tarball for EVERY plugin under
+# src/plugins/Plugins/ in a single `docker buildx build`, exported at
+# /packaged/<slug>-<version>.tar.gz.
+#
+# Why this file exists alongside docker/Dockerfile.plugin-packager:
+# that one takes PLUGIN_SLUG and packages exactly one plugin per buildx
+# invocation. Packaging all 45 plugins that way means 45 separate builds.
+# This stage reuses the *same* module context for the whole set, so the
+# marginal cost per plugin is one `go build`, not one image build.
+#
+# Why the host binary is built here too, and why the command shape is
+# copied verbatim from docker/Dockerfile's `backend` stage:
+# Go's plugin loader rejects a .so whose per-package ABI hash differs
+# from the host's ("plugin was built with a different version of package
+# github.com/therealmcsparrow/mcharbor/core/plugin"). The hash is a
+# function of the base image, the module graph (go.work), the source
+# paths (/sdk/...), and the build flags (-trimpath, CGO_ENABLED=1).
+# Keep every one of those identical to docker/Dockerfile or the tarballs
+# this file produces will not load into the image that file produces.
+#
+# Usage (via the driver script, which handles extraction):
+#   ./scripts/rebuild-all-plugin-tarballs.sh
+#
+# Raw form:
+#   docker buildx build --target plugin-packager-all \
+#     --output type=tar,dest=/tmp/packager.tar \
+#     -f docker/Dockerfile.plugin-packager-all .
+
+FROM golang:1.27.2-alpine AS backend
+RUN apk add --no-cache git gcc musl-dev
+
+# Backend source lives at /sdk/src/backend — same path as the main
+# Dockerfile, because the plugin go.mod `replace` directives are
+# relative (../../../backend) and because -trimpath normalizes against
+# the module root.
+COPY src/backend /sdk/src/backend
+RUN --mount=type=cache,target=/go/pkg/mod \
+    cd /sdk/src/backend && go mod download
+
+# The whole plugin tree in one COPY. .dockerignore already strips
+# src/plugins/Plugins/**/frontend/node_modules, which BuildKit would
+# otherwise reject over its hashed .bin symlinks.
+COPY src/plugins/Plugins /sdk/src/plugins/Plugins
+
+# go.work joins the host and every plugin into one module graph so Go
+# walks it once and the per-package ABI hashes line up.
+COPY go.work /sdk/go.work
+
+# Host AND every plugin in a single RUN so they share the build cache.
+# Splitting them is the proximate cause of the ABI mismatch.
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd /sdk && \
+    go work sync && \
+    cd /sdk/src/backend && \
+      CGO_ENABLED=1 go build -trimpath -o /mcharbor ./ && \
+      mkdir -p /packaged && \
+      for plugin in $(ls /sdk/src/plugins/Plugins | grep -v '^_'); do \
+        if [ ! -d "/sdk/src/plugins/Plugins/$plugin/backend" ]; then \
+          echo ">>> $plugin: no backend/ — skipping"; continue; \
+        fi; \
+        echo ">>> building $plugin"; \
+        cd /sdk/src/plugins/Plugins/$plugin && \
+          CGO_ENABLED=1 go build -trimpath -buildmode=plugin -o /$plugin.so ./backend; \
+      done && \
+      ls -la /mcharbor
+
+# Package each plugin: plugin.yaml + backend/<slug>.so + optional
+# frontend/*.umd.cjs + i18n/ + icons/ + migrations/. Mirrors the payload
+# layout the main Dockerfile writes into /ai-plugin-catalog, and the
+# same payload docker/Dockerfile.plugin-packager writes for one plugin.
+#
+# A missing frontend/<slug>.umd.cjs is a warning, not a failure: Go-only
+# plugins (ai-provider-*, scanner-*, logging-*) have no UI surface. For a
+# plugin that *does* have a frontend/ dir, the warning means the UI would
+# render blank — run `npm run build` in that plugin's frontend/ first.
+RUN for plugin in $(ls /sdk/src/plugins/Plugins | grep -v '^_'); do \
+      src=/sdk/src/plugins/Plugins/$plugin; \
+      [ -f /$plugin.so ] || continue; \
+      version=$(awk '/^version:[[:space:]]*/{print $2; exit}' $src/plugin.yaml | tr -d '"'); \
+      if [ -z "$version" ]; then \
+        echo "!!! $plugin: no version in plugin.yaml — skipping" >&2; continue; \
+      fi; \
+      rm -rf /tmp/payload && mkdir -p /tmp/payload/backend && \
+      cp $src/plugin.yaml /tmp/payload/ && \
+      cp /$plugin.so /tmp/payload/backend/$plugin.so && \
+      if [ -f $src/frontend/$plugin.umd.cjs ]; then \
+        mkdir -p /tmp/payload/frontend && cp $src/frontend/$plugin.umd.cjs /tmp/payload/frontend/; \
+      elif [ -d $src/frontend ]; then \
+        echo "!!! $plugin: frontend/ exists but $plugin.umd.cjs is missing — UI will render blank" >&2; \
+      fi && \
+      if [ -d $src/i18n ]; then cp -R $src/i18n /tmp/payload/; fi && \
+      if [ -d $src/icons ]; then cp -R $src/icons /tmp/payload/; fi && \
+      if [ -d $src/migrations ]; then cp -R $src/migrations /tmp/payload/; fi && \
+      tar -C /tmp/payload -czf /packaged/$plugin-$version.tar.gz . && \
+      echo ">>> packaged $plugin-$version.tar.gz"; \
+    done && \
+    ls -la /packaged/
+
+# Export stage: the caller extracts `packaged/` from the buildx tar stream.
+FROM scratch AS plugin-packager-all
+COPY --from=backend /packaged/ /packaged/

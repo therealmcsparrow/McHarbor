@@ -1,0 +1,52 @@
+{
+    "slug":  "checkmk-raw",
+    "name":  "Checkmk Raw",
+    "description":  "Infrastructure and application monitoring platform bundling checks, RRD storage, and a web GUI in one site.",
+    "category":  "Monitoring",
+    "image":  "checkmk/check-mk-raw:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/checkmk.png",
+    "website":  "https://checkmk.com",
+    "docsUrl":  "https://docs.checkmk.com/latest/en/install_docker.html",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6557,
+                      "container":  6556,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/checkmk-raw/data",
+                        "container":  "/omd/sites"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CMK_SITE_ID",
+                        "default":  "monitoring",
+                        "description":  "Checkmk site name to create"
+                    },
+                    {
+                        "key":  "CMK_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Automation/admin password for the cmkadmin user",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

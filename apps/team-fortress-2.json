@@ -1,0 +1,73 @@
+{
+    "slug":  "team-fortress-2",
+    "name":  "Team Fortress 2",
+    "description":  "Dedicated server for the class-based multiplayer shooter Team Fortress 2.",
+    "category":  "Gaming",
+    "image":  "cm2network/tf2:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.teamfortress.com\u0026sz=128",
+    "website":  "https://www.teamfortress.com",
+    "docsUrl":  "https://hub.docker.com/r/cm2network/tf2",
+    "ports":  [
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  27020,
+                      "container":  27020,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/team-fortress-2/data",
+                        "container":  "/home/steam/tf2-dedicated"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SRCDS_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Steam Game Server Login Token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SRCDS_RCONPW",
+                        "default":  "change-me",
+                        "description":  "RCON password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SRCDS_MAPGROUP",
+                        "default":  "mg_payload",
+                        "description":  "Map rotation group"
+                    },
+                    {
+                        "key":  "SRCDS_STARTMAP",
+                        "default":  "pl_upward",
+                        "description":  "Map to start on"
+                    },
+                    {
+                        "key":  "SRCDS_MAXPLAYERS",
+                        "default":  "24",
+                        "description":  "Maximum player slots"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

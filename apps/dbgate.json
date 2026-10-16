@@ -1,0 +1,35 @@
+{
+    "slug":  "dbgate",
+    "name":  "DbGate",
+    "description":  "Web-based database administration tool supporting Postgres, MySQL, SQL Server, MongoDB and more from one UI.",
+    "category":  "Developer Tools",
+    "image":  "dbgate/dbgate:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dbgate.png",
+    "website":  "https://dbgate.org",
+    "docsUrl":  "https://dbgate.org/docs/installation.html",
+    "ports":  [
+                  {
+                      "host":  3009,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dbgate/data",
+                        "container":  "/root/.dbgate"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

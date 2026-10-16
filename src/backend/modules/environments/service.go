@@ -8,41 +8,55 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
+	"regexp"
+	"strings"
 	"time"
 
+	"github.com/moby/moby/client"
 	"github.com/rs/xid"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
-	"github.com/therealmcsparrow/mcharbor/core/kubernetes"
 )
+
+// agentTokenFormatRE matches the plaintext shape the agent binary
+// issues at install time (see core/agent/install.go issueToken —
+// `agt_` + 32 random bytes hex-encoded → 64 hex chars). Enforced on
+// the import-existing-token path so we never store a malformed value
+// that the live agent would refuse to authenticate against.
+var agentTokenFormatRE = regexp.MustCompile(`^agt_[0-9a-f]{64}$`)
+
+// ErrInvalidAgentToken is returned when an operator-provided agent
+// token doesn't match the canonical agt_<64 hex> shape. The handler
+// maps this to i18n.ErrEnvInvalidAgentToken so the UI can surface
+// the localized reason instead of a generic 500.
+var ErrInvalidAgentToken = errors.New("invalid agent token format")
 
 // Service handles environment CRUD operations against the database.
 type Service struct {
 	db         *sql.DB
 	dockerPool *docker.ClientPool
-	k8sPool    *kubernetes.ClientPool
 	agentPool  *coreagent.AgentPool
 	enc        *encryption.Service
 }
 
 // NewService creates a new environment service.
-func NewService(db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *coreagent.AgentPool, enc *encryption.Service) *Service {
-	return &Service{db: db, dockerPool: dockerPool, k8sPool: k8sPool, agentPool: agentPool, enc: enc}
+func NewService(db *sql.DB, dockerPool *docker.ClientPool, agentPool *coreagent.AgentPool, enc *encryption.Service) *Service {
+	return &Service{db: db, dockerPool: dockerPool, agentPool: agentPool, enc: enc}
 }
 
-// List returns all environments from the database.
-func (s *Service) List() ([]Environment, error) {
-	rows, err := s.db.Query(`
-		SELECT id, name, orchestrator_type, connection_type, socket_path, host, port,
+// ListContext returns all environments from the database.
+func (s *Service) ListContext(ctx context.Context) ([]Environment, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, name, connection_type, socket_path, host, port,
 		       tls_ca, tls_cert, tls_key, ssh_host, ssh_port, ssh_user, ssh_key,
 		       is_default, is_active, docker_version, last_connected,
-		       kubeconfig, k8s_namespace, k8s_server_url, k8s_bearer_token, k8s_ca_cert, k8s_version,
-		       agent_token, agent_status, agent_version, agent_hostname, agent_os, agent_arch, agent_last_seen,
+		       agent_token, agent_status, agent_version, agent_hostname, agent_os, agent_arch, agent_last_seen, agent_install_kind,
 		       scheduled_update_check_enabled, automatic_image_pruning_enabled,
 		       track_container_events_enabled, collect_container_metrics_enabled,
 		       highlight_container_changes_enabled, docker_disk_usage_notifications_enabled,
@@ -51,7 +65,9 @@ func (s *Service) List() ([]Environment, error) {
 		       image_prune_dangling_only,
 		       auto_update_enabled, auto_update_window_start, auto_update_window_end, auto_update_days,
 		       metric_retention_hours,
-		       created_at, updated_at
+		       pending_connection_type, pending_migration_started_at, migration_revert_to,
+		       created_at, updated_at,
+		       (SELECT COUNT(*) FROM stacks st WHERE st.environment_id = environments.id) AS stack_count
 		FROM environments
 		ORDER BY is_default DESC, name ASC
 		LIMIT 1000
@@ -59,7 +75,7 @@ func (s *Service) List() ([]Environment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying environments: %w", err)
 	}
-	defer rows.Close()
+	defer func() { logCloseErr(rows.Close()) }()
 
 	var envs []Environment
 	for rows.Next() {
@@ -78,13 +94,12 @@ func (s *Service) List() ([]Environment, error) {
 }
 
 // ByID returns a single environment by ID.
-func (s *Service) ByID(id string) (*Environment, error) {
-	row := s.db.QueryRow(`
-		SELECT id, name, orchestrator_type, connection_type, socket_path, host, port,
+func (s *Service) ByID(ctx context.Context, id string) (*Environment, error) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT id, name, connection_type, socket_path, host, port,
 		       tls_ca, tls_cert, tls_key, ssh_host, ssh_port, ssh_user, ssh_key,
 		       is_default, is_active, docker_version, last_connected,
-		       kubeconfig, k8s_namespace, k8s_server_url, k8s_bearer_token, k8s_ca_cert, k8s_version,
-		       agent_token, agent_status, agent_version, agent_hostname, agent_os, agent_arch, agent_last_seen,
+		       agent_token, agent_status, agent_version, agent_hostname, agent_os, agent_arch, agent_last_seen, agent_install_kind,
 		       scheduled_update_check_enabled, automatic_image_pruning_enabled,
 		       track_container_events_enabled, collect_container_metrics_enabled,
 		       highlight_container_changes_enabled, docker_disk_usage_notifications_enabled,
@@ -93,12 +108,13 @@ func (s *Service) ByID(id string) (*Environment, error) {
 		       image_prune_dangling_only,
 		       auto_update_enabled, auto_update_window_start, auto_update_window_end, auto_update_days,
 		       metric_retention_hours,
+		       pending_connection_type, pending_migration_started_at, migration_revert_to,
 		       created_at, updated_at
 		FROM environments WHERE id = ?
 	`, id)
 
 	env, err := scanEnvironmentRow(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -124,18 +140,18 @@ func (s *Service) applyLiveAgentMetadata(env *Environment) {
 	env.AgentOS = stringPtr(conn.OS)
 	env.AgentArch = stringPtr(conn.Arch)
 	env.DockerVersion = stringPtr(conn.DockerVer)
+	env.AgentHostIP = stringPtr(conn.RemoteIP)
+	env.AgentBuild = stringPtr(conn.Build)
+	env.AgentTLSMode = stringPtr(conn.TLSMode)
 }
 
 // Create inserts a new environment into the database.
 // Returns the environment and, for agent connections, the plaintext token (shown once).
-func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
+func (s *Service) Create(ctx context.Context, req CreateRequest) (*Environment, string, error) {
 	if req.Name == "" {
 		return nil, "", fmt.Errorf("name is required")
 	}
-	if req.OrchestratorType == "" {
-		req.OrchestratorType = "docker"
-	}
-	if req.ConnectionType == "" && req.OrchestratorType == "docker" {
+	if req.ConnectionType == "" {
 		req.ConnectionType = "socket"
 	}
 
@@ -160,42 +176,57 @@ func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
 		return nil, "", fmt.Errorf("encrypting ssh_key: %w", err)
 	}
 
-	// Encrypt sensitive Kubernetes fields
-	kubeconfig, err := s.encryptOptional(req.Kubeconfig)
-	if err != nil {
-		return nil, "", fmt.Errorf("encrypting kubeconfig: %w", err)
-	}
-	k8sBearerToken, err := s.encryptOptional(req.K8sBearerToken)
-	if err != nil {
-		return nil, "", fmt.Errorf("encrypting k8s_bearer_token: %w", err)
-	}
-	k8sCACert, err := s.encryptOptional(req.K8sCACert)
-	if err != nil {
-		return nil, "", fmt.Errorf("encrypting k8s_ca_cert: %w", err)
-	}
-
-	// Generate agent token if agent connection type
+	// Generate agent token if agent connection type. When the operator
+	// already has an agent deployed on another host and is registering
+	// that agent here (typical for the "I run McHarbor on my laptop
+	// and on my homelab, both pointing at the same control plane"
+	// workflow), they pass the existing plaintext via req.AgentToken
+	// and the host skips the "show token once" UX — the user already
+	// has it. The token still has to match the `agt_<64 hex>` shape
+	// the agent binary expects (modules/agent/install.go:issueToken).
+	//
+	// On the import path we deliberately leave `plainToken` empty so
+	// the handler's `if agentToken != ""` check correctly skips the
+	// "show token once" echo. We still persist an encrypted copy in
+	// `agent_token` so the legacy decrypt path keeps working, and the
+	// stable hash in `agent_token_hash` is what live agents
+	// authenticate against.
 	var agentToken *string
 	var agentTokenHash *string
 	var plainToken string
 	if req.ConnectionType == "agent" {
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			return nil, "", fmt.Errorf("generating agent token: %w", err)
+		var resolved string
+		if req.AgentToken != nil && strings.TrimSpace(*req.AgentToken) != "" {
+			candidate := strings.TrimSpace(*req.AgentToken)
+			if !agentTokenFormatRE.MatchString(candidate) {
+				return nil, "", fmt.Errorf("%w (must be agt_<64 hex chars>)", ErrInvalidAgentToken)
+			}
+			resolved = candidate
+		} else {
+			minted, mintErr := s.mintAgentToken()
+			if mintErr != nil {
+				return nil, "", mintErr
+			}
+			resolved = minted
+			// Only mint-new path surfaces the plaintext to the
+			// caller. The import-existing path keeps `plainToken`
+			// empty so the handler's "show token once" check
+			// (`if agentToken != ""`) correctly skips echoing back
+			// something the user already has.
+			plainToken = resolved
 		}
-		plainToken = "agt_" + hex.EncodeToString(b)
-		encrypted, err := s.enc.Encrypt(plainToken)
+		encrypted, err := s.enc.Encrypt(resolved)
 		if err != nil {
 			return nil, "", fmt.Errorf("encrypting agent token: %w", err)
 		}
 		agentToken = &encrypted
-		hash := s.enc.StableHash(plainToken)
+		hash := s.enc.StableHash(resolved)
 		agentTokenHash = &hash
 	}
 
 	// If setting as default, clear other defaults first
 	if req.IsDefault {
-		if _, err := s.db.Exec("UPDATE environments SET is_default = 0"); err != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE environments SET is_default = 0"); err != nil {
 			return nil, "", fmt.Errorf("clearing default environments: %w", err)
 		}
 	}
@@ -205,31 +236,29 @@ func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
 		isDefault = 1
 	}
 
-	_, err = s.db.Exec(`
-		INSERT INTO environments (id, name, orchestrator_type, connection_type, socket_path, host, port,
+	_, err = s.db.ExecContext(ctx, `
+		INSERT INTO environments (id, name, connection_type, socket_path, host, port,
 		                          tls_ca, tls_cert, tls_key, ssh_host, ssh_port, ssh_user, ssh_key,
 		                          is_default, is_active,
-		                          kubeconfig, k8s_namespace, k8s_server_url, k8s_bearer_token, k8s_ca_cert,
 		                          agent_token, agent_token_hash,
 		                          created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, id, req.Name, req.OrchestratorType, req.ConnectionType, req.SocketPath, req.Host, req.Port,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+	`, id, req.Name, req.ConnectionType, req.SocketPath, req.Host, req.Port,
 		tlsCa, tlsCert, tlsKey, req.SSHHost, req.SSHPort, req.SSHUser, sshKey,
 		isDefault,
-		kubeconfig, req.K8sNamespace, req.K8sServerURL, k8sBearerToken, k8sCACert,
 		agentToken, agentTokenHash,
 		now, now)
 	if err != nil {
 		return nil, "", fmt.Errorf("inserting environment: %w", err)
 	}
 
-	env, err := s.ByID(id)
+	env, err := s.ByID(ctx, id)
 	return env, plainToken, err
 }
 
 // Update modifies an existing environment.
-func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
-	existing, err := s.ByID(id)
+func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Environment, error) {
+	existing, err := s.ByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -244,14 +273,11 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 	if req.Name != nil {
 		name = *req.Name
 	}
-	orchestratorType := existing.OrchestratorType
-	if req.OrchestratorType != nil {
-		orchestratorType = *req.OrchestratorType
-	}
+	// Deliberately ignored. A connection-type change mints or revokes a token,
+	// clears agent metadata and drops a live connection; writing the column
+	// alone leaves an environment that claims one transport and holds the
+	// credentials of another. MigrateConnection is the one path that does it.
 	connType := existing.ConnectionType
-	if req.ConnectionType != nil {
-		connType = *req.ConnectionType
-	}
 	socketPath := existing.SocketPath
 	if req.SocketPath != nil {
 		socketPath = req.SocketPath
@@ -308,44 +334,11 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		sshKey = v
 	}
 
-	// Encrypt K8s secrets if provided
-	var kubeconfig, k8sBearerToken, k8sCACert *string
-	if req.Kubeconfig != nil {
-		v, encErr := s.encryptOptional(req.Kubeconfig)
-		if encErr != nil {
-			return nil, fmt.Errorf("encrypting kubeconfig: %w", encErr)
-		}
-		kubeconfig = v
-	}
-	if req.K8sBearerToken != nil {
-		v, encErr := s.encryptOptional(req.K8sBearerToken)
-		if encErr != nil {
-			return nil, fmt.Errorf("encrypting k8s_bearer_token: %w", encErr)
-		}
-		k8sBearerToken = v
-	}
-	if req.K8sCACert != nil {
-		v, encErr := s.encryptOptional(req.K8sCACert)
-		if encErr != nil {
-			return nil, fmt.Errorf("encrypting k8s_ca_cert: %w", encErr)
-		}
-		k8sCACert = v
-	}
-
-	k8sNamespace := existing.K8sNamespace
-	if req.K8sNamespace != nil {
-		k8sNamespace = req.K8sNamespace
-	}
-	k8sServerURL := existing.K8sServerURL
-	if req.K8sServerURL != nil {
-		k8sServerURL = req.K8sServerURL
-	}
-
 	isDefault := existing.IsDefault
 	if req.IsDefault != nil {
 		isDefault = *req.IsDefault
 		if isDefault {
-			if _, err := s.db.Exec("UPDATE environments SET is_default = 0"); err != nil {
+			if _, err := s.db.ExecContext(ctx, "UPDATE environments SET is_default = 0"); err != nil {
 				return nil, fmt.Errorf("clearing default environments: %w", err)
 			}
 		}
@@ -476,18 +469,19 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		autoUpdateEnabledInt = 1
 	}
 
-	_, err = s.db.Exec(`
+	_, err = s.db.ExecContext(ctx, `
 		UPDATE environments
-		SET name = ?, orchestrator_type = ?, connection_type = ?, socket_path = ?, host = ?, port = ?,
+		SET name = ?, connection_type = ?, socket_path = ?, host = ?, port = ?,
 		    tls_ca = COALESCE(?, tls_ca), tls_cert = COALESCE(?, tls_cert),
 		    tls_key = COALESCE(?, tls_key),
 		    ssh_host = ?, ssh_port = ?, ssh_user = ?,
 		    ssh_key = COALESCE(?, ssh_key),
+		    -- The four *_secret_id pointers are cleared on every update so a
+		    -- rewritten certificate or key can never be shadowed by a stale
+		    -- vault copy. The start-up adoption pass re-links them.
+		    tls_ca_secret_id = NULL, tls_cert_secret_id = NULL,
+		    tls_key_secret_id = NULL, ssh_key_secret_id = NULL,
 		    is_default = ?, is_active = ?,
-		    kubeconfig = COALESCE(?, kubeconfig),
-		    k8s_namespace = ?, k8s_server_url = ?,
-		    k8s_bearer_token = COALESCE(?, k8s_bearer_token),
-		    k8s_ca_cert = COALESCE(?, k8s_ca_cert),
 		    scheduled_update_check_enabled = ?, automatic_image_pruning_enabled = ?,
 		    track_container_events_enabled = ?, collect_container_metrics_enabled = ?,
 		    highlight_container_changes_enabled = ?, docker_disk_usage_notifications_enabled = ?,
@@ -498,11 +492,10 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		    metric_retention_hours = ?,
 		    updated_at = ?
 		WHERE id = ?
-	`, name, orchestratorType, connType, socketPath, host, port,
+	`, name, connType, socketPath, host, port,
 		tlsCa, tlsCert, tlsKey,
 		sshHost, sshPort, sshUser, sshKey,
 		defaultInt, activeInt,
-		kubeconfig, k8sNamespace, k8sServerURL, k8sBearerToken, k8sCACert,
 		scheduledUpdateCheckEnabledInt, automaticImagePruningEnabledInt,
 		trackContainerEventsEnabledInt, collectContainerMetricsEnabledInt,
 		highlightContainerChangesEnabledInt, dockerDiskUsageNotificationsEnabledInt,
@@ -516,16 +509,29 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		return nil, fmt.Errorf("updating environment: %w", err)
 	}
 
-	// Invalidate cached clients for this environment
+	// Invalidate cached clients for this environment. Both pools cache by
+	// environment ID and neither notices a credential change on its own, so an
+	// edited cluster would keep talking through the stale clientset.
 	s.dockerPool.Remove(id)
-	s.k8sPool.Remove(id)
 
-	return s.ByID(id)
+	return s.ByID(ctx, id)
+}
+
+// mintAgentToken issues a new plaintext agent token.
+//
+// The shape is the one the agent binary expects and agentTokenFormatRE
+// enforces; crypto/rand because this is the environment's only credential.
+func (s *Service) mintAgentToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("generating agent token: %w", err)
+	}
+	return "agt_" + hex.EncodeToString(b), nil
 }
 
 // Delete removes an environment from the database.
-func (s *Service) Delete(id string) error {
-	result, err := s.db.Exec("DELETE FROM environments WHERE id = ?", id)
+func (s *Service) Delete(ctx context.Context, id string) error {
+	result, err := s.db.ExecContext(ctx, "DELETE FROM environments WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("deleting environment: %w", err)
 	}
@@ -535,21 +541,20 @@ func (s *Service) Delete(id string) error {
 
 	// Remove cached clients
 	s.dockerPool.Remove(id)
-	s.k8sPool.Remove(id)
 
 	return nil
 }
 
-// TestConnection pings the Docker daemon or Kubernetes cluster for the
+// TestConnection pings the Docker daemon for the
 // given environment and returns a per-step report suitable for the
 // frontend dialog. The report lists each connection phase (pool reset,
 // client acquisition, daemon ping, version parse, DB persist) with
 // its own pass/fail status and latency, plus an overall rolled-up
-// status and the resolved Docker / Kubernetes version when the test
+// status and the resolved Docker version when the test
 // succeeds.
 func (s *Service) TestConnection(ctx context.Context, id string) *EnvTestResult {
 	// Look up environment basics so the dialog can show the name.
-	env, err := s.ByID(id)
+	env, err := s.ByID(ctx, id)
 	if err != nil {
 		return &EnvTestResult{
 			EnvID:   id,
@@ -581,20 +586,14 @@ func (s *Service) TestConnection(ctx context.Context, id string) *EnvTestResult 
 	startedAt := time.Now().UTC()
 	now := startedAt.Format(time.RFC3339)
 
-	var result *EnvTestResult
-	if env.OrchestratorType == "kubernetes" {
-		result = s.testK8sConnection(ctx, id, now)
-	} else {
-		result = s.testDockerConnection(ctx, id, now)
-	}
+	result := s.testDockerConnection(ctx, id, now)
 	result.EnvID = id
 	result.EnvName = env.Name
-	result.Orchestrator = env.OrchestratorType
+	result.Orchestrator = "docker"
 	result.StartedAt = now
 	result.CompletedAt = time.Now().UTC().Format(time.RFC3339)
 	result.Duration = result.CompletedAt
-	started, _ := time.Parse(time.RFC3339, now)
-	if !started.IsZero() {
+	if started, parseErr := time.Parse(time.RFC3339, now); parseErr == nil && !started.IsZero() {
 		result.Duration = time.Since(started).String()
 	}
 	return result
@@ -641,7 +640,7 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	// Step 2: acquire a client through the pool. This is where TCP /
 	// TLS / SSH / agent handshake errors surface.
 	started = time.Now()
-	cli, err := s.dockerPool.Get(id)
+	cli, err := s.dockerPool.GetContext(ctx, id)
 	if err != nil {
 		appendStep(&result.Steps, "connect", "fail", "failed to acquire Docker client", started)
 		slog.Error("environments: failed to connect to Docker", "error", err, "id", id)
@@ -653,7 +652,9 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	// Step 3: ping the daemon. cli's Ping calls /_ping which is the
 	// cheapest liveness probe.
 	started = time.Now()
-	ping, err := cli.Ping(ctx)
+	pingCtx, cancelPing := context.WithTimeout(ctx, docker.CallTimeout)
+	ping, err := cli.Ping(pingCtx, client.PingOptions{})
+	cancelPing()
 	if err != nil {
 		appendStep(&result.Steps, "ping", "fail", "Docker /_ping failed", started)
 		slog.Error("environments: connection test failed", "error", err, "id", id)
@@ -669,7 +670,11 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	// not a failure, because APIVersion is already informative.
 	started = time.Now()
 	version := ping.APIVersion
-	if info, err := cli.Info(ctx); err == nil && info.ServerVersion != "" {
+	infoCtx, cancelInfo := context.WithTimeout(ctx, docker.CallTimeout)
+	infoRes, err := cli.Info(infoCtx, client.InfoOptions{})
+	info := infoRes.Info
+	cancelInfo()
+	if err == nil && info.ServerVersion != "" {
 		version = info.ServerVersion
 		appendStep(&result.Steps, "version", "pass", "server version: "+info.ServerVersion, started)
 	} else {
@@ -680,7 +685,7 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	// Step 5: persist the resolved version so the rest of the app
 	// (overview metrics, etc.) reads it without re-pinging.
 	started = time.Now()
-	if _, err := s.db.Exec(
+	if _, err := s.db.ExecContext(ctx,
 		"UPDATE environments SET docker_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
 		version, now, now, id,
 	); err != nil {
@@ -696,49 +701,12 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	return result
 }
 
-func (s *Service) testK8sConnection(ctx context.Context, id string, now string) *EnvTestResult {
-	result := &EnvTestResult{}
-
-	started := time.Now()
-	s.k8sPool.Remove(id)
-	appendStep(&result.Steps, "reset", "pass", "cleared cached client", started)
-
-	started = time.Now()
-	version, err := s.k8sPool.Ping(ctx, id)
-	if err != nil {
-		appendStep(&result.Steps, "ping", "fail", "Kubernetes ping failed", started)
-		slog.Error("environments: failed to connect to Kubernetes", "error", err, "id", id)
-		result.Overall = "fail"
-		return result
-	}
-	appendStep(&result.Steps, "ping", "pass", "cluster responded to ping", started)
-
-	started = time.Now()
-	if _, err := s.db.Exec(
-		"UPDATE environments SET k8s_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
-		version, now, now, id,
-	); err != nil {
-		appendStep(&result.Steps, "persist", "fail", "database update failed", started)
-		slog.Error("environments: failed to update k8s version", "error", err, "id", id)
-		result.Overall = rollupStatus(result.Steps)
-		return result
-	}
-	appendStep(&result.Steps, "persist", "pass", "stored k8s_version + last_connected", started)
-
-	result.K8sVersion = &version
-	result.Overall = rollupStatus(result.Steps)
-	return result
-}
-
-// DetectSocket auto-detects Docker and Podman sockets on the host.
+// DetectSocket auto-detects Docker sockets on the host.
 func (s *Service) DetectSocket() []DetectedSocket {
 	var sockets []DetectedSocket
 
 	if p := docker.DetectDockerSocket(); p != "" {
 		sockets = append(sockets, DetectedSocket{Path: p, Runtime: "docker"})
-	}
-	if p := docker.DetectPodmanSocket(); p != "" {
-		sockets = append(sockets, DetectedSocket{Path: p, Runtime: "podman"})
 	}
 
 	if sockets == nil {
@@ -774,15 +742,6 @@ func (s *Service) redactSecrets(env *Environment) {
 	if env.SSHKey != nil && *env.SSHKey != "" {
 		env.SSHKey = &redacted
 	}
-	if env.Kubeconfig != nil && *env.Kubeconfig != "" {
-		env.Kubeconfig = &redacted
-	}
-	if env.K8sBearerToken != nil && *env.K8sBearerToken != "" {
-		env.K8sBearerToken = &redacted
-	}
-	if env.K8sCACert != nil && *env.K8sCACert != "" {
-		env.K8sCACert = &redacted
-	}
 	if env.AgentToken != nil && *env.AgentToken != "" {
 		env.AgentToken = &redacted
 	}
@@ -793,8 +752,8 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 	var env Environment
 	var socketPath, host, tlsCa, tlsCert, tlsKey sql.NullString
 	var sshHost, sshUser, sshKey, dockerVersion, lastConnected sql.NullString
-	var kubeconfig, k8sNamespace, k8sServerURL, k8sBearerToken, k8sCACert, k8sVersion sql.NullString
 	var agentToken, agentStatus, agentVersion, agentHostname, agentOS, agentArch, agentLastSeen sql.NullString
+	var agentInstallKind sql.NullString
 	var port, sshPort sql.NullInt64
 	var isDefault, isActive, scheduledUpdateCheckEnabled, automaticImagePruningEnabled int
 	var trackContainerEventsEnabled, collectContainerMetricsEnabled int
@@ -805,15 +764,16 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 	var imagePruneDanglingOnly, autoUpdateEnabled int
 	var autoUpdateWindowStart, autoUpdateWindowEnd, autoUpdateDays string
 	var metricRetentionHours int
+	var pendingConnectionType, pendingMigrationStartedAt, migrationRevertTo sql.NullString
+	var stackCount int
 
 	err := rows.Scan(
-		&env.ID, &env.Name, &env.OrchestratorType, &env.ConnectionType,
+		&env.ID, &env.Name, &env.ConnectionType,
 		&socketPath, &host, &port,
 		&tlsCa, &tlsCert, &tlsKey,
 		&sshHost, &sshPort, &sshUser, &sshKey,
 		&isDefault, &isActive, &dockerVersion, &lastConnected,
-		&kubeconfig, &k8sNamespace, &k8sServerURL, &k8sBearerToken, &k8sCACert, &k8sVersion,
-		&agentToken, &agentStatus, &agentVersion, &agentHostname, &agentOS, &agentArch, &agentLastSeen,
+		&agentToken, &agentStatus, &agentVersion, &agentHostname, &agentOS, &agentArch, &agentLastSeen, &agentInstallKind,
 		&scheduledUpdateCheckEnabled, &automaticImagePruningEnabled,
 		&trackContainerEventsEnabled, &collectContainerMetricsEnabled,
 		&highlightContainerChangesEnabled, &dockerDiskUsageNotificationsEnabled,
@@ -822,12 +782,18 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 		&imagePruneDanglingOnly,
 		&autoUpdateEnabled, &autoUpdateWindowStart, &autoUpdateWindowEnd, &autoUpdateDays,
 		&metricRetentionHours,
+		&pendingConnectionType, &pendingMigrationStartedAt, &migrationRevertTo,
 		&env.CreatedAt, &env.UpdatedAt,
+		&stackCount,
 	)
 	if err != nil {
 		return env, fmt.Errorf("scanning environment: %w", err)
 	}
+	env.StackCount = &stackCount
 
+	env.PendingConnectionType = nullStringPtr(pendingConnectionType)
+	env.MigrationRevertTo = nullStringPtr(migrationRevertTo)
+	env.PendingMigrationStartedAt = nullStringPtr(pendingMigrationStartedAt)
 	env.SocketPath = nullStringPtr(socketPath)
 	env.Host = nullStringPtr(host)
 	env.Port = nullIntPtr(port)
@@ -840,15 +806,10 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 	env.SSHKey = nullStringPtr(sshKey)
 	env.DockerVersion = nullStringPtr(dockerVersion)
 	env.LastConnected = nullStringPtr(lastConnected)
-	env.Kubeconfig = nullStringPtr(kubeconfig)
-	env.K8sNamespace = nullStringPtr(k8sNamespace)
-	env.K8sServerURL = nullStringPtr(k8sServerURL)
-	env.K8sBearerToken = nullStringPtr(k8sBearerToken)
-	env.K8sCACert = nullStringPtr(k8sCACert)
-	env.K8sVersion = nullStringPtr(k8sVersion)
 	env.AgentToken = nullStringPtr(agentToken)
 	env.AgentStatus = nullStringPtr(agentStatus)
 	env.AgentVersion = nullStringPtr(agentVersion)
+	env.AgentInstallKind = nullStringPtr(agentInstallKind)
 	env.AgentHostname = nullStringPtr(agentHostname)
 	env.AgentOS = nullStringPtr(agentOS)
 	env.AgentArch = nullStringPtr(agentArch)
@@ -882,8 +843,8 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 	var env Environment
 	var socketPath, host, tlsCa, tlsCert, tlsKey sql.NullString
 	var sshHost, sshUser, sshKey, dockerVersion, lastConnected sql.NullString
-	var kubeconfig, k8sNamespace, k8sServerURL, k8sBearerToken, k8sCACert, k8sVersion sql.NullString
 	var agentToken, agentStatus, agentVersion, agentHostname, agentOS, agentArch, agentLastSeen sql.NullString
+	var agentInstallKind sql.NullString
 	var port, sshPort sql.NullInt64
 	var isDefault, isActive, scheduledUpdateCheckEnabled, automaticImagePruningEnabled int
 	var trackContainerEventsEnabled, collectContainerMetricsEnabled int
@@ -894,15 +855,15 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 	var imagePruneDanglingOnly, autoUpdateEnabled int
 	var autoUpdateWindowStart, autoUpdateWindowEnd, autoUpdateDays string
 	var metricRetentionHours int
+	var pendingConnectionType, pendingMigrationStartedAt, migrationRevertTo sql.NullString
 
 	err := row.Scan(
-		&env.ID, &env.Name, &env.OrchestratorType, &env.ConnectionType,
+		&env.ID, &env.Name, &env.ConnectionType,
 		&socketPath, &host, &port,
 		&tlsCa, &tlsCert, &tlsKey,
 		&sshHost, &sshPort, &sshUser, &sshKey,
 		&isDefault, &isActive, &dockerVersion, &lastConnected,
-		&kubeconfig, &k8sNamespace, &k8sServerURL, &k8sBearerToken, &k8sCACert, &k8sVersion,
-		&agentToken, &agentStatus, &agentVersion, &agentHostname, &agentOS, &agentArch, &agentLastSeen,
+		&agentToken, &agentStatus, &agentVersion, &agentHostname, &agentOS, &agentArch, &agentLastSeen, &agentInstallKind,
 		&scheduledUpdateCheckEnabled, &automaticImagePruningEnabled,
 		&trackContainerEventsEnabled, &collectContainerMetricsEnabled,
 		&highlightContainerChangesEnabled, &dockerDiskUsageNotificationsEnabled,
@@ -911,12 +872,16 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 		&imagePruneDanglingOnly,
 		&autoUpdateEnabled, &autoUpdateWindowStart, &autoUpdateWindowEnd, &autoUpdateDays,
 		&metricRetentionHours,
+		&pendingConnectionType, &pendingMigrationStartedAt, &migrationRevertTo,
 		&env.CreatedAt, &env.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	env.PendingConnectionType = nullStringPtr(pendingConnectionType)
+	env.MigrationRevertTo = nullStringPtr(migrationRevertTo)
+	env.PendingMigrationStartedAt = nullStringPtr(pendingMigrationStartedAt)
 	env.SocketPath = nullStringPtr(socketPath)
 	env.Host = nullStringPtr(host)
 	env.Port = nullIntPtr(port)
@@ -929,15 +894,10 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 	env.SSHKey = nullStringPtr(sshKey)
 	env.DockerVersion = nullStringPtr(dockerVersion)
 	env.LastConnected = nullStringPtr(lastConnected)
-	env.Kubeconfig = nullStringPtr(kubeconfig)
-	env.K8sNamespace = nullStringPtr(k8sNamespace)
-	env.K8sServerURL = nullStringPtr(k8sServerURL)
-	env.K8sBearerToken = nullStringPtr(k8sBearerToken)
-	env.K8sCACert = nullStringPtr(k8sCACert)
-	env.K8sVersion = nullStringPtr(k8sVersion)
 	env.AgentToken = nullStringPtr(agentToken)
 	env.AgentStatus = nullStringPtr(agentStatus)
 	env.AgentVersion = nullStringPtr(agentVersion)
+	env.AgentInstallKind = nullStringPtr(agentInstallKind)
 	env.AgentHostname = nullStringPtr(agentHostname)
 	env.AgentOS = nullStringPtr(agentOS)
 	env.AgentArch = nullStringPtr(agentArch)

@@ -1,0 +1,41 @@
+{
+  "config": {
+    "name": { "help": "Nom d'affichage de ce canal de communication Gmail." },
+    "client_id": { "help": "ID client OAuth Google disposant des droits d'envoi de l'API Gmail." },
+    "client_secret": { "help": "Secret client OAuth Google. Stocké chiffré au repos." },
+    "from_address": { "help": "Adresse Gmail de l'utilisateur utilisée comme expéditeur de l'API." },
+    "from_name": { "help": "Nom d'affichage facultatif pour l'en-tête From." },
+    "to": { "help": "Adresses e-mail des destinataires, séparées par des virgules." },
+    "subject_prefix": { "help": "Préfixe facultatif ajouté à l'objet de chaque notification." }
+  },
+  "title": "Livraison des notifications Gmail",
+  "subtitle": "Géré par le plugin",
+  "description": "Ce plugin gère Gmail. Il stocke les paramètres de l'API Gmail sur le canal lui-même et n'utilise pas la surface de serveur de messagerie de l'hôte, qui a été supprimée.",
+  "nameLabel": "Nom du canal",
+  "namePlaceholder": "Gmail Opérations",
+  "clientIdLabel": "ID client",
+  "clientSecretLabel": "Secret client",
+  "fromAddressLabel": "Adresse d'expéditeur",
+  "fromNameLabel": "Nom de l'expéditeur",
+  "toLabel": "Destinataires",
+  "subjectPrefixLabel": "Préfixe de l'objet",
+  "securityTitle": "Sécurité",
+  "securityHelp": "Identifiants du client OAuth",
+  "securityDescription": "Le secret client est stocké chiffré au repos. Utilisez un client OAuth Google Cloud dédié et limitez l'accès aux permissions d'envoi de l'API Gmail.",
+  "testTitle": "Tester la connexion",
+  "testHelp": "Envoie un e-mail",
+  "testDescription": "L'action de test de l'hôte envoie un vrai e-mail via ce canal Gmail. Utilisez d'abord un destinataire de test si votre boîte aux lettres atteint une liste d'astreinte.",
+  "secretKeepHint": "Laissez vide pour conserver la valeur enregistrée.",
+  "requiredField": "Obligatoire",
+  "setupGuideTitle": "Guide de configuration du canal de communication Gmail",
+  "guide": {
+    "step1": { "body": "Créez ou choisissez un projet Google Cloud dédié à l'envoi des notifications McHarbor." },
+    "step2": { "body": "Activez l'<b>API Gmail</b> pour ce projet et créez des identifiants client OAuth pour l'intégration de l'expéditeur." },
+    "step3": { "body": "Accordez au client les droits d'envoi Gmail et <warn>limitez le secret client aux administrateurs McHarbor</warn>." },
+    "step4": { "body": "Définissez <b>Adresse d'expédition</b> sur l'utilisateur Gmail qui enverra les notifications. Certaines stratégies Google Workspace exigent que cette adresse soit un expéditeur vérifié ou délégué." },
+    "step5": { "body": "Ajoutez un ou plusieurs destinataires séparés par des virgules. Commencez par une boîte aux lettres de test, puis passez à votre liste de diffusion d'exploitation ou d'astreinte une fois la livraison confirmée." },
+    "step6": { "body": "Définissez si vous le souhaitez un <b>Préfixe d'objet</b>, par exemple <code>[McHarbor Prod]</code>, pour filtrer facilement les alertes dans les clients de messagerie et les systèmes de tickets." },
+    "step7": { "body": "Enregistrez le canal et cliquez sur <b>Tester la connexion</b>. Le plugin envoie un véritable e-mail de test par le même chemin de l'API Gmail que celui des événements réels de workflow, d'alerte et de sauvegarde." },
+    "step8": { "body": "Si le test échoue avec une erreur OAuth, vérifiez l'ID client, le secret client, l'activation de l'API Gmail, la boîte d'expédition et la stratégie Workspace pour l'envoi d'e-mails par API." }
+  }
+}

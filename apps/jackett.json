@@ -1,0 +1,54 @@
+{
+  "slug": "jackett",
+  "name": "Jackett",
+  "description": "Indexer proxy that translates queries from Sonarr, Radarr and Lidarr into hundreds of tracker searches.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/jackett:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jackett.png",
+  "website": "https://github.com/Jackett/Jackett",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-jackett/",
+  "ports": [
+    {
+      "host": 9117,
+      "container": 9117,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/jackett/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/jackett/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    },
+    {
+      "key": "AUTO_UPDATE",
+      "default": "true",
+      "description": "Let Jackett update itself inside the container"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

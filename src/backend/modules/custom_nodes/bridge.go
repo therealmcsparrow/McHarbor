@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Package customnodes runs user-authored JavaScript workflow nodes in a sandboxed goja VM and stores their definitions on disk.
 package customnodes
 
 import (

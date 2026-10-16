@@ -4,7 +4,7 @@
     "description":  "Unified API for diagrams. Generate BlockDiag, BPMN, C4, D2, Excalidraw, GraphViz, Mermaid, PlantUML, and many more diagrams from text.",
     "category":  "Productivity",
     "image":  "yuzutech/kroki:latest",
-    "logo":  "https://icon.horse/icon/kroki.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=kroki.io\u0026sz=128",
     "website":  "https://kroki.io",
     "docsUrl":  "https://docs.kroki.io",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Maximum source file size in bytes"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

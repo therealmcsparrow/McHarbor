@@ -4,7 +4,7 @@
     "description":  "Prometheus exporter for HAProxy metrics exposed via the HAProxy stats socket.",
     "category":  "Monitoring",
     "image":  "prom/haproxy-exporter:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/haproxy.svg",
     "website":  "https://github.com/prometheus/haproxy_exporter",
     "docsUrl":  "https://github.com/prometheus/haproxy_exporter#docker",
     "ports":  [
@@ -24,5 +24,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

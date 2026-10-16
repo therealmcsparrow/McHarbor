@@ -1,0 +1,11 @@
+{
+  "label": "Restaurar backup do contêiner",
+  "description": "Restaura uma execução de backup concluída no contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Contêiner (filtro)",
+    "run_id": "Execução de backup",
+    "restore_items": "Itens a restaurar",
+    "secret_key": "Chave secreta"
+  }
+}

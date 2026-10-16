@@ -11,6 +11,8 @@
     "noStacksFound": "Aucune pile trouvée",
     "service_one": "Service {{count}}",
     "service_other": "Services {{count}}",
-    "viewAll": "Tout afficher"
+    "viewAll": "Tout afficher",
+    "runningOf": "{{running}} sur {{total}} en cours",
+    "more": "{{count}} de plus"
   }
 }

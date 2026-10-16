@@ -1,0 +1,36 @@
+{
+    "slug":  "docker-bench-security",
+    "name":  "Docker Bench for Security",
+    "description":  "Audits a Docker host's configuration against CIS benchmark best practices for container security.",
+    "category":  "Security",
+    "image":  "docker/docker-bench-security:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/docker.svg",
+    "website":  "https://github.com/docker/docker-bench-security",
+    "docsUrl":  "https://github.com/docker/docker-bench-security#docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/opt/appdata/docker-bench-security/report",
+                        "container":  "/report"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

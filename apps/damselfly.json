@@ -1,0 +1,39 @@
+{
+    "slug":  "damselfly",
+    "name":  "Damselfly",
+    "description":  "Server-based photo library indexer with face recognition and object tagging for large collections.",
+    "category":  "Photos & Files",
+    "image":  "webreaper/damselfly:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=damselfly.info\u0026sz=128",
+    "website":  "https://damselfly.info",
+    "docsUrl":  "https://damselfly.info/docs/Installation",
+    "ports":  [
+                  {
+                      "host":  6363,
+                      "container":  6363,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/damselfly/pictures",
+                        "container":  "/pictures"
+                    },
+                    {
+                        "host":  "/opt/appdata/damselfly/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

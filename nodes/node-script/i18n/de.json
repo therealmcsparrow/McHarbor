@@ -1,6 +1,6 @@
 {
-  "label": "Node Script",
-  "description": "Run custom JavaScript against the current workflow message",
+  "label": "Node-Skript",
+  "description": "Benutzerdefiniertes JavaScript auf die aktuelle Workflow-Nachricht anwenden",
   "config": {
     "code": "Code",
     "timeout": "Timeout (Sekunden)"

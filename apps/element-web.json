@@ -4,7 +4,7 @@
     "description":  "Secure and private Matrix-based messenger with end-to-end encryption and VoIP.",
     "category":  "Communications",
     "image":  "vectorim/element-web:latest",
-    "logo":  "https://icon.horse/icon/element.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/element.svg",
     "website":  "https://element.io",
     "docsUrl":  "https://element.io/help",
     "ports":  [
@@ -24,5 +24,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

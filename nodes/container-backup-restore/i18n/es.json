@@ -1,0 +1,11 @@
+{
+  "label": "Restaurar copia de seguridad de contenedor",
+  "description": "Restaura una ejecución de copia de seguridad completada en el contenedor",
+  "config": {
+    "environment": "Entorno",
+    "container": "Contenedor (filtro)",
+    "run_id": "Ejecución de copia de seguridad",
+    "restore_items": "Elementos a restaurar",
+    "secret_key": "Clave secreta"
+  }
+}

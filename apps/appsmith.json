@@ -4,7 +4,7 @@
     "description":  "Open-source low-code platform for building internal tools, dashboards, and admin panels.",
     "category":  "Developer Tools",
     "image":  "appsmith/appsmith-ce:latest",
-    "logo":  "https://icon.horse/icon/www.appsmith.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/png/appsmith.png",
     "website":  "https://www.appsmith.com",
     "docsUrl":  "https://docs.appsmith.com/getting-started/setup/installation-guides/docker",
     "ports":  [
@@ -37,5 +37,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

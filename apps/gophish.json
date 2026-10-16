@@ -1,0 +1,40 @@
+{
+    "slug":  "gophish",
+    "name":  "Gophish",
+    "description":  "Phishing simulation platform for building campaigns, landing pages, and tracking security awareness results.",
+    "category":  "Security",
+    "image":  "gophish/gophish:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/gophish.svg",
+    "website":  "https://getgophish.com",
+    "docsUrl":  "https://docs.getgophish.com/user-guide/installation",
+    "ports":  [
+                  {
+                      "host":  3333,
+                      "container":  3333,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gophish/data",
+                        "container":  "/opt/gophish/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

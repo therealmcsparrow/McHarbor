@@ -1,0 +1,54 @@
+{
+  "title": "Variables d'environnement",
+  "description": "Toutes les variables d'environnement que lisent McHarbor et son agent, générées à partir du code source et de la référence de configuration. Modifier l'une d'elles implique de recréer le conteneur.",
+  "searchPlaceholder": "Rechercher par nom ou description",
+  "searchLabel": "Rechercher des variables d'environnement",
+  "count_one": "{{count}} variable",
+  "count_other": "{{count}} variables",
+  "empty": "Aucune variable ne correspond au filtre.",
+  "filters": {
+    "scope": "Portée",
+    "allScopes": "Toutes",
+    "sensitiveOnly": "Sensibles uniquement"
+  },
+  "scope": {
+    "server": "Serveur",
+    "agent": "Agent"
+  },
+  "columns": {
+    "name": "Variable",
+    "default": "Par défaut",
+    "description": "Ce qu'elle fait",
+    "flags": "Indicateurs"
+  },
+  "flags": {
+    "sensitive": "Sensible",
+    "sensitiveHint": "Contient un secret. Conservez-la dans un magasin de secrets, jamais dans un fichier Compose versionné.",
+    "restart": "Recréation requise",
+    "restartHint": "Lue au démarrage ; une modification ne s'applique qu'après la recréation du conteneur.",
+    "undocumented": "Non documentée",
+    "undocumentedHint": "Lue par le code mais non décrite dans la référence de configuration, généralement parce que McHarbor la définit lui-même pour un conteneur auxiliaire.",
+    "notInCode": "Non lue par le binaire",
+    "notInCodeHint": "Documentée, mais lue par l'entrypoint ou le fichier Compose plutôt que par le binaire Go, ou plus lue du tout."
+  },
+  "copy": "Copier {{name}}",
+  "copied": "Copié",
+  "manualCopy": "Copier le nom de la variable",
+  "sources": "Lue dans {{files}}",
+  "noDescription": "Aucune description dans la référence de configuration.",
+  "sections": {
+    "application": "Application",
+    "secrets": "Secrets",
+    "database": "Base de données",
+    "docker": "Docker",
+    "tls": "TLS et écouteurs HTTP",
+    "networkTrust": "Confiance réseau",
+    "agentTransport": "Transport de l'agent",
+    "plugins": "App Store et plugins",
+    "nativeInstall": "Installation native",
+    "authentication": "Authentification",
+    "versionReporting": "Signalement de version",
+    "agent": "Agent",
+    "other": "Autres"
+  }
+}

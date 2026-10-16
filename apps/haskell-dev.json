@@ -4,7 +4,7 @@
     "description":  "Haskell 9.4 toolchain, purely functional language with strong static typing and lazy evaluation.",
     "category":  "Developer Tools",
     "image":  "haskell:9.4",
-    "logo":  "https://icon.horse/icon/www.haskell.org",
+    "logo":  "https://cdn.simpleicons.org/haskell",
     "website":  "https://www.haskell.org",
     "docsUrl":  "https://www.haskell.org/documentation/",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "9.4"
+    "version":  "9.4",
+    "latest":  {
+        "version":  "9.4",
+        "release_date":  "2026-09-10"
+    }
 }

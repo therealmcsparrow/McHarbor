@@ -1,0 +1,29 @@
+{
+  "slug": "openspeedtest",
+  "name": "OpenSpeedTest",
+  "description": "HTML5 network speed test you host yourself to measure LAN and WAN throughput.",
+  "category": "Networking",
+  "image": "openspeedtest/latest:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openspeedtest.png",
+  "website": "https://openspeedtest.com",
+  "docsUrl": "https://github.com/openspeedtest/Docker-Image",
+  "ports": [
+    {
+      "host": 3027,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3028,
+      "container": 3001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

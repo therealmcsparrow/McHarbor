@@ -1,0 +1,53 @@
+{
+    "slug":  "pomerium",
+    "name":  "Pomerium",
+    "description":  "Identity-aware access proxy that authenticates and authorizes requests to internal applications.",
+    "category":  "Security",
+    "image":  "pomerium/pomerium:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/pomerium.svg",
+    "website":  "https://www.pomerium.com/",
+    "docsUrl":  "https://www.pomerium.com/",
+    "ports":  [
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pomerium/config",
+                        "container":  "/pomerium"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "POMERIUM_SHARED_SECRET",
+                        "default":  "change-me",
+                        "description":  "Shared secret for internal service authentication",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "COOKIE_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret used to encrypt session cookies",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "IDP_CLIENT_SECRET",
+                        "default":  "change-me",
+                        "description":  "OIDC identity provider client secret",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

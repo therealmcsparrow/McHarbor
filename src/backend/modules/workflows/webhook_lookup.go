@@ -7,9 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 	"strings"
 )
 
+// FindActiveWebhookTrigger returns the single active workflow whose webhook trigger matches the path and method, and errors when several match.
 func (s *Service) FindActiveWebhookTrigger(ctx context.Context, requestPath, method string) (*Workflow, *CanvasNode, error) {
 	normalizedPath := normalizeWebhookPath(requestPath)
 	method = strings.ToUpper(strings.TrimSpace(method))
@@ -18,19 +20,22 @@ func (s *Service) FindActiveWebhookTrigger(ctx context.Context, requestPath, met
 	}
 
 	rows, err := s.db.QueryContext(ctx,
-		"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at FROM workflows WHERE status = 'active' LIMIT 1000",
+		"SELECT id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at, self_host_authorized FROM workflows WHERE status = 'active' LIMIT 1000",
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("querying active workflows: %w", err)
 	}
-	defer rows.Close()
+	defer func() { closeutil.Report(rows.Close(), "rows") }()
 
 	var matchedWorkflow *Workflow
 	var matchedNode *CanvasNode
 
 	for rows.Next() {
 		var wf Workflow
-		if err := rows.Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt); err != nil {
+		if err := rows.Scan(&wf.ID, &wf.Name, &wf.Description, &wf.Status, &wf.CanvasData, &wf.Variables, &wf.CreatedBy, &wf.UpdatedBy, &wf.LastRunAt, &wf.CreatedAt, &wf.UpdatedAt, &wf.SelfHostAuthorized); err != nil {
+			continue
+		}
+		if err := s.decryptWorkflowPayload(&wf); err != nil {
 			continue
 		}
 
@@ -77,6 +82,9 @@ func (s *Service) FindActiveWebhookTrigger(ctx context.Context, requestPath, met
 			matchedWorkflow = &wfCopy
 			matchedNode = &nodeCopy
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, fmt.Errorf("iterating workflows: %w", err)
 	}
 
 	return matchedWorkflow, matchedNode, nil

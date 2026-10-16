@@ -1,0 +1,39 @@
+{
+    "slug":  "lychee-nightly",
+    "name":  "Lychee (Nightly)",
+    "description":  "Nightly channel build of Lychee. Self-hosted photo-management system with a clean responsive interface.",
+    "category":  "Photos & Files",
+    "image":  "lycheeorg/lychee:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lychee.png",
+    "website":  "https://lycheeorg.github.io",
+    "docsUrl":  "https://lycheeorg.github.io/docs/",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lychee-nightly/config",
+                        "container":  "/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/lychee-nightly/uploads",
+                        "container":  "/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

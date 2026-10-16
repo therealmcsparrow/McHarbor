@@ -1,0 +1,127 @@
+{
+  "aiAssistant": {
+    "fab": {
+      "tooltip": "Ask AI",
+      "tooltipScoped": "Ask AI about {{name}}"
+    },
+    "title": "AI assistant",
+    "description": "Ask questions about the selected McHarbor environment.",
+    "menuItem": "AI chat",
+    "footer": "Answers use the active McHarbor context and the configured default AI provider.",
+    "backendUnavailable": "The AI provider is unavailable. Check Settings > AI and test the default connection.",
+    "rateLimited": "The AI provider hit its rate limit. Wait a moment and ask again, or switch to another provider in Settings > AI.",
+    "settings": {
+      "title": "AI settings"
+    },
+    "reset": "Reset",
+    "focusedOn": "Focused on {{name}}",
+    "providersActive_one": "{{count}} context provider",
+    "providersActive_other": "{{count}} context providers",
+    "thinking": "Thinking...",
+    "capabilities": "Suggested actions",
+    "actionDone": "Action completed.",
+    "actions": {
+      "title": "Pending AI action",
+      "description": "Review the dry-run plan before McHarbor changes anything.",
+      "approveAndRun": "Approve and run",
+      "run": "Run",
+      "deny": "Deny",
+      "awaitingApproval": "Awaiting approval",
+      "review": "Review",
+      "plan": "Dry-run plan",
+      "queuePosition": "{{index}} of {{total}}",
+      "feedback": {
+        "executed": "Ran {{tool}}.",
+        "denied": "Denied {{tool}}.",
+        "failed": "{{tool}} failed: {{error}}",
+        "error": "Could not complete {{tool}}.",
+        "unknownError": "unknown error"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "executed": "Executed",
+        "failed": "Failed",
+        "denied": "Denied",
+        "expired": "Expired"
+      }
+    },
+    "providerLabel": "AI provider",
+    "placeholder": "Ask the AI...",
+    "send": "Send",
+    "userMessageLabel": "You",
+    "assistantMessageLabel": "AI assistant",
+    "askAbout": "Ask about {{name}}",
+    "seed": {
+      "withSummary": "{{summary}}",
+      "withResource": "About the {{kind}} \"{{name}}\" ({{facts}}): ",
+      "kind": {
+        "container": "container",
+        "image": "image",
+        "stack": "stack",
+        "volume": "volume",
+        "network": "network",
+        "environment": "environment",
+        "general": "page",
+        "workflow": "workflow",
+        "log": "log",
+        "plugin": "plugin"
+      }
+    },
+    "providerDefault": "Default provider",
+    "providerDefaultNamed": "Default ({{name}})"
+  },
+  "fab": {
+    "prompts": {
+      "container": "Explain this container and identify recent errors.",
+      "stack": "Summarize this stack and its deployment errors.",
+      "image": "Explain this image and any known issues.",
+      "volume": "Explain this volume and its container dependencies.",
+      "network": "Explain this network and any connectivity issues.",
+      "pod": "Explain this pod and any recent failures.",
+      "deployment": "Summarize this deployment and any rollout issues.",
+      "workflow": "Explain the most recent workflow failure.",
+      "environment": "Give me an overview of this environment.",
+      "fallback": "Give me an overview of the current McHarbor setup."
+    }
+  },
+  "capability": {
+    "confirmTitle": "Confirm action",
+    "confirmBody": "The AI wants to run \"{{label}}\". Continue?",
+    "cancel": "Cancel",
+    "confirm": "Run",
+    "done": "Done."
+  },
+  "oauth": {
+    "connect": "Connect with your account",
+    "connectHelp": "Sign in with your provider.",
+    "githubHint": "GitHub Models uses your existing GitHub account.",
+    "anthropicHint": "Anthropic currently uses API keys.",
+    "notConnected": "Not connected",
+    "connectedAs": "Signed in as {{account}}",
+    "disconnect": "Disconnect",
+    "beginTitle": "Connect to {{provider}}",
+    "beginHelp": "Open the URL, enter the code, then approve access.",
+    "copyCode": "Copy code",
+    "openBrowser": "Open {{provider}}",
+    "pollHint": "Waiting for approval...",
+    "errorGeneric": "Could not connect."
+  },
+  "description": "AI configuration for McHarbor.",
+  "sections": {
+    "provider": "Provider",
+    "credentials": "Credentials",
+    "parameters": "Parameters",
+    "advanced": "Advanced"
+  },
+  "fields": {
+    "provider": "AI provider",
+    "model": "Model",
+    "baseUrl": "API base URL",
+    "apiKey": "API key",
+    "maxTokens": "Maximum tokens",
+    "temperature": "Temperature",
+    "systemPrompt": "System prompt"
+  },
+  "test": "Test connection"
+}

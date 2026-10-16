@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Clair",
+    "description": "Clair v4 de Red Hat: indexación de imágenes y correspondencia de CVE en un servidor Clair externo."
+  },
+  "settings": {
+    "title": "Clair",
+    "subtitle": "Clair v4 de Red Hat: indexación de imágenes y correspondencia de CVE en un servidor Clair externo."
+  }
+}

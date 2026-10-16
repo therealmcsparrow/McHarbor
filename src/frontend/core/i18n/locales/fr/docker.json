@@ -1,10 +1,23 @@
 {
   "title": "Docker",
   "description": "Informations et configuration du démon Docker",
+  "columns": {
+    "id": "ID",
+    "createdAt": "Créé",
+    "updatedAt": "Mis à jour",
+    "groupRegistry": "Registre"
+  },
+  "nav": {
+    "sections": "Sections Docker"
+  },
+  "sectionDescription": {
+    "info": "Version du démon, détails de l'hôte et nombre d'objets",
+    "registries": "Connexions et identifiants des registres de conteneurs",
+    "resources": "Capacité de l'hôte et utilisation disque de Docker"
+  },
   "tabs": {
     "info": "Informations Docker",
     "registries": "Registres",
-    "networks": "Réseaux",
     "resources": "Ressources"
   },
   "info": {
@@ -31,6 +44,15 @@
     "serverId": "ID du serveur",
     "cpus": "Processeurs",
     "memory": "Mémoire",
+    "hardware": "Matériel",
+    "gpu": "GPU",
+    "networkAdapters": "Cartes réseau",
+    "attachedDevices": "Périphériques connectés",
+    "hardwareNone": "Aucun détecté",
+    "hardwareLoading": "Lecture des périphériques de l'hôte...",
+    "hardwareUnavailable": "L'inventaire des périphériques de l'hôte n'est pas disponible sur cette plateforme",
+    "hardwareRemovable": "amovible",
+    "hardwareScope": "Matériel de l'hôte exécutant McHarbor, pas de l'environnement sélectionné.",
     "storageDriver": "Pilote de stockage",
     "dockerRootDir": "Répertoire racine Docker",
     "driverStatus": "Statut du conducteur",
@@ -74,6 +96,7 @@
     "editTitle": "Modifier le registre",
     "editDescription": "Mettez à jour les paramètres de connexion au registre.",
     "nameLabel": "Nom",
+    "urlPlaceholder": "https://registry.example.com",
     "urlLabel": "URL",
     "usernameLabel": "Nom d'utilisateur",
     "passwordLabel": "Mot de passe",
@@ -91,17 +114,6 @@
       "deleted": "Registre supprimé",
       "testSuccess": "Test de connexion réussi"
     }
-  },
-  "networks": {
-    "title": "Réseaux Docker",
-    "description": "Présentation des réseaux Docker dans cet environnement",
-    "viewAll": "Afficher tous les réseaux",
-    "columnName": "Nom",
-    "columnDriver": "Conducteur",
-    "columnScope": "Portée",
-    "columnSubnet": "Sous-réseau",
-    "columnContainers": "Conteneurs",
-    "noNetworks": "Aucun réseau trouvé"
   },
   "resources": {
     "title": "Ressources d'hébergement",

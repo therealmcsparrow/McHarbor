@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/rs/xid"
+
+	"github.com/therealmcsparrow/mcharbor/core/db"
 )
 
 // ErrRetryUploadNotEligible is returned when a destination cannot be
@@ -76,7 +78,7 @@ func (s *Service) RetryDestinationUpload(ctx context.Context, runID, destination
 		&destination.BytesUploaded, &destination.BytesTotal,
 		&destination.CreatedAt, &destination.UpdatedAt,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("backup destination not found")
 	}
 	if err != nil {
@@ -140,10 +142,10 @@ func (s *Service) RetryDestinationUpload(ctx context.Context, runID, destination
 	destination.BytesTotal = run.ArchiveSize
 	destination.UpdatedAt = now
 
-	// Run the upload in a background goroutine with a fresh context
-	// so the HTTP handler returns immediately and the operator UI
+	// Run the upload in a background goroutine on a cancellation-free
+	// copy of ctx so the HTTP handler returns immediately and the operator UI
 	// can poll the regular run query to watch progress.
-	retryCtx, cancel := context.WithTimeout(context.Background(), backupUploadTimeout)
+	retryCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), backupUploadTimeout)
 	retryCancelers.Store(destinationID, cancel)
 	retryID := xid.New().String()
 	if s.logger != nil {
@@ -171,6 +173,9 @@ func (s *Service) runDestinationRetryUpload(
 	location backupStorageDestination,
 	logger *slog.Logger,
 ) {
+	// Status writes must survive the upload ctx being cancelled, so they use
+	// a cancellation-free copy of it.
+	bgCtx := context.WithoutCancel(ctx)
 	defer func() {
 		if value, ok := retryCancelers.LoadAndDelete(destinationID); ok {
 			if cancel, isCancel := value.(context.CancelFunc); isCancel {
@@ -179,7 +184,7 @@ func (s *Service) runDestinationRetryUpload(
 		}
 	}()
 
-	s.updateRunProgress(context.Background(), runID, "uploading", backupUploadProgressMessage(location.Name, 0, size))
+	s.updateRunProgress(bgCtx, runID, "uploading", backupUploadProgressMessage(location.Name, 0, size))
 
 	uploadedPath, err := s.uploadBackupToStorageForDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	if err != nil {
@@ -188,9 +193,9 @@ func (s *Service) runDestinationRetryUpload(
 		// using a fresh context (the upload ctx is already
 		// cancelled).
 		if parentErr := ctx.Err(); parentErr != nil {
-			s.recordDestinationCancelled(runID, destinationID, parentErr)
+			s.recordDestinationCancelled(ctx, runID, destinationID, parentErr)
 		} else {
-			if markErr := s.finishRunDestination(context.Background(), destinationID, "failure", "", err); markErr != nil && logger != nil {
+			if markErr := s.finishRunDestination(bgCtx, destinationID, "failure", "", err); markErr != nil && logger != nil {
 				logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
 			}
 		}
@@ -205,17 +210,86 @@ func (s *Service) runDestinationRetryUpload(
 		return
 	}
 
-	if err := s.finishRunDestination(context.Background(), destinationID, "success", uploadedPath, nil); err != nil {
+	if err := s.finishRunDestination(bgCtx, destinationID, "success", uploadedPath, nil); err != nil {
 		if logger != nil {
 			logger.Warn("container backup destination success update failed", "run", runID, "destination", destinationID, "error", err)
 		}
 		return
 	}
+	s.reconcileRunStatusAfterRetry(bgCtx, runID)
 	if logger != nil {
 		logger.Info(
 			"container backup destination retry upload succeeded",
 			"retryId", retryID, "run", runID, "destination", destinationID,
 			"storage", location.ID, "name", location.Name,
+		)
+	}
+}
+
+// reconcileRunStatusAfterRetry flips a failed backup run back to
+// success once every one of its destinations has uploaded, so a run
+// the operator has fully recovered stops reading as failed.
+//
+// Uploading is the last step of a run and destination rows only exist
+// from the upload phase onwards, so "every destination row is success"
+// means nothing is outstanding. Cancelled runs are left alone: a
+// cancel is an operator decision, not a failure to recover from.
+func (s *Service) reconcileRunStatusAfterRetry(ctx context.Context, runID string) {
+	if s.db == nil {
+		return
+	}
+	queryCtx, cancel := context.WithTimeout(ctx, backupRunFinalizeTimeout)
+	defer cancel()
+
+	var total, succeeded int
+	if err := s.db.QueryRowContext(queryCtx, `
+		SELECT COUNT(*), COALESCE(SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END), 0)
+		FROM container_backup_run_destinations
+		WHERE run_id = ?`, runID).Scan(&total, &succeeded); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("container backup run destination tally failed", "run", runID, "error", err)
+		}
+		return
+	}
+	if total == 0 || total != succeeded {
+		return
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	var result sql.Result
+	err := db.RetryOnBusy(queryCtx, 5, func() error {
+		var execErr error
+		result, execErr = s.db.ExecContext(queryCtx, `
+			UPDATE container_backup_runs
+			SET status = 'success', error = NULL, progress_stage = 'success',
+			    progress_message = '', progress_updated_at = ?, updated_at = ?
+			WHERE id = ? AND status = 'failure' AND COALESCE(operation, 'backup') = 'backup'`,
+			now, now, runID)
+		return execErr
+	})
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("container backup run recovery update failed", "run", runID, "error", err)
+		}
+		return
+	}
+	if db.RowsAffected(result) == 0 {
+		return
+	}
+
+	run, err := s.runByID(queryCtx, runID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("container backup run reload after recovery failed", "run", runID, "error", err)
+		}
+		return
+	}
+	s.runStageCache.Delete(runID)
+	s.recordFinalRunLog(queryCtx, run)
+	if s.logger != nil {
+		s.logger.Info(
+			"container backup run recovered after destination retry",
+			"run", runID, "destinations", total,
 		)
 	}
 }

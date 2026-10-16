@@ -15,6 +15,6 @@ export const useImagesViewStore = create<ImagesViewState>()(
       viewMode: 'table',
       setViewMode: (viewMode) => set({ viewMode }),
     }),
-    { name: 'mcharbor-images-view' }
-  )
+    { name: 'mcharbor-images-view' },
+  ),
 );

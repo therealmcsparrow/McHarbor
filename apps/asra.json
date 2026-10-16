@@ -4,7 +4,7 @@
     "description": "Self-hosted Signal-compatible server implementation. Run your own Signal infrastructure for complete control over your messaging data.",
     "category": "Communications",
     "image": "asragrim/asra:latest",
-    "logo": "https://raw.githubusercontent.com/asragrim/asra/main/logo.png",
+    "logo": "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website": "https://github.com/asragrim/asra",
     "docsUrl": "https://github.com/asragrim/asra#readme",
     "ports": [
@@ -43,5 +43,9 @@
             "description": "Timezone for the container"
         }
     ],
-    "version": "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

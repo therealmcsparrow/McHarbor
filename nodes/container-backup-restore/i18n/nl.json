@@ -1,0 +1,11 @@
+{
+  "label": "Containerback-up herstellen",
+  "description": "Herstel een voltooide containerback-uprun in de container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container (filter)",
+    "run_id": "Back-uprun",
+    "restore_items": "Te herstellen items",
+    "secret_key": "Geheime sleutel"
+  }
+}

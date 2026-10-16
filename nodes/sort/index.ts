@@ -4,48 +4,43 @@
 import type { NodeDefinition } from '@modules/workflows/types';
 
 export const sort: NodeDefinition = {
-  "key": "sort",
-  "label": "Sort",
-  "category": "logic",
-  "description": "Sort an array on the current message",
-  "icon": "IconSortAscending",
-  "configSchema": [
+  key: 'sort',
+  label: 'Sort',
+  category: 'logic',
+  description: 'Sort an array on the current message',
+  icon: 'IconSortAscending',
+  configSchema: [
     {
-      "key": "property",
-      "label": "Property",
-      "type": "expression",
-      "required": false,
-      "default": "payload"
+      key: 'property',
+      label: 'Property',
+      type: 'expression',
+      required: false,
+      default: 'payload',
     },
     {
-      "key": "sort_by",
-      "label": "Sort By",
-      "type": "text",
-      "required": false
+      key: 'sort_by',
+      label: 'Sort By',
+      type: 'expression',
+      required: false,
     },
     {
-      "key": "direction",
-      "label": "Direction",
-      "type": "select",
-      "required": false,
-      "default": "asc",
-      "options": [
+      key: 'direction',
+      label: 'Direction',
+      type: 'select',
+      required: false,
+      default: 'asc',
+      options: [
         {
-          "value": "asc",
-          "label": "Ascending"
+          value: 'asc',
+          label: 'Ascending',
         },
         {
-          "value": "desc",
-          "label": "Descending"
-        }
-      ]
-    }
+          value: 'desc',
+          label: 'Descending',
+        },
+      ],
+    },
   ],
-  "inputPorts": [
-    "input"
-  ],
-  "outputPorts": [
-    "output",
-    "error"
-  ]
+  inputPorts: ['input'],
+  outputPorts: ['output', 'error'],
 };

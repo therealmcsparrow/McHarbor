@@ -1,0 +1,63 @@
+{
+    "slug":  "ldap-user-manager",
+    "name":  "LDAP User Manager",
+    "description":  "Self-hosted web UI for managing users and groups in an existing LDAP directory.",
+    "category":  "Identity & SSO",
+    "image":  "wheelybird/ldap-user-manager:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/ldap.svg",
+    "website":  "https://github.com/wheelybird/ldap-user-manager",
+    "docsUrl":  "https://github.com/wheelybird/ldap-user-manager#readme",
+    "ports":  [
+                  {
+                      "host":  8087,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SERVER_HOSTNAME",
+                        "default":  "ldap-um.example.com",
+                        "description":  "Hostname this UI is served under"
+                    },
+                    {
+                        "key":  "LDAP_URI",
+                        "default":  "ldap://openldap:389",
+                        "description":  "URI of the LDAP server to manage"
+                    },
+                    {
+                        "key":  "LDAP_BASE_DN",
+                        "default":  "dc=example,dc=com",
+                        "description":  "Base DN of the directory"
+                    },
+                    {
+                        "key":  "LDAP_ADMIN_BIND_DN",
+                        "default":  "cn=admin,dc=example,dc=com",
+                        "description":  "Bind DN with rights to manage the directory"
+                    },
+                    {
+                        "key":  "LDAP_ADMIN_BIND_PWD",
+                        "default":  "change-me",
+                        "description":  "Password for the admin bind DN",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "NO_HTTPS",
+                        "default":  "TRUE",
+                        "description":  "Disable built-in HTTPS when running behind a reverse proxy"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

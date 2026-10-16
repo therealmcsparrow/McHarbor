@@ -4,7 +4,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 
-export type LifecycleSubjectType = 'container' | 'image' | 'volume' | 'network' | 'stack';
+import { assertSuccess } from '@resources/utils/api-mutation';
+
+/** The subjects the host records itself. */
+export type HostLifecycleSubjectType = 'container' | 'image' | 'volume' | 'network' | 'stack';
+
+/**
+ * A host subject, or one a loaded plugin declares through a `lifecycle-subject`
+ * capability. The plugin set is open, so the type is too.
+ */
+export type LifecycleSubjectType = string;
 
 export type LifecycleSeverity = 'info' | 'success' | 'warning' | 'error';
 
@@ -19,15 +28,16 @@ export type LifecycleEvent = {
   state?: string;
   severity: LifecycleSeverity;
   metadata?: string;
-  source: 'docker' | 'compose' | 'mcharbor';
+  source: string;
   timestamp: string;
+  environmentName?: string;
 };
 
 export type LifecycleListParams = {
   page?: number;
   perPage?: number;
   envId?: string;
-  subjectType?: LifecycleSubjectType | '';
+  subjectType?: LifecycleSubjectType;
   severity?: LifecycleSeverity | '';
   from?: string;
   until?: string;
@@ -54,10 +64,7 @@ export function useLifecycleEvents(params: LifecycleListParams = {}) {
   const qs = search.toString();
   return useQuery({
     queryKey: ['lifecycle', params],
-    queryFn: () =>
-      api
-        .get<LifecycleListResponse>(`/lifecycle${qs ? `?${qs}` : ''}`)
-        .then((r) => r.data),
+    queryFn: () => api.get<LifecycleListResponse>(`/lifecycle${qs ? `?${qs}` : ''}`).then(assertSuccess),
     refetchInterval: 15_000,
   });
 }
@@ -65,10 +72,7 @@ export function useLifecycleEvents(params: LifecycleListParams = {}) {
 export function useRecentLifecycleEvents(n = 10) {
   return useQuery({
     queryKey: ['lifecycle', 'recent', n],
-    queryFn: () =>
-      api
-        .get<{ items: LifecycleEvent[] }>(`/lifecycle/recent?n=${n}`)
-        .then((r) => r.data),
+    queryFn: () => api.get<{ items: LifecycleEvent[] }>(`/lifecycle/recent?n=${n}`).then(assertSuccess),
     refetchInterval: 10_000,
   });
 }

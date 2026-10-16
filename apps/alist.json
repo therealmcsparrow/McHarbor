@@ -1,0 +1,35 @@
+{
+    "slug":  "alist",
+    "name":  "Alist",
+    "description":  "File list program that aggregates and shares files from many cloud storage providers through one web UI.",
+    "category":  "Photos & Files",
+    "image":  "xhofe/alist:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alist.png",
+    "website":  "https://alist.nn.ci",
+    "docsUrl":  "https://alist.nn.ci/guide/install/docker.html",
+    "ports":  [
+                  {
+                      "host":  8114,
+                      "container":  5244,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/alist/data",
+                        "container":  "/opt/alist/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

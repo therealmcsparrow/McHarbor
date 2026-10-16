@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Trivy",
+    "description": "Trivy de Aqua Security: paquetes del sistema y dependencias de lenguaje, analizados localmente."
+  },
+  "settings": {
+    "title": "Trivy",
+    "subtitle": "Trivy de Aqua Security: paquetes del sistema y dependencias de lenguaje, analizados localmente."
+  }
+}

@@ -1,0 +1,51 @@
+{
+    "slug":  "gameap-daemon",
+    "name":  "GameAP Daemon",
+    "description":  "Node agent that runs game server instances on behalf of a GameAP Panel.",
+    "category":  "Gaming",
+    "image":  "gameap/daemon:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=gameap.com\u0026sz=128",
+    "website":  "https://gameap.com",
+    "docsUrl":  "https://docs.gameap.ru/en/latest/gameapdaemon/installation.html",
+    "ports":  [
+                  {
+                      "host":  31717,
+                      "container":  31717,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  31718,
+                      "container":  31718,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gameap-daemon/data",
+                        "container":  "/srv/gameap"
+                    },
+                    {
+                        "host":  "/opt/appdata/gameap-daemon/config",
+                        "container":  "/etc/gameap-daemon"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GAMEAP_DAEMON_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Authentication token shared with the GameAP Panel",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

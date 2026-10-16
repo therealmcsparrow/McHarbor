@@ -1,0 +1,53 @@
+{
+    "slug":  "radarr-dev",
+    "name":  "Radarr (Dev)",
+    "description":  "Dev channel build of Radarr. Automatic movie downloading and management for Usenet and BitTorrent.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/radarr:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radarr.png",
+    "website":  "https://radarr.video",
+    "docsUrl":  "https://wiki.servarr.com/radarr",
+    "ports":  [
+                  {
+                      "host":  8878,
+                      "container":  7878,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/radarr-dev/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/radarr-dev/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/radarr-dev/movies",
+                        "container":  "/movies"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

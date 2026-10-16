@@ -14,31 +14,23 @@ type AgentCopyBlockProps = {
   note?: string;
 };
 
-export function AgentCopyBlock({
-  label,
-  value,
-  copyKey,
-  copiedKey,
-  ariaLabel,
-  onCopy,
-  note,
-}: AgentCopyBlockProps) {
+export function AgentCopyBlock({ label, value, copyKey, copiedKey, ariaLabel, onCopy, note }: AgentCopyBlockProps) {
   return (
     <div>
       <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
       <div className="relative">
-        <pre className="rounded border border-border bg-muted p-3 font-mono text-xs overflow-x-auto whitespace-pre">
+        <pre className="max-h-[22rem] overflow-auto rounded border border-border bg-muted p-3 pr-10 font-mono text-xs whitespace-pre">
           {value}
         </pre>
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-1 top-1"
+          className="absolute top-1 right-1"
           onClick={() => onCopy(value, copyKey, label)}
           aria-label={ariaLabel}
         >
           {copiedKey === copyKey ? (
-            <IconCheck className="h-3.5 w-3.5 text-green-500" />
+            <IconCheck className="h-3.5 w-3.5 text-success" />
           ) : (
             <IconCopy className="h-3.5 w-3.5" />
           )}

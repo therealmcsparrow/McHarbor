@@ -1,0 +1,68 @@
+{
+  "widgets": {
+    "fleetHealth": {
+      "label": "Fleet health",
+      "description": "One-line verdict on whether anything needs you, with click-through"
+    }
+  },
+  "fleetHealthWidget": {
+    "checking": "Checking the fleet…",
+    "empty": "No containers on this environment.",
+    "unavailable": "Fleet state unavailable",
+    "barLabel": "Fleet state across {{count}} containers",
+    "subtitle": "{{count}} container total",
+    "subtitle_other": "{{count}} containers total",
+    "verdict": {
+      "allUp": "Everything critical is up.",
+      "down": "{{count}} container is down.",
+      "down_other": "{{count}} containers are down."
+    },
+    "wants": {
+      "none": "Nothing wants you.",
+      "some": "{{count}} thing wants you.",
+      "some_other": "{{count}} things want you."
+    },
+    "facts": {
+      "running": "{{running}} of {{total}} containers running",
+      "updates": "{{count}} image update available",
+      "updates_other": "{{count}} image updates available",
+      "noUpdates": "no image updates pending",
+      "updatesUnchecked": "image updates not checked yet",
+      "noRestarts": "no restart loops in the fleet",
+      "restarting": "{{count}} container restarting",
+      "restarting_other": "{{count}} containers restarting"
+    },
+    "actions": {
+      "checkUpdates": "Check updates",
+      "liveLogs": "Live logs"
+    },
+    "state": {
+      "running": "Running",
+      "unhealthy": "Unhealthy",
+      "paused": "Paused",
+      "exited": "Exited"
+    },
+    "cards": {
+      "unhealthy": "{{name}} is failing its health check",
+      "unhealthyDetail": "Up {{uptime}} · still serving traffic",
+      "unhealthyDetailPlain": "Still serving traffic",
+      "dead": "{{name}} is dead",
+      "deadDetail": "Docker could not keep it running",
+      "restarting": "{{name}} is restarting",
+      "restartingDetail": "Docker is still trying to bring it up",
+      "snapshots": "{{count}} snapshot is overdue",
+      "snapshots_other": "{{count}} snapshots are overdue",
+      "days": "{{count}} day",
+      "days_other": "{{count}} days",
+      "never": "never run",
+      "exited": "{{count}} container is stopped",
+      "exited_other": "{{count}} containers are stopped",
+      "exitedDetail": "Waiting to be started",
+      "updates": "{{count}} image update is ready",
+      "updates_other": "{{count}} image updates are ready",
+      "updatesDetail": "Pull and recreate to apply",
+      "allClear": "Nothing needs you right now",
+      "allClearDetail": "Every container is running and every snapshot is current"
+    }
+  }
+}

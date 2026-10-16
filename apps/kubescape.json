@@ -1,0 +1,36 @@
+{
+    "slug":  "kubescape",
+    "name":  "Kubescape",
+    "description":  "Scans Kubernetes clusters and manifests for misconfigurations, vulnerabilities, and compliance gaps.",
+    "category":  "Security",
+    "image":  "quay.io/kubescape/kubescape-cli:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=kubescape.io\u0026sz=128",
+    "website":  "https://kubescape.io",
+    "docsUrl":  "https://kubescape.io/docs/install-cli/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kubescape/kubeconfig",
+                        "container":  "/root/.kube/config",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/opt/appdata/kubescape/results",
+                        "container":  "/results"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

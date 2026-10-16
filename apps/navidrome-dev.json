@@ -1,0 +1,45 @@
+{
+    "slug":  "navidrome-dev",
+    "name":  "Navidrome (Dev)",
+    "description":  "Dev channel build of Navidrome. Lightweight Subsonic-compatible music server.",
+    "category":  "Media",
+    "image":  "deluan/navidrome:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/navidrome.png",
+    "website":  "https://www.navidrome.org",
+    "docsUrl":  "https://www.navidrome.org/docs",
+    "ports":  [
+                  {
+                      "host":  5533,
+                      "container":  4533,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/navidrome-dev/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/srv/music",
+                        "container":  "/music",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ND_SCANINTERVAL",
+                        "default":  "1h",
+                        "description":  "Music library scan interval"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

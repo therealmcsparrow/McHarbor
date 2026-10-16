@@ -9,8 +9,9 @@ import { Button } from '@resources/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@resources/components/ui/Card';
 import { StatusBadge, STACK_STATUS } from '@resources/components/ui/StatusBadge';
 import { formatDate } from '@resources/utils/format';
-import type { StackDetail } from '../../hooks/useStacks';
-import { usePruneStack } from '../../hooks/useStacks';
+import type { StackDetail } from '@resources/hooks/useStacks';
+import { usePruneStack } from '@resources/hooks/useStacks';
+import { PERM } from '@core/auth/permissionKeys';
 
 type OverviewTabProps = {
   stack: StackDetail;
@@ -40,17 +41,11 @@ export function OverviewTab({ stack, editing, description, onDescriptionChange }
         </CardHeader>
         <CardContent className="space-y-3">
           <InfoRow label={t('detail.name')} value={stack.name} />
-          <InfoRow
-            label={t('detail.status')}
-            value={<StatusBadge status={stack.status} map={STACK_STATUS} />}
-          />
+          <InfoRow label={t('detail.status')} value={<StatusBadge status={stack.status} map={STACK_STATUS} />} />
           <InfoRow
             label={t('detail.type')}
             value={
-              <Badge
-                variant={stack.type === 'managed' ? 'default' : 'outline'}
-                className="text-[10px] px-1.5 py-0"
-              >
+              <Badge variant={stack.type === 'managed' ? 'default' : 'outline'} className="px-1.5 py-0 text-[10px]">
                 {stack.type === 'managed' ? t('badges.managed') : t('badges.discovered')}
               </Badge>
             }
@@ -63,13 +58,11 @@ export function OverviewTab({ stack, editing, description, onDescriptionChange }
                 onChange={(e) => onDescriptionChange?.(e.target.value)}
                 placeholder={t('detail.descriptionPlaceholder')}
                 rows={3}
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none resize-none"
+                className="w-full resize-none rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
               />
             </div>
           ) : (
-            stack.description && (
-              <InfoRow label={t('detail.description')} value={stack.description} />
-            )
+            stack.description && <InfoRow label={t('detail.description')} value={stack.description} />
           )}
           <InfoRow label={t('detail.created')} value={formatDate(stack.createdAt)} />
           <InfoRow label={t('detail.updated')} value={formatDate(stack.updatedAt)} />
@@ -88,6 +81,7 @@ export function OverviewTab({ stack, editing, description, onDescriptionChange }
             </CardTitle>
             {stack.type === 'managed' && (
               <Button
+                permission={PERM.STACKS_MANAGE}
                 variant="outline"
                 size="sm"
                 onClick={handlePrune}
@@ -102,13 +96,11 @@ export function OverviewTab({ stack, editing, description, onDescriptionChange }
         <CardContent>
           {pruneResult && (
             <div className="mb-3 rounded-md border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-              {pruneResult.count === 0
-                ? t('prune.noOrphans')
-                : t('prune.removed', { count: pruneResult.count })}
+              {pruneResult.count === 0 ? t('prune.noOrphans') : t('prune.removed', { count: pruneResult.count })}
               {pruneResult.removed.length > 0 && (
                 <ul className="mt-1 list-disc pl-4">
-                  {pruneResult.removed.map((name) => (
-                    <li key={name}>{name}</li>
+                  {pruneResult.removed.map((removedName) => (
+                    <li key={removedName}>{removedName}</li>
                   ))}
                 </ul>
               )}
@@ -122,22 +114,18 @@ export function OverviewTab({ stack, editing, description, onDescriptionChange }
               >
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium">{svc.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {svc.image.split(':')[0]?.split('/').pop()}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{svc.image.split(':')[0]?.split('/').pop()}</span>
                 </div>
                 <Badge
                   variant={svc.status === 'running' ? 'success' : 'destructive'}
-                  className="text-[10px] px-1.5 py-0"
+                  className="px-1.5 py-0 text-[10px]"
                 >
                   {svc.status}
                 </Badge>
               </div>
             ))}
             {stack.services.length === 0 && (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                {t('detail.noServices')}
-              </p>
+              <p className="py-4 text-center text-sm text-muted-foreground">{t('detail.noServices')}</p>
             )}
           </div>
         </CardContent>

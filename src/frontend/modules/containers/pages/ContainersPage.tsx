@@ -1,267 +1,178 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { ContainerInfo } from '@core/types/docker';
-import { DataGrid } from '@resources/components/DataGrid';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { PageHeader } from '@resources/layout/PageHeader';
+import { TablePage } from '@resources/layout/TablePage';
 import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
-import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
-import { BulkRemoveContainerDialog } from '../components/BulkRemoveContainerDialog';
-import { ContainerCardGrid } from '../components/ContainerCardGrid';
 import { ContainerUtilityDialogs } from '../components/ContainerUtilityDialogs';
 import { ContainersPageActions } from '../components/ContainersPageActions';
-import { useContainerBatchActions } from '../hooks/useContainerBatchActions';
+import { ContainerStateFilterChips } from '../components/ContainerStateFilterChips';
 import { useContainerChangeHighlights } from '../hooks/useContainerChangeHighlights';
-import { useContainerColumns } from '../hooks/useContainerColumns';
 import { useContainers, useContainerAction, usePruneContainers } from '../hooks/useContainers';
 import { useContainersBulkStats } from '../hooks/useContainersBulkStats';
+import { useCheckContainerUpdates, useContainerUpdateResults } from '../hooks/useContainerUpdates';
+import { useContainerOperationRunner } from '../hooks/useContainerOperationRunner';
+import { useContainersPageTable } from '../hooks/useContainersPageTable';
 import {
-  useCheckContainerUpdates,
-  useContainerOperationActions,
-  useContainerUpdateResults,
-  type ContainerOperationMode,
-  type ContainerOperationTarget,
-} from '../hooks/useContainerUpdates';
+  useContainersPageDialogState,
+  useContainersPageFilters,
+  useUpdateAvailableIds,
+} from '../hooks/useContainersPageState';
 import { useContainersViewStore } from '../stores/containers-view';
+import { ContainersCardBody } from './ContainersCardBody';
+import { ContainersLoadBanners, ContainersLoadFailed } from './ContainersLoadBanners';
+import { ContainersPageDialogs } from './ContainersPageDialogs';
 
 export default function ContainersPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
   const envId = useEnvironmentStore((state) => state.currentId);
   const uploadActive = useEnvironmentUploadActive(envId);
-  const { data: containers = [], isLoading } = useContainers();
+  const {
+    data: containers = [],
+    isLoading,
+    error: containersError,
+    failureCount,
+    errorUpdatedAt,
+    refetch: refetchContainers,
+  } = useContainers();
   const { data: statsMap } = useContainersBulkStats();
   const { highlightContainerChangesEnabled } = useCurrentEnvironmentActivitySettings();
   const action = useContainerAction();
   const pruneContainers = usePruneContainers();
   const checkUpdates = useCheckContainerUpdates();
-  const containerOperations = useContainerOperationActions();
   const batchProgress = useBatchProgressOperation();
   const updateResults = useContainerUpdateResults();
   const { viewMode, setViewMode } = useContainersViewStore();
-  const [removeTarget, setRemoveTarget] = useState<ContainerInfo | null>(null);
-  const [moveTarget, setMoveTarget] = useState<ContainerInfo | null>(null);
-  const [renameTarget, setRenameTarget] = useState<ContainerInfo | null>(null);
-  const [terminalTarget, setTerminalTarget] = useState<ContainerInfo | null>(null);
-  const [logsTarget, setLogsTarget] = useState<ContainerInfo | null>(null);
-  const [takeOverTarget, setTakeOverTarget] = useState<ContainerInfo | null>(null);
-  const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
-  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
-  const [bulkRemoveTargets, setBulkRemoveTargets] = useState<ContainerInfo[]>([]);
+  const ui = useContainersPageDialogState();
 
-  const updateAvailableIDs = new Set(
-    updateResults ? [...updateResults.values()].filter((result) => result.updateAvailable).map((result) => result.containerId) : [],
-  );
+  const updateAvailableIDs = useUpdateAvailableIds(updateResults);
+  const filters = useContainersPageFilters(containers, updateAvailableIDs);
   const highlightedIDs = useContainerChangeHighlights({
     containers,
     updateResults,
     enabled: highlightContainerChangesEnabled,
   });
 
-  function toTarget(container: ContainerInfo): ContainerOperationTarget {
-    return {
-      id: container.Id,
-      name: container.Names?.[0]?.replace(/^\//, '') ?? container.Id,
-      image: container.Image,
-    };
+  const { allTargets, updateTargets, runContainerOperation } = useContainerOperationRunner(
+    containers,
+    updateAvailableIDs,
+    batchProgress,
+  );
+
+  const { columns, batchActions } = useContainersPageTable(ui, action, updateResults, runContainerOperation);
+  const retry = () => void refetchContainers();
+
+  if (containersError && containers.length === 0) {
+    return <ContainersLoadFailed error={containersError} onRetry={retry} />;
   }
 
-  async function runContainerOperation(mode: ContainerOperationMode, targets: ContainerOperationTarget[]) {
-    if (targets.length === 0) {
-      return;
-    }
-
-    const batchScanner = containerOperations.createBatchScanner();
-    await batchProgress.runBatchOperation({
-      title: t(`updates.progress.${mode}Title`),
-      description: t(`updates.progress.${mode}Description`),
-      actionLabel: t(`updates.progress.${mode}Action`),
-      items: targets,
-      getKey: (target) => target.id,
-      getLabel: (target) => target.name,
-      execute: async (target, progress) => {
-        const result = await containerOperations.runOperation(target, mode, { log: progress.log, scanner: batchScanner });
-        return { detail: result.detail };
-      },
-      onComplete: async (result) => {
-        await containerOperations.finalizeOperation(mode, result.successfulItems);
-      },
-      getSuccessToast: (result) =>
-        result.successCount === 1
-          ? mode === 'update'
-            ? t('toast.updated')
-            : t('toast.reinstalled')
-          : mode === 'update'
-            ? t('updates.bulkUpdated', { count: result.successCount })
-            : t('updates.bulkReinstalled', { count: result.successCount }),
-      getErrorToast: (result) => t('updates.partialComplete', { success: result.successCount, total: result.total }),
-    });
-  }
-
-  const updateOperationContainers = containers.filter(canRunContainerUpdateOperation);
-  const allTargets = updateOperationContainers.map(toTarget);
-  const updateTargets = updateOperationContainers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
-  const columns = useContainerColumns({
-    action,
-    onTerminal: setTerminalTarget,
-    onLogs: setLogsTarget,
-    onRename: setRenameTarget,
-    onMove: setMoveTarget,
-    onRemove: setRemoveTarget,
-    onTakeOver: setTakeOverTarget,
-    updateResults,
-  });
-  const batchActions = useContainerBatchActions({
-    action,
-    onUpdateSelected: (rows) => runContainerOperation('update', rows.map(toTarget)),
-    onReinstallSelected: (rows) => runContainerOperation('reinstall', rows.map(toTarget)),
-    onRemoveSelected: (rows) => setBulkRemoveTargets(rows),
-  });
+  const actionProps = {
+    checkingUpdates: checkUpdates.isPending,
+    batchRunning: batchProgress.isRunning,
+    uploadActive,
+    updatesAvailable: updateTargets.length,
+    totalContainers: allTargets.length,
+    onCheckUpdates: () => checkUpdates.mutate(undefined),
+    onUpdateAll: () => runContainerOperation('update', updateTargets),
+    onRecreateAll: () => ui.setRecreateAllConfirmOpen(true),
+    onPruneUnused: () => ui.setPruneConfirmOpen(true),
+    t,
+  };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <PageHeader
+    <>
+      <TablePage
+        id="containers"
         title={t('title')}
         description={t('description', { count: containers.length })}
         actions={
-          <ContainersPageActions
-            viewMode={viewMode}
-            checkingUpdates={checkUpdates.isPending}
-            batchRunning={batchProgress.isRunning}
-            uploadActive={uploadActive}
-            updatesAvailable={updateTargets.length}
-            totalContainers={allTargets.length}
-            onCheckUpdates={() => checkUpdates.mutate(undefined)}
-            onUpdateAll={() => runContainerOperation('update', updateTargets)}
-            onReinstallAll={() => setReinstallAllConfirmOpen(true)}
-                onPruneUnused={() => setPruneConfirmOpen(true)}
-            onCreate={() => navigate('/containers/create')}
-            onViewModeChange={setViewMode}
-            t={t}
+          <ContainersPageActions {...actionProps} scope="header" viewMode={viewMode} onViewModeChange={setViewMode} />
+        }
+        banner={
+          <ContainersLoadBanners
+            error={containersError}
+            failureCount={failureCount}
+            updatedAt={errorUpdatedAt}
+            onRetry={retry}
           />
         }
-      />
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        {viewMode === 'table' ? (
-          <DataGrid
-            data={containers}
-            columns={columns}
-            searchKey="Image"
-            searchPlaceholder={t('searchPlaceholder')}
-            loading={isLoading}
-            emptyMessage={t('noContainersFound')}
-            onRowClick={(row) => navigate(`/containers/${row.Id}`)}
-            tableFixed
-            selectable
-            batchActions={batchActions}
-            getRowId={(row) => row.Id}
-            fillHeight
-            getRowClassName={(row) =>
-              highlightedIDs.has(row.Id)
-                ? 'bg-amber-500/10 shadow-[inset_4px_0_0_rgba(251,191,36,0.95),0_0_28px_rgba(251,191,36,0.12)]'
-                : undefined
-            }
-            toolbarActions={
-              <ContainersPageActions
-                scope="toolbar"
-                viewMode={viewMode}
-                checkingUpdates={checkUpdates.isPending}
-                batchRunning={batchProgress.isRunning}
-                uploadActive={uploadActive}
-                updatesAvailable={updateTargets.length}
-                totalContainers={allTargets.length}
-                onCheckUpdates={() => checkUpdates.mutate(undefined)}
-                onUpdateAll={() => runContainerOperation('update', updateTargets)}
-                onReinstallAll={() => setReinstallAllConfirmOpen(true)}
-            onPruneUnused={() => setPruneConfirmOpen(true)}
-                onCreate={() => navigate('/containers/create')}
-                onViewModeChange={setViewMode}
-                t={t}
-              />
-            }
+        search={filters.searchProps}
+        filters={
+          <ContainerStateFilterChips
+            containers={containers}
+            updateAvailableIDs={updateAvailableIDs}
+            value={filters.stateFacet}
+            onChange={filters.setStateFacet}
           />
-        ) : (
-          <div className="min-h-0 flex-1 overflow-auto">
-            <ContainerCardGrid
+        }
+        savedFilters={filters.savedFilters}
+        toolbar={{
+          // Column and density controls act on the table; in card view they
+          // would be levers attached to nothing.
+          columns: viewMode === 'table',
+          density: viewMode === 'table',
+          refresh: { onRefresh: retry, isFetching: isLoading },
+          export: { filename: 'mcharbor-containers' },
+          // One action set, rendered once, shared by both views.
+          actions: <ContainersPageActions {...actionProps} scope="toolbar" onCreate={() => ui.setCreateOpen(true)} />,
+        }}
+        columns={columns}
+        data={filters.visibleContainers}
+        loading={isLoading}
+        empty={{ title: t('noContainersFound') }}
+        selectable
+        batchActions={batchActions}
+        getRowId={(row) => row.Id}
+        getRowClassName={(row) =>
+          highlightedIDs.has(row.Id) ? 'bg-warning/10 shadow-[inset_4px_0_0_var(--status-warning)]' : undefined
+        }
+        onRowClick={(row) => navigate(`/containers/${row.Id}`)}
+        body={
+          viewMode === 'table' ? undefined : (
+            <ContainersCardBody
               containers={containers}
+              visibleContainers={filters.visibleContainers}
               statsMap={statsMap}
               highlightedIds={highlightedIDs}
               isLoading={isLoading}
-              onAction={(id, nextAction) => {
-                const target = containers.find((container) => container.Id === id);
-                if (target && isProtectedContainer(target)) return;
-                action.mutate({ id, action: nextAction });
-              }}
-              onTerminal={setTerminalTarget}
-              onLogs={setLogsTarget}
-              onRename={setRenameTarget}
-              onMove={setMoveTarget}
-              onRemove={setRemoveTarget}
-              onClick={(container) => navigate(`/containers/${container.Id}`)}
+              ui={ui}
+              onAction={action.mutate}
             />
-          </div>
-        )}
-      </div>
+          )
+        }
+      />
 
       <ContainerUtilityDialogs
-        removeTarget={removeTarget}
-        moveTarget={moveTarget}
-        renameTarget={renameTarget}
-        terminalTarget={terminalTarget}
-        logsTarget={logsTarget}
-        takeOverTarget={takeOverTarget}
+        removeTarget={ui.removeTarget}
+        moveTarget={ui.moveTarget}
+        renameTarget={ui.renameTarget}
+        terminalTarget={ui.terminalTarget}
+        logsTarget={ui.logsTarget}
+        takeOverTarget={ui.takeOverTarget}
         progressState={batchProgress.dialogState}
         closeProgress={batchProgress.closeDialog}
-        setRemoveTarget={setRemoveTarget}
-        setMoveTarget={setMoveTarget}
-        setRenameTarget={setRenameTarget}
-        setTerminalTarget={setTerminalTarget}
-        setLogsTarget={setLogsTarget}
-        setTakeOverTarget={setTakeOverTarget}
+        setRemoveTarget={ui.setRemoveTarget}
+        setMoveTarget={ui.setMoveTarget}
+        setRenameTarget={ui.setRenameTarget}
+        setTerminalTarget={ui.setTerminalTarget}
+        setLogsTarget={ui.setLogsTarget}
+        setTakeOverTarget={ui.setTakeOverTarget}
         t={t}
       />
 
-      <BulkRemoveContainerDialog
-        containers={bulkRemoveTargets}
-        open={bulkRemoveTargets.length > 0}
-        onOpenChange={(open) => !open && setBulkRemoveTargets([])}
+      <ContainersPageDialogs
+        ui={ui}
+        allTargets={allTargets}
+        batchRunning={batchProgress.isRunning}
+        pruning={pruneContainers.isPending}
+        onRun={runContainerOperation}
+        onPrune={() => pruneContainers.mutate()}
       />
-
-      <ConfirmDialog
-        open={reinstallAllConfirmOpen}
-        onOpenChange={setReinstallAllConfirmOpen}
-        title={t('updates.confirm.reinstallAllTitle')}
-        description={t('updates.confirm.reinstallAllDescription', {
-          count: allTargets.length,
-        })}
-        confirmLabel={t('updates.progress.reinstallAction')}
-        onConfirm={() => {
-          runContainerOperation('reinstall', allTargets);
-          setReinstallAllConfirmOpen(false);
-        }}
-        loading={batchProgress.isRunning}
-      />
-
-      <ConfirmDialog
-        open={pruneConfirmOpen}
-        onOpenChange={setPruneConfirmOpen}
-        title={t('pruneUnused')}
-        description={t('pruneDescription')}
-        confirmLabel={t('pruneUnused')}
-        onConfirm={() => {
-          pruneContainers.mutate();
-          setPruneConfirmOpen(false);
-        }}
-        loading={pruneContainers.isPending}
-      />
-    </div>
+    </>
   );
 }

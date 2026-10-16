@@ -1,0 +1,61 @@
+{
+    "slug":  "mysql-router",
+    "name":  "MySQL Router",
+    "description":  "Lightweight middleware that routes client connections across a MySQL InnoDB Cluster.",
+    "category":  "Databases",
+    "image":  "mysql/mysql-router:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mysql.png",
+    "website":  "https://dev.mysql.com/doc/mysql-router/8.4/en/",
+    "docsUrl":  "https://dev.mysql.com/doc/mysql-router/8.4/en/mysql-router-installation-docker.html",
+    "ports":  [
+                  {
+                      "host":  6446,
+                      "container":  6446,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6447,
+                      "container":  6447,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mysql-router/data",
+                        "container":  "/var/lib/mysqlrouter"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MYSQL_HOST",
+                        "default":  "mysql",
+                        "description":  "InnoDB Cluster bootstrap host"
+                    },
+                    {
+                        "key":  "MYSQL_PORT",
+                        "default":  "3306",
+                        "description":  "InnoDB Cluster bootstrap port"
+                    },
+                    {
+                        "key":  "MYSQL_USER",
+                        "default":  "root",
+                        "description":  "Bootstrap account username"
+                    },
+                    {
+                        "key":  "MYSQL_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Bootstrap account password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

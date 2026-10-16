@@ -13,6 +13,13 @@
       "gauge": "Jauge",
       "counter": "Comptoir",
       "event": "Événement"
+    },
+    "unit": {
+      "ms": "Millisecondes",
+      "s": "Secondes",
+      "bytes": "Octets",
+      "percent": "Pourcentage",
+      "count": "Nombre"
     }
   }
 }

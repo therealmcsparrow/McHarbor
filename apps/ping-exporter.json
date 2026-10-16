@@ -4,7 +4,7 @@
     "description":  "ICMP ping exporter for Prometheus with RTT, packet loss and per-target reachability.",
     "category":  "Monitoring",
     "image":  "czerwonk/ping_exporter:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/czerwonk/ping_exporter",
     "docsUrl":  "https://github.com/czerwonk/ping_exporter#docker",
     "ports":  [
@@ -29,5 +29,9 @@
                         "description":  "Args passed to ping command"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

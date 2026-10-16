@@ -4,7 +4,7 @@
     "description":  "PHP-FPM 8.2 on Alpine, FastCGI Process Manager for serving PHP behind a web server.",
     "category":  "Developer Tools",
     "image":  "php:8.2-fpm-alpine",
-    "logo":  "https://icon.horse/icon/www.php.net",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/php.svg",
     "website":  "https://www.php.net",
     "docsUrl":  "https://www.php.net/manual/en/",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "8.2-fpm-alpine"
+    "version":  "8.2-fpm-alpine",
+    "latest":  {
+        "version":  "8.2-fpm-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

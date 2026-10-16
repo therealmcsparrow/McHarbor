@@ -1,0 +1,40 @@
+{
+    "slug":  "zeppelin",
+    "name":  "Apache Zeppelin",
+    "description":  "Web-based notebook for interactive data analytics with SQL, Scala, Python, and Spark.",
+    "category":  "Developer Tools",
+    "image":  "apache/zeppelin:0.11.2",
+    "logo":  "https://www.google.com/s2/favicons?domain=zeppelin.apache.org\u0026sz=128",
+    "website":  "https://zeppelin.apache.org",
+    "docsUrl":  "https://zeppelin.apache.org/docs/latest/quickstart/docker.html",
+    "ports":  [
+                  {
+                      "host":  8083,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zeppelin/notebook",
+                        "container":  "/zeppelin/notebook"
+                    },
+                    {
+                        "host":  "/opt/appdata/zeppelin/logs",
+                        "container":  "/zeppelin/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "0.11.2",
+    "latest":  {
+        "version":  "0.11.2",
+        "release_date":  "2026-09-29"
+    }
+}

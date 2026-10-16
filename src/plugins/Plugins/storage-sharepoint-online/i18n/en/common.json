@@ -1,0 +1,73 @@
+{
+  "form": {
+    "introTitle": "Microsoft 365 consent",
+    "introBody": "Save this location, then use Connect to grant account consent. McHarbor stores the returned tokens encrypted.",
+    "tenant_id": {
+      "label": "Tenant ID",
+      "help": "Microsoft Entra tenant ID (GUID). From Entra admin center > Overview. The OAuth consent flow redirects to login.microsoftonline.com/{tenant_id}/…"
+    },
+    "client_id": {
+      "label": "Client ID",
+      "help": "Application (client) ID of the Entra app registration with Files.ReadWrite and Sites.ReadWrite delegated permissions and a Web redirect URI pointing at this McHarbor host."
+    },
+    "client_secret": {
+      "label": "Client Secret",
+      "help": "Client secret value from Entra admin center → App registrations → Certificates & secrets. Stored encrypted at rest."
+    },
+    "drive_id": {
+      "label": "Drive ID",
+      "help": "Optional. Fully-qualified Graph drive identifier. Leave blank to use the site's default document library (resolved via Site ID)."
+    },
+    "base_path": {
+      "label": "Base Path",
+      "help": "Optional. Graph path inside the drive, e.g. /Backups/2026. Leave blank to use the drive root. Not prefilled on purpose."
+    },
+    "site_id": {
+      "label": "SharePoint Site ID",
+      "help": "Graph site ID, e.g. contoso.sharepoint.com,guid1,guid2. Required when Drive ID is blank. From /sites/{hostname}:/sites/{path} in Graph Explorer."
+    }
+  },
+  "setup": {
+    "title": "SharePoint Online setup guide",
+    "step1": "In the Microsoft Entra admin center, open <b>App registrations > New registration</b>. Pick <b>Accounts in this organizational directory only</b> as the supported account type and copy the <b>Tenant ID</b> from the <b>Overview</b> page — paste it into the <b>Tenant ID</b> field on the left.",
+    "step2": "Under <b>Certificates & secrets</b>, create a new client secret. Copy the <b>Value</b> (not the <b>Secret ID</b>) — paste it into the <b>Client Secret</b> field on the left. Copy the <b>Application (client) ID</b> into the <b>Client ID</b> field.",
+    "step3": "Grant the app the <code>Files.ReadWrite.All</code>, <code>Sites.ReadWrite.All</code>, and <code>User.Read</code> application permissions (admin consent required). The OAuth flow will request <code>offline_access</code> on the operator's behalf.",
+    "step4": "Set the <b>SharePoint Site ID</b> to the Graph site identifier (e.g. <code>contoso.sharepoint.com,guid1,guid2</code>). Leave blank if you specify a <b>Drive ID</b> instead — Drive ID takes precedence when both are present.",
+    "step5": "Leave <b>Base Path</b> blank for the drive root, or enter an explicit Graph path like <code>/Backups/2026</code>. The form does not prefill a default.",
+    "step6": "Click <b>Save and connect</b> (or <b>Connect</b> on the storage card). Microsoft will ask you to sign in and grant the requested scopes. McHarbor stores the returned refresh token encrypted and <warn>never shows it again</warn>.",
+    "step7": "Click <b>Test connection</b> to round-trip a probe object in the chosen document library."
+  },
+  "page": {
+    "title": "SharePoint Online Backup Destinations",
+    "subtitle": "Back up containers to SharePoint document libraries under a work/school tenant. The plugin handles Test, Upload, Download, Delete, and List at backup time. Large backups use Microsoft's chunked upload session so there is no size cap.",
+    "registerHint": "Add a destination from the host's Storage Locations page and pick \"SharePoint\" as the type."
+  },
+  "fields": {
+    "clientId":     "Azure AD application (client) ID",
+    "clientSecret": "Azure AD client secret",
+    "refreshToken": "Refresh token (delivered by the OAuth consent flow)",
+    "tenantId":     "Azure AD tenant ID",
+    "siteId":       "SharePoint site ID (Graph site identifier)",
+    "driveId":      "Drive ID (leave empty to use the site's default document library)"
+  },
+  "help": {
+    "clientId":     "Register an app at https://entra.microsoft.com → App registrations. The app must have Files.ReadWrite.All, Sites.ReadWrite.All, and User.Read delegated permissions.",
+    "clientSecret": "Generate a client secret in the Azure AD app registration. It is encrypted at rest by the host's AES-256-GCM service.",
+    "refreshToken": "After saving the destination, click \"Save and connect\" to complete the Microsoft consent flow and store a long-lived refresh token.",
+    "tenantId":     "Find your tenant ID at https://entra.microsoft.com → Tenant properties.",
+    "siteId":       "Graph site identifier, e.g. contoso.sharepoint.com,guid1,guid2. Required when Drive ID is blank.",
+    "driveId":      "Optional. Leave empty to target the site's default document library via /sites/{site_id}/drive."
+  },
+  "toast": {
+    "registered": "SharePoint Online plugin registered.",
+    "testPassed": "SharePoint Online connection test passed.",
+    "testFailed": "SharePoint Online connection test failed: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure AD application (client) ID is required.",
+    "noClientSecret": "Azure AD client secret is required.",
+    "noRefreshToken": "Refresh token is required. Run \"Save and connect\" first.",
+    "noTenantId":     "Azure AD tenant ID is required for SharePoint Online destinations.",
+    "noSiteId":       "SharePoint site ID or Drive ID is required for SharePoint Online destinations."
+  }
+}

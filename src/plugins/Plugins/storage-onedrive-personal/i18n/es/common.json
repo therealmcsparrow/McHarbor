@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "Destinos de copia de seguridad de OneDrive (personal)",
+    "subtitle": "Haga copias de seguridad de contenedores en su OneDrive personal. El plugin gestiona Probar, Subir, Descargar, Eliminar y Listar en el momento de la copia. Las copias grandes usan la sesión de subida fragmentada de Microsoft, por lo que no hay límite de tamaño.",
+    "registerHint": "Añada un destino desde la página Ubicaciones de almacenamiento del host y elija \"OneDrive (personal)\" como tipo."
+  },
+  "fields": {
+    "clientId":     "ID de aplicación (cliente) de Azure AD",
+    "clientSecret": "Secreto de cliente de Azure AD",
+    "refreshToken": "Token de actualización (entregado por el flujo de consentimiento OAuth)",
+    "tenant":       "Tenant (consumers / common / organizations)"
+  },
+  "help": {
+    "clientId":     "Registre una aplicación en https://entra.microsoft.com → App registrations. La aplicación debe tener el permiso delegado Files.ReadWrite y la URI de redirección configurada para su instancia de McHarbor.",
+    "clientSecret": "Genere un secreto de cliente en el registro de la aplicación de Azure AD. El servicio AES-256-GCM del host lo cifra en reposo.",
+    "refreshToken": "Tras guardar el destino, haga clic en \"Guardar y conectar\" para completar el flujo de consentimiento de Microsoft y almacenar un token de actualización de larga duración.",
+    "tenant":       "Use \"consumers\" para cuentas personales. Use OneDrive for Business o SharePoint Online para cuentas profesionales / educativas."
+  },
+  "toast": {
+    "registered": "Plugin de OneDrive (personal) registrado.",
+    "testPassed": "La prueba de conexión de OneDrive (personal) se superó.",
+    "testFailed": "La prueba de conexión de OneDrive (personal) falló: {{error}}"
+  },
+  "error": {
+    "noClientId":     "El ID de aplicación (cliente) de Azure AD es obligatorio.",
+    "noClientSecret": "El secreto de cliente de Azure AD es obligatorio.",
+    "noRefreshToken": "El token de actualización es obligatorio. Ejecute primero \"Guardar y conectar\"."
+  },
+  "form": {
+    "driveId": {
+      "label": "ID de unidad",
+      "help": "Opcional. Déjalo vacío para usar la unidad predeterminada que devuelve el proveedor."
+    },
+    "basePath": {
+      "label": "Ruta base",
+      "help": "Opcional. Ruta de Graph dentro de la unidad, p. ej. /Backups/2026. Déjala vacía para usar la raíz de la unidad."
+    },
+    "clientId": {
+      "label": "ID de cliente",
+      "help": "Opcional. Déjalo vacío para usar el valor predeterminado integrado en el plugin. Introduce tu propio Application (client) ID del centro de administración de Entra si registraste una aplicación personalizada de Azure AD para OneDrive Personal."
+    },
+    "clientSecret": {
+      "label": "Secreto de cliente",
+      "help": "Opcional. Déjalo vacío si tu registro de aplicación es un cliente público de tipo Mobile and desktop applications (la vía recomendada para cuentas personales de Microsoft). Rellénalo solo para registros Web."
+    },
+    "intro": {
+      "title": "Se requiere una cuenta de Microsoft",
+      "save": "Guarda esta ubicación y luego haz clic en ",
+      "signIn": "Iniciar sesión con Microsoft",
+      "redirect": ". Se te redirigirá a ",
+      "account": " donde debes iniciar sesión con la cuenta live.com (cuenta personal de Microsoft) propietaria del OneDrive en el que quieres guardar las copias de seguridad y conceder los ",
+      "comma": ", ",
+      "and": " y ",
+      "tail": " scopes solicitados. McHarbor almacena el refresh token devuelto cifrado y no lo vuelve a mostrar nunca."
+    }
+  },
+  "setup": {
+    "title": "Guía de configuración de OneDrive (Personal)",
+    "steps": {
+      "save": "Guarda esta ubicación. El plugin incluye un registro de aplicación integrado, por lo que no se requiere ningún campo. Si quieres, introduce tu propio <b>Client ID</b> si registraste una aplicación personalizada de Azure AD para OneDrive Personal, y <b>Drive ID</b> / <b>Base Path</b> si quieres fijar una carpeta concreta de la unidad.",
+      "signIn": "Haz clic en <b>Sign in with Microsoft</b> (o en <b>Connect</b> en la tarjeta de almacenamiento). Se te redirigirá a <code>login.live.com</code>; inicia sesión con la cuenta personal de Microsoft (<code>live.com</code> / <code>hotmail.com</code> / <code>outlook.com</code>) propietaria del OneDrive en el que quieres guardar las copias de seguridad.",
+      "grant": "Concede los scopes solicitados <code>Files.ReadWrite</code>, <code>User.Read</code> y <code>offline_access</code>. McHarbor almacena el refresh token devuelto cifrado y <warn>no lo vuelve a mostrar nunca</warn>.",
+      "test": "Haz clic en <b>Test connection</b> para escribir y leer un objeto de prueba en la unidad elegida."
+    }
+  }
+}

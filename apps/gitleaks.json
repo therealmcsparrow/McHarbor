@@ -1,0 +1,35 @@
+{
+    "slug":  "gitleaks",
+    "name":  "Gitleaks",
+    "description":  "Scans git repositories and file paths for hardcoded secrets, tokens, and credentials.",
+    "category":  "Security",
+    "image":  "zricethezav/gitleaks:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=gitleaks.io\u0026sz=128",
+    "website":  "https://gitleaks.io",
+    "docsUrl":  "https://github.com/gitleaks/gitleaks#docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gitleaks/repo",
+                        "container":  "/repo"
+                    },
+                    {
+                        "host":  "/opt/appdata/gitleaks/report",
+                        "container":  "/report"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

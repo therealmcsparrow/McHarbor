@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import type { ContainerInfo } from '@core/types/docker';
 import { findBulkOrphanedNetworks } from '@core/utils/network';
@@ -28,7 +28,7 @@ type BulkRemoveContainerDialogProps = {
 
 export function BulkRemoveContainerDialog({
   containers,
-  open,
+  open: isOpen,
   onOpenChange,
   onSuccess,
 }: BulkRemoveContainerDialogProps) {
@@ -52,16 +52,20 @@ export function BulkRemoveContainerDialog({
   );
   const hasOrphans = orphanNetworks.length > 0;
 
-  useEffect(() => {
-    if (open) {
+  const containerIdsKey = containerIds.join('|');
+  const resetKey = `${isOpen}|${containerIdsKey}`;
+  const [appliedResetKey, setAppliedResetKey] = useState(resetKey);
+  if (appliedResetKey !== resetKey) {
+    setAppliedResetKey(resetKey);
+    if (isOpen) {
       setRemoveVolumes(false);
       setRemoveImage(false);
       setRemoveStack(false);
       setRemoveNetwork(false);
     }
-  }, [open, containerIds.join('|')]);
+  }
 
-  if (!open || containers.length === 0) return null;
+  if (!isOpen || containers.length === 0) return null;
 
   const handleRemove = async () => {
     for (const c of containers) {
@@ -80,7 +84,7 @@ export function BulkRemoveContainerDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('bulkRemoveDialog.title')}</DialogTitle>
@@ -117,11 +121,7 @@ export function BulkRemoveContainerDialog({
                 <div className="text-sm font-medium">{t('removeDialog.removeVolumes')}</div>
                 <div className="text-xs text-muted-foreground">{t('removeDialog.removeVolumesDesc')}</div>
               </Label>
-              <Switch
-                id="bulk-remove-volumes"
-                checked={removeVolumes}
-                onCheckedChange={setRemoveVolumes}
-              />
+              <Switch id="bulk-remove-volumes" checked={removeVolumes} onCheckedChange={setRemoveVolumes} />
             </div>
 
             <div className="flex items-center justify-between">
@@ -129,11 +129,7 @@ export function BulkRemoveContainerDialog({
                 <div className="text-sm font-medium">{t('removeDialog.removeImage')}</div>
                 <div className="text-xs text-muted-foreground">{t('removeDialog.removeImageDesc')}</div>
               </Label>
-              <Switch
-                id="bulk-remove-image"
-                checked={removeImage}
-                onCheckedChange={setRemoveImage}
-              />
+              <Switch id="bulk-remove-image" checked={removeImage} onCheckedChange={setRemoveImage} />
             </div>
 
             {stackContainers.length > 0 && (
@@ -142,11 +138,7 @@ export function BulkRemoveContainerDialog({
                   <div className="text-sm font-medium">{t('removeDialog.removeStack')}</div>
                   <div className="text-xs text-muted-foreground">{t('removeDialog.removeStackDesc')}</div>
                 </Label>
-                <Switch
-                  id="bulk-remove-stack"
-                  checked={removeStack}
-                  onCheckedChange={setRemoveStack}
-                />
+                <Switch id="bulk-remove-stack" checked={removeStack} onCheckedChange={setRemoveStack} />
               </div>
             )}
 
@@ -160,18 +152,17 @@ export function BulkRemoveContainerDialog({
                   </div>
                   <div className="text-xs text-muted-foreground">
                     <span className="font-mono text-foreground">
-                      {orphanNetworks.slice(0, 2).map((o) => o.name).join(', ')}
+                      {orphanNetworks
+                        .slice(0, 2)
+                        .map((o) => o.name)
+                        .join(', ')}
                       {orphanNetworks.length > 2 ? `, +${orphanNetworks.length - 2}` : ''}
                     </span>
                     {' — '}
                     {t('bulkRemoveDialog.removeNetworkDesc')}
                   </div>
                 </Label>
-                <Switch
-                  id="bulk-remove-network"
-                  checked={removeNetwork}
-                  onCheckedChange={setRemoveNetwork}
-                />
+                <Switch id="bulk-remove-network" checked={removeNetwork} onCheckedChange={setRemoveNetwork} />
               </div>
             )}
           </div>
@@ -181,14 +172,8 @@ export function BulkRemoveContainerDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('actions.cancel', { ns: 'common' })}
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleRemove}
-            disabled={removeMutation.isPending}
-          >
-            {removeMutation.isPending
-              ? t('bulkRemoveDialog.removing')
-              : t('actions.remove')}
+          <Button variant="destructive" onClick={handleRemove} disabled={removeMutation.isPending}>
+            {removeMutation.isPending ? t('bulkRemoveDialog.removing') : t('actions.remove')}
           </Button>
         </DialogFooter>
       </DialogContent>

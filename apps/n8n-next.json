@@ -1,0 +1,56 @@
+{
+    "slug":  "n8n-next",
+    "name":  "n8n (Next)",
+    "description":  "Next channel build of n8n. Workflow automation tool that connects apps and services with a visual editor.",
+    "category":  "Productivity",
+    "image":  "n8nio/n8n:next",
+    "logo":  "https://n8n.io/favicon.ico",
+    "website":  "https://n8n.io",
+    "docsUrl":  "https://docs.n8n.io",
+    "ports":  [
+                  {
+                      "host":  6678,
+                      "container":  5678,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/n8n-next/data",
+                        "container":  "/home/node/.n8n"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "N8N_BASIC_AUTH_ACTIVE",
+                        "default":  "true",
+                        "description":  "Enable basic auth"
+                    },
+                    {
+                        "key":  "N8N_BASIC_AUTH_USER",
+                        "default":  "admin",
+                        "description":  "Basic auth username"
+                    },
+                    {
+                        "key":  "N8N_BASIC_AUTH_PASSWORD",
+                        "default":  "",
+                        "description":  "Basic auth password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "GENERIC_TIMEZONE",
+                        "default":  "America/New_York",
+                        "description":  "Timezone for cron"
+                    }
+                ],
+    "version":  "next",
+    "latest":  {
+        "version":  "next",
+        "release_date":  "2026-09-29"
+    }
+}

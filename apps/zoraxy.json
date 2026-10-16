@@ -1,0 +1,54 @@
+{
+  "slug": "zoraxy",
+  "name": "Zoraxy",
+  "description": "General-purpose reverse proxy with a web UI, ACME certificates, access rules and uptime monitoring.",
+  "category": "Networking",
+  "image": "zoraxydocker/zoraxy:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zoraxy.png",
+  "website": "https://zoraxy.aroz.org",
+  "docsUrl": "https://github.com/tobychui/zoraxy/tree/main/docker",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8006,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zoraxy/config",
+      "container": "/opt/zoraxy/config"
+    },
+    {
+      "host": "/opt/appdata/zoraxy/plugins",
+      "container": "/opt/zoraxy/plugin"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "FASTGEOIP",
+      "default": "true",
+      "description": "Use the faster in-memory GeoIP lookup"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

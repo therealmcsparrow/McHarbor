@@ -1,0 +1,35 @@
+{
+    "slug":  "channels-dvr",
+    "name":  "Channels DVR",
+    "description":  "Personal DVR server that records and organizes live TV from tuners and streaming sources.",
+    "category":  "Media",
+    "image":  "fancybits/channels-dvr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/channels-dvr.png",
+    "website":  "https://getchannels.com/dvr-server",
+    "docsUrl":  "https://getchannels.com/docs/dvr-server/setup/docker",
+    "ports":  [
+                  {
+                      "host":  8089,
+                      "container":  8089,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/channels-dvr/data",
+                        "container":  "/channels-dvr"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

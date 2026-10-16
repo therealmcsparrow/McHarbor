@@ -1,7 +1,9 @@
 {
-  "label": "Run Backup Plan",
-  "description": "Run a saved container backup plan",
+  "label": "Executar plano de backup",
+  "description": "Executa um plano de backup de contêiner salvo",
   "config": {
-    "plan_id": "Plan ID"
+    "environment": "Ambiente",
+    "container": "Contêiner (filtro)",
+    "plan_id": "Plano de backup"
   }
 }

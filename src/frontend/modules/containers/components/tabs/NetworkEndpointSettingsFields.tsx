@@ -34,12 +34,7 @@ export function splitNetworkAliases(value: string): string[] {
     .filter(Boolean);
 }
 
-export function NetworkEndpointSettingsFields({
-  draft,
-  disabled,
-  onChange,
-  t,
-}: NetworkEndpointSettingsFieldsProps) {
+export function NetworkEndpointSettingsFields({ draft, disabled, onChange, t }: NetworkEndpointSettingsFieldsProps) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <label className="space-y-1.5">
@@ -48,8 +43,8 @@ export function NetworkEndpointSettingsFields({
           variant="outline"
           value={draft.aliases}
           disabled={disabled}
-          onChange={(event) => onChange({ aliases: event.target.value })}
-          placeholder="app, api"
+          onChange={(changeEvent) => onChange({ aliases: changeEvent.target.value })}
+          placeholder={t('placeholders.networkAliases')}
         />
       </label>
       <label className="space-y-1.5">
@@ -58,7 +53,7 @@ export function NetworkEndpointSettingsFields({
           variant="outline"
           value={draft.ipv4Address}
           disabled={disabled}
-          onChange={(event) => onChange({ ipv4Address: event.target.value })}
+          onChange={(changeEvent) => onChange({ ipv4Address: changeEvent.target.value })}
           placeholder="172.20.0.10"
         />
       </label>
@@ -68,8 +63,8 @@ export function NetworkEndpointSettingsFields({
           variant="outline"
           value={draft.ipv6Address}
           disabled={disabled}
-          onChange={(event) => onChange({ ipv6Address: event.target.value })}
-          placeholder="fd00::10"
+          onChange={(changeEvent) => onChange({ ipv6Address: changeEvent.target.value })}
+          placeholder={t('placeholders.ipv6Address')}
         />
       </label>
       <label className="space-y-1.5">
@@ -78,8 +73,8 @@ export function NetworkEndpointSettingsFields({
           variant="outline"
           value={draft.macAddress}
           disabled={disabled}
-          onChange={(event) => onChange({ macAddress: event.target.value })}
-          placeholder="02:42:ac:14:00:0a"
+          onChange={(changeEvent) => onChange({ macAddress: changeEvent.target.value })}
+          placeholder={t('placeholders.macAddress')}
         />
       </label>
     </div>

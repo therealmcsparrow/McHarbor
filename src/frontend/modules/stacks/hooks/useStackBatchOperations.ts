@@ -1,55 +1,45 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { toast } from "sonner";
-import type { TFunction } from "i18next";
-import { useBatchProgressOperation } from "@resources/hooks/useBatchProgressOperation";
-import { isProtectedStack } from "@core/utils/protection";
-import type { StackInfo } from "./useStacks";
+import { toast } from 'sonner';
+import type { TFunction } from 'i18next';
+import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
+import { isProtectedStack } from '@core/utils/protection';
+import type { StackInfo } from '@resources/hooks/useStacks';
 import {
   useStackOperationActions,
   useStackUpdateResults,
   type StackOperationMode,
   type StackOperationTarget,
-} from "./useStackUpdates";
+} from './useStackUpdates';
 
 function toStackTarget(stack: StackInfo): StackOperationTarget {
   return {
     name: stack.name,
-    images: [
-      ...new Set(
-        stack.services.map((service) => service.image).filter(Boolean),
-      ),
-    ],
+    images: [...new Set(stack.services.map((service) => service.image).filter(Boolean))],
   };
 }
 
-export function useStackBatchOperations(
-  stacks: StackInfo[],
-  t: TFunction<"stacks">,
-) {
+export function useStackBatchOperations(stacks: StackInfo[], t: TFunction<'stacks'>) {
   const stackOperations = useStackOperationActions();
   const batchProgress = useBatchProgressOperation();
   const updateResults = useStackUpdateResults();
 
-  const managedStacks = stacks.filter((stack) => stack.type === "managed" && !isProtectedStack(stack));
+  const managedStacks = stacks.filter((stack) => stack.type === 'managed' && !isProtectedStack(stack));
   const updateAvailableTargets = managedStacks
     .filter((stack) => updateResults?.get(stack.name)?.updateAvailable)
     .map(toStackTarget);
   const reinstallTargets = managedStacks.map(toStackTarget);
 
   function getManagedTargets(rows: StackInfo[]) {
-    const managedRows = rows.filter((row) => row.type === "managed" && !isProtectedStack(row));
+    const managedRows = rows.filter((row) => row.type === 'managed' && !isProtectedStack(row));
     if (managedRows.length !== rows.length) {
-      toast.warning(t("updates.managedOnly"));
+      toast.warning(t('updates.managedOnly'));
     }
     return managedRows.map(toStackTarget);
   }
 
-  async function runStackOperation(
-    mode: StackOperationMode,
-    targets: StackOperationTarget[],
-  ) {
+  async function runStackOperation(mode: StackOperationMode, targets: StackOperationTarget[]) {
     if (targets.length === 0) {
       return;
     }
@@ -74,14 +64,14 @@ export function useStackBatchOperations(
       },
       getSuccessToast: (result) =>
         result.successCount === 1
-          ? mode === "update"
-            ? t("toast.updated")
-            : t("toast.reinstalled")
-          : mode === "update"
-            ? t("updates.bulkUpdated", { count: result.successCount })
-            : t("updates.bulkReinstalled", { count: result.successCount }),
+          ? mode === 'update'
+            ? t('toast.updated')
+            : t('toast.reinstalled')
+          : mode === 'update'
+            ? t('updates.bulkUpdated', { count: result.successCount })
+            : t('updates.bulkReinstalled', { count: result.successCount }),
       getErrorToast: (result) =>
-        t("updates.partialComplete", {
+        t('updates.partialComplete', {
           success: result.successCount,
           total: result.total,
         }),

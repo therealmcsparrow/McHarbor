@@ -1,0 +1,52 @@
+{
+    "slug":  "open-webui-dev",
+    "name":  "Open WebUI (Dev)",
+    "description":  "Dev channel build of Open WebUI. Tracks pre-release changes and is not recommended for data you cannot lose.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/open-webui/open-webui:dev",
+    "logo":  "https://raw.githubusercontent.com/open-webui/open-webui/main/static/favicon.png",
+    "website":  "https://openwebui.com",
+    "docsUrl":  "https://docs.openwebui.com",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/open-webui-dev/data",
+                        "container":  "/app/backend/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OLLAMA_BASE_URL",
+                        "default":  "http://ollama:11434",
+                        "description":  "Ollama API base URL"
+                    },
+                    {
+                        "key":  "WEBUI_SECRET_KEY",
+                        "default":  "",
+                        "description":  "Secret key for session encryption",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "WEBUI_AUTH",
+                        "default":  "true",
+                        "description":  "Enable authentication (true/false)"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "dev",
+    "latest":  {
+        "version":  "dev",
+        "release_date":  "2026-09-29"
+    }
+}

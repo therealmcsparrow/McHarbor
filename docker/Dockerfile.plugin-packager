@@ -1,0 +1,236 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+#
+# Standalone plugin packager for individual plugins. Mirrors what the
+# untracked scripts/build-plugin-tarball.sh expects the main Dockerfile
+# to expose as a `plugin-packager` stage, but kept in a separate file so
+# the main docker/Dockerfile stays focused on the host build. Builds the
+# requested plugin's .so in the host's Go module context so the
+# pkghash for github.com/therealmcsparrow/mcharbor/core/plugin matches
+# the host binary, then packages plugin.yaml + i18n/ + frontend/*.umd.cjs
+# + icons/ + the freshly built .so into a dev tarball at
+# /packaged/<slug>-<version>.tar.gz.
+#
+# Pattern (matches docker/build-ai-provider-tarballs.sh):
+#   1. Stage plugin source files into /build/_plugin_build/<slug>/backend/
+#      INSIDE the host backend module tree, then strip the plugin's own
+#      go.mod / go.sum so the host's go.mod governs all imports. This
+#      avoids the "replace github.com/.../core/plugin => <path> is not a
+#      module" failure mode (Go's `replace` requires the target to be a
+#      self-contained module with its own go.mod, which the SDK isn't).
+#   2. Run `go build -buildmode=plugin` from the host module root so the
+#      resulting .so's pkghash for github.com/.../core/plugin matches
+#      the host binary exactly.
+#
+# Build context notes:
+#   - .dockerignore excludes node_modules + .git + dist + frontend
+#     build artifacts from the build context, keeping it to ~50 MB
+#     instead of ~2.3 GB.
+#   - First run takes ~3-5 min for cold Go module download; subsequent
+#     builds reuse the BuildKit cache and complete in ~30-60s.
+
+FROM golang:1.27.2-bookworm AS builder
+
+ARG PLUGIN_SLUG
+ARG PLUGIN_VERSION
+ARG GOFLAGS=""
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git bash gcc libc6-dev \
+    && apt-get clean && find /var/lib/apt/lists -mindepth 1 -delete
+
+WORKDIR /build
+
+# Copy the entire host backend tree so its go.mod provides the module
+# root that the plugin's source gets dropped into. We don't need the
+# full source of every Go file — just the module manifest and the
+# core/plugin SDK package — but the full copy is simplest and still
+# cheap with .dockerignore trimming node_modules.
+COPY src/backend/ ./src/backend/
+COPY src/plugins/Plugins/${PLUGIN_SLUG}/ ./src/plugins/Plugins/${PLUGIN_SLUG}/
+
+# Resolve plugin version from its own plugin.yaml if not passed.
+RUN if [ -z "${PLUGIN_VERSION}" ]; then \
+        PLUGIN_VERSION=$(awk '/^version:[[:space:]]*/{print $2; exit}' "src/plugins/Plugins/${PLUGIN_SLUG}/plugin.yaml" | tr -d '"\r'); \
+        echo "resolved PLUGIN_VERSION=${PLUGIN_VERSION} from plugin.yaml"; \
+    fi
+
+# Stage the plugin's Go source files inside the host module tree, like
+# build-ai-provider-tarballs.sh does. The staged location MUST live
+# inside the host module tree (src/backend/_plugin_build/<slug>/backend)
+# so `go build` from the host module root treats the source as a
+# sub-package of the host module — this is what makes the resulting
+# .so's pkghash for github.com/.../core/plugin match the host binary
+# (a plugin-side go.mod with a `replace` directive pointing at a
+# sub-directory of the host module would compile to a different
+# pkghash, breaking plugin.Open at load time). A sibling location
+# (e.g. /build/_plugin_build/...) trips the "directory X outside main
+# module" check.
+#
+# We do NOT copy the plugin's go.mod/go.sum into the staged location
+# because the plugin's go.mod has a `replace` directive pointing at
+# `../../../backend/core/plugin` (a relative path), which only
+# resolves from the plugin's original directory — not from
+# src/backend/_plugin_build. Plugin-specific third-party deps (e.g.
+# jlaffaye/ftp, pkg/sftp, hirochachacha/go-smb2) are added to the
+# host's go.mod via `go get` in the next step so they resolve from
+# the host module context.
+RUN mkdir -p src/backend/_plugin_build/${PLUGIN_SLUG}/backend \
+    && cp -R src/plugins/Plugins/${PLUGIN_SLUG}/backend/. \
+        src/backend/_plugin_build/${PLUGIN_SLUG}/backend/ \
+    && ls src/backend/_plugin_build/${PLUGIN_SLUG}/backend/
+
+# A plugin whose backend has sub-packages (addon-swarm's backend/internal/
+# i18n and /response, addon-reporting's backend/fontkit) imports them by its
+# own module path, which does not exist inside the host module tree the
+# source was just staged into. Rewrite those imports to the staged location
+# so they resolve as host sub-packages; plugins without sub-packages have
+# nothing to rewrite.
+#
+# Both module paths are stripped of carriage returns before use. go.mod is
+# checked out CRLF on Windows, so awk's $2 carries a trailing CR that lands
+# mid-path in the rewritten import and the compiler rejects it with
+# `invalid import path` - which is what broke the only two plugins this
+# rewrite exists for.
+RUN PLUGIN_MODULE="$(awk '/^module /{print $2; exit}' src/plugins/Plugins/${PLUGIN_SLUG}/go.mod | tr -d '\r')" \
+    && HOST_MODULE="$(awk '/^module /{print $2; exit}' src/backend/go.mod | tr -d '\r')" \
+    && echo "rewriting imports ${PLUGIN_MODULE}/backend -> ${HOST_MODULE}/_plugin_build/${PLUGIN_SLUG}/backend" \
+    && find src/backend/_plugin_build/${PLUGIN_SLUG}/backend -name '*.go' -print0 \
+       | xargs -0 sed -i "s#\"${PLUGIN_MODULE}/backend/#\"${HOST_MODULE}/_plugin_build/${PLUGIN_SLUG}/backend/#g"
+
+# Generate a force-link file inside the plugin's main package that
+# references every exported top-level symbol of core/plugin. The Go
+# plugin linker prunes any package symbol it cannot prove reachable
+# from the .so's exported entry points; the plugin's source only uses
+# ~10 of the ~60+ exports the host uses, so without this padding the
+# plugin's view of core/plugin is a strict subset of the host's view
+# and the per-package ABI hash differs. The references are emitted
+# as PACKAGE-LEVEL real-name `var forceLinkMcHarborCorePlugin_X = plugin.X`
+# declarations (not `_` — see
+# src/backend/cmd/extract-core-plugin-symbols/main.go for the rationale
+# and full mechanism). The linker prunes blank-identifier `var _ = X`
+# but cannot prune real-name assignments because they have side
+# effects on the package's reach set.
+#
+# The file is regenerated every build so adding a new core/plugin
+# export does not require a packager change. The file MUST be named
+# without a leading `_` or `.` — the go tool silently ignores such
+# files (see https://pkg.go.dev/cmd/go#hdr-File_ignores). An earlier
+# revision named this file `_host_link_keep.go` which is why the
+# force-link had no effect despite the build appearing to succeed.
+#
+# Must `cd /build/src/backend` first — `go run` needs the module root.
+# The host's go.mod lives at src/backend/go.mod; the previous WORKDIR
+# /build contains only the plugin source and has no module manifest.
+WORKDIR /build/src/backend
+RUN PLUGIN_KEEP_FILE=/build/src/backend/_plugin_build/${PLUGIN_SLUG}/backend/host_link_keep.go && \
+    go run ./cmd/extract-core-plugin-symbols ./core/plugin > "$PLUGIN_KEEP_FILE" && \
+    echo "=== generated $PLUGIN_KEEP_FILE ===" && \
+    wc -l "$PLUGIN_KEEP_FILE" && \
+    head -25 "$PLUGIN_KEEP_FILE"
+
+# Add any plugin-specific third-party deps to the host's go.mod by
+# reading them from the plugin's go.mod (skip the mcharbor SDK line).
+# This runs from the host module root so the deps are added to the
+# host's go.mod and resolve through the host module — preserving
+# the ABI hash match for core/plugin while still resolving
+# plugin-private deps.
+WORKDIR /build/src/backend
+# Add plugin-specific third-party deps to the host's go.mod so they
+# resolve through the host module context. `go mod tidy` is intentionally
+# omitted because `_plugin_build/` is created AFTER the host module was
+# built, so tidy would consider those packages as "not in module" and
+# remove the deps we just added. The deps persist as `// indirect` but
+# still resolve at build time.
+# Any indented `<host>/<path> <version>` line is a dependency — matching on
+# a fixed host list (github.com, golang.org, …) silently skipped k8s.io and
+# sigs.k8s.io, and the Kubernetes add-on then failed with "no required
+# module provides package k8s.io/client-go/…".
+#
+# A module the host already requires is SKIPPED, whichever version the plugin
+# names. `go get` would otherwise move the host's pin — addon-swarm asks for
+# golang.org/x/sys v0.47.0 against the host's v0.48.0, and the resulting .so
+# failed plugin.Open with "built with a different version of package
+# golang.org/x/sys/cpu". Building in the host module context is only
+# meaningful if the host's versions win.
+RUN awk '/^[[:space:]]+[A-Za-z0-9.-]+\.[A-Za-z]+\/[^ ]+ v[0-9]/{print $1}' go.mod \
+        | tr -d '\r' | sort -u > /tmp/host-modules.txt \
+ && PLUGIN_DEPS=$(grep -E '^\s+[A-Za-z0-9.-]+\.[A-Za-z]+/[^ ]+ v[0-9]' \
+        /build/src/plugins/Plugins/${PLUGIN_SLUG}/go.mod 2>/dev/null | \
+        tr -d '\r' | \
+        awk '{print $1 "@" $2}' | \
+        grep -v 'github.com/therealmcsparrow/mcharbor' || true) && \
+    if [ -n "$PLUGIN_DEPS" ]; then \
+        for dep in $PLUGIN_DEPS; do \
+            mod="${dep%@*}"; \
+            if grep -Fxq "$mod" /tmp/host-modules.txt; then \
+                echo "keeping host pin for $mod (plugin asked for ${dep#*@})"; \
+                continue; \
+            fi; \
+            go get "$dep" >/tmp/goget.log 2>&1 || { echo "go get $dep failed:"; cat /tmp/goget.log; }; \
+        done; \
+    fi
+
+# Build the .so in the host module context. -buildmode=plugin only
+# works with CGO_ENABLED=1 (the Go toolchain returns
+# "requires external (cgo) linking, but cgo is not enabled" otherwise).
+# The host's docker/Dockerfile builds with CGO_ENABLED=1 as well so
+# the cgo runtime expected by the plugin matches what the host
+# provides. The plugin's source lives under
+# src/backend/_plugin_build/<slug>/backend inside the host module, so
+# the host's go.mod handles all imports (including the SDK at
+# github.com/therealmcsparrow/mcharbor/core/plugin, which is reachable
+# as a normal sub-package of the host module, producing an ABI hash
+# that matches the host binary).
+RUN CGO_ENABLED=1 go build -trimpath -buildmode=plugin ${GOFLAGS} \
+        -o /tmp/${PLUGIN_SLUG}.so \
+        ./_plugin_build/${PLUGIN_SLUG}/backend
+
+# PLUGIN_BUILD stamps the packaged manifest with the minute this artifact was
+# compiled. It is injected rather than kept in source: the point of a build is
+# that a rebuild has a new one, and a hand-maintained field in sixty manifests
+# would be stale the first time anybody forgot.
+ARG PLUGIN_BUILD
+
+# Package: plugin.yaml + i18n/ + frontend/*.umd.cjs + icons/ + the .so.
+RUN RESOLVED_PLUGIN_VERSION="${PLUGIN_VERSION}" \
+    && if [ -z "${RESOLVED_PLUGIN_VERSION}" ]; then \
+         RESOLVED_PLUGIN_VERSION=$(awk '/^version:[[:space:]]*/{print $2; exit}' "/build/src/plugins/Plugins/${PLUGIN_SLUG}/plugin.yaml" | tr -d '"\r'); \
+       fi \
+    && test -n "${RESOLVED_PLUGIN_VERSION}" \
+    && mkdir -p /tmp/payload/backend \
+    && cp /build/src/plugins/Plugins/${PLUGIN_SLUG}/plugin.yaml /tmp/payload/ \
+    && if [ -n "${PLUGIN_BUILD}" ]; then \
+         sed -i '/^build:/d' /tmp/payload/plugin.yaml && \
+         { [ -z "$(tail -c1 /tmp/payload/plugin.yaml)" ] || echo >> /tmp/payload/plugin.yaml; } && \
+         echo "build:    \"${PLUGIN_BUILD}\"" >> /tmp/payload/plugin.yaml; \
+       fi \
+    && if [ -d /build/src/plugins/Plugins/${PLUGIN_SLUG}/i18n ]; then \
+         cp -R /build/src/plugins/Plugins/${PLUGIN_SLUG}/i18n /tmp/payload/; \
+       fi \
+    && if [ -f /build/src/plugins/Plugins/${PLUGIN_SLUG}/frontend/${PLUGIN_SLUG}.umd.cjs ]; then \
+         mkdir -p /tmp/payload/frontend && \
+           cp /build/src/plugins/Plugins/${PLUGIN_SLUG}/frontend/${PLUGIN_SLUG}.umd.cjs /tmp/payload/frontend/; \
+       else \
+         echo "warning: frontend/${PLUGIN_SLUG}.umd.cjs missing — ConfigForm/SetupGuide will render blank" >&2; \
+       fi \
+    && if [ -d /build/src/plugins/Plugins/${PLUGIN_SLUG}/icons ]; then \
+         mkdir -p /tmp/payload/icons && \
+           cp -R /build/src/plugins/Plugins/${PLUGIN_SLUG}/icons/. /tmp/payload/icons/; \
+       fi \
+    && if [ -d /build/src/plugins/Plugins/${PLUGIN_SLUG}/migrations ]; then \
+         cp -R /build/src/plugins/Plugins/${PLUGIN_SLUG}/migrations /tmp/payload/; \
+       fi \
+    && if [ -f /build/src/plugins/Plugins/${PLUGIN_SLUG}/THIRD_PARTY_NOTICES.md ]; then \
+         cp /build/src/plugins/Plugins/${PLUGIN_SLUG}/THIRD_PARTY_NOTICES.md /tmp/payload/; \
+       fi \
+    && cp /tmp/${PLUGIN_SLUG}.so /tmp/payload/backend/${PLUGIN_SLUG}.so \
+    && mkdir -p /tmp/packaged \
+    && tar -C /tmp/payload -czf /tmp/packaged/${PLUGIN_SLUG}-${RESOLVED_PLUGIN_VERSION}.tar.gz . \
+    && ls -la /tmp/packaged/
+
+# Final stage: export the packaged tarball via the buildx output pipe.
+# The caller extracts `/packaged/<slug>-<version>.tar.gz` from the
+# resulting tar stream.
+FROM scratch AS plugin-packager
+COPY --from=builder /tmp/packaged/ /packaged/

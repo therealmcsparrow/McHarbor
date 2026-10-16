@@ -5,7 +5,12 @@ package workflows
 
 import "errors"
 
+// ErrInvalidWorkflowExport marks an import payload that is not a supported workflow export, so handlers can answer 400 instead of 500.
 var ErrInvalidWorkflowExport = errors.New("invalid workflow export")
+
+// ErrWorkflowEncryptionUnavailable refuses to store canvas data or variables without the
+// encryption service: both can carry credentials typed into node configs.
+var ErrWorkflowEncryptionUnavailable = errors.New("workflow payload cannot be stored without encryption")
 
 // Workflow represents a workflow with its canvas data.
 type Workflow struct {
@@ -20,6 +25,9 @@ type Workflow struct {
 	LastRunAt   string `json:"lastRunAt,omitempty"`
 	CreatedAt   string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
+	// SelfHostAuthorized records whether the last save was by someone holding
+	// host_self.manage; a run acts on McHarbor's own containers only when it is set.
+	SelfHostAuthorized bool `json:"selfHostAuthorized"`
 }
 
 // WorkflowExport is the portable per-workflow export file format.
@@ -193,6 +201,12 @@ type FlowContext struct {
 	FlowVars   map[string]interface{} `json:"flowVars"`
 	GlobalVars map[string]interface{} `json:"globalVars"`
 	Runtime    *ExecutionRuntime      `json:"-"`
+	// UserID is the account that started this run when a person did
+	// (manual runs from the editor). Empty for scheduled, webhook,
+	// event and link-triggered runs. Plugin nodes receive it so work
+	// that must run as a user (a report collecting over the API) can
+	// run as the one who pressed Run.
+	UserID string `json:"-"`
 }
 
 // containerMetricSnapshot holds a point-in-time metric reading for a container.

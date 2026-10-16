@@ -1,0 +1,50 @@
+{
+  "slug": "traccar",
+  "name": "Traccar",
+  "description": "GPS tracking server supporting over 200 protocols and 2000 device models.",
+  "category": "Home Automation",
+  "image": "traccar/traccar:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/traccar.png",
+  "website": "https://www.traccar.org",
+  "docsUrl": "https://www.traccar.org/docker/",
+  "ports": [
+    {
+      "host": 8082,
+      "container": 8082,
+      "protocol": "tcp"
+    },
+    {
+      "host": 5055,
+      "container": 5055,
+      "protocol": "tcp"
+    },
+    {
+      "host": 5023,
+      "container": 5023,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/traccar/logs",
+      "container": "/opt/traccar/logs"
+    },
+    {
+      "host": "/opt/appdata/traccar/data",
+      "container": "/opt/traccar/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

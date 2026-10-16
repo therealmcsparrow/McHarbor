@@ -1,0 +1,50 @@
+{
+  "slug": "musicbrainz-picard",
+  "name": "MusicBrainz Picard",
+  "description": "Music tagger that identifies and tags audio files against MusicBrainz, served as a desktop in the browser.",
+  "category": "Media",
+  "image": "mikenye/picard:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/musicbrainz-picard.png",
+  "website": "https://picard.musicbrainz.org",
+  "docsUrl": "https://github.com/mikenye/docker-picard",
+  "ports": [
+    {
+      "host": 5800,
+      "container": 5800,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/musicbrainz-picard/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/musicbrainz-picard/music",
+      "container": "/storage"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "USER_ID",
+      "default": "1000",
+      "description": "User ID that owns the mounted files"
+    },
+    {
+      "key": "GROUP_ID",
+      "default": "1000",
+      "description": "Group ID that owns the mounted files"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone for logs and scheduled tasks"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest",
+  "latest": {
+    "version": "latest",
+    "release_date": "2026-09-27"
+  }
+}

@@ -15,6 +15,34 @@
       "image": "Image",
       "volume": "Volume",
       "network": "Network"
+    },
+    "action": {
+      "create": "Create",
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "die": "Die",
+      "kill": "Kill",
+      "destroy": "Destroy",
+      "pause": "Pause",
+      "unpause": "Unpause",
+      "oom": "Out of memory",
+      "health_status": "Health status",
+      "rename": "Rename",
+      "update": "Update",
+      "exec_create": "Exec create",
+      "exec_start": "Exec start",
+      "exec_die": "Exec die",
+      "pull": "Pull",
+      "push": "Push",
+      "delete": "Delete",
+      "tag": "Tag",
+      "untag": "Untag",
+      "prune": "Prune",
+      "mount": "Mount",
+      "unmount": "Unmount",
+      "connect": "Connect",
+      "disconnect": "Disconnect"
     }
   }
 }

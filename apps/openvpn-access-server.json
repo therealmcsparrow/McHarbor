@@ -1,0 +1,51 @@
+{
+    "slug":  "openvpn-access-server",
+    "name":  "OpenVPN Access Server",
+    "description":  "OpenVPN server with a web-based admin console and client portal.",
+    "category":  "Networking",
+    "image":  "openvpn/openvpn-as:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openvpn.png",
+    "website":  "https://openvpn.net/access-server/",
+    "docsUrl":  "https://openvpn.net/as-docs/docker.html",
+    "ports":  [
+                  {
+                      "host":  943,
+                      "container":  943,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1194,
+                      "container":  1194,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openvpn-access-server/config",
+                        "container":  "/openvpn"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_USER",
+                        "default":  "openvpn",
+                        "description":  "Initial admin console username"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin console password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

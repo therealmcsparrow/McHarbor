@@ -1,0 +1,47 @@
+{
+    "slug":  "foreman",
+    "name":  "Foreman",
+    "description":  "Lifecycle management tool for provisioning, configuring and monitoring physical and virtual servers.",
+    "category":  "CI/CD",
+    "image":  "quay.io/foreman/foreman:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=theforeman.org\u0026sz=128",
+    "website":  "https://theforeman.org",
+    "docsUrl":  "https://theforeman.org/manuals/latest/index.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/foreman/data",
+                        "container":  "/etc/foreman"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "FOREMAN_INITIAL_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin console password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

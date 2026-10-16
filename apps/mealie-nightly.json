@@ -1,0 +1,40 @@
+{
+    "slug":  "mealie-nightly",
+    "name":  "Mealie (Nightly)",
+    "description":  "Nightly channel build of Mealie. Self-hosted recipe manager and meal planner with a clean UI.",
+    "category":  "Productivity",
+    "image":  "ghcr.io/mealie-recipes/mealie:nightly",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mealie.png",
+    "website":  "https://mealie.io",
+    "docsUrl":  "https://docs.mealie.io",
+    "ports":  [
+                  {
+                      "host":  10925,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mealie-nightly/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BASE_URL",
+                        "default":  "http://localhost:9925",
+                        "description":  "Base URL"
+                    }
+                ],
+    "version":  "nightly",
+    "latest":  {
+        "version":  "nightly",
+        "release_date":  "2026-09-29"
+    }
+}

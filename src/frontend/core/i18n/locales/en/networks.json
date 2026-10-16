@@ -6,12 +6,21 @@
   "tableView": "Table view",
   "cardView": "Card view",
   "columns": {
+    "attachable": "Attachable",
+    "ipamDriver": "IPAM driver",
+    "labels": "Labels",
+    "builtIn": "Built-in",
+    "usedBy": "Used by",
+    "groupRelations": "Relations",
+    "groupNetwork": "Network",
     "name": "Name",
     "id": "ID",
     "driver": "Driver",
     "scope": "Scope",
     "subnet": "Subnet",
     "gateway": "Gateway",
+    "ipRange": "IP range",
+    "options": "Options",
     "internal": "Internal",
     "containers": "Containers",
     "created": "Created",
@@ -43,6 +52,40 @@
     "parentInterface": "Parent Interface",
     "parentPlaceholder": "eth0",
     "parentHelp": "Host network interface to attach to",
+    "parentSelect": "Select an interface",
+    "parentLoading": "Reading host interfaces...",
+    "parentManual": "Enter manually...",
+    "parentManualHelp": "Type the interface name exactly as the host reports it.",
+    "parentBackToList": "Back to list",
+    "parentKind": {
+      "physical": "Physical",
+      "bond": "Bond",
+      "vlan": "VLAN",
+      "unknown": "Interface"
+    },
+    "parentDown": "down",
+    "parentInUseShort": "in use",
+    "parentDetail": "{{kind}} \u00b7 MTU {{mtu}} \u00b7 {{addresses}}",
+    "parentNoAddress": "no IP address",
+    "parentDownHelp": "This interface is currently down. Bring it up on the host before containers can use the network.",
+    "parentInUse": "Already the parent of {{networks}}. A second network on the same interface is allowed but rarely intended.",
+    "parentDefaultRoute": "This is the default route interface of the host. Containers on the network will reach the LAN, but the host itself will not be able to reach them.",
+    "parentNoneFound": "No physical, bond or VLAN interface was found on this host.",
+    "parentNoAgent": "McHarbor cannot read the interfaces of this host from inside its container. Install the agent on the host to list them, or type the interface name.",
+    "parentAgentUnreachable": "The agent of this environment did not answer, so its interfaces cannot be listed. Check that the agent is connected (restart it on the host if it is stuck), or type the interface name.",
+    "modeHelp": {
+      "macvlan": {
+        "bridge": "Containers get their own MAC on the LAN and talk to each other directly. The host cannot reach them. The usual choice.",
+        "vepa": "All traffic, including container to container, leaves through the physical switch. Needs a switch with hairpin (reflective relay) enabled.",
+        "passthru": "One container takes over the parent interface entirely. Only a single network and endpoint are possible.",
+        "private": "Containers are isolated from each other even through the switch. Only outside traffic passes."
+      },
+      "ipvlan": {
+        "l2": "Containers share the MAC of the parent and get their own IP on the same subnet. Behaves like macvlan bridge without extra MACs.",
+        "l3": "The parent routes between container subnets. No broadcast or DHCP; routes to the container subnet must exist upstream.",
+        "l3s": "Layer 3 with connection tracking, so netfilter and published ports work. Slightly slower than l3."
+      }
+    },
     "mode": "Mode",
     "internal": "Internal",
     "internalHelp": "Restrict external access",
@@ -51,9 +94,21 @@
     "ipam": "IPAM Configuration",
     "addSubnet": "Add Subnet",
     "ipamRequired": "Subnet and gateway are typically required for {{driver}} networks.",
+    "ipv6": "Enable IPv6",
+    "ipv6Hint": "Lets the network carry an IPv6 subnet: add one below, e.g. your LAN's /64 for macvlan, next to the IPv4 subnet.",
     "subnetPlaceholder": "Subnet (e.g. 192.168.1.0/24)",
     "gatewayPlaceholder": "Gateway (e.g. 192.168.1.1)",
-    "ipRangePlaceholder": "IP Range (optional)",
+    "ipRangePlaceholder": "IP range, CIDR (optional, e.g. 192.168.1.192/27)",
+    "errors": {
+      "invalidSubnet": "Subnet must be in CIDR notation, for example 192.168.1.0/24.",
+      "invalidGateway": "Gateway must be a single IP address, for example 192.168.1.1, without a /prefix.",
+      "invalidIpRange": "IP range must be a CIDR block inside the subnet, for example 192.168.1.192/27, not a start-end range.",
+      "invalidAuxAddress": "Auxiliary addresses must be single IP addresses.",
+      "gatewayOutsideSubnet": "The gateway must lie inside the subnet.",
+      "ipRangeOutsideSubnet": "The IP range must lie inside the subnet.",
+      "ipv6SubnetNeedsEnable": "An IPv6 subnet needs IPv6 enabled on the network.",
+      "addressFamilyMismatch": "A gateway, IP range or reserved address must be the same IP version as its subnet."
+    },
     "advanced": "Advanced Options",
     "customOptions": "Custom Options",
     "customOptionsHelp": "Driver-specific options as key-value pairs. Parent and mode are set from their dedicated fields.",
@@ -64,6 +119,49 @@
     "labelKey": "Label key",
     "labelValue": "Label value",
     "removeSubnet": "Remove subnet"
+  },
+  "hostLink": {
+    "switch": "Create a host interface",
+    "hint": "Adds an interface on the host beside the macvlan parent, so the host can reach the containers on this network.",
+    "passthru": "Not available in passthru mode: one container takes over the parent interface, so the host cannot have one beside it.",
+    "name": "Interface name",
+    "namePlaceholder": "mcvlan0",
+    "ipv4": "Host IPv4 address",
+    "ipv4Placeholder": "e.g. 192.168.1.250/24, outside the IP range",
+    "ipv6": "Host IPv6 address",
+    "ipv6Placeholder": "e.g. 2001:db8:1::250/64",
+    "auto": "Automatic (SLAAC)",
+    "autoHint": "Let the host configure its IPv6 address from router advertisements instead of a fixed address.",
+    "title": "Host interface",
+    "parent": "Parent interface",
+    "state": "State",
+    "states": {
+      "present": "Present",
+      "missing": "Missing",
+      "unknown": "Unknown",
+      "none": "None"
+    },
+    "missingHint": "The interface is not on the host, for example after a reboot. Re-apply creates it again from the settings recorded on this network.",
+    "reapply": "Re-apply",
+    "reapplying": "Applying...",
+    "applied": "Host interface applied",
+    "unavailable": {
+      "agent_unreachable": "The agent of this environment did not answer, so the host interface cannot be managed right now.",
+      "agent_outdated": "The agent on this host is too old to manage host interfaces. Update the agent.",
+      "containerized": "McHarbor runs inside a container here and cannot change the host's interfaces. Connect the host through an agent."
+    },
+    "errors": {
+      "invalidName": "The interface name must be 1 to 15 letters, digits, dots, underscores or dashes, and must not equal the parent.",
+      "nameReserved": "That interface name starts with a prefix McHarbor reserves for its own interfaces. Choose another name.",
+      "needsMacvlan": "A host interface needs a macvlan network with a parent interface.",
+      "addressInvalid": "The host address must be a CIDR such as 192.168.1.250/24 inside one of the network's subnets, of the same IP version, and IPv6 must be enabled for an IPv6 address. Give the interface at least one address.",
+      "addressInRange": "The host address lies inside the network's IP range, where Docker hands out addresses to containers. Pick one outside it.",
+      "passthru": "A host interface cannot be used with macvlan passthru mode.",
+      "notConfigured": "This network has no host interface.",
+      "nameTaken": "An interface with that name already exists on the host and was not created by McHarbor.",
+      "failed": "The host interface could not be applied.",
+      "unavailable": "Host interfaces cannot be managed here."
+    }
   },
   "toast": {
     "created": "Network created",
@@ -85,11 +183,12 @@
     "description": "This will permanently remove <bold>{{count}}</bold> networks.",
     "networks": "Networks",
     "andXMore": "and {{count}} more",
-    "inUse": "in use",
-    "inUseWarning": "{{count}} selected network(s) are still attached to running containers. Removal will fail for those unless containers are stopped or disconnected first.",
+    "inUseWarning_one": "{{count}} selected network is still attached to running containers. Removal will fail for it unless containers are stopped or disconnected first.",
+    "inUseWarning_other": "{{count}} selected networks are still attached to running containers. Removal will fail for those unless containers are stopped or disconnected first.",
     "forceLabel": "I understand and want to attempt removal anyway",
     "removing": "Removing...",
-    "builtInSkipped": "{{count}} built-in network(s) skipped (cannot be removed)",
+    "builtInSkipped_one": "{{count}} built-in network skipped (cannot be removed)",
+    "builtInSkipped_other": "{{count}} built-in networks skipped (cannot be removed)",
     "noneEligible": "No networks are eligible for removal."
   },
   "actions": {
@@ -145,7 +244,14 @@
     "connect": "Connect",
     "selectContainer": "Container",
     "selectPlaceholder": "Select a container...",
-    "view": "View details"
+    "view": "View details",
+    "tabs": {
+      "ariaLabel": "Network sections",
+      "overview": "Overview",
+      "containers": "Containers",
+      "configuration": "Configuration"
+    },
+    "noConfiguration": "This network carries no custom options or labels."
   },
   "keyValue": {
     "removeRow": "Remove row"
@@ -154,5 +260,15 @@
     "create": {
       "removeSubnet": "Remove subnet"
     }
+  },
+  "recreate": {
+    "errors": {
+      "restored": "Docker refused the new settings. The original network was restored and its containers reconnected on their addresses; nothing changed.",
+      "lost": "Docker refused the new settings and the original network could not be restored. Its containers are now disconnected: recreate the network and reconnect them."
+    },
+    "reconnectFailed_one": "{{count}} container could not be reconnected: {{names}}",
+    "reconnectFailed_other": "{{count}} containers could not be reconnected: {{names}}",
+    "addressesChanged_one": "{{count}} container came back on a new address because its old one is outside the new subnets: {{names}}",
+    "addressesChanged_other": "{{count}} containers came back on new addresses because their old ones are outside the new subnets: {{names}}"
   }
 }

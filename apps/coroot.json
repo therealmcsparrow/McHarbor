@@ -1,0 +1,35 @@
+{
+    "slug":  "coroot",
+    "name":  "Coroot",
+    "description":  "eBPF-based observability tool that maps service dependencies and surfaces application health issues automatically.",
+    "category":  "Monitoring",
+    "image":  "ghcr.io/coroot/coroot:latest",
+    "logo":  "https://github.com/coroot.png",
+    "website":  "https://coroot.com",
+    "docsUrl":  "https://docs.coroot.com/getting-started/installation/docker-compose",
+    "ports":  [
+                  {
+                      "host":  8093,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/coroot/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

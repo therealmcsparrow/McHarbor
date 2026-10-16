@@ -1,0 +1,56 @@
+{
+    "slug":  "ejabberd",
+    "name":  "ejabberd",
+    "description":  "Scalable XMPP and MQTT messaging server used for chat, push notifications and IoT messaging.",
+    "category":  "Communications",
+    "image":  "ejabberd/ecs:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/ejabberd.svg",
+    "website":  "https://www.process-one.net/ejabberd",
+    "docsUrl":  "https://docs.ejabberd.im/admin/installation/#docker",
+    "ports":  [
+                  {
+                      "host":  5222,
+                      "container":  5222,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5269,
+                      "container":  5269,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5280,
+                      "container":  5280,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ejabberd/database",
+                        "container":  "/home/ejabberd/database"
+                    },
+                    {
+                        "host":  "/opt/appdata/ejabberd/conf",
+                        "container":  "/home/ejabberd/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "EJABBERD_ADMIN_PWD",
+                        "default":  "change-me",
+                        "description":  "Password for the initial admin@ account",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

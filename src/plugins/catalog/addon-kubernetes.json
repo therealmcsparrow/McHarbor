@@ -1,0 +1,16 @@
+{
+  "slug": "addon-kubernetes",
+  "name": "Kubernetes",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Manage Kubernetes clusters from McHarbor: pods, deployments and other workloads, services and networking, storage, config, namespaces, nodes and events — with pod logs, deployment scaling and rolling restarts. Cluster connections are owned by the plugin and their kubeconfig and bearer-token credentials are encrypted at rest with the host's own key.",
+  "category": "Orchestration",
+  "icon": "IconHexagons",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/addon-kubernetes-1.0.0.tar.gz"
+    }
+  ]
+}

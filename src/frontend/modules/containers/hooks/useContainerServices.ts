@@ -22,9 +22,7 @@ export function useContainerServices(containerId: string, enabled = true) {
     queryKey: ['container-services', envId, containerId],
     queryFn: () =>
       api
-        .get<ContainerServicesResult>(`/containers/${containerId}/services`, {
-          ...(envId ? { env: envId } : {}),
-        })
+        .get<ContainerServicesResult>(`/containers/${containerId}/services`, envId ? { env: envId } : {})
         .then((r) => r.data ?? { initSystem: '', services: [] }),
     enabled: enabled && !!containerId,
     staleTime: 30_000,

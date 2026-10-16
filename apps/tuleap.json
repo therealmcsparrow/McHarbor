@@ -1,0 +1,46 @@
+{
+    "slug":  "tuleap",
+    "name":  "Tuleap",
+    "description":  "All-in-one platform for agile project management, source control, and issue tracking.",
+    "category":  "Productivity",
+    "image":  "tuleap/tuleap-community-edition:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.tuleap.org\u0026sz=128",
+    "website":  "https://www.tuleap.org",
+    "docsUrl":  "https://tuleap-documentation.readthedocs.io/en/latest/installation-guide/docker/",
+    "ports":  [
+                  {
+                      "host":  8094,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8095,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tuleap/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TULEAP_FQDN",
+                        "default":  "localhost",
+                        "description":  "Fully qualified domain name for this Tuleap instance"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

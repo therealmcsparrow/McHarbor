@@ -17,19 +17,27 @@ type TraceSectionProps = {
   defaultExpanded?: boolean;
 };
 
-export function TraceSection({ label, badge, badgeColor = 'bg-blue-500/20 text-blue-400', data, defaultExpanded = false }: TraceSectionProps) {
+export function TraceSection({
+  label,
+  badge,
+  badgeColor = 'bg-info/20 text-info',
+  data,
+  defaultExpanded = false,
+}: TraceSectionProps) {
   const { t } = useTranslation('common');
   const [expanded, setExpanded] = useState(defaultExpanded);
 
-  const isEmpty = data === null || data === undefined ||
+  const isEmpty =
+    data === null ||
+    data === undefined ||
     (typeof data === 'object' && !Array.isArray(data) && Object.keys(data as Record<string, unknown>).length === 0);
 
   return (
-    <div className={cn("border-t", ct.border5)}>
+    <div className={cn('border-t', ct.border5)}>
       <Button
         variant="ghost"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-start gap-1.5 rounded-none px-3 py-1.5 text-[10px] h-auto"
+        className="flex h-auto w-full items-center justify-start gap-1.5 rounded-none px-3 py-1.5 text-[10px]"
       >
         {expanded ? (
           <IconChevronDown className="size-2.5 shrink-0 text-muted-foreground" />
@@ -37,11 +45,7 @@ export function TraceSection({ label, badge, badgeColor = 'bg-blue-500/20 text-b
           <IconChevronRight className="size-2.5 shrink-0 text-muted-foreground" />
         )}
         <span className="font-medium text-muted-foreground">{label}</span>
-        {badge && (
-          <span className={`rounded px-1 py-0.5 text-[8px] font-medium ${badgeColor}`}>
-            {badge}
-          </span>
-        )}
+        {badge && <span className={`rounded px-1 py-0.5 text-[8px] font-medium ${badgeColor}`}>{badge}</span>}
       </Button>
       {expanded && (
         <div className="px-3 pb-2 font-mono text-[9px] leading-relaxed">
@@ -55,4 +59,3 @@ export function TraceSection({ label, badge, badgeColor = 'bg-blue-500/20 text-b
     </div>
   );
 }
-

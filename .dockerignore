@@ -4,8 +4,17 @@
 
 node_modules
 src/frontend/node_modules
+# Plugin frontends ship node_modules with hashed .bin symlinks (e.g.
+# node_modules/.bin/.nanoid-ZPuGxoUM) that BuildKit rejects as
+# "invalid file request" when the plugin's frontend dir is included
+# via `COPY src/plugins/Plugins/<slug>/`. The packager only needs the
+# built <slug>.umd.cjs, not the raw node_modules. Excluded with **
+# so each plugin's frontend/node_modules is filtered regardless of
+# its position under src/plugins/Plugins/.
+src/plugins/Plugins/**/frontend/node_modules
 src/frontend/dist
 src/frontend/tsconfig.tsbuildinfo
+dist
 data
 .env
 .env.*
@@ -23,9 +32,24 @@ data
 .idea
 .store
 .tools
+# Compiled host binaries — only needed for the main docker/Dockerfile
+# build context, never for the plugin packager
+src/backend/mcharbor
+src/backend/mcharbor.exe
+src/backend/*.exe
+src/backend/_plugin_build
 
 website
 *.md
 !README.md
 !nodes/**/*.md
 images
+
+# The plugin signing private key never belongs in the build context —
+# the build reads it through a BuildKit secret mount instead, so it is
+# available to the signing step without ever landing in a layer. The
+# public half (signing/*.pub) stays in the context: the runtime image
+# copies it in as its trust key.
+signing/*.key
+cli
+agents/catalog

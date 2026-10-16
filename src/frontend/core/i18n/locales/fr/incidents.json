@@ -1,0 +1,180 @@
+{
+  "title": "Incidents",
+  "description": "Conteneurs en boucle de plantage, quittés à répétition, à court de mémoire, devenus défectueux ou ayant déclenché une alerte — avec tout ce que McHarbor sait à leur sujet au même endroit.",
+  "empty": "Aucun incident.",
+  "notFound": "Cet incident n'existe pas.",
+  "columns": {
+    "container": "Conteneur",
+    "signal": "Signal",
+    "signals": "Signaux",
+    "status": "Statut",
+    "narrative": "Récit",
+    "started": "Début",
+    "last": "Dernier signal",
+    "subject": "Sujet"
+  },
+  "signal": {
+    "crash_loop": "Boucle de plantage",
+    "exit_nonzero": "Sorties en échec répétées",
+    "oom": "Mémoire insuffisante",
+    "unhealthy": "Défectueux",
+    "alert": "Alerte déclenchée"
+  },
+  "status": {
+    "open": "Ouvert",
+    "resolved": "Résolu",
+    "all": "Tous"
+  },
+  "narrativeStatus": {
+    "none": "Non raconté",
+    "pending": "Rédaction en cours…",
+    "ready": "Raconté",
+    "failed": "Échec",
+    "refused": "Refusé"
+  },
+  "confidence": {
+    "low": "Confiance faible",
+    "medium": "Confiance moyenne",
+    "high": "Confiance élevée"
+  },
+  "detail": {
+    "description": "{{signal}} · {{count}} signaux · premier {{first}} · dernier {{last}}",
+    "refresh": "Actualiser les preuves",
+    "resolve": "Résoudre",
+    "resolveTitle": "Résoudre cet incident ?",
+    "resolveDescription": "Clôturez dès maintenant l'incident de {{name}} et construisez sa chronologie. Un nouveau signal ouvrira un nouvel incident.",
+    "resolveConfirm": "Résoudre l'incident"
+  },
+  "narrative": {
+    "title": "Ce qui s'est passé",
+    "explain": "Expliquer",
+    "again": "Expliquer à nouveau",
+    "working": "Interrogation du modèle…",
+    "none": "Pas encore de récit. « Expliquer » envoie les preuves ci-dessous au modèle d'IA configuré pour McHarbor.",
+    "lastFailed": "La dernière rédaction du récit a échoué.",
+    "failedTitle": "Pourquoi la rédaction a échoué",
+    "undetermined": "Le modèle n'a pas pu déterminer de cause à partir des preuves disponibles. Ce qu'il a examiné figure ci-dessous.",
+    "changes": "Modifié peu avant",
+    "causes": "Causes probables",
+    "attribution": "Rédigé par {{model}} via {{connection}} ({{provider}}) pour {{who}} le {{time}}.",
+    "attributionProactive": "Rédigé automatiquement par {{model}} via {{connection}} ({{provider}}) le {{time}}.",
+    "shown": "Ce qui a été montré au modèle",
+    "shownHint": "Le texte exact, expurgé, qui a été envoyé. Empreinte {{hash}}."
+  },
+  "refusal": {
+    "not_opted_in": "La rédaction de récits est désactivée pour cet environnement. Activez-la d'abord dans les paramètres de récit ; rien n'a été envoyé.",
+    "no_model": "Aucun modèle d'IA n'est configuré et activé. Ajoutez-en un dans les paramètres de l'assistant IA ; rien n'a été envoyé.",
+    "in_progress": "Un récit est déjà en cours de rédaction pour cet incident.",
+    "cap_reached": "La limite horaire de récits pour cet environnement est atteinte.",
+    "not_resolved": "Seul un incident résolu possède une chronologie à résumer.",
+    "model_failed": "Le modèle n'a pas répondu. La raison figure sur l'incident.",
+    "not_open": "Cet incident est déjà résolu."
+  },
+  "evidence": {
+    "title": "Preuves",
+    "window": "Du {{from}} au {{to}}",
+    "truncated": "Tronqué à la taille limite",
+    "pending": "Les preuves sont en cours de collecte.",
+    "nothing": "Rien d'enregistré dans cette période.",
+    "image": "Image",
+    "state": "État",
+    "exitCode": "Code de sortie",
+    "restarts": "Redémarrages",
+    "health": "Santé",
+    "oomKilled": "Mémoire insuffisante",
+    "yes": "Oui",
+    "no": "Non",
+    "exit": "sortie {{code}}",
+    "events": "Événements du conteneur",
+    "logs": "Dernières lignes de journal",
+    "imageChanges": "Modifications d'image",
+    "audit": "Qui a modifié quoi",
+    "deploys": "Déploiements vers cet environnement",
+    "alerts": "Alertes",
+    "drift": "Écart par rapport à l'état souhaité",
+    "metrics": "Métriques",
+    "peakContainerCpu": "Pic CPU du conteneur",
+    "peakContainerMem": "Pic mémoire du conteneur",
+    "peakHostCpu": "Pic CPU de l'hôte",
+    "peakHostMem": "Pic mémoire de l'hôte",
+    "pluginNote": {
+      "plugin_unloaded": "Le plugin à l'origine de cet incident n'est pas chargé ; ses preuves n'ont pas pu être lues.",
+      "plugin_unavailable": "Le plugin à l'origine de cet incident n'a pas répondu à temps."
+    }
+  },
+  "logsNote": {
+    "unavailable": "Les journaux ne sont pas disponibles ici.",
+    "unreachable": "L'environnement n'a pas pu être joint pour récupérer les journaux.",
+    "not_found": "Le conteneur n'existe plus, il n'y a donc pas de journaux.",
+    "logs_unavailable": "Les journaux n'ont pas pu être lus."
+  },
+  "timeline": {
+    "title": "Chronologie",
+    "summarise": "Résumer",
+    "kind": {
+      "symptom": "Premier symptôme",
+      "event": "Événement",
+      "action": "Action",
+      "alert": "Alerte",
+      "change": "Dernière modification",
+      "resolved": "Résolu"
+    }
+  },
+  "settings": {
+    "open": "Paramètres de récit",
+    "title": "Récits pour cet environnement",
+    "description": "Indique si les incidents de cet environnement peuvent être expliqués par le modèle d'IA, et à quelle fréquence.",
+    "noModel": "Aucun modèle d'IA n'est configuré et activé, rien ne peut donc être envoyé. Configurez-en un dans les paramètres de l'assistant IA.",
+    "destinationLocal": "Les preuves seraient envoyées à {{connection}} : {{provider}} exécutant {{model}} à l'adresse {{url}}, un modèle auto-hébergé.",
+    "destinationRemote": "Les preuves quitteraient ce réseau : elles sont envoyées à {{connection}}, {{provider}} exécutant {{model}} à l'adresse {{url}}.",
+    "whatIsSent": "Ce qui est envoyé : les événements et lignes de journal récents du conteneur, les modifications d'image, les entrées d'audit et les déploiements le concernant, les alertes, les écarts et les métriques — après suppression des mots de passe, jetons, identifiants, adresses et points de terminaison Docker. Les variables d'environnement ne sont jamais envoyées.",
+    "optIn": "Autoriser les récits pour cet environnement",
+    "acknowledge": "Je comprends que les preuves d'incident de cet environnement seront envoyées au modèle indiqué ci-dessus.",
+    "proactive": "Rédiger automatiquement le récit des nouveaux incidents",
+    "hourlyCap": "Récits automatiques par heure",
+    "hourlyCapHint": "La rédaction automatique est suspendue dès que ce nombre de récits a été atteint au cours de la dernière heure. « Expliquer » n'est jamais refusé à cause de cette limite.",
+    "save": "Enregistrer"
+  },
+  "snippet": {
+    "title": "Récit de l'incident",
+    "pending": "Un incident est ouvert pour cette alerte ; pas encore de récit.",
+    "open": "Ouvrir l'incident"
+  },
+  "findings": {
+    "open": "Comportement",
+    "title": "Constats de comportement",
+    "description": "Motifs détectés dans l'historique enregistré selon des règles fixes. Les chiffres sont mesurés ; un modèle ne peut que les expliquer.",
+    "back": "Retour aux incidents",
+    "empty": "Aucun constat.",
+    "explain": "Expliquer ce constat",
+    "dismiss": "Ignorer",
+    "explainedBy": "Expliqué par {{model}} pour {{who}}.",
+    "columns": {
+      "kind": "Motif",
+      "subject": "Où",
+      "numbers": "Ce que disent les chiffres",
+      "explanation": "Explication",
+      "lastSeen": "Dernière occurrence",
+      "actions": "Actions"
+    },
+    "kind": {
+      "memory_climb": "Mémoire en hausse",
+      "host_memory_forecast": "Mémoire de l'hôte bientôt saturée",
+      "scheduled_restarts": "Redémarrages planifiés",
+      "post_deploy_failures": "Échecs après un déploiement",
+    "host_disk_forecast": "Disque de l'hôte bientôt saturé",
+    "storage_location_forecast": "Destination de stockage bientôt saturée"
+    },
+    "says": {
+      "memory_climb": "La mémoire a augmenté de {{growth}} % en {{days}} jours, soit environ {{perDay}} par jour (ajustement {{r2}}).",
+      "host_memory_forecast": "À {{current}} % et en hausse de {{perDay}} points par jour, la mémoire sera saturée dans environ {{days}} jours.",
+      "scheduled_restarts": "Redémarrages vers {{time}} UTC sur {{days}} jours différents.",
+      "post_deploy_failures": "{{after}} sorties en échec dans la journée suivant un déploiement, contre {{before}} la veille.",
+    "host_disk_forecast": "À {{current}} % et en hausse de {{perDay}} points par jour, ce système de fichiers atteindra {{ceiling}} % dans environ {{days}} jours (ajustement {{r2}}).",
+    "storage_location_forecast": "À {{current}} % et en hausse de {{perDay}} points par jour, cette destination atteindra {{ceiling}} % dans environ {{days}} jours (ajustement {{r2}})."
+    }
+  },
+  "subjectType": {
+    "container": "Conteneur"
+  }
+}

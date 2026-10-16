@@ -4,7 +4,7 @@
   "description": "Modern data pipeline tool for transforming and integrating data with notebooks, scripts, and triggers.",
   "category": "Databases",
   "image": "mageai/mageai:latest",
-  "logo": "https://www.mage.ai/favicon.svg",
+  "logo": "https://www.google.com/s2/favicons?domain=www.mage.ai\u0026sz=128",
   "website": "https://www.mage.ai",
   "docsUrl": "https://docs.mage.ai/getting-started/setup",
   "ports": [
@@ -37,5 +37,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

@@ -1,0 +1,15 @@
+{
+  "label": "Environment Info",
+  "description": "Read Docker daemon, host or reachability information for an environment",
+  "config": {
+    "environment": "Environment",
+    "scope": "Information"
+  },
+  "options": {
+    "scope": {
+      "docker": "Docker daemon",
+      "host": "Host",
+      "status": "Reachability"
+    }
+  }
+}

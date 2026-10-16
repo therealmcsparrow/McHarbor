@@ -2,7 +2,7 @@
     "slug":  "dify",
     "name":  "Dify",
     "description":  "Open-source LLM app development platform combining BaaS and LLMOps for production AI apps.",
-    "category":  "AI \u0026 Voice",
+    "category":  "AI & Voice",
     "image":  "langgenius/dify-api:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/dify.svg",
     "website":  "https://dify.ai",
@@ -44,5 +44,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

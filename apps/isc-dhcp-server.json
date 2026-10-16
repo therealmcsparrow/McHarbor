@@ -1,0 +1,40 @@
+{
+    "slug":  "isc-dhcp-server",
+    "name":  "ISC DHCP Server",
+    "description":  "DHCP server that assigns and manages IP address leases on a local network.",
+    "category":  "Networking",
+    "image":  "networkboot/dhcpd:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.isc.org\u0026sz=128",
+    "website":  "https://www.isc.org/dhcp/",
+    "docsUrl":  "https://hub.docker.com/r/networkboot/dhcpd",
+    "ports":  [
+                  {
+                      "host":  6768,
+                      "container":  67,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/isc-dhcp-server/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DHCPD_INTERFACE",
+                        "default":  "eth0",
+                        "description":  "Network interface to serve DHCP leases on"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

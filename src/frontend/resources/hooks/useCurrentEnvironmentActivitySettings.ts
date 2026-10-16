@@ -14,7 +14,7 @@ const DEFAULT_ACTIVITY_SETTINGS = {
 export function useCurrentEnvironmentActivitySettings() {
   const currentId = useEnvironmentStore((state) => state.currentId);
   const currentEnvironment = useEnvironmentStore((state) =>
-    state.environments.find((environment) => environment.id === state.currentId)
+    state.environments.find((environment) => environment.id === state.currentId),
   );
 
   return {
@@ -25,9 +25,11 @@ export function useCurrentEnvironmentActivitySettings() {
     collectContainerMetricsEnabled:
       currentEnvironment?.collectContainerMetricsEnabled ?? DEFAULT_ACTIVITY_SETTINGS.collectContainerMetricsEnabled,
     highlightContainerChangesEnabled:
-      currentEnvironment?.highlightContainerChangesEnabled ?? DEFAULT_ACTIVITY_SETTINGS.highlightContainerChangesEnabled,
+      currentEnvironment?.highlightContainerChangesEnabled ??
+      DEFAULT_ACTIVITY_SETTINGS.highlightContainerChangesEnabled,
     dockerDiskUsageNotificationsEnabled:
-      currentEnvironment?.dockerDiskUsageNotificationsEnabled ?? DEFAULT_ACTIVITY_SETTINGS.dockerDiskUsageNotificationsEnabled,
+      currentEnvironment?.dockerDiskUsageNotificationsEnabled ??
+      DEFAULT_ACTIVITY_SETTINGS.dockerDiskUsageNotificationsEnabled,
     dockerDiskUsageThresholdPercent:
       currentEnvironment?.dockerDiskUsageThresholdPercent ?? DEFAULT_ACTIVITY_SETTINGS.dockerDiskUsageThresholdPercent,
   };

@@ -1,0 +1,57 @@
+{
+    "slug":  "patroni",
+    "name":  "Patroni",
+    "description":  "High-availability template that manages automatic failover for PostgreSQL clusters.",
+    "category":  "Databases",
+    "image":  "registry.opensource.zalan.do/acid/patroni:latest",
+    "logo":  "https://github.com/zalando.png",
+    "website":  "https://patroni.readthedocs.io",
+    "docsUrl":  "https://patroni.readthedocs.io/en/latest/existing_data.html",
+    "ports":  [
+                  {
+                      "host":  8008,
+                      "container":  8008,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/patroni/data",
+                        "container":  "/home/postgres/pgdata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PATRONI_SUPERUSER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Postgres superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PATRONI_REPLICATION_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Replication user password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PATRONI_SCOPE",
+                        "default":  "cluster",
+                        "description":  "Cluster name used for leader election"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

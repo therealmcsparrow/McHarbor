@@ -1,0 +1,50 @@
+{
+    "slug":  "wg-portal",
+    "name":  "WG-Portal",
+    "description":  "Web-based configuration portal for managing WireGuard VPN peers and interfaces.",
+    "category":  "Networking",
+    "image":  "wgportal/wg-portal:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wireguard.png",
+    "website":  "https://wgportal.org/",
+    "docsUrl":  "https://wgportal.org/",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  51821,
+                      "container":  51820,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wg-portal/data",
+                        "container":  "/app/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/wg-portal/config",
+                        "container":  "/app/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WG_PORTAL_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "slug":  "pwpush",
+    "name":  "Password Pusher",
+    "description":  "Web app for sharing passwords and secrets via self-destructing, expiring links instead of chat or email.",
+    "category":  "Security",
+    "image":  "pglombardo/pwpush:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pwpush.png",
+    "website":  "https://pwpush.com",
+    "docsUrl":  "https://docs.pwpush.com/docs/installation/",
+    "ports":  [
+                  {
+                      "host":  5100,
+                      "container":  5100,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pwpush/data",
+                        "container":  "/opt/pwpush/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "sqlite3:///opt/pwpush/data/production.sqlite3",
+                        "description":  "Database connection string; defaults to a local SQLite file"
+                    },
+                    {
+                        "key":  "PWP__EXPIRE_AFTER_DAYS_DEFAULT",
+                        "default":  "7",
+                        "description":  "Default number of days before a push expires"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,89 @@
+// Copyright (c) 2026 McSparrow. All rights reserved.
+// McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+// Package main is the Go side of the example-plugin plugin.
+//
+// This plugin is intentionally minimal: it does not register
+// adapters, routes, menu items, widgets, or nodes. The host loads
+// it via `plugin.Open`, sees seven no-op `Register*` methods, calls
+// `Init` + `Shutdown`, and that is the entire lifecycle.
+//
+// Scaffolded by `mcharbor plugin dev new`. Edit plugin.yaml,
+// main.go and index.tsx, then build and ship.
+package main
+
+import (
+	"context"
+
+	"github.com/therealmcsparrow/mcharbor/core/plugin"
+)
+
+// ExamplePlugin is the singleton the host dispatches to. It holds
+// no state beyond the manifest + host context.
+type ExamplePlugin struct {
+	manifest plugin.Manifest
+	host     plugin.HostContext
+}
+
+// Manifest returns the parsed plugin.yaml.
+func (p *ExamplePlugin) Manifest() plugin.Manifest { return p.manifest }
+
+// RegisterRoutes — no routes. The plugin's config form is served
+// by the host's Settings > Plugins page, not by a custom route.
+func (p *ExamplePlugin) RegisterRoutes(_ plugin.Registry) error { return nil }
+
+// RegisterMenu — no menu entry. The plugin is configured from the
+// host's Settings > Plugins list.
+func (p *ExamplePlugin) RegisterMenu(_ plugin.MenuRegistry) error { return nil }
+
+// RegisterWidgets — no dashboard widgets.
+func (p *ExamplePlugin) RegisterWidgets(_ plugin.WidgetRegistry) error { return nil }
+
+// RegisterNodes — no workflow nodes.
+func (p *ExamplePlugin) RegisterNodes(_ plugin.NodeRegistry) error { return nil }
+
+// RegisterPermissions — no adds_permissions in the manifest, so this
+// is a no-op. If you add adds_permissions to plugin.yaml, register
+// any dynamic permission decls here.
+func (p *ExamplePlugin) RegisterPermissions(_ plugin.AccessRegistry) error { return nil }
+
+// RegisterAdapters (optional) — this plugin does not implement
+// AdapterContributor, so the host skips the adapter-walk step.
+// To add an adapter, declare the method here and have it call
+// reg.Storage() / .Notification() / .Identity() / .AI() / .Snapshot().
+
+// Init is called once after all Register* methods complete. We
+// stash the host context so Shutdown can audit, and emit a single
+// audit record so the operator sees the lifecycle in the host log.
+func (p *ExamplePlugin) Init(_ context.Context, host plugin.HostContext) error {
+	p.host = host
+	if host.Audit != nil {
+		_ = host.Audit.Emit("plugin.example-plugin.init", map[string]any{
+			"slug":    p.manifest.Slug,
+			"version": p.manifest.Version,
+		})
+	}
+	return nil
+}
+
+// Shutdown is called on graceful stop or uninstall.
+func (p *ExamplePlugin) Shutdown(_ context.Context) error {
+	if p.host.Audit != nil {
+		_ = p.host.Audit.Emit("plugin.example-plugin.shutdown", nil)
+	}
+	return nil
+}
+
+// Compile-time check that we satisfy the plugin.Plugin interface.
+var _ plugin.Plugin = (*ExamplePlugin)(nil)
+
+// Plugin is the exported symbol `plugin.Open` looks up. It must be
+// a variable (not a const) for `-buildmode=plugin` to find it.
+var Plugin plugin.Plugin = &ExamplePlugin{
+	manifest: plugin.Manifest{
+		Schema:  "mcharbor.plugin/v1",
+		Slug:    "example-plugin",
+		Name:    "Example Plugin",
+		Version: "1.0.0",
+	},
+}

@@ -1,0 +1,26 @@
+{
+  "label": "Fichier",
+  "description": "Lire ou écrire un fichier dans le répertoire de données du workflow",
+  "config": {
+    "operation": "Opération",
+    "path": "Chemin",
+    "encoding": "Codage",
+    "output_property": "Propriété de sortie",
+    "property": "Propriété",
+    "mode": "Mode"
+  },
+  "options": {
+    "operation": {
+      "read": "Lire",
+      "write": "Écrire"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    },
+    "mode": {
+      "overwrite": "Écraser",
+      "append": "Ajouter"
+    }
+  }
+}

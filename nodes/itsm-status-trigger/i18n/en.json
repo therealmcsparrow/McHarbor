@@ -1,0 +1,17 @@
+{
+  "label": "Ticket Status",
+  "description": "Start when an ITSM reports that a linked ticket changed state",
+  "config": {
+    "channel_id": "Ticketing Channel",
+    "states": "States"
+  },
+  "options": {
+    "states": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    }
+  }
+}

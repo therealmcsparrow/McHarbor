@@ -1,0 +1,60 @@
+{
+    "slug":  "openldap",
+    "name":  "OpenLDAP",
+    "description":  "Lightweight directory access protocol server for centralized user and group storage.",
+    "category":  "Identity & SSO",
+    "image":  "osixia/openldap:1.5.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openldap.svg",
+    "website":  "https://www.openldap.org",
+    "docsUrl":  "https://github.com/osixia/docker-openldap",
+    "ports":  [
+                  {
+                      "host":  389,
+                      "container":  389,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  636,
+                      "container":  636,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openldap/data",
+                        "container":  "/var/lib/ldap"
+                    },
+                    {
+                        "host":  "/opt/appdata/openldap/config",
+                        "container":  "/etc/ldap/slapd.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LDAP_ORGANISATION",
+                        "default":  "My Organization",
+                        "description":  "LDAP organisation name"
+                    },
+                    {
+                        "key":  "LDAP_DOMAIN",
+                        "default":  "example.com",
+                        "description":  "LDAP base domain"
+                    },
+                    {
+                        "key":  "LDAP_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the cn=admin LDAP account",
+                        "secret":  true
+                    }
+                ],
+    "version":  "1.5.0",
+    "latest":  {
+        "version":  "1.5.0",
+        "release_date":  "2026-09-29"
+    }
+}

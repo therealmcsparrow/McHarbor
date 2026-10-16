@@ -1,0 +1,35 @@
+{
+    "slug":  "pocketbase",
+    "name":  "PocketBase",
+    "description":  "Single-file backend with an embedded SQLite database, instant REST and realtime API, auth and file storage.",
+    "category":  "Developer Tools",
+    "image":  "ghcr.io/muchobien/pocketbase:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pocketbase.png",
+    "website":  "https://pocketbase.io",
+    "docsUrl":  "https://pocketbase.io/docs/going-to-production/",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  8090,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pocketbase/data",
+                        "container":  "/pb_data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

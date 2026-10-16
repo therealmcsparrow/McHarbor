@@ -1,0 +1,9 @@
+{
+  "label": "Ticket lösen",
+  "description": "Das von einem Schlüssel geöffnete Ticket lösen",
+  "config": {
+    "channel_id": "Ticketing-Kanal",
+    "dedup_key": "Ticketschlüssel",
+    "message": "Nachricht"
+  }
+}

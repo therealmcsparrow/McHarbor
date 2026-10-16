@@ -1,0 +1,27 @@
+{
+  "id": "postgres-16.3",
+  "slug": "postgres",
+  "name": "PostgreSQL",
+  "description": "PostgreSQL 16 with a persistent volume. Sets up a single-node DB ready for app connections.",
+  "category": "Databases",
+  "image": "postgres:16.3",
+  "logo": "Apps/icons/postgres.svg",
+  "website": "https://www.postgresql.org",
+  "docsUrl": "https://www.postgresql.org/docs/16",
+  "version": "16.3",
+  "updatedAt": "2026-08-01T00:00:00Z",
+  "source": "https://github.com/therealmcsparrow/McHarbor-AddOns/tree/main/Apps/postgres",
+  "minMemory": "256Mi",
+  "ports": [
+    { "host": 5432, "container": 5432, "protocol": "tcp" }
+  ],
+  "volumes": [
+    { "host": "/data/postgres", "container": "/var/lib/postgresql/data", "readOnly": false }
+  ],
+  "envVars": [
+    { "key": "POSTGRES_USER",     "default": "postgres",   "description": "Superuser name.",                "secret": false },
+    { "key": "POSTGRES_PASSWORD", "default": "",           "description": "Superuser password (REQUIRED).", "secret": true  },
+    { "key": "POSTGRES_DB",       "default": "",           "description": "Database to create on first run.","secret": false },
+    { "key": "TZ",                "default": "UTC",        "description": "Container timezone." }
+  ]
+}

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -33,6 +32,11 @@ import (
 // coordinator holds a long-lived *sql.Conn for the lifetime of
 // the process.
 func openMySQL(dsn string) (*sql.DB, error) {
+	return openMySQLContext(context.Background(), dsn)
+}
+
+// openMySQLContext is openMySQL with the caller's context bounding the connectivity check.
+func openMySQLContext(ctx context.Context, dsn string) (*sql.DB, error) {
 	if dsn == "" {
 		return nil, fmt.Errorf("mysql driver requires MCHARBOR_DB_DSN")
 	}
@@ -47,7 +51,7 @@ func openMySQL(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("MCHARBOR_DB_DSN must be a go-sql-driver/mysql DSN (e.g. `user:pass@tcp(host:3306)/db?parseTime=true&loc=UTC`)")
 	}
 
-	database, err := sql.Open("mysql", dsn)
+	database, err := openDriver("mysql", dsn, DriverMySQL)
 	if err != nil {
 		return nil, fmt.Errorf("opening mysql database: %w", err)
 	}
@@ -59,10 +63,10 @@ func openMySQL(dsn string) (*sql.DB, error) {
 	// goroutines, and the web request pool.
 	database.SetMaxOpenConns(32)
 	database.SetMaxIdleConns(8)
-	database.SetConnMaxIdleTime(5 * time.Minute)
-	database.SetConnMaxLifetime(30 * time.Minute)
+	database.SetConnMaxIdleTime(connMaxIdleTime)
+	database.SetConnMaxLifetime(connMaxLifetime)
 
-	pingCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
 	if err := database.PingContext(pingCtx); err != nil {
 		return nil, fmt.Errorf("pinging mysql database: %w", err)
@@ -78,6 +82,20 @@ func openMySQL(dsn string) (*sql.DB, error) {
 	}
 	if _, err := database.ExecContext(pingCtx, "SET time_zone = '+00:00'"); err != nil {
 		slog.Warn("mysql: could not set session timezone to UTC", "error", err)
+	}
+	// NO_BACKSLASH_ESCAPES makes MySQL treat a backslash inside a string
+	// literal as an ordinary character, which is what SQLite, PostgreSQL and
+	// the SQL standard all do.
+	//
+	// Without it `LIKE 'swarm\_%' ESCAPE '\'` - a real line in
+	// 071_kubernetes_swarm_to_plugins.sql — is an unterminated string on MySQL and takes
+	// the rest of the statement with it. McHarbor binds every user value as a
+	// parameter rather than interpolating it, so nothing depends on the
+	// non-standard behaviour this turns off.
+	if _, err := database.ExecContext(pingCtx,
+		"SET SESSION sql_mode = CONCAT(@@sql_mode, ',NO_BACKSLASH_ESCAPES')",
+	); err != nil {
+		slog.Warn("mysql: could not enable NO_BACKSLASH_ESCAPES", "error", err)
 	}
 
 	slog.Info("database opened", "driver", DriverMySQL, "dsn", redactMySQLDSN(dsn))

@@ -1,10 +1,10 @@
 {
-  "label": "Send Webhook",
-  "description": "Send an outbound webhook with message data",
+  "label": "Webhook senden",
+  "description": "Einen ausgehenden Webhook mit Nachrichtendaten senden",
   "config": {
     "url": "URL",
     "method": "Methode",
-    "headers": "Headers",
+    "headers": "Header",
     "body_source": "Body-Quelle",
     "delivery_mode": "Zustellung",
     "webhook_id": "Webhook"
@@ -18,8 +18,8 @@
       "DELETE": "DELETE"
     },
     "delivery_mode": {
-      "configured": "Configured Webhook",
-      "custom": "Other"
+      "configured": "Konfigurierter Webhook",
+      "custom": "Andere"
     }
   }
 }

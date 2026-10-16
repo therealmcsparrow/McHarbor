@@ -4,7 +4,7 @@
   "description": "Generates RSS/ATOM feeds for web sites that don't natively support them.",
   "category": "Dashboards",
   "image": "rssbridge/rss-bridge:latest",
-  "logo": "https://rss-bridge.github.io/rss-bridge/favicon.ico",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/rss-bridge.svg",
   "website": "https://rss-bridge.github.io/rss-bridge/",
   "docsUrl": "https://github.com/RSS-Bridge/rss-bridge",
   "ports": [
@@ -27,5 +27,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

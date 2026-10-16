@@ -1,6 +1,6 @@
 {
-  "label": "Rate Limit",
-  "description": "Throttle workflow throughput with a simple rate policy",
+  "label": "Ratenbegrenzung",
+  "description": "Den Workflow-Durchsatz mit einer einfachen Ratenrichtlinie drosseln",
   "config": {
     "limit": "Limit",
     "window_seconds": "Fenster (Sekunden)"

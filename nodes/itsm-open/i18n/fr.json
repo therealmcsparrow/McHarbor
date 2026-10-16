@@ -1,0 +1,18 @@
+{
+  "label": "Ouvrir un ticket",
+  "description": "Ouvrir ou renotifier un ticket dans un ITSM via un canal compatible incidents",
+  "config": {
+    "channel_id": "Canal de ticketing",
+    "dedup_key": "Clé du ticket",
+    "severity": "Gravité",
+    "title": "Titre",
+    "message": "Message"
+  },
+  "options": {
+    "severity": {
+      "critical": "Critique",
+      "warning": "Avertissement",
+      "info": "Info"
+    }
+  }
+}

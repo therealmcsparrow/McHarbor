@@ -1,0 +1,16 @@
+{
+  "slug": "scanner-trivy",
+  "name": "Trivy",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Scans container images for vulnerabilities with Aqua Security's Trivy. Covers OS packages and language dependencies, runs entirely inside the McHarbor container, and needs no external service. This is an image scanner adapter owned by the plugin runtime; configure it in Security > Scanners.",
+  "category": "Vulnerability scanners",
+  "icon": "IconShieldSearch",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/scanner-trivy-1.0.0.tar.gz"
+    }
+  ]
+}

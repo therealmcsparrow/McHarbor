@@ -4,30 +4,38 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { api, type PaginatedData } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import { Button } from '@resources/components/ui/Button';
 import { Badge } from '@resources/components/ui/Badge';
 import { ListItem } from '@resources/components/ui/ListItem';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { timeAgo } from '@resources/utils/format';
 import { describeCron } from '@resources/utils/schedule';
 import type { ScheduleItem } from '../types';
-import { CreateScheduleDialog } from './CreateScheduleDialog';
+import { ScheduleDialog } from './ScheduleDialog';
+import { PERM } from '@core/auth/permissionKeys';
 
 export function SchedulesTab() {
   const { t } = useTranslation('settings');
   const { t: tc } = useTranslation('common');
   const queryClient = useQueryClient();
 
-  const { data: schedules = [], isLoading } = useQuery({
+  const {
+    data: schedules = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['schedules'],
     queryFn: () =>
       api
         .get<PaginatedData<ScheduleItem>>('/schedules', { per_page: '100' })
-        .then((r) => r.data?.items ?? []),
+        .then(assertSuccess)
+        .then((page) => page?.items ?? []),
   });
 
   const deleteSchedule = useMutation({
@@ -36,7 +44,11 @@ export function SchedulesTab() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
   });
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // undefined means the dialog is creating; a schedule means it is editing.
+
+  const [editing, setEditing] = useState<ScheduleItem | undefined>(undefined);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
 
   if (isLoading) {
@@ -47,21 +59,29 @@ export function SchedulesTab() {
     );
   }
 
+  if (error) {
+    return <ErrorState variant="card" error={error} onRetry={() => void refetch()} />;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t('schedules.description')}
-        </p>
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
+        <p className="text-sm text-muted-foreground">{t('schedules.description')}</p>
+        <Button
+          permission={PERM.SCHEDULES_MANAGE}
+          size="sm"
+          onClick={() => {
+            setEditing(undefined);
+
+            setDialogOpen(true);
+          }}
+        >
           <IconPlus className="h-4 w-4" /> {t('schedules.addSchedule')}
         </Button>
       </div>
 
       {schedules.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground">
-          {t('schedules.noSchedules')}
-        </div>
+        <div className="py-8 text-center text-muted-foreground">{t('schedules.noSchedules')}</div>
       ) : (
         <div className="space-y-2">
           {schedules.map((sch) => (
@@ -75,25 +95,46 @@ export function SchedulesTab() {
                 </Badge>
               }
               actions={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t('schedules.deleteSchedule')}
-                  onClick={() => setConfirmTarget(sch.id)}
-                >
-                  <IconTrash className="h-4 w-4 text-destructive" />
-                </Button>
+                <>
+                  <Button
+                    permission={PERM.SCHEDULES_MANAGE}
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('schedules.editSchedule')}
+                    onClick={() => {
+                      setEditing(sch);
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <IconPencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    permission={PERM.SCHEDULES_DELETE}
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('schedules.deleteSchedule')}
+                    onClick={() => setConfirmTarget(sch.id)}
+                  >
+                    <IconTrash className="h-4 w-4 text-destructive" />
+                  </Button>
+                </>
               }
             />
           ))}
         </div>
       )}
 
-      <CreateScheduleDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <ScheduleDialog
+        open={dialogOpen}
+
+        onOpenChange={setDialogOpen}
+
+        schedule={editing}
+      />
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onOpenChange={(isOpen) => !isOpen && setConfirmTarget(null)}
         title={t('schedules.confirmDeleteTitle')}
         description={t('schedules.confirmDeleteDescription')}
         confirmLabel={t('schedules.confirmDeleteLabel')}

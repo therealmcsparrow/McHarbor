@@ -1,0 +1,85 @@
+# plugin.yaml — manifest for the logging-siem plugin.
+#
+# Audit log forwarder that POSTs each audit event as a signed JSON
+# document to an HTTP collector: Splunk HEC, Microsoft Sentinel,
+# Elastic, Datadog, or any endpoint that accepts a JSON body.
+#
+# Family: logging-* (audit log forwarders). Distinct from comm-*
+# adapters: notification plugins carry human-readable Title/Message
+# pairs a person reads, logging plugins carry machine-readable audit
+# records a log pipeline ingests. This plugin implements
+# plugin.LogForwarderAdapterClient (Test + ForwardPending +
+# DeliveryHistory) and never sees Send.
+#
+# Wire format: POST <endpoint_url> with
+#   Content-Type: application/json
+#   X-McHarbor-Checksum-SHA256: <sha256 of body>
+#   X-McHarbor-Signature: sha256=<hmac-sha256 of body, keyed by secret>
+#   X-McHarbor-Signature-Version: v1
+# Body: {"type":"mcharbor.audit.event","entry":{...}}
+# Any 2xx is success. This is byte-identical to the host-owned
+# forwarder this plugin replaces, so existing collector-side
+# verification rules keep working across the upgrade.
+#
+# Database: owns plugin_logging_siem_delivery_history. Reads the
+# host's audit_logs table read-only, joined against that history to
+# find undelivered events — see consumes_permissions below.
+#
+# RBAC: declares no permissions. The Settings > Integrations > Logging
+# tab that configures this plugin is gated by the host's
+# settings.manage, and forwarding itself is driven by the host's
+# worker rather than invoked per-operator, so there is no discrete
+# capability to grant. Same reasoning as the storage-adapter family.
+schema: "mcharbor.plugin/v1"
+
+slug:     "logging-siem"
+name:     "SIEM"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Forward McHarbor audit events to an HTTP SIEM collector (Splunk HEC, Microsoft Sentinel, Elastic, Datadog). Each event is POSTed as a JSON document with an HMAC-SHA256 signature and a SHA-256 body checksum so the collector can verify integrity and origin. Configure it in Settings > Integrations > Logging."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   logging.adapter.register  required — register LogForwarderAdapterSpec
+#   encryption.handle.read    required — read back the signing secret,
+#                              which the host stores AES-256-GCM encrypted
+#   db.migrations.run         required — create the delivery history table
+#   audit.emit                required — every plugin should audit
+permissions:
+  - logging.adapter.register
+  - encryption.handle.read
+  - db.migrations.run
+  - audit.emit
+  # The forwarder delivery report for the Reporting plugin's Report Studio.
+  - reporting.adapter.register
+
+# No adds_permissions — see the RBAC note in the header.
+
+# audit.read is declared because this plugin reads the host's
+# audit_logs table. It has to: the set of "events not yet delivered"
+# is a join between the host's event table and this plugin's own
+# delivery history, and neither side can compute it alone. Declaring
+# it makes that access auditable rather than incidental.
+consumes_permissions:
+  - audit.read
+
+contributes:
+  routes: []
+  # No `menu:` block and no `forms:` block. The host's Logging tab
+  # renders this adapter's declared ConfigSchema generically — same
+  # as the storage family — so there is no per-plugin form bundle to
+  # ship and no second place for the field list to drift.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "logging-siem"
+  migrations:
+    - "migrations/0001_init.sql"
+
+signature: ""
+checksum:  ""

@@ -1,0 +1,47 @@
+{
+    "slug":  "typesense",
+    "name":  "Typesense",
+    "description":  "Fast, typo-tolerant open-source search engine with a simple REST API.",
+    "category":  "Databases",
+    "image":  "typesense/typesense:27.1",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/typesense.png",
+    "website":  "https://typesense.org",
+    "docsUrl":  "https://typesense.org/docs/guide/install-typesense.html",
+    "ports":  [
+                  {
+                      "host":  8108,
+                      "container":  8108,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/typesense/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TYPESENSE_API_KEY",
+                        "default":  "change-me",
+                        "description":  "API key required to access the Typesense API",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TYPESENSE_DATA_DIR",
+                        "default":  "/data",
+                        "description":  "Directory where Typesense stores its data"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "27.1",
+    "latest":  {
+        "version":  "27.1",
+        "release_date":  "2026-09-29"
+    }
+}

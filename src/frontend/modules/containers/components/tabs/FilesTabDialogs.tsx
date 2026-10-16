@@ -37,7 +37,7 @@ export function FilesTabDialogs({
       {dialog.type === 'view' && (
         <FileViewerDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           filePath={dialog.entry.path}
           onEdit={() => onEditFromViewer(dialog.entry)}
@@ -46,7 +46,7 @@ export function FilesTabDialogs({
       {dialog.type === 'edit' && (
         <FileEditorDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           filePath={dialog.entry.path}
         />
@@ -54,7 +54,7 @@ export function FilesTabDialogs({
       {dialog.type === 'create' && (
         <CreateFileDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           currentPath={currentPath}
           mode={dialog.mode}
@@ -63,7 +63,7 @@ export function FilesTabDialogs({
       {dialog.type === 'rename' && (
         <RenameDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           filePath={dialog.entry.path}
           currentName={dialog.entry.name}
@@ -72,7 +72,7 @@ export function FilesTabDialogs({
       {dialog.type === 'chmod' && (
         <ChmodDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           filePath={dialog.entry.path}
           currentMode={dialog.entry.mode}
@@ -81,7 +81,7 @@ export function FilesTabDialogs({
       {dialog.type === 'upload' && (
         <UploadDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           containerId={containerId}
           currentPath={currentPath}
         />
@@ -89,7 +89,7 @@ export function FilesTabDialogs({
       {dialog.type === 'delete' && (
         <ConfirmDialog
           open
-          onOpenChange={(open) => !open && onClose()}
+          onOpenChange={(isOpen) => !isOpen && onClose()}
           title={t('files.delete')}
           description={
             dialog.entry.isDir

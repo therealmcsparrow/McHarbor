@@ -1,0 +1,10 @@
+CONNECT /api
+DELETE /api
+GET /api
+HEAD /api
+OPTIONS /api
+PATCH /api
+POST /api
+PUT /api
+QUERY /api
+TRACE /api

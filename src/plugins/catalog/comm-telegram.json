@@ -1,0 +1,16 @@
+{
+  "slug": "comm-telegram",
+  "name": "Telegram",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Telegram Bot API notification channel. Delivers workflow and backup events to a chat via bot_token + chat_id. Supports Markdown/HTML parse_mode and silent sends. Install this plugin to add 'Telegram' as a channel_type in Settings > Notifications > Channels.",
+  "category": "Communication channels",
+  "icon": "IconBrandTelegram",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/comm-telegram-1.0.0.tar.gz"
+    }
+  ]
+}

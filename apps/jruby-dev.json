@@ -4,7 +4,7 @@
     "description":  "JRuby on the JVM, Ruby implementation for fast scripting and Java interoperability.",
     "category":  "Developer Tools",
     "image":  "jruby:latest",
-    "logo":  "https://icon.horse/icon/www.jruby.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.jruby.org\u0026sz=128",
     "website":  "https://www.jruby.org",
     "docsUrl":  "https://www.jruby.org/documentation",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

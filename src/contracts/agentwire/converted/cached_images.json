@@ -1,0 +1,11 @@
+[
+  {
+    "imageId": "ImageID",
+    "kind": "Kind",
+    "localPath": "LocalPath",
+    "sizeBytes": 9,
+    "verified": true,
+    "inUse": true,
+    "lastUsedAt": "2026-09-30T12:00:00Z"
+  }
+]

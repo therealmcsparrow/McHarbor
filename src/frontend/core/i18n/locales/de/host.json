@@ -1,0 +1,58 @@
+{
+  "toast": {
+    "pruned": "Bereinigt"
+  },
+  "capacity": {
+    "title": "Kapazitätsprognose",
+    "description": "Wann jedes Dateisystem und Speicherziel bei der aktuellen Rate voll wird.",
+    "window": "Hochgerechnet aus den letzten {{window}} Tagen gegen die {{ceiling}}%-Linie. Ein Objekt benötigt {{required}} Tage Verlauf, bevor ein Datum angegeben wird.",
+    "sentence": "{{subject}} erreicht bei der aktuellen Rate am {{date}} {{ceiling}}% — in {{days}} Tagen.",
+    "evidence": "Derzeit bei {{percent}}% ({{used}} von {{total}}), Wachstum {{rate}}% pro Tag. Konfidenz der Anpassung R² {{r2}} über {{observed}} Tage.",
+    "usedOfTotal": "Derzeit bei {{percent}}% ({{used}} von {{total}}).",
+    "usedBadge": "{{percent}}% belegt",
+    "loadFailed": "Die Kapazitätsprognose konnte nicht gelesen werden.",
+    "denied": "Sie benötigen die Berechtigung {{permission}}, um die Kapazitätsprognose zu sehen.",
+    "kind": {
+      "rootfs": "Host-Dateisystem",
+      "storageLocation": "Speicherziel"
+    },
+    "refusal": {
+      "no_fit": "Noch nicht genug Verlauf — eine Hochrechnung benötigt mindestens zwei Messwerte.",
+      "short_series": "Noch nicht genug Verlauf — benötigt {{required}} Tage, vorhanden {{observed}}.",
+      "noisy": "Die Auslastung schwankt zu stark, um daraus ein Datum hochzurechnen.",
+      "not_rising": "Die Auslastung wächst nicht, daher gibt es kein Datum zu nennen.",
+      "already_over": "Das Limit ist bereits überschritten — das erfordert jetzt Aufmerksamkeit, keine Prognose.",
+      "beyond_horizon": "Mehr als 30 Tage entfernt, und damit weiter, als diese Prognose schätzt."
+    },
+    "empty": {
+      "title": "Noch kein Kapazitätsverlauf",
+      "description": "Die Kapazität wird einmal pro Stunde erfasst. Eine Hochrechnung benötigt eine Woche davon, schauen Sie also in ein paar Tagen wieder vorbei."
+    },
+    "idle": {
+      "title": "Ungenutzte Ressourcen",
+      "description": "Container, die seit mehr als {{days}} Tagen ungenutzt sind. Docker meldet derzeit {{reclaimable}} als zurückgewinnbar.",
+      "descriptionPlain": "Container, die lange genug gestoppt waren oder ohne CPU-Last und ohne Datenverkehr liefen, dass sich ein Freigeben lohnt.",
+      "loadFailed": "Die Liste ungenutzter Ressourcen konnte nicht gelesen werden.",
+      "days": "{{days}} Tage",
+      "sizesUnavailable": "Größen der beschreibbaren Schicht werden für diese Umgebung nicht erfasst, daher ist hier unbekannt, was jeder Container belegt.",
+      "columns": {
+        "container": "Container",
+        "state": "Zustand",
+        "forHowLong": "Ungenutzt seit",
+        "holds": "Belegt"
+      },
+      "reason": {
+        "stopped": "Gestoppt",
+        "quiet": "Kein Datenverkehr"
+      },
+      "sizeUnknown": {
+        "agent_environment": "Größe unbekannt — für Agent-Umgebungen nicht erfasst",
+        "not_sampled": "Größe unbekannt — nie erfasst"
+      },
+      "empty": {
+        "title": "Nichts ungenutzt",
+        "description": "Jeder Container in dieser Umgebung lief kürzlich."
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "slug": "ai-provider-openai",
+  "name": "OpenAI",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Routes McHarbor AI chat completions through OpenAI with support for GPT and o-series models.",
+  "category": "AI providers",
+  "icon": "IconSparkles",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/ai-provider-openai-1.0.0.tar.gz"
+    }
+  ]
+}

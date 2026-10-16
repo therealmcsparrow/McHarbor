@@ -7,6 +7,28 @@
   "tableView": "Table view",
   "cardView": "Card view",
   "columns": {
+    "id": "ID",
+    "type": "Type",
+    "orchestrator": "Orchestrator",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "protected": "Protected",
+    "environment": "Environment",
+    "containerIds": "Container IDs",
+    "owner": "Owner",
+    "groupOwner": "Owner",
+    "groupStack": "Stack",
+    "groupEnvironment": "Environment",
+    "groupContainers": "Containers",
+    "containerName": "Container name",
+    "statusText": "Status",
+    "imageId": "Image ID",
+    "command": "Command",
+    "networks": "Networks",
+    "ipAddresses": "IP addresses",
+    "volumes": "Volumes",
+    "labels": "Labels",
+    "groupContainer": "Container",
     "name": "Name",
     "status": "Status",
     "services": "Services",
@@ -16,8 +38,8 @@
     "created": "Created"
   },
   "badges": {
-    "managed": "managed",
-    "discovered": "discovered"
+    "managed": "Managed",
+    "discovered": "Discovered"
   },
   "actions": {
     "view": "View details",
@@ -92,6 +114,8 @@
     "composeFile": "Compose File",
     "editCompose": "Edit",
     "saveCompose": "Save",
+    "revealComposeValues": "Reveal values",
+    "hideComposeValues": "Hide values",
     "readOnly": "Read-only (discovered stack)",
     "envVars": "Environment Variables",
     "noEnvVars": "No environment variables configured.",
@@ -107,7 +131,10 @@
     "loadingLayers": "Loading layers...",
     "webhooks": "Webhooks",
     "editMode": "Edit",
-    "descriptionPlaceholder": "Stack description..."
+    "descriptionPlaceholder": "Stack description...",
+    "tabs": {
+      "ariaLabel": "Stack sections"
+    }
   },
   "webhooks": {
     "title": "Webhooks",
@@ -138,19 +165,21 @@
     "button": "Prune Orphans",
     "pruning": "Pruning...",
     "noOrphans": "No orphaned services found",
-    "removed": "Removed {{count}} orphaned service(s)"
+    "removed_one": "Removed {{count}} orphaned service",
+    "removed_other": "Removed {{count}} orphaned services"
   },
   "editStack": {
     "editStack": "Edit stack",
     "saveStack": "Save",
     "saving": "Saving...",
-    "cancel": "Cancel",
-    "envVarsSaved": "Environment variables saved"
+    "cancel": "Cancel"
   },
   "confirm": {
     "removeTitle": "Remove Stack",
     "removeDescription": "This will stop and remove all containers in \"{{name}}\" and delete it permanently.",
-    "removeLabel": "Remove"
+    "removeLabel": "Remove",
+    "downTitle": "Take stack down",
+    "downDescription": "This stops and removes every container and network of \"{{name}}\". Volumes and the stack definition are kept."
   },
   "takeOver": {
     "title": "Take Over Management",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Reinstall All Stacks",
-      "reinstallAllDescription": "Force recreate {{count}} managed stack(s) with their current images. This may briefly interrupt running services."
+      "reinstallAllDescription_one": "Force recreate {{count}} managed stack with its current images. This may briefly interrupt running services.",
+      "reinstallAllDescription_other": "Force recreate {{count}} managed stacks with their current images. This may briefly interrupt running services."
     }
   },
   "toast": {
@@ -216,6 +246,13 @@
     "webhookUpdated": "Webhook updated",
     "webhookDeleted": "Webhook deleted",
     "envVarsSaved": "Environment variables saved",
-    "pruned": "Pruned {{count}} orphaned service(s)"
+    "pruned_one": "Pruned {{count}} orphaned service",
+    "pruned_other": "Pruned {{count}} orphaned services"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Waiting for the McHarbor API to come back online...",
+      "apiRecoveryTimeout": "The McHarbor API did not come back online in time."
+    }
   }
 }

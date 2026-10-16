@@ -1,0 +1,32 @@
+{
+    "slug":  "pushgateway",
+    "name":  "Prometheus Pushgateway",
+    "description":  "Metrics cache that accepts pushed metrics from short-lived or batch jobs for later Prometheus scraping.",
+    "category":  "Monitoring",
+    "image":  "prom/pushgateway:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+    "website":  "https://github.com/prometheus/pushgateway",
+    "docsUrl":  "https://github.com/prometheus/pushgateway#run-it",
+    "ports":  [
+                  {
+                      "host":  9091,
+                      "container":  9091,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

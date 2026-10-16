@@ -12,28 +12,27 @@ import { LogViewer } from '@resources/components/LogViewer';
 import { api } from '@core/api/client';
 import { useNavigate } from 'react-router';
 import type { EnvironmentInfo } from '../hooks/useEnvironments';
+import { hostLogNoticeText } from './hostLogNotices';
+import type { HostLogResult, HostLogSource } from './hostLogNotices';
 
-type LogSource = 'system' | 'kernel' | 'auth' | 'docker';
+import { assertSuccess } from '@resources/utils/api-mutation';
 
-type HostLogResult = {
-  source: LogSource;
-  tail: number;
-  lines: string[];
-  notices: string[];
-  fetchedAt: string;
-};
+type LogSource = HostLogSource;
 
 type EnvironmentHostLogPreviewProps = {
   env: EnvironmentInfo;
 };
 
+// no polling: reading host OS logs shells out on the environment, and over the
+// agent transport that is a round trip per read. The preview refreshes when the
+// operator asks (the Refresh button) or when the selected source changes.
 export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProps) {
   const { t } = useTranslation('environments');
   const navigate = useNavigate();
   const [source, setSource] = useState<LogSource>('system');
   const previewTail = 15;
   const enabled = !!env?.id;
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['environment-host-log-preview', env?.id, source],
     queryFn: () =>
       api
@@ -42,7 +41,7 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
           source,
           tail: String(previewTail),
         })
-        .then((r) => r.data),
+        .then(assertSuccess),
     enabled,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
@@ -65,19 +64,14 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
 
   const previewLines = useMemo(() => {
     if (!data) return [];
-    // Drop diagnostic MCHARBOR_NOTICE lines so the preview shows only
-    // log content; the full Logs tab surfaces the notices.
-    return data.lines
-      .filter((line) => !line.startsWith('MCHARBOR_NOTICE=available_file:') && !line.startsWith('MCHARBOR_NOTICE=largest_log_fallback:'))
-      .slice(-previewTail);
+    // The backend strips every MCHARBOR_NOTICE marker out of `lines` before
+    // responding, so what arrives here is log content already.
+    return data.lines.slice(-previewTail);
   }, [data, previewTail]);
 
-  const notices = useMemo(() => {
-    const filtered = (data?.notices ?? []).filter((n) =>
-      n === 'permission_denied' || n === 'no_supported_log_source' || n === 'no_var_log_dir',
-    );
-    return filtered;
-  }, [data]);
+  // `notices` carries warnings only now - the discovery output that used to be
+  // mixed in here arrives separately and is shown in full on the Logs tab.
+  const notices = useMemo(() => data?.notices ?? [], [data]);
 
   const sourceTabs = sourceBadge.map((tab) => (
     <Button
@@ -86,7 +80,7 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
       variant={source === tab.value ? 'default' : 'ghost'}
       size="sm"
       onClick={() => setSource(tab.value as LogSource)}
-      className="rounded-md px-2 py-1 text-xs font-medium uppercase tracking-wider"
+      className="rounded-md px-2 py-1 text-xs font-medium tracking-wider uppercase"
       aria-pressed={source === tab.value}
     >
       {tab.label}
@@ -104,18 +98,12 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
           <CardDescription>{t('detail.hostLogPreview.description')}</CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1">
-            {sourceTabs}
-          </div>
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1">{sourceTabs}</div>
           <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
             <IconRefresh className="size-4" />
             {t('detail.hostLogs.refresh')}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/environments/${env.id}?tab=logs`)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/environments/${env.id}?tab=logs`)}>
             {t('detail.hostLogPreview.openFull')}
             <IconChevronRight className="ml-1 size-4" />
           </Button>
@@ -127,11 +115,9 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
             {notices.map((notice) => (
               <div
                 key={notice}
-                className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-800 dark:text-yellow-200"
+                className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning"
               >
-                {t(`detail.hostLogs.notices.${notice}`, {
-                  defaultValue: t('detail.hostLogs.notices.generic'),
-                })}
+                {hostLogNoticeText(t, notice)}
               </div>
             ))}
           </div>
@@ -143,12 +129,13 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
         )}
         {!isLoading && isError && (
           <div className="flex h-32 items-center justify-center rounded-lg border border-border bg-muted/20 px-4 text-center text-sm text-muted-foreground">
-            {t('detail.hostLogs.unavailable')}
+            {[t('detail.hostLogs.unavailable'), error?.message].filter(Boolean).join(' — ')}
           </div>
         )}
         {!isLoading && !isError && (
           <>
             <LogViewer
+              colorizeSeverity
               lines={previewLines}
               emptyMessage={t('detail.hostLogPreview.empty')}
               className="h-[260px]"

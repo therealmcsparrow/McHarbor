@@ -4,7 +4,7 @@
     "description":  "Lightweight Postfix MTA container for outbound mail relay and SMTP forwarding.",
     "category":  "Communications",
     "image":  "mwader/postfix-relay:latest",
-    "logo":  "https://icon.horse/icon/github.com",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
     "website":  "https://github.com/wader/postfix-relay",
     "docsUrl":  "https://github.com/wader/postfix-relay",
     "ports":  [
@@ -49,5 +49,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,11 +1,14 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from "react";
-import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
-import { Button } from "@resources/components/ui/Button";
-import { ct } from "../canvas-theme";
-import { cn } from "@resources/utils/cn";
+import { useState } from 'react';
+import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import { Button } from '@resources/components/ui/Button';
+import { ct } from '../canvas-theme';
+import { displayValue } from '../utils/display-value';
+import { cn } from '@resources/utils/cn';
+
+const NULL_LABEL = 'null';
 
 type ValueTreeProps = {
   data: unknown;
@@ -17,80 +20,57 @@ function getArrayItemKey(item: unknown, index: number) {
   if (Array.isArray(item)) {
     return `array-${index + 1}-${item.length}`;
   }
-  if (item && typeof item === "object") {
-    return `object-${index + 1}-${Object.keys(item as Record<string, unknown>).join("|")}`;
+  if (item && typeof item === 'object') {
+    return `object-${index + 1}-${Object.keys(item as Record<string, unknown>).join('|')}`;
   }
   return `value-${index + 1}-${String(item)}`;
 }
 
-export function ValueTree({
-  data,
-  depth = 0,
-  maxAutoExpand = 1,
-}: ValueTreeProps) {
+export function ValueTree({ data, depth = 0, maxAutoExpand = 1 }: ValueTreeProps) {
   if (data === null || data === undefined) {
-    return <span className={`${ct.text30} italic`}>null</span>;
+    return <span className={`${ct.text30} italic`}>{NULL_LABEL}</span>;
   }
 
-  if (typeof data === "string") {
-    return <span className="text-emerald-400">&quot;{data}&quot;</span>;
+  if (typeof data === 'string') {
+    return <span className="text-success">&quot;{data}&quot;</span>;
   }
 
-  if (typeof data === "number") {
-    return <span className="text-blue-400">{data}</span>;
+  if (typeof data === 'number') {
+    return <span className="text-info">{data}</span>;
   }
 
-  if (typeof data === "boolean") {
-    return <span className="text-purple-400">{data ? "true" : "false"}</span>;
+  if (typeof data === 'boolean') {
+    return <span className="text-chart-3">{displayValue(data)}</span>;
   }
 
   if (Array.isArray(data)) {
     return (
-      <CollapsibleNode
-        label={`Array (${data.length})`}
-        depth={depth}
-        maxAutoExpand={maxAutoExpand}
-      >
+      <CollapsibleNode label={`Array (${data.length})`} depth={depth} maxAutoExpand={maxAutoExpand}>
         {data.map((item, i) => (
-          <div
-            key={getArrayItemKey(item, i)}
-            className="flex items-start gap-1.5"
-          >
+          <div key={getArrayItemKey(item, i)} className="flex items-start gap-1.5">
             <span className="shrink-0 text-muted-foreground/50">{i} :</span>
-            <ValueTree
-              data={item}
-              depth={depth + 1}
-              maxAutoExpand={maxAutoExpand}
-            />
+            <ValueTree data={item} depth={depth + 1} maxAutoExpand={maxAutoExpand} />
           </div>
         ))}
       </CollapsibleNode>
     );
   }
 
-  if (typeof data === "object") {
+  if (typeof data === 'object') {
     const entries = Object.entries(data as Record<string, unknown>);
     return (
-      <CollapsibleNode
-        label={`Object {${entries.length}}`}
-        depth={depth}
-        maxAutoExpand={maxAutoExpand}
-      >
+      <CollapsibleNode label={`Object {${entries.length}}`} depth={depth} maxAutoExpand={maxAutoExpand}>
         {entries.map(([key, value]) => (
           <div key={key} className="flex items-start gap-1.5">
-            <span className="shrink-0 text-cyan-400/70">{key} :</span>
-            <ValueTree
-              data={value}
-              depth={depth + 1}
-              maxAutoExpand={maxAutoExpand}
-            />
+            <span className="shrink-0 text-chart-1/70">{key} :</span>
+            <ValueTree data={value} depth={depth + 1} maxAutoExpand={maxAutoExpand} />
           </div>
         ))}
       </CollapsibleNode>
     );
   }
 
-  return <span className={ct.text50}>{String(data)}</span>;
+  return <span className={ct.text50}>{displayValue(data)}</span>;
 }
 
 function CollapsibleNode({
@@ -123,11 +103,7 @@ function CollapsibleNode({
         <span className={ct.text40}>{label}</span>
       </Button>
       {expanded && (
-        <div
-          className={cn("border-l pl-2 space-y-0.5", ct.border5, depth === 0 ? "" : "ml-1.5")}
-        >
-          {children}
-        </div>
+        <div className={cn('space-y-0.5 border-l pl-2', ct.border5, depth === 0 ? '' : 'ml-1.5')}>{children}</div>
       )}
     </div>
   );

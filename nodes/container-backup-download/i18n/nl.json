@@ -2,6 +2,8 @@
   "label": "Back-updownloadinfo",
   "description": "Valideer een voltooide back-uprun en geef downloadmetadata terug",
   "config": {
-    "run_id": "Run-ID"
+    "environment": "Omgeving",
+    "container": "Container (filter)",
+    "run_id": "Back-uprun"
   }
 }

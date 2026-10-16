@@ -1,0 +1,51 @@
+{
+    "slug":  "chartmuseum",
+    "name":  "ChartMuseum",
+    "description":  "Open-source Helm chart repository server backed by pluggable storage.",
+    "category":  "CI/CD",
+    "image":  "chartmuseum/chartmuseum:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=chartmuseum.com\u0026sz=128",
+    "website":  "https://chartmuseum.com",
+    "docsUrl":  "https://chartmuseum.com/docs/#using-with-docker",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/chartmuseum/charts",
+                        "container":  "/charts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "STORAGE",
+                        "default":  "local",
+                        "description":  "Chart storage backend driver"
+                    },
+                    {
+                        "key":  "BASIC_AUTH_USER",
+                        "default":  "admin",
+                        "description":  "Username required to push charts"
+                    },
+                    {
+                        "key":  "BASIC_AUTH_PASS",
+                        "default":  "change-me",
+                        "description":  "Password required to push charts",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

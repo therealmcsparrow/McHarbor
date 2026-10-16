@@ -1,0 +1,49 @@
+{
+    "slug":  "wikijs-canary",
+    "name":  "Wiki.js (Canary)",
+    "description":  "Canary channel build of Wiki.js. Modern and powerful wiki app built on Node.js with a beautiful interface.",
+    "category":  "Productivity",
+    "image":  "ghcr.io/requarks/wiki:canary",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/wikijs.svg",
+    "website":  "https://js.wiki",
+    "docsUrl":  "https://docs.requarks.io",
+    "ports":  [
+                  {
+                      "host":  4300,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wikijs-canary/config",
+                        "container":  "/wiki/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/wikijs-canary/data",
+                        "container":  "/wiki/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB_TYPE",
+                        "default":  "sqlite",
+                        "description":  "Database type"
+                    },
+                    {
+                        "key":  "DB_FILEPATH",
+                        "default":  "/wiki/data/wiki.db",
+                        "description":  "SQLite file path"
+                    }
+                ],
+    "version":  "canary",
+    "latest":  {
+        "version":  "canary",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "slug": "identity-generic-oidc",
+  "name": "Generic OpenID Connect",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Generic OpenID Connect identity provider. OIDC authorization-code flow for any compliant IdP — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP, and others. The plugin discovers endpoints via <issuer>/.well-known/openid-configuration. Install to add 'Generic OpenID Connect' as a provider_type in Settings > Security > Identity Providers.",
+  "category": "Identity providers",
+  "icon": "IconShieldLock",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/identity-generic-oidc-1.0.0.tar.gz"
+    }
+  ]
+}

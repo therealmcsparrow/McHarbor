@@ -3,7 +3,7 @@
 
 import type { CanvasEdge, CanvasNode } from '../types';
 import { getEffectiveInputPorts, getEffectiveOutputPorts, getNodeHeightForPorts, JUNCTION_SIZE } from '../types';
-import { NODE_DEFINITION_MAP } from '../nodes';
+import { resolveNodeDefinition } from '../nodes';
 import { EdgeLabel } from './EdgeLabel';
 import { SnifferIcon, SnifferName } from './SnifferOverlay';
 
@@ -20,11 +20,7 @@ type WorkflowEdgeProps = {
   onContextMenu: (edgeId: string, e: React.MouseEvent) => void;
 };
 
-function getPortPosition(
-  node: CanvasNode,
-  port: string,
-  side: 'output' | 'input',
-): { x: number; y: number } | null {
+function getPortPosition(node: CanvasNode, port: string, side: 'output' | 'input'): { x: number; y: number } | null {
   // Junction: ports at center-left and center-right of the small dot
   if (node.action === 'junction') {
     const half = JUNCTION_SIZE / 2;
@@ -34,7 +30,7 @@ function getPortPosition(
     };
   }
 
-  const def = NODE_DEFINITION_MAP[node.action];
+  const def = resolveNodeDefinition(node.action);
   const inputPorts = getEffectiveInputPorts(node, def);
   const outputPorts = getEffectiveOutputPorts(node, def);
   const ports = side === 'output' ? outputPorts : inputPorts;
@@ -48,7 +44,16 @@ function getPortPosition(
   };
 }
 
-export function WorkflowEdge({ edge, nodes, isSelected, viewportZoom, isTraversed, isAnimating, onClick, onContextMenu }: WorkflowEdgeProps) {
+export function WorkflowEdge({
+  edge,
+  nodes,
+  isSelected,
+  viewportZoom,
+  isTraversed,
+  isAnimating,
+  onClick,
+  onContextMenu,
+}: WorkflowEdgeProps) {
   const sourceNode = nodes.find((n) => n.id === edge.sourceNodeId);
   const targetNode = nodes.find((n) => n.id === edge.targetNodeId);
   if (!sourceNode || !targetNode) return null;
@@ -62,7 +67,7 @@ export function WorkflowEdge({ edge, nodes, isSelected, viewportZoom, isTraverse
   const d = `M ${start.x} ${start.y} C ${start.x + cp} ${start.y}, ${end.x - cp} ${end.y}, ${end.x} ${end.y}`;
 
   // Arrow head
-  const angle = Math.atan2(end.y - (end.y), (end.x) - (end.x - cp));
+  const angle = Math.atan2(end.y - end.y, end.x - (end.x - cp));
   const arrowSize = 6;
   const ax = end.x - arrowSize * Math.cos(angle - Math.PI / 6);
   const ay = end.y - arrowSize * Math.sin(angle - Math.PI / 6);
@@ -75,11 +80,11 @@ export function WorkflowEdge({ edge, nodes, isSelected, viewportZoom, isTraverse
   const cp1y = start.y;
   const cp2x = end.x - cp;
   const cp2y = end.y;
-  const mx = (1-t)**3*start.x + 3*(1-t)**2*t*cp1x + 3*(1-t)*t**2*cp2x + t**3*end.x;
-  const my = (1-t)**3*start.y + 3*(1-t)**2*t*cp1y + 3*(1-t)*t**2*cp2y + t**3*end.y;
+  const mx = (1 - t) ** 3 * start.x + 3 * (1 - t) ** 2 * t * cp1x + 3 * (1 - t) * t ** 2 * cp2x + t ** 3 * end.x;
+  const my = (1 - t) ** 3 * start.y + 3 * (1 - t) ** 2 * t * cp1y + 3 * (1 - t) * t ** 2 * cp2y + t ** 3 * end.y;
 
   // Stroke color/style by state
-  const strokeColor = isTraversed ? '#22d3ee' : isSelected ? '#60a5fa' : '#64748b';
+  const strokeColor = isTraversed ? 'var(--chart-1)' : isSelected ? 'var(--primary)' : 'var(--muted-foreground)';
   const strokeWidth = isTraversed ? 3 : isSelected ? 2.5 : 1.5;
   const strokeOpacity = isTraversed ? 1 : isSelected ? 1 : 0.5;
 
@@ -91,7 +96,7 @@ export function WorkflowEdge({ edge, nodes, isSelected, viewportZoom, isTraverse
         fill="none"
         stroke="transparent"
         strokeWidth={16}
-        className="cursor-pointer pointer-events-auto"
+        className="pointer-events-auto cursor-pointer"
         onClick={(e) => onClick(edge.id, e)}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -120,10 +125,10 @@ export function WorkflowEdge({ edge, nodes, isSelected, viewportZoom, isTraverse
       {/* Traveling dot when animating */}
       {isTraversed && isAnimating && (
         <>
-          <circle r={4} fill="#22d3ee">
+          <circle r={4} fill="var(--chart-1)">
             <animateMotion path={d} dur="1.2s" repeatCount="indefinite" />
           </circle>
-          <circle r={7} fill="#22d3ee" opacity={0.2}>
+          <circle r={7} fill="var(--chart-1)" opacity={0.2}>
             <animateMotion path={d} dur="1.2s" repeatCount="indefinite" />
           </circle>
         </>

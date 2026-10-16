@@ -2,6 +2,7 @@
   "label": "Schedule Trigger",
   "description": "Run a workflow on a cron-based schedule",
   "config": {
-    "cron": "Cron Expression"
+    "cron": "Cron Expression",
+    "timezone": "Timezone"
   }
 }

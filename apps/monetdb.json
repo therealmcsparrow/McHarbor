@@ -1,0 +1,41 @@
+{
+    "slug":  "monetdb",
+    "name":  "MonetDB",
+    "description":  "Column-store analytical database built for large-scale OLAP queries and data science workloads.",
+    "category":  "Databases",
+    "image":  "monetdb/monetdb:latest",
+    "logo":  "https://github.com/MonetDB.png",
+    "website":  "https://www.monetdb.org",
+    "docsUrl":  "https://www.monetdb.org/documentation-Jan2025/user-guide/monetdb-docker/",
+    "ports":  [
+                  {
+                      "host":  50000,
+                      "container":  50000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/monetdb/data",
+                        "container":  "/var/monetdb5/dbfarm"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MDB_DB_ADMIN_PASS",
+                        "default":  "change-me",
+                        "description":  "Password for the monetdb admin user",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

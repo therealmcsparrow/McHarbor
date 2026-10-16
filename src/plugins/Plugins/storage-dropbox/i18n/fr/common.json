@@ -1,0 +1,37 @@
+{
+  "page": {
+    "title": "Ajouter une destination Dropbox",
+    "subtitle": "Sauvegarde vers Dropbox via l'API Dropbox v2. Utilise un jeton d'accès de longue durée issu d'une application Dropbox.",
+    "registerHint": "Enregistrez les identifiants, puis cliquez sur Tester la connexion pour vérifier l'aller-retour."
+  },
+  "fields": {
+    "accessToken": "Jeton d'accès",
+    "basePath": "Chemin de base"
+  },
+  "help": {
+    "accessToken": "Jeton d'accès généré depuis votre application Dropbox. Depuis la Dropbox App Console, ouvrez votre application, puis sous Settings → Generated access token, cliquez sur Generate. Stocké chiffré au repos.",
+    "basePath": "Dossier facultatif dans Dropbox pour les sauvegardes, p. ex. /Backups/2026. Laissez vide pour utiliser la racine de l'application."
+  },
+  "toast": {
+    "registered": "Destination Dropbox enregistrée.",
+    "testPassed": "Le test de connexion a réussi.",
+    "testFailed": "Le test de connexion a échoué : {{error}}"
+  },
+  "error": {
+    "noAccessToken": "Le jeton d'accès est obligatoire."
+  },
+  "form": {
+    "introTitle": "Jeton d'accès Dropbox",
+    "introBody": "Générez un jeton d'accès de longue durée dans la Dropbox App Console (votre application → Settings → Generated access token) et collez-le ici. McHarbor stocke le jeton chiffré au repos.",
+    "basePathHelp": "Dossier facultatif dans Dropbox pour les sauvegardes, p. ex. /Backups/2026. Laissez vide pour utiliser la racine de l'application. Volontairement non prérempli."
+  },
+  "setup": {
+    "title": "Guide de configuration de Dropbox",
+    "step1": "Dans la Dropbox App Console, cliquez sur <b>Create app</b>. Choisissez <b>Scoped access</b> (dossier d'application ou Dropbox complet), sélectionnez les autorisations <b>Files and content read/write</b> et indiquez un nom d'application unique. Validez.",
+    "step2": "Dans l'onglet <b>Permissions</b>, activez les scopes <code>files.content.read</code> et <code>files.content.write</code> (ainsi que ceux dont votre cas d'usage a besoin — ces deux-là sont le minimum pour les sauvegardes). Cliquez sur <b>Submit</b> pour enregistrer.",
+    "step3": "Dans l'onglet <b>Settings</b>, faites défiler jusqu'à <b>Generated access token</b>. Cliquez sur <b>Generate</b>. <warn>Dropbox n'affiche le jeton qu'une seule fois</warn> — copiez-le maintenant et collez-le dans le champ <b>Access Token</b> à gauche. McHarbor stocke le jeton chiffré au repos.",
+    "step4": "Facultatif : définissez <b>Base Path</b> sur un dossier Dropbox où déposer les sauvegardes (p. ex. <code>/Backups/2026</code>). Laissez vide pour utiliser la racine de l'application (applications à dossier d'application) ou la racine de votre Dropbox (applications Full Dropbox). Le formulaire ne préremplit aucune valeur par défaut.",
+    "step5": "Cliquez sur <b>Save</b>. Cliquez ensuite sur <b>Test connection</b> sur la carte de stockage — McHarbor écrit un objet de test, le modifie puis le supprime.",
+    "step6": "Connect échoue avec « <code>invalid_access_token</code> » ? Le jeton a peut-être expiré ou été révoqué. Générez un nouveau jeton dans la Dropbox App Console et collez-le à nouveau."
+  }
+}

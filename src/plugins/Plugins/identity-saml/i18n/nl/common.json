@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "SAML 2.0",
+    "subtitle": "Federeer de McHarbor-login naar elke SAML 2.0-identiteitsprovider (Okta, Auth0, Keycloak, ADFS, Google Workspace, Azure AD, enz.). De plugin verzorgt de SP-kant: het bouwen van de ServiceProvider, het genereren van ondertekende AuthnRequests en het parseren van ondertekende assertions op het ACS-endpoint.",
+    "registerHint": "Voeg een provider toe via de pagina Instellingen > Beveiliging > Identiteitsproviders van de host en kies \"SAML 2.0\" als provider_type."
+  },
+  "fields": {
+    "metadata_url":   "IdP-metadata-URL",
+    "entity_id":      "SP-entiteits-ID",
+    "sp_certificate": "SP-certificaat (PEM)",
+    "sp_private_key": "Privésleutel van SP (PEM)"
+  },
+  "help": {
+    "metadata_url":   "URL van het SAML 2.0-metadata-XML-document van de IdP. De plugin haalt dit bij elke login op om het SSO-endpoint en het ondertekeningscertificaat van de IdP te ontdekken. De URL moet vanuit McHarbor bereikbaar zijn zonder authenticatie.",
+    "entity_id":      "Optionele SP-entiteits-ID die in de SP-metadata wordt aangekondigd. Laat leeg om de McHarbor-metadata-URL te gebruiken. De waarde moet overeenkomen met wat aan de IdP-kant is geconfigureerd, anders mislukt het aanmelden met \"Unknown SP\".",
+    "sp_certificate": "Optioneel PEM-gecodeerd X.509-certificaat voor de SP. Alleen vereist als de IdP ondertekende AuthnRequests of versleutelde assertions verwacht. Genereer met `openssl req -x509 -newkey rsa:2048 -keyout sp.key -out sp.crt -days 365 -nodes -subj '/CN=mcharbor'`. Versleuteld opgeslagen.",
+    "sp_private_key": "Optionele PEM-gecodeerde RSA-privésleutel die bij het SP-certificaat hoort. PKCS#1 (`-----BEGIN RSA PRIVATE KEY-----`) en PKCS#8 (`-----BEGIN PRIVATE KEY-----`) worden beide geaccepteerd. Versleuteld opgeslagen."
+  },
+  "guide": {
+    "title":    "SAML 2.0-aanmelding instellen in McHarbor",
+    "subtitle": "Wijs je IdP naar de McHarbor-metadata-URL, plak de IdP-metadata-URL in McHarbor en upload optioneel een sleutelpaar voor ondertekende AuthnRequests.",
+    "step1": {
+      "title": "Zoek de SAML-metadata-URL van je IdP",
+      "body":  "Elke IdP biedt een SAML 2.0-metadata-XML-document aan dat het SSO-endpoint en het ondertekeningscertificaat beschrijft. Gangbare plekken: Okta > Applications > je app > Sign On > Settings > Metadata URL; Auth0 > Application > Addons > SAML2 > Usage > Identity Provider Metadata; Keycloak > Realm > Endpoints > SAML 2.0 Identity Provider Metadata. Kopieer de URL naar het veld IdP-metadata-URL op het providerformulier."
+    },
+    "step2": {
+      "title": "Download de McHarbor-SP-metadata",
+      "body":  "Klik op \"SP-metadata downloaden\" op de bewerkpagina van de provider (of GET /api/identity-providers/<id>/metadata). De XML bevat de McHarbor-ACS-URL en (als je een sleutelpaar hebt geüpload) het SP-ondertekeningscertificaat. Upload dit bestand of plak de inhoud in de wizard \"Import SP metadata\" of \"New SAML application\" van je IdP."
+    },
+    "step3": {
+      "title": "Stel de ACS-URL in aan de IdP-kant",
+      "body":  "Als je IdP handmatige invoer vereist in plaats van metadata-import, stel dan de Assertion Consumer Service URL in op `<mcharbor-base>/api/identity-providers/callback` en de SP-entiteits-ID op de waarde die op het providerformulier staat (standaard: `<mcharbor-base>/api/identity-providers/metadata`). Het NameID-formaat moet `EmailAddress` of `Unspecified` zijn."
+    },
+    "step4": {
+      "title": "(Optioneel) Upload een SP-sleutelpaar voor ondertekende verzoeken",
+      "body":  "Als je IdP ondertekende AuthnRequests vereist, genereer dan een zelfondertekend RSA-sleutelpaar: `openssl req -x509 -newkey rsa:2048 -keyout sp.key -out sp.crt -days 365 -nodes -subj '/CN=mcharbor'`. Plak de volledige inhoud van sp.crt in het veld SP-certificaat en sp.key in het veld Privésleutel van SP. Download de SP-metadata opnieuw en upload ze opnieuw naar de IdP zodat die het nieuwe ondertekeningscertificaat oppikt."
+    },
+    "step5": {
+      "title": "Koppel IdP-attributen aan McHarbor-claims",
+      "body":  "Zorg er aan de IdP-kant voor dat de assertion minstens een e-mailattribuut bevat (urn:oid:0.9.2342.19200300.100.1.3 of http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress). Weergavenaam is optioneel. Groepslidmaatschap wordt gelezen uit `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` indien aanwezig, maar in v1 is geen API voor het ophalen van beheerdersgroepen aangesloten."
+    },
+    "step6": {
+      "title": "Test de verbinding",
+      "body":  "Klik terug in McHarbor op \"Verbinding testen\" op het providerformulier. Een groen resultaat betekent dat de IdP-metadata-URL correct is opgelost en geparseerd. Klik op \"Aanmelden met SAML\" op de inlogpagina om de volledige flow te verifiëren — je zou met een sessiecookie weer in McHarbor moeten uitkomen."
+    }
+  }
+}

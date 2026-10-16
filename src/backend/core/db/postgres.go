@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -30,6 +29,11 @@ import (
 // a conservative pool ceiling so a misbehaving collector can't
 // exhaust the connection limit and stall every other goroutine.
 func openPostgres(dsn string) (*sql.DB, error) {
+	return openPostgresContext(context.Background(), dsn)
+}
+
+// openPostgresContext is openPostgres with the caller's context bounding the connectivity check.
+func openPostgresContext(ctx context.Context, dsn string) (*sql.DB, error) {
 	// Minimal sanity check on the DSN so we fail fast with a
 	// readable error instead of a pgx parse error buried in
 	// sql.Open. We require a scheme (postgres:// or postgresql://).
@@ -37,7 +41,7 @@ func openPostgres(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("MCHARBOR_DB_DSN must start with postgres:// or postgresql:// (got prefix %q)", truncate(dsn, 16))
 	}
 
-	database, err := sql.Open("pgx", dsn)
+	database, err := openDriver("pgx", dsn, DriverPostgres)
 	if err != nil {
 		return nil, fmt.Errorf("opening postgres database: %w", err)
 	}
@@ -50,15 +54,15 @@ func openPostgres(dsn string) (*sql.DB, error) {
 	// pool) with headroom.
 	database.SetMaxOpenConns(32)
 	database.SetMaxIdleConns(8)
-	database.SetConnMaxIdleTime(5 * time.Minute)
+	database.SetConnMaxIdleTime(connMaxIdleTime)
 	// Bound the worst-case statement time so a runaway query
 	// (typically from a long-lived container log read) doesn't
 	// tie up a connection forever.
-	database.SetConnMaxLifetime(30 * time.Minute)
+	database.SetConnMaxLifetime(connMaxLifetime)
 
 	// Verify connectivity up front so the operator gets a clear
 	// error at startup rather than at the first request.
-	pingCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
 	if err := database.PingContext(pingCtx); err != nil {
 		return nil, fmt.Errorf("pinging postgres database: %w", err)

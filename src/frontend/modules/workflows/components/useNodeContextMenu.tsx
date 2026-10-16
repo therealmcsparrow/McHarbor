@@ -20,34 +20,45 @@ export function useNodeContextMenu(onExecute?: (triggerNodeId: string) => void) 
   const togglePortBlocked = useCanvasStore((s) => s.togglePortBlocked);
 
   const [nodeContextMenu, setNodeContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
-  const [portContextMenu, setPortContextMenu] = useState<{ x: number; y: number; nodeId: string; portKey: string } | null>(null);
+  const [portContextMenu, setPortContextMenu] = useState<{
+    x: number;
+    y: number;
+    nodeId: string;
+    portKey: string;
+  } | null>(null);
 
-  const onNodeContextMenu = useCallback((nodeId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    selectNode(nodeId);
-    setNodeContextMenu({ x: e.clientX, y: e.clientY, nodeId });
-  }, [selectNode]);
+  const onNodeContextMenu = useCallback(
+    (nodeId: string, e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectNode(nodeId);
+      setNodeContextMenu({ x: e.clientX, y: e.clientY, nodeId });
+    },
+    [selectNode],
+  );
 
-  const onNodeContextMenuSelect = useCallback((key: string) => {
-    if (!nodeContextMenu) return;
-    const store = useCanvasStore.getState();
-    const node = store.nodes.find((n) => n.id === nodeContextMenu.nodeId);
-    if (!node) return;
+  const onNodeContextMenuSelect = useCallback(
+    (key: string) => {
+      if (!nodeContextMenu) return;
+      const store = useCanvasStore.getState();
+      const node = store.nodes.find((n) => n.id === nodeContextMenu.nodeId);
+      if (!node) return;
 
-    switch (key) {
-      case 'skip':
-        store.updateNodeSkip(node.id, !node.skip);
-        break;
-      case 'toggle-disabled':
-        store.updateNodeDisabled(node.id, !node.disabled);
-        break;
-      case 'delete':
-        store.removeNode(node.id);
-        break;
-    }
-    setNodeContextMenu(null);
-  }, [nodeContextMenu]);
+      switch (key) {
+        case 'skip':
+          store.updateNodeSkip(node.id, !node.skip);
+          break;
+        case 'toggle-disabled':
+          store.updateNodeDisabled(node.id, !node.disabled);
+          break;
+        case 'delete':
+          store.removeNode(node.id);
+          break;
+      }
+      setNodeContextMenu(null);
+    },
+    [nodeContextMenu],
+  );
 
   const nodeContextMenuItems = useCallback((): ContextMenuItem[] => {
     if (!nodeContextMenu) return [];
@@ -63,9 +74,7 @@ export function useNodeContextMenu(onExecute?: (triggerNodeId: string) => void) 
       {
         key: 'toggle-disabled',
         label: node.disabled ? t('workflows.contextEnableNode') : t('workflows.contextDisableNode'),
-        icon: node.disabled
-          ? <IconPlayerPlay className="size-3.5" />
-          : <IconPlayerPause className="size-3.5" />,
+        icon: node.disabled ? <IconPlayerPlay className="size-3.5" /> : <IconPlayerPause className="size-3.5" />,
       },
       { key: 'separator', label: '', separator: true },
       {
@@ -82,13 +91,16 @@ export function useNodeContextMenu(onExecute?: (triggerNodeId: string) => void) 
     setPortContextMenu({ x: e.clientX, y: e.clientY, nodeId, portKey });
   }, []);
 
-  const onPortContextMenuSelect = useCallback((key: string) => {
-    if (!portContextMenu) return;
-    if (key === 'toggle-block') {
-      togglePortBlocked(portContextMenu.nodeId, portContextMenu.portKey);
-    }
-    setPortContextMenu(null);
-  }, [portContextMenu, togglePortBlocked]);
+  const onPortContextMenuSelect = useCallback(
+    (key: string) => {
+      if (!portContextMenu) return;
+      if (key === 'toggle-block') {
+        togglePortBlocked(portContextMenu.nodeId, portContextMenu.portKey);
+      }
+      setPortContextMenu(null);
+    },
+    [portContextMenu, togglePortBlocked],
+  );
 
   const portContextMenuItems = useCallback((): ContextMenuItem[] => {
     if (!portContextMenu) return [];
@@ -105,9 +117,12 @@ export function useNodeContextMenu(onExecute?: (triggerNodeId: string) => void) 
     ];
   }, [portContextMenu, t]);
 
-  const onNodeRun = useCallback((nodeId: string) => {
-    onExecute?.(nodeId);
-  }, [onExecute]);
+  const onNodeRun = useCallback(
+    (nodeId: string) => {
+      onExecute?.(nodeId);
+    },
+    [onExecute],
+  );
 
   return {
     nodeContextMenu,
@@ -123,4 +138,3 @@ export function useNodeContextMenu(onExecute?: (triggerNodeId: string) => void) 
     onNodeRun,
   };
 }
-

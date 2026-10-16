@@ -4,7 +4,7 @@
     "description":  "All-in-one collaboration platform with documents, mail, CRM, projects, and calendar.",
     "category":  "Documents",
     "image":  "onlyoffice/communityserver:latest",
-    "logo":  "https://icon.horse/icon/www.onlyoffice.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/onlyoffice.svg",
     "website":  "https://www.onlyoffice.com",
     "docsUrl":  "https://helpcenter.onlyoffice.com/installation/workspace-install-docker.aspx",
     "ports":  [
@@ -47,5 +47,9 @@
                     }
                 ],
     "minMemory":  "4GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

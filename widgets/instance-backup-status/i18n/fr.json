@@ -1,0 +1,21 @@
+{
+  "widgets": {
+    "instanceBackupStatus": {
+      "label": "Sauvegarde de l'instance",
+      "description": "Date du dernier export de cette instance et de la dernière restauration vérifiée, ainsi que la dernière exécution de chaque planification d'export"
+    }
+  },
+  "instanceBackupWidget": {
+    "title": "Sauvegarde de l'instance",
+    "open": "Sauvegarde de l'instance",
+    "noAccess": "Nécessite la permission instance_backup.view",
+    "unavailable": "Impossible de lire l'historique des exports",
+    "lastExport": "Dernier export {{when}}",
+    "never": "Jamais exporté",
+    "lastVerified": "Dernière vérification {{when}}",
+    "neverVerified": "Jamais vérifié par un test de restauration",
+    "failed": "La dernière exécution a échoué",
+    "ran": "Exécuté {{when}}",
+    "notRun": "Pas encore exécuté"
+  }
+}

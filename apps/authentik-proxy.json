@@ -4,7 +4,7 @@
     "description":  "Forward-auth reverse proxy that gates apps behind Authentik SSO.",
     "category":  "Security",
     "image":  "ghcr.io/goauthentik/proxy:latest",
-    "logo":  "https://icon.horse/icon/goauthentik.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/authentik.svg",
     "website":  "https://goauthentik.io",
     "docsUrl":  "https://docs.goauthentik.io/installation/proxy",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

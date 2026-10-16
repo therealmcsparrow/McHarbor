@@ -4,7 +4,7 @@
     "description":  "Continuous profiling backend for CPU, memory, goroutine and lock analysis.",
     "category":  "Monitoring",
     "image":  "grafana/pyroscope:latest",
-    "logo":  "https://icon.horse/icon/grafana.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/grafana-pyroscope.svg",
     "website":  "https://grafana.com/oss/pyroscope",
     "docsUrl":  "https://grafana.com/docs/pyroscope/latest/",
     "ports":  [
@@ -27,5 +27,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

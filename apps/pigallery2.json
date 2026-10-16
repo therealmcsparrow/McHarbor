@@ -2,7 +2,7 @@
     "slug":  "pigallery2",
     "name":  "PiGallery2",
     "description":  "Fast directory-based photo gallery with face recognition and map view.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "bpatrik/pigallery2:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pigallery2.png",
     "website":  "https://bpatrik.github.io/pigallery2/",
@@ -41,5 +41,9 @@
                         "description":  "Group ID"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

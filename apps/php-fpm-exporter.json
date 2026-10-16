@@ -1,0 +1,37 @@
+{
+    "slug":  "php-fpm-exporter",
+    "name":  "PHP-FPM Exporter",
+    "description":  "Prometheus exporter that reports PHP-FPM pool and process metrics.",
+    "category":  "Monitoring",
+    "image":  "hipages/php-fpm_exporter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/php.png",
+    "website":  "https://github.com/hipages/php-fpm_exporter",
+    "docsUrl":  "https://github.com/hipages/php-fpm_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9253,
+                      "container":  9253,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PHP_FPM_SCRAPE_URI",
+                        "default":  "tcp://127.0.0.1:9000/status",
+                        "description":  "Address of the PHP-FPM status endpoint to scrape"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

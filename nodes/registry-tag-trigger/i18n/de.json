@@ -1,5 +1,5 @@
 {
-  "label": "Registry Tag Trigger",
+  "label": "Registry-Tag-Auslöser",
   "description": "Startet einen Workflow, wenn sich der Digest eines ueberwachten Image-Tags aendert",
   "config": {
     "environment": "Umgebung",

@@ -1,0 +1,49 @@
+{
+    "slug":  "calibre-content-server",
+    "name":  "Calibre Content Server",
+    "description":  "Headless web view of a Calibre ebook library for browsing and downloading books over the network.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/calibre:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre.png",
+    "website":  "https://calibre-ebook.com",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-calibre",
+    "ports":  [
+                  {
+                      "host":  8092,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/calibre-content-server/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/calibre-content-server/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID that owns the mounted files"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID that owns the mounted files"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

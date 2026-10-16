@@ -1,0 +1,72 @@
+{
+    "slug":  "ark-survival-evolved",
+    "name":  "ARK: Survival Evolved",
+    "description":  "Dedicated server for the dinosaur survival game ARK: Survival Evolved.",
+    "category":  "Gaming",
+    "image":  "thmhoag/arkserver:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=survivetheark.com\u0026sz=128",
+    "website":  "https://survivetheark.com",
+    "docsUrl":  "https://github.com/thmhoag/arkserver",
+    "ports":  [
+                  {
+                      "host":  7777,
+                      "container":  7777,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  7778,
+                      "container":  7778,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  27015,
+                      "container":  27015,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ark-survival-evolved/steamcmd",
+                        "container":  "/var/lib/steam/steamcmd/ark-server"
+                    },
+                    {
+                        "host":  "/opt/appdata/ark-survival-evolved/data",
+                        "container":  "/var/lib/steam/steamcmd/ark-server/ShooterGame/Saved"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SESSION_NAME",
+                        "default":  "My ARK Server",
+                        "description":  "Server name shown in the server list"
+                    },
+                    {
+                        "key":  "SERVER_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password required to join",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SERVER_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Admin password for RCON",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MAX_PLAYERS",
+                        "default":  "20",
+                        "description":  "Maximum player slots"
+                    }
+                ],
+    "minMemory":  "8GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

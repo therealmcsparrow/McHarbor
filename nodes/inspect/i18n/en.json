@@ -1,0 +1,23 @@
+{
+  "label": "Inspect",
+  "description": "Inspect a container, image, network, volume or stack",
+  "config": {
+    "environment": "Environment",
+    "resource": "Resource",
+    "container": "Container",
+    "image": "Image",
+    "name": "Name",
+    "stack_name": "Stack Name",
+    "network": "Network",
+    "volume": "Volume"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Network",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

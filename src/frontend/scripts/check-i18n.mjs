@@ -89,7 +89,7 @@ async function collectI18nDirs(dir) {
 
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      dirs.push(...await collectI18nDirs(path.join(dir, entry.name)));
+      dirs.push(...(await collectI18nDirs(path.join(dir, entry.name))));
     }
   }
 

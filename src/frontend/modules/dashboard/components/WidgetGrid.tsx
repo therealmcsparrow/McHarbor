@@ -8,6 +8,8 @@ import 'react-grid-layout/css/styles.css';
 import { useWidgetDefinitionMap } from '../widgets/registry';
 import { useDashboardLayoutStore } from '../stores/dashboard-layout';
 import { WidgetShell } from './WidgetShell';
+import { WidgetErrorBoundary } from './WidgetErrorBoundary';
+import { WidgetSkeleton, skeletonShapeFor } from './WidgetSkeleton';
 
 export function WidgetGrid() {
   const { t } = useTranslation('dashboard');
@@ -21,7 +23,7 @@ export function WidgetGrid() {
       md: layouts.md as readonly LayoutItem[],
       sm: layouts.sm as readonly LayoutItem[],
     }),
-    [layouts]
+    [layouts],
   );
 
   const renderedWidgets = useMemo(
@@ -35,45 +37,40 @@ export function WidgetGrid() {
         const gridW = item?.w ?? def.defaultSize.w;
         const gridH = item?.h ?? def.defaultSize.h;
 
+        const label = t(def.labelKey);
+
         return (
           <div key={w.id}>
             <WidgetShell
               editMode={editMode}
-              title={t(def.labelKey)}
+              title={label}
               width={gridW}
               height={gridH}
               onRemove={() => removeWidget(w.id)}
               onResize={(newW, newH) => resizeWidget(w.id, newW, newH)}
             >
-              <Suspense
-                fallback={
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                    {t('loading')}
-                  </div>
-                }
-              >
-                <Component colSpan={colSpan} typeId={w.typeId} />
-              </Suspense>
+              {/* The boundary is inside the shell, so a widget that throws
+                  loses its own body and keeps its header — the grid stays
+                  intact and the user can see which tile failed. */}
+              <WidgetErrorBoundary title={label}>
+                <Suspense fallback={<WidgetSkeleton shape={skeletonShapeFor(w.typeId)} />}>
+                  <Component colSpan={colSpan} typeId={w.typeId} />
+                </Suspense>
+              </WidgetErrorBoundary>
             </WidgetShell>
           </div>
         );
       }),
-    [widgets, layouts.lg, editMode, removeWidget, resizeWidget, widgetMap, t]
+    [widgets, layouts.lg, editMode, removeWidget, resizeWidget, widgetMap, t],
   );
 
   return (
     <div ref={containerRef} className="relative">
       {/* Grid background overlay — visible only in edit mode */}
       {editMode && (
-        <div
-          className="pointer-events-none absolute inset-0 grid grid-cols-12 gap-4"
-          aria-hidden="true"
-        >
+        <div className="pointer-events-none absolute inset-0 grid grid-cols-12 gap-4" aria-hidden="true">
           {Array.from({ length: 12 }, (_, i) => (
-            <div
-              key={`grid-column-${i + 1}`}
-              className="rounded-lg border border-dashed border-muted-foreground/[0.08] bg-muted-foreground/[0.02]"
-            />
+            <div key={`grid-column-${i + 1}`} className="rounded-lg border border-dashed border-hairline bg-glass/40" />
           ))}
         </div>
       )}
@@ -87,7 +84,13 @@ export function WidgetGrid() {
           rowHeight={100}
           margin={[16, 16]}
           dragConfig={{ enabled: editMode, handle: '.widget-drag-handle' }}
-          resizeConfig={{ enabled: false }}
+          // Corner + edge drag-resize, in edit mode only. The numeric
+          // controls in the WidgetShell popover remain the keyboard and
+          // precision path — both are available, neither replaces the other.
+          resizeConfig={{
+            enabled: editMode,
+            handles: ['se', 'e', 's'],
+          }}
           onLayoutChange={(_current: Layout, allLayouts) => {
             const all = allLayouts as Record<string, Layout>;
             updateLayouts({

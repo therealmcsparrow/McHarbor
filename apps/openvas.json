@@ -1,0 +1,42 @@
+{
+    "slug":  "openvas",
+    "name":  "OpenVAS (GVM)",
+    "description":  "Vulnerability scanner and manager that runs authenticated and network scans against hosts and services.",
+    "category":  "Security",
+    "image":  "immauss/openvas:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openvas.svg",
+    "website":  "https://www.greenbone.net",
+    "docsUrl":  "https://github.com/immauss/openvas",
+    "ports":  [
+                  {
+                      "host":  9392,
+                      "container":  9392,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openvas/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password for the GVM web interface",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

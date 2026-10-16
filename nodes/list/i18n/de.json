@@ -1,0 +1,20 @@
+{
+  "label": "Auflisten",
+  "description": "Container, Images, Netzwerke, Volumes oder Stacks einer Umgebung auflisten",
+  "config": {
+    "environment": "Umgebung",
+    "resource": "Ressource",
+    "show_all": "Alle anzeigen",
+    "name_filter": "Namensfilter",
+    "filter_dangling": "Nur dangling"
+  },
+  "options": {
+    "resource": {
+      "container": "Container",
+      "image": "Image",
+      "network": "Netzwerk",
+      "volume": "Volume",
+      "stack": "Stack"
+    }
+  }
+}

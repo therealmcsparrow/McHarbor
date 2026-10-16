@@ -1,0 +1,52 @@
+{
+    "slug":  "db2-community",
+    "name":  "IBM Db2 Community Edition",
+    "description":  "IBM's relational database engine, free community edition for development and small deployments.",
+    "category":  "Databases",
+    "image":  "icr.io/db2_community/db2:latest",
+    "logo":  "https://github.com/IBM.png",
+    "website":  "https://www.ibm.com/products/db2",
+    "docsUrl":  "https://www.ibm.com/products/db2",
+    "ports":  [
+                  {
+                      "host":  50000,
+                      "container":  50000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/db2-community/data",
+                        "container":  "/database"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB2INSTANCE",
+                        "default":  "db2inst1",
+                        "description":  "Database instance owner"
+                    },
+                    {
+                        "key":  "DB2INST1_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Password for the instance owner",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "LICENSE",
+                        "default":  "accept",
+                        "description":  "Accept the Db2 Community Edition license"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,8 +1,8 @@
 {
   "label": "Debug",
-  "description": "Emit the current message to the debug stream",
+  "description": "Stuur het huidige bericht naar de debugstream",
   "config": {
     "property": "Eigenschap",
-    "full_message": "Show Full Message"
+    "full_message": "Volledig bericht tonen"
   }
 }

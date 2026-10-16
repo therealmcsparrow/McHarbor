@@ -6,5 +6,15 @@
     "container": "Recipiente",
     "tail": "Linhas traseiras",
     "since": "Desde"
+  },
+  "options": {
+    "since": {
+      "5m": "Últimos 5 minutos",
+      "15m": "Últimos 15 minutos",
+      "1h": "Última hora",
+      "6h": "Últimas 6 horas",
+      "24h": "Últimas 24 horas",
+      "168h": "Últimos 7 dias"
+    }
   }
 }

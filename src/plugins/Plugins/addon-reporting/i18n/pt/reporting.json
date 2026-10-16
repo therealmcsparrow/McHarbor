@@ -1,0 +1,597 @@
+{
+  "nav": {
+    "section": {
+      "reporting": "Relatórios"
+    }
+  },
+  "menu": {
+    "studio": "Estúdio de relatórios",
+    "library": "Biblioteca de relatórios",
+    "settings": "Definições de relatórios",
+    "schedules": "Agendamentos de relatórios"
+  },
+  "page": {
+    "studio": {
+      "title": "Estúdio de relatórios",
+      "subtitle": "Escolha um relatório, defina o período e gere. Cada número vem dos registos da própria plataforma."
+    },
+    "library": {
+      "title": "Biblioteca de relatórios",
+      "subtitle": "Relatórios gerados até agora. Cada um é um registo fixo do que era verdade quando foi executado."
+    },
+    "settings": {
+      "title": "Definições de relatórios",
+      "subtitle": "O que aparece na capa de um relatório exportado e quanto histórico manter."
+    },
+    "schedules": {
+      "title": "Agendamentos de relatórios",
+      "subtitle": "Relatórios que rodam sozinhos e se entregam sozinhos"
+    }
+  },
+  "category": {
+    "board": {
+      "label": "Para a administração",
+      "description": "Um relatório, três níveis: postura e risco para a administração, objetivos para o responsável da plataforma, detalhe para quem está de turno."
+    },
+    "assurance": {
+      "label": "Garantia",
+      "description": "Prova para a revisão de segurança, as retrospetivas de incidentes, a recertificação de acessos e os testes de recuperação."
+    },
+    "service": {
+      "label": "Desempenho do serviço",
+      "description": "Como a plataforma está a cumprir os seus objetivos, e como a mudança lhe chega."
+    },
+    "platform": {
+      "label": "Plataforma",
+      "description": "O próprio parque: ambientes, capacidade, imagens e configuração."
+    },
+    "workload": {
+      "label": "Profundidade por carga de trabalho",
+      "description": "Um objeto por vez, respondido em profundidade: como cada carga de trabalho se comportou no período, e não apenas como ela aparece agora."
+    },
+    "operations": {
+      "label": "Operações",
+      "description": "A engrenagem que mantém o ambiente em funcionamento — agendamentos, atualizações, alertas, agentes, redes e armazenamento."
+    },
+    "finance": {
+      "label": "Custo e eficiência",
+      "description": "O que o ambiente consome e quem consome, em proporções que o operador pode precificar."
+    },
+    "custom": {
+      "label": "Personalizado",
+      "description": "Faça uma pergunta com suas próprias palavras. Um modelo decide de quais dados precisa e escreve o documento."
+    }
+  },
+  "level": {
+    "strategic": "Estratégico",
+    "tactical": "Tático",
+    "operational": "Operacional",
+    "summary": "Resumo",
+    "annex": "Anexo"
+  },
+  "band": {
+    "strong": "Forte",
+    "stable": "Estável",
+    "watch": "Vigiar",
+    "at_risk": "Em risco",
+    "critical": "Crítico",
+    "not_assessed": "Não avaliado"
+  },
+  "option": {
+    "include_detail": "Incluir detalhe operacional",
+    "include_glossary": "Incluir glossário",
+    "include_narrative": "Incluir narrativa",
+    "paper": {
+      "a4": "A4 · 210 × 297 mm",
+      "legal": "Legal · 216 × 356 mm"
+    }
+  },
+  "type": {
+    "change-approvals": {
+      "name": "Aprovações de alterações e acesso privilegiado",
+      "description": "Solicitações de aprovação e seus resultados, as regras que as geram e toda elevação temporária concedida no período."
+    },
+    "control-framework-evidence": {
+      "name": "Evidências de framework de controles",
+      "description": "Evidências para um framework de controles nomeado: quais verificações foram executadas e o que encontraram, quais controles são evidenciados em vez de julgados e quais o McHarbor não consegue ver."
+    },
+    "compliance-posture": {
+      "name": "Postura de conformidade",
+      "description": "A postura de conformidade da plataforma controle a controle, com o que passa, o que falha e o que não pôde ser avaliado."
+    },
+    "drift-enforcement": {
+      "name": "Deriva de configuração e aplicação",
+      "description": "Onde o estado em execução se afasta do estado desejado, quais propostas foram aprovadas e o que a aplicação alterou por conta própria."
+    },
+    "ha-posture": {
+      "name": "Postura de alta disponibilidade",
+      "description": "Nós do cluster, heartbeats, liderança e histórico de failover, e se um standby está pronto para assumir."
+    },
+    "incident-narrative": {
+      "name": "Revisão narrativa de incidentes",
+      "description": "Incidentes abertos no período, suas descobertas e fontes, quanto tempo cada um levou para ser explicado e resolvido, e o que continua se repetindo."
+    },
+    "instance-dr-readiness": {
+      "name": "Prontidão de recuperação de desastres da instância",
+      "description": "Backups do próprio McHarbor: histórico, agendamentos, a idade do último backup bom e todas as restaurações tentadas."
+    },
+    "itsm-integration": {
+      "name": "Integração ITSM",
+      "description": "Tickets abertos a partir de alertas e incidentes, como foram resolvidos e quais canais falharam ao sincronizar."
+    },
+    "runbooks": {
+      "name": "Runbooks",
+      "description": "Os procedimentos que esta instância mantém: ao que cada um está associado, seus passos em ordem, se roda sem supervisão e quais condições de alerta não têm nenhum runbook por trás. Restrinja a um runbook para imprimi-lo isoladamente."
+    },
+    "secrets-hygiene": {
+      "name": "Higiene de segredos",
+      "description": "Idade e rotação de segredos, segredos que nada referencia e até onde um segredo vazado chegaria."
+    },
+    "webhook-delivery": {
+      "name": "Entrega de webhooks",
+      "description": "Cada webhook de saída, sua taxa de sucesso de entrega, tentativas repetidas e os endpoints que continuam falhando."
+    },
+    "workflow-automation": {
+      "name": "Automação de workflows",
+      "description": "Execuções de workflows no período, sua taxa de sucesso, as falhas e os gatilhos que mais disparam."
+    },
+    "access-review": {
+      "name": "Revisão de acessos e identidade",
+      "description": "Contas, funções, grupos e chaves de API, preparados para uma recertificação periódica de acessos."
+    },
+    "agent-fleet": {
+      "name": "Frota de agentes remotos",
+      "description": "Estado de conexão do agente, dispersão de versões e obsolescência em todos os hosts remotos."
+    },
+    "alerting-coverage": {
+      "name": "Cobertura de alertas",
+      "description": "Quais cargas de trabalho uma regra de alerta monitora — e, pelo histórico medido, quais falhas ninguém ficou sabendo."
+    },
+    "audit-assurance": {
+      "name": "Garantia da trilha de auditoria",
+      "description": "A completude da própria trilha de auditoria: distribuição de severidade, o que ela cobre e lacunas na captura."
+    },
+    "automation-schedules": {
+      "name": "Trabalho agendado e automação",
+      "description": "Cada agendamento, política de atualização e plano de backup, quando cada um foi executado pela última vez e quais nunca foram executados."
+    },
+    "availability-slo": {
+      "name": "Disponibilidade e níveis de serviço",
+      "description": "Cargas em execução e saudáveis, medidas face ao objetivo, com os pontos cegos identificados."
+    },
+    "backup-recovery": {
+      "name": "Cópias de segurança e recuperação",
+      "description": "Cobertura das cargas em execução, taxa de sucesso e antiguidade da cópia utilizável mais recente."
+    },
+    "capacity-utilisation": {
+      "name": "Capacidade e utilização",
+      "description": "Margem no recurso mais apertado entre CPU e memória, consumo de armazenamento e o que pode ser libertado hoje."
+    },
+    "change-delivery": {
+      "name": "Alterações e entrega",
+      "description": "Frequência de implementação e taxa de falha das alterações, enquadradas nos referenciais DORA."
+    },
+    "container-service": {
+      "name": "Relatório de serviço de contêineres",
+      "description": "Uma linha por carga de trabalho reunindo disponibilidade, imagem, stack, cobertura de backup e automação de atualização."
+    },
+    "cost-allocation": {
+      "name": "Alocação de custos e showback",
+      "description": "Consumo atribuído à stack que o causou, como proporções e não como moeda: a plataforma não possui tabela de preços."
+    },
+    "credential-hygiene": {
+      "name": "Higiene de credenciais",
+      "description": "Idade, expiração, abrangência de escopo e último uso das chaves de API — uma lista de revogação, e não um inventário."
+    },
+    "data-protection-rpo": {
+      "name": "Proteção de dados e RPO",
+      "description": "Ponto de recuperação em relação a objetivos convencionais, cobertura das cargas de trabalho em execução e o que nunca foi copiado em backup."
+    },
+    "environment-comparison": {
+      "name": "Comparação de ambientes",
+      "description": "As mesmas medidas para cada ambiente lado a lado, para que a deriva de versões e agentes desatualizados fiquem visíveis."
+    },
+    "environment-health": {
+      "name": "Saúde dos ambientes",
+      "description": "Estado do ambiente, motor, agente e recursos em cada anfitrião ligado."
+    },
+    "executive-overview": {
+      "name": "Panorama executivo da plataforma",
+      "description": "O relatório de referência para a administração: posição em seis domínios, registo de riscos, desempenho face ao objetivo e o detalhe que os sustenta."
+    },
+    "healthcheck-quality": {
+      "name": "Qualidade das verificações de integridade",
+      "description": "Se as verificações de integridade existem, passam e são rápidas o bastante — e quais cargas de trabalho em execução não têm nenhuma."
+    },
+    "image-supply-chain": {
+      "name": "Imagens e cadeia de fornecimento",
+      "description": "Proveniência e idade das imagens, registos, automatização de atualizações e exposição avaliada."
+    },
+    "incident-problem": {
+      "name": "Revisão de incidentes e problemas",
+      "description": "O que falhou no período, com que rapidez recuperou e que cargas de trabalho reincidem."
+    },
+    "network-connectivity": {
+      "name": "Rede e conectividade",
+      "description": "Redes, drivers e conexões, para que o raio de impacto de uma carga de trabalho comprometida possa ser lido em vez de adivinhado."
+    },
+    "operational-readiness": {
+      "name": "Prontidão operacional",
+      "description": "Cada carga de trabalho pontuada em cinco itens básicos: verificação de integridade, disponibilidade, backup, política de atualização e uma imagem analisada."
+    },
+    "patch-currency": {
+      "name": "Atualidade de patches e atualizações",
+      "description": "Quanto o parque de imagens se afastou, quanto a automação está fechando e quais cargas de trabalho nenhuma política cobre."
+    },
+    "permission-matrix": {
+      "name": "Matriz de funções e permissões",
+      "description": "Funções classificadas pela abrangência de acesso, quem detém cada uma e quais funções ninguém detém."
+    },
+    "platform-inventory": {
+      "name": "Inventário da plataforma",
+      "description": "A versão do próprio McHarbor, ambientes, agentes, plugins e tarefas agendadas."
+    },
+    "resource-efficiency": {
+      "name": "Eficiência de recursos",
+      "description": "Folga nos dois sentidos — pouca é um problema de resiliência, demais é um de eficiência — e o que pode ser recuperado."
+    },
+    "security-compliance": {
+      "name": "Segurança e conformidade",
+      "description": "Exposição a vulnerabilidades por gravidade, cobertura e atualidade das análises, controlos de acesso e garantia de auditoria."
+    },
+    "stability-flapping": {
+      "name": "Estabilidade e oscilação",
+      "description": "Cargas de trabalho que não param de mudar de estado. Separa muitas transições curtas de poucas interrupções longas, porque as causas diferem."
+    },
+    "stack-portfolio": {
+      "name": "Portfólio de stacks e aplicações",
+      "description": "O registro por contêiner consolidado até a stack, que costuma ser a unidade pela qual uma equipe responde."
+    },
+    "uptime-availability": {
+      "name": "Histórico de uptime e disponibilidade",
+      "description": "Uptime medido por carga de trabalho, interrupções, MTTR e orçamento de erro, a partir do histórico de 30 segundos da própria plataforma e não do estado atual."
+    },
+    "user-activity": {
+      "name": "Atividade de usuários",
+      "description": "Quem operou a plataforma, quanto, o que alterou e quanto aconteceu fora do horário de trabalho."
+    },
+    "volume-data-estate": {
+      "name": "Volumes e patrimônio de dados",
+      "description": "Dados persistentes: quanto existe, quem os possui, o que está órfão e se algo os traria de volta."
+    },
+    "workload-inventory": {
+      "name": "Inventário de cargas de trabalho",
+      "description": "Um registro pontual de cada carga de trabalho em cada plataforma que responde, com as imagens, volumes e redes do Docker associados, para controle de mudanças e transferência."
+    },
+    "ad-hoc": {
+      "name": "Relatório gerado por IA",
+      "description": "Descreva a pergunta com suas próprias palavras e um modelo escreve o documento. Ele seleciona os dados por conta própria, e cada número usado é conferido com os registros da própria plataforma antes de o relatório ser emitido."
+    }
+  },
+  "studio": {
+    "searchPlaceholder": "Pesquisar relatórios",
+    "searchEmptyTitle": "Nenhum relatório corresponde",
+    "searchEmptyDescription": "Nenhum tipo de relatório corresponde a esse texto. Limpe a pesquisa para ver todo o catálogo.",
+    "searchCount": "{{shown}} de {{total}}",
+    "configure": "Configurar",
+    "period": "Período",
+    "environment": "Ambiente",
+    "customRange": "Intervalo personalizado",
+    "from": "De",
+    "to": "Até",
+    "rangeInvalid": "A data de início deve ser igual ou anterior à data de fim.",
+    "sections": "Secções",
+    "options": "Opções",
+    "generate": "Gerar relatório",
+    "generating": "A recolher dados…",
+    "lastDays": "Últimos {{count}} dias",
+    "pointInTime": "Momento",
+    "pointInTimeHint": "Este relatório descreve o presente, pelo que não tem período.",
+    "scope": "Limitado a {{environment}}. O relatório contém apenas dados que já consegue ver.",
+    "scopeAll": "Limitado a todos os ambientes que consegue ver.",
+    "error": "Não foi possível gerar o relatório. Confirme que o ambiente está acessível e tente novamente.",
+    "empty": {
+      "title": "Sem tipos de relatório disponíveis",
+      "description": "Não foi possível carregar o catálogo de relatórios. Confirme que o plugin está ativado e recarregue."
+    },
+    "subject": "Âmbito",
+    "subjectKind": "Restringir por",
+    "subjectHint": "Restrinja o relatório a um único objeto, ou deixe-o a abranger tudo.",
+    "subjectEmpty": "Nada a que restringir",
+    "scopeSubject": "Restringido a {{subject}}. O relatório contém apenas dados que já pode ver.",
+    "environmentAll": "Todos os ambientes",
+    "aiAuthored": "Escrito por um modelo de IA",
+    "prompt": "O que o relatório deve abordar?",
+    "promptPlaceholder": "ex.: quais imagens têm vulnerabilidades críticas e ainda estão em execução em produção?",
+    "aiConnection": "Conexão de IA",
+    "aiConnectionHint": "Nenhum provedor de IA está configurado ou disponível neste host. Peça a um administrador que configure um em Configurações de IA — a narrativa usará texto padrão até lá.",
+    "aiConnectionRequired": "Nenhum provedor de IA está configurado ou disponível neste host. Peça a um administrador que configure um em Configurações de IA antes de gerar este relatório."
+  },
+  "library": {
+    "count": "{{count}} relatório",
+    "count_other": "{{count}} relatórios",
+    "allTypes": "Todos os tipos",
+    "filterByType": "Filtrar por tipo de relatório",
+    "searchPlaceholder": "Procurar relatórios",
+    "noMatches": "Nenhum relatório corresponde a estes filtros",
+    "page": "Página {{page}} de {{total}}",
+    "retired": "Tipo de relatório descontinuado",
+    "retiredHint": "Este tipo de relatório foi substituído por um relatório multiplataforma. O documento é mantido exatamente como foi gerado.",
+    "col": {
+      "report": "Relatório",
+      "period": "Período",
+      "score": "Posição",
+      "generated": "Gerado",
+      "actions": "Ações"
+    },
+    "delete": {
+      "title": "Eliminar este relatório?",
+      "description": "“{{title}}” será removido permanentemente. Os relatórios são registos de um momento e não podem ser gerados de forma idêntica."
+    },
+    "empty": {
+      "title": "Ainda não há relatórios",
+      "description": "Gere o seu primeiro relatório no Estúdio. Demora alguns segundos e lê apenas aquilo a que já tem acesso."
+    }
+  },
+  "viewer": {
+    "sections": "Secções do relatório",
+    "generatedBy": "Preparado por {{user}}",
+    "error": "Não foi possível carregar este relatório.",
+    "scope": "Âmbito: {{subject}}"
+  },
+  "scorecard": {
+    "overall": "Posição global"
+  },
+  "settings": {
+    "saving": "A guardar…",
+    "saved": "Guardado",
+    "error": "Não foi possível guardar as definições.",
+    "organisation": {
+      "label": "Nome da organização",
+      "help": "Impresso acima do título, na capa de cada relatório exportado."
+    },
+    "classification": {
+      "label": "Etiqueta de classificação",
+      "help": "Mostrado na capa e no rodapé de cada página. Por exemplo: Interno, Confidencial, Restrito."
+    },
+    "logo": {
+      "label": "Logotipo do relatório",
+      "help": "A marca impressa no topo da capa e no início de cada exportação em Word. Deixe sem definir para usar a marca do McHarbor."
+    },
+    "icon": {
+      "label": "Ícone do relatório",
+      "help": "A pequena marca repetida no cabeçalho corrente de cada página do PDF. Deixe sem definir para usar a marca do McHarbor."
+    },
+    "defaultDays": {
+      "label": "Período predefinido",
+      "help": "Número de dias que um relatório abrange quando o seu tipo não define um período próprio."
+    },
+    "retain": {
+      "label": "Relatórios a manter",
+      "help": "Os relatórios mais antigos são removidos assim que este número for atingido. Cada relatório mantém o documento completo."
+    },
+    "ai": {
+      "label": "Narrativa com IA",
+      "help": "Permite que o fornecedor de IA configurado melhore a redação do parágrafo de abertura. Nunca pode acrescentar, remover ou reformular um número, e qualquer falha volta ao texto normal. Desligado por omissão, para que os relatórios continuem reproduzíveis."
+    },
+    "paper": {
+      "label": "Tamanho da página",
+      "help": "O papel em que cada exportação para PDF e Word é composta. As margens são de 1,27 cm nos quatro lados, seja qual for a escolha."
+    },
+    "mark": {
+      "upload": "Enviar",
+      "reset": "Usar padrão",
+      "default": "Usando o logotipo do aplicativo de Configurações → Personalização.",
+      "hint": "PNG ou SVG. Um SVG é convertido em PNG ao ser escolhido, porque os geradores de PDF e Word incorporam imagens em vez de arte vetorial.",
+      "badImage": "Não foi possível ler esse arquivo como imagem.",
+      "tooLarge": "Essa imagem é grande demais. Mantenha-a abaixo de 2 MB e 4000 pixels de lado."
+    },
+    "aiReports": {
+      "label": "Relatórios criados por IA",
+      "help": "Permite que o tipo de relatório gerado por IA envie detalhes do ambiente — registros de contêineres, imagens, usuários e eventos — ao provedor de IA configurado para que um modelo possa escrever o documento. Desativado por padrão."
+    }
+  },
+  "action": {
+    "back": "Voltar",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "delete": "Eliminar",
+    "save": "Guardar alterações",
+    "next": "Seguinte",
+    "previous": "Anterior",
+    "exportPdf": "Exportar PDF",
+    "exportDocx": "Exportar Word"
+  },
+  "error": {
+    "reporting": {
+      "invalid_request": "Não foi possível interpretar o pedido.",
+      "unknown_type": "Esse tipo de relatório não existe.",
+      "not_found": "Relatório não encontrado.",
+      "generate_failed": "Não foi possível gerar o relatório.",
+      "export_failed": "Não foi possível produzir a exportação.",
+      "unsupported_format": "Esse formato de exportação não é suportado.",
+      "internal": "Algo correu mal. Consulte os registos do servidor para mais detalhe.",
+      "schedule_no_targets": "Um agendamento precisa entregar em algum lugar. Escolha pelo menos um canal ou local de armazenamento.",
+      "schedule_bad_target": "Esse destino de entrega não é um canal de comunicação nem um local de armazenamento.",
+      "schedule_bad_cron": "Não foi possível ler essa expressão de agendamento. Ela precisa de cinco campos, por exemplo 0 7 * * 1.",
+      "schedule_running": "Esse agendamento já está em execução.",
+      "delivery_failed": "falha na entrega",
+      "delivery_unavailable": "a entrega não está disponível nesta instalação",
+      "delivery_target_gone": "o destino não existe mais",
+      "schedule_bad_path": "Essa pasta de destino não pode ser usada. Informe uma pasta relativa, sem barra inicial, sem letra de unidade e sem segmento “..”.",
+      "schedule_bad_filename": "Esse nome de arquivo não pode ser usado. Informe um nome simples, sem separador de pasta, sem “..” e sem extensão, usando apenas os tokens que o campo lista.",
+      "schedule_bad_recipient": "Esse destinatário alternativo não pode ser usado. Informe-o em uma linha e somente para um canal que aceite um.",
+      "ai_disabled": "Os relatórios de IA estão desativados. Um administrador pode ativá-los nas configurações de Relatórios.",
+      "ai_unavailable": "Nenhum provedor de IA está configurado ou disponível neste host. Peça a um administrador que configure um em Configurações de IA.",
+      "ai_connection_unavailable": "A conexão de IA selecionada não está disponível. Escolha outra conexão e tente novamente.",
+      "prompt_required": "Descreva o que o relatório deve abordar.",
+      "ai_plan_failed": "O modelo não conseguiu determinar de quais dados esta pergunta precisa. Tente reformulá-la.",
+      "ai_author_failed": "O modelo não conseguiu produzir um relatório utilizável a partir destes dados."
+    }
+  },
+  "findings": {
+    "recommended": "Recomendado:",
+    "owner": "Responsável: {{owner}}"
+  },
+  "chart": {
+    "aria": "Gráfico"
+  },
+  "subject": {
+    "container": "Contentor",
+    "stack": "Stack",
+    "image": "Imagem",
+    "volume": "Volume",
+    "network": "Rede",
+    "user": "Utilizador",
+    "group": "Grupo de utilizadores"
+  },
+  "subjectAll": {
+    "container": "Todos os contentores",
+    "stack": "Todos os stacks",
+    "image": "Todas as imagens",
+    "volume": "Todos os volumes",
+    "network": "Todas as redes",
+    "user": "Todos os utilizadores",
+    "group": "Todos os grupos de utilizadores"
+  },
+  "progress": {
+    "title": "A gerar relatório",
+    "description": "A ler os registos da própria plataforma. Nada é guardado até o documento estar completo.",
+    "sources": "{{done}} de {{total}} fontes lidas",
+    "failed": "Não foi possível gerar o relatório. Verifique se o ambiente está acessível e tente novamente.",
+    "stage": {
+      "queued": "Em fila",
+      "collect": "A recolher dados",
+      "analyze": "A analisar",
+      "build": "A escrever o documento",
+      "store": "A guardar",
+      "done": "Pronto"
+    }
+  },
+  "schedule": {
+    "enable": "Agendar este relatório",
+    "enableHint": "Execute-o de forma recorrente e entregue-o automaticamente, usando as configurações acima.",
+    "name": "Nome do agendamento",
+    "format": "Entregue como",
+    "formatPdf": "PDF",
+    "formatDocx": "Word (.docx)",
+    "frequency": "Executa",
+    "frequencyDaily": "Todo dia",
+    "frequencyWeekly": "Toda semana",
+    "frequencyMonthly": "Todo mês",
+    "frequencyCustom": "Agendamento personalizado",
+    "time": "Às",
+    "weekdayLabel": "Em",
+    "dayOfMonth": "No dia",
+    "cron": "Expressão de agendamento",
+    "cronPreview": "Executa em {{cron}} (UTC).",
+    "cronInvalid": "Uma expressão de agendamento precisa de cinco campos, por exemplo 0 7 * * 1.",
+    "targets": "Entregar para",
+    "targetsHint": "É necessário pelo menos um destino. Um agendamento que não entrega em lugar nenhum produz um relatório que ninguém lê.",
+    "targetsLoading": "Carregando destinos…",
+    "targetsEmpty": "Nenhum canal de comunicação ou local de armazenamento está configurado ainda. Adicione um antes de agendar um relatório.",
+    "linkOnly": "Somente link",
+    "libraryNotice": "As execuções agendadas não são salvas na Biblioteca de relatórios. Somente a execução mais recente de cada agendamento é mantida.",
+    "incomplete": "Dê um nome ao agendamento, uma expressão válida e pelo menos um destino.",
+    "create": "Criar agendamento",
+    "weekday": {
+      "0": "Domingo",
+      "1": "Segunda-feira",
+      "2": "Terça-feira",
+      "3": "Quarta-feira",
+      "4": "Quinta-feira",
+      "5": "Sexta-feira",
+      "6": "Sábado"
+    },
+    "path": "Pasta de destino",
+    "pathHint": "Relativa ao caminho base do próprio local. Deixe vazio para usar a pasta padrão mostrada acima.",
+    "pathInvalid": "Use uma pasta relativa — sem barra inicial, sem letra de unidade e sem “..”.",
+    "filename": "Nome do arquivo",
+    "filenamePlaceholder": "{name}-{date}",
+    "filenameHint": "Tokens: {{tokens}}. A extensão é adicionada automaticamente, para que o arquivo sempre corresponda ao formato em que foi gerado.",
+    "filenameInvalid": "Use um nome de arquivo simples — sem separador de pasta, sem “..” e sem extensão. As chaves devem ser um dos tokens listados acima.",
+    "recipient": "Enviar para outro destino",
+    "recipientPlaceholder": "Deixe vazio para usar o destino do próprio canal",
+    "recipientHint": "Entrega este agendamento em um lugar diferente do destino configurado do canal. O canal em si não é alterado.",
+    "recipientHintMultiple": "Entrega este agendamento em um lugar diferente do destino configurado do canal, separados por vírgula para vários. O canal em si não é alterado.",
+    "recipientInvalid": "Esse destino não pode ser usado. Informe-o em uma linha, sem quebras de linha."
+  },
+  "schedules": {
+    "searchPlaceholder": "Pesquisar agendamentos…",
+    "noMatches": "Nenhum agendamento corresponde a essa pesquisa.",
+    "nextRun": "Próxima: {{when}}",
+    "disabled": "Desativado",
+    "neverRun": "Ainda não executado",
+    "runNow": "Executar agora",
+    "targetMissing": "Este destino não existe mais.",
+    "col": {
+      "schedule": "Agendamento",
+      "cadence": "Executa",
+      "targets": "Entrega para",
+      "lastRun": "Última execução",
+      "actions": "Ações"
+    },
+    "status": {
+      "running": "Em execução",
+      "success": "Entregue",
+      "partial": "Entregue parcialmente",
+      "failed": "Falhou"
+    },
+    "delete": {
+      "title": "Excluir este agendamento?",
+      "description": "“{{name}}” deixará de ser executado e sua execução mais recente será removida. Os relatórios já entregues não são afetados."
+    },
+    "empty": {
+      "title": "Nenhum relatório agendado",
+      "description": "Abra o Report Studio, escolha um relatório e marque “Agendar este relatório” para que ele rode e se entregue sozinho."
+    },
+    "run": {
+      "ranAt": "Última execução {{when}}",
+      "loading": "Carregando a última execução…",
+      "error": "Não foi possível carregar a última execução.",
+      "delivery": "Entrega",
+      "noDelivery": "Esta execução não entregou em lugar nenhum.",
+      "attached": "documento anexado",
+      "linkOnly": "mensagem enviada, documento não anexado",
+      "failed": "falha na entrega"
+    },
+    "edit": {
+      "action": "Editar agendamento",
+      "title": "Editar agendamento",
+      "enabled": "O agendamento está ativo",
+      "period": "Janela do relatório (dias)",
+      "periodHint": "Cada execução cobre esta quantidade de dias, terminando no momento em que roda.",
+      "hint": "O tipo de relatório não pode ser alterado. Crie um novo agendamento para relatar outra coisa.",
+      "error": "Não foi possível salvar o agendamento."
+    }
+  },
+  "widgets": {
+    "recentReports": {
+      "label": "Relatórios recentes",
+      "description": "Os documentos mais recentes da biblioteca com a pontuação global",
+      "title": "Relatórios recentes",
+      "inLibrary": "{{count}} na biblioteca",
+      "none": "Ainda sem relatórios",
+      "noneHint": "Gere um a partir do Report Studio"
+    },
+    "reportSchedules": {
+      "label": "Agendamentos de relatórios",
+      "description": "Cada agendamento com o último resultado e a próxima execução, falhas primeiro",
+      "title": "Agendamentos",
+      "failing": "{{count}} a falhar",
+      "enabled": "{{count}} ativos",
+      "none": "Sem agendamentos",
+      "noneHint": "Agende um relatório para o receber periodicamente",
+      "lastRun": "Última execução {{when}}",
+      "neverRan": "Nunca executado",
+      "next": "próxima {{when}}",
+      "paused": "Em pausa"
+    },
+    "common": {
+      "loading": "A ler relatórios…",
+      "unavailable": "Relatórios indisponíveis",
+      "more": "{{count}} mais",
+      "justNow": "agora mesmo"
+    }
+  }
+}

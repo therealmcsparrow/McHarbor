@@ -11,6 +11,12 @@
     "pruneImagesDesc": "Verwijder alle ongebruikte images. Dit kan niet ongedaan worden gemaakt.",
     "pruneVolumes": "Volumes opschonen",
     "pruneVolumesDesc": "Verwijder alle ongebruikte volumes. Dit kan niet ongedaan worden gemaakt.",
-    "confirm": "Bevestigen"
+    "confirm": "Bevestigen",
+    "pruneContainers": "Containers opschonen",
+    "pruneContainersDesc": "Verwijder alle gestopte containers. Dit kan niet ongedaan worden gemaakt.",
+    "checkUpdates": "Updates controleren",
+    "checkUpdatesDesc": "Zoek naar nieuwere images",
+    "liveLogs": "Live logs",
+    "liveLogsDesc": "Open de logstream"
   }
 }

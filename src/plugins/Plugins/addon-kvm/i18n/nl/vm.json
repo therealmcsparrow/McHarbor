@@ -1,0 +1,1453 @@
+{
+  "title": "Virtuele machines",
+  "description": "Draai KVM-virtuele machines op je eigen hosts. Maak er een aan vanuit een cloudimage en bereik in minder dan twee minuten een loginprompt in de browser, of installeer vanaf een schijf.",
+  "nav": {
+    "machines": "Virtuele machines",
+    "templates": "Templates",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Virtuele machine aanmaken",
+    "start": "Starten",
+    "shutdown": "Afsluiten",
+    "stop": "Stoppen",
+    "reset": "Resetten",
+    "pause": "Pauzeren",
+    "resume": "Hervatten",
+    "console": "Console",
+    "delete": "Verwijderen",
+    "snapshot": "Snapshot maken",
+    "revert": "Terugzetten naar deze snapshot",
+    "clone": "Klonen",
+    "makeTemplate": "Template maken",
+    "unTemplate": "Weer omzetten naar een virtuele machine",
+    "addDisk": "Schijf toevoegen",
+    "resizeDisk": "Grootte wijzigen",
+    "addNic": "Netwerkinterface toevoegen",
+    "attachDevice": "Hostapparaat koppelen",
+    "diagnose": "Vraag de AI wat er mis is",
+    "refresh": "Vernieuwen",
+    "cancel": "Annuleren",
+    "back": "Terug",
+    "next": "Volgende",
+    "attachMedia": "Schijf plaatsen",
+    "ejectMedia": "Schijf uitwerpen",
+    "stillStopping": "Nog aan het afsluiten. Hij kan worden gestart zodra de host hem heeft vrijgegeven.",
+    "import": "Importeren",
+    "migrate": "Naar een andere host verplaatsen"
+  },
+  "resources": {
+    "cpu": "{{count}} CPU",
+    "ram": "{{size}} RAM"
+  },
+  "list": {
+    "title": "Virtuele machines",
+    "empty": {
+      "title": "Nog geen virtuele machines",
+      "body": "Een virtuele machine draait een compleet besturingssysteem met een eigen kernel, op een host die je voor compute hebt ingesteld. Maak er een aan vanuit een cloudimage om binnen een paar minuten een werkende login te krijgen.",
+      "action": "De eerste aanmaken"
+    },
+    "emptyTemplates": {
+      "title": "Nog geen templates",
+      "body": "Zet een geconfigureerde, gestopte virtuele machine om in een template en elke kloon ervan begint vanaf dat punt, met een eigen identiteit, eigen adressen en eigen hostsleutels."
+    },
+    "columns": {
+      "name": "Naam",
+      "state": "Status",
+      "host": "Host",
+      "os": "Besturingssysteem",
+      "resources": "Resources",
+      "address": "Adres",
+      "uptime": "Gestart",
+      "pool": "Opslag"
+    },
+    "filter": {
+      "all": "Alle statussen",
+      "running": "Actief",
+      "stopped": "Gestopt",
+      "problem": "Heeft aandacht nodig"
+    },
+    "bulk": {
+      "selected_one": "{{count}} geselecteerd",
+      "selected_other": "{{count}} geselecteerd",
+      "start": "Selectie starten",
+      "shutdown": "Selectie afsluiten",
+      "stop": "Selectie stoppen"
+    },
+    "tableView": "Tabelweergave",
+    "cardView": "Kaartweergave",
+    "searchPlaceholder": "Virtuele machines zoeken…",
+    "noMatches": "Geen virtuele machine komt overeen met die zoekopdracht."
+  },
+  "state": {
+    "defined": "Niet gestart",
+    "running": "Actief",
+    "paused": "Gepauzeerd",
+    "stopping": "Wordt afgesloten",
+    "stopped": "Gestopt",
+    "crashed": "Gecrasht",
+    "migrating": "Wordt verplaatst",
+    "unknown": "Onbekend",
+    "unknownHint": "De host van deze virtuele machine is onbereikbaar, dus de status kan niet worden bevestigd. Waarschijnlijk draait hij nog, want de eigen servicemanager van de host houdt hem draaiende, maar er kan niets worden gestart of gestopt totdat de agent opnieuw verbindt.",
+    "ioError": "Schijffout",
+    "ioErrorHint": "QEMU heeft deze gast gestopt omdat een schrijfactie naar een van zijn schijven is mislukt. De gebruikelijke oorzaak is een volle opslagpool. De gast hervat zodra er weer ruimte is.",
+    "guestPanicked": "Kernel panic",
+    "guestPanickedHint": "Het eigen besturingssysteem van de gast is gecrasht. Het is nog geladen maar draait niet; een reset is de enige uitweg.",
+    "deleting": "Wordt verwijderd"
+  },
+  "guestAgent": {
+    "connected": "Gastagent verbonden",
+    "absent": "Geen gastagent",
+    "unknown": "Gastagent onbekend",
+    "absentHint": "Zonder de gastagent zijn snapshots van deze machine crashconsistent en worden zijn adressen niet gemeld. cloud-init installeert hem automatisch op nieuwe machines die vanuit een image zijn gemaakt.",
+    "disc": {
+      "attach": "Gastagentschijf plaatsen",
+      "hint": "Bouwt de installatieschijf van de gastagent op de host en plaatst die. De machine moet gestopt zijn.",
+      "attached": "Gastagentschijf geplaatst. Start de machine en voer het installatieprogramma erop uit."
+    },
+    "install": {
+      "action": "Installeren",
+      "title": "De gastagent installeren",
+      "body": "Met de gastagent kan McHarbor de bestandssystemen van deze machine bevriezen vóór een snapshot en zijn adressen melden. Hij kan op elke machine worden geïnstalleerd, ongeacht hoe die is gemaakt.",
+      "alreadyConnected": "De gastagent antwoordt al op deze machine.",
+      "channelReady": "McHarbor legt altijd het kanaal aan waarover de agent praat, dus alleen het pakket in de gast ontbreekt.",
+      "family": "Gastbesturingssysteem",
+      "families": {
+        "linux": "Linux",
+        "windows": "Windows",
+        "bsd": "BSD"
+      },
+      "step1": "1. Koppel de installatieschijf",
+      "step2": "2. Voer dit uit in de machine",
+      "step3": "3. Start de machine opnieuw. Het label wordt groen binnen ongeveer een minuut nadat de agent is gestart.",
+      "disc": "Installatieschijf",
+      "attach": "Schijf koppelen",
+      "copy": "Opdracht kopiëren",
+      "noDiscs": "Er zijn geen schijfimages beschikbaar op deze host. Voeg er eerst een toe op de Compute-pagina.",
+      "noVirtioDisc": "Er is geen virtio-win-schijf beschikbaar op deze host. Voeg eerst de virtio-win-ISO toe op de Compute-pagina.",
+      "notes": {
+        "linux": "De meeste distributies leveren het pakket mee. Gebruik wat je distributie heeft.",
+        "windows": "De virtio-win-schijf bevat het installatieprogramma voor de gasttools. De stationsletter hangt af van wat er verder is gekoppeld.",
+        "bsd": "FreeBSD levert de agent als pakket; andere BSD's hebben hem mogelijk uit ports nodig."
+      }
+    }
+  },
+  "address": {
+    "reported": "Gemeld door de gast",
+    "reportedHint": "Dit adres is wat het besturingssysteem in de machine zegt te hebben. Het wordt als gewone tekst getoond en nergens anders voor gebruikt."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Overzicht",
+      "console": "Console",
+      "hardware": "Hardware",
+      "backups": "Back-ups",
+      "snapshots": "Snapshots",
+      "cloudInit": "Installatie bij eerste start",
+      "settings": "Instellingen",
+      "logs": "Logboeken"
+    },
+    "overview": {
+      "resources": "Resources",
+      "processors": "Processors",
+      "memory": "Geheugen",
+      "disk": "Schijf",
+      "firmware": "Firmware",
+      "machineType": "Machinetype",
+      "machineTypeHint": "Vastgezet bij het aanmaken van deze machine en niet gewijzigd door hostupdates, zodat zijn hardware bij upgrades gelijk blijft.",
+      "started": "Gestart",
+      "neverStarted": "Nooit gestart",
+      "lastError": "Laatste fout",
+      "general": "Algemeen",
+      "name": "Naam",
+      "host": "Host",
+      "state": "Status",
+      "uuid": "Identificatie",
+      "autostart": "Start met de host",
+      "metrics": "Live metrieken",
+      "metricsIdle": "Live metrieken verschijnen terwijl de machine draait.",
+      "cpuUsage": "CPU-gebruik",
+      "memoryUsage": "Geheugengebruik",
+      "diskIo": "Schijf-I/O",
+      "networkIo": "Netwerk",
+      "read": "Gelezen",
+      "written": "Geschreven",
+      "received": "Ontvangen",
+      "sent": "Verzonden",
+      "description": "Beschrijving",
+      "guestOs": "Gast-OS",
+      "created": "Aangemaakt",
+      "topology": "Topologie",
+      "topologyValue": "{{sockets}} × {{cores}} kernen × {{threads}} threads",
+      "memoryMax": "Maximaal geheugen",
+      "platform": "Platform",
+      "secureBoot": "Secure Boot",
+      "tpm": "TPM",
+      "display": "Beeldscherm",
+      "unitName": "Service-unit",
+      "guest": "Gast",
+      "template": "Template",
+      "noDescription": "Geen beschrijving",
+      "metricsUnavailable": "Deze hostagent meldt geen gastmetrieken. Werk de agent op deze host bij om ze te verzamelen."
+    },
+    "title": "Virtuele machine"
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Verbinden…",
+    "connected": "Verbonden",
+    "disconnected": "Verbinding verbroken",
+    "reconnect": "Opnieuw verbinden",
+    "disconnect": "Verbinding verbreken",
+    "notRunning": "Deze virtuele machine draait niet.",
+    "viewers_one": "{{count}} kijker",
+    "viewers_other": "{{count}} kijkers",
+    "viewersHint": "Iedereen die verbonden is ziet hetzelfde scherm en deelt één toetsenbord en muis.",
+    "external": {
+      "title": "Externe VNC-client",
+      "run": "Voer dit uit met de McHarbor-CLI op de computer met de VNC-client:",
+      "connect": "Verbind de VNC-client daarna met {{address}}. Er is geen wachtwoord nodig: de CLI meldt zich voor je aan, en met Ctrl-C sluit je hem af."
+    },
+    "sendCtrlAltDel": "Ctrl+Alt+Del verzenden",
+    "fullscreen": "Volledig scherm",
+    "screenshot": "Schermafbeelding maken",
+    "paste": "Plakken vanaf klembord",
+    "idleWarning": "Deze console sluit over {{seconds}} seconden tenzij je hem gebruikt.",
+    "permissionHint": "Een console openen is hetzelfde als aan de machine zitten, dus daar is een eigen permissie voor nodig.",
+    "sendKeyHint": "{{key}} naar de gast verzenden",
+    "moreActions": "Meer consoleacties",
+    "description": "Het gastscherm, alsof je aan de machine zit.",
+    "keys": {
+      "menu": "Toetsen verzenden",
+      "windows": "Windows-toets",
+      "printScreen": "Print Screen",
+      "vtSwitch": "Naar virtuele terminal wisselen",
+      "typeText": "Tekst typen",
+      "typeTextHint": "Wordt verzonden als toetsaanslagen op een US-toetsenbordindeling.",
+      "typeTextSend": "In de gast typen",
+      "skipped_one": "{{count}} teken heeft geen toets op een US-toetsenbord en is overgeslagen.",
+      "skipped_other": "{{count}} tekens hebben geen toets op een US-toetsenbord en zijn overgeslagen."
+    },
+    "kind": {
+      "label": "Consoletype",
+      "vnc": "VNC",
+      "serial": "Serieel",
+      "spice": "SPICE"
+    },
+    "serial": {
+      "resizeNeedsAgent": "Voor het aanpassen van de grootte van deze terminal is de gastagent nodig. Zonder die behoudt de gast de grootte waarmee hij is gestart."
+    },
+    "display": {
+      "label": "Weergavegrootte",
+      "resize": "Gast aanpassen aan venster",
+      "scale": "Schalen om te passen",
+      "adapter": "De beeldschermadapter van deze VM ({{adapter}}) kan de resolutie niet vanuit de console wijzigen, daarom wordt het scherm geschaald. Stel Weergave in op virtio-gpu (of Automatisch) in Instellingen en start de VM opnieuw.",
+      "adapterQxl": "QXL volgt het venster alleen via SPICE. Schakel de console over naar SPICE met spice-vdagent actief in de gast, of stel Weergave in op virtio-gpu in Instellingen en start de VM opnieuw.",
+      "host": "De QEMU van deze host is te oud om een gast vanuit de console aan te passen (QEMU 6.0 of nieuwer is nodig), daarom wordt het scherm geschaald.",
+      "guestSpice": "Niets in de gast heeft op het verzoek om de grootte aan te passen gereageerd. Installeer en start spice-vdagent in de gast: qemu-guest-agent is een andere agent en past het scherm niet aan.",
+      "guestVnc": "De gast heeft zijn resolutie niet gewijzigd. Daarvoor is het virtio-gpu-stuurprogramma en een bureaublad nodig dat schermwijzigingen volgt, of spice-vdagent: qemu-guest-agent is een andere agent en past het scherm niet aan. Een VM die is gestart voordat de beeldschermadapter werd gewijzigd, moet opnieuw worden gestart."
+    },
+    "spiceFile": {
+      "button": "Remote-viewer-bestand",
+      "hint": "Downloadt een .vv-bestand voor remote-viewer. Het bevat een eenmalig wachtwoord dat twee minuten geldig is, dus open het meteen.",
+      "getClient": "Nog geen remote-viewer? Download het van virt-manager.org",
+      "host": "Adres om mee te verbinden",
+      "hostPlaceholder": "Leeg laten om het eigen adres van de host te gebruiken",
+      "download": ".vv-bestand downloaden"
+    }
+  },
+  "create": {
+    "title": "Een virtuele machine aanmaken",
+    "steps": {
+      "source": "Wat te installeren",
+      "resources": "Grootte",
+      "storage": "Opslag",
+      "network": "Netwerk",
+      "setup": "Installatie bij eerste start",
+      "summary": "Controleren"
+    },
+    "source": {
+      "title": "Wat moet deze machine draaien?",
+      "image": "Vanuit een kant-en-klare image",
+      "imageHint": "Start in seconden op en configureert zichzelf bij de eerste start. Dit is de gebruikelijke keuze.",
+      "iso": "Installeren vanaf een schijf",
+      "isoHint": "Voor Windows, voor distributies zonder kant-en-klare image, of als je het installatieprogramma zelf wilt uitvoeren.",
+      "blank": "Geen image",
+      "blankHint": "Geef hem een lege schijf en niets om van op te starten. Gebruik dit met een schijf die al een systeem bevat, of om via het netwerk te installeren.",
+      "blankNote": "Deze machine start bij de firmwareprompt. Koppel daarna een installatieschijf of start via het netwerk.",
+      "noImages": "Er zijn nog geen images naar deze host gedownload.",
+      "downloadImages": "Naar Images",
+      "isoLabel": "Installatieschijf",
+      "noIsos": "Er zijn nog geen installatieschijven naar deze host geüpload.",
+      "template": "Vanuit een template",
+      "templateHint": "Kloon een van je templates. Hij behoudt de grootte, schijven en het netwerk van de template en krijgt een eigen identiteit.",
+      "templateLabel": "Template",
+      "noTemplates": "Er zijn nog geen templates op deze host. Maak er eerst een van een gestopte virtuele machine."
+    },
+    "resources": {
+      "title": "Hoe groot moet hij zijn?",
+      "preset": "Grootte",
+      "presets": {
+        "small": "Klein — 1 processor, 2 GB",
+        "medium": "Gemiddeld — 2 processors, 4 GB",
+        "large": "Groot — 4 processors, 8 GB",
+        "custom": "Aangepast"
+      },
+      "vcpus": "Processors",
+      "memory": "Geheugen (MB)",
+      "memoryMax": "Geheugenplafond (MB)",
+      "memoryMaxHint": "Laat leeg om het geheugen vast te zetten. Met een plafond kan het geheugen van de machine later worden aangepast zonder herstart.",
+      "firmware": "Firmware",
+      "uefi": "UEFI",
+      "bios": "BIOS",
+      "uefiHint": "UEFI is de moderne standaard en is vereist voor Windows 11.",
+      "secureBoot": "Secure Boot",
+      "tpm": "TPM 2.0",
+      "tpmRequired": "Windows 11 vereist een beveiligingschip.",
+      "tpmUnavailable": "Op deze host is geen swtpm geïnstalleerd, dus een beveiligingschip is niet beschikbaar.",
+      "secureBootHint": "Vereist door Windows 11, samen met een TPM. Vereist de secure-boot-firmwarebuild op de host.",
+      "tpmHint": "Een geëmuleerde TPM voor de gast. Windows 11 installeert niet zonder.",
+      "tpmMissing": "Deze host heeft geen swtpm, dus er kan geen TPM aan een gast worden gegeven. Installeer het met: {{remediation}}",
+      "secureBootMissing": "Deze host heeft geen secure-boot-firmware met geregistreerde sleutels, dus Secure Boot kan niet worden afgedwongen. Installeer het met: {{remediation}}"
+    },
+    "storage": {
+      "title": "Waar moet zijn schijf staan?",
+      "pool": "Opslagpool",
+      "mode": "Schijf",
+      "modeNew": "Een nieuwe schijf aanmaken",
+      "modeNewHint": "Wijs een nieuwe, lege schijf toe in deze pool.",
+      "modeExisting": "Een bestaande schijf gebruiken",
+      "modeExistingHint": "Koppel een schijf in deze pool die door geen enkele machine wordt gebruikt. Er wordt niets naartoe geschreven.",
+      "existing": "Bestaande schijf",
+      "noExisting": "Elke schijf in deze pool is al aan een machine gekoppeld.",
+      "existingFailed": "De schijven in deze pool konden niet worden gelezen. De host is mogelijk offline of draait een agent die te oud is om ze op te sommen.",
+      "existingLabel": "{{name}} — {{size}}",
+      "size": "Schijfgrootte (GB)",
+      "instantNote": "Deze pool maakt snapshots en klonen direct.",
+      "capacityWarning": "Deze pool heeft {{free}} vrij. Een pool die vol raakt, pauzeert alle machines erop.",
+      "thinNote": "De schijf wordt thin aangemaakt: hij neemt alleen in wat de machine daadwerkelijk schrijft.",
+      "dataLocation": "Gegevenslocatie",
+      "dataLocationHint": "Deze host heeft nog geen opslagpool. Gastschijven worden als qcow2-bestanden in deze map bewaard en de eerste keer dat een machine wordt aangemaakt, wordt hier een pool gemaakt. Wijzig waar hij staat op de pagina Pools zodra hij bestaat.",
+      "bus": "Schijftype",
+      "busHint": "virtio is het snelst en vereist een driver in de gast. SATA werkt overal, ook met een Windows-installatieprogramma."
+    },
+    "network": {
+      "title": "Hoe moet hij het netwerk bereiken?",
+      "network": "Netwerk",
+      "noNetworks": "Er zijn nog geen netwerken ingesteld op deze host."
+    },
+    "setup": {
+      "title": "Installatie bij eerste start",
+      "body": "De machine configureert zichzelf de eerste keer dat hij start. Alles hier is optioneel, behalve een manier om in te loggen.",
+      "hostname": "Hostnaam",
+      "username": "Gebruikersnaam",
+      "sshKeys": "Openbare SSH-sleutels",
+      "sshKeysHint": "Eén per regel. Dit is de aanbevolen manier om binnen te komen: er is helemaal geen wachtwoord voor nodig.",
+      "password": "Wachtwoord",
+      "passwordHint": "Optioneel. Het wordt omgezet in een eenrichtingshash voordat het wordt opgeslagen en de platte tekst wordt nergens weggeschreven.",
+      "passwordWarning": "Alles op deze host dat de opslagpool kan lezen, kan het setupbestand van de machine lezen. Zet nooit een API-token of privésleutel in de extra instellingen hieronder.",
+      "passwordFromVault": "Uit de kluis",
+      "passwordSecret": "Wachtwoord-secret",
+      "secretPlaceholder": "Kies een secret",
+      "sshKeySecrets": "SSH-sleutels uit de kluis",
+      "secretsPlaceholder": "Kies secrets",
+      "vaultCopyNote": "Eenmalig uit de kluis gekopieerd bij het aanmaken van de machine. Cloud-init past het alleen bij de eerste start toe, dus het secret later roteren verandert deze machine niet.",
+      "networkMode": "Adressering",
+      "dhcp": "Automatisch",
+      "static": "Vast adres",
+      "staticIp": "Adres",
+      "staticGateway": "Gateway",
+      "staticDns": "DNS-servers",
+      "installAgent": "De gastagent installeren",
+      "installAgentHint": "Laat McHarbor de echte adressen van de machine zien en snapshots maken waarvan je veilig kunt terugzetten. Sterk aanbevolen.",
+      "extra": "Extra setup (geavanceerd)",
+      "extraHint": "Ruwe cloud-config, samengevoegd over alles hierboven."
+    },
+    "summary": {
+      "title": "Controleren",
+      "createAndStart": "Aanmaken en starten",
+      "createOnly": "Aanmaken zonder te starten",
+      "noSource": "Niets — hij start bij de firmwareprompt",
+      "existingDisk": "Bestaande schijf"
+    },
+    "submit": "Aanmaken"
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": {
+      "title": "Geen snapshots",
+      "body": "Een snapshot legt de schijf van deze machine vast zoals hij nu is, zodat je ernaar terug kunt."
+    },
+    "notABackup": "Een snapshot is geen back-up. Hij staat op dezelfde opslag als de machine, dus bij een opslagstoring gaan beide verloren.",
+    "columns": {
+      "name": "Naam",
+      "taken": "Gemaakt",
+      "consistency": "Wordt hersteld als",
+      "size": "Grootte",
+      "mechanism": "Type"
+    },
+    "consistency": {
+      "crash": "Alsof de stroom was uitgevallen",
+      "crashHint": "Gemaakt zonder de gastagent, dus de bestandssystemen van de machine zijn niet eerst gepauzeerd. De meeste systemen herstellen hiervan, maar een database moet zichzelf mogelijk repareren.",
+      "filesystem": "Netjes",
+      "filesystemHint": "De gastagent heeft de bestandssystemen van de machine gepauzeerd, dus de snapshot is een schoon punt om van terug te zetten.",
+      "application": "Netjes, met applicatiehooks",
+      "paused": "Met de machine gepauzeerd",
+      "pausedHint": "De processors van de machine waren gestopt terwijl de schijf werd bevroren, dus niets was half geschreven. De eigen bestandssysteemcache is niet geleegd, omdat er geen gastagent is om dat te vragen.",
+      "applicationHint": "Het geheugen van de machine is samen met zijn schijf vastgelegd, dus terugkeren hervat precies waar hij was."
+    },
+    "chainDepth": "Ketendiepte {{depth}}",
+    "chainWarning": "Deze machine heeft {{depth}} gestapelde snapshots. Op dit opslagtype vertraagt elke snapshot het lezen. Overweeg oudere te verwijderen.",
+    "chainFull": "Deze machine heeft de snapshotlimiet bereikt. Verwijder er een voordat je een nieuwe maakt.",
+    "create": {
+      "title": "Een snapshot maken",
+      "name": "Naam",
+      "description": "Notitie",
+      "withMemory": "Het geheugen van de machine meenemen",
+      "withMemoryHint": "Terugkeren hervat dan precies waar de machine was, in plaats van hem op te starten. Gebruikt evenveel ruimte als de machine geheugen heeft.",
+      "crashWarning": "Deze machine heeft geen gastagent, dus de snapshot wordt gemaakt alsof de stroom was uitgevallen.",
+      "submit": "Snapshot maken",
+      "pauseGuest": "De machine pauzeren terwijl de snapshot wordt gemaakt",
+      "pauseGuestHint": "Een paar seconden met gestopte processors, zodat niets half naar schijf wordt geschreven. Zonder gastagent is dit de beste consistentie die beschikbaar is."
+    },
+    "revert": {
+      "title": "Terug naar {{name}}?",
+      "body": "De schijf van de machine keert terug naar hoe hij was toen deze snapshot werd gemaakt.",
+      "discards_one": "{{count}} nieuwere snapshot wordt verwijderd: {{names}}",
+      "discards_other": "{{count}} nieuwere snapshots worden verwijderd: {{names}}",
+      "confirmName": "Typ {{name}} om te bevestigen",
+      "mustBeStopped": "Stop de machine voordat je naar een snapshot terugkeert.",
+      "submit": "Terug",
+      "branchKept": "De snapshots die na deze zijn gemaakt, blijven als eigen vertakking behouden. Alleen wat de machine sinds deze snapshot heeft geschreven, wordt verwijderd.",
+      "willStop": "Deze gast draait. Hij wordt afgesloten voordat de schijven worden teruggedraaid, omdat terugzetten onder een draaiende QEMU corrumpeert in plaats van herstelt.",
+      "restartAfter": "Daarna opnieuw starten",
+      "running": "Terugzetten"
+    },
+    "delete": {
+      "title": "{{name}} verwijderen?",
+      "body": "De snapshot wordt verwijderd. De machine zelf blijft ongemoeid.",
+      "submit": "Snapshot verwijderen"
+    },
+    "tree": {
+      "now": "Nu",
+      "branches": "{{count}} vertakkingen",
+      "branchedHint": "Deze snapshot heeft meer dan één vertakking eronder. Als je hem verwijdert, wordt herschreven wat de andere vertakking leest, dus verwijder eerst een van de vertakkingen.",
+      "revertCurrentHint": "De gast staat al op deze snapshot.",
+      "revertOfflineHint": "De host is niet bereikbaar.",
+      "expand": "Toon wat onder {{name}} staat",
+      "collapse": "Verberg wat onder {{name}} staat",
+      "expandAll": "Alles uitklappen",
+      "collapseAll": "Alles samenvouwen",
+      "hiddenCount_one": "{{count}} verborgen",
+      "hiddenCount_other": "{{count}} verborgen"
+    },
+    "progress": {
+      "starting": "Starten",
+      "quiescing": "Bestandssystemen quiescen",
+      "pausing": "De gast pauzeren",
+      "memory": "Het geheugen schrijven",
+      "disks": "De schijven bevriezen",
+      "done": "Afronden",
+      "failed": "{{name}} kon niet worden gemaakt"
+    },
+    "revertStep": {
+      "starting": "Starten",
+      "stopping": "De gast stoppen",
+      "reverting": "De schijven herstellen",
+      "starting_guest": "De gast starten",
+      "done": "Afronden"
+    }
+  },
+  "hardware": {
+    "hotplugUnclaimed": "Toegevoegd op de host, maar de draaiende gast heeft het niet opgepikt: de kernel heeft geen ondersteuning voor PCI-hotplug. De gast ziet het na de volgende herstart.",
+    "disks": "Schijven",
+    "nics": "Netwerkinterfaces",
+    "devices": "Hostapparaten",
+    "diskColumns": {
+      "bootOrder": "Opstartvolgorde",
+      "shared": "Gedeeld",
+      "sharedHint": "Laat een tweede machine deze schijf tegelijk openen. Alleen veilig als beide gasten een clusterbestandssysteem draaien dat schrijfacties coördineert; zonder zullen ze elkaars gegevens corrumperen.",
+      "limits": "I/O-limieten",
+      "slot": "Slot",
+      "bus": "Type",
+      "size": "Grootte",
+      "pool": "Pool",
+      "boot": "Opstarten"
+    },
+    "nicColumns": {
+      "slot": "Slot",
+      "model": "Type",
+      "mac": "Hardwareadres",
+      "bridge": "Netwerk",
+      "link": "Verbinding"
+    },
+    "deviceColumns": {
+      "kind": "Type",
+      "address": "Adres",
+      "description": "Notitie"
+    },
+    "mustBeStopped": "Stop de machine om zijn hardware te wijzigen.",
+    "liveChanges": "Deze machine is actief. Schijven, installatieschijven en netwerkinterfaces worden direct op de draaiende machine gewijzigd; de opstartschijf, schijftypen en de opstartvolgorde vereisen dat de machine is gestopt.",
+    "liveHint": "De wijziging wordt op de draaiende machine uitgevoerd.",
+    "bootDiskRunning": "De opstartschijf kan niet worden verwijderd of gewijzigd terwijl de machine actief is.",
+    "emptyDrive": "Leeg station",
+    "linkToggle": "Netwerkkabel aangesloten",
+    "deleteDisk": {
+      "title": "Deze schijf verwijderen?",
+      "body": "De schijf wordt van de machine losgekoppeld en het bijbehorende volume wordt vernietigd. Dit kan niet ongedaan worden gemaakt.",
+      "confirm": "Schijf verwijderen"
+    },
+    "addDisk": {
+      "title": "Een schijf toevoegen",
+      "pool": "Opslagpool",
+      "size": "Grootte (GB)",
+      "bus": "Type",
+      "submit": "Schijf toevoegen",
+      "noPools": "Deze host heeft nog geen opslagpool. Maak er eerst een aan op de Compute-pagina.",
+      "virtioWindows": "Windows Setup levert geen virtio-driver mee en ziet deze schijf niet. Gebruik SATA tenzij je drivers laadt vanaf een virtio-win-schijf."
+    },
+    "resizeDisk": {
+      "title": "Schijfgrootte wijzigen",
+      "current": "Nu {{size}}",
+      "newSize": "Nieuwe grootte (GB)",
+      "growOnly": "Een schijf kan alleen groter worden gemaakt. Een schijf van buitenaf kleiner maken vernietigt gegevens, dus dat wordt niet aangeboden.",
+      "afterNote": "Het besturingssysteem van de machine zelf moet nog worden verteld dat het de extra ruimte moet gebruiken.",
+      "submit": "Grootte wijzigen"
+    },
+    "attachDevice": {
+      "title": "Een hostapparaat koppelen",
+      "warning": "Een doorgegeven apparaat geeft deze machine rechtstreeks toegang tot echte hardware. Als de machine wordt gecompromitteerd, is die hardware dat ook, en in sommige gevallen de host zelf. Doe dit alleen voor machines die je vertrouwt.",
+      "kind": "Type",
+      "pci": "PCI-apparaat",
+      "usb": "USB-apparaat",
+      "block": "Schijfapparaat",
+      "address": "Adres",
+      "pciHint": "Het adres van het apparaat, bijvoorbeeld 0000:03:00.0.",
+      "usbHint": "Vendor en product, bijvoorbeeld 1234:5678.",
+      "blockHint": "Een pad onder /dev.",
+      "description": "Notitie",
+      "noIommu": "Op deze host is geen IOMMU ingeschakeld, dus PCI-apparaten kunnen niet worden doorgegeven. Schakel VT-d of AMD-Vi in de firmware in en voeg intel_iommu=on toe aan de bootopties.",
+      "submit": "Koppelen",
+      "selectDevice": "Beschikbare apparaten",
+      "selectPlaceholder": "Kies een apparaat op deze host",
+      "manualEntry": "Handmatig een adres invoeren",
+      "refresh": "Host opnieuw scannen",
+      "none": "Geen apparaten gevonden op deze host.",
+      "loading": "Host wordt gescand…",
+      "loadFailed": "De apparatenlijst van deze host kon niet worden gelezen.",
+      "u2f": "Virtuele beveiligingssleutel",
+      "u2fHint": "Een geëmuleerd U2F-token, voor gasten die WebAuthn-aanmelding testen. Er wordt niets van de host doorgegeven, dus er hoeft geen fysieke sleutel te worden aangesloten.",
+      "unavailable": "In gebruik door de host",
+      "reason_bound_to_host_driver": "Gebonden aan hostdriver {{driver}}",
+      "reason_no_iommu_group": "Geen IOMMU-groep — voor doorgifte moet IOMMU in de firmware zijn ingeschakeld",
+      "iommuGroup": "IOMMU-groep {{group}}",
+      "attachedBadge": "aan een VM gekoppeld",
+      "attachedHere": "Deze VM heeft dit apparaat al.",
+      "attachedElsewhere": "Al gekoppeld aan {{names}}. Slechts één draaiende VM kan tegelijk een doorgegeven apparaat gebruiken."
+    },
+    "addNic": {
+      "title": "Een netwerkinterface toevoegen",
+      "network": "Netwerk",
+      "model": "Type",
+      "noNetworks": "Deze host heeft nog geen netwerk. Maak er eerst een aan op de Compute-pagina.",
+      "submit": "Interface toevoegen"
+    },
+    "deviceEmpty": "Er worden geen hostapparaten aan deze machine doorgegeven.",
+    "media": {
+      "title": "Installatieschijven",
+      "empty": "Er is geen schijf geplaatst.",
+      "columns": {
+        "slot": "Slot",
+        "source": "Schijf"
+      },
+      "attach": {
+        "title": "Een installatieschijf plaatsen",
+        "image": "Schijf",
+        "noImages": "Er zijn nog geen installatieschijven naar deze host geüpload.",
+        "hint": "De machine start eerst van zijn schijven, dus hij bereikt de schijf alleen als die niets hebben om van op te starten.",
+        "submit": "Plaatsen"
+      }
+    }
+  },
+  "clone": {
+    "title": "{{name}} klonen",
+    "name": "Naam voor de kopie",
+    "linked": "Gegevens delen met het origineel",
+    "linkedHint": "Direct en slaat alleen op wat daarna verandert. Het origineel kan niet worden verwijderd zolang er een gedeelde kopie bestaat.",
+    "fullHint": "Een volledige, onafhankelijke kopie. Duurt langer en gebruikt de volledige ruimte, maar niets hangt van het origineel af.",
+    "identityNote": "De kopie krijgt een eigen machine-identiteit, eigen hardwareadressen en een nieuwe installatie bij eerste start, dus hij luistert niet naar de naam van het origineel en hergebruikt zijn hostsleutels niet.",
+    "mustBeStopped": "Stop de machine voordat je hem kloont.",
+    "submit": "Klonen",
+    "mode": {
+      "label": "Soort kopie",
+      "full": "Volledige kopie",
+      "linked": "Gekoppelde kopie"
+    },
+    "running": "Schijven kopiëren…",
+    "runningPercent": "Schijven kopiëren… {{percent}}%"
+  },
+  "template": {
+    "title": "{{name}} een template maken?",
+    "body": "Een template kan niet worden gestart, waardoor hij precies blijft zoals hij is. Kloon hem om er machines van te maken.",
+    "revert": "{{name}} weer omzetten naar een virtuele machine?",
+    "revertBody": "Hij kan weer worden gestart. Bestaande kopieën worden niet beïnvloed.",
+    "inUse": "Deze template heeft kopieën die zijn gegevens delen en kan niet worden verwijderd: {{clones}}",
+    "submit": "Template maken"
+  },
+  "delete": {
+    "title": "{{name}} verwijderen?",
+    "body": "De machine wordt uit McHarbor en van zijn host verwijderd.",
+    "deleteVolumes": "Ook zijn schijven verwijderen",
+    "deleteVolumesWarning": "Alles op de schijven van deze machine wordt definitief vernietigd. Dit kan niet ongedaan worden gemaakt.",
+    "keepVolumesHint": "Door de schijven te laten staan, kun je deze machine later naar een andere host verplaatsen.",
+    "confirmName": "Typ {{name}} om te bevestigen",
+    "submit": "Verwijderen",
+    "running": "Deze virtuele machine wordt verwijderd",
+    "runningHint": "Dit gaat door op de host als je dit venster sluit. De machine verdwijnt uit de lijst zodra het klaar is.",
+    "runningPercent": "Deze virtuele machine wordt verwijderd — {{percent}}%"
+  },
+  "diagnose": {
+    "title": "Wat is er mis met deze machine?",
+    "asking": "De setup van de machine wordt gelezen…",
+    "unavailable": "Er is geen AI-provider ingesteld, dus dit is niet beschikbaar.",
+    "disclaimer": "Dit is een beredeneerde gok op basis van de setup van de machine en zijn laatste fout. Controleer het voordat je erop handelt.",
+    "sent": "Alleen de hardware-instellingen van deze machine en zijn laatste fout worden verzonden. Niets van binnen de machine en geen sleutels of wachtwoorden."
+  },
+  "widgets": {
+    "vmSummary": {
+      "label": "Virtuele machines",
+      "description": "Hoeveel machines actief of gestopt zijn of aandacht nodig hebben."
+    },
+    "vmResources": {
+      "label": "Resources van virtuele machines",
+      "description": "Processors, geheugen en schijf die per host aan draaiende machines zijn uitgegeven."
+    },
+    "vmProtection": {
+      "label": "Snapshotdekking",
+      "description": "Gasten zonder snapshot en hoe verouderd de nieuwste snapshot elders is.",
+      "unprotected_one": "van {{count}} gast onbeschermd",
+      "unprotected_other": "van {{count}} gasten onbeschermd",
+      "none": "Geen snapshot",
+      "age_one": "{{count}} dag oud",
+      "age_other": "{{count}} dagen oud"
+    },
+    "vmImports": {
+      "label": "Schijfimports",
+      "description": "Schijven van derden die worden geïmporteerd en die welke zijn gestopt.",
+      "empty": "Geen schijfimports",
+      "waiting_one": "{{count}} bezig",
+      "waiting_other": "{{count}} bezig",
+      "failed_one": "{{count}} mislukt",
+      "failed_other": "{{count}} mislukt"
+    }
+  },
+  "nodes": {
+    "lifecycle": {
+      "label": "Virtuele machine: levenscyclus",
+      "description": "Start, sluit af, stop, reset, pauzeer of hervat een machine."
+    },
+    "snapshot": {
+      "label": "Virtuele machine: snapshot",
+      "description": "Maak een snapshot als onderdeel van een workflow."
+    },
+    "clone": {
+      "label": "Virtuele machine: kloon",
+      "description": "Kloon een gestopte machine of een template."
+    },
+    "state": {
+      "label": "Virtuele machine: status",
+      "description": "Lees een machine en vertak op de status waarin hij zich bevindt."
+    }
+  },
+  "reports": {
+    "platform": "Virtuele machines (KVM)",
+    "backupAssurance": {
+      "label": "Back-upzekerheid van virtuele machines",
+      "description": "Welke machines een back-upplan hebben, hoe vaak runs slaagden, hoe oud de laatste goede back-up is en of elke bestemming zijn kopie heeft ontvangen."
+    },
+    "guestStability": {
+      "label": "Gaststabiliteit van virtuele machines",
+      "description": "Crashes, onverwachte stops en resets, machines die steeds uitvallen, gezondheid van de gastagent en levenscyclusacties die mislukten of nooit klaar kwamen."
+    },
+    "snapshotSchedules": {
+      "label": "Snapshotschema's van virtuele machines",
+      "description": "De verschuldigde runs van elk snapshotschema tegenover de snapshots die het maakte, met gemiste en mislukte runs en of de retentie standhoudt."
+    }
+  },
+  "alerts": {
+    "crashed": "Virtuele machine gecrasht",
+    "stoppedUnexpectedly": "Virtuele machine onverwacht gestopt",
+    "unknownState": "Status van virtuele machine onbekend",
+    "snapshotChain": "Snapshotketen te diep",
+    "guestAgentGone": "Gastagent reageert niet",
+    "autostartFailed": "Machine die automatisch moet starten draait niet"
+  },
+  "backups": {
+    "title": "Back-ups",
+    "sourceLabel": "Virtuele machine",
+    "description": "Kopieën van de schijven van deze machine, weggeschreven naar opslag buiten zijn host. Na de eerste incrementeel, zodat een nachtelijke back-up alleen verplaatst wat is gewijzigd.",
+    "tabs": { "plans": "Schema's", "runs": "Geschiedenis" },
+    "disabled": "Gepauzeerd",
+    "retention": {
+      "lastCount": "laatste {{count}}",
+      "forDays": "{{days}} dagen",
+      "forever": "Voor altijd"
+    },
+    "blocked": {
+      "noKey": "Back-ups zijn altijd versleuteld en deze McHarbor heeft nog geen back-upversleutelingssleutel geïnstalleerd. Genereer of installeer er een onder Operate → Backups → Settings; tot die tijd heeft een back-up niets om mee te versleutelen en wordt hij geweigerd in plaats van onversleuteld geschreven.",
+      "noDestination": "Er zijn geen opslagbestemmingen geconfigureerd. Voeg er eerst een toe onder Settings → Storage: een back-up moet ergens naartoe.",
+      "noPlan": "Voeg eerst een schema toe. Een schema bepaalt waar de back-ups van deze machine worden geschreven en hoe lang ze worden bewaard, en een back-up zonder bestemming is geen back-up."
+    },
+    "runNow": "Nu back-uppen",
+    "runFull": "Een volledige kopie maken",
+    "addPlan": "Een schema toevoegen",
+    "editPlan": "Bewerken",
+    "deletePlan": "Dit schema verwijderen",
+    "noPlans": "Deze machine heeft geen back-upschema.",
+    "noRuns": "Van deze machine is nooit een back-up gemaakt.",
+    "noDestinations": "Er zijn nog geen opslagbestemmingen geconfigureerd. Voeg er een toe onder Instellingen voordat je een back-up plant.",
+    "restore": "Herstellen",
+    "delete": "Deze back-up verwijderen",
+    "deleteConfirm": {
+      "title": "Deze back-up verwijderen?",
+      "body": "Dit verwijdert de back-up definitief van elke opslagbestemming. Back-ups die hierop voortbouwen, kunnen niet meer worden hersteld. Dit kan niet ongedaan worden gemaakt."
+    },
+    "deletePlanConfirm": {
+      "title": "Dit schema verwijderen?",
+      "body": "Het schema stopt met draaien. Back-ups die het al heeft gemaakt blijven bewaard."
+    },
+    "kind": { "full": "Volledig", "incremental": "Incrementeel" },
+    "status": {
+      "running": "Bezig",
+      "success": "Klaar",
+      "failure": "Mislukt",
+      "cancelled": "Geannuleerd"
+    },
+    "consistency": {
+      "crash": "Crashconsistent",
+      "crashHint": "De gast is niet gequiesceerd, dus de kopie ziet eruit alsof de machine de stroom verloor. Herstelbaar voor een journaling-bestandssysteem, niet voor een database midden in een schrijfactie.",
+      "filesystem": "Bestandssysteemconsistent",
+      "filesystemHint": "De bestandssystemen van de gast zijn voor de kopie bevroren via zijn gastagent."
+    },
+    "fellBack": "Gemaakt als volledige kopie",
+    "fellBackHint": "Er is om een incrementele back-up gevraagd, maar de host kon het wijzigingslog van deze schijf niet gebruiken: {{reason}}",
+    "columns": {
+      "started": "Gestart",
+      "kind": "Type",
+      "size": "Grootte",
+      "consistency": "Consistentie",
+      "destinations": "Bestemmingen",
+      "status": "Status"
+    },
+    "planColumns": {
+      "name": "Naam",
+      "schedule": "Schema",
+      "retention": "Bewaren",
+      "destinations": "Bestemmingen",
+      "nextRun": "Volgende run"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Nachtelijk",
+      "schedule": "Schema",
+      "scheduleHint": "Wanneer deze back-up draait. De machine blijft de hele tijd draaien.",
+      "enabled": "Volgens dit schema uitvoeren",
+      "destinations": "Bestemmingen",
+      "destinationsHint": "Waar de kopieën naartoe worden geschreven. Meer dan één is verstandig: één kopie is geen back-up.",
+      "retentionCount": "Zoveel back-ups bewaren",
+      "retentionDays": "Back-ups zoveel dagen bewaren",
+      "retentionHint": "Nul betekent voor altijd bewaren. Een back-up waarop een latere incrementele nog voortbouwt, wordt nooit verwijderd, wat dit ook zegt.",
+      "fullEvery": "Een volledige kopie maken elke",
+      "fullEveryUnit": "uitvoeringen",
+      "fullEveryHint": "Regelmatig de keten opnieuw beginnen houdt een herstel kort. Nul forceert er nooit een.",
+      "quiesce": "De bestandssystemen van de gast bevriezen",
+      "quiesceHint": "Vereist de gastagent. Zonder is de kopie crashconsistent, wat de back-up eerlijk vastlegt."
+    },
+    "restoreDialog": {
+      "title": "{{name}} herstellen",
+      "description": "Dit vervangt de huidige schijven van de machine door wat deze back-up bevat. Dit kan niet ongedaan worden gemaakt.",
+      "spaceNotice": "De host heeft hier ongeveer {{size}} vrij voor nodig zolang dit loopt. De huidige schijven van de machine blijven onaangeroerd totdat de herbouwde compleet zijn, en die veiligheid kost extra ruimte. Het herstel wordt vooraf geweigerd als er niet genoeg is.",
+      "needsStop": "De machine moet worden gestopt voordat hij kan worden hersteld.",
+      "chainNote": "Dit is een incrementele back-up, dus de volledige kopie waarop hij voortbouwt en elke back-up ertussen worden mee hersteld.",
+      "confirm": "Ik begrijp dat de huidige schijven worden vervangen",
+      "submit": "Deze back-up herstellen"
+    },
+    "destinationStatus": {
+      "uploading": "Verzenden",
+      "success": "Opgeslagen",
+      "failure": "Mislukt"
+    }
+  },
+  "shares": {
+    "title": "Gedeelde mappen",
+    "description": "Mappen op de host die deze machine rechtstreeks kan koppelen, zonder netwerkshare.",
+    "add": "Een map delen",
+    "remove": "Deze share verwijderen",
+    "tag": "Mount-tag",
+    "tagPlaceholder": "projects",
+    "root": "Toegestane root",
+    "subPath": "Pad binnen die root",
+    "subPathPlaceholder": "optioneel",
+    "access": "Toegang",
+    "readOnly": "Alleen lezen",
+    "readWrite": "Lezen en schrijven",
+    "empty": "Deze machine deelt geen mappen.",
+    "noRoots": "Op deze host mogen nog geen mappen worden gedeeld. Een beheerder stelt eerst de toegestane roots in.",
+    "restartHint": "Shares worden gekoppeld wanneer de machine start. Toevoegen of verwijderen werkt door bij de volgende start.",
+    "columns": {
+      "tag": "Mount-tag",
+      "hostPath": "Hostpad",
+      "access": "Toegang",
+      "mount": "Koppelen in de gast"
+    }
+  },
+  "resize": {
+    "title": "Live groottewijzigingen",
+    "description": "Geheugen en processors kunnen veranderen terwijl de machine draait. Beide zijn verzoeken die de gast kan weigeren, dus er wordt getoond wat hij uiteindelijk heeft, niet wat is gevraagd.",
+    "memory": "Geheugen",
+    "vcpus": "Processors",
+    "mb": "MB",
+    "processors": "processors",
+    "apply": "Toepassen",
+    "declined": "De gast ging niet zo ver.",
+    "notRunning": "De machine moet hiervoor draaien.",
+    "noVirtioMem": "Deze machine heeft geen geheugenapparaat waarvan de grootte kan worden gewijzigd. Schakel het in en herstart de machine.",
+    "noHeadroom": "Deze machine is gestart zonder ruimte om processors toe te voegen. Voor het verhogen van het plafond is een herstart nodig.",
+    "memoryBoot": "Opstartgrootte {{boot}} MB.",
+    "memoryNow": "Opstartgrootte {{boot}} MB, momenteel {{now}} MB.",
+    "memoryResult": "{{requested}} MB gevraagd, de gast heeft {{actual}} MB.",
+    "vcpusCeiling": "Tot {{max}} processors zonder herstart.",
+    "vcpusResult": "{{requested}} gevraagd, de gast heeft {{actual}}."
+  },
+  "limits": {
+    "title": "I/O-limieten voor schijf {{slot}}",
+    "description": "Begrenst hoe hard deze machine de opslag van de host kan belasten. Eén gast die een herstel uitvoert, kan anders elke andere gast op de host uithongeren.",
+    "open": "I/O-limieten",
+    "readIops": "Leesbewerkingen per seconde",
+    "writeIops": "Schrijfbewerkingen per seconde",
+    "readMbps": "Lezen MB/s",
+    "writeMbps": "Schrijven MB/s",
+    "zeroHint": "Nul betekent geen limiet. Een bandbreedtelimiet onder 1 MB/s laat een gast niet meer opstarten en wordt geweigerd.",
+    "unlimited": "Geen limiet",
+    "upToMbps": "tot {{value}} MB/s",
+    "upToIops": "tot {{value}} IOPS"
+  },
+  "inspect": {
+    "title": "Schijf {{slot}} inspecteren",
+    "description": "Alleen-lezen controles op het schijfimage zelf, uitgevoerd door de host.",
+    "open": "Deze schijf inspecteren",
+    "operation": "Controle",
+    "run": "Uitvoeren",
+    "repair": "Het gevondene repareren",
+    "repairAvailable": "De machine is gestopt, dus repareren is beschikbaar.",
+    "repairNeedsStop": "Het repareren van een image dat een draaiende machine open heeft, zou het corrumperen. Stop eerst de machine.",
+    "operations": {
+      "info": "Imagedetails en backing chain",
+      "check": "Consistentiecontrole",
+      "map": "Welke delen waar vandaan komen",
+      "measure": "Wat dit image echt inneemt"
+    }
+  },
+  "hostFeature": {
+    "unavailable": "De QEMU van deze host kan dit niet: {{feature}} is niet beschikbaar.",
+    "unknown": "McHarbor kon de QEMU-mogelijkheden van deze host niet lezen.",
+    "qemuVersion": "QEMU {{version}}",
+    "machineTypeMissing": "Deze gast is vastgezet op machinetype {{type}}, dat de QEMU van deze host niet meer aanbiedt. Hij start niet totdat het machinetype is gewijzigd.",
+    "names": {
+      "virtio_mem": "virtio-mem-geheugenhotplug",
+      "cpu_hotplug": "vCPU-hotplug",
+      "hugepages": "hugepages",
+      "numa": "NUMA-pinning",
+      "virtiofs": "virtiofs-gedeelde mappen",
+      "vsock": "vhost-vsock",
+      "io_throttle": "I/O-throttling",
+      "iothread": "dedicated I/O-threads",
+      "dirty_bitmap": "dirty bitmaps",
+      "blockdev_backup": "incrementele back-up",
+      "virtio_gpu": "virtio-gpu-beeldschermen",
+      "virtio_snd": "virtio-geluid",
+      "usb_u2f": "virtueel U2F-token",
+      "spice": "SPICE-consoles",
+      "clone": "klonen",
+      "migrate_cold": "migratie",
+      "migrate_live": "live migratie",
+      "serial_resize": "grootte aanpassen van seriële console",
+      "hotplug": "hot-plug",
+      "display_resize": "schermgrootte aanpassen in de console"
+    }
+  },
+  "err": {
+    "vm": {
+      "display_profile_not_found": "Dat weergaveprofiel bestaat niet meer.",
+      "display_profile_builtin": "Ingebouwde weergaveprofielen kunnen niet worden bewerkt of verwijderd. Dupliceer er een om het te wijzigen.",
+      "display_profile_in_use": "Er gebruiken nog virtuele machines dit weergaveprofiel. Verplaats ze naar Fast LAN en verwijder het, of geef ze eerst een ander profiel.",
+      "display_profile_name_taken": "Er bestaat al een weergaveprofiel met die naam.",
+      "display_profile_name_required": "Een weergaveprofiel heeft een naam zonder besturingstekens nodig.",
+      "display_profile_name_too_long": "Die naam of beschrijving is te lang.",
+      "display_profile_option_invalid": "Een van de SPICE-opties heeft een waarde die QEMU niet accepteert.",
+      "display_profile_unknown": "Dat weergaveprofiel bestaat niet.",
+      "boot_disk_running": "De opstartschijf kan niet worden verwijderd of gewijzigd terwijl de machine actief is. Stop de machine eerst.",
+      "hotplug_unavailable": "Deze host kan de hardware van een draaiende machine niet wijzigen. Stop de machine eerst.",
+      "hotplug_restart_required": "Deze machine is gestart voordat hardware tijdens het draaien gewijzigd kon worden. Start hem één keer opnieuw op om hot-plug in te schakelen.",
+      "hotplug_bus_unsupported": "Een SATA- of IDE-schijf kan niet worden toegevoegd aan of verwijderd van een draaiende machine. Gebruik virtio-blk of virtio-scsi, of stop de machine eerst.",
+      "hotplug_no_controller": "Deze machine heeft nog geen SCSI-controller. Voeg de eerste SCSI-schijf toe terwijl de machine is gestopt.",
+      "hotplug_no_free_port": "Deze machine heeft geen vrij hot-plug-slot voor dat apparaat. Stop de machine om meer toe te voegen.",
+      "hotplug_fixed_device": "Dit apparaat zit op een bus waarvan het niet kan worden verwijderd terwijl de machine draait. Stop de machine om het te verwijderen.",
+      "hotplug_guest_refused": "Het besturingssysteem van de machine heeft het apparaat niet vrijgegeven, dus er is niets verwijderd. Sommige gastkernels hebben geen PCI-hot-plug-stuurprogramma en geven nooit een apparaat vrij (Home Assistant OS is daar een van); stop de machine en verwijder het apparaat dan.",
+      "media_no_drive": "Deze machine heeft geen leeg schijfstation. Werp eerst een schijf uit, of stop de machine om een station toe te voegen.",
+      "no_destination": "Deze back-up kan nergens naartoe. Voeg ten minste één opslagbestemming aan het plan toe.",
+      "chain_incomplete": "Deze back-up bouwt voort op een eerdere die niet meer beschikbaar is, dus hij kan niet zelfstandig worden hersteld.",
+      "backup_too_many_destinations": "Een back-upplan kan naar maximaal tien bestemmingen schrijven. Verwijder er enkele en probeer het opnieuw.",
+      "backup_destination_gone": "Een van de opslagbestemmingen van dit plan bestaat niet meer. Bewerk het plan en kies een bestemming die wel bestaat.",
+      "backup_storage_unavailable": "Er zijn geen opslagbestemmingen geconfigureerd. Voeg een opslagbestemming toe voordat u een back-up maakt.",
+      "backup_no_disks": "Deze machine heeft geen schijven die een back-up kan omvatten. Installatieschijven en alleen-lezen schijven worden overgeslagen.",
+      "backup_keep_range": "Een instelling voor bewaartermijn of volledige kopie valt buiten het bereik. Gebruik 0 voor altijd of nooit, of een lager getal.",
+      "backup_plan_needs_schedule": "Een plan kan niet worden ingeschakeld zonder schema. Stel een cron-schema in of laat het plan uit.",
+      "backup_not_restorable": "Alleen een back-up die succesvol is voltooid kan worden hersteld.",
+      "restore_not_confirmed": "Een herstel vervangt de huidige schijven van de machine, dus het moet worden bevestigd.",
+      "no_resizable_memory": "Deze machine heeft geen geheugenapparaat waarvan de grootte kan worden gewijzigd. Schakel het in en herstart de machine voordat het geheugen kan veranderen terwijl hij draait.",
+      "invalid_resize": "Die grootte valt buiten waarmee deze machine is gestart.",
+      "unsupported_image_op": "Die schijfbewerking is niet beschikbaar.",
+      "share_tag_taken": "Deze machine deelt al een map onder die mount-tag.",
+      "share_path_refused": "Dat pad valt niet binnen een map die deze host mag delen. Een beheerder stelt de toegestane roots per host in.",
+      "vault_unavailable": "Deze McHarbor geeft de plugin Virtuele machines geen toegang tot de secret-kluis. Werk de plugin bij, of typ het wachtwoord en de sleutels zelf.",
+      "vault_denied": "Je hebt secrets.view in deze omgeving nodig om hier een secret uit de kluis te gebruiken.",
+      "vault_secret_not_found": "In deze omgeving is geen secret met die naam zichtbaar.",
+      "password_and_secret": "Typ een wachtwoord of kies er een secret voor, niet allebei.",
+      "unauthorized": "Je bent niet aangemeld.",
+      "invalid_request": "Iets in dat formulier was ongeldig.",
+      "user_data_masked": "De cloud-init user-data bevat nog gemaskeerde waarden (••••••••). Voer de echte waarden in voordat je de machine aanmaakt.",
+      "not_found": "Die virtuele machine bestaat niet meer.",
+      "name_taken": "Een virtuele machine op deze host heeft die naam al.",
+      "running": "Stop eerst de machine.",
+      "not_running": "De machine draait niet.",
+      "host_offline": "De host van deze machine is onbereikbaar. Opdrachten worden nooit voor later in de wachtrij gezet: verbind de agent opnieuw en probeer het nogmaals.",
+      "no_capability": "Deze host kan geen virtuele machines draaien. Bekijk op de Compute-pagina wat er ontbreekt.",
+      "disk_shrink": "Een schijf kan niet kleiner worden gemaakt.",
+      "snapshot_chain_deep": "Deze machine heeft te veel gestapelde snapshots. Verwijder er eerst een.",
+      "template_in_use": "Deze template heeft kopieën die zijn gegevens delen.",
+      "template_running": "Een template kan niet worden gestart. Kloon hem in plaats daarvan.",
+      "command_failed": "De host kon dat niet voltooien:",
+      "not_ready": "Dit onderdeel is nog aan het opstarten. Probeer het zo meteen opnieuw.",
+      "media_path": "Dat is geen bruikbare installatieschijf. Het moet een schijfimage op de host zijn.",
+      "guest_disc_pending": "De host is de gastagentschijf nog aan het voorbereiden. Probeer het zo meteen opnieuw.",
+      "not_media": "Die schijf is geen installatieschijf.",
+      "host_required": "Kies een host voor deze virtuele machine.",
+      "name_required": "Een naam is vereist.",
+      "name_too_long": "Die naam is langer dan 120 tekens.",
+      "name_leading": "Een naam mag niet met een streepje of underscore beginnen.",
+      "name_invalid": "Een naam mag geen stuurtekens bevatten.",
+      "vcpus_invalid": "Dat is geen bruikbaar aantal processors.",
+      "memory_too_small": "Een virtuele machine heeft minstens 128 MB geheugen nodig.",
+      "memory_ceiling": "Het geheugenplafond mag niet lager zijn dan het startgeheugen.",
+      "pool_required": "Een opslagpool is vereist.",
+      "pool_mismatch": "Die pool is op deze host al vastgelegd met een andere backend of een ander pad. Kies de pool opnieuw uit de lijst.",
+      "disk_required": "Een schijfgrootte is vereist.",
+      "network_required": "Een netwerk is vereist.",
+      "firmware_invalid": "Dat is geen firmwaretype.",
+      "secure_boot_needs_uefi": "Secure Boot vereist UEFI-firmware.",
+      "display_invalid": "Dat is geen beeldschermadapter.",
+      "display_resolution_invalid": "Dat is geen bruikbare opstartresolutie. Gebruik een breedte van 640 tot 7680 en een hoogte van 480 tot 4320 pixels, of laat beide op de QEMU-standaard staan.",
+      "cpu_model_invalid": "Dat CPU-model kan niet worden gebruikt.",
+      "machine_invalid": "Dat machinetype kan niet worden gebruikt.",
+      "disk_bus_invalid": "Dat is geen schijfbus.",
+      "invalid_cron": "Dat is geen geldige cron-expressie met vijf velden.",
+      "invalid_keep": "Bewaar tussen 1 en 100 snapshots.",
+      "import_empty": "Er is geen bestand geüpload.",
+      "import_too_large": "Dat bestand is groter dan de importlimiet.",
+      "import_extension": "Dat bestand is geen schijfimage dat McHarbor kan importeren.",
+      "import_state": "Die import is nog niet klaar voor deze stap.",
+      "import_staging": "Er kan niet naar de stagingmap van de import worden geschreven. De details staan in het serverlog.",
+      "volume_path": "Die schijf staat niet in de gekozen opslagpool.",
+      "volume_unavailable": "Die schijf is niet meer vrij. Vernieuw en kies een andere.",
+      "snapshot_branched": "Deze snapshot heeft meer dan één vertakking eronder. Verwijder eerst een van de vertakkingen.",
+      "snapshot_too_many": "Deze machine heeft evenveel snapshots als hij kan bevatten. Verwijder er eerst een.",
+      "snapshot_name_required": "Een snapshotnaam is vereist.",
+      "snapshot_name_too_long": "Die snapshotnaam is langer dan 120 tekens.",
+      "snapshot_name_invalid": "Een snapshotnaam mag geen regeleinden bevatten.",
+      "migrate_same_host": "De machine staat al op die host. Kies een andere doelhost.",
+      "migrate_in_flight": "Deze machine wordt al verplaatst.",
+      "migrate_unsupported": "Een betrokken host kan deze verplaatsing niet uitvoeren. Werk de agent bij of probeer een koude verplaatsing.",
+      "migrate_snapshots": "Machines met snapshots kunnen niet worden verplaatst. Verwijder of voeg de snapshots eerst samen.",
+      "migrate_devices": "Machines met doorgegeven hostapparaten kunnen niet worden verplaatst. Koppel ze eerst los.",
+      "migrate_shares": "Machines met gedeelde hostmappen kunnen niet worden verplaatst. Verwijder de shares eerst.",
+      "migrate_tpm": "Machines met een virtuele TPM kunnen nog niet worden verplaatst.",
+      "migrate_media": "Werp de installatieschijf uit voordat je deze machine verplaatst.",
+      "migrate_forbidden": "Je hebt toestemming nodig om machines op beide hosts te verplaatsen.",
+      "migrate_address": "Dat doeladres kan niet worden gebruikt voor een live verplaatsing.",
+      "migration_none": "Deze machine wordt niet verplaatst.",
+      "spice_unavailable": "De host van deze machine kan geen SPICE-console aanbieden. Zijn QEMU heeft geen SPICE-ondersteuning of zijn agent is te oud."
+    }
+  },
+  "msg": {
+    "vm": {
+      "display_profile_created": "Weergaveprofiel aangemaakt.",
+      "display_profile_updated": "Weergaveprofiel opgeslagen. Virtuele machines die het gebruiken, nemen het over bij hun volgende start.",
+      "display_profile_deleted": "Weergaveprofiel verwijderd.",
+      "backup_started": "Back-up gestart.",
+      "backup_stored": "Back-up ontvangen.",
+      "backup_plan_saved": "Back-upschema opgeslagen.",
+      "backup_plan_deleted": "Back-upschema verwijderd.",
+      "restore_started": "Herstel gestart.",
+      "throttle_saved": "Schijflimieten opgeslagen.",
+      "share_added": "Gedeelde map toegevoegd.",
+      "share_removed": "Gedeelde map verwijderd.",
+      "guest_refreshed": "De gast om zijn details gevraagd.",
+      "created": "Virtuele machine aangemaakt.",
+      "updated": "Wijzigingen opgeslagen.",
+      "started": "Wordt gestart.",
+      "stopped": "Gestopt.",
+      "shutdown_escalated": "De machine sloot niet uit zichzelf af en is gestopt.",
+      "deleted": "Verwijderd.",
+      "snapshot_created": "Snapshot gemaakt.",
+      "snapshot_reverted": "Teruggegaan naar de snapshot.",
+      "cloned": "Kopie aangemaakt.",
+      "templated": "Template bijgewerkt.",
+      "disk_added": "Schijf toegevoegd.",
+      "device_attached": "Apparaat gekoppeld.",
+      "media_attached": "Schijf geplaatst.",
+      "guest_agent_disc_attached": "Gastagentschijf geplaatst.",
+      "media_ejected": "Schijf uitgeworpen.",
+      "schedule_saved": "Snapshotschema opgeslagen.",
+      "schedule_deleted": "Snapshotschema verwijderd.",
+      "schedule_ran": "Snapshot gemaakt.",
+      "import_uploaded": "Upload voltooid.",
+      "import_converted": "De machine is geïmporteerd.",
+      "import_deleted": "Import verwijderd.",
+      "migration_started": "Verplaatsing gestart.",
+      "migration_cancel_requested": "De hosts zijn gevraagd de verplaatsing te stoppen."
+    }
+  },
+  "permissions": {
+    "vm.view": {
+      "label": "Virtuele machines bekijken"
+    },
+    "vm.manage": {
+      "label": "Virtuele machines beheren"
+    },
+    "vm.delete": {
+      "label": "Virtuele machines verwijderen"
+    },
+    "vm.console": {
+      "label": "Een console van een virtuele machine openen"
+    },
+    "vm.privileged": {
+      "label": "Hostapparaten aan virtuele machines koppelen"
+    },
+    "vm.import": {
+      "label": "Virtuele machines van andere hypervisors importeren"
+    },
+    "vm.migrate": {
+      "label": "Virtuele machines tussen hosts verplaatsen"
+    }
+  },
+  "settings": {
+    "title": "Instellingen",
+    "unknownNote": "Deze host is onbereikbaar, dus alleen administratieve instellingen kunnen worden gewijzigd.",
+    "appliesAtBoot": "Toegepast bij de volgende start van deze machine.",
+    "firmwareWarning": "Als je de firmware wisselt, kan een geïnstalleerde gast niet meer opstarten.",
+    "save": "Instellingen opslaan",
+    "saved": "Instellingen opgeslagen.",
+    "noChanges": "Er is nog niets gewijzigd.",
+    "fields": {
+      "name": "Naam",
+      "description": "Beschrijving",
+      "vcpus": "Processors",
+      "memoryMb": "Geheugen (MB)",
+      "memoryMaxMb": "Geheugenplafond (MB)",
+      "memoryMaxHint": "Laat op 0 staan voor geen plafond.",
+      "cpuModel": "CPU-model",
+      "machineType": "Machinetype",
+      "firmware": "Firmware",
+      "secureBoot": "Secure Boot",
+      "tpmEnabled": "TPM 2.0",
+      "displayType": "Beeldschermadapter",
+      "autostart": "Start met de host",
+      "autostartOrder": "Startvolgorde",
+      "autostartDelaySeconds": "Startvertraging (seconden)",
+      "vcpusValue": "{{count}} processor",
+      "vcpusValue_other": "{{count}} processors",
+      "cpuModelHint": "Laat leeg voor host, wat de CPU van de host doorgeeft.",
+      "cpuModelHost": "host — snelst, maar deze machine kan niet naar een andere host worden verplaatst",
+      "vcpusMax": "Processorplafond",
+      "vcpusMaxHint": "Naar hoeveel processors deze machine kan groeien terwijl hij draait. Wordt vastgelegd bij het starten, dus verhogen vereist een herstart. Nul betekent geen groei.",
+      "virtioMem": "Aanpasbaar geheugen",
+      "virtioMemHint": "Laat het geheugen in beide richtingen veranderen terwijl de machine draait. Vereist een geheugenplafond boven de opstartgrootte en vervangt de balloon.",
+      "hugePages": "Hugepages",
+      "hugePagesHint": "Ondersteunt het geheugen van deze machine met hugepages, wat bij geheugenintensieve workloads doorgaans 5-15% sneller is. Hugepage-geheugen kan niet worden geswapt, dus een overgecommitteerde host raakt zonder geheugen in plaats van te vertragen.",
+      "numaPolicy": "NUMA-plaatsing",
+      "numaPolicyHint": "Hoe het geheugen en de processors van deze machine over de geheugendomeinen van de host worden verdeeld. Alleen van belang op een host met meer dan één.",
+      "numaNode": "Geheugendomein van de host",
+      "numaNodeHint": "Op welk van de geheugendomeinen van de host deze machine wordt gehouden.",
+      "numaNodeLabel": "Domein {{id}}",
+      "numaNodeFree": "{{free}} GB vrij, {{cpus}} processors op dit domein.",
+      "numaNone": "Geen plaatsing",
+      "numaPin": "Op één domein houden",
+      "numaMirror": "De indeling van de host spiegelen",
+      "ioThread": "Dedicated I/O-thread",
+      "ioThreadHint": "Verplaatst de schijf-I/O van deze machine naar een eigen thread, zodat zwaar schijfgebruik de rest van de machine niet vertraagt.",
+      "vsock": "Direct hostkanaal",
+      "vsockHint": "Een socketkanaal tussen host en gast dat geen netwerk, geen adres en geen firewallregel nodig heeft.",
+      "vsockAssigned": "Context-ID {{cid}}. Toegewezen door McHarbor en uniek op deze host.",
+      "displayAuto": "Automatisch",
+      "bootResolution": "Opstartresolutie",
+      "bootResolutionHint": "De schermgrootte waarmee de gast start. Gast aanpassen aan venster volgt de console nog steeds als de gast dat ondersteunt. Geldt vanaf de volgende start.",
+      "bootResolutionDefault": "QEMU-standaard",
+      "bootResolutionCustom": "Aangepast",
+      "bootResolutionWidth": "Breedte",
+      "bootResolutionHeight": "Hoogte",
+      "bootResolutionUnsupported": "Alleen virtio-gpu en QXL ondersteunen een opstartresolutie.",
+      "bootResolutionRange": "Gebruik een breedte van {{minWidth}} tot {{maxWidth}} en een hoogte van {{minHeight}} tot {{maxHeight}} pixels.",
+      "autostartOrderHint": "Lagere nummers starten eerst.",
+      "displayNone": "Geen"
+    },
+    "hostSummary": "Host heeft {{cpus}} processors en {{memory}}",
+    "hostUnknown": "Deze host kon niet worden gelezen, dus er wordt geen plafond toegepast.",
+    "cpuNote": "{{cores}} fysieke cores achter {{threads}} threads. Tot {{ideal}} vCPU's draait zonder enige contention; de groene band eindigt bij {{safe}}.",
+    "cpuOverSafe": "Deze gast vraagt {{value}}, meer dan de {{safe}} die deze host kan ondersteunen terwijl er al {{others}} vCPU's draaien. Hij start nog wel, maar elke gast op de host wordt trager ingepland.",
+    "memoryNote": "{{reserve}} wordt achtergehouden voor de host zelf en QEMU-overhead.",
+    "sections": {
+      "features": "QEMU-functies",
+      "featuresDescription": "Mogelijkheden die de QEMU van de host aan deze machine kan geven. Elk ervan wijzigt hoe hij wordt gestart, dus ze gelden allemaal bij de volgende start.",
+      "identity": "Identiteit",
+      "identityDescription": "Hoe deze machine in McHarbor heet.",
+      "resources": "Processors en geheugen",
+      "platform": "Platform",
+      "platformDescription": "Firmware, chipset en de beeldschermadapter die de gast ziet.",
+      "startup": "Opstarten",
+      "startupDescription": "Of deze machine met zijn host terugkomt en in welke volgorde."
+    },
+    "needsStop": "Vereist een stop",
+    "memoryNoteShared": "{{reserve}} wordt achtergehouden voor de host en {{used}} is in gebruik door andere draaiende gasten.",
+    "overBudget": "Deze gast vraagt {{value}}, meer dan de {{max}} die de host voor hem over heeft."
+  },
+  "schedules": {
+    "intro": "Een schema maakt zelf snapshots en bewaart de nieuwste paar, zoals een back-upplan. Retentie verwijdert alleen snapshots die dat schema heeft gemaakt; alles wat je zelf een naam hebt gegeven, blijft ongemoeid.",
+    "add": "Schema toevoegen",
+    "addTitle": "Nieuw snapshotschema",
+    "editTitle": "Snapshotschema bewerken",
+    "dialogBody": "Snapshots worden gemaakt op de lokale tijd van de host.",
+    "defaultName": "Dagelijkse snapshots",
+    "empty": "Deze machine heeft nog geen snapshotschema.",
+    "enabled": "Ingeschakeld",
+    "disabled": "Gepauzeerd",
+    "withMemory": "Met geheugen",
+    "keeps": "Bewaart {{count}}",
+    "next": "volgende {{when}}",
+    "runNow": "Nu uitvoeren",
+    "remove": "Schema verwijderen",
+    "history": "Recente runs",
+    "pruned": "{{count}} opgeschoond",
+    "status": {
+      "running": "Bezig",
+      "success": "Klaar",
+      "failure": "Mislukt"
+    },
+    "confirmRemove": {
+      "title": "Dit schema verwijderen?",
+      "body": "De snapshots die het al heeft gemaakt blijven bewaard. Alleen het beleid verdwijnt."
+    },
+    "field": {
+      "name": "Naam",
+      "cron": "Schema",
+      "cronHelp": "Cron met vijf velden, in de eigen tijdzone van de server. `0 2 * * *` is elke nacht om 02:00.",
+      "keep": "Te bewaren snapshots",
+      "keepHelp": "Zodra er meer dan dit zijn, worden de oudste die dit schema heeft gemaakt verwijderd.",
+      "memory": "Geheugen opnemen",
+      "memoryHelp": "Slaat het RAM van de machine op naast zijn schijven, zodat een herstel hervat in plaats van opstart. De gast wordt gepauzeerd terwijl dit wordt geschreven, wat bij een grote machine seconden tot minuten duurt.",
+      "enabled": "Ingeschakeld",
+      "pause": "De machine pauzeren als hij geen gastagent heeft",
+      "pauseHelp": "Een geplande snapshot van een machine zonder gastagent stopt zijn processors een paar seconden, maakt de snapshot en start hem weer. Zonder dit is de snapshot het equivalent van de stekker eruit trekken."
+    }
+  },
+  "import": {
+    "title": "Een virtuele machine importeren",
+    "body": "Haal een machine binnen van VMware, Hyper-V, VirtualBox of Parallels. De schijf wordt geconverteerd op de host die je kiest, zodat niets groots twee keer door McHarbor gaat.",
+    "formats": "Accepteert OVA- en OVF-appliances en VMDK-, VHDX-, VHD-, VDI-, HDD-, QCOW2- en raw-schijven.",
+    "choose": "Kies een bestand",
+    "uploading": "Uploaden… {{percent}}%",
+    "inspect": "Dit bestand lezen",
+    "convert": "Importeren",
+    "converting": "Converteren. Een grote schijf duurt even; je kunt dit sluiten en het blijft doorlopen.",
+    "failed": "De import is niet voltooid",
+    "warnings": "Sommige instellingen worden niet overgenomen",
+    "disks": "Gevonden schijven",
+    "bootDisk": "opstartschijf",
+    "firmware": {
+      "bios": "BIOS",
+      "uefi": "UEFI"
+    },
+    "field": {
+      "host": "Host",
+      "hostHelp": "De machine die het bestand leest en converteert en waarop de gast gaat draaien.",
+      "name": "Naam",
+      "pool": "Opslagpool",
+      "poolPlaceholder": "Kies een pool",
+      "network": "Netwerk",
+      "networkPlaceholder": "Kies een netwerk",
+      "vcpus": "Processors",
+      "memory": "Geheugen (MB)",
+      "firmware": "Firmware",
+      "firmwareHelp": "Kies wat overeenkomt met waarmee de machine is geïnstalleerd. Een BIOS-installatie start niet onder UEFI en toont niets als het verkeerd is.",
+      "autostart": "Start met de host",
+      "secureBoot": "Secure Boot",
+      "secureBootHelp": "Alleen UEFI. Windows 11 verwacht het; een oudere gast start niet op als het aanstaat.",
+      "tpm": "Virtuele TPM",
+      "tpmHelp": "Een software-TPM 2.0, die Windows 11 vereist.",
+      "guestOs": "Gastbesturingssysteem",
+      "guestOsHelp": "Bepaalt de beeldschermadapter en netwerkkaart die de gast krijgt. Windows heeft geen driver voor de virtio-apparaten die een Linux-gast krijgt en start op naar een zwart scherm zonder netwerk."
+    },
+    "background": "Op de achtergrond uitvoeren",
+    "reopen": "Tonen",
+    "dismiss": "Deze import negeren",
+    "phase": {
+      "uploading": "Uploaden",
+      "uploaded": "Geüpload, wacht om te worden gelezen",
+      "inspecting": "Het bestand wordt gelezen",
+      "inspected": "Gelezen, wacht om te worden geïmporteerd",
+      "converting": "Converteren op de host",
+      "failed": "Import mislukt"
+    },
+    "pending": {
+      "title": "Geüpload, wacht om te worden geïmporteerd",
+      "continue": "Doorgaan",
+      "discard": "Deze upload verwijderen"
+    },
+    "state": {
+      "pending": "Wachten",
+      "uploaded": "Geüpload",
+      "inspecting": "Lezen",
+      "inspected": "Gelezen",
+      "converting": "Converteren",
+      "converted": "Geïmporteerd",
+      "failed": "Mislukt",
+      "ready": "Klaar"
+    },
+    "tab": "Conversie",
+    "tabDescription": "Bestanden die zijn geüpload maar nog niet tot een gast zijn geconverteerd.",
+    "emptyTitle": "Niets wacht om te worden geconverteerd",
+    "emptyDescription": "Upload een VMDK, VHDX, QCOW2 of OVA vanaf het tabblad Virtuele machines en het verschijnt hier totdat het een gast wordt.",
+    "columns": {
+      "file": "Bestand",
+      "format": "Formaat",
+      "size": "Grootte",
+      "state": "Status",
+      "uploaded": "Geüpload",
+      "actions": "Acties"
+    },
+    "actions": {
+      "convert": "Converteren",
+      "cancel": "Annuleren",
+      "delete": "Upload verwijderen"
+    },
+    "staged": "Dit bestand staat op {{host}}. De conversie loopt daar.",
+    "guestOs": {
+      "linux": "Linux",
+      "windows": "Windows",
+      "bsd": "BSD",
+      "other": "Overig"
+    }
+  },
+  "logs": {
+    "source": "Log",
+    "sources": {
+      "vm": "Virtuele machine (QEMU)",
+      "tpm": "Beveiligingschip (swtpm)"
+    },
+    "tail": "Regels",
+    "exportName": "{{name}}-{{source}}.log",
+    "liveHint": "Live volgen: het journal wordt elke paar seconden opnieuw gelezen zolang dit aanstaat.",
+    "lines_one": "Laatste {{count}} regel",
+    "lines_other": "Laatste {{count}} regels",
+    "loading": "Het log wordt van de host gelezen…",
+    "empty": "Deze unit heeft nog niets geschreven.",
+    "failed": "Het log kon niet worden gelezen",
+    "partial": "Het log is onvolledig",
+    "notices": {
+      "journalctl_failed": "De host kon het journal van deze unit niet lezen. Mogelijk heeft het nog geen items.",
+      "no_supported_log_source": "Deze host heeft geen journalctl, dus unitlogs kunnen niet worden gelezen.",
+      "permission_denied": "De agent mag dit journal niet lezen."
+    }
+  },
+  "progress": {
+    "elapsed": "{{seconds}} s"
+  },
+  "runbook": {
+    "attach": {
+      "vm": "Virtuele machine"
+    },
+    "targets": {
+      "vm": "Virtuele machine"
+    },
+    "steps": {
+      "vm_start": "De virtuele machine starten",
+      "vm_shutdown": "De virtuele machine afsluiten via ACPI en na de wachttijd geforceerd uitschakelen",
+      "vm_reset": "De virtuele machine hard resetten, alsof je op de resetknop drukt",
+      "vm_force_stop": "De virtuele machine onmiddellijk uitschakelen, zonder de gast te vragen",
+      "vm_snapshot_create": "Een snapshot van de virtuele machine maken",
+      "vm_state": "De status, hardware en host van de virtuele machine",
+      "vm_snapshots": "De snapshots van de virtuele machine"
+    }
+  },
+  "migrate": {
+    "title": "{{name}} naar een andere host verplaatsen",
+    "description": "Kopieert de schijven en de definitie van de machine naar een andere host en voert hem daar uit. Het origineel wordt verwijderd zodra de verplaatsing is geslaagd.",
+    "target": "Doelhost",
+    "targetPlaceholder": "Kies een host",
+    "noTargets": "Geen andere host kan deze machine overnemen. Een doelhost heeft compute ingeschakeld en een verbonden agent nodig.",
+    "pool": "Opslagpool",
+    "poolPlaceholder": "Kies een pool op de doelhost",
+    "live": "Verplaatsen terwijl actief",
+    "liveHint": "De machine blijft actief terwijl het geheugen en de schijven worden gekopieerd en pauzeert kort aan het einde.",
+    "coldHint": "De machine wordt afgesloten, gekopieerd en op de doelhost opnieuw gestart als hij actief was.",
+    "liveNeedsRunning": "Alleen een draaiende machine kan live worden verplaatst.",
+    "address": "Doeladres",
+    "addressPlaceholder": "Leeg laten om het eerste adres te gebruiken dat de doelhost opgeeft",
+    "bandwidth": "Bandbreedtelimiet (MB/s)",
+    "downtime": "Langste pauze (ms)",
+    "networks": "Netwerken op de doelhost",
+    "networksHint": "Een interface die op zijn huidige bridge blijft, heeft een bridge met dezelfde naam op de doelhost nodig.",
+    "networkFor": "Netwerk voor {{mac}}",
+    "keepBridge": "{{bridge}} behouden",
+    "review": "Controleren",
+    "submit": "Machine verplaatsen",
+    "summary": {
+      "from": "Van",
+      "to": "Naar",
+      "mode": "Hoe",
+      "live": "Live, terwijl actief",
+      "cold": "Afsluiten, daarna kopiëren"
+    },
+    "confirmLive": "De machine blijft actief, maar het geheugen en de schijven gaan over het netwerk. Hij pauzeert even voordat hij op de doelhost hervat.",
+    "confirmCold": "De machine wordt afgesloten en is onbereikbaar totdat de schijven zijn gekopieerd en hij op de doelhost start.",
+    "cancelMigration": "De verplaatsing stoppen",
+    "percent": "{{percent}}% voltooid",
+    "runningHint": "De verplaatsing gaat door op de hosts als je dit dialoogvenster sluit.",
+    "failed": "De verplaatsing is mislukt",
+    "state": {
+      "running": "Verplaatsen naar {{target}}.",
+      "completed": "De machine draait nu op {{target}}.",
+      "failed": "De verplaatsing naar {{target}} is niet voltooid. De machine staat nog op de oorspronkelijke host.",
+      "cancelled": "De verplaatsing naar {{target}} is gestopt. De machine staat nog op de oorspronkelijke host."
+    }
+  },
+  "estate": {
+    "vms": "Virtuele machines"
+  },
+  "search": {
+    "group": {
+      "vms": "Virtuele machines"
+    },
+    "action": {
+      "createVm": "Virtuele machine aanmaken",
+      "createVmKeywords": "nieuwe vm kvm gast machine",
+      "importVm": "Virtuele machine importeren",
+      "importVmKeywords": "importeren ova vmdk vhdx vmware hyper-v virtualbox schijf"
+    }
+  },
+  "displayProfiles": {
+    "tab": "Weergaveprofielen",
+    "title": "Weergaveprofielen",
+    "description": "De SPICE-instellingen waarmee een virtuele machine start. De browserconsole decodeert in JavaScript, dus deze bepalen of tijd gaat naar decoderen of tekenen.",
+    "create": "Nieuw profiel",
+    "builtinBadge": "Ingebouwd",
+    "builtinReadOnly": "Ingebouwde profielen zijn alleen-lezen. Dupliceer er een om het te wijzigen.",
+    "appliesNextStart": "Wordt toegepast bij volgende start",
+    "empty": {
+      "title": "Geen weergaveprofielen",
+      "body": "De ingebouwde profielen verschijnen zodra de plugin is gestart."
+    },
+    "columns": {
+      "name": "Naam",
+      "image": "Afbeeldingen",
+      "streaming": "Videostreaming",
+      "jpeg": "JPEG bij trage verbindingen",
+      "playback": "Audiocompressie",
+      "vms": "Virtuele machines",
+      "actions": "Acties"
+    },
+    "actions": {
+      "edit": "Bewerken",
+      "duplicate": "Dupliceren",
+      "delete": "Verwijderen"
+    },
+    "builtin": {
+      "fastLan": {
+        "name": "Snel LAN",
+        "description": "Ongecomprimeerde afbeeldingen: de meeste bandbreedte, het minste werk voor de browser."
+      },
+      "balanced": {
+        "name": "Evenwichtig",
+        "description": "LZ voor bureaubladinhoud, JPEG bij een trage verbinding."
+      },
+      "lowBandwidth": {
+        "name": "Lage bandbreedte",
+        "description": "Verliesgevende JPEG en MJPEG-streaming overal: de minste bytes."
+      }
+    },
+    "values": {
+      "auto_glz": "Automatisch (GLZ)",
+      "auto_lz": "Automatisch (LZ)",
+      "quic": "QUIC",
+      "glz": "GLZ",
+      "lz": "LZ",
+      "off": "Uit",
+      "auto": "Automatisch",
+      "never": "Nooit",
+      "always": "Altijd",
+      "all": "Alles",
+      "filter": "Alleen gedetecteerde video",
+      "on": "Aan"
+    },
+    "options": {
+      "imageCompression": {
+        "label": "Beeldcompressie",
+        "hint": "Uit verzendt ruwe afbeeldingen: de meeste bandbreedte en het snelste tekenen in de browser. LZ is goedkoop te decoderen. QUIC is geschikt voor foto's maar traag te decoderen in JavaScript. De GLZ-opties kunnen niet door de browserconsole worden getekend; gebruik ze alleen met remote-viewer."
+      },
+      "jpegWanCompression": {
+        "label": "JPEG bij trage verbindingen",
+        "hint": "Verliesgevende JPEG voor fotoachtige gebieden, bij een trage verbinding of altijd. De browser decodeert JPEG native, dus het is goedkoop; het verzacht fijne details."
+      },
+      "zlibGlzWanCompression": {
+        "label": "Zlib over GLZ bij trage verbindingen",
+        "hint": "Extra compressie alleen voor GLZ-afbeeldingen. De browserconsole kan dit niet decoderen; laat het op Nooit staan tenzij je remote-viewer gebruikt."
+      },
+      "streamingVideo": {
+        "label": "Videostreaming",
+        "hint": "Verzendt snel veranderende gebieden als MJPEG-stream. Alleen gedetecteerde video houdt tekst scherp; Alles streamt elk druk gebied, met minder bytes en meer vervaging; Uit tekent alles opnieuw als afbeeldingen."
+      },
+      "playbackCompression": {
+        "label": "Audiocompressie",
+        "hint": "Met Opus gecomprimeerde audio. De browserconsole speelt alleen Opus af, dus Uit schakelt het geluid daar uit."
+      },
+      "agentMouse": {
+        "label": "Clientmuismodus",
+        "hint": "Met de gastagent actief volgt de aanwijzer je eigen muis zonder vertraging. Uit valt terug op servermuismodus."
+      }
+    },
+    "dialog": {
+      "createTitle": "Nieuw weergaveprofiel",
+      "editTitle": "{{name}} bewerken",
+      "name": "Naam",
+      "descriptionLabel": "Beschrijving",
+      "nameRequired": "Een profiel heeft een naam nodig.",
+      "nextStartNote": "Virtuele machines die dit profiel gebruiken, nemen een wijziging over bij hun volgende start.",
+      "save": "Profiel opslaan"
+    },
+    "delete": {
+      "title": "{{name}} verwijderen?",
+      "body": "Geen enkele virtuele machine gebruikt dit profiel. Het wordt definitief verwijderd.",
+      "bodyInUse_one": "{{count}} virtuele machine gebruikt dit profiel. Deze gaat naar Fast LAN, wat bij de volgende start wordt toegepast, en het profiel wordt verwijderd.",
+      "bodyInUse_other": "{{count}} virtuele machines gebruiken dit profiel. Deze gaan naar Fast LAN, wat bij de volgende start wordt toegepast, en het profiel wordt verwijderd.",
+      "confirm": "Profiel verwijderen",
+      "reassignConfirm": "Naar Fast LAN verplaatsen en verwijderen"
+    },
+    "settings": {
+      "title": "Weergaveprofiel",
+      "description": "De SPICE-instellingen waarmee deze machine start. Profielen worden beheerd op het tabblad Weergaveprofielen.",
+      "label": "Profiel"
+    }
+  }
+}

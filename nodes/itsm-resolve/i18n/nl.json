@@ -1,0 +1,9 @@
+{
+  "label": "Ticket oplossen",
+  "description": "Los het ticket op dat door een sleutel is geopend",
+  "config": {
+    "channel_id": "Ticketkanaal",
+    "dedup_key": "Ticketsleutel",
+    "message": "Bericht"
+  }
+}

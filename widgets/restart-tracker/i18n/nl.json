@@ -10,6 +10,10 @@
     "container": "Container",
     "restarts": "Herstarts",
     "state": "Status",
-    "noRestarts": "Geen containerherstarts gedetecteerd"
+    "noRestarts": "Geen containerherstarts gedetecteerd",
+    "restartCount": "{{count}} herstart",
+    "restartCount_other": "{{count}} herstarts",
+    "more": "{{count}} meer",
+    "allStable": "Elke container draait sinds de start zonder onderbreking"
   }
 }

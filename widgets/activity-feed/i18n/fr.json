@@ -8,6 +8,9 @@
   "activityFeedWidget": {
     "title": "Flux d'activité",
     "loadingActivity": "Chargement de l'activité...",
-    "noRecentActivity": "Aucune activité récente"
+    "noRecentActivity": "Aucune activité récente",
+    "more": "{{count}} de plus",
+    "viewAll": "Voir l'activité",
+    "justNow": "à l’instant"
   }
 }

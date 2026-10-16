@@ -1,8 +1,0 @@
-{
-  "label": "Mapa",
-  "description": "Mapear chaves de objetos de matriz para uma nova forma",
-  "config": {
-    "property": "Propriedade",
-    "mapping": "Mapeamento"
-  }
-}

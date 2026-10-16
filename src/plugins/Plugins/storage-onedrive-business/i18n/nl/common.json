@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "OneDrive for Business-back-upbestemmingen",
+    "subtitle": "Maak een back-up van containers naar OneDrive for Business-drives onder een werk-/schooltenant. De plugin verzorgt Test, Uploaden, Downloaden, Verwijderen en Weergeven tijdens de back-up. Grote back-ups gebruiken de uploadsessie in delen van Microsoft, dus er is geen groottelimiet.",
+    "registerHint": "Voeg een bestemming toe via de pagina Opslaglocaties van de host en kies \"OneDrive for Business\" als type."
+  },
+  "fields": {
+    "clientId":     "Azure AD-applicatie-(client-)ID",
+    "clientSecret": "Azure AD-clientgeheim",
+    "refreshToken": "Refresh-token (geleverd door de OAuth-toestemmingsflow)",
+    "tenantId":     "Azure AD-tenant-ID",
+    "upn":          "User Principal Name (UPN) voor het serviceaccount",
+    "driveId":      "Drive-ID (laat leeg om de drive van het serviceaccount te gebruiken)"
+  },
+  "help": {
+    "clientId":     "Registreer een app op https://entra.microsoft.com → App registrations. De app moet de gedelegeerde machtigingen Files.ReadWrite.All en User.Read hebben.",
+    "clientSecret": "Genereer een clientgeheim in de Azure AD-appregistratie. Het wordt versleuteld opgeslagen door de AES-256-GCM-service van de host.",
+    "refreshToken": "Klik na het opslaan van de bestemming op \"Opslaan en verbinden\" om de Microsoft-toestemmingsflow te voltooien en een langlevend refresh-token op te slaan.",
+    "tenantId":     "Vind je tenant-ID op https://entra.microsoft.com → Tenant properties.",
+    "upn":          "De User Principal Name van het serviceaccount (bijv. backups@contoso.onmicrosoft.com). Vereist wanneer Drive-ID leeg is.",
+    "driveId":      "Optioneel. Laat leeg om de drive van het serviceaccount te gebruiken."
+  },
+  "toast": {
+    "registered": "OneDrive for Business-plugin geregistreerd.",
+    "testPassed": "OneDrive for Business-verbindingstest geslaagd.",
+    "testFailed": "OneDrive for Business-verbindingstest mislukt: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure AD-applicatie-(client-)ID is vereist.",
+    "noClientSecret": "Azure AD-clientgeheim is vereist.",
+    "noRefreshToken": "Refresh-token is vereist. Voer eerst \"Opslaan en verbinden\" uit.",
+    "noTenantId":     "Azure AD-tenant-ID is vereist voor OneDrive for Business-bestemmingen.",
+    "noUpn":          "User Principal Name (UPN) is vereist wanneer er geen Drive-ID is ingesteld."
+  },
+  "form": {
+    "intro": {
+      "title": "Microsoft 365-toestemming",
+      "body": "Sla deze locatie op en gebruik daarna Verbinden om accounttoestemming te geven. McHarbor slaat de geretourneerde tokens versleuteld op."
+    },
+    "tenantId": {
+      "label": "Tenant ID",
+      "help": "Microsoft Entra-tenant-ID (GUID). Te vinden in het Entra-beheercentrum > Overview. De OAuth-toestemmingsflow verwijst door naar login.microsoftonline.com/{tenant_id}/…"
+    },
+    "clientId": {
+      "label": "Client ID",
+      "help": "Application (client) ID van de Entra-appregistratie met de gedelegeerde permissie Files.ReadWrite en een Web-redirect-URI die naar deze McHarbor-host verwijst."
+    },
+    "clientSecret": {
+      "label": "Client Secret",
+      "help": "Waarde van het client secret uit het Entra-beheercentrum → App registrations → Certificates & secrets. Versleuteld opgeslagen."
+    },
+    "driveId": {
+      "label": "Drive ID",
+      "help": "Optioneel. Volledig gekwalificeerde Graph-drive-identifier. Laat leeg om de drive van het serviceaccount te gebruiken (opgelost via UPN of /me/drive)."
+    },
+    "basePath": {
+      "label": "Basispad",
+      "help": "Optioneel. Graph-pad binnen de drive, bijv. /Backups/2026. Laat leeg om de drive-hoofdmap te gebruiken. Bewust niet vooraf ingevuld."
+    },
+    "upn": {
+      "label": "User Principal Name (UPN)",
+      "help": "Optioneel. UPN van het serviceaccount, bijv. backups@contoso.onmicrosoft.com. Als drive_id ook leeg is, wordt er geüpload naar /users/{upn}/drive; als zowel upn als drive_id leeg zijn, wordt als terugval /me/drive (de gebruiker van het refresh token) gebruikt."
+    }
+  },
+  "setup": {
+    "title": "OneDrive for Business-installatiegids",
+    "step1": "Open in het Microsoft Entra-beheercentrum <b>App registrations > New registration</b>. Kies <b>Accounts in this organizational directory only</b> als ondersteund accounttype en kopieer de <b>Tenant ID</b> van de pagina <b>Overview</b> — plak die in het veld <b>Tenant ID</b> links.",
+    "step2": "Maak onder <b>Certificates & secrets</b> een nieuw client secret aan. Kopieer de <b>Value</b> (niet de <b>Secret ID</b>) — plak die in het veld <b>Client Secret</b> links. Kopieer de <b>Application (client) ID</b> naar het veld <b>Client ID</b>.",
+    "step3": "Geef de app de applicatiepermissies <code>Files.ReadWrite.All</code> en <code>User.Read</code> (beheerderstoestemming vereist). De OAuth-flow vraagt namens de operator <code>offline_access</code> aan.",
+    "step4": "Stel de <b>UPN</b> in op het serviceaccount waarnaar je back-ups wilt maken. Laat leeg om de gebruiker van het refresh token te gebruiken (<code>/me/drive</code>). <b>Drive ID</b> is optioneel — laat leeg om de opgeloste drive te gebruiken (het serviceaccount als UPN is ingesteld, anders de gebruiker van het refresh token).",
+    "step5": "Laat <b>Base Path</b> leeg voor de drive-hoofdmap, of voer een expliciet Graph-pad in zoals <code>/Backups/2026</code>. Het formulier vult geen standaardwaarde vooraf in.",
+    "step6": "Klik op <b>Save and connect</b> (of <b>Connect</b> op de opslagkaart). Microsoft vraagt je in te loggen en de gevraagde scopes toe te staan. McHarbor slaat het geretourneerde refresh token versleuteld op en <warn>toont het nooit meer</warn>.",
+    "step7": "Klik op <b>Test connection</b> om een testobject te schrijven en te lezen in de gekozen drive."
+  }
+}

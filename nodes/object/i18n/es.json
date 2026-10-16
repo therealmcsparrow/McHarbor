@@ -1,0 +1,17 @@
+{
+  "label": "Objeto",
+  "description": "Seleccionar u omitir campos, o mapear un objeto a una nueva forma",
+  "config": {
+    "operation": "Operación",
+    "property": "Propiedad",
+    "fields": "Campos",
+    "mapping": "Cartografía"
+  },
+  "options": {
+    "operation": {
+      "pick": "Seleccionar",
+      "omit": "Omitir",
+      "map": "Mapear"
+    }
+  }
+}

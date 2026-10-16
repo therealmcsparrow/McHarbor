@@ -4,7 +4,7 @@
     "description":  "Distributed SQL database for machine data and IoT with standard SQL and elastic scaling.",
     "category":  "Databases",
     "image":  "crate/crate:latest",
-    "logo":  "https://icon.horse/icon/crate.io",
+    "logo":  "https://cdn.simpleicons.org/cratedb",
     "website":  "https://crate.io",
     "docsUrl":  "https://crate.io/docs/crate/reference/en/latest/",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Timezone for container logs and scheduled tasks"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

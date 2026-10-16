@@ -1,7 +1,0 @@
-{
-  "label": "Etat de l'environnement",
-  "description": "Verifie l'accessibilite de l'environnement Docker et les metadonnees du daemon",
-  "config": {
-    "environment": "Environnement"
-  }
-}

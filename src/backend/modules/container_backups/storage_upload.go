@@ -4,31 +4,29 @@
 package container_backups
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/rs/xid"
-	"golang.org/x/oauth2"
+
+	"github.com/therealmcsparrow/mcharbor/core/storageconfig"
+
+	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/plugin/services"
 )
 
 const (
-	backupUploadTimeout          = 2 * time.Hour
-	backupGraphChunkSize   int64 = 40 * 1024 * 1024
-	defaultLocalBackupPath       = "/mnt/backup"
+	backupUploadTimeout    = 2 * time.Hour
+	defaultLocalBackupPath = "/mnt/backup"
 )
 
 type backupStorageDestination struct {
@@ -50,6 +48,9 @@ type backupStorageDestination struct {
 	Token           string
 	AccessKeyID     string
 	SecretAccessKey string
+	// Config is the decrypted per-row plugin config map (snake_case
+	// keys the plugin's ConfigForm wrote).
+	Config map[string]string
 }
 
 func (s *Service) uploadArchiveDestinations(ctx context.Context, plan *BackupPlan, runID string, archive archiveResult) error {
@@ -74,8 +75,8 @@ func (s *Service) uploadArchiveDestinations(ctx context.Context, plan *BackupPla
 	// `failure` if any destination fails, but the scratch copy stays on disk
 	// so the user can still download.
 	type destResult struct {
-		name  string
-		err   error
+		name string
+		err  error
 	}
 	results := make(chan destResult, len(locations))
 	var wg sync.WaitGroup
@@ -141,7 +142,7 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		if ctx.Err() != nil {
-			s.recordDestinationCancelled(runID, destinationID, ctx.Err())
+			s.recordDestinationCancelled(ctx, runID, destinationID, ctx.Err())
 			return ctx.Err()
 		}
 		uploadCtx, cancel := context.WithTimeout(ctx, backupUploadTimeout)
@@ -168,7 +169,7 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 			}
 			select {
 			case <-ctx.Done():
-				s.recordDestinationCancelled(runID, destinationID, ctx.Err())
+				s.recordDestinationCancelled(ctx, runID, destinationID, ctx.Err())
 				return ctx.Err()
 			case <-time.After(backoff):
 			}
@@ -194,7 +195,7 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 	// "context canceled" errors and leaves the destination stuck on
 	// `uploading` even though the run row already says `cancelled`.
 	if parentErr := ctx.Err(); parentErr != nil {
-		s.recordDestinationCancelled(runID, destinationID, parentErr)
+		s.recordDestinationCancelled(ctx, runID, destinationID, parentErr)
 	} else {
 		if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", finalErr); markErr != nil && s.logger != nil {
 			s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
@@ -204,12 +205,12 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 }
 
 // recordDestinationCancelled marks a destination row as failed with a
-// clear "Cancelled by user" message, using a fresh context so the DB
+// clear "Cancelled by user" message, using a cancellation-free copy of ctx so the DB
 // write succeeds even when the run's own context is already cancelled.
 // Without this, the destination row is left in `uploading` state and
 // the UI shows a half-finished backup.
-func (s *Service) recordDestinationCancelled(runID, destinationID string, cause error) {
-	bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (s *Service) recordDestinationCancelled(ctx context.Context, runID, destinationID string, cause error) {
+	bgCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
 	errMsg := fmt.Errorf("cancelled by user: %w", cause)
 	if markErr := s.finishRunDestination(bgCtx, destinationID, "failure", "", errMsg); markErr != nil && s.logger != nil {
@@ -358,7 +359,7 @@ func (s *Service) countMigratedBackupRuns(ctx context.Context, storageLocationID
 func (s *Service) backupMigrationRuns(ctx context.Context, storageLocationID, afterID string) ([]backupMigrationRun, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT r.id, COALESCE(r.plan_id, ''), r.environment_id, r.container_id,
-		       COALESCE(p.container_name, ''), COALESCE(r.archive_path, ''),
+		       COALESCE(NULLIF(r.container_name, ''), p.container_name, ''), COALESCE(r.archive_path, ''),
 		       r.archive_size, r.started_at
 		FROM container_backup_runs r
 		LEFT JOIN container_backup_plans p ON p.id = r.plan_id
@@ -380,7 +381,7 @@ func (s *Service) backupMigrationRuns(ctx context.Context, storageLocationID, af
 	if err != nil {
 		return nil, fmt.Errorf("listing backup runs for local migration: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	runs := []backupMigrationRun{}
 	for rows.Next() {
@@ -406,7 +407,7 @@ func (s *Service) upsertMigratedRunDestination(ctx context.Context, runID string
 	uploadedAt := sql.NullString{String: now, Valid: true}
 	if uploadErr != nil {
 		status = "failure"
-		errorText = "Migration failed. Check McHarbor logs."
+		errorText = joinFailureDetail("Migration to the new storage location failed.", uploadErr)
 		uploadedAt = sql.NullString{}
 	}
 
@@ -515,7 +516,7 @@ func backupMigrationRemotePath(location backupStorageDestination, run backupMigr
 	if location.LocationType == "local" {
 		basePath = localBackupBasePath(basePath)
 	}
-	containerName := safeArchiveName.ReplaceAllString(strings.TrimSpace(run.ContainerName), "-")
+	containerName := services.SlugifyOr(run.ContainerName, shortID(run.ContainerID))
 	if containerName == "" {
 		containerName = shortID(run.ContainerID)
 	}
@@ -547,7 +548,7 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 	}
 	var item backupStorageDestination
 	var basePath, host, username, password, shareName, driveID, tenantID sql.NullString
-	var clientID, clientSecret, refreshToken, token, accessKeyID, secretAccessKey sql.NullString
+	var clientID, clientSecret, refreshToken, token, accessKeyID, secretAccessKey, configJSON sql.NullString
 	var port sql.NullInt64
 	err := s.db.QueryRowContext(ctx, `
 		SELECT id, name, location_type, enabled,
@@ -555,16 +556,16 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 		       COALESCE(username, ''), COALESCE(password, ''), COALESCE(share_name, ''),
 		       COALESCE(drive_id, ''), COALESCE(tenant_id, ''),
 		       client_id, client_secret, refresh_token, token,
-		       access_key_id, secret_access_key
+		       access_key_id, secret_access_key, config
 		FROM storage_locations
 		WHERE id = ?`, id,
 	).Scan(
 		&item.ID, &item.Name, &item.LocationType, &item.Enabled,
 		&basePath, &host, &port, &username, &password, &shareName,
 		&driveID, &tenantID, &clientID, &clientSecret, &refreshToken, &token,
-		&accessKeyID, &secretAccessKey,
+		&accessKeyID, &secretAccessKey, &configJSON,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -579,6 +580,11 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 	item.ShareName = shareName.String
 	item.DriveID = driveID.String
 	item.TenantID = tenantID.String
+	cfg, err := storageconfig.Decode(s.enc, configJSON.String)
+	if err != nil {
+		return nil, err
+	}
+	item.Config = cfg
 	// Decrypt every secret column. We never store plaintext for
 	// anything that could be a credential.
 	if password.Valid && strings.TrimSpace(password.String) != "" {
@@ -717,7 +723,7 @@ func (s *Service) hydrateRunDestinations(ctx context.Context, run *BackupRun) er
 	if err != nil {
 		return fmt.Errorf("listing backup run destinations: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	for rows.Next() {
 		var destination BackupRunDestination
@@ -739,30 +745,37 @@ func (s *Service) hydrateRunDestinations(ctx context.Context, run *BackupRun) er
 	return nil
 }
 
-func (s *Service) uploadBackupToStorage(ctx context.Context, runID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
-	return s.uploadBackupToStorageForDestination(ctx, runID, "", location, archivePath, remotePath, size)
-}
-
 func (s *Service) uploadBackupToStorageForDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
+	// Plugin dispatch first — every plugin-contributed LocationType
+	// (google_drive, onedrive_personal/business when run via the
+	// plugin instead of the built-in switch, sharepoint, future
+	// storage-* plugins) is owned by the runtime, not the host.
+	// The built-in switch below is the fallback for installations
+	// without the matching plugin installed.
+	if adapter, _, ok := s.resolveStorageAdapter(location.LocationType); ok {
+		if uploadCli, ok := adapter.(pluginStorageUploadClient); ok {
+			cfg := s.buildLocationConfigForUpload(&location)
+			stored, err := s.uploadViaStorageAdapter(ctx, uploadCli, cfg, archivePath, remotePath)
+			if err != nil {
+				return "", err
+			}
+			_ = runID // future: per-destination progress callback
+			_ = destinationID
+			return stored, nil
+		}
+	}
+
 	switch location.LocationType {
 	case "local":
 		return s.uploadBackupToLocalWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
-	case "samba":
-		return s.uploadBackupToSambaWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
-	case "onedrive_personal", "onedrive_business", "sharepoint":
-		return s.uploadBackupToOneDriveWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	default:
-		return "", fmt.Errorf("storage location type %s is not supported for container backup upload", location.LocationType)
+		return "", fmt.Errorf("storage location type %s is not supported for container backup upload — install the matching plugin", location.LocationType)
 	}
 }
 
-func (s *Service) uploadBackupToLocal(ctx context.Context, runID string, location backupStorageDestination, archivePath, targetPath string, size int64) (string, error) {
-	return s.uploadBackupToLocalWithDestination(ctx, runID, "", location, archivePath, targetPath, size)
-}
-
-// uploadBackupToLocalWithDestination is uploadBackupToLocal with an
-// attached destination id so the per-destination byte counter can be
-// updated in lockstep with the run-level progress message.
+// uploadBackupToLocalWithDestination copies the archive to a local path and
+// updates the per-destination byte counter in lockstep with the run-level
+// progress message.
 func (s *Service) uploadBackupToLocalWithDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, targetPath string, size int64) (string, error) {
 	targetPath, err := cleanLocalBackupPath(targetPath)
 	if err != nil {
@@ -794,7 +807,7 @@ func (s *Service) copyBackupFileAtomic(ctx context.Context, archivePath, targetP
 	if err != nil {
 		return fmt.Errorf("opening backup archive for local copy: %w", err)
 	}
-	defer source.Close()
+	defer closeLogged(source, "backup archive source")
 
 	tmp, err := os.CreateTemp(targetDir, ".mcharbor-backup-*")
 	if err != nil {
@@ -830,346 +843,6 @@ func (s *Service) copyBackupFileAtomic(ctx context.Context, archivePath, targetP
 	}
 	keepTemp = true
 	return nil
-}
-
-func (s *Service) uploadBackupToOneDrive(ctx context.Context, runID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
-	return s.uploadBackupToOneDriveWithDestination(ctx, runID, "", location, archivePath, remotePath, size)
-}
-
-func (s *Service) uploadBackupToOneDriveWithDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
-	accessToken, err := s.microsoftAccessToken(ctx, location)
-	if err != nil {
-		return "", err
-	}
-	uploadURL, err := s.createMicrosoftUploadSession(ctx, location, remotePath, accessToken)
-	if err != nil {
-		return "", err
-	}
-
-	file, err := os.Open(archivePath)
-	if err != nil {
-		return "", fmt.Errorf("opening backup archive for upload: %w", err)
-	}
-	defer file.Close()
-
-	for start := int64(0); start < size; start += backupGraphChunkSize {
-		chunkSize := backupGraphChunkSize
-		if remaining := size - start; remaining < chunkSize {
-			chunkSize = remaining
-		}
-		if err := uploadMicrosoftChunk(ctx, uploadURL, file, start, chunkSize, size); err != nil {
-			return "", err
-		}
-		uploaded := start + chunkSize
-		s.updateRunProgress(ctx, runID, "uploading", backupUploadProgressMessage(location.Name, uploaded, size))
-		if destinationID != "" {
-			s.updateDestinationProgress(ctx, destinationID, uploaded, size)
-		}
-	}
-	return remotePath, nil
-}
-
-func (s *Service) microsoftAccessToken(ctx context.Context, location backupStorageDestination) (string, error) {
-	if strings.TrimSpace(location.ClientID) == "" || strings.TrimSpace(location.ClientSecret) == "" || strings.TrimSpace(location.RefreshToken) == "" {
-		return "", fmt.Errorf("OneDrive storage location is missing OAuth credentials")
-	}
-	cfg := oauth2.Config{
-		ClientID:     location.ClientID,
-		ClientSecret: location.ClientSecret,
-		Scopes:       microsoftStorageScopes(location.LocationType),
-		Endpoint:     microsoftStorageEndpoint(location),
-	}
-	tokenSource := cfg.TokenSource(ctx, &oauth2.Token{
-		AccessToken:  location.Token,
-		RefreshToken: location.RefreshToken,
-		Expiry:       time.Now().Add(-time.Hour),
-	})
-	token, err := tokenSource.Token()
-	if err != nil {
-		return "", fmt.Errorf("refreshing OneDrive access token: %w", err)
-	}
-	if token.AccessToken == "" {
-		return "", fmt.Errorf("OneDrive access token refresh returned no token")
-	}
-	if err := s.storeMicrosoftTokens(ctx, location.ID, token.AccessToken, token.RefreshToken); err != nil && s.logger != nil {
-		s.logger.Warn("storing refreshed OneDrive token failed", "storage", location.ID, "error", err)
-	}
-	return token.AccessToken, nil
-}
-
-func (s *Service) storeMicrosoftTokens(ctx context.Context, locationID, accessToken, refreshToken string) error {
-	if s.enc == nil {
-		return fmt.Errorf("storage credential encryption service is not configured")
-	}
-	now := time.Now().UTC().Format(time.RFC3339)
-	if strings.TrimSpace(accessToken) != "" {
-		encrypted, err := s.enc.Encrypt(accessToken)
-		if err != nil {
-			return fmt.Errorf("encrypting OneDrive access token: %w", err)
-		}
-		if _, err := s.db.ExecContext(ctx, "UPDATE storage_locations SET token = ?, updated_at = ? WHERE id = ?", encrypted, now, locationID); err != nil {
-			return fmt.Errorf("updating OneDrive access token: %w", err)
-		}
-	}
-	if strings.TrimSpace(refreshToken) != "" {
-		encrypted, err := s.enc.Encrypt(refreshToken)
-		if err != nil {
-			return fmt.Errorf("encrypting OneDrive refresh token: %w", err)
-		}
-		if _, err := s.db.ExecContext(ctx, "UPDATE storage_locations SET refresh_token = ?, updated_at = ? WHERE id = ?", encrypted, now, locationID); err != nil {
-			return fmt.Errorf("updating OneDrive refresh token: %w", err)
-		}
-	}
-	return nil
-}
-
-func (s *Service) createMicrosoftUploadSession(ctx context.Context, location backupStorageDestination, remotePath, accessToken string) (string, error) {
-	endpoints := microsoftUploadSessionEndpoints(location, remotePath)
-	var firstErr error
-	for index, endpoint := range endpoints {
-		uploadURL, err := createMicrosoftUploadSessionAtEndpoint(ctx, endpoint, remotePath, accessToken)
-		if err == nil {
-			if index > 0 && s.logger != nil {
-				s.logger.Warn(
-					"OneDrive configured drive upload failed; using default drive fallback",
-					"storage", location.ID,
-					"name", location.Name,
-					"type", location.LocationType,
-				)
-			}
-			return uploadURL, nil
-		}
-		if firstErr == nil {
-			firstErr = err
-		}
-		if ctx.Err() != nil {
-			return "", err
-		}
-	}
-	if firstErr != nil {
-		return "", firstErr
-	}
-	return "", fmt.Errorf("OneDrive upload session endpoint is not configured")
-}
-
-func createMicrosoftUploadSessionAtEndpoint(ctx context.Context, endpoint, remotePath, accessToken string) (string, error) {
-	body, err := json.Marshal(map[string]any{
-		"item": map[string]any{
-			"@microsoft.graph.conflictBehavior": "replace",
-			"name":                              path.Base(remotePath),
-		},
-	})
-	if err != nil {
-		return "", fmt.Errorf("creating OneDrive upload session payload: %w", err)
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
-	if err != nil {
-		return "", fmt.Errorf("creating OneDrive upload session request: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("creating OneDrive upload session: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("creating OneDrive upload session returned status %d: %s", resp.StatusCode, limitedResponseBody(resp.Body))
-	}
-	var payload struct {
-		UploadURL string `json:"uploadUrl"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return "", fmt.Errorf("decoding OneDrive upload session: %w", err)
-	}
-	if strings.TrimSpace(payload.UploadURL) == "" {
-		return "", fmt.Errorf("OneDrive upload session did not return an upload URL")
-	}
-	return payload.UploadURL, nil
-}
-
-func uploadMicrosoftChunk(ctx context.Context, uploadURL string, file *os.File, start, size, total int64) error {
-	end := start + size - 1
-	reader := io.NewSectionReader(file, start, size)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadURL, reader)
-	if err != nil {
-		return fmt.Errorf("creating OneDrive upload chunk request: %w", err)
-	}
-	req.ContentLength = size
-	req.Header.Set("Content-Length", strconv.FormatInt(size, 10))
-	req.Header.Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, total))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("uploading OneDrive chunk: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusAccepted || (resp.StatusCode >= 200 && resp.StatusCode < 300) {
-		return nil
-	}
-	return fmt.Errorf("uploading OneDrive chunk returned status %d: %s", resp.StatusCode, limitedResponseBody(resp.Body))
-}
-
-func microsoftUploadSessionEndpoints(location backupStorageDestination, remotePath string) []string {
-	encodedPath := microsoftGraphPath(remotePath)
-	if location.LocationType == "onedrive_business" && strings.TrimSpace(location.DriveID) != "" {
-		return []string{
-			microsoftDriveUploadSessionEndpoint(location.DriveID, encodedPath),
-			microsoftDefaultDriveUploadSessionEndpoint(encodedPath),
-		}
-	}
-	if location.LocationType != "onedrive_personal" && strings.TrimSpace(location.DriveID) != "" {
-		return []string{microsoftDriveUploadSessionEndpoint(location.DriveID, encodedPath)}
-	}
-	return []string{microsoftDefaultDriveUploadSessionEndpoint(encodedPath)}
-}
-
-func microsoftDriveUploadSessionEndpoint(driveID, encodedPath string) string {
-	return "https://graph.microsoft.com/v1.0/drives/" + url.PathEscape(strings.TrimSpace(driveID)) + "/root:/" + encodedPath + ":/createUploadSession"
-}
-
-func microsoftDefaultDriveUploadSessionEndpoint(encodedPath string) string {
-	return "https://graph.microsoft.com/v1.0/me/drive/root:/" + encodedPath + ":/createUploadSession"
-}
-
-func microsoftGraphPath(remotePath string) string {
-	clean := strings.Trim(path.Clean("/"+strings.TrimSpace(remotePath)), "/")
-	if clean == "" {
-		return ""
-	}
-	parts := strings.Split(clean, "/")
-	for i, part := range parts {
-		parts[i] = url.PathEscape(part)
-	}
-	return strings.Join(parts, "/")
-}
-
-func microsoftStorageScopes(locationType string) []string {
-	switch locationType {
-	case "onedrive_personal":
-		return []string{"offline_access", "Files.ReadWrite", "User.Read"}
-	case "onedrive_business":
-		return []string{"offline_access", "Files.ReadWrite.All", "User.Read"}
-	case "sharepoint":
-		return []string{"offline_access", "Files.ReadWrite.All", "Sites.ReadWrite.All", "User.Read"}
-	default:
-		return nil
-	}
-}
-
-func microsoftStorageEndpoint(location backupStorageDestination) oauth2.Endpoint {
-	switch location.LocationType {
-	case "onedrive_personal":
-		return oauth2.Endpoint{
-			AuthURL:  "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize",
-			TokenURL: "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-		}
-	case "onedrive_business", "sharepoint":
-		tenant := strings.TrimSpace(location.TenantID)
-		return oauth2.Endpoint{
-			AuthURL:  "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/authorize",
-			TokenURL: "https://login.microsoftonline.com/" + tenant + "/oauth2/v2.0/token",
-		}
-	default:
-		return oauth2.Endpoint{}
-	}
-}
-
-func backupStorageRemotePath(location backupStorageDestination, plan *BackupPlan, runID string, envSegment string) string {
-	basePath := location.BasePath
-	if location.LocationType == "local" {
-		basePath = localBackupBasePath(basePath)
-	}
-	return backupRemotePath(basePath, plan, runID, envSegment)
-}
-
-func backupRemotePath(basePath string, plan *BackupPlan, runID string, envSegment string) string {
-	containerName := safeArchiveName.ReplaceAllString(strings.TrimSpace(plan.ContainerName), "-")
-	if containerName == "" {
-		containerName = shortID(plan.ContainerID)
-	}
-	fileName := time.Now().UTC().Format("20060102T150405Z") + "-" + safeArchiveName.ReplaceAllString(runID, "-") + ".tar"
-	remote := path.Join("/", strings.TrimSpace(basePath), envSegment, "containers", containerName, fileName)
-	return remote
-}
-
-func localBackupBasePath(basePath string) string {
-	basePath = strings.TrimSpace(basePath)
-	if basePath == "" {
-		return defaultLocalBackupPath
-	}
-	clean := filepath.Clean(basePath)
-	if !filepath.IsAbs(clean) {
-		clean = string(filepath.Separator) + clean
-	}
-	return clean
-}
-
-func cleanLocalBackupPath(targetPath string) (string, error) {
-	targetPath = strings.TrimSpace(targetPath)
-	if targetPath == "" {
-		return "", fmt.Errorf("local backup path is empty")
-	}
-	clean := filepath.Clean(targetPath)
-	if !filepath.IsAbs(clean) {
-		return "", fmt.Errorf("local backup path must be absolute")
-	}
-	if filepath.Base(clean) == "." || filepath.Base(clean) == string(filepath.Separator) {
-		return "", fmt.Errorf("local backup target must be a file path")
-	}
-	return clean, nil
-}
-
-func limitedResponseBody(reader io.Reader) string {
-	body, err := io.ReadAll(io.LimitReader(reader, 2048))
-	if err != nil {
-		return "unreadable response body"
-	}
-	text := strings.TrimSpace(string(body))
-	if text == "" {
-		return "empty response body"
-	}
-	return text
-}
-
-func formatBackupUploadBytes(value int64) string {
-	if value <= 0 {
-		return "0 B"
-	}
-	units := []string{"B", "KB", "MB", "GB", "TB"}
-	floatValue := float64(value)
-	index := 0
-	for floatValue >= 1024 && index < len(units)-1 {
-		floatValue /= 1024
-		index++
-	}
-	if index == 0 {
-		return fmt.Sprintf("%d %s", value, units[index])
-	}
-	return fmt.Sprintf("%.1f %s", floatValue, units[index])
-}
-
-func backupUploadProgressMessage(locationName string, uploaded, total int64) string {
-	return fmt.Sprintf(
-		"Uploading backup to %s (%s of %s).",
-		locationName,
-		formatBackupUploadBytes(uploaded),
-		formatBackupUploadBytes(total),
-	)
-}
-
-type backupContextReader struct {
-	ctx    context.Context
-	reader io.Reader
-}
-
-func (r *backupContextReader) Read(p []byte) (int, error) {
-	select {
-	case <-r.ctx.Done():
-		return 0, r.ctx.Err()
-	default:
-		return r.reader.Read(p)
-	}
 }
 
 type backupUploadProgressWriter struct {

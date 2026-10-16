@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Generieke OpenID Connect",
+    "subtitle": "Federeer de McHarbor-login naar elke compatibele OpenID Connect-provider — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP en vele andere. De plugin haalt tijdens runtime <issuer>/.well-known/openid-configuration op om de autorisatie- en token-endpoints te ontdekken en voert daarna de standaard OIDC-autorisatiecodeflow uit.",
+    "registerHint": "Voeg een provider toe via de pagina Instellingen > Beveiliging > Identiteitsproviders van de host en kies \"Generic OpenID Connect\" als provider_type."
+  },
+  "fields": {
+    "issuer_url":    "Issuer-URL",
+    "client_id":     "Client-ID",
+    "client_secret": "Clientgeheim",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "issuer_url":    "De OIDC-issuer-URL — meestal de basis-URL van het gebruikersportaal van je identiteitsprovider (bijvoorbeeld https://login.example.com of https://your-tenant.auth0.com/). De plugin voegt /.well-known/openid-configuration toe om het autorisatie-endpoint, het token-endpoint en de JWKS-URI te ontdekken.",
+    "client_id":     "OAuth-client-ID die je IdP aan de McHarbor-applicatie heeft toegewezen. Kopieer hem uit het applicatie-/clientconfiguratiescherm van je IdP.",
+    "client_secret": "OAuth-clientgeheim uitgegeven door je IdP. Versleuteld opgeslagen (AES-256-GCM).",
+    "scopes":        "Door spaties gescheiden OAuth-scopes. Standaard 'openid profile email', wat de standaard OIDC-identiteitsclaims dekt. Voeg 'groups' toe als je IdP een groepsclaim onder die naam aanbiedt (de groepsmappingwizard van de host leest de door OIDC bevestigde 'groups'-claim)."
+  },
+  "guide": {
+    "title":    "Generic OpenID Connect instellen in McHarbor",
+    "subtitle": "Registreer een vertrouwelijke OAuth-client in je IdP en geef die het recht om basisprofielclaims (en optioneel groepen) te lezen.",
+    "step1": {
+      "title": "Open de applicatieregistratie van je IdP",
+      "body":  "Ga in de beheerconsole van je identiteitsprovider naar Applications (of Clients / API Clients, afhankelijk van het product) en maak een nieuwe vertrouwelijke webapplicatie aan. Kies een naam als \"McHarbor SSO\" en kies het type Web application."
+    },
+    "step2": {
+      "title": "Stel de redirect-URI in",
+      "body":  "Voeg onder Allowed Callback URLs / Redirect URIs de McHarbor-callback-URL toe die op de bewerkpagina van de provider staat. De host voegt /api/identity-providers/callback toe aan je McHarbor-basis-URL — kopieer hem exact om stille auth-code-mismatches te voorkomen."
+    },
+    "step3": {
+      "title": "Maak een clientgeheim aan",
+      "body":  "Genereer een nieuw clientgeheim. Kies een redelijke looptijd (90 of 180 dagen) en zet een herinnering in je agenda. Kopieer de WAARDE van het geheim (niet de geheim-ID) naar het veld Clientgeheim op het providerformulier. McHarbor slaat het AES-256-GCM-versleuteld op."
+    },
+    "step4": {
+      "title": "Kopieer de Client-ID",
+      "body":  "Kopieer vanuit het applicatieoverzicht de Client-ID naar het veld Client-ID op het providerformulier."
+    },
+    "step5": {
+      "title": "Kopieer de Issuer-URL",
+      "body":  "De issuer-URL is de basis-URL van je IdP — dezelfde URL die je gebruikers bezoeken wanneer ze zich aanmelden. Gangbare vormen: https://your-tenant.auth0.com/ (Auth0), https://your-org.okta.com/oauth2/default (Okta), https://keycloak.example.com/realms/master (Keycloak). Plak hem in het veld Issuer-URL. De plugin haalt <issuer>/.well-known/openid-configuration op om de configuratie te valideren."
+    },
+    "step6": {
+      "title": "Test de verbinding",
+      "body":  "Klik terug in McHarbor op \"Verbinding testen\" op het providerformulier. Een groen resultaat betekent dat het OIDC-discovery-document is opgelost en dat de IdP je inloggegevens heeft geaccepteerd. Je kunt de provider nu inschakelen en \"Aanmelden met <je IdP>\" gebruiken op de inlogpagina."
+    }
+  }
+}

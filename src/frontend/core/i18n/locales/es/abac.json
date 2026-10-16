@@ -1,0 +1,215 @@
+{
+  "title": "Políticas RBAC",
+  "description": "Cree y gestione políticas de acceso basadas en atributos para los permisos de McHarbor.",
+  "actions": {
+    "new": "Crear política",
+    "edit": "Editar política",
+    "delete": "Eliminar política",
+    "test": "Probar política",
+    "enable": "Activar política",
+    "disable": "Desactivar política"
+  },
+  "table": {
+    "name": "Nombre",
+    "effect": "Efecto",
+    "resourceType": "Recurso",
+    "priority": "Prioridad",
+    "permissions": "Permisos",
+    "status": "Estado",
+    "actions": "Acciones"
+  },
+  "effect": {
+    "allow": "Permitir",
+    "deny": "Denegar"
+  },
+  "status": {
+    "enabled": "Activada",
+    "disabled": "Desactivada"
+  },
+  "empty": {
+    "title": "Aún no hay políticas",
+    "description": "Cree una política ABAC para conceder o denegar permisos según usuarios, entornos, recursos, etiquetas y hora."
+  },
+  "delete": {
+    "title": "Eliminar política",
+    "description": "¿Eliminar {{name}}?",
+    "warning": "Esto elimina la política de forma permanente y deja de evaluarla en futuras comprobaciones de autorización.",
+    "cancel": "Cancelar",
+    "confirm": "Eliminar"
+  },
+  "editor": {
+    "titleCreate": "Crear política",
+    "titleEdit": "Editar política",
+    "name": "Nombre",
+    "namePlaceholder": "Acceso a contenedores de producción",
+    "resourceType": "Tipo de recurso",
+    "resourceContainer": "Contenedor",
+    "resourceImage": "Imagen",
+    "resourceVolume": "Volumen",
+    "resourceNetwork": "Red",
+    "resourceStack": "Stack",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Explicación opcional para los administradores que revisen esta política",
+    "effect": "Efecto",
+    "effectAllow": "Permitir",
+    "effectDeny": "Denegar",
+    "priority": "Prioridad",
+    "enabled": "Activada",
+    "permissions": "Permisos",
+    "permissionsPlaceholder": "containers.view, containers.exec",
+    "permissionsHint": "Claves de permiso separadas por comas a las que se aplica esta política.",
+    "expression": "Expresión",
+    "cancel": "Cancelar",
+    "save": "Guardar política",
+    "saving": "Guardando...",
+    "anyResource": "Cualquier recurso",
+    "pluginSource": "{{label}} · {{source}}",
+    "permissionsHintSelect": "La política solo se evalúa para los permisos que incluya.",
+    "include": "Incluir",
+    "includeAll": "Incluir todo",
+    "clear": "Borrar",
+    "noResolver": "McHarbor no puede cargar los detalles de este tipo: solo se conocen resource.type y resource.id."
+  },
+  "tester": {
+    "title": "Probar {{name}}",
+    "description": "Ejecute esta expresión de política con atributos de ejemplo antes de activarla.",
+    "expressionLabel": "Expresión",
+    "attributesLabel": "JSON de atributos",
+    "attributesAriaLabel": "JSON de atributos de prueba de la política",
+    "parseError": "JSON no válido: {{error}}",
+    "matched": "Coincide",
+    "denied": "No coincide",
+    "errorBadge": "Error",
+    "close": "Cerrar",
+    "run": "Ejecutar prueba",
+    "running": "Ejecutando...",
+    "userLabelsTitle": "Etiquetas de usuario",
+    "userIdPlaceholder": "ID de usuario",
+    "lookup": "Buscar",
+    "noLabels": "Este usuario no tiene etiquetas.",
+    "applyLabels": "Usar estas etiquetas"
+  },
+  "toast": {
+    "created": "Política creada",
+    "updated": "Política actualizada",
+    "deleted": "Política eliminada"
+  },
+  "reference": {
+    "title": "Referencia de expresiones",
+    "intro": "Una expresión devuelve true cuando la política se aplica. Haga clic en cualquier elemento para insertarlo en el cursor.",
+    "tabs": {
+      "variables": "Variables",
+      "helpers": "Funciones",
+      "examples": "Ejemplos"
+    },
+    "everywhere": "Disponible en todas las políticas",
+    "forType": "Para este tipo de recurso",
+    "insert": "Insertar",
+    "types": {
+      "api_key": "Clave de API",
+      "alert": "Regla de alerta",
+      "communication_channel": "Canal de comunicación",
+      "container": "Contenedor",
+      "backup_plan": "Plan de copia de seguridad de contenedores",
+      "desired_state": "Estado deseado",
+      "environment": "Entorno",
+      "git_repo": "Repositorio Git",
+      "group": "Grupo",
+      "identity_provider": "Proveedor de identidad",
+      "image": "Imagen",
+      "incident": "Incidente",
+      "network": "Red",
+      "registry": "Registro",
+      "role": "Rol",
+      "schedule": "Programación",
+      "secret": "Secreto",
+      "stack": "Stack",
+      "storage_location": "Ubicación de almacenamiento",
+      "user": "Usuario",
+      "volume": "Volumen",
+      "webhook": "Webhook",
+      "workflow": "Flujo de trabajo"
+    },
+    "vars": {
+      "user_id": "ID de usuario de quien llama",
+      "user_username": "Nombre de usuario de quien llama",
+      "user_email": "Dirección de correo electrónico de quien llama",
+      "user_roles": "Nombres de todos los roles que tiene quien llama, directamente o a través de grupos",
+      "user_groups": "Nombres de los grupos de quien llama",
+      "user_labels": "Etiquetas definidas en el usuario; se leen con hasLabel(user.labels, key)",
+      "env_id": "Entorno de la solicitud, vacío para acciones globales",
+      "env_name": "Nombre del entorno",
+      "env_type": "Tipo de conexión: socket, tcp, agent …",
+      "request_method": "Método HTTP",
+      "request_path": "Ruta de la solicitud",
+      "request_ip": "Dirección del cliente, respetando los proxies de confianza",
+      "request_apiKey": "La llamada se realizó con una clave de API",
+      "request_readOnly": "GET, HEAD u OPTIONS",
+      "now_hour": "Hora 0–23, hora del servidor",
+      "now_minute": "Minuto 0–59",
+      "now_weekday": "0 = domingo … 6 = sábado",
+      "now_day": "Día del mes",
+      "now_month": "Mes 1–12",
+      "now_year": "Año",
+      "now_date": "AAAA-MM-DD, UTC",
+      "now_unixTime": "Segundos desde 1970",
+      "resource_type": "El tipo de recurso",
+      "resource_id": "El ID del recurso de la ruta",
+      "resource_name": "Nombre para mostrar",
+      "resource_owner": "ID del usuario propietario, cuando el recurso registra uno",
+      "resource_state": "Estado actual, cuando el recurso tiene uno",
+      "resource_environment": "ID del entorno en el que reside el recurso",
+      "resource_labels": "Etiquetas; se leen con hasLabel(resource.labels, key)",
+      "resource_image": "Referencia de la imagen que ejecuta el contenedor",
+      "resource_attrs_connectionType": "socket, tcp, ssh o agent"
+    },
+    "helpers": {
+      "hasLabel": "El valor de la etiqueta, o una cadena vacía si no existe.",
+      "labelIn": "Indica si la etiqueta es uno de los valores.",
+      "inList": "Indica si el valor es igual a alguno de los elementos.",
+      "hasRole": "Indica si el usuario tiene un rol con este nombre.",
+      "inGroup": "Indica si el usuario es miembro de este grupo.",
+      "startsWith": "Prueba de prefijo.",
+      "endsWith": "Prueba de sufijo.",
+      "contains": "Prueba de subcadena.",
+      "matches": "Prueba de expresión regular (sintaxis RE2, 256 caracteres como máximo).",
+      "inCIDR": "Indica si la IP se encuentra en alguna de las redes.",
+      "between": "Prueba de rango inclusivo.",
+      "isWeekend": "Sábado o domingo, UTC."
+    },
+    "examples": {
+      "prodOnly": {
+        "title": "Solo recursos etiquetados como producción",
+        "expression": "hasLabel(resource.labels, \"env\") == \"prod\""
+      },
+      "officeHours": {
+        "title": "Solo en horario de oficina",
+        "expression": "!isWeekend() && between(now.hour, 8, 18)"
+      },
+      "internalNetwork": {
+        "title": "Solo desde la red interna",
+        "expression": "inCIDR(request.ip, \"10.0.0.0/8\", \"192.168.0.0/16\")"
+      },
+      "noApiKeyWrites": {
+        "title": "Sin cambios mediante claves de API",
+        "expression": "request.apiKey && !request.readOnly"
+      },
+      "teamOwnership": {
+        "title": "El equipo del usuario es propietario del recurso",
+        "expression": "hasLabel(resource.labels, \"team\") == hasLabel(user.labels, \"team\")"
+      },
+      "ownResources": {
+        "title": "Solo recursos que pertenecen al usuario",
+        "expression": "resource.owner == user.id"
+      },
+      "largeVms": {
+        "title": "Las máquinas virtuales grandes requieren el grupo de plataforma",
+        "expression": "resource.attrs.vcpus > 8 && !inGroup(\"platform\")"
+      },
+      "namePattern": {
+        "title": "Nombres que siguen un patrón",
+        "expression": "matches(resource.name, \"^web-[0-9]+$\")"
+      }
+    }
+  }
+}

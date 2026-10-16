@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "SIEM (HTTP)",
+    "description": "Ondertekende JSON via HTTPS naar Splunk HEC, Sentinel, Elastic of een andere JSON-collector."
+  },
+  "settings": {
+    "title": "SIEM (HTTP)",
+    "subtitle": "Ondertekende JSON via HTTPS naar Splunk HEC, Sentinel, Elastic of een andere JSON-collector."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Bezorging van SIEM-logdoorsturing",
+      "description": "Bezorgde en mislukte auditgebeurtenissen per SIEM-forwarder, slagingspercentage, de langste periode zonder geslaagde bezorging en de foutredenen die blijven terugkomen."
+    }
+  },
+  "subject": {
+    "siem-forwarder": "SIEM-forwarder"
+  },
+  "subjectAll": {
+    "siem-forwarder": "Alle SIEM-forwarders"
+  }
+}

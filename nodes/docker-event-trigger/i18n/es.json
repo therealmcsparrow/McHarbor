@@ -12,9 +12,37 @@
     "type": {
       "any": "Cualquiera",
       "container": "Contenedor",
-      "image": "Image",
-      "volume": "Volume",
+      "image": "Imagen",
+      "volume": "Volumen",
       "network": "Red"
+    },
+    "action": {
+      "create": "Crear",
+      "start": "Iniciar",
+      "stop": "Detener",
+      "restart": "Reiniciar",
+      "die": "Finalización",
+      "kill": "Forzar detención",
+      "destroy": "Destruir",
+      "pause": "Pausar",
+      "unpause": "Reanudar",
+      "oom": "Sin memoria",
+      "health_status": "Estado de salud",
+      "rename": "Renombrar",
+      "update": "Actualizar",
+      "exec_create": "Creación de exec",
+      "exec_start": "Inicio de exec",
+      "exec_die": "Finalización de exec",
+      "pull": "Descargar (pull)",
+      "push": "Subir (push)",
+      "delete": "Eliminar",
+      "tag": "Etiquetar",
+      "untag": "Quitar etiqueta",
+      "prune": "Podar",
+      "mount": "Montar",
+      "unmount": "Desmontar",
+      "connect": "Conectar",
+      "disconnect": "Desconectar"
     }
   }
 }

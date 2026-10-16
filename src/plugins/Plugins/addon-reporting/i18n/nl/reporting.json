@@ -1,0 +1,597 @@
+{
+  "nav": {
+    "section": {
+      "reporting": "Rapportage"
+    }
+  },
+  "menu": {
+    "studio": "Rapportstudio",
+    "library": "Rapportbibliotheek",
+    "settings": "Rapportage-instellingen",
+    "schedules": "Rapportschema's"
+  },
+  "page": {
+    "studio": {
+      "title": "Rapportstudio",
+      "subtitle": "Kies een rapport, stel de periode in en genereer. Elk cijfer komt uit de eigen registraties van dit platform."
+    },
+    "library": {
+      "title": "Rapportbibliotheek",
+      "subtitle": "Eerder gegenereerde rapporten. Elk rapport is een vaste momentopname van wat op dat moment gold."
+    },
+    "settings": {
+      "title": "Rapportage-instellingen",
+      "subtitle": "Wat er op de omslag van een geëxporteerd rapport staat, en hoeveel historie bewaard blijft."
+    },
+    "schedules": {
+      "title": "Rapportschema's",
+      "subtitle": "Rapporten die zelf draaien en zichzelf bezorgen"
+    }
+  },
+  "category": {
+    "board": {
+      "label": "Voor de directie",
+      "description": "Eén rapport, drie niveaus: positie en risico voor bestuurders, doelstellingen voor de platformmanager, detail voor wie dienst heeft."
+    },
+    "assurance": {
+      "label": "Zekerheid",
+      "description": "Onderbouwing voor securityreviews, incidentevaluaties, hercertificering van toegang en hersteltests."
+    },
+    "service": {
+      "label": "Serviceprestaties",
+      "description": "Hoe het platform presteert ten opzichte van de doelen, en hoe wijzigingen het bereiken."
+    },
+    "platform": {
+      "label": "Platform",
+      "description": "Het landschap zelf: omgevingen, capaciteit, images en configuratie."
+    },
+    "workload": {
+      "label": "Workload-diepgang",
+      "description": "Eén object tegelijk, diepgaand beantwoord: hoe elke workload zich gedurende de periode gedroeg, niet alleen hoe hij er nu uitziet."
+    },
+    "operations": {
+      "label": "Operaties",
+      "description": "De machinerie die het landschap draaiend houdt — schema's, updates, alerting, agents, netwerken en opslag."
+    },
+    "finance": {
+      "label": "Kosten en efficiëntie",
+      "description": "Wat het landschap verbruikt en wie het verbruikt, als verhoudingen waar de beheerder een prijs aan kan hangen."
+    },
+    "custom": {
+      "label": "Aangepast",
+      "description": "Stel een vraag in je eigen woorden. Een model bepaalt welke gegevens het nodig heeft en schrijft het document."
+    }
+  },
+  "level": {
+    "strategic": "Strategisch",
+    "tactical": "Tactisch",
+    "operational": "Operationeel",
+    "summary": "Samenvatting",
+    "annex": "Bijlage"
+  },
+  "band": {
+    "strong": "Sterk",
+    "stable": "Stabiel",
+    "watch": "Aandacht",
+    "at_risk": "Risico",
+    "critical": "Kritiek",
+    "not_assessed": "Niet beoordeeld"
+  },
+  "option": {
+    "include_detail": "Operationeel detail opnemen",
+    "include_glossary": "Begrippenlijst opnemen",
+    "include_narrative": "Toelichting opnemen",
+    "paper": {
+      "a4": "A4 · 210 × 297 mm",
+      "legal": "Legal · 216 × 356 mm"
+    }
+  },
+  "type": {
+    "change-approvals": {
+      "name": "Wijzigingsgoedkeuringen en bevoorrechte toegang",
+      "description": "Goedkeuringsverzoeken en hun uitkomsten, de regels die ze aanmaken en elke tijdelijke verhoging die in de periode is verleend."
+    },
+    "control-framework-evidence": {
+      "name": "Bewijs voor controleraamwerk",
+      "description": "Bewijs voor een benoemd controleraamwerk: welke controles zijn uitgevoerd en wat ze vonden, welke maatregelen worden onderbouwd in plaats van beoordeeld, en welke McHarbor niet kan zien."
+    },
+    "compliance-posture": {
+      "name": "Compliancepositie",
+      "description": "De compliancepositie van het platform per maatregel, met wat slaagt, wat faalt en wat niet kon worden beoordeeld."
+    },
+    "drift-enforcement": {
+      "name": "Configuratiedrift en handhaving",
+      "description": "Waar de draaiende toestand afwijkt van de gewenste toestand, welke voorstellen zijn goedgekeurd en wat handhaving zelf heeft gewijzigd."
+    },
+    "ha-posture": {
+      "name": "Hoge beschikbaarheid",
+      "description": "Clusternodes, heartbeats, leiderschap en failovergeschiedenis, en of een standby klaarstaat om over te nemen."
+    },
+    "incident-narrative": {
+      "name": "Incidentverhaalreview",
+      "description": "Incidenten die in de periode zijn geopend, hun bevindingen en bronnen, hoe lang elk duurde om te verklaren en op te lossen, en wat blijft terugkomen."
+    },
+    "instance-dr-readiness": {
+      "name": "Gereedheid voor instantieherstel na een ramp",
+      "description": "Back-ups van McHarbor zelf: geschiedenis, schema's, de leeftijd van de laatste goede en elke herstelpoging."
+    },
+    "itsm-integration": {
+      "name": "ITSM-integratie",
+      "description": "Tickets die zijn aangemaakt vanuit alerts en incidenten, hoe ze zijn opgelost en welke kanalen niet konden synchroniseren."
+    },
+    "runbooks": {
+      "name": "Runbooks",
+      "description": "De procedures die deze instantie bevat: waaraan elke is gekoppeld, de stappen op volgorde, of hij onbewaakt draait en voor welke alertcondities geen runbook bestaat. Beperk het tot één runbook om dat runbook los af te drukken."
+    },
+    "secrets-hygiene": {
+      "name": "Geheimenhygiëne",
+      "description": "Leeftijd en rotatie van geheimen, geheimen waar niets naar verwijst en hoe ver een gelekt geheim zou reiken."
+    },
+    "webhook-delivery": {
+      "name": "Webhook-bezorging",
+      "description": "Elke uitgaande webhook, het bezorgsucces, nieuwe pogingen en de endpoints die blijven falen."
+    },
+    "workflow-automation": {
+      "name": "Workflowautomatisering",
+      "description": "Workflowuitvoeringen in de periode, hun slagingspercentage, de mislukkingen en de triggers die het vaakst afgaan."
+    },
+    "access-review": {
+      "name": "Toegang & identiteit",
+      "description": "Accounts, rollen, groepen en API-sleutels, klaargezet voor periodieke hercertificering."
+    },
+    "agent-fleet": {
+      "name": "Remote-agentvloot",
+      "description": "Verbindingsstatus, versiespreiding en verouderdheid van agents over alle externe hosts."
+    },
+    "alerting-coverage": {
+      "name": "Alertingdekking",
+      "description": "Welke workloads een alertregel bewaakt — en, op basis van de gemeten geschiedenis, welke storingen niemand hebben gemeld."
+    },
+    "audit-assurance": {
+      "name": "Zekerheid over het auditspoor",
+      "description": "De volledigheid van het auditspoor zelf: spreiding van ernst, wat het dekt en hiaten in de vastlegging."
+    },
+    "automation-schedules": {
+      "name": "Geplande taken en automatisering",
+      "description": "Elk schema, elk updatebeleid en elk back-upplan, wanneer elk voor het laatst draaide en welke nog nooit hebben gedraaid."
+    },
+    "availability-slo": {
+      "name": "Beschikbaarheid & serviceniveaus",
+      "description": "Draaiende en gezonde workloads, afgezet tegen het doel, met de blinde vlekken expliciet benoemd."
+    },
+    "backup-recovery": {
+      "name": "Back-up & herstel",
+      "description": "Dekking van draaiende workloads, slagingspercentage, en hoe oud de nieuwste bruikbare back-up is."
+    },
+    "capacity-utilisation": {
+      "name": "Capaciteit & benutting",
+      "description": "Marge op de krapste van CPU en geheugen, opslagverbruik, en wat vandaag vrijgemaakt kan worden."
+    },
+    "change-delivery": {
+      "name": "Wijzigingen & levering",
+      "description": "Deploymentfrequentie en foutpercentage van wijzigingen, ingedeeld volgens de DORA-benchmarks."
+    },
+    "container-service": {
+      "name": "Containerservicerapport",
+      "description": "Eén rij per workload met beschikbaarheid, image, stack, back-updekking en updateautomatisering bij elkaar."
+    },
+    "cost-allocation": {
+      "name": "Kostentoerekening en showback",
+      "description": "Verbruik toegerekend aan de stack die het veroorzaakte, als aandelen in plaats van valuta: het platform kent geen tarievenkaart."
+    },
+    "credential-hygiene": {
+      "name": "Inloggegevenshygiëne",
+      "description": "Leeftijd, verloop, reikwijdte en laatste gebruik van API-sleutels — een intrekkingslijst in plaats van een inventaris."
+    },
+    "data-protection-rpo": {
+      "name": "Gegevensbescherming en RPO",
+      "description": "Herstelpunt ten opzichte van gangbare doelstellingen, dekking van draaiende workloads en wat nog nooit is geback-upt."
+    },
+    "environment-comparison": {
+      "name": "Omgevingsvergelijking",
+      "description": "Dezelfde metingen voor elke omgeving naast elkaar, zodat versiedrift en verouderde agents zichtbaar zijn."
+    },
+    "environment-health": {
+      "name": "Conditie van omgevingen",
+      "description": "Toestand van omgeving, engine, agent en resources op elke aangesloten host."
+    },
+    "executive-overview": {
+      "name": "Directieoverzicht platform",
+      "description": "Het kernrapport voor de directie: positie op zes domeinen, risicoregister, prestaties tegen doel, en het detail daarachter."
+    },
+    "healthcheck-quality": {
+      "name": "Kwaliteit van gezondheidscontroles",
+      "description": "Of gezondheidscontroles aanwezig zijn, slagen en snel genoeg zijn — en welke draaiende workloads er helemaal geen hebben."
+    },
+    "image-supply-chain": {
+      "name": "Images & toeleveringsketen",
+      "description": "Herkomst en ouderdom van images, registries, update-automatisering en beoordeelde blootstelling."
+    },
+    "incident-problem": {
+      "name": "Incident- en probleemevaluatie",
+      "description": "Wat er misging in de periode, hoe snel het herstelde, en welke workloads steeds terugkeren."
+    },
+    "network-connectivity": {
+      "name": "Netwerk en connectiviteit",
+      "description": "Netwerken, drivers en koppelingen, zodat de impact van een gecompromitteerde workload kan worden afgelezen in plaats van geraden."
+    },
+    "operational-readiness": {
+      "name": "Operationele gereedheid",
+      "description": "Elke workload beoordeeld op vijf basisonderdelen: gezondheidscontrole, beschikbaarheid, back-up, updatebeleid en een gescande image."
+    },
+    "patch-currency": {
+      "name": "Patch- en updateactualiteit",
+      "description": "Hoe ver het imagelandschap is afgedreven, hoeveel automatisering dat dichtloopt en welke workloads door geen enkel beleid worden gedekt."
+    },
+    "permission-matrix": {
+      "name": "Rollen- en machtigingenmatrix",
+      "description": "Rollen gerangschikt op breedte van toegang, wie elke rol heeft en welke rollen niemand heeft."
+    },
+    "platform-inventory": {
+      "name": "Platforminventarisatie",
+      "description": "De versie van McHarbor zelf, omgevingen, agents, plugins en geplande taken."
+    },
+    "resource-efficiency": {
+      "name": "Resource-efficiëntie",
+      "description": "Speelruimte in beide richtingen — te weinig is een veerkrachtprobleem, te veel een efficiëntieprobleem — en wat kan worden teruggewonnen."
+    },
+    "security-compliance": {
+      "name": "Beveiliging & compliance",
+      "description": "Kwetsbaarheden per ernst, scandekking en -actualiteit, toegangsbeheersing en auditzekerheid."
+    },
+    "stability-flapping": {
+      "name": "Stabiliteit en flapping",
+      "description": "Workloads die steeds van status veranderen. Scheidt veel korte overgangen van weinig lange storingen, omdat de oorzaken verschillen."
+    },
+    "stack-portfolio": {
+      "name": "Stack- en applicatieportfolio",
+      "description": "Het record per container opgeteld tot op stackniveau, de eenheid waarvoor een team meestal verantwoordelijk is."
+    },
+    "uptime-availability": {
+      "name": "Uptime- en beschikbaarheidsgeschiedenis",
+      "description": "Gemeten uptime per workload, storingen, MTTR en foutbudget, uit de eigen 30-secondengeschiedenis van het platform in plaats van uit de huidige toestand."
+    },
+    "user-activity": {
+      "name": "Gebruikersactiviteit",
+      "description": "Wie het platform bediende, hoeveel, wat ze hebben gewijzigd en hoeveel er buiten werktijd gebeurde."
+    },
+    "volume-data-estate": {
+      "name": "Volumes en datalandschap",
+      "description": "Persistente data: hoeveel er is, wat eigenaar is, wat verweesd is en of iets het kan terugbrengen."
+    },
+    "workload-inventory": {
+      "name": "Workload-inventaris",
+      "description": "Een momentopname van elke workload op elk platform dat antwoordt, met de Docker-images, volumes en netwerken erachter, voor wijzigingsbeheer en overdracht."
+    },
+    "ad-hoc": {
+      "name": "Door AI gegenereerd rapport",
+      "description": "Beschrijf de vraag in je eigen woorden en een model schrijft het document. Het kiest zelf de gegevens en elk cijfer dat het gebruikt wordt gecontroleerd tegen de eigen registraties van het platform voordat het rapport wordt uitgegeven."
+    }
+  },
+  "studio": {
+    "searchPlaceholder": "Rapporten zoeken",
+    "searchEmptyTitle": "Geen rapport gevonden",
+    "searchEmptyDescription": "Geen rapporttype komt overeen met die tekst. Wis de zoekopdracht om de hele catalogus te zien.",
+    "searchCount": "{{shown}} van {{total}}",
+    "configure": "Instellen",
+    "period": "Periode",
+    "environment": "Omgeving",
+    "customRange": "Aangepaste periode",
+    "from": "Van",
+    "to": "Tot",
+    "rangeInvalid": "De begindatum moet op of vóór de einddatum liggen.",
+    "sections": "Secties",
+    "options": "Opties",
+    "generate": "Rapport genereren",
+    "generating": "Gegevens verzamelen…",
+    "lastDays": "Laatste {{count}} dagen",
+    "pointInTime": "Momentopname",
+    "pointInTimeHint": "Dit rapport beschrijft het heden en heeft daarom geen periode.",
+    "scope": "Beperkt tot {{environment}}. Het rapport bevat uitsluitend gegevens die u al kunt zien.",
+    "scopeAll": "Beperkt tot alle omgevingen die u kunt zien.",
+    "error": "Het rapport kon niet worden gegenereerd. Controleer of de omgeving bereikbaar is en probeer opnieuw.",
+    "empty": {
+      "title": "Geen rapporttypen beschikbaar",
+      "description": "De rapportagecatalogus kon niet worden geladen. Controleer of de plugin is ingeschakeld en herlaad de pagina."
+    },
+    "subject": "Bereik",
+    "subjectKind": "Bereik op",
+    "subjectHint": "Beperk het rapport tot één object, of laat het alles omvatten.",
+    "subjectEmpty": "Niets om op te beperken",
+    "scopeSubject": "Beperkt tot {{subject}}. Het rapport bevat alleen gegevens die u al kunt zien.",
+    "environmentAll": "Alle omgevingen",
+    "aiAuthored": "Geschreven door een AI-model",
+    "prompt": "Wat moet het rapport behandelen?",
+    "promptPlaceholder": "bijv. welke images hebben kritieke kwetsbaarheden en draaien nog in productie?",
+    "aiConnection": "AI-verbinding",
+    "aiConnectionHint": "Er is geen AI-provider geconfigureerd of beschikbaar op deze host. Vraag een beheerder er een in te stellen in de AI-instellingen — tot die tijd gebruikt het verhaal standaardformuleringen.",
+    "aiConnectionRequired": "Er is geen AI-provider geconfigureerd of beschikbaar op deze host. Vraag een beheerder er een in te stellen in de AI-instellingen voordat je dit rapport genereert."
+  },
+  "library": {
+    "count": "{{count}} rapport",
+    "count_other": "{{count}} rapporten",
+    "allTypes": "Alle rapporttypen",
+    "filterByType": "Filteren op rapporttype",
+    "searchPlaceholder": "Rapporten zoeken",
+    "noMatches": "Geen rapporten komen overeen met deze filters",
+    "page": "Pagina {{page}} van {{total}}",
+    "retired": "Rapporttype buiten gebruik",
+    "retiredHint": "Dit rapporttype is vervangen door een platformoverschrijdend rapport. Het document blijft precies zoals het is gegenereerd.",
+    "col": {
+      "report": "Rapport",
+      "period": "Periode",
+      "score": "Positie",
+      "generated": "Gegenereerd",
+      "actions": "Acties"
+    },
+    "delete": {
+      "title": "Dit rapport verwijderen?",
+      "description": "“{{title}}” wordt definitief verwijderd. Rapporten zijn momentopnamen en kunnen niet identiek opnieuw worden gemaakt."
+    },
+    "empty": {
+      "title": "Nog geen rapporten",
+      "description": "Genereer uw eerste rapport in de Rapportstudio. Dat kost enkele seconden en leest alleen wat u al mag zien."
+    }
+  },
+  "viewer": {
+    "sections": "Rapportsecties",
+    "generatedBy": "Opgesteld door {{user}}",
+    "error": "Dit rapport kon niet worden geladen.",
+    "scope": "Bereik: {{subject}}"
+  },
+  "scorecard": {
+    "overall": "Totale positie"
+  },
+  "settings": {
+    "saving": "Opslaan…",
+    "saved": "Opgeslagen",
+    "error": "Instellingen konden niet worden opgeslagen.",
+    "organisation": {
+      "label": "Naam organisatie",
+      "help": "Wordt boven de titel op de omslag van elk geëxporteerd rapport afgedrukt."
+    },
+    "classification": {
+      "label": "Rubricering",
+      "help": "Zichtbaar op de omslag en in de voettekst van elke pagina. Bijvoorbeeld: Intern, Vertrouwelijk, Beperkt."
+    },
+    "logo": {
+      "label": "Rapportlogo",
+      "help": "Het woordmerk dat bovenaan de voorpagina en aan het begin van elke Word-export wordt afgedrukt. Laat het leeg om het McHarbor-woordmerk te gebruiken."
+    },
+    "icon": {
+      "label": "Rapportpictogram",
+      "help": "Het kleine merkteken dat in de lopende kop van elke PDF-pagina wordt herhaald. Laat het leeg om het McHarbor-merkteken te gebruiken."
+    },
+    "defaultDays": {
+      "label": "Standaardperiode",
+      "help": "Het aantal dagen dat een rapport beslaat wanneer het type geen eigen periode voorschrijft."
+    },
+    "retain": {
+      "label": "Aantal te bewaren rapporten",
+      "help": "Oudere rapporten worden verwijderd zodra dit aantal is bereikt. Elk rapport bewaart het volledige document."
+    },
+    "ai": {
+      "label": "AI-toelichting",
+      "help": "Laat de ingestelde AI-provider de formulering van de openingsalinea verbeteren. Cijfers mogen nooit worden toegevoegd, weggelaten of geherformuleerd; bij een fout wordt de standaardtekst gebruikt. Standaard uit, zodat rapporten reproduceerbaar blijven."
+    },
+    "paper": {
+      "label": "Paginaformaat",
+      "help": "Het papierformaat waarop elke PDF- en Word-export wordt opgemaakt. De marges zijn 1,27 cm aan alle vier de zijden, welk formaat je ook kiest."
+    },
+    "mark": {
+      "upload": "Uploaden",
+      "reset": "Standaard gebruiken",
+      "default": "Het applicatielogo uit Instellingen → Aanpassing wordt gebruikt.",
+      "hint": "PNG of SVG. Een SVG wordt bij het kiezen omgezet naar PNG, omdat de PDF- en Word-schrijvers afbeeldingen insluiten in plaats van vectorafbeeldingen.",
+      "badImage": "Dat bestand kon niet als afbeelding worden gelezen.",
+      "tooLarge": "Die afbeelding is te groot. Houd hem onder 2 MB en 4000 pixels per zijde."
+    },
+    "aiReports": {
+      "label": "Door AI geschreven rapporten",
+      "help": "Laat het rapporttype voor door AI gegenereerde rapporten details van het landschap — container-, image-, gebruikers- en gebeurtenisrecords — naar de geconfigureerde AI-provider sturen zodat een model het document kan schrijven. Standaard uit."
+    }
+  },
+  "action": {
+    "back": "Terug",
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "delete": "Verwijderen",
+    "save": "Wijzigingen opslaan",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "exportPdf": "PDF exporteren",
+    "exportDocx": "Word exporteren"
+  },
+  "error": {
+    "reporting": {
+      "invalid_request": "Dit verzoek kon niet worden begrepen.",
+      "unknown_type": "Dit rapporttype bestaat niet.",
+      "not_found": "Rapport niet gevonden.",
+      "generate_failed": "Het rapport kon niet worden gegenereerd.",
+      "export_failed": "De export kon niet worden gemaakt.",
+      "unsupported_format": "Dit exportformaat wordt niet ondersteund.",
+      "internal": "Er is iets misgegaan. Raadpleeg de serverlogboeken voor details.",
+      "schedule_no_targets": "Een schema moet ergens naartoe leveren. Kies minstens één kanaal of opslaglocatie.",
+      "schedule_bad_target": "Die bezorgbestemming is geen communicatiekanaal of opslaglocatie.",
+      "schedule_bad_cron": "Die schema-expressie kon niet worden gelezen. Er zijn vijf velden nodig, bijvoorbeeld 0 7 * * 1.",
+      "schedule_running": "Dat schema draait al.",
+      "delivery_failed": "bezorging mislukt",
+      "delivery_unavailable": "bezorging is niet beschikbaar op deze installatie",
+      "delivery_target_gone": "de bestemming bestaat niet meer",
+      "schedule_bad_path": "Die bestemmingsmap kan niet worden gebruikt. Geef een relatieve map op zonder beginnende slash, zonder stationsletter en zonder “..”-segment.",
+      "schedule_bad_filename": "Die bestandsnaam kan niet worden gebruikt. Geef een gewone naam op zonder mapscheidingsteken, zonder “..” en zonder extensie, en gebruik alleen de tokens die het veld noemt.",
+      "schedule_bad_recipient": "Die alternatieve ontvanger kan niet worden gebruikt. Geef hem op één regel op en alleen voor een kanaal dat er een accepteert.",
+      "ai_disabled": "AI-rapporten zijn uitgeschakeld. Een beheerder kan ze inschakelen in de Reporting-instellingen.",
+      "ai_unavailable": "Er is geen AI-provider geconfigureerd of beschikbaar op deze host. Vraag een beheerder er een in te stellen in de AI-instellingen.",
+      "ai_connection_unavailable": "De geselecteerde AI-verbinding is niet beschikbaar. Kies een andere verbinding en probeer het opnieuw.",
+      "prompt_required": "Beschrijf wat het rapport moet behandelen.",
+      "ai_plan_failed": "Het model kon niet bepalen welke gegevens deze vraag nodig heeft. Probeer het anders te formuleren.",
+      "ai_author_failed": "Het model kon uit deze gegevens geen bruikbaar rapport maken."
+    }
+  },
+  "findings": {
+    "recommended": "Aanbevolen:",
+    "owner": "Eigenaar: {{owner}}"
+  },
+  "chart": {
+    "aria": "Grafiek"
+  },
+  "subject": {
+    "container": "Container",
+    "stack": "Stack",
+    "image": "Image",
+    "volume": "Volume",
+    "network": "Netwerk",
+    "user": "Gebruiker",
+    "group": "Gebruikersgroep"
+  },
+  "subjectAll": {
+    "container": "Alle containers",
+    "stack": "Alle stacks",
+    "image": "Alle images",
+    "volume": "Alle volumes",
+    "network": "Alle netwerken",
+    "user": "Alle gebruikers",
+    "group": "Alle gebruikersgroepen"
+  },
+  "progress": {
+    "title": "Rapport genereren",
+    "description": "De eigen registraties van dit platform worden gelezen. Er wordt niets opgeslagen tot het document klaar is.",
+    "sources": "{{done}} van {{total}} bronnen gelezen",
+    "failed": "Het rapport kon niet worden gegenereerd. Controleer of de omgeving bereikbaar is en probeer het opnieuw.",
+    "stage": {
+      "queued": "In wachtrij",
+      "collect": "Gegevens verzamelen",
+      "analyze": "Analyseren",
+      "build": "Document schrijven",
+      "store": "Opslaan",
+      "done": "Klaar"
+    }
+  },
+  "schedule": {
+    "enable": "Dit rapport plannen",
+    "enableHint": "Laat het terugkerend draaien en automatisch bezorgen, met de instellingen hierboven.",
+    "name": "Schemanaam",
+    "format": "Bezorgd als",
+    "formatPdf": "PDF",
+    "formatDocx": "Word (.docx)",
+    "frequency": "Draait",
+    "frequencyDaily": "Elke dag",
+    "frequencyWeekly": "Elke week",
+    "frequencyMonthly": "Elke maand",
+    "frequencyCustom": "Aangepast schema",
+    "time": "Om",
+    "weekdayLabel": "Op",
+    "dayOfMonth": "Op dag",
+    "cron": "Schema-expressie",
+    "cronPreview": "Draait op {{cron}} (UTC).",
+    "cronInvalid": "Een schema-expressie heeft vijf velden nodig, bijvoorbeeld 0 7 * * 1.",
+    "targets": "Bezorgen aan",
+    "targetsHint": "Minstens één bestemming is vereist. Een schema dat nergens naartoe bezorgt levert een rapport op dat niemand leest.",
+    "targetsLoading": "Bestemmingen laden…",
+    "targetsEmpty": "Er zijn nog geen communicatiekanalen of opslaglocaties geconfigureerd. Voeg er een toe voordat je een rapport plant.",
+    "linkOnly": "Alleen link",
+    "libraryNotice": "Geplande uitvoeringen worden niet opgeslagen in de Rapportbibliotheek. Alleen de meest recente uitvoering van elk schema wordt bewaard.",
+    "incomplete": "Geef het schema een naam, een geldige expressie en minstens één bestemming.",
+    "create": "Schema aanmaken",
+    "weekday": {
+      "0": "Zondag",
+      "1": "Maandag",
+      "2": "Dinsdag",
+      "3": "Woensdag",
+      "4": "Donderdag",
+      "5": "Vrijdag",
+      "6": "Zaterdag"
+    },
+    "path": "Bestemmingsmap",
+    "pathHint": "Relatief ten opzichte van het eigen basispad van de locatie. Laat leeg voor de standaardmap die hierboven staat.",
+    "pathInvalid": "Gebruik een relatieve map — geen beginnende slash, geen stationsletter en geen “..”.",
+    "filename": "Bestandsnaam",
+    "filenamePlaceholder": "{name}-{date}",
+    "filenameHint": "Tokens: {{tokens}}. De extensie wordt automatisch toegevoegd, zodat het bestand altijd overeenkomt met het formaat waarin het is gemaakt.",
+    "filenameInvalid": "Gebruik een gewone bestandsnaam — geen mapscheidingsteken, geen “..” en geen extensie. Accolades moeten een van de hierboven genoemde tokens zijn.",
+    "recipient": "In plaats daarvan sturen naar",
+    "recipientPlaceholder": "Laat leeg voor de eigen bestemming van het kanaal",
+    "recipientHint": "Bezorgt dit schema ergens anders dan op de geconfigureerde bestemming van het kanaal. Het kanaal zelf blijft ongewijzigd.",
+    "recipientHintMultiple": "Bezorgt dit schema ergens anders dan op de geconfigureerde bestemming van het kanaal, kommagescheiden voor meerdere. Het kanaal zelf blijft ongewijzigd.",
+    "recipientInvalid": "Die bestemming kan niet worden gebruikt. Geef hem op één regel op, zonder regeleinden."
+  },
+  "schedules": {
+    "searchPlaceholder": "Schema's zoeken…",
+    "noMatches": "Geen schema's komen overeen met die zoekopdracht.",
+    "nextRun": "Volgende: {{when}}",
+    "disabled": "Uitgeschakeld",
+    "neverRun": "Nog niet gedraaid",
+    "runNow": "Nu uitvoeren",
+    "targetMissing": "Deze bestemming bestaat niet meer.",
+    "col": {
+      "schedule": "Schema",
+      "cadence": "Draait",
+      "targets": "Bezorgt aan",
+      "lastRun": "Laatste uitvoering",
+      "actions": "Acties"
+    },
+    "status": {
+      "running": "Bezig",
+      "success": "Bezorgd",
+      "partial": "Deels bezorgd",
+      "failed": "Mislukt"
+    },
+    "delete": {
+      "title": "Dit schema verwijderen?",
+      "description": "“{{name}}” stopt met draaien en de meest recente uitvoering wordt verwijderd. Rapporten die al zijn bezorgd blijven ongemoeid."
+    },
+    "empty": {
+      "title": "Geen geplande rapporten",
+      "description": "Open Report Studio, kies een rapport en vink “Dit rapport plannen” aan zodat het zichzelf uitvoert en bezorgt."
+    },
+    "run": {
+      "ranAt": "Laatste uitvoering {{when}}",
+      "loading": "De laatste uitvoering laden…",
+      "error": "De laatste uitvoering kon niet worden geladen.",
+      "delivery": "Bezorging",
+      "noDelivery": "Deze uitvoering heeft nergens naartoe bezorgd.",
+      "attached": "document bijgevoegd",
+      "linkOnly": "bericht verzonden, document niet bijgevoegd",
+      "failed": "bezorging mislukt"
+    },
+    "edit": {
+      "action": "Schema bewerken",
+      "title": "Schema bewerken",
+      "enabled": "Schema is actief",
+      "period": "Rapportageperiode (dagen)",
+      "periodHint": "Elke uitvoering beslaat zoveel dagen, eindigend op het moment van uitvoeren.",
+      "hint": "Het rapporttype kan niet worden gewijzigd. Maak een nieuw schema aan om over iets anders te rapporteren.",
+      "error": "Het schema kon niet worden opgeslagen."
+    }
+  },
+  "widgets": {
+    "recentReports": {
+      "label": "Recente rapporten",
+      "description": "De nieuwste documenten in de bibliotheek met hun totaalscore",
+      "title": "Recente rapporten",
+      "inLibrary": "{{count}} in bibliotheek",
+      "none": "Nog geen rapporten",
+      "noneHint": "Genereer er een vanuit de Report Studio"
+    },
+    "reportSchedules": {
+      "label": "Rapportschema's",
+      "description": "Elk schema met de laatste uitkomst en de volgende run, fouten eerst",
+      "title": "Schema's",
+      "failing": "{{count}} mislukt",
+      "enabled": "{{count}} actief",
+      "none": "Geen schema's",
+      "noneHint": "Plan een rapport om het periodiek te laten bezorgen",
+      "lastRun": "Laatste run {{when}}",
+      "neverRan": "Nooit uitgevoerd",
+      "next": "volgende {{when}}",
+      "paused": "Gepauzeerd"
+    },
+    "common": {
+      "loading": "Rapporten lezen…",
+      "unavailable": "Rapportage niet beschikbaar",
+      "more": "{{count}} meer",
+      "justNow": "zojuist"
+    }
+  }
+}

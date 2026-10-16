@@ -1,0 +1,41 @@
+{
+    "slug":  "conduit",
+    "name":  "Conduit",
+    "description":  "Lightweight single-binary Matrix homeserver aimed at small homeserver deployments.",
+    "category":  "Communications",
+    "image":  "matrixconduit/matrix-conduit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/matrix.png",
+    "website":  "https://conduit.rs",
+    "docsUrl":  "https://conduit.rs/deploying/docker.html",
+    "ports":  [
+                  {
+                      "host":  8032,
+                      "container":  6167,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/conduit/data",
+                        "container":  "/var/lib/matrix-conduit"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CONDUIT_SERVER_NAME",
+                        "default":  "matrix.example.com",
+                        "description":  "Matrix server name clients federate against"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

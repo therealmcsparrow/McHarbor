@@ -1,0 +1,20 @@
+{
+  "envId": "env-1",
+  "args": [
+    {
+      "poolId": "PoolID",
+      "name": "Name",
+      "backend": "Backend",
+      "target": "Target",
+      "force": true
+    }
+  ],
+  "wire": {
+    "operation": "create",
+    "envId": "env-1",
+    "poolId": "PoolID",
+    "name": "Name",
+    "backend": "Backend",
+    "target": "Target"
+  }
+}

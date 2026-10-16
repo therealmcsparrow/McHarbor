@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "SIEM (HTTP)",
+    "description": "Signed JSON over HTTPS to Splunk HEC, Sentinel, Elastic, or any JSON collector."
+  },
+  "settings": {
+    "title": "SIEM (HTTP)",
+    "subtitle": "Signed JSON over HTTPS to Splunk HEC, Sentinel, Elastic, or any JSON collector."
+  },
+  "reports": {
+    "delivery": {
+      "label": "SIEM log forwarding delivery",
+      "description": "Delivered and failed audit events per SIEM forwarder, success rate, the longest stretch without a successful delivery, and the failure reasons that keep recurring."
+    }
+  },
+  "subject": {
+    "siem-forwarder": "SIEM forwarder"
+  },
+  "subjectAll": {
+    "siem-forwarder": "All SIEM forwarders"
+  }
+}

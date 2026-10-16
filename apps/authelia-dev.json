@@ -1,0 +1,35 @@
+{
+    "slug":  "authelia-dev",
+    "name":  "Authelia (Dev)",
+    "description":  "Dev channel build of Authelia. Authentication and authorization server providing 2FA and SSO.",
+    "category":  "Security",
+    "image":  "authelia/authelia:develop",
+    "logo":  "https://www.authelia.com/images/branding/logo-cropped.png",
+    "website":  "https://www.authelia.com",
+    "docsUrl":  "https://www.authelia.com/configuration/prologue/introduction/",
+    "ports":  [
+                  {
+                      "host":  10091,
+                      "container":  9091,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/authelia-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

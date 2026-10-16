@@ -3,21 +3,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconBrandSlack,
-  IconBrandDiscord,
-  IconBrandTeams,
-  IconBell,
-  IconSend2,
-  IconBrandTelegram,
-  IconMessageCircle,
-  IconBrandWhatsapp,
-  IconTrash,
-  IconPencil,
-  IconSend,
-  IconStar,
-  IconStarFilled,
-} from '@tabler/icons-react';
+import { IconTrash, IconPencil, IconSend, IconStar, IconStarFilled, IconPuzzle } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Badge } from '@resources/components/ui/Badge';
 import { Switch } from '@resources/components/ui/Switch';
@@ -27,8 +13,10 @@ import {
   useDeleteChannel,
   useSetDefaultChannel,
   type CommunicationChannel,
-  type ChannelType,
 } from '../hooks/useNotificationChannels';
+import { PluginAssetImage } from '@core/plugins/PluginAssetImage';
+import { useNotificationAdapters } from '../hooks/useCommunicationAdapters';
+import { PERM } from '@core/auth/permissionKeys';
 
 type ChannelCardProps = {
   channel: CommunicationChannel;
@@ -36,17 +24,20 @@ type ChannelCardProps = {
   onTest: (channel: CommunicationChannel) => void;
 };
 
-const TYPE_CONFIG: Record<ChannelType, { icon: typeof IconBrandSlack; color: string; label: string }> = {
-  slack: { icon: IconBrandSlack, color: 'text-[#4A154B]', label: 'Slack' },
-  discord: { icon: IconBrandDiscord, color: 'text-[#5865F2]', label: 'Discord' },
-  teams: { icon: IconBrandTeams, color: 'text-[#6264A7]', label: 'Teams' },
-  gotify: { icon: IconBell, color: 'text-primary', label: 'Gotify' },
-  ntfy: { icon: IconSend2, color: 'text-orange-400', label: 'ntfy' },
-  telegram: { icon: IconBrandTelegram, color: 'text-[#26A5E4]', label: 'Telegram' },
-  signal: { icon: IconMessageCircle, color: 'text-[#3A76F0]', label: 'Signal' },
-  whatsapp: { icon: IconBrandWhatsapp, color: 'text-[#25D366]', label: 'WhatsApp' },
-};
+// The icon and label a channel renders come from the owning plugin's
+// adapter spec (its icons/plugin.svg and DisplayName) so a channel looks
+// the same in the list as it did in the "Add Communication" picker. The
+// host knows no channel brands itself: when the plugin is uninstalled or
+// the adapter catalog has not loaded yet, the tile falls back to a
+// generic icon and the capitalised channel type.
+function fallbackLabel(channelType: string): string {
+  return channelType.charAt(0).toUpperCase() + channelType.slice(1);
+}
 
+// The setup method is a host-stored field on the channel row, so the host has
+// to be able to name it. The labels stay brand-free — "REST API" rather than a
+// messenger's name in front of it — because the brand next to them already
+// comes from the owning plugin's adapter DisplayName.
 const METHOD_LABEL_KEYS: Record<string, string> = {
   cloud_api: 'communications.methodCloudApi',
   gateway: 'communications.methodGateway',
@@ -65,8 +56,12 @@ export function ChannelCard({ channel, onEdit, onTest }: ChannelCardProps) {
   const deleteChannel = useDeleteChannel();
   const setDefault = useSetDefaultChannel();
 
-  const config = TYPE_CONFIG[channel.channelType];
-  const Icon = config.icon;
+  // Adapter catalog is already in the query cache — the picker and
+  // the edit dialog both read it, so this is a cache hit in practice.
+  const { data: adapters } = useNotificationAdapters();
+  const adapter = adapters?.[channel.channelType];
+
+  const label = adapter?.DisplayName || fallbackLabel(channel.channelType);
 
   function handleToggle(enabled: boolean) {
     updateChannel.mutate({ id: channel.id, enabled });
@@ -84,50 +79,46 @@ export function ChannelCard({ channel, onEdit, onTest }: ChannelCardProps) {
 
   return (
     <>
-      <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
-        <Icon className={`size-8 shrink-0 ${config.color}`} />
+      <div className="mc-glass flex items-center gap-4 rounded-lg p-4">
+        {adapter?.Slug && adapter.Icon ? (
+          <PluginAssetImage slug={adapter.Slug} icon={adapter.Icon} className="size-8 shrink-0 object-contain" />
+        ) : (
+          <IconPuzzle className="size-8 shrink-0 text-muted-foreground" />
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h4 className="truncate text-sm font-medium text-foreground">
-              {channel.name}
-            </h4>
-            {channel.isDefault && (
-              <Badge variant="default">{t('communications.default')}</Badge>
-            )}
+            <h4 className="truncate text-sm font-medium text-foreground">{channel.name}</h4>
+            {channel.isDefault && <Badge variant="default">{t('communications.default')}</Badge>}
             <Badge variant={channel.enabled ? 'default' : 'secondary'}>
               {channel.enabled ? t('communications.enabled') : t('communications.disabled')}
             </Badge>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {config.label}
-            {channel.method ? (() => {
-              const key = METHOD_LABEL_KEYS[channel.method as string];
-              return key ? <> &middot; {t(key)}</> : null;
-            })() : null}
+            {label}
+            {channel.method
+              ? (() => {
+                  const key = METHOD_LABEL_KEYS[channel.method as string];
+                  return key ? <> &middot; {t(key)}</> : null;
+                })()
+              : null}
           </p>
         </div>
 
         <div className="flex items-center gap-1">
           <Button
+            permission={PERM.COMMUNICATIONS_MANAGE}
             variant="ghost"
             size="icon-sm"
             aria-label={channel.isDefault ? t('communications.isDefault') : t('communications.setDefault')}
             onClick={handleSetDefault}
             disabled={channel.isDefault || setDefault.isPending}
           >
-            {channel.isDefault ? (
-              <IconStarFilled className="size-4 text-amber-400" />
-            ) : (
-              <IconStar className="size-4" />
-            )}
+            {channel.isDefault ? <IconStarFilled className="size-4 text-warning" /> : <IconStar className="size-4" />}
           </Button>
-          <Switch
-            checked={channel.enabled}
-            onCheckedChange={handleToggle}
-            disabled={updateChannel.isPending}
-          />
+          <Switch checked={channel.enabled} onCheckedChange={handleToggle} disabled={updateChannel.isPending} />
           <Button
+            permission={PERM.COMMUNICATIONS_MANAGE}
             variant="ghost"
             size="icon-sm"
             aria-label={t('communications.testChannel')}
@@ -136,6 +127,7 @@ export function ChannelCard({ channel, onEdit, onTest }: ChannelCardProps) {
             <IconSend className="size-4" />
           </Button>
           <Button
+            permission={PERM.COMMUNICATIONS_MANAGE}
             variant="ghost"
             size="icon-sm"
             aria-label={t('communications.editChannel')}
@@ -144,6 +136,7 @@ export function ChannelCard({ channel, onEdit, onTest }: ChannelCardProps) {
             <IconPencil className="size-4" />
           </Button>
           <Button
+            permission={PERM.COMMUNICATIONS_MANAGE}
             variant="ghost"
             size="icon-sm"
             aria-label={t('communications.deleteChannel')}

@@ -1,0 +1,1453 @@
+{
+  "title": "Virtuelle Maschinen",
+  "description": "Führen Sie KVM-Virtuelle-Maschinen auf Ihren eigenen Hosts aus. Erstellen Sie eine aus einem Cloud-Image und erreichen Sie in unter zwei Minuten eine Anmeldeaufforderung im Browser, oder installieren Sie von einem Datenträger.",
+  "nav": {
+    "machines": "Virtuelle Maschinen",
+    "templates": "Vorlagen",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Virtuelle Maschine erstellen",
+    "start": "Starten",
+    "shutdown": "Herunterfahren",
+    "stop": "Stoppen",
+    "reset": "Zurücksetzen",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "console": "Konsole",
+    "delete": "Löschen",
+    "snapshot": "Snapshot erstellen",
+    "revert": "Auf diesen Snapshot zurücksetzen",
+    "clone": "Klonen",
+    "makeTemplate": "Zur Vorlage machen",
+    "unTemplate": "Wieder in eine virtuelle Maschine umwandeln",
+    "addDisk": "Datenträger hinzufügen",
+    "resizeDisk": "Größe ändern",
+    "addNic": "Netzwerkschnittstelle hinzufügen",
+    "attachDevice": "Host-Gerät anbinden",
+    "diagnose": "KI fragen, was nicht stimmt",
+    "refresh": "Aktualisieren",
+    "cancel": "Abbrechen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "attachMedia": "Datenträger einlegen",
+    "ejectMedia": "Datenträger auswerfen",
+    "stillStopping": "Fährt noch herunter. Sie kann gestartet werden, sobald der Host sie freigegeben hat.",
+    "import": "Importieren",
+    "migrate": "Auf einen anderen Host verschieben"
+  },
+  "resources": {
+    "cpu": "{{count}} CPU",
+    "ram": "{{size}} RAM"
+  },
+  "list": {
+    "title": "Virtuelle Maschinen",
+    "empty": {
+      "title": "Noch keine virtuellen Maschinen",
+      "body": "Eine virtuelle Maschine führt ein vollständiges Betriebssystem mit eigenem Kernel auf einem Host aus, den Sie für Compute eingerichtet haben. Erstellen Sie eine aus einem Cloud-Image, um in wenigen Minuten einen funktionierenden Login zu erhalten.",
+      "action": "Erste erstellen"
+    },
+    "emptyTemplates": {
+      "title": "Noch keine Vorlagen",
+      "body": "Machen Sie eine konfigurierte, gestoppte virtuelle Maschine zur Vorlage, und jeder Klon davon startet ab diesem Stand – mit eigener Identität, eigenen Adressen und Host-Schlüsseln."
+    },
+    "columns": {
+      "name": "Name",
+      "state": "Zustand",
+      "host": "Host",
+      "os": "Betriebssystem",
+      "resources": "Ressourcen",
+      "address": "Adresse",
+      "uptime": "Gestartet",
+      "pool": "Speicher"
+    },
+    "filter": {
+      "all": "Alle Zustände",
+      "running": "Läuft",
+      "stopped": "Gestoppt",
+      "problem": "Erfordert Aufmerksamkeit"
+    },
+    "bulk": {
+      "selected_one": "{{count}} ausgewählt",
+      "selected_other": "{{count}} ausgewählt",
+      "start": "Ausgewählte starten",
+      "shutdown": "Ausgewählte herunterfahren",
+      "stop": "Ausgewählte stoppen"
+    },
+    "tableView": "Tabellenansicht",
+    "cardView": "Kartenansicht",
+    "searchPlaceholder": "Virtuelle Maschinen suchen…",
+    "noMatches": "Keine virtuelle Maschine entspricht dieser Suche."
+  },
+  "state": {
+    "defined": "Nicht gestartet",
+    "running": "Läuft",
+    "paused": "Pausiert",
+    "stopping": "Fährt herunter",
+    "stopped": "Gestoppt",
+    "crashed": "Abgestürzt",
+    "migrating": "Wird verschoben",
+    "unknown": "Unbekannt",
+    "unknownHint": "Der Host dieser virtuellen Maschine ist nicht erreichbar, daher kann ihr Zustand nicht bestätigt werden. Sie läuft vermutlich noch – der Dienstmanager des Hosts hält sie am Laufen –, aber nichts kann gestartet oder gestoppt werden, bis der Agent sich wieder verbindet.",
+    "ioError": "Datenträgerfehler",
+    "ioErrorHint": "QEMU hat diesen Gast gestoppt, weil ein Schreibvorgang auf einen seiner Datenträger fehlgeschlagen ist. Die übliche Ursache ist ein voller Speicherpool. Der Gast wird fortgesetzt, sobald wieder Platz vorhanden ist.",
+    "guestPanicked": "Kernel Panic",
+    "guestPanickedHint": "Das Betriebssystem des Gastes selbst ist abgestürzt. Es ist noch geladen, läuft aber nicht; ein Zurücksetzen ist der einzige Ausweg.",
+    "deleting": "Wird entfernt"
+  },
+  "guestAgent": {
+    "connected": "Gast-Agent verbunden",
+    "absent": "Kein Gast-Agent",
+    "unknown": "Gast-Agent unbekannt",
+    "absentHint": "Ohne den Gast-Agent sind Snapshots dieser Maschine absturzkonsistent, und ihre Adressen werden nicht gemeldet. cloud-init installiert ihn automatisch auf neuen Maschinen, die aus einem Image erstellt wurden.",
+    "disc": {
+      "attach": "Gast-Agent-Datenträger einlegen",
+      "hint": "Erstellt den Installationsdatenträger des Gast-Agents auf dem Host und legt ihn ein. Die Maschine muss gestoppt sein.",
+      "attached": "Gast-Agent-Datenträger eingelegt. Starten Sie die Maschine und führen Sie darauf das Installationsprogramm aus."
+    },
+    "install": {
+      "action": "Installieren",
+      "title": "Den Gast-Agent installieren",
+      "body": "Der Gast-Agent ermöglicht McHarbor, die Dateisysteme dieser Maschine vor einem Snapshot einzufrieren und ihre Adressen zu melden. Er lässt sich auf jeder Maschine installieren, unabhängig davon, wie sie erstellt wurde.",
+      "alreadyConnected": "Der Gast-Agent antwortet bereits auf dieser Maschine.",
+      "channelReady": "McHarbor richtet den Kanal, über den der Agent kommuniziert, immer ein, sodass nur das Paket im Gast fehlt.",
+      "family": "Gast-Betriebssystem",
+      "families": {
+        "linux": "Linux",
+        "windows": "Windows",
+        "bsd": "BSD"
+      },
+      "step1": "1. Installationsdatenträger anbinden",
+      "step2": "2. Dies in der Maschine ausführen",
+      "step3": "3. Starten Sie die Maschine erneut. Das Badge wird etwa eine Minute nach dem Start des Agents grün.",
+      "disc": "Installationsdatenträger",
+      "attach": "Datenträger anbinden",
+      "copy": "Befehl kopieren",
+      "noDiscs": "Auf diesem Host sind keine Datenträger-Images verfügbar. Fügen Sie zuerst eines auf der Compute-Seite hinzu.",
+      "noVirtioDisc": "Auf diesem Host ist kein virtio-win-Datenträger verfügbar. Fügen Sie zuerst das virtio-win-ISO auf der Compute-Seite hinzu.",
+      "notes": {
+        "linux": "Die meisten Distributionen liefern das Paket mit. Verwenden Sie, was Ihre Distribution davon hat.",
+        "windows": "Der virtio-win-Datenträger enthält das Installationsprogramm der Gast-Tools. Der Laufwerksbuchstabe hängt davon ab, was sonst noch angebunden ist.",
+        "bsd": "FreeBSD liefert den Agent als Paket; bei anderen BSDs muss er möglicherweise aus den Ports installiert werden."
+      }
+    }
+  },
+  "address": {
+    "reported": "Vom Gast gemeldet",
+    "reportedHint": "Diese Adresse ist das, was das Betriebssystem in der Maschine als seine angibt. Sie wird als einfacher Text angezeigt und für nichts anderes verwendet."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Übersicht",
+      "console": "Konsole",
+      "hardware": "Hardware",
+      "backups": "Backups",
+      "snapshots": "Snapshots",
+      "cloudInit": "Ersteinrichtung",
+      "settings": "Einstellungen",
+      "logs": "Protokolle"
+    },
+    "overview": {
+      "resources": "Ressourcen",
+      "processors": "Prozessoren",
+      "memory": "Arbeitsspeicher",
+      "disk": "Datenträger",
+      "firmware": "Firmware",
+      "machineType": "Maschinentyp",
+      "machineTypeHint": "Beim Erstellen dieser Maschine festgelegt und durch Host-Updates nicht geändert, sodass ihre Hardware über Upgrades hinweg gleich bleibt.",
+      "started": "Gestartet",
+      "neverStarted": "Nie gestartet",
+      "lastError": "Letzter Fehler",
+      "general": "Allgemein",
+      "name": "Name",
+      "host": "Host",
+      "state": "Zustand",
+      "uuid": "Kennung",
+      "autostart": "Startet mit dem Host",
+      "metrics": "Live-Metriken",
+      "metricsIdle": "Live-Metriken erscheinen, solange die Maschine läuft.",
+      "cpuUsage": "CPU-Auslastung",
+      "memoryUsage": "Arbeitsspeicherauslastung",
+      "diskIo": "Datenträger-I/O",
+      "networkIo": "Netzwerk",
+      "read": "Gelesen",
+      "written": "Geschrieben",
+      "received": "Empfangen",
+      "sent": "Gesendet",
+      "description": "Beschreibung",
+      "guestOs": "Gast-Betriebssystem",
+      "created": "Erstellt",
+      "topology": "Topologie",
+      "topologyValue": "{{sockets}} × {{cores}} Kerne × {{threads}} Threads",
+      "memoryMax": "Maximaler Arbeitsspeicher",
+      "platform": "Plattform",
+      "secureBoot": "Secure Boot",
+      "tpm": "TPM",
+      "display": "Anzeige",
+      "unitName": "Service-Unit",
+      "guest": "Gast",
+      "template": "Vorlage",
+      "noDescription": "Keine Beschreibung",
+      "metricsUnavailable": "Dieser Host-Agent meldet keine Gast-Metriken. Aktualisieren Sie den Agent auf diesem Host, um sie zu erfassen."
+    },
+    "title": "Virtuelle Maschine"
+  },
+  "console": {
+    "title": "Konsole",
+    "connecting": "Verbindung wird hergestellt…",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "reconnect": "Erneut verbinden",
+    "disconnect": "Trennen",
+    "notRunning": "Diese virtuelle Maschine läuft nicht.",
+    "viewers_one": "{{count}} Betrachter",
+    "viewers_other": "{{count}} Betrachter",
+    "viewersHint": "Alle Verbundenen sehen denselben Bildschirm und teilen sich eine Tastatur und eine Maus.",
+    "external": {
+      "title": "Externer VNC-Client",
+      "run": "Führen Sie dies mit der McHarbor-CLI auf dem Computer aus, auf dem der VNC-Client installiert ist:",
+      "connect": "Verbinden Sie den VNC-Client dann mit {{address}}. Er fragt kein Passwort ab: Die CLI meldet sich für ihn an, und Strg+C beendet sie."
+    },
+    "sendCtrlAltDel": "Strg+Alt+Entf senden",
+    "fullscreen": "Vollbild",
+    "screenshot": "Screenshot erstellen",
+    "paste": "Aus der Zwischenablage einfügen",
+    "idleWarning": "Diese Konsole wird in {{seconds}} Sekunden geschlossen, sofern Sie sie nicht verwenden.",
+    "permissionHint": "Das Öffnen einer Konsole entspricht dem Sitzen an der Maschine und benötigt daher eine eigene Berechtigung.",
+    "sendKeyHint": "{{key}} an den Gast senden",
+    "moreActions": "Weitere Konsolenaktionen",
+    "description": "Der Bildschirm des Gastes, als säßen Sie an der Maschine.",
+    "keys": {
+      "menu": "Tasten senden",
+      "windows": "Windows-Taste",
+      "printScreen": "Druck",
+      "vtSwitch": "Virtuelles Terminal wechseln",
+      "typeText": "Text eingeben",
+      "typeTextHint": "Wird als Tastendrücke auf einem US-Tastaturlayout gesendet.",
+      "typeTextSend": "In den Gast eingeben",
+      "skipped_one": "{{count}} Zeichen hat auf einer US-Tastatur keine Taste und wurde übersprungen.",
+      "skipped_other": "{{count}} Zeichen haben auf einer US-Tastatur keine Taste und wurden übersprungen."
+    },
+    "kind": {
+      "label": "Konsolentyp",
+      "vnc": "VNC",
+      "serial": "Seriell",
+      "spice": "SPICE"
+    },
+    "serial": {
+      "resizeNeedsAgent": "Für die Größenänderung dieses Terminals wird der Gast-Agent benötigt. Ohne ihn behält der Gast die Größe, mit der er gestartet wurde."
+    },
+    "display": {
+      "label": "Anzeigegröße",
+      "resize": "Gast an Fenster anpassen",
+      "scale": "An Fenster skalieren",
+      "adapter": "Der Grafikadapter dieser VM ({{adapter}}) kann die Auflösung nicht über die Konsole ändern, daher wird der Bildschirm skaliert. Stellen Sie Anzeige in den Einstellungen auf virtio-gpu (oder Auto) und starten Sie die VM neu.",
+      "adapterQxl": "QXL folgt dem Fenster nur über SPICE. Wechseln Sie die Konsole zu SPICE, wobei spice-vdagent im Gast laufen muss, oder stellen Sie Anzeige in den Einstellungen auf virtio-gpu und starten Sie die VM neu.",
+      "host": "Das QEMU dieses Hosts ist zu alt, um einen Gast über die Konsole in der Größe anzupassen (QEMU 6.0 oder neuer ist erforderlich), daher wird der Bildschirm skaliert.",
+      "guestSpice": "Nichts im Gast hat auf die Anfrage zur Größenänderung geantwortet. Installieren und starten Sie spice-vdagent im Gast: qemu-guest-agent ist ein anderer Agent und ändert die Anzeigegröße nicht.",
+      "guestVnc": "Der Gast hat seine Auflösung nicht geändert. Er benötigt den virtio-gpu-Treiber und eine Desktop-Umgebung, die Anzeigeänderungen übernimmt, oder spice-vdagent: qemu-guest-agent ist ein anderer Agent und ändert die Anzeigegröße nicht. Eine VM, die vor der Änderung des Grafikadapters gestartet wurde, muss neu gestartet werden."
+    },
+    "spiceFile": {
+      "button": "Remote-Viewer-Datei",
+      "hint": "Lädt eine .vv-Datei für remote-viewer herunter. Sie enthält ein Einmalpasswort, das zwei Minuten gültig ist, öffnen Sie sie daher sofort.",
+      "getClient": "Noch kein remote-viewer? Laden Sie ihn von virt-manager.org herunter",
+      "host": "Adresse für die Verbindung",
+      "hostPlaceholder": "Leer lassen, um die eigene Adresse des Hosts zu verwenden",
+      "download": ".vv-Datei herunterladen"
+    }
+  },
+  "create": {
+    "title": "Virtuelle Maschine erstellen",
+    "steps": {
+      "source": "Was installiert werden soll",
+      "resources": "Größe",
+      "storage": "Speicher",
+      "network": "Netzwerk",
+      "setup": "Ersteinrichtung",
+      "summary": "Überprüfen"
+    },
+    "source": {
+      "title": "Was soll diese Maschine ausführen?",
+      "image": "Aus einem fertigen Image",
+      "imageHint": "Startet in Sekunden und konfiguriert sich beim ersten Start selbst. Das ist die übliche Wahl.",
+      "iso": "Von einem Datenträger installieren",
+      "isoHint": "Für Windows, für Distributionen ohne fertiges Image oder wenn Sie das Installationsprogramm selbst ausführen möchten.",
+      "blank": "Kein Image",
+      "blankHint": "Gibt ihr einen leeren Datenträger und nichts zum Booten. Verwenden Sie dies mit einem Datenträger, der bereits ein System enthält, oder für eine Installation über das Netzwerk.",
+      "blankNote": "Diese Maschine startet an der Firmware-Eingabeaufforderung. Binden Sie anschließend einen Installationsdatenträger an oder booten Sie über das Netzwerk.",
+      "noImages": "Auf diesen Host wurden noch keine Images heruntergeladen.",
+      "downloadImages": "Zu den Images",
+      "isoLabel": "Installationsdatenträger",
+      "noIsos": "Auf diesen Host wurden noch keine Installationsdatenträger hochgeladen.",
+      "template": "Aus einer Vorlage",
+      "templateHint": "Klont eine Ihrer Vorlagen. Sie behält Größe, Datenträger und Netzwerk der Vorlage und erhält eine eigene Identität.",
+      "templateLabel": "Vorlage",
+      "noTemplates": "Auf diesem Host gibt es noch keine Vorlagen. Erstellen Sie zuerst eine aus einer gestoppten virtuellen Maschine."
+    },
+    "resources": {
+      "title": "Wie groß soll sie sein?",
+      "preset": "Größe",
+      "presets": {
+        "small": "Klein — 1 Prozessor, 2 GB",
+        "medium": "Mittel — 2 Prozessoren, 4 GB",
+        "large": "Groß — 4 Prozessoren, 8 GB",
+        "custom": "Benutzerdefiniert"
+      },
+      "vcpus": "Prozessoren",
+      "memory": "Arbeitsspeicher (MB)",
+      "memoryMax": "Arbeitsspeicher-Obergrenze (MB)",
+      "memoryMaxHint": "Leer lassen, um den Arbeitsspeicher festzulegen. Eine Obergrenze ermöglicht es, den Arbeitsspeicher der Maschine später ohne Neustart anzupassen.",
+      "firmware": "Firmware",
+      "uefi": "UEFI",
+      "bios": "BIOS",
+      "uefiHint": "UEFI ist der moderne Standard und für Windows 11 erforderlich.",
+      "secureBoot": "Secure Boot",
+      "tpm": "TPM 2.0",
+      "tpmRequired": "Windows 11 erfordert einen Sicherheitschip.",
+      "tpmUnavailable": "Auf diesem Host ist swtpm nicht installiert, daher ist kein Sicherheitschip verfügbar.",
+      "secureBootHint": "Von Windows 11 zusammen mit einem TPM gefordert. Benötigt den Secure-Boot-Firmware-Build auf dem Host.",
+      "tpmHint": "Ein emuliertes TPM für den Gast. Windows 11 lässt sich ohne eines nicht installieren.",
+      "tpmMissing": "Auf diesem Host ist kein swtpm vorhanden, daher kann einem Gast kein TPM zugewiesen werden. Installieren Sie es mit: {{remediation}}",
+      "secureBootMissing": "Dieser Host hat keine Secure-Boot-Firmware mit eingetragenen Schlüsseln, daher kann Secure Boot nicht erzwungen werden. Installieren Sie sie mit: {{remediation}}"
+    },
+    "storage": {
+      "title": "Wo soll der Datenträger liegen?",
+      "pool": "Speicherpool",
+      "mode": "Datenträger",
+      "modeNew": "Neuen Datenträger erstellen",
+      "modeNewHint": "Einen neuen, leeren Datenträger in diesem Pool anlegen.",
+      "modeExisting": "Vorhandenen Datenträger verwenden",
+      "modeExistingHint": "Einen Datenträger in diesem Pool anbinden, den keine Maschine verwendet. Es wird nichts darauf geschrieben.",
+      "existing": "Vorhandener Datenträger",
+      "noExisting": "Jeder Datenträger in diesem Pool ist bereits an eine Maschine angebunden.",
+      "existingFailed": "Die Datenträger in diesem Pool konnten nicht gelesen werden. Der Host ist möglicherweise offline oder führt einen Agent aus, der zu alt ist, um sie aufzulisten.",
+      "existingLabel": "{{name}} — {{size}}",
+      "size": "Datenträgergröße (GB)",
+      "instantNote": "Dieser Pool macht Snapshots und Klone sofort verfügbar.",
+      "capacityWarning": "In diesem Pool sind {{free}} frei. Ein voller Pool pausiert alle Maschinen darauf.",
+      "thinNote": "Der Datenträger wird thin erstellt: Er belegt nur, was die Maschine tatsächlich schreibt.",
+      "dataLocation": "Datenspeicherort",
+      "dataLocationHint": "Dieser Host hat noch keinen Speicherpool. Gastdatenträger werden als qcow2-Dateien in diesem Verzeichnis gespeichert, und beim ersten Erstellen einer Maschine wird hier ein Pool angelegt. Ändern Sie den Speicherort auf der Seite Pools, sobald er existiert.",
+      "bus": "Datenträgertyp",
+      "busHint": "virtio ist am schnellsten und benötigt einen Treiber im Gast. SATA funktioniert überall, auch in einem Windows-Installationsprogramm."
+    },
+    "network": {
+      "title": "Wie soll sie das Netzwerk erreichen?",
+      "network": "Netzwerk",
+      "noNetworks": "Auf diesem Host wurden noch keine Netzwerke eingerichtet."
+    },
+    "setup": {
+      "title": "Ersteinrichtung",
+      "body": "Die Maschine konfiguriert sich beim ersten Start selbst. Alles hier ist optional, außer einer Möglichkeit zur Anmeldung.",
+      "hostname": "Hostname",
+      "username": "Benutzername",
+      "sshKeys": "Öffentliche SSH-Schlüssel",
+      "sshKeysHint": "Einer pro Zeile. Das ist der empfohlene Zugang – er benötigt überhaupt kein Passwort.",
+      "password": "Passwort",
+      "passwordHint": "Optional. Es wird vor dem Speichern in einen Einweg-Hash umgewandelt, und der Klartext wird nirgends geschrieben.",
+      "passwordWarning": "Alles auf diesem Host, das den Speicherpool lesen kann, kann die Einrichtungsdatei der Maschine lesen. Legen Sie niemals ein API-Token oder einen privaten Schlüssel in die zusätzlichen Einstellungen unten.",
+      "passwordFromVault": "Aus dem Tresor",
+      "passwordSecret": "Passwort-Secret",
+      "secretPlaceholder": "Secret auswählen",
+      "sshKeySecrets": "SSH-Schlüssel aus dem Tresor",
+      "secretsPlaceholder": "Secrets auswählen",
+      "vaultCopyNote": "Beim Anlegen der Maschine einmalig aus dem Tresor kopiert. Cloud-init wendet es nur beim ersten Start an, eine spätere Rotation des Secrets ändert diese Maschine daher nicht.",
+      "networkMode": "Adressierung",
+      "dhcp": "Automatisch",
+      "static": "Feste Adresse",
+      "staticIp": "Adresse",
+      "staticGateway": "Gateway",
+      "staticDns": "DNS-Server",
+      "installAgent": "Den Gast-Agent installieren",
+      "installAgentHint": "Ermöglicht McHarbor, die tatsächlichen Adressen der Maschine zu sehen und Snapshots zu erstellen, von denen sicher wiederhergestellt werden kann. Dringend empfohlen.",
+      "extra": "Zusätzliche Einrichtung (erweitert)",
+      "extraHint": "Rohe cloud-config, über alles oben Genannte gelegt."
+    },
+    "summary": {
+      "title": "Überprüfen",
+      "createAndStart": "Erstellen und starten",
+      "createOnly": "Erstellen, ohne zu starten",
+      "noSource": "Nichts – sie startet an der Firmware-Eingabeaufforderung",
+      "existingDisk": "Vorhandener Datenträger"
+    },
+    "submit": "Erstellen"
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": {
+      "title": "Keine Snapshots",
+      "body": "Ein Snapshot hält den aktuellen Stand des Datenträgers dieser Maschine fest, sodass Sie darauf zurückgehen können."
+    },
+    "notABackup": "Ein Snapshot ist kein Backup. Er liegt auf demselben Speicher wie die Maschine, sodass ein Speicherausfall beide erfasst.",
+    "columns": {
+      "name": "Name",
+      "taken": "Erstellt",
+      "consistency": "Wird wiederhergestellt als",
+      "size": "Größe",
+      "mechanism": "Typ"
+    },
+    "consistency": {
+      "crash": "Wie nach einem Stromausfall",
+      "crashHint": "Ohne Gast-Agent erstellt, daher wurden die Dateisysteme der Maschine zuvor nicht angehalten. Die meisten Systeme erholen sich davon, aber eine Datenbank muss sich möglicherweise selbst reparieren.",
+      "filesystem": "Sauber",
+      "filesystemHint": "Der Gast-Agent hat die Dateisysteme der Maschine angehalten, sodass der Snapshot ein sauberer Wiederherstellungspunkt ist.",
+      "application": "Sauber, mit Anwendungs-Hooks",
+      "paused": "Mit angehaltener Maschine",
+      "pausedHint": "Die Prozessoren der Maschine wurden angehalten, während der Datenträger eingefroren war, sodass nichts halb geschrieben wurde. Der Dateisystem-Cache des Gastes wurde nicht geleert, da es keinen Gast-Agent gibt, den man fragen könnte.",
+      "applicationHint": "Der Arbeitsspeicher der Maschine wurde zusammen mit ihrem Datenträger erfasst, sodass das Zurückgehen genau dort fortsetzt, wo sie war."
+    },
+    "chainDepth": "Kettentiefe {{depth}}",
+    "chainWarning": "Bei dieser Maschine sind {{depth}} Snapshots aufeinandergestapelt. Bei diesem Speichertyp verlangsamt jeder das Lesen. Erwägen Sie, ältere zu entfernen.",
+    "chainFull": "Diese Maschine hat das Snapshot-Limit erreicht. Entfernen Sie einen, bevor Sie einen weiteren erstellen.",
+    "create": {
+      "title": "Snapshot erstellen",
+      "name": "Name",
+      "description": "Notiz",
+      "withMemory": "Arbeitsspeicher der Maschine einbeziehen",
+      "withMemoryHint": "Das Zurückgehen setzt dann genau dort fort, wo die Maschine war, statt sie hochzufahren. Belegt so viel Platz, wie die Maschine Arbeitsspeicher hat.",
+      "crashWarning": "Diese Maschine hat keinen Gast-Agent, daher wird der Snapshot wie nach einem Stromausfall erstellt.",
+      "submit": "Snapshot erstellen",
+      "pauseGuest": "Maschine während der Snapshot-Erstellung pausieren",
+      "pauseGuestHint": "Ein paar Sekunden mit angehaltenen Prozessoren, damit nichts halb auf den Datenträger geschrieben wird. Ohne Gast-Agent ist dies die bestmögliche Konsistenz."
+    },
+    "revert": {
+      "title": "Zu {{name}} zurückgehen?",
+      "body": "Der Datenträger der Maschine kehrt in den Zustand zurück, den er bei der Erstellung dieses Snapshots hatte.",
+      "discards_one": "{{count}} neuerer Snapshot wird verworfen: {{names}}",
+      "discards_other": "{{count}} neuere Snapshots werden verworfen: {{names}}",
+      "confirmName": "Geben Sie {{name}} zur Bestätigung ein",
+      "mustBeStopped": "Stoppen Sie die Maschine, bevor Sie zu einem Snapshot zurückgehen.",
+      "submit": "Zurückgehen",
+      "branchKept": "Die nach diesem erstellten Snapshots bleiben als eigener Zweig erhalten. Verworfen wird nur, was die Maschine seit diesem Snapshot geschrieben hat.",
+      "willStop": "Dieser Gast läuft. Er wird heruntergefahren, bevor die Datenträger zurückgesetzt werden, da ein Zurücksetzen unter einem laufenden QEMU Daten beschädigt statt zurücksetzt.",
+      "restartAfter": "Danach erneut starten",
+      "running": "Wird zurückgesetzt"
+    },
+    "delete": {
+      "title": "{{name}} löschen?",
+      "body": "Der Snapshot wird entfernt. Die Maschine selbst ist nicht betroffen.",
+      "submit": "Snapshot löschen"
+    },
+    "tree": {
+      "now": "Jetzt",
+      "branches": "{{count}} Zweige",
+      "branchedHint": "Unter diesem Snapshot liegt mehr als ein Zweig. Sein Entfernen würde umschreiben, was der andere Zweig liest; löschen Sie daher zuerst einen der Zweige.",
+      "revertCurrentHint": "Der Gast befindet sich bereits auf diesem Snapshot.",
+      "revertOfflineHint": "Der Host ist nicht erreichbar.",
+      "expand": "Anzeigen, was unter {{name}} liegt",
+      "collapse": "Ausblenden, was unter {{name}} liegt",
+      "expandAll": "Alle erweitern",
+      "collapseAll": "Alle reduzieren",
+      "hiddenCount_one": "{{count}} ausgeblendet",
+      "hiddenCount_other": "{{count}} ausgeblendet"
+    },
+    "progress": {
+      "starting": "Wird gestartet",
+      "quiescing": "Dateisysteme werden angehalten",
+      "pausing": "Gast wird pausiert",
+      "memory": "Arbeitsspeicher wird geschrieben",
+      "disks": "Datenträger werden eingefroren",
+      "done": "Wird abgeschlossen",
+      "failed": "{{name}} konnte nicht erstellt werden"
+    },
+    "revertStep": {
+      "starting": "Wird gestartet",
+      "stopping": "Gast wird gestoppt",
+      "reverting": "Datenträger werden wiederhergestellt",
+      "starting_guest": "Gast wird gestartet",
+      "done": "Wird abgeschlossen"
+    }
+  },
+  "hardware": {
+    "hotplugUnclaimed": "Auf dem Host hinzugefügt, aber der laufende Gast hat es nicht übernommen: Sein Kernel unterstützt kein PCI-Hotplug. Der Gast sieht es nach dem nächsten Neustart.",
+    "disks": "Datenträger",
+    "nics": "Netzwerkschnittstellen",
+    "devices": "Host-Geräte",
+    "diskColumns": {
+      "bootOrder": "Boot-Reihenfolge",
+      "shared": "Geteilt",
+      "sharedHint": "Erlaubt einer zweiten Maschine, diesen Datenträger gleichzeitig zu öffnen. Nur sicher, wenn beide Gäste ein Cluster-Dateisystem verwenden, das Schreibzugriffe koordiniert – ohne ein solches beschädigen sie gegenseitig ihre Daten.",
+      "limits": "I/O-Limits",
+      "slot": "Steckplatz",
+      "bus": "Typ",
+      "size": "Größe",
+      "pool": "Pool",
+      "boot": "Start"
+    },
+    "nicColumns": {
+      "slot": "Steckplatz",
+      "model": "Typ",
+      "mac": "Hardware-Adresse",
+      "bridge": "Netzwerk",
+      "link": "Link"
+    },
+    "deviceColumns": {
+      "kind": "Typ",
+      "address": "Adresse",
+      "description": "Notiz"
+    },
+    "mustBeStopped": "Stoppen Sie die Maschine, um ihre Hardware zu ändern.",
+    "liveChanges": "Diese Maschine läuft. Festplatten, Installationsmedien und Netzwerkschnittstellen werden sofort auf der laufenden Maschine geändert; Bootplatte, Festplattentypen und Bootreihenfolge erfordern, dass die Maschine gestoppt ist.",
+    "liveHint": "Die Änderung wird auf der laufenden Maschine vorgenommen.",
+    "bootDiskRunning": "Die Bootplatte kann nicht entfernt oder geändert werden, solange die Maschine läuft.",
+    "emptyDrive": "Leeres Laufwerk",
+    "linkToggle": "Netzwerkkabel verbunden",
+    "deleteDisk": {
+      "title": "Diese Festplatte entfernen?",
+      "body": "Die Festplatte wird von der Maschine getrennt und ihr Volume wird zerstört. Dies kann nicht rückgängig gemacht werden.",
+      "confirm": "Festplatte entfernen"
+    },
+    "addDisk": {
+      "title": "Datenträger hinzufügen",
+      "pool": "Speicherpool",
+      "size": "Größe (GB)",
+      "bus": "Typ",
+      "submit": "Datenträger hinzufügen",
+      "noPools": "Dieser Host hat noch keinen Speicherpool. Erstellen Sie zuerst einen auf der Compute-Seite.",
+      "virtioWindows": "Das Windows-Setup liefert keinen virtio-Treiber mit und sieht diesen Datenträger nicht. Verwenden Sie SATA, sofern Sie keine Treiber von einem virtio-win-Datenträger laden."
+    },
+    "resizeDisk": {
+      "title": "Datenträgergröße ändern",
+      "current": "Derzeit {{size}}",
+      "newSize": "Neue Größe (GB)",
+      "growOnly": "Ein Datenträger kann nur vergrößert werden. Ein Verkleinern von außen zerstört Daten und wird daher nicht angeboten.",
+      "afterNote": "Dem Betriebssystem der Maschine muss weiterhin mitgeteilt werden, den zusätzlichen Platz zu nutzen.",
+      "submit": "Größe ändern"
+    },
+    "attachDevice": {
+      "title": "Host-Gerät anbinden",
+      "warning": "Ein durchgereichtes Gerät gibt dieser Maschine direkten Zugriff auf echte Hardware. Wird die Maschine kompromittiert, ist es auch diese Hardware – und in manchen Fällen der Host selbst. Tun Sie dies nur für Maschinen, denen Sie vertrauen.",
+      "kind": "Typ",
+      "pci": "PCI-Gerät",
+      "usb": "USB-Gerät",
+      "block": "Datenträgergerät",
+      "address": "Adresse",
+      "pciHint": "Die Adresse des Geräts, zum Beispiel 0000:03:00.0.",
+      "usbHint": "Hersteller und Produkt, zum Beispiel 1234:5678.",
+      "blockHint": "Ein Pfad unter /dev.",
+      "description": "Notiz",
+      "noIommu": "Auf diesem Host ist keine IOMMU aktiviert, daher können PCI-Geräte nicht durchgereicht werden. Aktivieren Sie VT-d oder AMD-Vi in der Firmware und fügen Sie intel_iommu=on zu den Boot-Optionen hinzu.",
+      "submit": "Anbinden",
+      "selectDevice": "Verfügbare Geräte",
+      "selectPlaceholder": "Ein Gerät auf diesem Host auswählen",
+      "manualEntry": "Adresse manuell eingeben",
+      "refresh": "Host erneut scannen",
+      "none": "Auf diesem Host wurden keine Geräte gefunden.",
+      "loading": "Host wird gescannt…",
+      "loadFailed": "Die Geräteliste dieses Hosts konnte nicht gelesen werden.",
+      "u2f": "Virtueller Sicherheitsschlüssel",
+      "u2fHint": "Ein emuliertes U2F-Token für Gäste, die die WebAuthn-Anmeldung testen. Vom Host wird nichts durchgereicht, sodass kein physischer Schlüssel eingesteckt werden muss.",
+      "unavailable": "Vom Host verwendet",
+      "reason_bound_to_host_driver": "An Host-Treiber {{driver}} gebunden",
+      "reason_no_iommu_group": "Keine IOMMU-Gruppe – für das Durchreichen muss die IOMMU in der Firmware aktiviert sein",
+      "iommuGroup": "IOMMU-Gruppe {{group}}",
+      "attachedBadge": "an eine VM angebunden",
+      "attachedHere": "Diese VM hat dieses Gerät bereits.",
+      "attachedElsewhere": "Bereits an {{names}} angebunden. Ein durchgereichtes Gerät kann jeweils nur von einer laufenden VM verwendet werden."
+    },
+    "addNic": {
+      "title": "Netzwerkschnittstelle hinzufügen",
+      "network": "Netzwerk",
+      "model": "Typ",
+      "noNetworks": "Dieser Host hat noch kein Netzwerk. Erstellen Sie zuerst eines auf der Compute-Seite.",
+      "submit": "Schnittstelle hinzufügen"
+    },
+    "deviceEmpty": "An diese Maschine sind keine Host-Geräte durchgereicht.",
+    "media": {
+      "title": "Installationsdatenträger",
+      "empty": "Es ist kein Datenträger eingelegt.",
+      "columns": {
+        "slot": "Steckplatz",
+        "source": "Datenträger"
+      },
+      "attach": {
+        "title": "Installationsdatenträger einlegen",
+        "image": "Datenträger",
+        "noImages": "Auf diesen Host wurden noch keine Installationsdatenträger hochgeladen.",
+        "hint": "Die Maschine bootet zuerst von ihren Datenträgern und erreicht den eingelegten Datenträger daher nur, wenn diese nichts zum Booten haben.",
+        "submit": "Einlegen"
+      }
+    }
+  },
+  "clone": {
+    "title": "{{name}} klonen",
+    "name": "Name für die Kopie",
+    "linked": "Daten mit dem Original teilen",
+    "linkedHint": "Sofort verfügbar und speichert nur, was sich danach ändert. Das Original kann nicht gelöscht werden, solange eine geteilte Kopie existiert.",
+    "fullHint": "Eine vollständige, unabhängige Kopie. Dauert länger und belegt den vollen Platz, aber nichts hängt vom Original ab.",
+    "identityNote": "Die Kopie erhält eine eigene Maschinenidentität, eigene Hardware-Adressen und eine neue Ersteinrichtung – sie hört also nicht auf den Namen des Originals und verwendet dessen Host-Schlüssel nicht erneut.",
+    "mustBeStopped": "Stoppen Sie die Maschine, bevor Sie sie klonen.",
+    "submit": "Klonen",
+    "mode": {
+      "label": "Art der Kopie",
+      "full": "Vollständige Kopie",
+      "linked": "Verknüpfte Kopie"
+    },
+    "running": "Festplatten werden kopiert…",
+    "runningPercent": "Festplatten werden kopiert… {{percent}}%"
+  },
+  "template": {
+    "title": "{{name}} zur Vorlage machen?",
+    "body": "Eine Vorlage kann nicht gestartet werden, wodurch sie exakt so bleibt, wie sie ist. Klonen Sie sie, um Maschinen daraus zu erstellen.",
+    "revert": "{{name}} wieder in eine virtuelle Maschine umwandeln?",
+    "revertBody": "Sie kann danach wieder gestartet werden. Bestehende Kopien sind nicht betroffen.",
+    "inUse": "Diese Vorlage hat Kopien, die ihre Daten teilen, und kann nicht entfernt werden: {{clones}}",
+    "submit": "Zur Vorlage machen"
+  },
+  "delete": {
+    "title": "{{name}} löschen?",
+    "body": "Die Maschine wird aus McHarbor und von ihrem Host entfernt.",
+    "deleteVolumes": "Auch ihre Datenträger löschen",
+    "deleteVolumesWarning": "Alles auf den Datenträgern dieser Maschine wird dauerhaft zerstört. Es gibt kein Rückgängig.",
+    "keepVolumesHint": "Wenn Sie die Datenträger behalten, können Sie diese Maschine später auf einen anderen Host verschieben.",
+    "confirmName": "Geben Sie {{name}} zur Bestätigung ein",
+    "submit": "Löschen",
+    "running": "Diese virtuelle Maschine wird entfernt",
+    "runningHint": "Dies läuft auf dem Host weiter, wenn Sie dieses Fenster schließen. Die Maschine verschwindet aus der Liste, sobald der Vorgang abgeschlossen ist.",
+    "runningPercent": "Diese virtuelle Maschine wird entfernt — {{percent}}%"
+  },
+  "diagnose": {
+    "title": "Was stimmt mit dieser Maschine nicht?",
+    "asking": "Einrichtung der Maschine wird gelesen…",
+    "unavailable": "Es ist kein KI-Anbieter eingerichtet, daher ist dies nicht verfügbar.",
+    "disclaimer": "Dies ist eine fundierte Vermutung auf Grundlage der Einrichtung der Maschine und ihres letzten Fehlers. Prüfen Sie sie, bevor Sie danach handeln.",
+    "sent": "Gesendet werden nur die Hardware-Einstellungen dieser Maschine und ihr letzter Fehler. Nichts aus dem Inneren der Maschine und keine Schlüssel oder Passwörter."
+  },
+  "widgets": {
+    "vmSummary": {
+      "label": "Virtuelle Maschinen",
+      "description": "Wie viele Maschinen laufen, gestoppt sind oder Aufmerksamkeit erfordern."
+    },
+    "vmResources": {
+      "label": "Ressourcen virtueller Maschinen",
+      "description": "Prozessoren, Arbeitsspeicher und Datenträger, die laufenden Maschinen zugeteilt sind, pro Host."
+    },
+    "vmProtection": {
+      "label": "Snapshot-Abdeckung",
+      "description": "Gäste ohne Snapshot und wie veraltet der neueste Snapshot bei den übrigen ist.",
+      "unprotected_one": "von {{count}} Gast ungeschützt",
+      "unprotected_other": "von {{count}} Gästen ungeschützt",
+      "none": "Kein Snapshot",
+      "age_one": "{{count}} Tag alt",
+      "age_other": "{{count}} Tage alt"
+    },
+    "vmImports": {
+      "label": "Datenträger-Importe",
+      "description": "Importierte Datenträger von Drittanbietern und solche, die angehalten haben.",
+      "empty": "Keine Datenträger-Importe",
+      "waiting_one": "{{count}} in Bearbeitung",
+      "waiting_other": "{{count}} in Bearbeitung",
+      "failed_one": "{{count}} fehlgeschlagen",
+      "failed_other": "{{count}} fehlgeschlagen"
+    }
+  },
+  "nodes": {
+    "lifecycle": {
+      "label": "Virtuelle Maschine: Lebenszyklus",
+      "description": "Eine Maschine starten, herunterfahren, stoppen, zurücksetzen, pausieren oder fortsetzen."
+    },
+    "snapshot": {
+      "label": "Virtuelle Maschine: Snapshot",
+      "description": "Einen Snapshot als Teil eines Workflows erstellen."
+    },
+    "clone": {
+      "label": "Virtuelle Maschine: Klon",
+      "description": "Eine gestoppte Maschine oder eine Vorlage klonen."
+    },
+    "state": {
+      "label": "Virtuelle Maschine: Zustand",
+      "description": "Eine Maschine lesen und danach verzweigen, in welchem Zustand sie ist."
+    }
+  },
+  "reports": {
+    "platform": "Virtuelle Maschinen (KVM)",
+    "backupAssurance": {
+      "label": "Backup-Absicherung virtueller Maschinen",
+      "description": "Welche Maschinen einen Backup-Plan haben, wie oft Läufe erfolgreich waren, wie alt das letzte gute Backup ist und ob jedes Ziel seine Kopie erhalten hat."
+    },
+    "guestStability": {
+      "label": "Gast-Stabilität virtueller Maschinen",
+      "description": "Abstürze, unerwartete Stopps und Zurücksetzungen, Maschinen, die immer wieder ausfallen, Zustand des Gast-Agents und Lebenszyklusaktionen, die fehlgeschlagen sind oder nie abgeschlossen wurden."
+    },
+    "snapshotSchedules": {
+      "label": "Snapshot-Zeitpläne virtueller Maschinen",
+      "description": "Die fälligen Läufe jedes Snapshot-Zeitplans im Vergleich zu den erstellten Snapshots, mit verpassten und fehlgeschlagenen Läufen und der Frage, ob die Aufbewahrung greift."
+    }
+  },
+  "alerts": {
+    "crashed": "Virtuelle Maschine abgestürzt",
+    "stoppedUnexpectedly": "Virtuelle Maschine unerwartet gestoppt",
+    "unknownState": "Zustand der virtuellen Maschine unbekannt",
+    "snapshotChain": "Snapshot-Kette zu tief",
+    "guestAgentGone": "Gast-Agent antwortet nicht",
+    "autostartFailed": "Maschine mit automatischem Start läuft nicht"
+  },
+  "backups": {
+    "title": "Backups",
+    "sourceLabel": "Virtuelle Maschine",
+    "description": "Kopien der Datenträger dieser Maschine, geschrieben auf Speicher abseits ihres Hosts. Nach dem ersten inkrementell, sodass ein nächtliches Backup nur bewegt, was sich geändert hat.",
+    "tabs": { "plans": "Zeitpläne", "runs": "Verlauf" },
+    "disabled": "Pausiert",
+    "retention": {
+      "lastCount": "letzte {{count}}",
+      "forDays": "{{days}} Tage",
+      "forever": "Unbegrenzt"
+    },
+    "blocked": {
+      "noKey": "Backups sind immer verschlüsselt, und in diesem McHarbor ist noch kein Backup-Verschlüsselungsschlüssel installiert. Erzeugen oder installieren Sie einen unter Operate → Backups → Einstellungen; bis dahin hätte ein Backup nichts zum Verschlüsseln und wird abgelehnt, statt unverschlüsselt geschrieben zu werden.",
+      "noDestination": "Es sind keine Speicherziele konfiguriert. Fügen Sie zuerst eines unter Einstellungen → Speicher hinzu – ein Backup braucht ein Ziel.",
+      "noPlan": "Fügen Sie zuerst einen Zeitplan hinzu. Ein Zeitplan legt fest, wohin die Backups dieser Maschine geschrieben werden und wie lange sie aufbewahrt werden, und ein Backup ohne Ziel ist kein Backup."
+    },
+    "runNow": "Jetzt sichern",
+    "runFull": "Vollständige Kopie erstellen",
+    "addPlan": "Zeitplan hinzufügen",
+    "editPlan": "Bearbeiten",
+    "deletePlan": "Diesen Zeitplan löschen",
+    "noPlans": "Diese Maschine hat keinen Backup-Zeitplan.",
+    "noRuns": "Diese Maschine wurde noch nie gesichert.",
+    "noDestinations": "Es sind noch keine Speicherziele konfiguriert. Fügen Sie unter Einstellungen eines hinzu, bevor Sie ein Backup planen.",
+    "restore": "Wiederherstellen",
+    "delete": "Dieses Backup löschen",
+    "deleteConfirm": {
+      "title": "Dieses Backup löschen?",
+      "body": "Dadurch wird das Backup dauerhaft von jedem Speicherziel entfernt. Backups, die darauf aufbauen, können nicht mehr wiederhergestellt werden. Dies kann nicht rückgängig gemacht werden."
+    },
+    "deletePlanConfirm": {
+      "title": "Diesen Zeitplan löschen?",
+      "body": "Der Zeitplan wird nicht mehr ausgeführt. Bereits erstellte Backups bleiben erhalten."
+    },
+    "kind": { "full": "Vollständig", "incremental": "Inkrementell" },
+    "status": {
+      "running": "Läuft",
+      "success": "Fertig",
+      "failure": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
+    },
+    "consistency": {
+      "crash": "Absturzkonsistent",
+      "crashHint": "Der Gast wurde nicht angehalten, daher sieht die Kopie aus, als hätte die Maschine den Strom verloren. Für ein Journaling-Dateisystem wiederherstellbar, nicht für eine Datenbank mitten im Schreibvorgang.",
+      "filesystem": "Dateisystemkonsistent",
+      "filesystemHint": "Die Dateisysteme des Gastes wurden für die Kopie über seinen Gast-Agent eingefroren."
+    },
+    "fellBack": "Als vollständige Kopie erstellt",
+    "fellBackHint": "Es wurde ein inkrementelles Backup angefordert, aber der Host konnte das Änderungsprotokoll dieses Datenträgers nicht verwenden: {{reason}}",
+    "columns": {
+      "started": "Gestartet",
+      "kind": "Typ",
+      "size": "Größe",
+      "consistency": "Konsistenz",
+      "destinations": "Ziele",
+      "status": "Status"
+    },
+    "planColumns": {
+      "name": "Name",
+      "schedule": "Zeitplan",
+      "retention": "Aufbewahren",
+      "destinations": "Ziele",
+      "nextRun": "Nächster Lauf"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Nächtlich",
+      "schedule": "Zeitplan",
+      "scheduleHint": "Wann dieses Backup läuft. Die Maschine läuft dabei durchgehend weiter.",
+      "enabled": "Nach diesem Zeitplan ausführen",
+      "destinations": "Ziele",
+      "destinationsHint": "Wohin die Kopien geschrieben werden. Mehr als eines ist sinnvoll – eine einzelne Kopie ist kein Backup.",
+      "retentionCount": "So viele Backups aufbewahren",
+      "retentionDays": "Backups so viele Tage aufbewahren",
+      "retentionHint": "Null bedeutet unbegrenzt aufbewahren. Ein Backup, auf dem ein späteres inkrementelles noch aufbaut, wird nie entfernt, unabhängig von diesen Werten.",
+      "fullEvery": "Vollständige Kopie erstellen alle",
+      "fullEveryUnit": "Läufe",
+      "fullEveryHint": "Ein regelmäßiger Neustart der Kette hält eine Wiederherstellung kurz. Null erzwingt nie eine.",
+      "quiesce": "Dateisysteme des Gastes einfrieren",
+      "quiesceHint": "Benötigt den Gast-Agent. Ohne ihn ist die Kopie absturzkonsistent, was das Backup ehrlich festhält."
+    },
+    "restoreDialog": {
+      "title": "{{name}} wiederherstellen",
+      "description": "Dadurch werden die aktuellen Datenträger der Maschine durch den Inhalt dieses Backups ersetzt. Dies kann nicht rückgängig gemacht werden.",
+      "spaceNotice": "Der Host benötigt während des Vorgangs etwa {{size}} freien Platz. Die aktuellen Datenträger der Maschine bleiben unberührt, bis die neu aufgebauten fertig sind, und diese Sicherheit kostet den zusätzlichen Platz. Die Wiederherstellung wird von vornherein abgelehnt, wenn er nicht ausreicht.",
+      "needsStop": "Die Maschine muss gestoppt sein, bevor sie wiederhergestellt werden kann.",
+      "chainNote": "Dies ist ein inkrementelles Backup, daher werden die vollständige Kopie, auf der es aufbaut, und jedes Backup dazwischen mit wiederhergestellt.",
+      "confirm": "Mir ist bewusst, dass die aktuellen Datenträger ersetzt werden",
+      "submit": "Dieses Backup wiederherstellen"
+    },
+    "destinationStatus": {
+      "uploading": "Wird gesendet",
+      "success": "Gespeichert",
+      "failure": "Fehlgeschlagen"
+    }
+  },
+  "shares": {
+    "title": "Freigegebene Verzeichnisse",
+    "description": "Verzeichnisse auf dem Host, die diese Maschine direkt einhängen kann, ohne eine Netzwerkfreigabe.",
+    "add": "Verzeichnis freigeben",
+    "remove": "Diese Freigabe entfernen",
+    "tag": "Mount-Tag",
+    "tagPlaceholder": "projects",
+    "root": "Erlaubtes Stammverzeichnis",
+    "subPath": "Pfad innerhalb dieses Stammverzeichnisses",
+    "subPathPlaceholder": "optional",
+    "access": "Zugriff",
+    "readOnly": "Schreibgeschützt",
+    "readWrite": "Lesen und Schreiben",
+    "empty": "Diese Maschine gibt keine Verzeichnisse frei.",
+    "noRoots": "Auf diesem Host darf noch kein Verzeichnis freigegeben werden. Ein Administrator legt zuerst die erlaubten Stammverzeichnisse fest.",
+    "restartHint": "Freigaben werden beim Start der Maschine angebunden. Das Hinzufügen oder Entfernen wirkt sich beim nächsten Start aus.",
+    "columns": {
+      "tag": "Mount-Tag",
+      "hostPath": "Host-Pfad",
+      "access": "Zugriff",
+      "mount": "Einhängepunkt im Gast"
+    }
+  },
+  "resize": {
+    "title": "Größenänderung im laufenden Betrieb",
+    "description": "Arbeitsspeicher und Prozessoren können sich ändern, während die Maschine läuft. Beides sind Anfragen, die der Gast ablehnen kann; angezeigt wird daher, was er tatsächlich erhalten hat, nicht was angefragt wurde.",
+    "memory": "Arbeitsspeicher",
+    "vcpus": "Prozessoren",
+    "mb": "MB",
+    "processors": "Prozessoren",
+    "apply": "Anwenden",
+    "declined": "Der Gast ist nicht so weit gegangen.",
+    "notRunning": "Die Maschine muss dafür laufen.",
+    "noVirtioMem": "Diese Maschine hat kein größenveränderbares Arbeitsspeichergerät. Aktivieren Sie es und starten Sie die Maschine neu.",
+    "noHeadroom": "Diese Maschine wurde ohne Spielraum zum Hinzufügen von Prozessoren gestartet. Das Anheben der Obergrenze erfordert einen Neustart.",
+    "memoryBoot": "Startgröße {{boot}} MB.",
+    "memoryNow": "Startgröße {{boot}} MB, derzeit {{now}} MB.",
+    "memoryResult": "Angefragt waren {{requested}} MB, der Gast hat {{actual}} MB.",
+    "vcpusCeiling": "Bis zu {{max}} Prozessoren ohne Neustart.",
+    "vcpusResult": "Angefragt waren {{requested}}, der Gast hat {{actual}}."
+  },
+  "limits": {
+    "title": "I/O-Limits für Datenträger {{slot}}",
+    "description": "Begrenzt, wie stark diese Maschine den Speicher des Hosts belasten kann. Ein Gast, der eine Wiederherstellung ausführt, kann sonst alle anderen Gäste auf dem Host ausbremsen.",
+    "open": "I/O-Limits",
+    "readIops": "Leseoperationen pro Sekunde",
+    "writeIops": "Schreiboperationen pro Sekunde",
+    "readMbps": "Lesen MB/s",
+    "writeMbps": "Schreiben MB/s",
+    "zeroHint": "Null bedeutet kein Limit. Ein Bandbreitenlimit unter 1 MB/s lässt einen Gast nicht mehr booten und wird abgelehnt.",
+    "unlimited": "Kein Limit",
+    "upToMbps": "bis zu {{value}} MB/s",
+    "upToIops": "bis zu {{value}} IOPS"
+  },
+  "inspect": {
+    "title": "Datenträger {{slot}} untersuchen",
+    "description": "Schreibgeschützte Prüfungen am Datenträger-Image selbst, ausgeführt vom Host.",
+    "open": "Diesen Datenträger untersuchen",
+    "operation": "Prüfung",
+    "run": "Ausführen",
+    "repair": "Gefundenes reparieren",
+    "repairAvailable": "Die Maschine ist gestoppt, daher ist eine Reparatur möglich.",
+    "repairNeedsStop": "Das Reparieren eines Images, das eine laufende Maschine geöffnet hat, würde es beschädigen. Stoppen Sie zuerst die Maschine.",
+    "operations": {
+      "info": "Image-Details und Backing-Kette",
+      "check": "Konsistenzprüfung",
+      "map": "Welche Teile woher stammen",
+      "measure": "Was dieses Image tatsächlich belegt"
+    }
+  },
+  "hostFeature": {
+    "unavailable": "Das QEMU dieses Hosts kann dies nicht: {{feature}} ist nicht verfügbar.",
+    "unknown": "McHarbor konnte die QEMU-Fähigkeiten dieses Hosts nicht lesen.",
+    "qemuVersion": "QEMU {{version}}",
+    "machineTypeMissing": "Dieser Gast ist an den Maschinentyp {{type}} gebunden, den das QEMU dieses Hosts nicht mehr anbietet. Er startet nicht, bis der Maschinentyp geändert wird.",
+    "names": {
+      "virtio_mem": "virtio-mem-Arbeitsspeicher-Hotplug",
+      "cpu_hotplug": "vCPU-Hotplug",
+      "hugepages": "Hugepages",
+      "numa": "NUMA-Pinning",
+      "virtiofs": "virtiofs-Verzeichnisfreigaben",
+      "vsock": "vhost-vsock",
+      "io_throttle": "I/O-Drosselung",
+      "iothread": "dedizierte I/O-Threads",
+      "dirty_bitmap": "Dirty Bitmaps",
+      "blockdev_backup": "inkrementelles Backup",
+      "virtio_gpu": "virtio-gpu-Anzeigen",
+      "virtio_snd": "virtio-Sound",
+      "usb_u2f": "virtuelles U2F-Token",
+      "spice": "SPICE-Konsolen",
+      "clone": "Klonen",
+      "migrate_cold": "Migration",
+      "migrate_live": "Live-Migration",
+      "serial_resize": "Größenänderung der seriellen Konsole",
+      "hotplug": "Hot-Plug",
+      "display_resize": "Anzeigegrößenänderung in der Konsole"
+    }
+  },
+  "err": {
+    "vm": {
+      "display_profile_not_found": "Dieses Anzeigeprofil existiert nicht mehr.",
+      "display_profile_builtin": "Integrierte Anzeigeprofile können nicht bearbeitet oder gelöscht werden. Duplizieren Sie eines, um es zu ändern.",
+      "display_profile_in_use": "Dieses Anzeigeprofil wird noch von virtuellen Maschinen verwendet. Verschieben Sie sie zu Fast LAN und löschen Sie es, oder weisen Sie ihnen zuerst ein anderes Profil zu.",
+      "display_profile_name_taken": "Ein Anzeigeprofil mit diesem Namen existiert bereits.",
+      "display_profile_name_required": "Ein Anzeigeprofil benötigt einen Namen ohne Steuerzeichen.",
+      "display_profile_name_too_long": "Dieser Name oder diese Beschreibung ist zu lang.",
+      "display_profile_option_invalid": "Eine der SPICE-Optionen hat einen Wert, den QEMU nicht akzeptiert.",
+      "display_profile_unknown": "Dieses Anzeigeprofil existiert nicht.",
+      "boot_disk_running": "Die Bootplatte kann nicht entfernt oder geändert werden, solange die Maschine läuft. Stoppen Sie die Maschine zuerst.",
+      "hotplug_unavailable": "Dieser Host kann die Hardware einer laufenden Maschine nicht ändern. Stoppen Sie die Maschine zuerst.",
+      "hotplug_restart_required": "Diese Maschine wurde gestartet, bevor Hardware im Betrieb geändert werden konnte. Starten Sie sie einmal neu, um Hot-Plug zu aktivieren.",
+      "hotplug_bus_unsupported": "Eine SATA- oder IDE-Festplatte kann nicht zu einer laufenden Maschine hinzugefügt oder von ihr entfernt werden. Verwenden Sie virtio-blk oder virtio-scsi, oder stoppen Sie die Maschine zuerst.",
+      "hotplug_no_controller": "Diese Maschine hat noch keinen SCSI-Controller. Fügen Sie die erste SCSI-Festplatte hinzu, solange sie gestoppt ist.",
+      "hotplug_no_free_port": "Diese Maschine hat keinen freien Hot-Plug-Steckplatz für dieses Gerät. Stoppen Sie sie, um weitere hinzuzufügen.",
+      "hotplug_fixed_device": "Dieses Gerät sitzt an einem Bus, an dem es im Betrieb nicht entfernt werden kann. Stoppen Sie die Maschine, um es zu entfernen.",
+      "hotplug_guest_refused": "Das Betriebssystem der Maschine hat das Gerät nicht freigegeben, daher wurde nichts entfernt. Manche Gast-Kernel haben keinen PCI-Hot-Plug-Treiber und geben nie ein Gerät frei (Home Assistant OS ist einer davon); stoppen Sie die Maschine und entfernen Sie das Gerät dann.",
+      "media_no_drive": "Diese Maschine hat kein leeres Disc-Laufwerk. Werfen Sie zuerst eine Disc aus oder stoppen Sie die Maschine, um ein Laufwerk hinzuzufügen.",
+      "no_destination": "Dieses Backup hat kein Ziel. Fügen Sie dem Plan mindestens ein Speicherziel hinzu.",
+      "chain_incomplete": "Dieses Backup baut auf einem früheren auf, das nicht mehr verfügbar ist, und kann daher nicht allein wiederhergestellt werden.",
+      "backup_too_many_destinations": "Ein Backup-Plan kann auf höchstens zehn Ziele schreiben. Entfernen Sie einige und versuchen Sie es erneut.",
+      "backup_destination_gone": "Eines der Speicherziele dieses Plans existiert nicht mehr. Bearbeiten Sie den Plan und wählen Sie ein vorhandenes Ziel.",
+      "backup_storage_unavailable": "Es sind keine Speicherziele konfiguriert. Fügen Sie ein Speicherziel hinzu, bevor Sie ein Backup erstellen.",
+      "backup_no_disks": "Diese Maschine hat keine Datenträger, die ein Backup abdecken kann. Installationsmedien und schreibgeschützte Datenträger werden übersprungen.",
+      "backup_keep_range": "Eine Einstellung für Aufbewahrung oder vollständige Kopie liegt außerhalb des Bereichs. Verwenden Sie 0 für immer bzw. nie oder eine kleinere Zahl.",
+      "backup_plan_needs_schedule": "Ein Plan kann nicht ohne Zeitplan aktiviert werden. Legen Sie einen Cron-Zeitplan fest oder lassen Sie den Plan ausgeschaltet.",
+      "backup_not_restorable": "Nur ein erfolgreich abgeschlossenes Backup kann wiederhergestellt werden.",
+      "restore_not_confirmed": "Eine Wiederherstellung ersetzt die aktuellen Datenträger der Maschine und muss daher bestätigt werden.",
+      "no_resizable_memory": "Diese Maschine hat kein größenveränderbares Arbeitsspeichergerät. Aktivieren Sie es und starten Sie die Maschine neu, bevor sich ihr Arbeitsspeicher im laufenden Betrieb ändern lässt.",
+      "invalid_resize": "Diese Größe liegt außerhalb dessen, womit diese Maschine gestartet wurde.",
+      "unsupported_image_op": "Dieser Datenträgervorgang ist nicht verfügbar.",
+      "share_tag_taken": "Diese Maschine gibt bereits ein Verzeichnis unter diesem Mount-Tag frei.",
+      "share_path_refused": "Dieser Pfad liegt nicht in einem Verzeichnis, dessen Freigabe dieser Host erlaubt. Ein Administrator legt die erlaubten Stammverzeichnisse pro Host fest.",
+      "vault_unavailable": "Diese McHarbor-Instanz gibt dem Plugin Virtuelle Maschinen keinen Zugriff auf den Secret-Tresor. Aktualisieren Sie das Plugin oder geben Sie Passwort und Schlüssel selbst ein.",
+      "vault_denied": "Sie benötigen secrets.view in dieser Umgebung, um hier ein Secret aus dem Tresor zu verwenden.",
+      "vault_secret_not_found": "In dieser Umgebung ist kein Secret mit diesem Namen sichtbar.",
+      "password_and_secret": "Geben Sie ein Passwort ein oder wählen Sie ein Secret dafür, nicht beides.",
+      "unauthorized": "Sie sind nicht angemeldet.",
+      "invalid_request": "Eine Angabe im Formular war ungültig.",
+      "user_data_masked": "Die cloud-init-User-Data enthält noch maskierte Werte (••••••••). Geben Sie die echten Werte ein, bevor Sie die Maschine erstellen.",
+      "not_found": "Diese virtuelle Maschine existiert nicht mehr.",
+      "name_taken": "Eine virtuelle Maschine auf diesem Host hat bereits diesen Namen.",
+      "running": "Stoppen Sie zuerst die Maschine.",
+      "not_running": "Die Maschine läuft nicht.",
+      "host_offline": "Der Host dieser Maschine ist nicht erreichbar. Befehle werden nie für später in die Warteschlange gestellt – verbinden Sie den Agent erneut und versuchen Sie es noch einmal.",
+      "no_capability": "Dieser Host kann keine virtuellen Maschinen ausführen. Prüfen Sie auf der Compute-Seite, was ihm fehlt.",
+      "disk_shrink": "Ein Datenträger kann nicht verkleinert werden.",
+      "snapshot_chain_deep": "Bei dieser Maschine sind zu viele Snapshots aufeinandergestapelt. Entfernen Sie zuerst einen.",
+      "template_in_use": "Diese Vorlage hat Kopien, die ihre Daten teilen.",
+      "template_running": "Eine Vorlage kann nicht gestartet werden. Klonen Sie sie stattdessen.",
+      "command_failed": "Der Host konnte das nicht abschließen:",
+      "not_ready": "Dieser Bereich startet noch. Versuchen Sie es gleich noch einmal.",
+      "media_path": "Das ist kein verwendbarer Installationsdatenträger. Es muss ein Datenträger-Image auf dem Host sein.",
+      "guest_disc_pending": "Der Host bereitet den Gast-Agent-Datenträger noch vor. Versuchen Sie es gleich noch einmal.",
+      "not_media": "Dieser Datenträger ist kein Installationsdatenträger.",
+      "host_required": "Wählen Sie einen Host für diese virtuelle Maschine.",
+      "name_required": "Ein Name ist erforderlich.",
+      "name_too_long": "Dieser Name ist länger als 120 Zeichen.",
+      "name_leading": "Ein Name darf nicht mit einem Bindestrich oder Unterstrich beginnen.",
+      "name_invalid": "Ein Name darf keine Steuerzeichen enthalten.",
+      "vcpus_invalid": "Das ist keine verwendbare Anzahl von Prozessoren.",
+      "memory_too_small": "Eine virtuelle Maschine benötigt mindestens 128 MB Arbeitsspeicher.",
+      "memory_ceiling": "Die Arbeitsspeicher-Obergrenze darf nicht unter dem Start-Arbeitsspeicher liegen.",
+      "pool_required": "Ein Speicherpool ist erforderlich.",
+      "pool_mismatch": "Dieser Pool ist auf diesem Host bereits mit einem anderen Backend oder Pfad erfasst. Wählen Sie den Pool erneut aus der Liste.",
+      "disk_required": "Eine Datenträgergröße ist erforderlich.",
+      "network_required": "Ein Netzwerk ist erforderlich.",
+      "firmware_invalid": "Das ist kein Firmware-Typ.",
+      "secure_boot_needs_uefi": "Secure Boot benötigt UEFI-Firmware.",
+      "display_invalid": "Das ist kein Grafikadapter.",
+      "display_resolution_invalid": "Das ist keine verwendbare Boot-Auflösung. Verwenden Sie eine Breite von 640 bis 7680 und eine Höhe von 480 bis 4320 Pixeln oder lassen Sie beides auf dem QEMU-Standard.",
+      "cpu_model_invalid": "Dieses CPU-Modell kann nicht verwendet werden.",
+      "machine_invalid": "Dieser Maschinentyp kann nicht verwendet werden.",
+      "disk_bus_invalid": "Das ist kein Datenträger-Bus.",
+      "invalid_cron": "Das ist kein gültiger Cron-Ausdruck mit fünf Feldern.",
+      "invalid_keep": "Bewahren Sie zwischen 1 und 100 Snapshots auf.",
+      "import_empty": "Es wurde keine Datei hochgeladen.",
+      "import_too_large": "Diese Datei überschreitet das Import-Limit.",
+      "import_extension": "Diese Datei ist kein Datenträger-Image, das McHarbor importieren kann.",
+      "import_state": "Dieser Import ist für diesen Schritt noch nicht bereit.",
+      "import_staging": "In das Staging-Verzeichnis für Importe kann nicht geschrieben werden. Die Details stehen im Serverprotokoll.",
+      "volume_path": "Dieser Datenträger liegt nicht im gewählten Speicherpool.",
+      "volume_unavailable": "Dieser Datenträger ist nicht mehr frei. Aktualisieren Sie und wählen Sie einen anderen.",
+      "snapshot_branched": "Unter diesem Snapshot liegt mehr als ein Zweig. Entfernen Sie zuerst einen der Zweige.",
+      "snapshot_too_many": "Diese Maschine hat so viele Snapshots, wie sie aufnehmen kann. Entfernen Sie zuerst einen.",
+      "snapshot_name_required": "Ein Snapshot-Name ist erforderlich.",
+      "snapshot_name_too_long": "Dieser Snapshot-Name ist länger als 120 Zeichen.",
+      "snapshot_name_invalid": "Ein Snapshot-Name darf keine Zeilenumbrüche enthalten.",
+      "migrate_same_host": "Die Maschine befindet sich bereits auf diesem Host. Wählen Sie ein anderes Ziel.",
+      "migrate_in_flight": "Diese Maschine wird bereits verschoben.",
+      "migrate_unsupported": "Ein beteiligter Host kann diese Verschiebung nicht durchführen. Aktualisieren Sie seinen Agent oder versuchen Sie eine Kaltverschiebung.",
+      "migrate_snapshots": "Maschinen mit Snapshots können nicht verschoben werden. Löschen oder verschmelzen Sie die Snapshots zuerst.",
+      "migrate_devices": "Maschinen mit durchgereichten Host-Geräten können nicht verschoben werden. Trennen Sie diese zuerst.",
+      "migrate_shares": "Maschinen mit freigegebenen Host-Verzeichnissen können nicht verschoben werden. Entfernen Sie die Freigaben zuerst.",
+      "migrate_tpm": "Maschinen mit einem virtuellen TPM können noch nicht verschoben werden.",
+      "migrate_media": "Werfen Sie das Installationsmedium aus, bevor Sie diese Maschine verschieben.",
+      "migrate_forbidden": "Sie benötigen die Berechtigung, Maschinen auf beiden Hosts zu verschieben.",
+      "migrate_address": "Diese Zieladresse kann für eine Live-Verschiebung nicht verwendet werden.",
+      "migration_none": "Diese Maschine wird nicht verschoben.",
+      "spice_unavailable": "Der Host dieser Maschine kann keine SPICE-Konsole bereitstellen. Sein QEMU unterstützt kein SPICE oder sein Agent ist zu alt."
+    }
+  },
+  "msg": {
+    "vm": {
+      "display_profile_created": "Anzeigeprofil erstellt.",
+      "display_profile_updated": "Anzeigeprofil gespeichert. Virtuelle Maschinen, die es verwenden, übernehmen es beim nächsten Start.",
+      "display_profile_deleted": "Anzeigeprofil gelöscht.",
+      "backup_started": "Backup gestartet.",
+      "backup_stored": "Backup empfangen.",
+      "backup_plan_saved": "Backup-Zeitplan gespeichert.",
+      "backup_plan_deleted": "Backup-Zeitplan gelöscht.",
+      "restore_started": "Wiederherstellung gestartet.",
+      "throttle_saved": "Datenträger-Limits gespeichert.",
+      "share_added": "Freigegebenes Verzeichnis hinzugefügt.",
+      "share_removed": "Freigegebenes Verzeichnis entfernt.",
+      "guest_refreshed": "Der Gast wurde nach seinen Details gefragt.",
+      "created": "Virtuelle Maschine erstellt.",
+      "updated": "Änderungen gespeichert.",
+      "started": "Wird gestartet.",
+      "stopped": "Gestoppt.",
+      "shutdown_escalated": "Die Maschine ist nicht von selbst heruntergefahren und wurde gestoppt.",
+      "deleted": "Gelöscht.",
+      "snapshot_created": "Snapshot erstellt.",
+      "snapshot_reverted": "Zum Snapshot zurückgegangen.",
+      "cloned": "Kopie erstellt.",
+      "templated": "Vorlage aktualisiert.",
+      "disk_added": "Datenträger hinzugefügt.",
+      "device_attached": "Gerät angebunden.",
+      "media_attached": "Datenträger eingelegt.",
+      "guest_agent_disc_attached": "Gast-Agent-Datenträger eingelegt.",
+      "media_ejected": "Datenträger ausgeworfen.",
+      "schedule_saved": "Snapshot-Zeitplan gespeichert.",
+      "schedule_deleted": "Snapshot-Zeitplan entfernt.",
+      "schedule_ran": "Snapshot erstellt.",
+      "import_uploaded": "Upload abgeschlossen.",
+      "import_converted": "Die Maschine wurde importiert.",
+      "import_deleted": "Import entfernt.",
+      "migration_started": "Verschiebung gestartet.",
+      "migration_cancel_requested": "Die Hosts wurden aufgefordert, die Verschiebung zu stoppen."
+    }
+  },
+  "permissions": {
+    "vm.view": {
+      "label": "Virtuelle Maschinen anzeigen"
+    },
+    "vm.manage": {
+      "label": "Virtuelle Maschinen verwalten"
+    },
+    "vm.delete": {
+      "label": "Virtuelle Maschinen löschen"
+    },
+    "vm.console": {
+      "label": "Eine Konsole einer virtuellen Maschine öffnen"
+    },
+    "vm.privileged": {
+      "label": "Host-Geräte an virtuelle Maschinen anbinden"
+    },
+    "vm.import": {
+      "label": "Virtuelle Maschinen von anderen Hypervisoren importieren"
+    },
+    "vm.migrate": {
+      "label": "Virtuelle Maschinen zwischen Hosts verschieben"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "unknownNote": "Dieser Host ist nicht erreichbar, daher können nur Verwaltungseinstellungen geändert werden.",
+    "appliesAtBoot": "Wird beim nächsten Start dieser Maschine angewendet.",
+    "firmwareWarning": "Der Wechsel der Firmware verhindert, dass ein installierter Gast bootet.",
+    "save": "Einstellungen speichern",
+    "saved": "Einstellungen gespeichert.",
+    "noChanges": "Es hat sich noch nichts geändert.",
+    "fields": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "vcpus": "Prozessoren",
+      "memoryMb": "Arbeitsspeicher (MB)",
+      "memoryMaxMb": "Arbeitsspeicher-Obergrenze (MB)",
+      "memoryMaxHint": "Bei 0 belassen für keine Obergrenze.",
+      "cpuModel": "CPU-Modell",
+      "machineType": "Maschinentyp",
+      "firmware": "Firmware",
+      "secureBoot": "Secure Boot",
+      "tpmEnabled": "TPM 2.0",
+      "displayType": "Grafikadapter",
+      "autostart": "Mit dem Host starten",
+      "autostartOrder": "Startreihenfolge",
+      "autostartDelaySeconds": "Startverzögerung (Sekunden)",
+      "vcpusValue": "{{count}} Prozessor",
+      "vcpusValue_other": "{{count}} Prozessoren",
+      "cpuModelHint": "Leer lassen für host, wodurch die CPU des Hosts durchgereicht wird.",
+      "cpuModelHost": "host — am schnellsten, aber diese Maschine lässt sich nicht auf einen anderen Host verschieben",
+      "vcpusMax": "Prozessor-Obergrenze",
+      "vcpusMaxHint": "Auf wie viele Prozessoren diese Maschine im laufenden Betrieb wachsen kann. Wird beim Start festgelegt, daher erfordert eine Erhöhung einen Neustart. Null bedeutet kein Wachstum.",
+      "virtioMem": "Größenveränderbarer Arbeitsspeicher",
+      "virtioMemHint": "Erlaubt Änderungen des Arbeitsspeichers im laufenden Betrieb, in beide Richtungen. Benötigt eine Arbeitsspeicher-Obergrenze über der Startgröße und ersetzt den Balloon.",
+      "hugePages": "Hugepages",
+      "hugePagesHint": "Hinterlegt den Arbeitsspeicher dieser Maschine mit Hugepages, was bei speicherintensiven Workloads typischerweise 5–15% schneller ist. Hugepage-Speicher kann nicht ausgelagert werden, daher geht einem überbelegten Host der Speicher aus, statt langsamer zu werden.",
+      "numaPolicy": "NUMA-Platzierung",
+      "numaPolicyHint": "Wie Arbeitsspeicher und Prozessoren dieser Maschine auf die Speicherdomänen des Hosts verteilt werden. Nur bei einem Host mit mehr als einer relevant.",
+      "numaNode": "Host-Speicherdomäne",
+      "numaNodeHint": "Auf welcher der Speicherdomänen des Hosts diese Maschine gehalten wird.",
+      "numaNodeLabel": "Domäne {{id}}",
+      "numaNodeFree": "{{free}} GB frei, {{cpus}} Prozessoren in dieser Domäne.",
+      "numaNone": "Keine Platzierung",
+      "numaPin": "Auf einer Domäne halten",
+      "numaMirror": "Layout des Hosts spiegeln",
+      "ioThread": "Dedizierter I/O-Thread",
+      "ioThreadHint": "Verlagert den Datenträger-I/O dieser Maschine auf einen eigenen Thread, sodass starke Datenträgernutzung den Rest der Maschine nicht ausbremst.",
+      "vsock": "Direkter Host-Kanal",
+      "vsockHint": "Ein Socket-Kanal zwischen Host und Gast, der kein Netzwerk, keine Adresse und keine Firewall-Regel benötigt.",
+      "vsockAssigned": "Kontext-ID {{cid}}. Von McHarbor vergeben und auf diesem Host eindeutig.",
+      "displayAuto": "Automatisch",
+      "bootResolution": "Boot-Auflösung",
+      "bootResolutionHint": "Die Bildschirmgröße, mit der der Gast startet. Gast an Fenster anpassen folgt weiterhin der Konsole, wenn der Gast dies unterstützt. Gilt ab dem nächsten Start.",
+      "bootResolutionDefault": "QEMU-Standard",
+      "bootResolutionCustom": "Benutzerdefiniert",
+      "bootResolutionWidth": "Breite",
+      "bootResolutionHeight": "Höhe",
+      "bootResolutionUnsupported": "Nur virtio-gpu und QXL unterstützen eine Boot-Auflösung.",
+      "bootResolutionRange": "Verwenden Sie eine Breite von {{minWidth}} bis {{maxWidth}} und eine Höhe von {{minHeight}} bis {{maxHeight}} Pixeln.",
+      "autostartOrderHint": "Niedrigere Zahlen starten zuerst.",
+      "displayNone": "Keine"
+    },
+    "hostSummary": "Der Host hat {{cpus}} Prozessoren und {{memory}}",
+    "hostUnknown": "Dieser Host konnte nicht gelesen werden, daher wird keine Obergrenze angewendet.",
+    "cpuNote": "{{cores}} physische Kerne hinter {{threads}} Threads. Bis zu {{ideal}} vCPUs laufen völlig ohne Konkurrenz; der grüne Bereich endet bei {{safe}}.",
+    "cpuOverSafe": "Dieser Gast fordert {{value}} an, mehr als die {{safe}}, die dieser Host stützen kann, während bereits {{others}} vCPUs laufen. Er startet trotzdem, aber jeder Gast auf dem Host wird langsamer eingeplant.",
+    "memoryNote": "{{reserve}} werden für den Host selbst und den QEMU-Overhead zurückgehalten.",
+    "sections": {
+      "features": "QEMU-Funktionen",
+      "featuresDescription": "Fähigkeiten, die das QEMU des Hosts dieser Maschine geben kann. Jede verändert, wie sie gestartet wird, daher gelten alle beim nächsten Start.",
+      "identity": "Identität",
+      "identityDescription": "Wie diese Maschine in McHarbor heißt.",
+      "resources": "Prozessoren und Arbeitsspeicher",
+      "platform": "Plattform",
+      "platformDescription": "Firmware, Chipsatz und der Grafikadapter, den der Gast sieht.",
+      "startup": "Start",
+      "startupDescription": "Ob diese Maschine mit ihrem Host zurückkehrt und in welcher Reihenfolge."
+    },
+    "needsStop": "Erfordert einen Stopp",
+    "memoryNoteShared": "{{reserve}} werden für den Host zurückgehalten, und {{used}} werden von anderen laufenden Gästen belegt.",
+    "overBudget": "Dieser Gast fordert {{value}} an, mehr als die {{max}}, die der Host für ihn übrig hat."
+  },
+  "schedules": {
+    "intro": "Ein Zeitplan erstellt selbstständig Snapshots und behält die neuesten, ähnlich wie ein Backup-Plan. Die Aufbewahrung entfernt nur Snapshots, die dieser Zeitplan erstellt hat – alles, was Sie selbst benannt haben, bleibt unberührt.",
+    "add": "Zeitplan hinzufügen",
+    "addTitle": "Neuer Snapshot-Zeitplan",
+    "editTitle": "Snapshot-Zeitplan bearbeiten",
+    "dialogBody": "Snapshots werden in der lokalen Zeit des Hosts erstellt.",
+    "defaultName": "Tägliche Snapshots",
+    "empty": "Diese Maschine hat noch keinen Snapshot-Zeitplan.",
+    "enabled": "Aktiviert",
+    "disabled": "Pausiert",
+    "withMemory": "Mit Arbeitsspeicher",
+    "keeps": "Behält {{count}}",
+    "next": "nächster {{when}}",
+    "runNow": "Jetzt ausführen",
+    "remove": "Zeitplan entfernen",
+    "history": "Letzte Läufe",
+    "pruned": "{{count}} bereinigt",
+    "status": {
+      "running": "Läuft",
+      "success": "Fertig",
+      "failure": "Fehlgeschlagen"
+    },
+    "confirmRemove": {
+      "title": "Diesen Zeitplan entfernen?",
+      "body": "Bereits erstellte Snapshots bleiben erhalten. Nur die Richtlinie entfällt."
+    },
+    "field": {
+      "name": "Name",
+      "cron": "Zeitplan",
+      "cronHelp": "Cron mit fünf Feldern, in der Zeitzone des Servers. `0 2 * * *` bedeutet jede Nacht um 02:00.",
+      "keep": "Aufzubewahrende Snapshots",
+      "keepHelp": "Sobald es mehr als diese Anzahl gibt, werden die ältesten von diesem Zeitplan erstellten gelöscht.",
+      "memory": "Arbeitsspeicher einbeziehen",
+      "memoryHelp": "Sichert neben den Datenträgern auch den RAM der Maschine, sodass eine Wiederherstellung fortsetzt statt bootet. Der Gast wird während des Schreibens pausiert, was bei einer großen Maschine Sekunden bis Minuten dauert.",
+      "enabled": "Aktiviert",
+      "pause": "Maschine pausieren, wenn sie keinen Gast-Agent hat",
+      "pauseHelp": "Ein geplanter Snapshot einer Maschine ohne Gast-Agent hält ihre Prozessoren für ein paar Sekunden an, erstellt den Snapshot und startet sie wieder. Ohne dies entspricht der Snapshot dem Ziehen des Netzsteckers."
+    }
+  },
+  "import": {
+    "title": "Virtuelle Maschine importieren",
+    "body": "Übernehmen Sie eine Maschine aus VMware, Hyper-V, VirtualBox oder Parallels. Der Datenträger wird auf dem von Ihnen gewählten Host konvertiert, sodass nichts Großes zweimal durch McHarbor läuft.",
+    "formats": "Akzeptiert OVA- und OVF-Appliances sowie VMDK-, VHDX-, VHD-, VDI-, HDD-, QCOW2- und Raw-Datenträger.",
+    "choose": "Datei auswählen",
+    "uploading": "Wird hochgeladen… {{percent}}%",
+    "inspect": "Diese Datei lesen",
+    "convert": "Importieren",
+    "converting": "Wird konvertiert. Ein großer Datenträger braucht eine Weile – Sie können dies schließen, und es läuft weiter.",
+    "failed": "Der Import wurde nicht abgeschlossen",
+    "warnings": "Einige Einstellungen werden nicht übernommen",
+    "disks": "Gefundene Datenträger",
+    "bootDisk": "Boot-Datenträger",
+    "firmware": {
+      "bios": "BIOS",
+      "uefi": "UEFI"
+    },
+    "field": {
+      "host": "Host",
+      "hostHelp": "Der Rechner, der die Datei liest und konvertiert und auf dem der Gast laufen wird.",
+      "name": "Name",
+      "pool": "Speicherpool",
+      "poolPlaceholder": "Einen Pool auswählen",
+      "network": "Netzwerk",
+      "networkPlaceholder": "Ein Netzwerk auswählen",
+      "vcpus": "Prozessoren",
+      "memory": "Arbeitsspeicher (MB)",
+      "firmware": "Firmware",
+      "firmwareHelp": "Wählen Sie, womit die Maschine installiert wurde. Eine BIOS-Installation bootet unter UEFI nicht und zeigt bei falscher Wahl überhaupt nichts an.",
+      "autostart": "Mit dem Host starten",
+      "secureBoot": "Secure Boot",
+      "secureBootHelp": "Nur UEFI. Windows 11 erwartet es; ein älterer Gast bootet damit nicht.",
+      "tpm": "Virtuelles TPM",
+      "tpmHelp": "Ein Software-TPM 2.0, das Windows 11 voraussetzt.",
+      "guestOs": "Gast-Betriebssystem",
+      "guestOsHelp": "Bestimmt den Grafikadapter und die Netzwerkkarte, die der Gast erhält. Windows hat keinen Treiber für die virtio-Geräte, die ein Linux-Gast bekommt, und bootet zu einem schwarzen Bildschirm ohne Netzwerk."
+    },
+    "background": "Im Hintergrund ausführen",
+    "reopen": "Anzeigen",
+    "dismiss": "Diesen Import ausblenden",
+    "phase": {
+      "uploading": "Wird hochgeladen",
+      "uploaded": "Hochgeladen, wartet auf das Lesen",
+      "inspecting": "Datei wird gelesen",
+      "inspected": "Gelesen, wartet auf den Import",
+      "converting": "Wird auf dem Host konvertiert",
+      "failed": "Import fehlgeschlagen"
+    },
+    "pending": {
+      "title": "Hochgeladen, wartet auf den Import",
+      "continue": "Fortfahren",
+      "discard": "Diesen Upload verwerfen"
+    },
+    "state": {
+      "pending": "Wartend",
+      "uploaded": "Hochgeladen",
+      "inspecting": "Wird gelesen",
+      "inspected": "Gelesen",
+      "converting": "Wird konvertiert",
+      "converted": "Importiert",
+      "failed": "Fehlgeschlagen",
+      "ready": "Bereit"
+    },
+    "tab": "Konvertierung",
+    "tabDescription": "Dateien, die hochgeladen, aber noch nicht in einen Gast konvertiert wurden.",
+    "emptyTitle": "Nichts wartet auf die Konvertierung",
+    "emptyDescription": "Laden Sie ein VMDK, VHDX, QCOW2 oder OVA über den Tab Virtuelle Maschinen hoch, und es erscheint hier, bis es zu einem Gast wird.",
+    "columns": {
+      "file": "Datei",
+      "format": "Format",
+      "size": "Größe",
+      "state": "Zustand",
+      "uploaded": "Hochgeladen",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "convert": "Konvertieren",
+      "cancel": "Abbrechen",
+      "delete": "Upload löschen"
+    },
+    "staged": "Diese Datei liegt auf {{host}}. Die Konvertierung läuft dort.",
+    "guestOs": {
+      "linux": "Linux",
+      "windows": "Windows",
+      "bsd": "BSD",
+      "other": "Andere"
+    }
+  },
+  "logs": {
+    "source": "Protokoll",
+    "sources": {
+      "vm": "Virtuelle Maschine (QEMU)",
+      "tpm": "Sicherheitschip (swtpm)"
+    },
+    "tail": "Zeilen",
+    "exportName": "{{name}}-{{source}}.log",
+    "liveHint": "Live-Tail: Das Journal wird bei aktivierter Option alle paar Sekunden neu gelesen.",
+    "lines_one": "Letzte {{count}} Zeile",
+    "lines_other": "Letzte {{count}} Zeilen",
+    "loading": "Protokoll wird vom Host gelesen…",
+    "empty": "Diese Unit hat noch nichts geschrieben.",
+    "failed": "Das Protokoll konnte nicht gelesen werden",
+    "partial": "Das Protokoll ist unvollständig",
+    "notices": {
+      "journalctl_failed": "Der Host konnte das Journal dieser Unit nicht lesen. Möglicherweise hat es noch keine Einträge.",
+      "no_supported_log_source": "Dieser Host hat kein journalctl, daher können Unit-Protokolle nicht gelesen werden.",
+      "permission_denied": "Der Agent darf dieses Journal nicht lesen."
+    }
+  },
+  "progress": {
+    "elapsed": "{{seconds}} s"
+  },
+  "runbook": {
+    "attach": {
+      "vm": "Virtuelle Maschine"
+    },
+    "targets": {
+      "vm": "Virtuelle Maschine"
+    },
+    "steps": {
+      "vm_start": "Die virtuelle Maschine starten",
+      "vm_shutdown": "Die virtuelle Maschine über ACPI herunterfahren und nach der Karenzzeit erzwungen ausschalten",
+      "vm_reset": "Die virtuelle Maschine hart zurücksetzen, als würde die Reset-Taste gedrückt",
+      "vm_force_stop": "Die virtuelle Maschine sofort ausschalten, ohne den Gast zu fragen",
+      "vm_snapshot_create": "Einen Snapshot der virtuellen Maschine erstellen",
+      "vm_state": "Status, Hardware und Host der virtuellen Maschine",
+      "vm_snapshots": "Die Snapshots der virtuellen Maschine"
+    }
+  },
+  "migrate": {
+    "title": "{{name}} auf einen anderen Host verschieben",
+    "description": "Kopiert die Festplatten und die Definition der Maschine auf einen anderen Host und führt sie dort aus. Das Original wird entfernt, sobald die Verschiebung erfolgreich war.",
+    "target": "Zielhost",
+    "targetPlaceholder": "Host auswählen",
+    "noTargets": "Kein anderer Host kann diese Maschine übernehmen. Ein Ziel benötigt aktiviertes Compute und einen verbundenen Agent.",
+    "pool": "Speicher-Pool",
+    "poolPlaceholder": "Wählen Sie einen Pool auf dem Ziel",
+    "live": "Im laufenden Betrieb verschieben",
+    "liveHint": "Die Maschine läuft weiter, während Arbeitsspeicher und Festplatten kopiert werden, und pausiert am Ende kurz.",
+    "coldHint": "Die Maschine wird heruntergefahren, kopiert und auf dem Ziel erneut gestartet, wenn sie lief.",
+    "liveNeedsRunning": "Nur eine laufende Maschine kann live verschoben werden.",
+    "address": "Zieladresse",
+    "addressPlaceholder": "Leer lassen, um die erste vom Ziel gemeldete Adresse zu verwenden",
+    "bandwidth": "Bandbreitenlimit (MB/s)",
+    "downtime": "Längste Pause (ms)",
+    "networks": "Netzwerke auf dem Ziel",
+    "networksHint": "Eine Schnittstelle, die auf ihrer aktuellen Bridge bleibt, benötigt auf dem Ziel eine Bridge mit demselben Namen.",
+    "networkFor": "Netzwerk für {{mac}}",
+    "keepBridge": "{{bridge}} beibehalten",
+    "review": "Überprüfen",
+    "submit": "Maschine verschieben",
+    "summary": {
+      "from": "Von",
+      "to": "Nach",
+      "mode": "Wie",
+      "live": "Live, im laufenden Betrieb",
+      "cold": "Herunterfahren, dann kopieren"
+    },
+    "confirmLive": "Die Maschine bleibt in Betrieb, aber Arbeitsspeicher und Festplatten werden über das Netzwerk übertragen. Sie pausiert kurz, bevor sie auf dem Ziel fortgesetzt wird.",
+    "confirmCold": "Die Maschine wird heruntergefahren und ist nicht erreichbar, bis ihre Festplatten kopiert wurden und sie auf dem Ziel startet.",
+    "cancelMigration": "Verschiebung stoppen",
+    "percent": "{{percent}} % erledigt",
+    "runningHint": "Die Verschiebung läuft auf den Hosts weiter, wenn Sie diesen Dialog schließen.",
+    "failed": "Die Verschiebung ist fehlgeschlagen",
+    "state": {
+      "running": "Verschiebung nach {{target}}.",
+      "completed": "Die Maschine läuft jetzt auf {{target}}.",
+      "failed": "Die Verschiebung nach {{target}} wurde nicht abgeschlossen. Die Maschine befindet sich weiterhin auf dem ursprünglichen Host.",
+      "cancelled": "Die Verschiebung nach {{target}} wurde gestoppt. Die Maschine befindet sich weiterhin auf dem ursprünglichen Host."
+    }
+  },
+  "estate": {
+    "vms": "Virtuelle Maschinen"
+  },
+  "search": {
+    "group": {
+      "vms": "Virtuelle Maschinen"
+    },
+    "action": {
+      "createVm": "Virtuelle Maschine erstellen",
+      "createVmKeywords": "neue vm kvm gast maschine",
+      "importVm": "Virtuelle Maschine importieren",
+      "importVmKeywords": "importieren ova vmdk vhdx vmware hyper-v virtualbox festplatte"
+    }
+  },
+  "displayProfiles": {
+    "tab": "Anzeigeprofile",
+    "title": "Anzeigeprofile",
+    "description": "Die SPICE-Einstellungen, mit denen eine virtuelle Maschine startet. Die Browser-Konsole dekodiert in JavaScript, daher entscheiden diese, ob die Zeit mit Dekodieren oder Zeichnen verbracht wird.",
+    "create": "Neues Profil",
+    "builtinBadge": "Integriert",
+    "builtinReadOnly": "Integrierte Profile sind schreibgeschützt. Duplizieren Sie eines, um es zu ändern.",
+    "appliesNextStart": "Gilt ab dem nächsten Start",
+    "empty": {
+      "title": "Keine Anzeigeprofile",
+      "body": "Die integrierten Profile erscheinen, sobald das Plugin gestartet ist."
+    },
+    "columns": {
+      "name": "Name",
+      "image": "Bilder",
+      "streaming": "Videostreaming",
+      "jpeg": "JPEG bei langsamen Verbindungen",
+      "playback": "Audiokomprimierung",
+      "vms": "Virtuelle Maschinen",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "edit": "Bearbeiten",
+      "duplicate": "Duplizieren",
+      "delete": "Löschen"
+    },
+    "builtin": {
+      "fastLan": {
+        "name": "Fast LAN",
+        "description": "Unkomprimierte Bilder: die meiste Bandbreite, die geringste Arbeit für den Browser."
+      },
+      "balanced": {
+        "name": "Ausgewogen",
+        "description": "LZ für Desktop-Inhalte, JPEG bei langsamer Verbindung."
+      },
+      "lowBandwidth": {
+        "name": "Geringe Bandbreite",
+        "description": "Verlustbehaftetes JPEG und MJPEG-Streaming überall: die wenigsten Bytes."
+      }
+    },
+    "values": {
+      "auto_glz": "Automatisch (GLZ)",
+      "auto_lz": "Automatisch (LZ)",
+      "quic": "QUIC",
+      "glz": "GLZ",
+      "lz": "LZ",
+      "off": "Aus",
+      "auto": "Automatisch",
+      "never": "Nie",
+      "always": "Immer",
+      "all": "Alle",
+      "filter": "Nur erkanntes Video",
+      "on": "Ein"
+    },
+    "options": {
+      "imageCompression": {
+        "label": "Bildkomprimierung",
+        "hint": "Aus sendet rohe Bilder: die meiste Bandbreite und das schnellste Zeichnen im Browser. LZ ist günstig zu dekodieren. QUIC eignet sich für Fotos, ist aber in JavaScript langsam zu dekodieren. Die GLZ-Optionen kann die Browser-Konsole nicht darstellen; verwenden Sie sie nur mit remote-viewer."
+      },
+      "jpegWanCompression": {
+        "label": "JPEG bei langsamen Verbindungen",
+        "hint": "Verlustbehaftetes JPEG für fotoähnliche Bereiche, bei langsamer Verbindung oder immer. Der Browser dekodiert JPEG nativ, daher ist es günstig; es weicht feine Details auf."
+      },
+      "zlibGlzWanCompression": {
+        "label": "Zlib über GLZ bei langsamen Verbindungen",
+        "hint": "Zusätzliche Komprimierung nur für GLZ-Bilder. Die Browser-Konsole kann sie nicht dekodieren; lassen Sie sie auf Nie, außer Sie verwenden remote-viewer."
+      },
+      "streamingVideo": {
+        "label": "Videostreaming",
+        "hint": "Sendet sich schnell ändernde Bereiche als MJPEG-Stream. Nur erkanntes Video hält Text scharf; Alle streamt jeden bewegten Bereich, mit weniger Bytes und mehr Unschärfe; Aus zeichnet alles als Bilder neu."
+      },
+      "playbackCompression": {
+        "label": "Audiokomprimierung",
+        "hint": "Mit Opus komprimiertes Audio. Die Browser-Konsole spielt nur Opus ab, daher schaltet Aus dort den Ton stumm."
+      },
+      "agentMouse": {
+        "label": "Client-Mausmodus",
+        "hint": "Bei laufendem Gast-Agent folgt der Zeiger Ihrer eigenen Maus ohne Verzögerung. Aus fällt auf den Server-Mausmodus zurück."
+      }
+    },
+    "dialog": {
+      "createTitle": "Neues Anzeigeprofil",
+      "editTitle": "{{name}} bearbeiten",
+      "name": "Name",
+      "descriptionLabel": "Beschreibung",
+      "nameRequired": "Ein Profil benötigt einen Namen.",
+      "nextStartNote": "Virtuelle Maschinen, die dieses Profil verwenden, übernehmen eine Änderung beim nächsten Start.",
+      "save": "Profil speichern"
+    },
+    "delete": {
+      "title": "{{name}} löschen?",
+      "body": "Keine virtuelle Maschine verwendet dieses Profil. Es wird endgültig entfernt.",
+      "bodyInUse_one": "{{count}} virtuelle Maschine verwendet dieses Profil. Sie wechselt zu Fast LAN, was beim nächsten Start gilt, und das Profil wird entfernt.",
+      "bodyInUse_other": "{{count}} virtuelle Maschinen verwenden dieses Profil. Sie wechseln zu Fast LAN, was beim nächsten Start gilt, und das Profil wird entfernt.",
+      "confirm": "Profil löschen",
+      "reassignConfirm": "Zu Fast LAN verschieben und löschen"
+    },
+    "settings": {
+      "title": "Anzeigeprofil",
+      "description": "Die SPICE-Einstellungen, mit denen diese Maschine startet. Profile werden auf dem Tab Anzeigeprofile verwaltet.",
+      "label": "Profil"
+    }
+  }
+}

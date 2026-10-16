@@ -1,0 +1,40 @@
+{
+    "slug":  "opensearch-dashboards",
+    "name":  "OpenSearch Dashboards",
+    "description":  "Visualization and exploration UI for OpenSearch, covering dashboards, search, and observability data.",
+    "category":  "Analytics",
+    "image":  "opensearchproject/opensearch-dashboards:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/opensearch.png",
+    "website":  "https://opensearch.org/docs/latest/dashboards/index/",
+    "docsUrl":  "https://opensearch.org/docs/latest/install-and-configure/install-dashboards/docker/",
+    "ports":  [
+                  {
+                      "host":  5601,
+                      "container":  5601,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opensearch-dashboards/config",
+                        "container":  "/usr/share/opensearch-dashboards/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OPENSEARCH_HOSTS",
+                        "default":  "https://opensearch:9200",
+                        "description":  "Comma-separated list of OpenSearch cluster URLs"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

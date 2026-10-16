@@ -1,0 +1,67 @@
+{
+    "slug":  "stalwart-mail",
+    "name":  "Stalwart Mail Server",
+    "description":  "All-in-one mail server supporting SMTP, IMAP, JMAP and Sieve in a single Rust binary.",
+    "category":  "Communications",
+    "image":  "stalwartlabs/stalwart:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/stalwart.png",
+    "website":  "https://stalw.art",
+    "docsUrl":  "https://stalw.art/docs/install/docker",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  587,
+                      "container":  587,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  465,
+                      "container":  465,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  993,
+                      "container":  993,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/stalwart-mail/data",
+                        "container":  "/opt/stalwart"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "STALWART_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin console password",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

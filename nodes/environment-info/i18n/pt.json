@@ -1,0 +1,15 @@
+{
+  "label": "Info do ambiente",
+  "description": "Ler informações do daemon Docker, do host ou de alcance de um ambiente",
+  "config": {
+    "environment": "Ambiente",
+    "scope": "Informação"
+  },
+  "options": {
+    "scope": {
+      "docker": "Daemon Docker",
+      "host": "Host",
+      "status": "Alcance"
+    }
+  }
+}

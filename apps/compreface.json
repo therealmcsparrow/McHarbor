@@ -2,7 +2,7 @@
     "slug":  "compreface",
     "name":  "CompreFace",
     "description":  "Face recognition API service with REST endpoints and a web UI dashboard.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "exadel/compreface:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/compreface.png",
     "website":  "https://exadel.com/compreface",
@@ -31,5 +31,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -1,0 +1,35 @@
+{
+    "slug":  "matter-server-beta",
+    "name":  "Matter Server (Beta)",
+    "description":  "Beta channel build of Matter Server. Python-based Matter controller server for smart home device interoperability.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/home-assistant-libs/python-matter-server:beta",
+    "logo":  "https://www.home-assistant.io/images/favicon-192x192-full.png",
+    "website":  "https://github.com/home-assistant-libs/python-matter-server",
+    "docsUrl":  "https://github.com/home-assistant-libs/python-matter-server#readme",
+    "ports":  [
+                  {
+                      "host":  6580,
+                      "container":  5580,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/matter-server-beta/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "beta",
+    "latest":  {
+        "version":  "beta",
+        "release_date":  "2026-09-29"
+    }
+}

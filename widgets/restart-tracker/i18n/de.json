@@ -10,6 +10,10 @@
     "container": "Container",
     "restarts": "Neustarts",
     "state": "Status",
-    "noRestarts": "Keine Container-Neustarts erkannt"
+    "noRestarts": "Keine Container-Neustarts erkannt",
+    "restartCount": "{{count}} Neustart",
+    "restartCount_other": "{{count}} Neustarts",
+    "more": "{{count}} weitere",
+    "allStable": "Jeder Container läuft seit dem Start ohne Unterbrechung"
   }
 }

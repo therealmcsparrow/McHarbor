@@ -4,7 +4,7 @@
     "description":  "Python-based distributed load testing with a real-time web UI.",
     "category":  "Developer Tools",
     "image":  "locustio/locust:latest",
-    "logo":  "https://icon.horse/icon/locust.io",
+    "logo":  "https://cdn.simpleicons.org/locust",
     "website":  "https://locust.io",
     "docsUrl":  "https://docs.locust.io/en/stable/running-in-docker.html",
     "ports":  [
@@ -42,5 +42,9 @@
                         "description":  "Locust test file"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

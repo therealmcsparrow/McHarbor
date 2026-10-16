@@ -4,7 +4,7 @@
     "description":  "NestJS on Node 22 Alpine, progressive Node.js framework for scalable server-side applications.",
     "category":  "Developer Tools",
     "image":  "node:22-alpine",
-    "logo":  "https://icon.horse/icon/nestjs.com",
+    "logo":  "https://cdn.simpleicons.org/nestjs",
     "website":  "https://nestjs.com",
     "docsUrl":  "https://docs.nestjs.com",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Application port"
                     }
                 ],
-    "version":  "22-alpine"
+    "version":  "22-alpine",
+    "latest":  {
+        "version":  "22-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -10,6 +10,7 @@ import { useCustomNodeSync } from '../hooks/useCustomNodeSync';
 import { useNodeCatalogAvailability } from '../hooks/useNodeCatalog';
 import { useCustomNodeRegistry } from '../stores/custom-node-registry';
 import { useNodeAvailability } from '@resources/hooks/useNodeAvailability';
+import { useCurrentUserPermissions } from '@core/auth/usePermission';
 import type { NodeDefinition } from '../types';
 import { NodePaletteCategorySection } from './NodePaletteCategorySection';
 
@@ -25,13 +26,13 @@ export function NodePalette() {
   const customNodes = useCustomNodeRegistry((s) => s.customNodes);
   const { data: enabledMap = {} } = useNodeCatalogAvailability();
   const capabilities = useNodeAvailability();
+  const { data: permissions } = useCurrentUserPermissions();
   const allNodes = useMemo(
     () => getAllNodeDefinitions(customNodes).filter((definition) => enabledMap[definition.key] !== false),
     [customNodes, enabledMap],
   );
   const visibleNodes = useMemo(
-    () =>
-      allNodes.filter((definition) => isNodeDefinitionAvailable(definition, capabilities)),
+    () => allNodes.filter((definition) => isNodeDefinitionAvailable(definition, capabilities)),
     [allNodes, capabilities],
   );
 
@@ -48,7 +49,9 @@ export function NodePalette() {
     const lc = search.toLowerCase();
     const filtered = lc
       ? visibleNodes.filter((d) => {
+          // i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
           const label = tn(`${d.key}.label`, { defaultValue: d.label });
+          // i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
           const desc = tn(`${d.key}.description`, { defaultValue: d.description });
           return label.toLowerCase().includes(lc) || desc.toLowerCase().includes(lc);
         })
@@ -65,7 +68,9 @@ export function NodePalette() {
       const categoryNodes = map[cat];
       if (!categoryNodes) continue;
       categoryNodes.sort((a, b) => {
+        // i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
         const la = tn(`${a.key}.label`, { defaultValue: a.label });
+        // i18n-open-set: workflow node definitions include custom and plugin nodes whose i18n may be absent, so the definition label is the fallback
         const lb = tn(`${b.key}.label`, { defaultValue: b.label });
         return la.localeCompare(lb);
       });
@@ -90,13 +95,13 @@ export function NodePalette() {
     <div className="flex w-[260px] flex-col border-r border-border bg-card">
       <div className="border-b border-border p-3">
         <div className="relative">
-          <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <IconSearch className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
             placeholder={t('workflows.searchNodes')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-8 pl-8 text-xs"
+            className="pl-8 text-xs"
           />
         </div>
       </div>
@@ -111,6 +116,7 @@ export function NodePalette() {
             <NodePaletteCategorySection
               key={cat}
               capabilities={capabilities}
+              permissions={permissions}
               category={cat}
               collapsed={isCollapsed}
               definitions={defs}
@@ -130,4 +136,3 @@ export function NodePalette() {
     </div>
   );
 }
-

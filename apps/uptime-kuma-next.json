@@ -1,0 +1,35 @@
+{
+    "slug":  "uptime-kuma-next",
+    "name":  "Uptime Kuma (Next)",
+    "description":  "Next channel build of Uptime Kuma. Self-hosted monitoring tool with a fancy UI. Monitor HTTP, TCP, DNS, and more.",
+    "category":  "Monitoring",
+    "image":  "louislam/uptime-kuma:next",
+    "logo":  "https://uptime.kuma.pet/img/icon.svg",
+    "website":  "https://uptime.kuma.pet",
+    "docsUrl":  "https://github.com/louislam/uptime-kuma/wiki",
+    "ports":  [
+                  {
+                      "host":  4001,
+                      "container":  3001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/uptime-kuma-next/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "next",
+    "latest":  {
+        "version":  "next",
+        "release_date":  "2026-09-29"
+    }
+}

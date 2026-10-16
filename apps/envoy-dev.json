@@ -4,7 +4,7 @@
     "description":  "Envoy proxy for local service mesh and API gateway development.",
     "category":  "Developer Tools",
     "image":  "envoyproxy/envoy:v1.30-latest",
-    "logo":  "https://icon.horse/icon/www.envoyproxy.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=www.envoyproxy.io\u0026sz=128",
     "website":  "https://www.envoyproxy.io",
     "docsUrl":  "https://www.envoyproxy.io/docs/envoy/latest/start/docker",
     "ports":  [
@@ -37,5 +37,9 @@
                         "description":  "Run as root for read-only mounts"
                     }
                 ],
-    "version":  "v1.30-latest"
+    "version":  "v1.30-latest",
+    "latest":  {
+        "version":  "v1.30-latest",
+        "release_date":  "2026-09-10"
+    }
 }

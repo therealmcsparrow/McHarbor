@@ -1,0 +1,42 @@
+{
+    "slug":  "mobsf",
+    "name":  "Mobile Security Framework",
+    "description":  "Automated static and dynamic analysis platform for auditing Android, iOS, and Windows mobile app binaries.",
+    "category":  "Security",
+    "image":  "opensecurity/mobile-security-framework-mobsf:latest",
+    "logo":  "https://icon.horse/icon/mobsf.github.io",
+    "website":  "https://mobsf.github.io/docs/",
+    "docsUrl":  "https://mobsf.github.io/docs/#/docker",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mobsf/data",
+                        "container":  "/home/mobsf/.MobSF"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MOBSF_API_KEY",
+                        "default":  "change-me",
+                        "description":  "Static API key for the REST API",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

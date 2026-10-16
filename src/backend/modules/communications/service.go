@@ -6,6 +6,7 @@ package communications
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,38 +16,61 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
-	"github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/plugincaps"
+	"github.com/therealmcsparrow/mcharbor/core/secrets"
 )
 
 // Service handles communication channel business logic and database operations.
 type Service struct {
 	db  *sql.DB
 	enc *encryption.Service
+	// pluginRuntime is the host's loaded plugin runtime, set by
+	// SetPluginRuntime after both modules finish wiring. Held as
+	// `any` to avoid an import cycle between modules/communications
+	// and the plugin runtime; test.go does the type assertion to
+	// plugin.NotificationAdapterSource.
+	pluginRuntime any
+	// vault reads this module's adopted credential through the secrets vault
+	// once Phase 5b's start-up backfill has linked it, and falls back to the
+	// legacy column until then. Built here rather than injected: every
+	// construction site already supplies the database and the encryption
+	// service, and a service built without it would quietly read the legacy
+	// column forever.
+	vault *secrets.Service
 }
 
+// ErrChannelNotFound reports that no communication channel row matches the requested id.
 var ErrChannelNotFound = errors.New("communication channel not found")
-var ErrTelegramAdminRequired = errors.New("telegram admin rights required")
 
 // NewService creates a new communication channel service.
 func NewService(database *sql.DB, enc *encryption.Service) *Service {
-	return &Service{db: database, enc: enc}
+	svc := &Service{db: database, enc: enc}
+	if database != nil && enc != nil {
+		svc.vault = secrets.NewService(database, enc, nil)
+	}
+	return svc
+}
+
+// SetPluginRuntime injects the loaded plugin runtime into the service.
+// The runtime is held as `any` to avoid the import cycle; the lookup
+// method does the type assertion to plugin.NotificationAdapterSource.
+func (s *Service) SetPluginRuntime(runtime any) {
+	s.pluginRuntime = runtime
 }
 
 // List returns all communication channels (secrets excluded).
 func (s *Service) List(ctx context.Context) ([]CommunicationChannel, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, name, channel_type, method, is_default, enabled, server_url, topic,
-		        chat_id, phone_number_id, recipient_phone, sender_number,
-		        recipients, username, priority, created_at, updated_at
+		`SELECT id, name, channel_type, method, is_default, enabled, config_enc, created_at, updated_at
 		 FROM communication_channels ORDER BY name ASC LIMIT 1000`)
 	if err != nil {
 		return nil, fmt.Errorf("listing communication channels: %w", err)
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 
 	var items []CommunicationChannel
 	for rows.Next() {
-		ch, err := scanChannel(rows)
+		ch, err := s.scanChannel(ctx, rows, false)
 		if err != nil {
 			return nil, fmt.Errorf("scanning communication channel row: %w", err)
 		}
@@ -65,22 +89,21 @@ func (s *Service) List(ctx context.Context) ([]CommunicationChannel, error) {
 
 // ByID returns a single communication channel by ID, or nil if not found.
 func (s *Service) ByID(ctx context.Context, id string) (*CommunicationChannel, error) {
+	return s.byID(ctx, id, false)
+}
+
+func (s *Service) byID(ctx context.Context, id string, includeSecrets bool) (*CommunicationChannel, error) {
 	var ch CommunicationChannel
-	var serverURL, topic, chatID, phoneNumberID, recipientPhone sql.NullString
-	var senderNumber, recipients, username, priority sql.NullString
 	var isDefault, enabled sql.NullBool
+	var configEnc sql.NullString
 
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, name, channel_type, method, is_default, enabled, server_url, topic,
-		        chat_id, phone_number_id, recipient_phone, sender_number,
-		        recipients, username, priority, created_at, updated_at
+		`SELECT id, name, channel_type, method, is_default, enabled, config_enc, created_at, updated_at
 		 FROM communication_channels WHERE id = ?`, id,
 	).Scan(&ch.ID, &ch.Name, &ch.ChannelType, &ch.Method, &isDefault, &enabled,
-		&serverURL, &topic, &chatID, &phoneNumberID, &recipientPhone,
-		&senderNumber, &recipients, &username, &priority,
-		&ch.CreatedAt, &ch.UpdatedAt)
+		&configEnc, &ch.CreatedAt, &ch.UpdatedAt)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -89,15 +112,11 @@ func (s *Service) ByID(ctx context.Context, id string) (*CommunicationChannel, e
 
 	ch.IsDefault = isDefault.Bool
 	ch.Enabled = enabled.Bool
-	ch.ServerURL = serverURL.String
-	ch.Topic = topic.String
-	ch.ChatID = chatID.String
-	ch.PhoneNumberID = phoneNumberID.String
-	ch.RecipientPhone = recipientPhone.String
-	ch.SenderNumber = senderNumber.String
-	ch.Recipients = recipients.String
-	ch.Username = username.String
-	ch.Priority = priority.String
+	cfg, err := s.decryptConfig(ctx, configEnc)
+	if err != nil {
+		return nil, fmt.Errorf("decrypting communication channel config: %w", err)
+	}
+	applyChannelConfig(&ch, cfg, includeSecrets, s.schemaSecretKeys(ch.ChannelType))
 
 	return &ch, nil
 }
@@ -107,35 +126,17 @@ func (s *Service) Create(ctx context.Context, input CreateChannelInput) (*Commun
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 
-	var encWebhookURL, encToken, encPassword string
-	var err error
-
-	if input.WebhookURL != "" {
-		encWebhookURL, err = s.enc.Encrypt(input.WebhookURL)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting webhook url: %w", err)
-		}
-	}
-
-	if input.Token != "" {
-		encToken, err = s.enc.Encrypt(input.Token)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting token: %w", err)
-		}
-	}
-
-	if input.Password != "" {
-		encPassword, err = s.enc.Encrypt(input.Password)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting password: %w", err)
-		}
+	config := channelConfigFromInput(input)
+	configEnc, err := s.encryptConfig(config)
+	if err != nil {
+		return nil, err
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer db.RollbackTx(tx)
 
 	if input.IsDefault {
 		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET is_default = 0, updated_at = ? WHERE is_default = 1", now); err != nil {
@@ -144,18 +145,9 @@ func (s *Service) Create(ctx context.Context, input CreateChannelInput) (*Commun
 	}
 
 	_, err = tx.ExecContext(ctx,
-		`INSERT INTO communication_channels (id, name, channel_type, method, is_default, enabled,
-		 webhook_url, server_url, token, topic, chat_id, phone_number_id, recipient_phone,
-		 sender_number, recipients, username, password, priority, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, input.Name, input.ChannelType, input.Method, input.IsDefault,
-		nullStr(encWebhookURL), nullStr(input.ServerURL),
-		nullStr(encToken), nullStr(input.Topic),
-		nullStr(input.ChatID), nullStr(input.PhoneNumberID),
-		nullStr(input.RecipientPhone), nullStr(input.SenderNumber),
-		nullStr(input.Recipients), nullStr(input.Username),
-		nullStr(encPassword), nullStr(input.Priority),
-		now, now,
+		`INSERT INTO communication_channels (id, name, channel_type, method, is_default, enabled, config_enc, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+		id, input.Name, input.ChannelType, input.Method, input.IsDefault, configEnc, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("inserting communication channel: %w", err)
@@ -172,15 +164,16 @@ func (s *Service) Create(ctx context.Context, input CreateChannelInput) (*Commun
 		Method:         input.Method,
 		IsDefault:      input.IsDefault,
 		Enabled:        true,
-		ServerURL:      input.ServerURL,
-		Topic:          input.Topic,
-		ChatID:         input.ChatID,
-		PhoneNumberID:  input.PhoneNumberID,
-		RecipientPhone: input.RecipientPhone,
-		SenderNumber:   input.SenderNumber,
-		Recipients:     input.Recipients,
-		Username:       input.Username,
-		Priority:       input.Priority,
+		ServerURL:      config["server_url"],
+		Topic:          config["topic"],
+		ChatID:         config["chat_id"],
+		PhoneNumberID:  config["phone_number_id"],
+		RecipientPhone: config["recipient_phone"],
+		SenderNumber:   config["sender_number"],
+		Recipients:     config["recipients"],
+		Username:       config["username"],
+		Priority:       config["priority"],
+		Config:         redactConfig(config, s.schemaSecretKeys(input.ChannelType)),
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}, nil
@@ -188,20 +181,32 @@ func (s *Service) Create(ctx context.Context, input CreateChannelInput) (*Commun
 
 // Update applies partial updates to a communication channel.
 func (s *Service) Update(ctx context.Context, id string, input UpdateChannelInput) (*CommunicationChannel, error) {
-	var existsID string
-	if err := s.db.QueryRowContext(ctx, "SELECT id FROM communication_channels WHERE id = ?", id).Scan(&existsID); err == sql.ErrNoRows {
+	ch, err := s.byID(ctx, id, true)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("checking communication channel existence: %w", err)
 	}
+	if ch == nil {
+		return nil, nil
+	}
 
 	now := time.Now().UTC().Format(time.RFC3339)
+	config := make(map[string]string, len(ch.Config)+len(input.Config)+12)
+	for k, v := range ch.Config {
+		config[k] = v
+	}
+	mergeChannelConfigUpdate(config, input)
+	configEnc, err := s.encryptConfig(config)
+	if err != nil {
+		return nil, err
+	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer db.RollbackTx(tx)
 
 	if input.Name != nil {
 		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET name = ?, updated_at = ? WHERE id = ?", *input.Name, now, id); err != nil {
@@ -230,77 +235,8 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateChannelInpu
 			return nil, fmt.Errorf("clearing default flag: %w", err)
 		}
 	}
-	if input.WebhookURL != nil && *input.WebhookURL != "" {
-		enc, err := s.enc.Encrypt(*input.WebhookURL)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting webhook url: %w", err)
-		}
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET webhook_url = ?, updated_at = ? WHERE id = ?", enc, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel webhook url: %w", err)
-		}
-	}
-	if input.ServerURL != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET server_url = ?, updated_at = ? WHERE id = ?", *input.ServerURL, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel server url: %w", err)
-		}
-	}
-	if input.Token != nil && *input.Token != "" {
-		enc, err := s.enc.Encrypt(*input.Token)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting token: %w", err)
-		}
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET token = ?, updated_at = ? WHERE id = ?", enc, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel token: %w", err)
-		}
-	}
-	if input.Topic != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET topic = ?, updated_at = ? WHERE id = ?", *input.Topic, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel topic: %w", err)
-		}
-	}
-	if input.ChatID != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET chat_id = ?, updated_at = ? WHERE id = ?", *input.ChatID, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel chat id: %w", err)
-		}
-	}
-	if input.PhoneNumberID != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET phone_number_id = ?, updated_at = ? WHERE id = ?", *input.PhoneNumberID, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel phone number id: %w", err)
-		}
-	}
-	if input.RecipientPhone != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET recipient_phone = ?, updated_at = ? WHERE id = ?", *input.RecipientPhone, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel recipient phone: %w", err)
-		}
-	}
-	if input.SenderNumber != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET sender_number = ?, updated_at = ? WHERE id = ?", *input.SenderNumber, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel sender number: %w", err)
-		}
-	}
-	if input.Recipients != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET recipients = ?, updated_at = ? WHERE id = ?", *input.Recipients, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel recipients: %w", err)
-		}
-	}
-	if input.Username != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET username = ?, updated_at = ? WHERE id = ?", *input.Username, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel username: %w", err)
-		}
-	}
-	if input.Password != nil && *input.Password != "" {
-		enc, err := s.enc.Encrypt(*input.Password)
-		if err != nil {
-			return nil, fmt.Errorf("encrypting password: %w", err)
-		}
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET password = ?, updated_at = ? WHERE id = ?", enc, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel password: %w", err)
-		}
-	}
-	if input.Priority != nil {
-		if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET priority = ?, updated_at = ? WHERE id = ?", *input.Priority, now, id); err != nil {
-			return nil, fmt.Errorf("updating channel priority: %w", err)
-		}
+	if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET config_enc = ?, config_secret_id = NULL, updated_at = ? WHERE id = ?", configEnc, now, id); err != nil {
+		return nil, fmt.Errorf("updating channel config: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -335,7 +271,7 @@ func (s *Service) SetDefault(ctx context.Context, id string) error {
 	if err != nil {
 		return fmt.Errorf("beginning transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer db.RollbackTx(tx)
 
 	if _, err := tx.ExecContext(ctx, "UPDATE communication_channels SET is_default = 0, updated_at = ? WHERE is_default = 1", now); err != nil {
 		return fmt.Errorf("clearing existing default: %w", err)
@@ -347,202 +283,390 @@ func (s *Service) SetDefault(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-// Test sends a test notification using the specified channel.
-func (s *Service) Test(ctx context.Context, id string) error {
-	var channelType, method, webhookURL, serverURL, token, topic sql.NullString
-	var chatID, phoneNumberID, recipientPhone, senderNumber sql.NullString
-	var recipients, username, password, priority sql.NullString
-
-	err := s.db.QueryRowContext(ctx,
-		`SELECT channel_type, method, webhook_url, server_url, token, topic, chat_id,
-		        phone_number_id, recipient_phone, sender_number, recipients,
-		        username, password, priority
-		 FROM communication_channels WHERE id = ?`, id,
-	).Scan(&channelType, &method, &webhookURL, &serverURL, &token, &topic, &chatID,
-		&phoneNumberID, &recipientPhone, &senderNumber, &recipients,
-		&username, &password, &priority)
-
-	if err == sql.ErrNoRows {
-		return ErrChannelNotFound
-	}
-	if err != nil {
-		return fmt.Errorf("looking up communication channel %s: %w", id, err)
-	}
-
-	title := "McHarbor Test Notification"
-	message := "This is a test notification sent from McHarbor to verify your channel configuration."
-
-	switch channelType.String {
-	case "slack":
-		decURL, err := s.decryptField(webhookURL.String)
-		if err != nil {
-			return fmt.Errorf("decrypting webhook url: %w", err)
-		}
-		return notify.SendSlack(ctx, notify.SlackConfig{WebhookURL: decURL}, title, message)
-
-	case "discord":
-		decURL, err := s.decryptField(webhookURL.String)
-		if err != nil {
-			return fmt.Errorf("decrypting webhook url: %w", err)
-		}
-		return notify.SendDiscord(ctx, notify.DiscordConfig{WebhookURL: decURL}, title, message)
-
-	case "teams":
-		decURL, err := s.decryptField(webhookURL.String)
-		if err != nil {
-			return fmt.Errorf("decrypting webhook url: %w", err)
-		}
-		return notify.SendTeams(ctx, notify.TeamsConfig{WebhookURL: decURL}, title, message)
-
-	case "gotify":
-		decToken, err := s.decryptField(token.String)
-		if err != nil {
-			return fmt.Errorf("decrypting token: %w", err)
-		}
-		return notify.SendGotify(ctx, notify.GotifyConfig{
-			ServerURL: serverURL.String,
-			AppToken:  decToken,
-			Priority:  priority.String,
-		}, title, message)
-
-	case "ntfy":
-		decToken, err := s.decryptField(token.String)
-		if err != nil {
-			return fmt.Errorf("decrypting token: %w", err)
-		}
-		decPassword, err := s.decryptField(password.String)
-		if err != nil {
-			return fmt.Errorf("decrypting password: %w", err)
-		}
-		return notify.SendNtfy(ctx, notify.NtfyConfig{
-			ServerURL:   serverURL.String,
-			Topic:       topic.String,
-			AccessToken: decToken,
-			Username:    username.String,
-			Password:    decPassword,
-			Priority:    priority.String,
-		}, title, message)
-
-	case "telegram":
-		decToken, err := s.decryptField(token.String)
-		if err != nil {
-			return fmt.Errorf("decrypting token: %w", err)
-		}
-		sendErr := notify.SendTelegram(ctx, notify.TelegramConfig{
-			BotToken: decToken,
-			ChatID:   chatID.String,
-		}, title, message)
-		if sendErr != nil && strings.Contains(sendErr.Error(), "need administrator rights in the channel chat") {
-			return ErrTelegramAdminRequired
-		}
-		return sendErr
-
-	case "signal":
-		recipientList := strings.Split(recipients.String, ",")
-		for i := range recipientList {
-			recipientList[i] = strings.TrimSpace(recipientList[i])
-		}
-		switch method.String {
-		case "bot":
-			decToken, err := s.decryptField(token.String)
-			if err != nil {
-				return fmt.Errorf("decrypting token: %w", err)
-			}
-			return notify.SendSignalBot(ctx, notify.SignalBotConfig{
-				ServerURL:  serverURL.String,
-				Token:      decToken,
-				Recipients: recipientList,
-			}, title, message)
-		case "signald":
-			return notify.SendSignalD(ctx, notify.SignalDConfig{
-				ServerURL:    serverURL.String,
-				SenderNumber: senderNumber.String,
-				Recipients:   recipientList,
-			}, title, message)
-		default: // "", "rest_api", "simple"
-			decPassword, err := s.decryptField(password.String)
-			if err != nil {
-				return fmt.Errorf("decrypting password: %w", err)
-			}
-			return notify.SendSignal(ctx, notify.SignalConfig{
-				ServerURL:    serverURL.String,
-				SenderNumber: senderNumber.String,
-				Recipients:   recipientList,
-				Username:     username.String,
-				Password:     decPassword,
-			}, title, message)
-		}
-
-	case "whatsapp":
-		decToken, err := s.decryptField(token.String)
-		if err != nil {
-			return fmt.Errorf("decrypting token: %w", err)
-		}
-		switch method.String {
-		case "gateway", "saas":
-			return notify.SendWhatsAppGateway(ctx, notify.WhatsAppGatewayConfig{
-				ServerURL:      serverURL.String,
-				Token:          decToken,
-				RecipientPhone: recipientPhone.String,
-			}, title, message)
-		case "business":
-			return notify.SendWhatsAppBusiness(ctx, notify.WhatsAppBusinessConfig{
-				ServerURL:      serverURL.String,
-				PhoneNumberID:  phoneNumberID.String,
-				Token:          decToken,
-				RecipientPhone: recipientPhone.String,
-			}, title, message)
-		default: // "", "cloud_api"
-			return notify.SendWhatsApp(ctx, notify.WhatsAppConfig{
-				PhoneNumberID:  phoneNumberID.String,
-				AccessToken:    decToken,
-				RecipientPhone: recipientPhone.String,
-			}, title, message)
-		}
-
-	default:
-		return fmt.Errorf("unsupported channel type: %s", channelType.String)
-	}
-}
-
-func (s *Service) decryptField(val string) (string, error) {
-	if val == "" {
-		return "", nil
-	}
-	return s.enc.Decrypt(val)
-}
-
-func nullStr(str string) sql.NullString {
-	if str == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: str, Valid: true}
-}
-
-func scanChannel(rows *sql.Rows) (CommunicationChannel, error) {
+func (s *Service) scanChannel(ctx context.Context, rows *sql.Rows, includeSecrets bool) (CommunicationChannel, error) {
 	var ch CommunicationChannel
-	var serverURL, topic, chatID, phoneNumberID, recipientPhone sql.NullString
-	var senderNumber, recipients, username, priority sql.NullString
 	var isDefault, enabled sql.NullBool
+	var configEnc sql.NullString
 
 	if err := rows.Scan(&ch.ID, &ch.Name, &ch.ChannelType, &ch.Method, &isDefault, &enabled,
-		&serverURL, &topic, &chatID, &phoneNumberID, &recipientPhone,
-		&senderNumber, &recipients, &username, &priority,
-		&ch.CreatedAt, &ch.UpdatedAt); err != nil {
+		&configEnc, &ch.CreatedAt, &ch.UpdatedAt); err != nil {
 		return CommunicationChannel{}, err
 	}
 
 	ch.IsDefault = isDefault.Bool
 	ch.Enabled = enabled.Bool
-	ch.ServerURL = serverURL.String
-	ch.Topic = topic.String
-	ch.ChatID = chatID.String
-	ch.PhoneNumberID = phoneNumberID.String
-	ch.RecipientPhone = recipientPhone.String
-	ch.SenderNumber = senderNumber.String
-	ch.Recipients = recipients.String
-	ch.Username = username.String
-	ch.Priority = priority.String
+	cfg, err := s.decryptConfig(ctx, configEnc)
+	if err != nil {
+		return CommunicationChannel{}, err
+	}
+	applyChannelConfig(&ch, cfg, includeSecrets, s.schemaSecretKeys(ch.ChannelType))
 
 	return ch, nil
+}
+
+func (s *Service) encryptConfig(config map[string]string) (sql.NullString, error) {
+	clean := compactConfig(config)
+	if len(clean) == 0 {
+		return sql.NullString{}, nil
+	}
+	raw, err := json.Marshal(clean)
+	if err != nil {
+		return sql.NullString{}, fmt.Errorf("marshalling communication channel config: %w", err)
+	}
+	enc, err := s.enc.Encrypt(string(raw))
+	if err != nil {
+		return sql.NullString{}, fmt.Errorf("encrypting communication channel config: %w", err)
+	}
+	return sql.NullString{String: enc, Valid: true}, nil
+}
+
+func (s *Service) decryptConfig(ctx context.Context, configEnc sql.NullString) (map[string]string, error) {
+	// Passes no secret id, so it never reaches the vault — this is the plain
+	// decrypt path for rows the backfill has not adopted yet.
+	return s.decryptConfigThrough(ctx, sql.NullString{}, configEnc)
+}
+
+// decryptConfigThrough reads a channel's config blob through the vault when
+// the row has been adopted, and falls back to the legacy config_enc column
+// when it has not.
+func (s *Service) decryptConfigThrough(ctx context.Context, secretID, configEnc sql.NullString) (map[string]string, error) {
+	if !configEnc.Valid && !secretID.Valid {
+		return map[string]string{}, nil
+	}
+	if configEnc.String == "" && secretID.String == "" {
+		return map[string]string{}, nil
+	}
+	var (
+		raw string
+		err error
+	)
+	if s.vault != nil {
+		raw, err = s.vault.ReadThrough(ctx, secretID, configEnc.String)
+	} else {
+		raw, err = s.enc.Decrypt(configEnc.String)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if raw == "" {
+		return map[string]string{}, nil
+	}
+	cfg := map[string]string{}
+	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshalling communication channel config: %w", err)
+	}
+	return cfg, nil
+}
+
+func channelConfigFromInput(input CreateChannelInput) map[string]string {
+	cfg := make(map[string]string, len(input.Config)+12)
+	for k, v := range input.Config {
+		setConfigValue(cfg, normalizeConfigKey(k), v)
+	}
+	setLegacyValue(cfg, "webhook_url", input.WebhookURL)
+	setLegacyValue(cfg, "server_url", input.ServerURL)
+	setLegacyValue(cfg, "token", input.Token)
+	setLegacyValue(cfg, "topic", input.Topic)
+	setLegacyValue(cfg, "chat_id", input.ChatID)
+	setLegacyValue(cfg, "phone_number_id", input.PhoneNumberID)
+	setLegacyValue(cfg, "recipient_phone", input.RecipientPhone)
+	setLegacyValue(cfg, "sender_number", input.SenderNumber)
+	setLegacyValue(cfg, "recipients", input.Recipients)
+	setLegacyValue(cfg, "username", input.Username)
+	setLegacyValue(cfg, "password", input.Password)
+	setLegacyValue(cfg, "priority", input.Priority)
+	return cfg
+}
+
+// setLegacyValue applies a pre-plugin top-level field only when it carries a value, so an
+// omitted one never erases the same key a plugin form sent inside config.
+func setLegacyValue(cfg map[string]string, key, value string) {
+	if strings.TrimSpace(value) != "" {
+		setConfigValue(cfg, key, value)
+	}
+}
+
+func mergeChannelConfigUpdate(cfg map[string]string, input UpdateChannelInput) {
+	for k, v := range input.Config {
+		setConfigValue(cfg, normalizeConfigKey(k), v)
+	}
+	setConfigValuePtr(cfg, "webhook_url", input.WebhookURL, true)
+	setConfigValuePtr(cfg, "server_url", input.ServerURL, false)
+	setConfigValuePtr(cfg, "token", input.Token, true)
+	setConfigValuePtr(cfg, "topic", input.Topic, false)
+	setConfigValuePtr(cfg, "chat_id", input.ChatID, false)
+	setConfigValuePtr(cfg, "phone_number_id", input.PhoneNumberID, false)
+	setConfigValuePtr(cfg, "recipient_phone", input.RecipientPhone, false)
+	setConfigValuePtr(cfg, "sender_number", input.SenderNumber, false)
+	setConfigValuePtr(cfg, "recipients", input.Recipients, false)
+	setConfigValuePtr(cfg, "username", input.Username, false)
+	setConfigValuePtr(cfg, "password", input.Password, true)
+	setConfigValuePtr(cfg, "priority", input.Priority, false)
+}
+
+func applyChannelConfig(ch *CommunicationChannel, cfg map[string]string, includeSecrets bool, secretKeys map[string]bool) {
+	ch.ServerURL = cfg["server_url"]
+	ch.Topic = cfg["topic"]
+	ch.ChatID = cfg["chat_id"]
+	ch.PhoneNumberID = cfg["phone_number_id"]
+	ch.RecipientPhone = cfg["recipient_phone"]
+	ch.SenderNumber = cfg["sender_number"]
+	ch.Recipients = cfg["recipients"]
+	ch.Username = cfg["username"]
+	ch.Priority = cfg["priority"]
+	if includeSecrets {
+		ch.Config = cfg
+		return
+	}
+	ch.Config = redactConfig(cfg, secretKeys)
+}
+
+func applyPluginConfigAliases(channelType string, cfg map[string]string) {
+	switch channelType {
+	case "ntfy":
+		if cfg["access_token"] == "" && cfg["token"] != "" {
+			cfg["access_token"] = cfg["token"]
+		}
+	case "signal":
+		if cfg["method"] == "rest_api" {
+			cfg["method"] = "rest"
+		}
+		if cfg["auth_username"] == "" && cfg["username"] != "" {
+			cfg["auth_username"] = cfg["username"]
+		}
+		if cfg["auth_password"] == "" && cfg["password"] != "" {
+			cfg["auth_password"] = cfg["password"]
+		}
+		if cfg["bot_token"] == "" && cfg["token"] != "" {
+			cfg["bot_token"] = cfg["token"]
+		}
+		if cfg["account_id"] == "" && cfg["sender_number"] != "" {
+			cfg["account_id"] = cfg["sender_number"]
+		}
+	case "telegram":
+		if cfg["bot_token"] == "" && cfg["token"] != "" {
+			cfg["bot_token"] = cfg["token"]
+		}
+	case "whatsapp":
+		switch cfg["method"] {
+		case "cloud_api":
+			cfg["method"] = "cloud"
+		case "business":
+			cfg["method"] = "bot"
+		}
+		if cfg["access_token"] == "" && cfg["token"] != "" {
+			cfg["access_token"] = cfg["token"]
+		}
+		if cfg["gateway_url"] == "" && cfg["server_url"] != "" {
+			cfg["gateway_url"] = cfg["server_url"]
+		}
+		if cfg["gateway_token"] == "" && cfg["token"] != "" {
+			cfg["gateway_token"] = cfg["token"]
+		}
+		if cfg["business_api_url"] == "" && cfg["server_url"] != "" {
+			cfg["business_api_url"] = cfg["server_url"]
+		}
+		if cfg["api_key"] == "" && cfg["token"] != "" {
+			cfg["api_key"] = cfg["token"]
+		}
+		if cfg["provider_url"] == "" && cfg["server_url"] != "" {
+			cfg["provider_url"] = cfg["server_url"]
+		}
+		if cfg["provider_api_key"] == "" && cfg["token"] != "" {
+			cfg["provider_api_key"] = cfg["token"]
+		}
+		if cfg["provider_from"] == "" && cfg["phone_number_id"] != "" {
+			cfg["provider_from"] = cfg["phone_number_id"]
+		}
+	}
+}
+
+func compactConfig(config map[string]string) map[string]string {
+	clean := map[string]string{}
+	for k, v := range config {
+		setConfigValue(clean, normalizeConfigKey(k), v)
+	}
+	return clean
+}
+
+// schemaSecretKeys lists the config keys the channel's adapter declares secret, so a
+// credential is redacted by what the plugin says it is, not only by what it is named.
+func (s *Service) schemaSecretKeys(channelType string) map[string]bool {
+	if s.pluginRuntime == nil {
+		return nil
+	}
+	source, ok := s.pluginRuntime.(notificationAdapterSource)
+	if !ok {
+		return nil
+	}
+	_, spec, ok := source.NotificationAdapter(channelType)
+	if !ok {
+		return nil
+	}
+	keys := map[string]bool{}
+	for _, field := range spec.ConfigSchema {
+		if field.Secret || field.Type == "secret" {
+			keys[field.Key] = true
+		}
+	}
+	return keys
+}
+
+func redactConfig(config map[string]string, secretKeys map[string]bool) map[string]string {
+	safe := map[string]string{}
+	for k, v := range config {
+		if isSecretConfigKey(k) || secretKeys[k] {
+			continue
+		}
+		safe[k] = v
+	}
+	if len(safe) == 0 {
+		return nil
+	}
+	return safe
+}
+
+func isSecretConfigKey(key string) bool {
+	switch normalizeConfigKey(key) {
+	case "password", "token", "webhook_url", "secret", "client_secret", "access_token", "bot_token":
+		return true
+	default:
+		return strings.Contains(strings.ToLower(key), "password") || strings.Contains(strings.ToLower(key), "secret") || strings.Contains(strings.ToLower(key), "token")
+	}
+}
+
+func normalizeConfigKey(key string) string {
+	switch key {
+	case "webhookUrl":
+		return "webhook_url"
+	case "serverUrl":
+		return "server_url"
+	case "chatId":
+		return "chat_id"
+	case "phoneNumberId":
+		return "phone_number_id"
+	case "recipientPhone":
+		return "recipient_phone"
+	case "senderNumber":
+		return "sender_number"
+	default:
+		return key
+	}
+}
+
+func setConfigValue(cfg map[string]string, key, value string) {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return
+	}
+	value = strings.TrimSpace(value)
+	if value == "" {
+		delete(cfg, key)
+		return
+	}
+	cfg[key] = value
+}
+
+func setConfigValuePtr(cfg map[string]string, key string, value *string, preserveEmpty bool) {
+	if value == nil {
+		return
+	}
+	if preserveEmpty && strings.TrimSpace(*value) == "" {
+		return
+	}
+	setConfigValue(cfg, key, *value)
+}
+
+// AdapterCapability is one notification adapter's declared capabilities,
+// as recorded by the plugin loader into plugin_notification_adapters.
+type AdapterCapability struct {
+	ChannelType             string `json:"channelType"`
+	DisplayName             string `json:"displayName"`
+	SupportsFileAttachments bool   `json:"supportsFileAttachments"`
+	SupportsRichAttachments bool   `json:"supportsRichAttachments"`
+	// SupportsEmail reports whether this adapter delivers real email —
+	// an addressed message with a sender and a subject — rather than a
+	// chat post or a push notification.
+	//
+	// Declared by the plugin through an email-channel capability rather
+	// than listed here, so a future comm-mailgun plugin is picked up
+	// without a host change. Unlike the three flags above this one is
+	// not mirrored into plugin_notification_adapters: it is read per
+	// request from the in-process capability registry, which holds only
+	// loaded plugins.
+	SupportsEmail bool `json:"supportsEmail"`
+
+	// Recipient describes the adapter's overridable destination, or
+	// is zero when it has none. Mirrored into
+	// plugin_notification_adapters at load, so a caller outside this
+	// process - the reporting scheduler's target picker above all -
+	// can offer an "send this one somewhere else" field only where
+	// the provider genuinely allows one.
+	Recipient AdapterRecipient `json:"recipient"`
+}
+
+// AdapterRecipient is one adapter's declared overridable destination.
+//
+// Key is deliberately not exported to the frontend: which config
+// column a value lands in is the host's business, and publishing it
+// would invite a caller to try setting a different one. Supported is
+// the flag a UI branches on.
+type AdapterRecipient struct {
+	Supported   bool   `json:"supported"`
+	Kind        string `json:"kind,omitempty"`
+	Label       string `json:"label,omitempty"`
+	Placeholder string `json:"placeholder,omitempty"`
+	Multiple    bool   `json:"multiple,omitempty"`
+
+	key string
+}
+
+// Key is the config field the override replaces. Empty when the
+// adapter declared none.
+func (r AdapterRecipient) Key() string { return r.key }
+
+// AdapterCapabilities lists what each registered channel type can do.
+//
+// The flags also live in the in-memory adapter registry, but callers
+// outside this process — a schedule's target picker deciding whether to
+// offer "attach the document" — cannot reach that, which is why the
+// loader mirrors them into a table.
+func (s *Service) AdapterCapabilities(ctx context.Context) ([]AdapterCapability, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT channel_type, display_name,
+		        supports_file_attachments, supports_rich_attachments,
+		        recipient_key, recipient_kind, recipient_label,
+		        recipient_placeholder, recipient_multiple
+		   FROM plugin_notification_adapters
+		  ORDER BY display_name, channel_type
+		  LIMIT 1000`)
+	if err != nil {
+		return nil, fmt.Errorf("listing adapter capabilities: %w", err)
+	}
+	defer func() { db.CloseRows(rows) }()
+
+	out := []AdapterCapability{}
+	for rows.Next() {
+		var c AdapterCapability
+		if err := rows.Scan(&c.ChannelType, &c.DisplayName,
+			&c.SupportsFileAttachments, &c.SupportsRichAttachments,
+			&c.Recipient.key, &c.Recipient.Kind, &c.Recipient.Label,
+			&c.Recipient.Placeholder, &c.Recipient.Multiple); err != nil {
+			return nil, fmt.Errorf("scanning adapter capability: %w", err)
+		}
+		c.Recipient.Supported = strings.TrimSpace(c.Recipient.key) != ""
+		c.SupportsEmail = s.adapterSupportsEmail(c.ChannelType)
+		out = append(out, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading adapter capabilities: %w", err)
+	}
+	return out, nil
+}
+
+// adapterSupportsEmail reports whether a loaded plugin declares channelType an email
+// transport. It reads the same email-channel capability the workflow send-email node
+// lists channels by, so the security picker and the node cannot disagree.
+func (s *Service) adapterSupportsEmail(channelType string) bool {
+	return plugincaps.Default.IsEmailChannel(channelType)
 }

@@ -1,223 +1,178 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useLayoutEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Spinner } from '@resources/components/ui/Spinner';
 import { useContainerStackLink } from '@resources/hooks/useStackLinks';
+import { useEnvironmentStore } from '@resources/stores/environment';
 import { useHeaderSlot } from '@resources/stores/headerSlot';
-import { useContainer, useContainerAction } from '../hooks/useContainers';
-import { useContainerEdit } from '../hooks/useContainerEdit';
+import { HeaderBreadcrumb } from '@resources/layout/HeaderBreadcrumb';
+import { PageBody } from '@resources/layout/PageBody';
+import { PageSplit } from '@resources/layout/PageShell';
+import { cn } from '@resources/utils/cn';
+import { ContainerSidebar } from '../components/ContainerSidebar';
+import { ContainerDetailTabPanels } from '../components/ContainerDetailTabPanels';
 import { ContainerDetailDialogs } from '../components/ContainerDetailDialogs';
-import { ContainerDetailTabs, type DetailTabId } from '../components/ContainerDetailTabs';
-import type { EditFormData } from '../types/edit-form';
-import { BackupsTab } from '../components/tabs/BackupsTab';
-import { EnvironmentTab } from '../components/tabs/EnvironmentTab';
-import { FilesTab } from '../components/tabs/FilesTab';
-import { LabelsTab } from '../components/tabs/LabelsTab';
-import { LogsTab } from '../components/tabs/LogsTab';
-import { MountsTab } from '../components/tabs/MountsTab';
-import { NetworkTab } from '../components/tabs/NetworkTab';
-import { OverviewTab } from '../components/tabs/OverviewTab';
-import { ProcessesTab } from '../components/tabs/ProcessesTab';
-import { ResourcesTab } from '../components/tabs/ResourcesTab';
-import { SecurityTab } from '../components/tabs/SecurityTab';
-import { TerminalTab } from '../components/tabs/TerminalTab';
-import { SaveBar } from '../components/SaveBar';
-import { ContainerDetailHeader, getInspectWebUrl } from './ContainerDetailHeader';
-import { isMcHarborContainer, isProtectedContainer } from '@core/utils/protection';
-import type { ScrollSnapshot } from './container-detail-types';
+import { ContainerDetailLoading, ContainerDetailNotFound } from '../components/ContainerDetailStates';
+import { useContainer } from '../hooks/useContainers';
+import { useContainerEdit } from '../hooks/useContainerEdit';
+import { useContainerStats } from '../hooks/useContainerStats';
+import { useContainerDetailCommands } from '../hooks/useContainerDetailCommands';
+import { useContainerDetailEnvironment } from '../hooks/useContainerDetailEnvironment';
+import { useContainerDetailScroll } from '../hooks/useContainerDetailScroll';
+import { useContainerDetailDialogs, useContainerDetailPermissions } from '../hooks/useContainerDetailState';
+import { useContainerDetailTabs } from '../hooks/useContainerDetailTabs';
+import { useContainerSiblings } from '../hooks/useContainerSiblings';
+import { ContainerDetailHero } from './ContainerDetailHero';
+
+/** Keys the page content on environment and container so editing, unlock and dialog state reset on switch. */
 export default function ContainerDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const currentEnvironmentId = useEnvironmentStore((state) => state.currentId);
+  return <ContainerDetailPageContent key={`${currentEnvironmentId ?? ''}|${id ?? ''}`} />;
+}
+
+function ContainerDetailPageContent() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
-  const { data: container, isLoading } = useContainer(id ?? '');
-  const { data: stackLink } = useContainerStackLink(id);
-  const action = useContainerAction();
-  const isMcHarborTarget = container ? isMcHarborContainer(container) : false;
+  const { environmentReady } = useContainerDetailEnvironment();
+  const { data: container, isLoading } = useContainer(environmentReady ? (id ?? '') : '');
+  const { data: stackLink } = useContainerStackLink(environmentReady ? id : undefined);
   const [editUnlocked, setEditUnlocked] = useState(false);
-  const edit = useContainerEdit(container, { unlockProtected: editUnlocked && isMcHarborTarget });
-  const [confirmKill, setConfirmKill] = useState(false);
-  const [recreateConfirmOpen, setRecreateConfirmOpen] = useState(false);
-  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [takeOverOpen, setTakeOverOpen] = useState(false);
-  const [relinkOpen, setRelinkOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
+  const perms = useContainerDetailPermissions(container, editUnlocked);
+  const { containerName, isRunning, isPaused, actionsLocked } = perms;
+  const edit = useContainerEdit(container, {
+    unlockProtected: editUnlocked && perms.isMcHarborTarget,
+  });
+  const dialogs = useContainerDetailDialogs(container, perms);
+  const stats = useContainerStats(container?.Id ?? '', isRunning);
+  const tabs = useContainerDetailTabs(id, container, isRunning, isPaused);
+  const { activeTab, setActiveTab, pluginTab, showBuiltIn } = tabs;
+  const siblings = useContainerSiblings();
   const setHeaderActive = useHeaderSlot((store) => store.setActive);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const pendingScrollRef = useRef<ScrollSnapshot | null>(null);
+  const { scrollContainerRef, handleEditFieldChange } = useContainerDetailScroll(edit);
 
-  useEffect(() => {
+  useContainerDetailCommands({
+    containerId: container?.Id ?? '',
+    containerName,
+    isRunning,
+    isPaused,
+    canStart: perms.canStart,
+    canRestart: perms.canRestart,
+    canMove: perms.stateAllowsActions,
+    actionsLocked,
+    onTabChange: setActiveTab,
+    onAction: dialogs.handleContainerAction,
+    onStop: dialogs.openStopDialog,
+    onKill: dialogs.openKillDialog,
+    onMove: dialogs.openMoveDialog,
+    onRename: dialogs.openRenameDialog,
+  });
+
+  useLayoutEffect(() => {
     setHeaderActive(true);
     return () => setHeaderActive(false);
   }, [setHeaderActive]);
-  useEffect(() => {
-    setEditUnlocked(false);
-  }, [container?.Id]);
-  const handleSave = useCallback(() => {
-    if (edit.changes.hasConfigChanges) {
-      setRecreateConfirmOpen(true);
-      return;
-    }
-    edit.save();
-  }, [edit]);
-  const captureScroll = useCallback(() => {
-    const main = document.querySelector('main');
-    pendingScrollRef.current = {
-      mainTop: main?.scrollTop ?? 0,
-      paneTop: scrollContainerRef.current?.scrollTop ?? 0,
-      windowTop: window.scrollY,
-    };
-  }, []);
-  const restoreScroll = useCallback((snapshot: ScrollSnapshot) => {
-    const main = document.querySelector('main');
-    if (main) main.scrollTop = snapshot.mainTop;
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = snapshot.paneTop;
-    window.scrollTo({ top: snapshot.windowTop });
-  }, []);
-  useLayoutEffect(() => {
-    const snapshot = pendingScrollRef.current;
-    if (!snapshot) return;
-
-    pendingScrollRef.current = null;
-    restoreScroll(snapshot);
-    const frame = requestAnimationFrame(() => restoreScroll(snapshot));
-    return () => cancelAnimationFrame(frame);
-  }, [edit.editing, edit.editData, restoreScroll]);
-  const handleStartEditing = useCallback(() => {
-    captureScroll();
-    if (container && isProtectedContainer(container) && isMcHarborContainer(container)) {
-      setActiveTab('resources');
-    }
-    edit.startEditing();
-  }, [captureScroll, container, edit]);
-  const handleCancelEditing = useCallback(() => {
-    captureScroll();
-    edit.cancelEditing();
-  }, [captureScroll, edit]);
   const handleToggleEditLock = useCallback(() => {
-    if (editUnlocked) {
-      captureScroll();
-      edit.cancelEditing();
-    }
     setEditUnlocked((current) => !current);
-  }, [captureScroll, edit, editUnlocked]);
-  const handleEditFieldChange = useCallback(<K extends keyof EditFormData>(
-    field: K,
-    value: EditFormData[K],
-  ) => {
-    captureScroll();
-    edit.onFieldChange(field, value);
-  }, [captureScroll, edit]);
-  if (isLoading) {
-    return <div className="flex h-64 items-center justify-center"><Spinner size="lg" /></div>;
-  }
-
+  }, []);
+  if (isLoading) return <ContainerDetailLoading />;
   if (!container) {
-    return <div className="py-12 text-center text-muted-foreground">{t('containerNotFound')}</div>;
+    return <ContainerDetailNotFound onBack={() => navigate('/containers')} />;
   }
-  const name = (container.Name ?? '').replace(/^\//, '');
-  const isRunning = (container.State?.Status ?? 'unknown') === 'running';
-  const isPaused = (container.State?.Status ?? 'unknown') === 'paused';
-  const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
   const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
-  const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
-  const protectedContainer = isProtectedContainer(container);
-  const editLocked = protectedContainer && !(isMcHarborTarget && editUnlocked);
-  const runtimeEditing = edit.editing && !editLocked;
-  const configEditing = edit.editing && !protectedContainer;
+  const builtIn = showBuiltIn ? activeTab : null;
   return (
-    <div className="flex h-full flex-col gap-0">
-      {document.getElementById('header-slot') &&
-        createPortal(
-          <ContainerDetailHeader
-            container={container}
-            isRunning={isRunning}
-            isPaused={isPaused}
-            name={name}
-            webUrl={webURL}
-            editing={edit.editing}
-            editUnlocked={editUnlocked}
-            editUnlockable={isMcHarborTarget}
-            onToggleEditLock={handleToggleEditLock}
-            onEdit={handleStartEditing}
-            onRename={() => setRenameDialogOpen(true)}
-            onSave={handleSave}
-            onCancelEdit={handleCancelEditing}
-            saving={edit.isSaving}
-            stackName={linkedStackName}
-            onAction={(nextAction) => action.mutate({ id: container.Id, action: nextAction })}
-            onKill={() => setConfirmKill(true)}
-            onRemove={() => setRemoveDialogOpen(true)}
-            onMove={() => setMoveDialogOpen(true)}
-            onTakeOver={() => setTakeOverOpen(true)}
-            onRelink={() => setRelinkOpen(true)}
-          />,
-          document.getElementById('header-slot')!,
-        )}
-      <div className="flex h-full flex-col overflow-hidden">
-        <ContainerDetailTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          labelFor={(tab) => t(`detail.${tab}`)}
-        />
-        <div ref={scrollContainerRef} className={`flex min-h-0 flex-1 flex-col p-5 ${activeTab === 'terminal' || activeTab === 'logs' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-          {activeTab === 'overview' && <OverviewTab container={container} />}
-          {activeTab === 'environment' && <EnvironmentTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'labels' && <LabelsTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'network' && <NetworkTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'mounts' && <MountsTab container={container} />}
-          {activeTab === 'resources' && <ResourcesTab container={container} editing={runtimeEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'security' && <SecurityTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          <div className={activeTab !== 'logs' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><LogsTab containerId={container.Id} isRunning={isRunning} /></div>
-          <div className={activeTab !== 'terminal' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><TerminalTab containerId={container.Id} isRunning={isRunning} active={activeTab === 'terminal'} /></div>
-          {activeTab === 'processes' && <ProcessesTab containerId={container.Id} isRunning={isRunning} />}
-          {activeTab === 'files' && <FilesTab containerId={container.Id} isRunning={isRunning} mounts={container.Mounts ?? []} readOnly={protectedContainer} />}
-          {activeTab === 'backups' && <BackupsTab containerId={container.Id} containerName={name} />}
-        </div>
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Orientation goes in the topbar, where it keeps the same coordinates
+          on every page and does not scroll away underneath you. */}
+      <HeaderBreadcrumb
+        crumbs={[{ label: t('title'), to: '/containers' }, { label: containerName }]}
+        siblings={siblings}
+        currentId={container.Id}
+      />
 
-        {edit.editing && (
-          <SaveBar
-            changes={edit.changes}
-            onSave={handleSave}
-            onCancel={handleCancelEditing}
-            isSaving={edit.isSaving}
-            isComposeManaged={isComposeManaged}
+      <ContainerDetailHero
+        container={container}
+        stackName={linkedStackName}
+        perms={perms}
+        dialogs={dialogs}
+        tabs={tabs}
+        onToggleEditLock={handleToggleEditLock}
+        onRecreate={() => {
+          dialogs.setSecretFileMode(perms.containerSecretFileMode);
+          edit.clearRecreateError();
+          dialogs.setRecreateConfirmOpen(true);
+        }}
+      />
+
+      {/* The panel and the sidebar are siblings in a row, so the sidebar's top
+          edge meets the bottom of the tabs card and it runs to the bottom of
+          the page from there. */}
+      <PageSplit>
+        <PageBody
+          ref={scrollContainerRef}
+          className={cn('min-w-0 gap-4', (builtIn === 'terminal' || builtIn === 'logs') && 'overflow-hidden')}
+        >
+          <ContainerDetailTabPanels
+            id={id}
+            container={container}
+            stats={stats}
+            activeTab={activeTab}
+            pluginTab={pluginTab}
+            showBuiltIn={showBuiltIn}
+            isRunning={isRunning}
+            protectedContainer={perms.protectedContainer}
+            containerName={containerName}
+            editData={edit.editData}
+            onTabChange={setActiveTab}
+            onFieldChange={handleEditFieldChange}
+            onInlineFieldSave={perms.protectedContainer && !perms.editUnlockActive ? undefined : edit.saveResourceField}
           />
-        )}
-      </div>
+        </PageBody>
+        <ContainerSidebar
+          container={container}
+          stats={stats}
+          onNavigate={setActiveTab}
+          onAction={dialogs.handleContainerAction}
+          onOpenConfigEditor={() => navigate(`/containers/${container.Id}/edit`)}
+          actionsLocked={actionsLocked}
+        />
+      </PageSplit>
       <ContainerDetailDialogs
         container={container}
-        containerName={name}
-        confirmKill={confirmKill}
-        recreateConfirmOpen={recreateConfirmOpen}
-        removeDialogOpen={removeDialogOpen}
-        moveDialogOpen={moveDialogOpen}
-        renameDialogOpen={renameDialogOpen}
-        takeOverOpen={takeOverOpen}
-        relinkOpen={relinkOpen}
+        containerName={containerName}
+        confirmStop={dialogs.confirmStop}
+        confirmKill={dialogs.confirmKill}
+        recreateConfirmOpen={dialogs.recreateConfirmOpen}
+        secretFileModeOffered={perms.secretFileModeOffered}
+        secretFileMode={dialogs.secretFileMode}
+        removeDialogOpen={dialogs.removeDialogOpen}
+        moveDialogOpen={dialogs.moveDialogOpen}
+        renameDialogOpen={dialogs.renameDialogOpen}
+        takeOverOpen={dialogs.takeOverOpen}
+        relinkOpen={dialogs.relinkOpen}
         linkedStackName={linkedStackName}
-        unlockProtectedRename={editUnlocked && isMcHarborTarget}
-        actionPending={action.isPending}
+        unlockProtectedRename={perms.editUnlockActive}
+        stopKillBlocked={actionsLocked || (!isRunning && !isPaused)}
         editSaving={edit.isSaving}
+        recreateError={edit.recreateError}
         changedFields={edit.changes.changedConfigFields}
-        onConfirmKillChange={(open) => setConfirmKill(open)}
-        onRecreateConfirmChange={setRecreateConfirmOpen}
-        onRemoveDialogChange={setRemoveDialogOpen}
-        onMoveDialogChange={setMoveDialogOpen}
-        onRenameDialogChange={setRenameDialogOpen}
-        onTakeOverChange={setTakeOverOpen}
-        onRelinkChange={setRelinkOpen}
-        onKill={() => {
-          action.mutate({ id: container.Id, action: 'kill' });
-          setConfirmKill(false);
-        }}
+        onConfirmStopChange={dialogs.setConfirmStop}
+        onConfirmKillChange={dialogs.setConfirmKill}
+        onRecreateConfirmChange={dialogs.setRecreateConfirmOpen}
+        onSecretFileModeChange={dialogs.setSecretFileMode}
+        onRemoveDialogChange={dialogs.setRemoveDialogOpen}
+        onMoveDialogChange={dialogs.setMoveDialogOpen}
+        onRenameDialogChange={dialogs.setRenameDialogOpen}
+        onTakeOverChange={dialogs.setTakeOverOpen}
+        onRelinkChange={dialogs.setRelinkOpen}
         onConfirmRecreate={() => {
-          setRecreateConfirmOpen(false);
-          edit.save();
+          void edit
+            .recreateInPlace(perms.secretFileModeOffered ? { secretFileMode: dialogs.secretFileMode } : {})
+            .then(() => dialogs.setRecreateConfirmOpen(false))
+            .catch(() => undefined);
         }}
         onRemoveSuccess={() => navigate('/containers')}
       />

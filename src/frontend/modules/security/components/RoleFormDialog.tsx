@@ -7,16 +7,14 @@ import { IconLock } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@resources/components/ui/Dialog';
-import { useCreateRole, useUpdateRole, useAvailablePermissions } from '../hooks/useRoles';
-import { PermissionPicker } from './PermissionPicker';
+import { Text as TypographyText } from '@resources/components/ui/Typography';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@resources/components/ui/Dialog';
+import { useCreateRole, useUpdateRole, useRolePresets, type RolePreset } from '../hooks/useRoles';
+import { PermissionEditor, type PermissionSelection } from '@resources/components/security/PermissionEditor';
+import { RolePresetPicker } from './RolePresetPicker';
+import { flattenSelection, selectionFromPermissions } from './roleSelection';
 import type { Role } from '../hooks/useRoles';
+import { PERM } from '@core/auth/permissionKeys';
 
 type RoleViewDialogProps = {
   open: boolean;
@@ -24,120 +22,151 @@ type RoleViewDialogProps = {
   role: Role;
 };
 
-export function RoleViewDialog({ open, onOpenChange, role }: RoleViewDialogProps) {
-  const { t } = useTranslation('security');
-  const { t: tc } = useTranslation('common');
-  const { data: allPermissions } = useAvailablePermissions();
-  const isFullAccess = role.permissions.includes('*');
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {role.name}
-            <Badge variant="secondary">
-              <IconLock className="mr-1 size-3" />
-              {t('roles.system')}
-            </Badge>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          {role.description && (
-            <p className="text-sm text-muted-foreground">{role.description}</p>
-          )}
-
-          {isFullAccess ? (
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
-              <p className="font-medium">{t('roles.fullAccess')}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{t('roles.fullAccessDescription')}</p>
-            </div>
-          ) : (
-            <div>
-              <label className="mb-2 block text-sm font-medium">{t('roles.permissions')}</label>
-              <PermissionPicker
-                allPermissions={allPermissions ?? []}
-                selected={role.permissions}
-                readOnly
-              />
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{tc('actions.close')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+/**
+ * Read-only view of a role. Renders the exact same modal as create/edit
+ * so the operator sees permissions in the familiar editor layout — minus
+ * the preset picker, with every control disabled.
+ */
+export function RoleViewDialog({ open: openState, onOpenChange, role }: RoleViewDialogProps) {
+  return <RoleFormDialog open={openState} onOpenChange={onOpenChange} role={role} readOnly />;
 }
 
 type RoleFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   role?: Role;
+  /** Render the form as a non-editable viewer (no presets, no submit). */
+  readOnly?: boolean;
 };
 
-export function RoleFormDialog({ open, onOpenChange, role }: RoleFormDialogProps) {
+export function RoleFormDialog({ open: isOpen, onOpenChange, role, readOnly = false }: RoleFormDialogProps) {
   const { t } = useTranslation('security');
-  const { t: tc } = useTranslation('common');
   const createRole = useCreateRole();
   const updateRole = useUpdateRole();
-  const { data: allPermissions } = useAvailablePermissions();
-  const [name, setName] = useState(role?.name ?? '');
+  const { data: presets = [] } = useRolePresets();
+  const [itemName, setName] = useState(role?.name ?? '');
   const [description, setDescription] = useState(role?.description ?? '');
-  const [permissions, setPermissions] = useState<string[]>(role?.permissions ?? []);
-  const isEdit = !!role;
+  const [selection, setSelection] = useState<PermissionSelection>(selectionFromPermissions(role?.permissions ?? []));
+  const isEdit = !!role && !readOnly;
+
+  // Phase 5: apply a preset to seed the permission selection.
+  // Replaces whatever is currently selected; the operator can then
+  // fine-tune. System role permissions are immutable, so for edits
+  // of system roles this only fills in any missing entries — but
+  // since the permission editor is read-only for system roles
+  // today, presets are effectively a "create new role" feature.
+  const handleApplyPreset = (preset: RolePreset) => {
+    if (preset.permissions.includes('*')) {
+      setSelection({ overrides: {}, wildcard: true });
+    } else {
+      const overrides: Record<string, 'grant' | 'deny'> = {};
+      for (const p of preset.permissions) overrides[p] = 'grant';
+      setSelection({ overrides, wildcard: false });
+    }
+  };
 
   const handleSubmit = () => {
+    if (readOnly) return;
+    const permissions = flattenSelection(selection);
     if (isEdit) {
-      updateRole.mutate({ id: role.id, name, description, permissions }, {
-        onSuccess: () => onOpenChange(false),
-      });
-    } else {
-      createRole.mutate({ name, description, permissions }, {
-        onSuccess: () => {
-          onOpenChange(false);
-          setName('');
-          setDescription('');
-          setPermissions([]);
+      updateRole.mutate(
+        { id: role.id, name: itemName, description, permissions },
+        {
+          onSuccess: () => onOpenChange(false),
         },
-      });
+      );
+    } else {
+      createRole.mutate(
+        { name: itemName, description, permissions },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+            setName('');
+            setDescription('');
+            setSelection({ overrides: {}, wildcard: false });
+          },
+        },
+      );
     }
   };
 
   const isPending = createRole.isPending || updateRole.isPending;
 
+  // Compact summary under the editor so the operator can see how
+  // many explicit grants/denies the dialog will persist.
+  const grantCount = Object.values(selection.overrides).filter((s) => s === 'grant').length;
+  const denyCount = Object.values(selection.overrides).filter((s) => s === 'deny').length;
+
+  const title = readOnly && role ? role.name : isEdit ? t('roles.editRole') : t('roles.createRole');
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t('roles.editRole') : t('roles.createRole')}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {title}
+            {readOnly && role?.isSystem && (
+              <Badge variant="secondary">
+                <IconLock className="mr-1 size-3" />
+                {t('roles.system')}
+              </Badge>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <Input placeholder={t('roles.name')} value={name} onChange={(e) => setName(e.target.value)} />
-          <Input placeholder={t('roles.roleDescription')} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Input
+            placeholder={t('roles.name')}
+            aria-label={t('roles.name')}
+            value={itemName}
+            onChange={(e) => setName(e.target.value)}
+            readOnly={readOnly}
+          />
+          <Input
+            placeholder={t('roles.roleDescription')}
+            aria-label={t('roles.roleDescription')}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            readOnly={readOnly}
+          />
+
+          {!readOnly && presets.length > 0 && <RolePresetPicker presets={presets} onApply={handleApplyPreset} />}
 
           <div>
             <label className="mb-2 block text-sm font-medium">{t('roles.permissions')}</label>
-            <PermissionPicker
-              allPermissions={allPermissions ?? []}
-              selected={permissions}
-              onChange={setPermissions}
-            />
+            <PermissionEditor value={selection} onChange={setSelection} readOnly={readOnly} />
+            <TypographyText size="xs" tone="muted" className="mt-2">
+              {selection.wildcard
+                ? t('permissions.wildcardSummary')
+                : t('permissions.summary', {
+                    grants: grantCount,
+                    denies: denyCount,
+                  })}
+            </TypographyText>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{tc('actions.cancel')}</Button>
-          <Button onClick={handleSubmit} disabled={!name || isPending}>
-            {isPending ? tc('actions.processing') : (isEdit ? tc('actions.save') : tc('actions.create'))}
-          </Button>
+          {readOnly ? (
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t('actions.close', { ns: 'common' })}
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                {t('actions.cancel', { ns: 'common' })}
+              </Button>
+              <Button permission={PERM.ROLES_MANAGE} onClick={handleSubmit} disabled={!itemName || isPending}>
+                {isPending
+                  ? t('actions.processing', { ns: 'common' })
+                  : isEdit
+                    ? t('actions.save', { ns: 'common' })
+                    : t('actions.create', { ns: 'common' })}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

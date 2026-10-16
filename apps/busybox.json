@@ -4,7 +4,7 @@
     "description":  "BusyBox combines tiny versions of common Unix utilities into a single image.",
     "category":  "Utilities",
     "image":  "busybox:latest",
-    "logo":  "https://icon.horse/icon/busybox.net",
+    "logo":  "https://www.google.com/s2/favicons?domain=busybox.net\u0026sz=128",
     "website":  "https://busybox.net",
     "docsUrl":  "https://hub.docker.com/_/busybox",
     "ports":  [
@@ -23,5 +23,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

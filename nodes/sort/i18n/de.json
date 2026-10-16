@@ -1,15 +1,15 @@
 {
-  "label": "Sort",
-  "description": "Sort an array on the current message",
+  "label": "Sortieren",
+  "description": "Ein Array der aktuellen Nachricht sortieren",
   "config": {
     "property": "Eigenschaft",
-    "sort_by": "Sort By",
+    "sort_by": "Sortieren nach",
     "direction": "Richtung"
   },
   "options": {
     "direction": {
       "asc": "Aufsteigend",
-      "desc": "Descending"
+      "desc": "Absteigend"
     }
   }
 }

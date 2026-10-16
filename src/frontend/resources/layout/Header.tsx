@@ -2,98 +2,65 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { lazy, Suspense } from 'react';
-import { IconLogout, IconSearch, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconInfoCircle, IconUserCircle, IconRefresh } from '@tabler/icons-react';
+import {
+  IconSearch,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
+  IconSparkles,
+} from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@core/auth/useAuth';
-import { useEnvironmentStore } from '@resources/stores/environment';
-import { useQuery } from '@tanstack/react-query';
+import { HeaderOverlays } from './HeaderOverlays';
+import { HeaderUserMenu } from './HeaderUserMenu';
+import { useHeaderEnvironments } from './useHeaderEnvironments';
+import { useHeaderOverlays } from './useHeaderOverlays';
 import { api, type ApiResponse } from '@core/api/client';
-import { assertSuccess } from '@resources/utils/api-mutation';
+import { PERM } from '@core/auth/permissionKeys';
 import {
   SYSTEM_RESTART_PERMISSION,
   hasPermission,
   useCurrentUserPermissions,
   type SystemRestartResponse,
 } from '@core/auth/useCurrentUserPermissions';
-import { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useCallback, useState } from 'react';
 import { useSidebarStore } from '@resources/stores/sidebar';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { DemoModeHeaderIcon } from '@resources/components/demo/DemoModeHeaderIcon';
+import { openAssistant } from '@resources/ai/openAssistant';
+import { useShellCommands } from './useShellCommands';
+import { useAIContexts } from '@resources/ai/registry';
+import { contextSeedPrompt, hasSeedableContext } from '@resources/ai/contextPrompt';
+import { assertRestartScheduled, runWithMcHarborRestart } from '@resources/stores/mcharbor-restart';
 
-const GlobalSearch = lazy(() => import('@resources/components/GlobalSearch').then((module) => ({ default: module.GlobalSearch })));
-const ContainerOverview = lazy(() => import('@resources/components/ContainerOverview').then((module) => ({ default: module.ContainerOverview })));
-const ImageOverview = lazy(() => import('@resources/components/ImageOverview').then((module) => ({ default: module.ImageOverview })));
-const VolumeOverview = lazy(() => import('@resources/components/VolumeOverview').then((module) => ({ default: module.VolumeOverview })));
-const StackOverview = lazy(() => import('@resources/components/StackOverview').then((module) => ({ default: module.StackOverview })));
-const HeaderNotifications = lazy(() => import('@resources/layout/HeaderNotifications').then((module) => ({ default: module.HeaderNotifications })));
-
-const ENV_SELECTOR_ROUTES = new Set([
-  '/',
-  '/dashboard',
-  '/containers',
-  '/images',
-  '/volumes',
-  '/networks',
-  '/stacks',
-  '/terminal',
-  '/backups',
-  '/logs',
-  '/pods',
-  '/deployments',
-  '/k8s-services',
-  '/namespaces',
-  '/activity',
-  '/audit',
-  '/app-store',
-  '/docker',
-]);
+const HeaderNotifications = lazy(() =>
+  import('@resources/layout/HeaderNotifications').then((module) => ({
+    default: module.HeaderNotifications,
+  })),
+);
 
 export function Header() {
   const { t } = useTranslation('common');
+  const { t: tAI } = useTranslation('ai');
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
-  const environments = useEnvironmentStore((s) => s.environments);
-  const currentId = useEnvironmentStore((s) => s.currentId);
-  const setCurrentId = useEnvironmentStore((s) => s.setCurrentId);
-  const setEnvironments = useEnvironmentStore((s) => s.setEnvironments);
-  const { pathname } = useLocation();
-  const showEnvSelector = ENV_SELECTOR_ROUTES.has(pathname);
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleSidebar = useSidebarStore((s) => s.toggle);
 
-  type EnvSummary = {
-    id: string;
-    name: string;
-    orchestratorType: 'docker' | 'kubernetes';
-    connectionType: string;
-    isDefault: boolean;
-    dockerVersion: string | null;
-    k8sVersion: string | null;
-    scheduledUpdateCheckEnabled: boolean;
-    automaticImagePruningEnabled: boolean;
-    trackContainerEventsEnabled: boolean;
-    collectContainerMetricsEnabled: boolean;
-    highlightContainerChangesEnabled: boolean;
-    dockerDiskUsageNotificationsEnabled: boolean;
-    dockerDiskUsageThresholdPercent: number;
-  };
-  const environmentsQuery = useQuery({
-    queryKey: ['environments'],
-    queryFn: () => api.get<EnvSummary[]>('/environments').then((r) => r.data ?? []),
-    refetchInterval: 30_000,
-  });
+  useHeaderEnvironments();
 
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [containerOverviewOpen, setContainerOverviewOpen] = useState(false);
-  const [imageOverviewOpen, setImageOverviewOpen] = useState(false);
-  const [volumeOverviewOpen, setVolumeOverviewOpen] = useState(false);
-  const [stackOverviewOpen, setStackOverviewOpen] = useState(false);
+  // The page with the highest-priority registered AI context wins — the
+  // container detail page outranks the shell.
+  const { focused: focusedAI } = useAIContexts();
+  const seedable = hasSeedableContext(focusedAI);
+  const assistantLabel = seedable
+    ? tAI('aiAssistant.askAbout', {
+        name: focusedAI.resourceName ?? focusedAI.resourceId ?? '',
+      })
+    : tAI('aiAssistant.menuItem');
+  const overlays = useHeaderOverlays();
   const [menuOpen, setMenuOpen] = useState(false);
   const [restartOpen, setRestartOpen] = useState(false);
   const userPermissions = useCurrentUserPermissions(!!user);
@@ -101,99 +68,36 @@ export function Header() {
 
   const restartMcHarbor = useMutation({
     mutationFn: () =>
-      api
-        .post<SystemRestartResponse>('/system/restart')
-        .then((res: ApiResponse<SystemRestartResponse>) => {
-          if (!res.success) {
-            throw new Error(res.error ?? 'restart failed');
-          }
-          return assertSuccess(res);
-        }),
-    onSuccess: (data) => {
-      const message = data?.message ?? t('system.toast.restartScheduled');
-      toast.success(message);
+      runWithMcHarborRestart(() =>
+        api
+          .post<SystemRestartResponse>('/system/restart')
+          .then((res: ApiResponse<SystemRestartResponse>) =>
+            assertRestartScheduled(res, t('system.restartDialog.notSupervised')),
+          ),
+      ),
+    meta: { error: t('system.toast.restartFailed') },
+    onSuccess: () => {
       setRestartOpen(false);
       setMenuOpen(false);
-      void queryClient.invalidateQueries();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
     },
   });
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (environmentsQuery.data) {
-      setEnvironments(environmentsQuery.data);
-    }
-  }, [environmentsQuery.data, setEnvironments]);
-
-  useEffect(() => {
-    if (!environmentsQuery.data || environmentsQuery.data.length === 0) {
-      return;
-    }
-    // Make the topbar environment selector always render with a
-    // concrete environment selected. Without this, a stale
-    // persisted currentId (empty or pointing at a deleted env)
-    // leaves the selector with no matching option. Prefer the
-    // explicit default env when present; fall back to the first
-    // item in the list.
-    const current = environmentsQuery.data.find((env) => env.id === currentId);
-    if (current) {
-      return;
-    }
-    const preferred =
-      environmentsQuery.data.find((env) => env.isDefault) ?? environmentsQuery.data[0];
-    if (preferred && preferred.id !== currentId) {
-      setCurrentId(preferred.id);
-    }
-  }, [environmentsQuery.data, currentId, setCurrentId]);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target as HTMLElement)?.isContentEditable) return;
-
-      switch (e.key) {
-        case 'c':
-          e.preventDefault();
-          setContainerOverviewOpen((prev) => !prev);
-          break;
-        case 'i':
-          e.preventDefault();
-          setImageOverviewOpen((prev) => !prev);
-          break;
-        case 'v':
-          e.preventDefault();
-          setVolumeOverviewOpen((prev) => !prev);
-          break;
-        case 's':
-          e.preventDefault();
-          setStackOverviewOpen((prev) => !prev);
-          break;
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [menuOpen]);
+  const openRestart = useCallback(() => setRestartOpen(true), []);
+  useShellCommands({
+    canRestartMcHarbor,
+    logout,
+    onRestart: openRestart,
+  });
 
   return (
     <>
-      <header className="relative flex h-14 items-center border-b border-border bg-card px-4">
-        {/* Left: sidebar toggle + environment selector + page slot */}
+      {/* z-30, not z-10: this element creates the stacking context the user
+          menu lives in, and `<main>` comes after it in DOM order. At an equal
+          z-10 the later sibling wins, so a sticky `<thead>` (z-10) painted over
+          the open menu no matter how high the menu's own z-index went. Stays
+          below the z-50 portalled overlays, which sit at body level. */}
+      <header className="relative z-30 flex h-14 items-center border-b border-border bg-card px-4">
+        {/* Left: sidebar toggle + page slot */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -213,23 +117,6 @@ export function Header() {
             </TooltipTrigger>
             <TooltipContent>{collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}</TooltipContent>
           </Tooltip>
-
-          {showEnvSelector && environments.length > 0 && (
-            <>
-              <select
-                value={currentId}
-                onChange={(e) => setCurrentId(e.target.value)}
-                className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 pe-9 text-sm text-foreground focus:border-primary focus:ring-primary"
-              >
-                {environments.map((env) => (
-                  <option key={env.id} value={env.id}>
-                    {env.name}
-                  </option>
-                ))}
-              </select>
-              <div className="h-6 w-px shrink-0 bg-border" />
-            </>
-          )}
           <div id="header-slot" className="flex min-w-0 flex-1 items-center" />
         </div>
 
@@ -238,8 +125,32 @@ export function Header() {
           {/* Page-specific right-side slot (e.g. view toggles) */}
           <div id="header-right-slot" className="flex items-center" />
 
+          <DemoModeHeaderIcon />
+
           {/* Divider */}
           <div className="h-6 w-px bg-border" />
+
+          {/* Context-seeded, unlike the floating AssistantFAB which opens
+              blank. On a container detail page this arrives pre-loaded with
+              that container's id, image and state, so the conversation does
+              not start by establishing what we are looking at. */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={assistantLabel}
+                permission={PERM.AI_ASSISTANT_USE}
+                onClick={() => openAssistant(seedable ? contextSeedPrompt(focusedAI, tAI) : undefined)}
+                className="gap-2"
+                data-testid="header-ai-chat"
+              >
+                <IconSparkles className="size-4 text-primary" />
+                <span className="hidden xl:inline">{assistantLabel}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{assistantLabel}</TooltipContent>
+          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -247,7 +158,7 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 aria-label={t('header.search')}
-                onClick={() => setSearchOpen(true)}
+                onClick={() => overlays.setSearchOpen(true)}
               >
                 <IconSearch className="size-4" />
               </Button>
@@ -262,87 +173,24 @@ export function Header() {
           {/* Divider */}
           <div className="h-6 w-px bg-border" />
 
-          {/* User avatar + dropdown */}
           {user && (
-            <div className="relative" ref={menuRef}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMenuOpen(!menuOpen)}
-                aria-label={t('header.userMenu')}
-              >
-                <div className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-              </Button>
-
-              {menuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-52 rounded-lg border border-border bg-card py-1 shadow-lg">
-                  {/* User info */}
-                  <div className="border-b border-border px-3 py-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-                        {user.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{user.username}</p>
-                        <p className="text-xs text-muted-foreground">{t('header.administrator')}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="my-1 border-t border-border" />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setMenuOpen(false); navigate('/profile'); }}
-                    className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
-                  >
-                    <IconUserCircle className="size-4 text-muted-foreground" />
-                    <span>{t('profile.menuItem')}</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setMenuOpen(false); navigate('/settings?tab=about'); }}
-                    className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
-                  >
-                    <IconInfoCircle className="size-4 text-muted-foreground" />
-                    <span>{t('about.menuItem')}</span>
-                  </Button>
-                  {canRestartMcHarbor && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => { setMenuOpen(false); setRestartOpen(true); }}
-                      className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
-                      data-testid="restart-mcharbor-menu-item"
-                    >
-                      <IconRefresh className="size-4 text-muted-foreground" />
-                      <span>{t('system.menu.restartMcHarbor')}</span>
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => { setMenuOpen(false); logout(); }}
-                    className="w-full justify-start rounded-none px-3 py-1.5 text-sm text-destructive hover:text-destructive"
-                  >
-                    <IconLogout className="size-4" />
-                    <span>{t('actions.signOut')}</span>
-                  </Button>
-                </div>
-              )}
-            </div>
+            <HeaderUserMenu
+              username={user.username}
+              menuOpen={menuOpen}
+              onMenuOpenChange={setMenuOpen}
+              canRestartMcHarbor={canRestartMcHarbor}
+              onRestart={openRestart}
+              onLogout={logout}
+            />
           )}
         </div>
       </header>
 
       <ConfirmDialog
         open={restartOpen}
-        onOpenChange={(open) => {
-          setRestartOpen(open);
-          if (!open && restartMcHarbor.isPending) {
+        onOpenChange={(isOpen) => {
+          setRestartOpen(isOpen);
+          if (!isOpen && restartMcHarbor.isPending) {
             // Keep the spinner visible if a restart is already in flight.
             return;
           }
@@ -357,31 +205,7 @@ export function Header() {
         }}
       />
 
-      {searchOpen && (
-        <Suspense fallback={null}>
-          <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-        </Suspense>
-      )}
-      {containerOverviewOpen && (
-        <Suspense fallback={null}>
-          <ContainerOverview open={containerOverviewOpen} onOpenChange={setContainerOverviewOpen} />
-        </Suspense>
-      )}
-      {imageOverviewOpen && (
-        <Suspense fallback={null}>
-          <ImageOverview open={imageOverviewOpen} onOpenChange={setImageOverviewOpen} />
-        </Suspense>
-      )}
-      {volumeOverviewOpen && (
-        <Suspense fallback={null}>
-          <VolumeOverview open={volumeOverviewOpen} onOpenChange={setVolumeOverviewOpen} />
-        </Suspense>
-      )}
-      {stackOverviewOpen && (
-        <Suspense fallback={null}>
-          <StackOverview open={stackOverviewOpen} onOpenChange={setStackOverviewOpen} />
-        </Suspense>
-      )}
+      <HeaderOverlays overlays={overlays} />
     </>
   );
 }

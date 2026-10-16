@@ -37,5 +37,9 @@
       "description": "Enable backtraces on panic"
     }
   ],
-  "version": "1-bookworm"
+  "version":  "1-bookworm",
+  "latest":  {
+      "version":  "1-bookworm",
+      "release_date":  "2026-09-10"
+  }
 }

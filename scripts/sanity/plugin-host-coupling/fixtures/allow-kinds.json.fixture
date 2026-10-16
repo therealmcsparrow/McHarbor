@@ -1,0 +1,9 @@
+{
+  "exemptions": [
+    {
+      "file": "src/backend/modules/example/route.go",
+      "literal": "vm",
+      "reason": "Fixture: a host-owned word that shares a plugin kind spelling."
+    }
+  ]
+}

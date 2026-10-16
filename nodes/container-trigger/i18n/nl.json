@@ -1,0 +1,31 @@
+{
+  "label": "Containertrigger",
+  "description": "Start een workflow wanneer een container van status of gezondheid verandert",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "watch": "Bewaak",
+    "status": "Statusgebeurtenis",
+    "health": "Health-status"
+  },
+  "options": {
+    "watch": {
+      "status": "Statuswijzigingen",
+      "health": "Gezondheidswijzigingen"
+    },
+    "status": {
+      "any": "Elke",
+      "start": "Starten",
+      "stop": "Stoppen",
+      "die": "Die",
+      "health_status": "Gezondheidsstatus"
+    },
+    "health": {
+      "any": "Elke",
+      "healthy": "Gezond",
+      "unhealthy": "Ongezond",
+      "starting": "Startend",
+      "none": "Geen healthcheck"
+    }
+  }
+}

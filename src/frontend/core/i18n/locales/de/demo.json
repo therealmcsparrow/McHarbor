@@ -1,0 +1,94 @@
+{
+  "title": "Demo-Modus",
+  "intro": "Der Demo-Modus schaltet dieses McHarbor auf eine separate Datenbank um, die mit einem simulierten Bestand gefüllt ist, sodass jede Seite mit realistischen Daten erkundet werden kann. Alles darin ist fingiert, und nichts Reales wird berührt.",
+  "errorTitle": "Der Status des Demo-Modus konnte nicht geladen werden",
+  "state": {
+    "label": "Status",
+    "active": "Aktiv",
+    "inactive": "Nicht aktiv",
+    "activeSince": "Aktiv seit {{date}}",
+    "data": "Demodaten",
+    "dataPresent": "Vorhanden, für den nächsten Besuch aufbewahrt",
+    "dataAbsent": "Noch keine",
+    "clusteredTitle": "Bei einer Cluster-Instanz nicht verfügbar",
+    "clusteredBody": "Der Demo-Modus startet McHarbor auf einer anderen Datenbank neu, was den Cluster spalten würde."
+  },
+  "estate": {
+    "title": "Was der Demo-Bestand enthält",
+    "liveTitle": "Was der Demo-Bestand derzeit enthält",
+    "environments": "Umgebungen",
+    "containers": "Container",
+    "stacks": "Stacks",
+    "virtualMachines": "Virtuelle Maschinen",
+    "systemContainers": "LXC-Systemcontainer",
+    "clusters": "Kubernetes-Cluster",
+    "pods": "Pods",
+    "deployments": "Kubernetes-Deployments",
+    "swarmClusters": "Swarm-Cluster",
+    "swarmNodes": "Swarm-Knoten",
+    "swarmServices": "Swarm-Dienste",
+    "historyDays": "Verlaufszeitraum",
+    "days_one": "{{value}} Tag",
+    "days_other": "{{value}} Tage"
+  },
+  "config": {
+    "intro": "Größen des simulierten Bestands. Ihre Änderung baut die Demodaten neu auf.",
+    "restoreDefaults": "Standardwerte wiederherstellen",
+    "defaultHint": "Standard: {{value}}.",
+    "historyHelp": "Tage an Verlauf, die die Demo enthält: Audit-Log, Workflow-Läufe, Zeitplanläufe, Alarme und Vorfälle.",
+    "refused": "McHarbor hat diese Größen abgelehnt. Korrigieren Sie das markierte Feld und versuchen Sie es erneut.",
+    "groups": {
+      "estate": "Umgebungen und Container",
+      "compute": "Virtuelle Maschinen und LXC",
+      "kubernetes": "Kubernetes",
+      "swarm": "Swarm",
+      "history": "Verlauf"
+    },
+    "error": {
+      "range": "Geben Sie eine ganze Zahl von {{min}} bis {{max}} ein.",
+      "swarmNodes": "Swarm benötigt mindestens einen Knoten pro Cluster: Geben Sie {{min}} oder mehr ein."
+    }
+  },
+  "notes": {
+    "realData": "Ihre echten Daten werden nie verändert. Das Verlassen des Demo-Modus startet McHarbor exakt so darauf neu, wie es war.",
+    "restart": "Das Betreten, Verlassen und Zurücksetzen des Demo-Modus startet McHarbor neu, sodass alle angemeldeten Benutzer kurz getrennt werden.",
+    "disabled": "Aktionen, die echte Systeme berühren würden, sind im Demo-Modus deaktiviert: die eigenen Host-Dienste und Host-Updates von McHarbor, Selbst-Update, Instanz-Backups, Datenbankmigration, Lizenz, Speicherorte, TLS, Zeitzone und Backup-Schlüssel-Einstellungen sowie Plugin-Installation und -Deinstallation."
+  },
+  "actions": {
+    "enter": "Demo-Modus aktivieren",
+    "exit": "Demo-Modus beenden",
+    "reset": "Demodaten zurücksetzen",
+    "applySizes": "Neue Größen anwenden",
+    "resetShort": "Zurücksetzen"
+  },
+  "confirm": {
+    "enterTitle": "Demo-Modus aktivieren?",
+    "enterDescription": "McHarbor startet auf einer separaten Datenbank neu, die mit einem simulierten Bestand der unten angegebenen Größen gefüllt ist. Von einem früheren Besuch aufbewahrte Demodaten werden wiederverwendet, wenn die Größen unverändert sind; ihre Änderung baut die Demodaten neu auf. Ihre echten Daten werden nicht berührt. Alle angemeldeten Benutzer werden kurz getrennt.",
+    "exitTitle": "Demo-Modus beenden?",
+    "exitDescription": "McHarbor startet wieder auf Ihren echten Daten neu. Die Demodaten bleiben erhalten, sodass der nächste Besuch dort fortfährt, wo dieser endete. Alle angemeldeten Benutzer werden kurz getrennt.",
+    "resetTitle": "Demodaten zurücksetzen?",
+    "resetDescription": "Die Demo-Datenbank wird gelöscht, und der nächste Besuch beginnt mit einem frisch erzeugten Bestand. Ihre echten Daten sind nicht betroffen.",
+    "resetActiveDescription": "Alles, was im Demo-Modus geändert wurde, wird verworfen, und McHarbor startet auf einem frisch erzeugten Bestand neu. Ihre echten Daten sind nicht betroffen. Alle angemeldeten Benutzer werden kurz getrennt.",
+    "applySizesTitle": "Neue Demo-Größen anwenden?",
+    "applySizesDescription": "Die Demo wird mit den unten angegebenen Größen neu aufgebaut: Alles, was im Demo-Modus geändert wurde, wird verworfen, und McHarbor startet auf dem neuen Bestand neu. Ihre echten Daten sind nicht betroffen. Alle angemeldeten Benutzer werden kurz getrennt."
+  },
+  "toast": {
+    "enterSuccess": "Demo-Modus wird aktiviert. McHarbor startet neu.",
+    "exitSuccess": "Demo-Modus wird verlassen. McHarbor startet neu.",
+    "resetSuccess": "Demodaten gelöscht.",
+    "resetRestart": "Demodaten zurückgesetzt. McHarbor startet auf einem frischen Bestand neu.",
+    "restartRequired": "McHarbor konnte sich nicht selbst neu starten. Starten Sie es manuell neu, um die Änderung anzuwenden."
+  },
+  "reason": {
+    "already_active": "Der Demo-Modus ist bereits aktiv.",
+    "not_active": "Der Demo-Modus ist nicht aktiv.",
+    "clustered": "Der Demo-Modus ist bei einer Cluster-Instanz nicht verfügbar.",
+    "busy": "Eine andere Änderung des Demo-Modus ist bereits in Bearbeitung. Versuchen Sie es gleich noch einmal."
+  },
+  "banner": {
+    "title": "Demo-Modus",
+    "description": "Alles, was Sie sehen, ist simuliert. Aktionen, die echte Systeme berühren würden, sind deaktiviert.",
+    "dismiss": "Verwerfen",
+    "show": "Das Banner des Demo-Modus anzeigen"
+  }
+}

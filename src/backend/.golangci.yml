@@ -1,0 +1,41 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+version: "2"
+linters:
+  default: standard
+  enable: [errcheck, errorlint, forbidigo, gosec, gocritic, containedctx, contextcheck, noctx, sqlclosecheck, rowserrcheck, bodyclose, predeclared, staticcheck, revive, goheader, nilerr]
+  settings:
+    errcheck: { check-blank: true }
+    errorlint: { errorf: true }
+    gosec: { includes: [G101, G201, G202, G104, G404] }
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - { pattern: '^panic$', msg: "return an error; panic only in init or as a goja throw, with //nolint:forbidigo // reason" }
+    staticcheck: { checks: ["all", "-ST1000", "-ST1003"] }
+    revive:
+      rules:
+        - { name: exported }
+        - { name: package-comments }
+        - { name: error-strings }
+    gocritic:
+      enabled-checks: [ruleguard]
+      settings:
+        ruleguard: { rules: "${base-path}/../../scripts/lint/ruleguard/rules.go", failOn: all }
+    goheader:
+      template: |-
+        Copyright (c) 2026 McSparrow. All rights reserved.
+        McHarbor is licensed under the McHarbor License. See LICENSE for details.
+  exclusions:
+    generated: strict
+    rules:
+      - { path: '_test\.go$', linters: [gosec, forbidigo, containedctx, noctx] }
+      - { path: 'core/(i18n|rbac)/', linters: [gosec], text: 'G101', source: '\b(MsgCode|Permission)\b' }
+      - { linters: [gosec], text: 'G20[12]', source: 'QuoteIdent\(|// SQL identifier:' }
+      - { linters: [gocritic], text: 'SQL built with Sprintf', source: 'QuoteIdent\(|// SQL identifier:' }
+      - { linters: [forbidigo], source: '// panic-ok:' }
+      - { linters: [gocritic], text: 'CheckOrigin always true', source: '// websocket origin:' }
+      - { path: 'core/plugin/specs/', linters: [revive] }
+      - { path: 'core/plugin/specs/', linters: [staticcheck], text: 'ST10' }
+formatters:
+  enable: [gofmt]

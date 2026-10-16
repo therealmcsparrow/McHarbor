@@ -1,0 +1,167 @@
+{
+  "title": "Provisionamento SCIM",
+  "description": "Configure endpoints SCIM 2.0 para provisionamento pelo provedor de identidade e consulte o histórico de sincronização.",
+  "actions": {
+    "new": "Novo endpoint",
+    "syncNow": "Sincronizar agora",
+    "history": "Ver histórico",
+    "edit": "Editar endpoint",
+    "delete": "Excluir endpoint",
+    "preview": "Pré-visualizar e sincronizar",
+    "rotate": "Rotacionar token"
+  },
+  "table": {
+    "name": "Nome",
+    "baseUrl": "URL base",
+    "schedule": "Agendamento",
+    "lastSync": "Última sincronização",
+    "counts": "Objetos",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "counts": {
+    "users": "{{count}} usuário",
+    "users_other": "{{count}} usuários",
+    "groups": "{{count}} grupo",
+    "groups_other": "{{count}} grupos"
+  },
+  "status": {
+    "enabled": "Ativado",
+    "disabled": "Desativado"
+  },
+  "syncStatus": {
+    "pending": "Pendente",
+    "success": "Sucesso",
+    "failed": "Falhou",
+    "running": "Em execução"
+  },
+  "empty": {
+    "title": "Nenhum endpoint SCIM",
+    "description": "Crie um endpoint SCIM para emitir um token bearer e expor os usuários e grupos do McHarbor a provedores de identidade compatíveis."
+  },
+  "delete": {
+    "title": "Excluir o endpoint SCIM?",
+    "description": "Excluir {{name}} e seu histórico de sincronização?",
+    "warning": "Clientes de provisionamento que usam este token deixarão de funcionar imediatamente.",
+    "cancel": "Cancelar",
+    "confirm": "Excluir endpoint"
+  },
+  "history": {
+    "title": "Histórico de sincronização de {{name}}",
+    "description": "Tentativas recentes de sincronização SCIM e contagens de objetos.",
+    "empty": "Ainda não há histórico de sincronização.",
+    "close": "Fechar",
+    "errorTitle": "Erro de sincronização",
+    "dryRun": "Simulação",
+    "counts": "{{seen}} vistos, {{linked}} vinculados, {{unmatched}} sem correspondência, {{updated}} atualizados, {{disabled}} desativados, {{skipped}} ignorados, {{groups}} grupos",
+    "notes": "Notas",
+    "trigger": {
+      "schedule": "Agendada",
+      "manual": "Manual",
+      "preview": "Pré-visualização"
+    }
+  },
+  "editor": {
+    "titleCreate": "Criar endpoint SCIM",
+    "titleEdit": "Editar endpoint SCIM",
+    "name": "Nome",
+    "namePlaceholder": "IdP corporativo",
+    "authType": "Autenticação",
+    "authBearer": "Token bearer",
+    "authBasic": "Autenticação básica",
+    "authNone": "Sem autenticação",
+    "baseUrl": "URL base",
+    "baseUrlPlaceholder": "https://idp.example.com/scim/v2",
+    "token": "Token ou senha",
+    "tokenStored": "Token armazenado",
+    "tokenMissing": "Nenhum token armazenado",
+    "tokenKeep": "Deixe em branco para manter o segredo existente",
+    "tokenAutoGenerate": "Deixe em branco para gerar um token bearer automaticamente",
+    "tokenHint": "Os segredos são criptografados em repouso e nunca são devolvidos após a criação.",
+    "username": "Usuário",
+    "usernamePlaceholder": "scim-service-account",
+    "pollSchedule": "Agendamento de sondagem",
+    "pollScheduleHint": "Expressão cron de cinco campos, por exemplo */15 * * * *.",
+    "enabled": "Ativado",
+    "cancel": "Cancelar",
+    "save": "Salvar endpoint",
+    "saving": "Salvando..."
+  },
+  "token": {
+    "title": "Copiar o token bearer do SCIM",
+    "description": "Este token para {{name}} é exibido apenas uma vez.",
+    "warning": "Copie este token agora. O McHarbor guarda apenas um segredo criptografado e não pode exibi-lo novamente.",
+    "reveal": "Mostrar token",
+    "hide": "Ocultar token",
+    "copy": "Copiar token",
+    "copied": "Token copiado",
+    "copyFailed": "Não foi possível copiar o token",
+    "copiedHint": "Copiado para a área de transferência.",
+    "acknowledge": "Copiei o token"
+  },
+  "toast": {
+    "created": "Endpoint SCIM criado",
+    "updated": "Endpoint SCIM atualizado",
+    "deleted": "Endpoint SCIM excluído",
+    "syncQueued": "Sincronização SCIM na fila",
+    "tokenRotated": "Token rotacionado"
+  },
+  "preview": {
+    "title": "Pré-visualizar sincronização de {{name}}",
+    "description": "Uma simulação lê o diretório e o compara com o McHarbor. Nada muda até que você execute a sincronização.",
+    "loading": "Lendo o diretório...",
+    "failed": "Não foi possível ler o diretório",
+    "blockedTitle": "Esta sincronização está bloqueada",
+    "refresh": "Executar a pré-visualização novamente",
+    "confirm": "Executar sincronização agora",
+    "queuedNote": "A sincronização é executada no próximo ciclo do poller, em até um minuto, e lê o diretório novamente, portanto aplica o que o diretório diz naquele momento.",
+    "noChanges": "Nada mudaria.",
+    "more": "...e mais {{count}}",
+    "groups": "{{count}} grupos lidos, {{matched}} correspondem a um grupo do McHarbor pelo nome. Os grupos são apenas reportados; uma sincronização não altera a associação a grupos.",
+    "changes": "Alterações"
+  },
+  "blocked": {
+    "empty_directory": "O diretório não retornou usuários enquanto ainda há contas vinculadas. A sincronização é bloqueada para que não desative todas as contas de uma vez.",
+    "directory_too_large": "Há mais contas do que uma sincronização consegue comparar com segurança, então a sincronização é bloqueada."
+  },
+  "summary": {
+    "usersSeen": "Vistos",
+    "linked": "Vincular",
+    "unmatched": "Novos, sem correspondência",
+    "updated": "Atualizar",
+    "disabled": "Desativar",
+    "skipped": "Ignorados",
+    "unchanged": "Sem alteração",
+    "pendingLink": "Aguardando uma conta"
+  },
+  "action": {
+    "link": "Vincular",
+    "unmatched": "Sem correspondência",
+    "update": "Atualizar",
+    "disable": "Desativar",
+    "skip": "Ignorar"
+  },
+  "reason": {
+    "inactive": "inativo no diretório",
+    "removed": "não está mais no diretório",
+    "protected_admin": "possui uma função curinga, então uma sincronização nunca o desativa",
+    "already_linked": "a conta já está vinculada a outro usuário do diretório",
+    "empty_directory": "o diretório não retornou usuários"
+  },
+  "field": {
+    "email": "e-mail",
+    "displayName": "nome de exibição",
+    "scimUserName": "nome de usuário do diretório",
+    "scimEmail": "e-mail do diretório"
+  },
+  "change": {
+    "account": "conta {{username}}",
+    "noAccount": "sem conta no McHarbor, registrado para revisão",
+    "fields": "altera {{fields}}"
+  },
+  "rotate": {
+    "title": "Rotacionar o token bearer de {{name}}?",
+    "description": "Um novo token é gerado e exibido uma única vez. O token atual deixa de funcionar imediatamente, então atualize todos os clientes que o usam.",
+    "confirm": "Rotacionar token"
+  }
+}

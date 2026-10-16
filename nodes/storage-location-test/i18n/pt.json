@@ -1,0 +1,9 @@
+{
+  "label": "Testar local de armazenamento",
+  "description": "Executa o teste de conexão de um local de armazenamento e, opcionalmente, lê sua capacidade",
+  "config": {
+    "storage_location_id": "Local de armazenamento",
+    "include_usage": "Incluir uso",
+    "fail_on_warn": "Falhar em caso de aviso"
+  }
+}

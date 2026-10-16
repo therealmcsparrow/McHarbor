@@ -1,0 +1,28 @@
+{
+  "label": "Container Action",
+  "description": "Start, stop, restart, remove, rename or wait for a container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "action": "Action",
+    "timeout": "Timeout (seconds)",
+    "new_name": "New Name",
+    "unlock_protected": "Unlock Protected Container",
+    "condition": "Condition"
+  },
+  "options": {
+    "action": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "remove": "Remove",
+      "rename": "Rename",
+      "wait": "Wait"
+    },
+    "condition": {
+      "not-running": "Not Running",
+      "next-exit": "Next Exit",
+      "removed": "Removed"
+    }
+  }
+}

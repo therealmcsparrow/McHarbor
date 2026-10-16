@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": { "help": "Weergavenaam voor dit Slack-communicatiekanaal." },
+    "webhook_url": { "help": "Inkomende Slack-webhook-URL. Versleuteld opgeslagen." }
+  },
+  "title": "Slack-meldingsbezorging",
+  "subtitle": "Beheerd door de plugin",
+  "description": "Deze plugin beheert Slack. Hij slaat de Slack-webhook-URL op in het kanaal zelf en verstuurt meldingen via de pluginruntime.",
+  "nameLabel": "Kanaalnaam",
+  "namePlaceholder": "Operations-Slack",
+  "webhookUrlLabel": "Webhook-URL",
+  "securityTitle": "Beveiliging",
+  "securityHelp": "Versleutelde webhook-URL",
+  "securityDescription": "De webhook-URL wordt versleuteld opgeslagen. Maak een aparte inkomende webhook voor McHarbor aan zodat hij onafhankelijk kan worden geroteerd.",
+  "testTitle": "Verbinding testen",
+  "testHelp": "Verstuurt een bericht",
+  "testDescription": "De testactie van de host plaatst een echt bericht in het geconfigureerde Slack-kanaal. Gebruik eerst een privé-testkanaal als de webhook naar een on-callruimte gaat.",
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "requiredField": "Verplicht",
+  "setupGuideTitle": "Installatiehandleiding voor het Slack-communicatiekanaal",
+  "guide": {
+    "step1": { "body": "Open de Slack-workspace en maak het kanaal aan dat McHarbor-meldingen moet ontvangen, of kies een bestaand kanaal." },
+    "step2": { "body": "Maak een Slack-app aan, schakel <b>Incoming Webhooks</b> in, voeg een webhook toe aan het doelkanaal en kopieer de webhook-URL." },
+    "step3": { "body": "Plak de webhook-URL in deze kanaalconfiguratie. McHarbor slaat hem versleuteld op en verbergt hem in API-antwoorden." },
+    "step4": { "body": "Sla het kanaal op en klik op <b>Verbinding testen</b>. De plugin plaatst een echt testbericht in Slack via hetzelfde pad dat voor live workflow-, alarm- en back-upgebeurtenissen wordt gebruikt." },
+    "step5": { "body": "Als de test mislukt, controleer dan of de app nog inkomende webhooks heeft ingeschakeld, de webhook niet is ingetrokken en het doelkanaal nog bestaat." }
+  }
+}

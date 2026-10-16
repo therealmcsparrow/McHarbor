@@ -1,0 +1,46 @@
+{
+    "slug":  "webtop",
+    "name":  "Webtop",
+    "description":  "Browser-accessible Linux desktop for running Wine, Proton or emulated games and game launchers remotely.",
+    "category":  "Gaming",
+    "image":  "lscr.io/linuxserver/webtop:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/webtop.png",
+    "website":  "https://docs.linuxserver.io/images/docker-webtop/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-webtop/",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3001,
+                      "container":  3001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/webtop/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TITLE",
+                        "default":  "Webtop",
+                        "description":  "Browser tab title"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

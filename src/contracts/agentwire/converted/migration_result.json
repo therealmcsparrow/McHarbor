@@ -1,0 +1,24 @@
+{
+  "Entries": 7,
+  "Bytes": 5,
+  "Moved": [
+    {
+      "Kind": "Kind",
+      "From": "From",
+      "To": "To",
+      "GuestID": "GuestID",
+      "Slot": 4,
+      "Bytes": 5
+    }
+  ],
+  "Failures": [
+    {
+      "Path": "Path",
+      "Reason": "Reason"
+    }
+  ],
+  "Notes": [
+    "Notes"
+  ],
+  "Completed": true
+}

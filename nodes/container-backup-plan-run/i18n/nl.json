@@ -2,6 +2,8 @@
   "label": "Back-upplan uitvoeren",
   "description": "Voer een opgeslagen containerback-upplan uit",
   "config": {
-    "plan_id": "Plan-ID"
+    "environment": "Omgeving",
+    "container": "Container (filter)",
+    "plan_id": "Back-upplan"
   }
 }

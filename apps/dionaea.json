@@ -1,0 +1,54 @@
+{
+    "slug":  "dionaea",
+    "name":  "Dionaea",
+    "description":  "Low-interaction honeypot that emulates vulnerable network services to capture malware and exploit attempts.",
+    "category":  "Security",
+    "image":  "dinotools/dionaea:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=dionaea.readthedocs.io\u0026sz=128",
+    "website":  "https://dionaea.readthedocs.io",
+    "docsUrl":  "https://dionaea.readthedocs.io/en/latest/run/docker.html",
+    "ports":  [
+                  {
+                      "host":  21,
+                      "container":  21,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  445,
+                      "container":  445,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1433,
+                      "container":  1433,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dionaea/etc",
+                        "container":  "/opt/dionaea/etc/dionaea"
+                    },
+                    {
+                        "host":  "/opt/appdata/dionaea/var",
+                        "container":  "/opt/dionaea/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,295 @@
+{
+  "errorTitle": "Could not read the database configuration",
+  "driver": {
+    "sqlite": {
+      "name": "SQLite",
+      "description": "A single file inside the McHarbor data directory. No server to run, no credentials to keep. Single node only."
+    },
+    "postgres": {
+      "name": "PostgreSQL",
+      "description": "An external PostgreSQL 12 or newer. The most complete choice for a shared database, including multi-node active/passive."
+    },
+    "mysql": {
+      "name": "MySQL / MariaDB",
+      "description": "An external MySQL 8 or MariaDB 10.6 or newer. Same capabilities as PostgreSQL; pick the one you already run."
+    },
+    "mssql": {
+      "name": "Microsoft SQL Server",
+      "description": "An external Microsoft SQL Server 2022 or newer. Validated for multi-node active/passive, like PostgreSQL, MySQL and MariaDB."
+    }
+  },
+  "picker": {
+    "label": "Database backend",
+    "current": "In use"
+  },
+  "current": {
+    "title": "Current database",
+    "target": "Connection",
+    "version": "Server version",
+    "tables": "Tables",
+    "rows": "Rows",
+    "source": {
+      "env": "From environment",
+      "secret": "From stored secret",
+      "default": "Built-in default"
+    },
+    "envPinnedTitle": "Pinned by the environment",
+    "envPinnedBody": "MCHARBOR_DB_DRIVER is set on this container, so it decides which database McHarbor opens. Anything chosen here would be ignored on the next start. Remove that variable from your Compose file to manage the database from this screen.",
+    "noRestart": "McHarbor cannot restart itself here — no local Docker socket is reachable. After a migration you will need to restart the container yourself before the new database takes over."
+  },
+  "choose": {
+    "title": "Move to another database",
+    "description": "Pick a backend, test the connection, then migrate. Every row is copied; McHarbor restarts into the new database when it is done.",
+    "inUse": "McHarbor is running on {{driver}} now. Pick a different backend above to copy every row to it, or move it to another {{driver}} database.",
+    "moveSameKind": "Move to another {{driver}} database",
+    "sameKindHint": "Enter the new file or server. McHarbor refuses to copy onto the database it is running on.",
+    "restartAfter": "Restart automatically when the migration finishes",
+    "restartAfterHelp": "McHarbor reads its connection once, at start-up, so the new database only takes over after a restart.",
+    "warningTitle": "What happens while it runs",
+    "warningBody": "McHarbor holds itself still for the copy: mutating API requests are answered with 503, and every background collector and scheduler skips its tick. Ticks already running are waited out before the first row is read, and catch-up passes afterwards copy anything that still landed on the old database. Reading the interface keeps working throughout.",
+    "warningOldDatabase": "The old database is never touched. Nothing is deleted from it, and until you say otherwise it stays exactly as it was — so if anything looks wrong afterwards, removing the stored configuration puts McHarbor straight back on it."
+  },
+  "form": {
+    "host": "Host",
+    "port": "Port",
+    "database": "Database name",
+    "databasePlaceholder": "mcharbor",
+    "user": "User",
+    "password": "Password",
+    "sslMode": "SSL mode",
+    "tls": "TLS",
+    "encrypt": "Encryption",
+    "sslHelp": "The connection carries every credential McHarbor holds. Only turn encryption off on a network you control end to end.",
+    "trustServerCertificate": "Trust the server certificate",
+    "trustServerCertificateHelp": "Accept the server's certificate without verifying it, as a default SQL Server install with a self-signed certificate needs. The connection stays encrypted but is no longer protected against someone impersonating the server.",
+    "mssqlSnapshot": "McHarbor expects READ_COMMITTED_SNAPSHOT to be on for this database, so long reads never block writers. The connection test warns when it is off and shows the statement that turns it on.",
+    "path": "File path",
+    "pathHelp": "Where the SQLite file lives inside the container. Leave empty for the configured default.",
+    "rawMode": "Enter a connection string instead",
+    "rawModeHelp": "For managed databases whose connection string carries options this form does not model.",
+    "dsn": "Connection string",
+    "dsnHelp": "Used exactly as written. Every field above is ignored while this is on.",
+    "credentialsStored": "Credentials are encrypted with the McHarbor secret key and stored in the data directory — never in an environment variable, and never sent back to this page."
+  },
+  "test": {
+    "title": "Connection test",
+    "run": "Test connection",
+    "running": "Testing…",
+    "passed": "The connection test passed",
+    "failed": "The connection test failed",
+    "status": {
+      "pass": "passed",
+      "warn": "warning",
+      "fail": "failed",
+      "skip": "not run"
+    },
+    "steps": {
+      "validate": {
+        "title": "Details complete",
+        "description": "The host, database and user are filled in and the connection string can be built."
+      },
+      "resolve": {
+        "title": "Host reachable",
+        "description": "The address resolves and accepts a TCP connection — this separates a firewall from a wrong password."
+      },
+      "connect": {
+        "title": "Connection accepted",
+        "description": "The database opened the session and accepted the credentials."
+      },
+      "version": {
+        "title": "Version supported",
+        "description": "PostgreSQL 12+, MySQL 8+, MariaDB 10.6+ or SQL Server 2022+; older servers lack syntax the McHarbor schema uses."
+      },
+      "privileges": {
+        "title": "Write access",
+        "description": "The user can create a table, write to it, read it back and drop it again."
+      },
+      "schema": {
+        "title": "Target contents",
+        "description": "Whether the database is empty, or already holds tables that the migration would clear first."
+      },
+      "encoding": {
+        "title": "UTF-8 character set",
+        "description": "Container names, stack notes and messages all carry user text; a latin1 database would corrupt it."
+      }
+    }
+  },
+  "migration": {
+    "title": "Database migration",
+    "start": "Migrate data",
+    "starting": "Preparing…",
+    "cancel": "Cancel migration",
+    "cancelling": "Cancelling…",
+    "close": "Close",
+    "closeRestarting": "Close — McHarbor is restarting",
+    "rows": "{{copied}} of {{total}} rows",
+    "currentTable": "Copying {{table}} ({{index}} of {{total}})",
+    "tables": "Tables",
+    "warnings": "Worth knowing",
+    "done": "Migration complete",
+    "failed": "Migration failed",
+    "failedSafe": "Nothing changed: McHarbor is still running on its original database, and the stored configuration was not written.",
+    "cancelled": "Migration cancelled",
+    "restartScheduled": "McHarbor is restarting into the new database. This page will stop responding for a moment.",
+    "restartRequired": "Restart the McHarbor container to start using the new database.",
+    "phase": {
+      "prepare": "Checking",
+      "schema": "Creating schema",
+      "inventory": "Counting rows",
+      "copy": "Copying data",
+      "verify": "Verifying",
+      "persist": "Saving configuration",
+      "restart": "Restarting",
+      "catchup": "Catching up"
+    },
+    "caughtUp": "{{count}} rows arrived during the copy and were caught up",
+    "deltaPass": "Catch-up pass {{pass}}"
+  },
+  "setup": {
+    "title": "Choose a database",
+    "description": "McHarbor stores everything it knows in a SQL database. Pick one now, before the first account is created — changing it later means copying every row across.",
+    "testRequired": "The connection has to pass before you can continue.",
+    "continue": "Continue",
+    "restartingTitle": "Applying your choice",
+    "restartingBody": "McHarbor is restarting into the database you chose. This page will reload on its own in a few seconds.",
+    "restartManualBody": "Your choice was saved. Restart the McHarbor container to start using it, then reload this page."
+  },
+  "errors": {
+    "err.database.config_invalid": "The connection details are incomplete or malformed.",
+    "err.database.connect_failed": "Could not connect to the database.",
+    "err.database.auth_failed": "The database rejected the username or password.",
+    "err.database.unreachable": "The database host could not be reached.",
+    "err.database.version_unsupported": "That server version is too old for McHarbor.",
+    "err.database.privileges": "The database user may not create tables in this database.",
+    "err.database.encoding": "The database is not using a UTF-8 character set.",
+    "err.database.env_pinned": "The database is pinned by MCHARBOR_DB_DRIVER and cannot be changed here.",
+    "err.database.migration_running": "A migration is already running.",
+    "err.database.migration_failed": "The migration failed.",
+    "err.database.schema_failed": "The McHarbor schema could not be created on the target database.",
+    "err.database.same_target": "That is the database McHarbor is already running on.",
+    "err.database.cleanup_unavailable": "There is no old database this install may delete.",
+    "err.database.cleanup_failed": "The old database files could not be deleted."
+  },
+  "cleanup": {
+    "title": "Old database",
+    "description": "McHarbor has moved to another backend. The SQLite file it used before is still on disk, untouched.",
+    "delete": "Delete the old database",
+    "reclaim": "Deleting these frees {{size}}.",
+    "checkFirst": "Check the new database looks right first. This cannot be undone, and the old file is the only copy of anything the migration did not carry across.",
+    "confirmTitle": "Delete the old database permanently?",
+    "confirmBody_one": "This removes {{count}} file at {{path}}, freeing {{size}}. There is no undo, and McHarbor keeps no copy. Only do this once you are satisfied the new database is complete.",
+    "confirmBody_other": "This removes {{count}} files at {{path}}, freeing {{size}}. There is no undo, and McHarbor keeps no copy. Only do this once you are satisfied the new database is complete.",
+    "removed_one": "Deleted {{count}} file",
+    "removed_other": "Deleted {{count}} files",
+    "failed": "The old database files could not be deleted",
+    "inUse": "Nothing to delete: McHarbor is still running on its SQLite database. This appears after a migration to PostgreSQL or MySQL."
+  },
+  "check": {
+    "title": "Database health check",
+    "description": "Looks for integrity problems, orphaned rows, schema drift, and reclaimable space.",
+    "run": "Run check",
+    "running": "Running…",
+    "never": "Never run",
+    "lastRun": "Last run found {{failed}} failed and {{warned}} warning findings",
+    "repair": "Apply repairs ({{count}})",
+    "repairConfirm": "Apply repairs",
+    "confirmTitle": "Apply the selected repairs?",
+    "confirmBody": "Apply {{count}} repairs to the database?",
+    "confirmDestructive": "This deletes rows and cannot be undone. Apply {{count}} repairs, including at least one that deletes orphaned rows?",
+    "dialog": {
+      "title": "Running database health check",
+      "description": "This checks the active database's integrity, orphaned rows, schema, and reclaimable space.",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "toast": {
+      "startFailed": "Could not start the check",
+      "repaired": "Repaired {{count}} rows",
+      "repairFailed": "The repair failed"
+    },
+    "family": {
+      "integrity": "Integrity",
+      "orphans": "Orphaned rows",
+      "schema": "Schema",
+      "bloat": "Size and retention"
+    },
+    "severity": {
+      "ok": "OK",
+      "info": "Info",
+      "warn": "Warning",
+      "fail": "Failed",
+      "skip": "Skipped"
+    },
+    "phase": {
+      "queued": "Queued",
+      "inventory": "Counting tables",
+      "integrity": "Checking integrity",
+      "orphans": "Checking for orphaned rows",
+      "schema": "Checking schema",
+      "bloat": "Checking size and retention",
+      "done": "Done",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "remedy": {
+      "vacuum": "Run VACUUM",
+      "apply_migrations": "Apply pending migrations",
+      "create_index": "Create the missing index",
+      "delete_orphans": "Delete the orphaned rows"
+    },
+    "reason": {
+      "driver_no_native_integrity": "This driver has no built-in integrity check; only invalid indexes are reported.",
+      "unresolved_relation": "The column name looked like a foreign key but no matching table and column could be found.",
+      "unparseable_statement": "The migration statement did not match a recognised CREATE or DROP INDEX form.",
+      "driver_server_managed": "Space reclamation is managed by the database server, not McHarbor.",
+      "pragma_failed": "The SQLite pragma used to measure this did not return a value.",
+      "table_absent": "The table this retention window governs does not exist in this database.",
+      "retention_disabled": "The retention window is set to keep rows forever, so nothing is enforced.",
+      "size_stats_unavailable": "This driver or build does not expose per-table size statistics.",
+      "governed_table": "This is a governed audit record. The reference is reported but McHarbor will not offer to delete it."
+    },
+    "finding": {
+      "table_count": "Checked {{count}} tables",
+      "integrity_ok": "No integrity problems found",
+      "integrity_corrupt": "{{count}} integrity problems reported by PRAGMA integrity_check",
+      "integrity_unavailable": "The integrity check could not run",
+      "integrity_partial": "Only a partial integrity check is possible on this driver",
+      "integrity_table_failed": "CHECK TABLE failed on {{table}}",
+      "integrity_table_problem": "CHECK TABLE reported a problem on {{table}}",
+      "fk_check_ok": "No foreign key violations found",
+      "fk_check_unavailable": "The foreign key check could not run",
+      "fk_violation": "{{count}} rows in {{table}} violate a foreign key",
+      "invalid_index": "Index {{index}} on {{table}} is marked invalid",
+      "orphan_rows": "{{count}} rows in {{table}}.{{column}} point at a {{refTable}} row that no longer exists",
+      "orphans_none": "No orphaned rows across {{count}} relations",
+      "orphan_unmapped": "{{count}} columns look like references but could not be mapped",
+      "orphan_excluded": "{{count}} columns are excluded from the orphan check by name",
+      "orphan_query_failed": "Could not count orphans in {{table}}.{{column}} against {{refTable}}.{{refColumn}}",
+      "orphan_discovery_failed": "Could not discover foreign key relations to check",
+      "migrations_ok": "All {{count}} migrations are applied",
+      "migrations_pending": "{{count}} migrations have not been applied",
+      "migrations_unknown": "{{count}} applied migrations are not in this build",
+      "schema_read_failed": "Could not read the migration files on disk",
+      "schema_ledger_failed": "Could not read the migration ledger",
+      "indexes_ok": "All {{count}} declared indexes exist",
+      "index_missing": "Index {{index}} is declared on {{table}} but missing",
+      "index_unparsed": "{{count}} index statements in the migration set could not be parsed",
+      "index_read_failed": "Could not read the declared indexes from the migration set",
+      "index_list_failed": "Could not list the indexes on the database",
+      "table_rows": "{{table}} has {{count}} rows",
+      "total_rows": "{{count}} rows across every table",
+      "table_size": "{{table}} is {{size}}",
+      "total_size": "{{size}} across every table",
+      "table_size_unavailable": "Table size statistics are not available on this driver",
+      "wal_size": "The write-ahead log is {{size}}",
+      "reclaimable": "{{size}} could be reclaimed by a VACUUM",
+      "reclaim_none": "Nothing to reclaim",
+      "reclaim_unavailable": "Reclaimable space could not be determined",
+      "row_count_failed": "Could not count the rows in {{table}}",
+      "retention_overrun": "{{table}} holds {{count}} rows older than its retention window",
+      "retention_disabled": "{{table}}'s retention window is disabled, so nothing is enforced",
+      "retention_table_missing": "{{table}} does not exist, so its retention window was not checked",
+      "retention_query_failed": "Could not check {{table}} against its retention window"
+    }
+  }
+}

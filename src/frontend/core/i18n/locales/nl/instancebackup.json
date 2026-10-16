@@ -1,0 +1,266 @@
+{
+  "panel": {
+    "title": "Instantieback-up",
+    "intro": "Eén versleuteld bestand met alles wat deze instantie uniek maakt: rollen en beleid, omgevingen en hun agent-tokens, workflows, schema's, de geheimenkluis, plugininstellingen en de certificeringsinstantie die je agents vertrouwen.",
+    "twoBackups": "Dit is geen containerback-up. Containergegevens worden apart onder Opslag geback-upt; je hebt beide nodig.",
+    "keyWarning": "De sleutel wordt nooit opgeslagen. Bewaar hem ergens anders dan op deze host: een export waarvan de enige sleutel op de gebackupte machine staat, kan niet worden hersteld als die machine verloren gaat.",
+    "create": "Export maken"
+  },
+  "destinations": {
+    "uploading": "Kopiëren",
+    "success": "Gekopieerd",
+    "failure": "Niet gekopieerd",
+    "errorTitle": "Waarom het kopiëren is mislukt",
+    "hostOnly": "Alleen deze host"
+  },
+  "table": {
+    "copies": "Kopieën",
+    "created": "Aangemaakt",
+    "status": "Status",
+    "size": "Grootte",
+    "key": "Sleutel",
+    "createdBy": "Aangemaakt door",
+    "note": "Notitie",
+    "actions": "Acties",
+    "verified": "Geverifieerd",
+    "trigger": "Trigger",
+    "fileName": "Bestandsnaam",
+    "search": "Exports zoeken..."
+  },
+  "trigger": {
+    "all": "Elke trigger",
+    "manual": "Handmatig",
+    "schedule": "Schema"
+  },
+  "status": {
+    "running": "Bezig",
+    "completed": "Voltooid",
+    "failed": "Mislukt",
+    "title": "Laatste herstel",
+    "by": "door {{actor}}, {{date}}",
+    "errorTitle": "Waarom het herstel is gestopt",
+    "restarting": "McHarbor wordt herstart om de herstelde sleutels en gegevens te laden. Deze pagina maakt vanzelf opnieuw verbinding.",
+    "reconciling": "De plugins van de export worden opnieuw geïnstalleerd in hun vastgelegde versies.",
+    "result": "{{rows}} rijen hersteld in {{tables}} tabellen.",
+    "anchor": "De auditgeschiedenis is hersteld; de keten loopt door via een herstelanker.",
+    "pluginErrorTitle": "Waarom {{slug}} niet opnieuw is geïnstalleerd",
+    "pluginsFailed_one": "{{count}} plugin kon niet opnieuw worden geïnstalleerd. Installeer hem via de Plugin Store.",
+    "pluginsFailed_other": "{{count}} plugins konden niet opnieuw worden geïnstalleerd. Installeer ze via de Plugin Store."
+  },
+  "keyKind": {
+    "passphrase": "Wachtwoordzin",
+    "keyfile": "Sleutelbestand"
+  },
+  "progress": "{{done}} van {{total}} rijen",
+  "errorTitle": "Waarom de export is mislukt",
+  "actions": {
+    "download": "Downloaden",
+    "delete": "Verwijderen",
+    "restore": "Herstellen",
+    "verify": "Verifiëren"
+  },
+  "empty": {
+    "title": "Nog geen exports",
+    "description": "Maak de eerste export en bewaar hem, samen met de sleutel, buiten deze host."
+  },
+  "create": {
+    "title": "Een instantie-export maken",
+    "description": "De export wordt als geheel versleuteld. Kies hoe hij wordt vergrendeld; je hebt dezelfde wachtwoordzin of hetzelfde sleutelbestand nodig om hem te herstellen.",
+    "keyKind": "Vergrendelen met",
+    "passphraseOption": "Een wachtwoordzin",
+    "keyFileOption": "Een gegenereerd sleutelbestand",
+    "passphrase": "Wachtwoordzin",
+    "passphraseHint": "Minimaal 12 tekens. Wordt met Argon2id versterkt en nooit opgeslagen.",
+    "confirm": "Herhaal de wachtwoordzin",
+    "mismatch": "De wachtwoordzinnen komen niet overeen.",
+    "generate": "Een sleutelbestand genereren",
+    "saveKeyFile": "Het sleutelbestand opslaan",
+    "keyFileReady": "Er is een sleutelbestand gegenereerd. Sla het nu op: het wordt eenmalig getoond en kan niet worden teruggehaald.",
+    "keyFileSaved": "Ik heb het sleutelbestand ergens anders dan op deze host opgeslagen",
+    "metrics": "Metricsgeschiedenis opnemen",
+    "metricsHelp": "Standaard uit: metrics worden vanzelf opnieuw opgebouwd en vormen meestal het grootste deel van een export.",
+    "note": "Notitie",
+    "notePlaceholder": "Bijvoorbeeld: vóór de upgrade naar de volgende release",
+    "submit": "Export maken"
+  },
+  "reasons": {
+    "key_required": "Voer een wachtwoordzin in of genereer een sleutelbestand.",
+    "key_both": "Gebruik een wachtwoordzin of een sleutelbestand, niet beide.",
+    "passphrase_too_short": "De wachtwoordzin moet minimaal 12 tekens bevatten.",
+    "key_file_invalid": "Dat is geen McHarbor-instantiesleutelbestand.",
+    "note_too_long": "De notitie mag maximaal 500 tekens bevatten.",
+    "busy": "Er loopt al een export. Wacht tot die klaar is."
+  },
+  "download": {
+    "title": "Instantie-export downloaden",
+    "description": "Dit bestand bevat alle geheimen van de instantie. Bevestig dat jij het bent voordat je downloadt.",
+    "password": "Je wachtwoord",
+    "totp": "Authenticatiecode",
+    "totpHint": "Gebruik de code uit je authenticator-app als je account er een heeft.",
+    "submit": "Bevestigen en downloaden",
+    "warning": "Bewaar het bestand versleuteld en buiten deze host. Iedereen met het bestand en de sleutel is eigenaar van deze instantie."
+  },
+  "delete": {
+    "title": "Deze export verwijderen?",
+    "description": "Het bestand {{name}} wordt van deze host verwijderd. Kopieën die je hebt gedownload blijven ongemoeid.",
+    "confirm": "Export verwijderen"
+  },
+  "restoreState": {
+    "running": "Herstellen",
+    "restarting": "Herstarten",
+    "reconciling": "Plugins opnieuw installeren",
+    "done": "Hersteld",
+    "failed": "Mislukt"
+  },
+  "pluginAction": {
+    "kept": "Al geïnstalleerd",
+    "installed": "Geïnstalleerd",
+    "updated": "Opnieuw geïnstalleerd in de vastgelegde versie",
+    "failed": "Mislukt"
+  },
+  "categories": {
+    "access": "Gebruikers, rollen en beleid",
+    "environments": "Omgevingen en registries",
+    "automation": "Workflows, schema's en meldingen",
+    "stacks": "Stacks",
+    "secrets": "Geheimenkluis",
+    "settings": "Instellingen en integraties",
+    "plugins": "Plugininstellingen en -gegevens",
+    "audit": "Auditgeschiedenis",
+    "other": "Al het overige"
+  },
+  "restore": {
+    "open": "Herstellen",
+    "title": "Een instantie-export herstellen",
+    "description": "Kies de export en de bijbehorende sleutel. Het hele bestand wordt gecontroleerd voordat er iets wordt gewijzigd.",
+    "planDescription": "Dit is wat het herstel wijzigt. Er is nog niets geschreven.",
+    "source": "Export",
+    "uploadOption": "Een exportbestand uploaden",
+    "file": "Exportbestand (.mchx)",
+    "keyKind": "Ontgrendelen met",
+    "keyFile": "Sleutelbestand",
+    "mode": "Wat te herstellen",
+    "modes": {
+      "full": {
+        "label": "Alles (noodherstel)",
+        "description": "Vervangt deze instantie door de export: gegevens, sleutels, certificeringsinstantie en bestanden."
+      },
+      "migration": {
+        "label": "Alles, naar nieuwe hardware of een andere database",
+        "description": "Hetzelfde als een volledig herstel, bedoeld voor het verhuizen van een instantie."
+      },
+      "selective": {
+        "label": "Alleen enkele categorieën",
+        "description": "Herstel bijvoorbeeld verwijderde workflows of een beschadigde rollenset en laat de rest ongemoeid."
+      }
+    },
+    "conflict": "Rijen die al bestaan",
+    "conflicts": {
+      "replace": "De hele categorie vervangen door die uit de export",
+      "keep": "Behouden en alleen toevoegen wat ontbreekt"
+    },
+    "includeAudit": "Ook auditgeschiedenis herstellen",
+    "includeAuditHelp": "Vervangt het auditlogboek door dat uit de export. De keten loopt door via een herstelanker dat vastlegt wat is vervangen.",
+    "auditApproval": "Voor het herstellen van de auditgeschiedenis is instance_backup.restore_audit nodig via een goedgekeurd verhogingsverzoek, op het moment van herstellen.",
+    "check": "Export controleren",
+    "submit": "Nu herstellen",
+    "reasons": {
+      "key_required": "Voer de wachtwoordzin in of kies het sleutelbestand.",
+      "key_both": "Gebruik een wachtwoordzin of een sleutelbestand, niet beide.",
+      "wrong_key": "Die wachtwoordzin of dat sleutelbestand opent deze export niet.",
+      "unreadable": "De export kan niet worden gelezen.",
+      "not_export": "Dit bestand is geen exportbestand van een McHarbor-instantie.",
+      "format": "Deze export is gemaakt door een nieuwere McHarbor en kan hier niet worden gelezen. Upgrade eerst en herstel daarna.",
+      "incomplete": "De export is onvolledig: hij eindigt voordat alles erin staat wat hij vermeldt. Kopieer hem opnieuw vanaf de bron.",
+      "damaged": "De export is beschadigd of is na het maken gewijzigd.",
+      "key_kind": "Deze export is verzegeld met het andere type geheim. Gebruik in plaats daarvan de wachtzin of het sleutelbestand.",
+      "bad_key_file": "Dat sleutelbestand is geen leesbaar sleutelbestand van een McHarbor-instantie.",
+      "no_categories": "Kies minimaal één categorie.",
+      "bad_category": "Die categorie bestaat niet.",
+      "bad_conflict": "Kies hoe rijen die al bestaan worden behandeld.",
+      "bad_mode": "Kies wat je wilt herstellen.",
+      "approval_required": "Voor het herstellen van de auditgeschiedenis is een goedgekeurde verhoging voor instance_backup.restore_audit nodig. Vraag er een aan onder Beveiliging en probeer het opnieuw.",
+      "busy": "Er loopt al een herstel."
+    }
+  },
+  "plan": {
+    "from": "Export van {{host}}, McHarbor {{version}} op {{backend}}, gemaakt op {{date}} door {{user}}.",
+    "category": "Categorie",
+    "restored": "Hersteld",
+    "now": "Rijen nu",
+    "fromExport": "Rijen in de export",
+    "yes": "Hersteld",
+    "no": "Ongewijzigd gelaten",
+    "restoresKeys": "De versleutelingssleutel van de instantie wordt vervangen door die uit de export.",
+    "restoresSecret": "Het auditondertekeningsgeheim wordt vervangen door dat uit de export.",
+    "restoresFiles": "De certificeringsinstantie, stackbestanden en aangepaste nodes worden vervangen; externe agents blijven de herstelde instantie vertrouwen.",
+    "plugins_one": "{{count}} plugin wordt na de herstart opnieuw geïnstalleerd in de vastgelegde versie.",
+    "plugins_other": "{{count}} plugins worden na de herstart opnieuw geïnstalleerd in de vastgelegde versies.",
+    "restart": "McHarbor herstart zodra het herstel is geschreven.",
+    "confirm": "Typ {{word}} om te bevestigen",
+    "refusals": {
+      "newer_schema": "Deze export komt van een nieuwere McHarbor. Upgrade eerst deze instantie.",
+      "key_pinned": "ENCRYPTION_KEY is ingesteld in de omgeving van deze server, dus de sleutel uit de export kan niet in de plaats komen. Verwijder de variabele of stel hem in op de sleutel van de export en herstart.",
+      "secret_pinned": "MCHARBOR_SECRET is ingesteld in de omgeving van deze server, dus het auditgeheim uit de export kan niet in de plaats komen.",
+      "nothing_selected": "Er zou niets worden hersteld. Kies minimaal één categorie.",
+      "bad_mode": "Kies wat je wilt herstellen.",
+      "postgres_cascade": "Op PostgreSQL zonder superuser-rechten zou een selectieve vervanging doorwerken in andere categorieën. Kies in plaats daarvan om bestaande rijen te behouden."
+    },
+    "warnings": {
+      "different_key": "Deze export is gemaakt op een instantie met een andere sleutel. Versleutelde waarden worden bij het herstellen omgezet naar de sleutel van deze instantie.",
+      "metrics_excluded": "De metricsgeschiedenis zit niet in deze export en begint opnieuw vanaf nul.",
+      "sessions_end": "Iedereen wordt uitgelogd."
+    }
+  },
+  "verify": {
+    "title": "Deze export verifiëren",
+    "description": "De export wordt hersteld in een wegwerpdatabase en gecontroleerd: elke tabel tegen zijn manifest, en de auditketen. Deze instantie blijft onaangeroerd.",
+    "submit": "Verifiëren",
+    "running": "Bezig met verifiëren",
+    "passed": "Geslaagd",
+    "failed": "Mislukt",
+    "errorTitle": "Waarom de verificatie is mislukt"
+  },
+  "schedules": {
+    "title": "Schema's",
+    "add": "Schema toevoegen",
+    "empty": "Geen geplande exports. Een export die alleen handmatig wordt gemaakt, wordt te zelden gemaakt.",
+    "name": "Naam",
+    "when": "Wanneer",
+    "next": "Volgende run",
+    "last": "Laatste run",
+    "disabled": "Uit",
+    "search": "Schema's zoeken...",
+    "facets": {
+      "failing": "Laatste run mislukt"
+    },
+    "runNow": "Nu uitvoeren",
+    "edit": "Schema bewerken",
+    "errorTitle": "Waarom de laatste run is mislukt",
+    "deleteTitle": "Dit schema verwijderen?",
+    "deleteDescription": "{{name}} wordt niet meer uitgevoerd. Exports die al zijn gemaakt blijven behouden.",
+    "deleteConfirm": "Schema verwijderen",
+    "createTitle": "Instantie-exports plannen",
+    "editTitle": "Exportschema bewerken",
+    "dialogDescription": "Exports draaien zonder toezicht, dus hun sleutel wordt versleuteld op deze instantie opgeslagen. Bewaar dezelfde sleutel ook ergens anders, anders kunnen de exports niet worden hersteld als deze host verloren gaat.",
+    "key": "Exports vergrendelen met",
+    "replaceKey": "De sleutel vervangen (leeg laten om te behouden)",
+    "keyHint": "Een wachtwoordzin van minimaal 12 tekens, of een sleutelbestand dat je hebt gegenereerd.",
+    "location": "Ook kopiëren naar",
+    "hostOnly": "Alleen op deze host bewaren",
+    "keepCount": "Zoveel bewaren",
+    "keepDays": "Bewaren gedurende dagen (0 = geen limiet)",
+    "verifyAfter": "Na elke export een herstel oefenen",
+    "enabled": "Ingeschakeld",
+    "reasons": {
+      "bad_name": "Geef het schema een naam van maximaal 100 tekens.",
+      "bad_cron": "Dat schema is niet geldig.",
+      "bad_retention": "Bewaar tussen 0 en 1000 exports, gedurende maximaal 3650 dagen.",
+      "no_retention": "Stel in hoeveel exports of hoeveel dagen je wilt bewaren.",
+      "key_required": "Voer een wachtwoordzin in of kies een sleutelbestand.",
+      "key_both": "Gebruik een wachtwoordzin of een sleutelbestand, niet beide.",
+      "passphrase_too_short": "De wachtwoordzin moet minimaal 12 tekens bevatten.",
+      "key_file_invalid": "Dat is geen McHarbor-instantiesleutelbestand."
+    }
+  }
+}

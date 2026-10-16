@@ -1,0 +1,31 @@
+{
+    "slug":  "trufflehog",
+    "name":  "TruffleHog",
+    "description":  "Scans repositories, filesystems, and cloud storage for exposed secrets and verifies whether they are still active.",
+    "category":  "Security",
+    "image":  "trufflesecurity/trufflehog:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=trufflesecurity.com\u0026sz=128",
+    "website":  "https://trufflesecurity.com",
+    "docsUrl":  "https://github.com/trufflesecurity/trufflehog#docker",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/trufflehog/repo",
+                        "container":  "/repo"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "slug":  "singlestore",
+    "name":  "SingleStore",
+    "description":  "Distributed SQL database that combines transactional and analytical workloads for real-time applications.",
+    "category":  "Databases",
+    "image":  "singlestore/cluster-in-a-box:latest",
+    "logo":  "https://github.com/singlestore.png",
+    "website":  "https://www.singlestore.com",
+    "docsUrl":  "https://docs.singlestore.com/db/latest/en/developer-resources/development-environments/run-singlestore-using-docker.html",
+    "ports":  [
+                  {
+                      "host":  3308,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8095,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/singlestore/data",
+                        "container":  "/var/lib/memsql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ROOT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Root password for the SingleStore admin user",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "LICENSE_KEY",
+                        "default":  "change-me",
+                        "description":  "Free SingleStore license key from singlestore.com",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "slug":  "iceberg-rest-catalog",
+    "name":  "Iceberg REST Catalog",
+    "description":  "REST implementation of the Apache Iceberg catalog API for managing table metadata across query engines.",
+    "category":  "Analytics",
+    "image":  "tabulario/iceberg-rest:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://iceberg.apache.org",
+    "docsUrl":  "https://github.com/tabular-io/iceberg-rest-image",
+    "ports":  [
+                  {
+                      "host":  8181,
+                      "container":  8181,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/iceberg-rest-catalog/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CATALOG_WAREHOUSE",
+                        "default":  "/data/warehouse",
+                        "description":  "Warehouse path or URI for table storage"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

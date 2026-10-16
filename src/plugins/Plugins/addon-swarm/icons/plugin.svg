@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Docker Swarm add-on brand mark.
+
+  A manager at the centre with three workers around it, joined by the links
+  that make them a cluster. Drawn as solid shapes on a filled tile rather than
+  as strokes, because this renders at 16px in the App Store list and in the
+  sidebar, and a 1.5px stroke disappears there. Docker blue (#2496ED), so it
+  reads as a sibling of the Docker surfaces it extends rather than as a
+  third-party add-on.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Docker Swarm">
+  <rect width="64" height="64" rx="14" fill="#2496ED"/>
+  <g stroke="#ffffff" stroke-width="3.25" stroke-linecap="round" opacity="0.75">
+    <line x1="32" y1="32" x2="32" y2="17"/>
+    <line x1="32" y1="32" x2="19" y2="45"/>
+    <line x1="32" y1="32" x2="45" y2="45"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="32" cy="32" r="8"/>
+    <circle cx="32" cy="15" r="6"/>
+    <circle cx="17" cy="45" r="6"/>
+    <circle cx="47" cy="45" r="6"/>
+  </g>
+</svg>

@@ -4,7 +4,7 @@
     "description":  "HTTP gateway to a Kafka cluster allowing produce and consume operations over REST.",
     "category":  "Databases",
     "image":  "confluentinc/cp-kafka-rest:latest",
-    "logo":  "https://icon.horse/icon/docs.confluent.io",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kafka.svg",
     "website":  "https://docs.confluent.io",
     "docsUrl":  "https://docs.confluent.io/platform/current/kafka-rest/installation/install-rest.html",
     "ports":  [
@@ -47,5 +47,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

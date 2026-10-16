@@ -1,0 +1,8 @@
+{
+  "imageId": "ImageID",
+  "localPath": "LocalPath",
+  "sizeBytes": 9,
+  "checksum": "Checksum",
+  "verified": true,
+  "signed": true
+}

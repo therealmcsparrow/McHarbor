@@ -1,0 +1,35 @@
+{
+    "slug":  "shiori",
+    "name":  "Shiori",
+    "description":  "Simple self-hosted bookmark manager with full-text search and offline article archiving.",
+    "category":  "Productivity",
+    "image":  "ghcr.io/go-shiori/shiori:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/shiori.png",
+    "website":  "https://github.com/go-shiori/shiori",
+    "docsUrl":  "https://github.com/go-shiori/shiori#using-docker",
+    "ports":  [
+                  {
+                      "host":  8131,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/shiori/data",
+                        "container":  "/srv/shiori"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

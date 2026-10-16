@@ -1,0 +1,50 @@
+{
+    "slug":  "logstash",
+    "name":  "Logstash",
+    "description":  "Server-side data processing pipeline that ingests, transforms, and ships logs to Elasticsearch or other outputs.",
+    "category":  "Monitoring",
+    "image":  "docker.elastic.co/logstash/logstash:8.15.0",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/logstash.png",
+    "website":  "https://www.elastic.co/logstash",
+    "docsUrl":  "https://www.elastic.co/guide/en/logstash/current/docker.html",
+    "ports":  [
+                  {
+                      "host":  5044,
+                      "container":  5044,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9600,
+                      "container":  9600,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/logstash/pipeline",
+                        "container":  "/usr/share/logstash/pipeline"
+                    },
+                    {
+                        "host":  "/opt/appdata/logstash/config",
+                        "container":  "/usr/share/logstash/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LS_JAVA_OPTS",
+                        "default":  "-Xmx1g -Xms1g",
+                        "description":  "JVM heap size options"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "8.15.0",
+    "latest":  {
+        "version":  "8.15.0",
+        "release_date":  "2026-09-29"
+    }
+}

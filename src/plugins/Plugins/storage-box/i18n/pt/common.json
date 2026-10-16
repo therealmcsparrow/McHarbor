@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Destino Box",
+    "subtitle": "Os snapshots de backup são gravados no ID de pasta do Box que você especificar. Use folder_id \"0\" para a raiz da conta.",
+    "registerHint": "Este plugin é dono de um LocationType: box. Para alterar a pasta depois, salve o destino e abra-o novamente."
+  },
+  "fields": {
+    "clientId": "ID do cliente",
+    "clientSecret": "Segredo do cliente",
+    "folderId": "ID da pasta",
+    "refreshToken": "Refresh token"
+  },
+  "form": {
+    "help": {
+      "clientId": "ID do cliente do Box Developer Console para o seu aplicativo (Custom App ou Server Authentication).",
+      "clientSecret": "Client Secret do Box Developer Console. Tratado como um segredo somente de gravação; o plugin nunca o registra de volta.",
+      "folderId": "ID da pasta do Box onde os backups serão gravados. Use \"0\" para a raiz da conta.",
+      "refreshToken": "Refresh token de longa duração emitido após o fluxo de consentimento OAuth. Deixe em branco até executar Conectar ao Box."
+    }
+  },
+  "help": {
+    "clientId": "Do Box Developer Console: App → Configuration → OAuth 2.0.",
+    "clientSecret": "O segredo do cliente é exibido uma única vez quando o aplicativo é criado — copie-o agora.",
+    "folderId": "ID numérico da pasta do Box. \"0\" = a raiz da conta. Encontre o ID de uma pasta na URL da interface web do Box.",
+    "refreshToken": "Preenchido automaticamente pelo fluxo Conectar ao Box. Não edite manualmente.",
+    "oauthHint": "Após salvar, clique em \"Conectar ao Box\" para conceder consentimento ao plugin e armazenar um refresh token. Sem um refresh token, o plugin recorre ao grant client_credentials (exige Server Authentication configurada no aplicativo Box)."
+  },
+  "setup": {
+    "title": "Guia de configuração do Box",
+    "subtitle": "Conecte um aplicativo de desenvolvedor do Box à sua instância do McHarbor em seis passos curtos. Cerca de 5 minutos.",
+    "step1": {
+      "title": "Crie um aplicativo Box",
+      "body": "Abra o Box Developer Console (developer.box.com) e crie um novo aplicativo. Escolha \"Custom App\" para autenticação delegada de usuário, ou \"Server Authentication\" se preferir tokens somente de aplicativo (sem consentimento por usuário)."
+    },
+    "step2": {
+      "title": "Configure o OAuth 2.0",
+      "body": "Nas configurações do aplicativo, escolha OAuth 2.0. Adicione o URI de redirecionamento que sua instância do McHarbor serve (Configurações → Armazenamento → Conectar ao Box o exibirá). Escolha um único ambiente principal por enquanto (desenvolvimento ou produção)."
+    },
+    "step3": {
+      "title": "Solicite escopos",
+      "body": "Em \"Application Scopes\", ative file_readwrite (leitura/gravação total em todos os arquivos e pastas que o usuário pode acessar). Aplicativos mais antigos ainda podem usar root_readwrite — ambos funcionam com este plugin."
+    },
+    "step4": {
+      "title": "Envie o aplicativo para autorização",
+      "body": "Custom Apps exigem que um administrador do Box autorize o aplicativo antes que os usuários possam conceder consentimento. Peça ao seu administrador do Box para clicar no botão \"Authorize\" no Developer Console e depois aprovar os escopos solicitados."
+    },
+    "step5": {
+      "title": "Copie client_id + client_secret",
+      "body": "De volta ao McHarbor, cole o Client ID e o Client Secret do Box Developer Console no formulário do destino. Salve o destino antes de prosseguir."
+    },
+    "step6": {
+      "title": "Conecte para conceder consentimento",
+      "body": "Abra o destino salvo e clique em \"Conectar ao Box\". O plugin inicia o fluxo de consentimento OAuth no Box; após o consentimento, o Box redireciona de volta com um código de autorização que o host troca por um refresh token de longa duração (armazenado criptografado no destino)."
+    },
+    "footer": "Precisa de escopo por pasta em vez de toda a conta? Use uma Service Account com escopo para uma pasta do Box e cole as credenciais da Service Account no formulário do destino. O plugin usa as credenciais presentes em tempo de execução."
+  },
+  "toast": {
+    "registered": "Destino Box registrado.",
+    "testPassed": "Conexão com o Box bem-sucedida.",
+    "testFailed": "Falha na conexão com o Box.",
+    "oauthGranted": "Conta do Box conectada. Refresh token armazenado.",
+    "oauthDenied": "Autorização do Box negada. Conecte novamente para tentar de novo."
+  },
+  "error": {
+    "noClientId": "O ID do cliente é obrigatório.",
+    "noClientSecret": "O segredo do cliente é obrigatório.",
+    "invalidFolderId": "O ID da pasta deve ser numérico.",
+    "tokenFailed": "Não foi possível trocar as credenciais por um token de acesso do Box. Verifique client_id + client_secret e tente novamente."
+  }
+}

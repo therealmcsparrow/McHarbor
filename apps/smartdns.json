@@ -1,0 +1,40 @@
+{
+    "slug":  "smartdns",
+    "name":  "SmartDNS",
+    "description":  "DNS server that queries multiple upstream servers concurrently and returns the fastest valid result.",
+    "category":  "Networking",
+    "image":  "pymumu/smartdns:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=pymumu.github.io\u0026sz=128",
+    "website":  "https://pymumu.github.io/smartdns/",
+    "docsUrl":  "https://pymumu.github.io/smartdns/",
+    "ports":  [
+                  {
+                      "host":  5304,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5304,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/smartdns/config",
+                        "container":  "/etc/smartdns"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

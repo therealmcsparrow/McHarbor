@@ -4,7 +4,7 @@
     "description":  "Centralized management UI for Cassandra repairs, backups, and cluster operations.",
     "category":  "Databases",
     "image":  "thelastpickle/cassandra-reaper:latest",
-    "logo":  "https://icon.horse/icon/cassandra-reaper.io",
+    "logo":  "https://www.google.com/s2/favicons?domain=cassandra-reaper.io\u0026sz=128",
     "website":  "http://cassandra-reaper.io",
     "docsUrl":  "http://cassandra-reaper.io/docs/",
     "ports":  [
@@ -33,5 +33,9 @@
                         "secret":  true
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

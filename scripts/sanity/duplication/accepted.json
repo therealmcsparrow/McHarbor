@@ -1,0 +1,525 @@
+{
+  "_comment": [
+    "Accepted duplication. Every entry is a deliberate decision, not a backlog item.",
+    "An allowlisted cluster does not fail the duplication check; it appears in the drift",
+    "watch instead, with each member's similarity to the family reference.",
+    "",
+    "A cluster whose files are only PARTLY matched by an entry fails as",
+    "'accepted family gained a member'. That is the point: when a plugin joins a family,",
+    "its path goes in here in the same change, so the family stays enumerable",
+    "(.claude/rules/plugin-authoring.md).",
+    "",
+    "Do not widen a pattern to silence a finding. Widening is how a new undocumented",
+    "clone family becomes invisible.",
+    "",
+    "decision: D-1  no shared library code between plugins; each is its own Go module.",
+    "decision: D-2  the six addon-* plugins are absolute; permanent, never a refactor target.",
+    "decision: D-4  cross-module mirrors. src/agent, src/cli and",
+    "               src/terraform-provider-mcharbor are separate Go modules and cannot",
+    "               import the host, so a shared contract exists as a copy on each side.",
+    "",
+    "See .references/todo/2026-09-27-deduplication-and-authoring-guardrails.md."
+  ],
+  "accepted": [
+    {
+      "family": "agent-protocol-mirror",
+      "decision": "D-4",
+      "permanent": true,
+      "reason": "The agent is a separate Go module and cannot import the host, so the wire protocol exists as a verbatim copy on each side. This is the highest-value drift watch in the repo: if these two disagree, the agent transport breaks in ways no test on either side alone can see. There is no build-time check, only a diff.",
+      "patterns": [
+        "src/agent/protocol.go",
+        "src/backend/core/agent/protocol.go"
+      ],
+      "baselines": {
+        "src/backend/core/agent/protocol.go": {
+          "src/agent/protocol.go": 0.9282
+        }
+      }
+    },
+    {
+      "family": "agent-host-update-script",
+      "decision": "D-4",
+      "permanent": false,
+      "reason": "The host builds the update script and the agent executes it; both modules need the same generator. Separate modules, so a copy each. The one-sided server helpers downloadFailed and skipUnavailableHonoured stay out of the agent on purpose: the single download retry runs inside the generated shell script on both sides, and the server classifies the returned output into the Skip unavailable hint for agent runs too (host_update.go failureHint).",
+      "patterns": [
+        "src/agent/host_update_script.go",
+        "src/agent/host_update_script_test.go",
+        "src/backend/modules/system/host_update_script.go",
+        "src/backend/modules/system/host_update_script_test.go"
+      ],
+      "baselines": {
+        "src/backend/modules/system/host_update_script_test.go": {
+          "src/agent/host_update_script_test.go": 0.7313
+        },
+        "src/backend/modules/system/host_update_script.go": {
+          "src/agent/host_update_script.go": 0.8471
+        }
+      }
+    },
+    {
+      "family": "agent-machine-id",
+      "decision": "D-4",
+      "permanent": false,
+      "reason": "Machine fingerprinting has to produce the same id in the agent and in the host's license client, which are separate modules.",
+      "patterns": [
+        "src/agent/machine.go",
+        "src/backend/core/licenseclient/machine.go"
+      ],
+      "baselines": {
+        "src/agent/machine.go": {
+          "src/backend/core/licenseclient/machine.go": 0.9574
+        }
+      }
+    },
+    {
+      "family": "permgen-tool",
+      "decision": "D-4",
+      "permanent": false,
+      "reason": "The CLI and the Terraform provider are separate Go modules and each generates its permission constants from the host catalog with its own copy of the generator.",
+      "patterns": [
+        "src/cli/tools/permgen/main.go",
+        "src/terraform-provider-mcharbor/tools/permgen/main.go"
+      ],
+      "baselines": {
+        "src/cli/tools/permgen/main.go": {
+          "src/terraform-provider-mcharbor/tools/permgen/main.go": 0.6136
+        }
+      }
+    },
+    {
+      "family": "ai-provider-client",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Fourteen OpenAI-compatible clients, one per vendor. Extracting plugin-sdk/openaicompat was withdrawn: a package linked into fourteen .so files couples their release cycles and their ABI. The cost accepted here is drift, which is what this check watches.",
+      "patterns": [
+        "src/plugins/Plugins/ai-provider-*/backend/*_client.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/ai-provider-deepseek/backend/deepseek_client.go": {
+          "src/plugins/Plugins/ai-provider-gemini/backend/gemini_client.go": 0.5743,
+          "src/plugins/Plugins/ai-provider-mistral/backend/mistral_client.go": 0.6072,
+          "src/plugins/Plugins/ai-provider-perplexity/backend/perplexity_client.go": 0.6324,
+          "src/plugins/Plugins/ai-provider-llamacpp/backend/llamacpp_client.go": 0.9392,
+          "src/plugins/Plugins/ai-provider-lmstudio/backend/lmstudio_client.go": 0.9392,
+          "src/plugins/Plugins/ai-provider-localai/backend/localai_client.go": 0.9392,
+          "src/plugins/Plugins/ai-provider-vllm/backend/vllm_client.go": 0.9392,
+          "src/plugins/Plugins/ai-provider-openrouter/backend/openrouter_client.go": 0.9497,
+          "src/plugins/Plugins/ai-provider-xai/backend/xai_client.go": 0.9497,
+          "src/plugins/Plugins/ai-provider-cohere/backend/cohere_client.go": 0.9732,
+          "src/plugins/Plugins/ai-provider-fireworks/backend/fireworks_client.go": 0.9732,
+          "src/plugins/Plugins/ai-provider-groq/backend/groq_client.go": 0.9732,
+          "src/plugins/Plugins/ai-provider-together/backend/together_client.go": 0.9732
+        }
+      }
+    },
+    {
+      "family": "ai-provider-main",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Plugin main.go boilerplate: the Manifest, the seven Register* methods, Init/Shutdown and the exported Plugin symbol. Mandated shape, one copy per plugin.",
+      "patterns": [
+        "src/plugins/Plugins/ai-provider-*/backend/main.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/ai-provider-lmstudio/backend/main.go": {
+          "src/plugins/Plugins/ai-provider-perplexity/backend/main.go": 0.4348,
+          "src/plugins/Plugins/ai-provider-gemini/backend/main.go": 0.531,
+          "src/plugins/Plugins/ai-provider-openrouter/backend/main.go": 0.531,
+          "src/plugins/Plugins/ai-provider-xai/backend/main.go": 0.531,
+          "src/plugins/Plugins/ai-provider-cohere/backend/main.go": 0.5857,
+          "src/plugins/Plugins/ai-provider-deepseek/backend/main.go": 0.5857,
+          "src/plugins/Plugins/ai-provider-fireworks/backend/main.go": 0.5857,
+          "src/plugins/Plugins/ai-provider-groq/backend/main.go": 0.5857,
+          "src/plugins/Plugins/ai-provider-together/backend/main.go": 0.5857,
+          "src/plugins/Plugins/ai-provider-llamacpp/backend/main.go": 0.6567,
+          "src/plugins/Plugins/ai-provider-localai/backend/main.go": 0.6567,
+          "src/plugins/Plugins/ai-provider-vllm/backend/main.go": 0.6567
+        }
+      }
+    },
+    {
+      "family": "storage-webdav-client",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Four WebDAV clients. storage-owncloud and storage-opencloud differ by two lines across 711, which is the drift risk this check exists to make visible rather than to remove.",
+      "patterns": [
+        "src/plugins/Plugins/storage-nextcloud/backend/nextcloud_client.go",
+        "src/plugins/Plugins/storage-owncloud/backend/owncloud_client.go",
+        "src/plugins/Plugins/storage-opencloud/backend/opencloud_client.go",
+        "src/plugins/Plugins/storage-truenas/backend/truenas_client.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-owncloud/backend/owncloud_client.go": {
+          "src/plugins/Plugins/storage-nextcloud/backend/nextcloud_client.go": 0.7175,
+          "src/plugins/Plugins/storage-truenas/backend/truenas_client.go": 0.7448,
+          "src/plugins/Plugins/storage-opencloud/backend/opencloud_client.go": 1
+        }
+      }
+    },
+    {
+      "family": "scanner-binary-installer",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "scanner-trivy and scanner-grype each download a pinned, checksum-verified release of their CLI into their own install folder; plugins share no code, so the installer exists twice and differs only in release names, pins and URL.",
+      "patterns": [
+        "src/plugins/Plugins/scanner-trivy/backend/binary.go",
+        "src/plugins/Plugins/scanner-grype/backend/binary.go",
+        "src/plugins/Plugins/scanner-trivy/backend/binary_test.go",
+        "src/plugins/Plugins/scanner-grype/backend/binary_test.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/scanner-trivy/backend/binary.go": {
+          "src/plugins/Plugins/scanner-grype/backend/binary.go": 0.914
+        },
+        "src/plugins/Plugins/scanner-trivy/backend/binary_test.go": {
+          "src/plugins/Plugins/scanner-grype/backend/binary_test.go": 1
+        }
+      }
+    },
+    {
+      "family": "storage-webdav-quota",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "The quota half of the same four WebDAV clients.",
+      "patterns": [
+        "src/plugins/Plugins/storage-nextcloud/backend/nextcloud_quota.go",
+        "src/plugins/Plugins/storage-owncloud/backend/owncloud_quota.go",
+        "src/plugins/Plugins/storage-opencloud/backend/opencloud_quota.go",
+        "src/plugins/Plugins/storage-truenas/backend/truenas_quota.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-owncloud/backend/owncloud_quota.go": {
+          "src/plugins/Plugins/storage-nextcloud/backend/nextcloud_quota.go": 1,
+          "src/plugins/Plugins/storage-opencloud/backend/opencloud_quota.go": 1,
+          "src/plugins/Plugins/storage-truenas/backend/truenas_quota.go": 1
+        }
+      }
+    },
+    {
+      "family": "storage-msgraph-client",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Two Microsoft Graph clients. OneDrive for Business and SharePoint Online are the same API with a different drive resolution step.",
+      "patterns": [
+        "src/plugins/Plugins/storage-onedrive-business/backend/onedrive_business_client.go",
+        "src/plugins/Plugins/storage-sharepoint-online/backend/sharepoint_online_client.go",
+        "src/plugins/Plugins/storage-onedrive-business/backend/onedrive_business_quota.go",
+        "src/plugins/Plugins/storage-sharepoint-online/backend/sharepoint_online_quota.go",
+        "src/plugins/Plugins/storage-onedrive-personal/backend/onedrive_personal_quota.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-onedrive-business/backend/onedrive_business_client.go": {
+          "src/plugins/Plugins/storage-sharepoint-online/backend/sharepoint_online_client.go": 0.9315
+        },
+        "src/plugins/Plugins/storage-sharepoint-online/backend/sharepoint_online_quota.go": {
+          "src/plugins/Plugins/storage-onedrive-personal/backend/onedrive_personal_quota.go": 0.7143,
+          "src/plugins/Plugins/storage-onedrive-business/backend/onedrive_business_quota.go": 1
+        }
+      }
+    },
+    {
+      "family": "storage-main",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Plugin main.go boilerplate, storage family.",
+      "patterns": [
+        "src/plugins/Plugins/storage-*/backend/main.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-opencloud/backend/main.go": {
+          "src/plugins/Plugins/storage-nextcloud/backend/main.go": 0.6296,
+          "src/plugins/Plugins/storage-owncloud/backend/main.go": 0.913
+        }
+      }
+    },
+    {
+      "family": "comm-main",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Plugin main.go boilerplate, comm family.",
+      "patterns": [
+        "src/plugins/Plugins/comm-*/backend/main.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/comm-gmail/backend/main.go": {
+          "src/plugins/Plugins/comm-gotify/backend/main.go": 0.5506,
+          "src/plugins/Plugins/comm-slack/backend/main.go": 0.5632,
+          "src/plugins/Plugins/comm-discord/backend/main.go": 0.5814,
+          "src/plugins/Plugins/comm-smtp/backend/main.go": 0.617,
+          "src/plugins/Plugins/comm-exchange/backend/main.go": 0.6196
+        },
+        "src/plugins/Plugins/comm-pagerduty/backend/main.go": {
+          "src/plugins/Plugins/comm-glpi/backend/main.go": 0.8387,
+          "src/plugins/Plugins/comm-itop/backend/main.go": 0.8387,
+          "src/plugins/Plugins/comm-zammad/backend/main.go": 0.8387
+        },
+        "src/plugins/Plugins/comm-request-tracker/backend/main.go": {
+          "src/plugins/Plugins/comm-alertmanager-webhook/backend/main.go": 0.7813
+        }
+      }
+    },
+    {
+      "family": "logging-report-analysis",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "logging-siem and logging-syslog share their report analysis, queries and report builders. Their tests are cloned too, so neither copy can drift without the other's test also being edited - accidental protection, not a strategy, which is why the pair is watched here.",
+      "patterns": [
+        "src/plugins/Plugins/logging-siem/backend/report_analysis.go",
+        "src/plugins/Plugins/logging-syslog/backend/report_analysis.go",
+        "src/plugins/Plugins/logging-siem/backend/report_analysis_test.go",
+        "src/plugins/Plugins/logging-syslog/backend/report_analysis_test.go",
+        "src/plugins/Plugins/logging-siem/backend/reports.go",
+        "src/plugins/Plugins/logging-syslog/backend/reports.go",
+        "src/plugins/Plugins/logging-siem/backend/report_queries.go",
+        "src/plugins/Plugins/logging-syslog/backend/report_queries.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/logging-syslog/backend/report_analysis.go": {
+          "src/plugins/Plugins/logging-siem/backend/report_analysis.go": 0.8427
+        },
+        "src/plugins/Plugins/logging-syslog/backend/report_analysis_test.go": {
+          "src/plugins/Plugins/logging-siem/backend/report_analysis_test.go": 0.7988
+        },
+        "src/plugins/Plugins/logging-syslog/backend/reports.go": {
+          "src/plugins/Plugins/logging-siem/backend/reports.go": 0.9419
+        },
+        "src/plugins/Plugins/logging-syslog/backend/report_queries.go": {
+          "src/plugins/Plugins/logging-siem/backend/report_queries.go": 0.6907
+        }
+      }
+    },
+    {
+      "family": "plugin-vite-config",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Every plugin's UMD build config. Slug-derived bundle name, host alias block, react dedupe. A plugin that cannot build itself standalone is not independently releasable.",
+      "patterns": [
+        "src/plugins/Plugins/*/frontend/vite-plugin.config.ts",
+        "src/cli/internal/cli/templates/plugin/frontend/vite-plugin.config.ts.tmpl"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-google-drive/frontend/vite-plugin.config.ts": {
+          "src/plugins/Plugins/comm-teams/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/comm-ntfy/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/comm-telegram/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/comm-whatsapp/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/storage-opencloud/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/storage-owncloud/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/storage-truenas/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/storage-nextcloud/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/snapshot-synology/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/snapshot-truenas/frontend/vite-plugin.config.ts": 0.8305,
+          "src/plugins/Plugins/storage-onedrive-business/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/storage-sharepoint-online/frontend/vite-plugin.config.ts": 1
+        },
+        "src/plugins/Plugins/addon-reporting/frontend/vite-plugin.config.ts": {
+          "src/plugins/Plugins/addon-kvm/frontend/vite-plugin.config.ts": 0.5977,
+          "src/plugins/Plugins/addon-compute/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-kubernetes/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-lxc/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-swarm/frontend/vite-plugin.config.ts": 1
+        },
+        "src/plugins/Plugins/comm-otrs/frontend/vite-plugin.config.ts": {
+          "src/plugins/Plugins/comm-alertmanager-webhook/frontend/vite-plugin.config.ts": 0.8148,
+          "src/plugins/Plugins/comm-request-tracker/frontend/vite-plugin.config.ts": 0.8148,
+          "src/plugins/Plugins/comm-glpi/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/comm-itop/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/comm-pagerduty/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/comm-zammad/frontend/vite-plugin.config.ts": 1
+        },
+        "src/plugins/Plugins/storage-nfs/frontend/vite-plugin.config.ts": {
+          "src/plugins/Plugins/storage-box/frontend/vite-plugin.config.ts": 1
+        },
+        "src/plugins/Plugins/addon-lxc/frontend/vite-plugin.config.ts": {
+          "src/plugins/Plugins/addon-compute/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-kubernetes/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-reporting/frontend/vite-plugin.config.ts": 1,
+          "src/plugins/Plugins/addon-swarm/frontend/vite-plugin.config.ts": 1
+        }
+      }
+    },
+    {
+      "family": "plugin-frontend-entry",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "The UMD entry point each plugin exports: mount/unmount/update against the host's form outlet. The shape is the host contract, so every plugin states it.",
+      "patterns": [
+        "src/plugins/Plugins/*/frontend/src/index.tsx",
+        "src/cli/internal/cli/templates/plugin/frontend/src/index.tsx.tmpl"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/comm-whatsapp/frontend/src/index.tsx": {
+          "src/plugins/Plugins/storage-onedrive-personal/frontend/src/index.tsx": 0.4355,
+          "src/plugins/Plugins/storage-nextcloud/frontend/src/index.tsx": 0.5614,
+          "src/plugins/Plugins/storage-onedrive-business/frontend/src/index.tsx": 0.5962,
+          "src/plugins/Plugins/storage-sharepoint-online/frontend/src/index.tsx": 0.5962,
+          "src/plugins/Plugins/storage-box/frontend/src/index.tsx": 0.6275,
+          "src/plugins/Plugins/storage-nfs/frontend/src/index.tsx": 0.6275,
+          "src/plugins/Plugins/storage-google-drive/frontend/src/index.tsx": 0.766,
+          "src/plugins/Plugins/storage-dropbox/frontend/src/index.tsx": 0.766,
+          "src/plugins/Plugins/comm-teams/frontend/src/index.tsx": 0.766,
+          "src/plugins/Plugins/comm-ntfy/frontend/src/index.tsx": 0.766
+        },
+        "src/plugins/Plugins/identity-google/frontend/src/index.tsx": {
+          "src/plugins/Plugins/identity-entra-id/frontend/src/index.tsx": 0.7436,
+          "src/plugins/Plugins/comm-signal/frontend/src/index.tsx": 0.8514,
+          "src/plugins/Plugins/identity-generic-oidc/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/identity-saml/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/identity-ldap/frontend/src/index.tsx": 1
+        },
+        "src/plugins/Plugins/addon-kubernetes/frontend/src/index.tsx": {
+          "src/plugins/Plugins/addon-kvm/frontend/src/index.tsx": 0.6087,
+          "src/plugins/Plugins/addon-lxc/frontend/src/index.tsx": 0.6364
+        },
+        "src/plugins/Plugins/storage-nextcloud/frontend/src/index.tsx": {
+          "src/plugins/Plugins/storage-box/frontend/src/index.tsx": 0.6364,
+          "src/plugins/Plugins/storage-nfs/frontend/src/index.tsx": 0.6364,
+          "src/plugins/Plugins/comm-whatsapp/frontend/src/index.tsx": 0.7843,
+          "src/plugins/Plugins/storage-onedrive-business/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-sharepoint-online/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-google-drive/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-dropbox/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-onedrive-personal/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/comm-ntfy/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/comm-teams/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-opencloud/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-owncloud/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/storage-truenas/frontend/src/index.tsx": 1
+        },
+        "src/plugins/Plugins/identity-ldap/frontend/src/index.tsx": {
+          "src/plugins/Plugins/identity-entra-id/frontend/src/index.tsx": 0.7222,
+          "src/plugins/Plugins/comm-signal/frontend/src/index.tsx": 0.8382,
+          "src/plugins/Plugins/identity-generic-oidc/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/identity-google/frontend/src/index.tsx": 1,
+          "src/plugins/Plugins/identity-saml/frontend/src/index.tsx": 1
+        },
+        "src/plugins/Plugins/addon-kvm/frontend/src/index.tsx": {
+          "src/plugins/Plugins/addon-compute/frontend/src/index.tsx": 0.5612,
+          "src/plugins/Plugins/addon-kubernetes/frontend/src/index.tsx": 0.6129,
+          "src/plugins/Plugins/addon-lxc/frontend/src/index.tsx": 0.6444
+        }
+      }
+    },
+    {
+      "family": "plugin-config-form",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "Per-plugin config form. Plugin bundles cannot share a component: react-router is not deduped for plugins, and a shared @resources component that reaches for router hooks throws at mount.",
+      "patterns": [
+        "src/plugins/Plugins/*/frontend/src/ConfigForm.tsx"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/storage-sharepoint-online/frontend/src/ConfigForm.tsx": {
+          "src/plugins/Plugins/storage-onedrive-business/frontend/src/ConfigForm.tsx": 0.6154
+        },
+        "src/plugins/Plugins/storage-opencloud/frontend/src/ConfigForm.tsx": {
+          "src/plugins/Plugins/storage-owncloud/frontend/src/ConfigForm.tsx": 0.9074
+        },
+        "src/plugins/Plugins/comm-slack/frontend/src/ConfigForm.tsx": {
+          "src/plugins/Plugins/comm-discord/frontend/src/ConfigForm.tsx": 1
+        },
+        "src/plugins/Plugins/comm-exchange/frontend/src/ConfigForm.tsx": {
+          "src/plugins/Plugins/comm-gmail/frontend/src/ConfigForm.tsx": 0.6286
+        },
+        "src/plugins/Plugins/storage-owncloud/frontend/src/ConfigForm.tsx": {
+          ".tmp/s1/src/plugins/Plugins/storage-truenas/frontend/src/ConfigForm.tsx": 0.4444,
+          ".tmp/s2/src/plugins/Plugins/storage-truenas/frontend/src/ConfigForm.tsx": 0.6346,
+          "src/plugins/Plugins/storage-truenas/frontend/src/ConfigForm.tsx": 0.6346,
+          ".tmp/s1/src/plugins/Plugins/storage-owncloud/frontend/src/ConfigForm.tsx": 0.7117,
+          "src/plugins/Plugins/storage-opencloud/frontend/src/ConfigForm.tsx": 1,
+          ".tmp/s2/src/plugins/Plugins/storage-owncloud/frontend/src/ConfigForm.tsx": 1
+        },
+        "src/plugins/Plugins/storage-google-drive/frontend/src/ConfigForm.tsx": {
+          "src/plugins/Plugins/storage-dropbox/frontend/src/ConfigForm.tsx": 0.567
+        }
+      }
+    },
+    {
+      "family": "addon-widget-mount",
+      "decision": "D-2",
+      "permanent": true,
+      "reason": "PERMANENT. The six addon-* plugins must never depend on another plugin or on shared plugin code under any future refactor. This cluster is accepted permanently, not deferred, and is not a candidate for a later extraction.",
+      "patterns": [
+        "src/plugins/Plugins/addon-*/frontend/src/widgets/mount.tsx"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/addon-compute/frontend/src/widgets/mount.tsx": {
+          "src/plugins/Plugins/addon-kvm/frontend/src/widgets/mount.tsx": 1,
+          "src/plugins/Plugins/addon-lxc/frontend/src/widgets/mount.tsx": 1,
+          "src/plugins/Plugins/addon-kubernetes/frontend/src/widgets/mount.tsx": 1,
+          "src/plugins/Plugins/addon-reporting/frontend/src/widgets/mount.tsx": 1,
+          "src/plugins/Plugins/addon-swarm/frontend/src/widgets/mount.tsx": 1
+        }
+      }
+    },
+    {
+      "family": "addon-cli-test",
+      "decision": "D-2",
+      "permanent": true,
+      "reason": "PERMANENT, same reason as addon-widget-mount. Each addon-* plugin tests its own CLI surface with its own copy.",
+      "patterns": [
+        "src/plugins/Plugins/addon-*/backend/cli_test.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/addon-lxc/backend/cli_test.go": {
+          "src/plugins/Plugins/addon-kvm/backend/cli_test.go": 0.8438
+        },
+        "src/plugins/Plugins/addon-swarm/backend/cli_test.go": {
+          "src/plugins/Plugins/addon-compute/backend/cli_test.go": 0.5621
+        },
+        "src/plugins/Plugins/addon-reporting/backend/cli_test.go": {
+          "src/plugins/Plugins/addon-kubernetes/backend/cli_test.go": 0.8952
+        },
+        "src/plugins/Plugins/addon-kvm/backend/cli_test.go": {
+          "src/plugins/Plugins/addon-lxc/backend/cli_test.go": 0.796
+        }
+      }
+    },
+    {
+      "family": "addon-agent-wire",
+      "decision": "D-2",
+      "permanent": true,
+      "reason": "PERMANENT. Since T2.7 the compute plugins decode the agent's JSON themselves through the host's agent-rpc bridge, so each keeps a local wire_agent.go holding only the protocol fields it reads (addon-compute now; addon-kvm and addon-lxc join as they move). Held to the protocol by the golden fixtures in src/contracts/agentwire, not by sharing code.",
+      "patterns": [
+        "src/plugins/Plugins/addon-*/backend/wire_agent.go"
+      ],
+      "baselines": {}
+    },
+    {
+      "family": "addon-internal",
+      "decision": "D-2",
+      "permanent": true,
+      "reason": "PERMANENT. Frontend helpers, hooks and schedulers repeated inside and between the addon-* plugins. D-2 forbids factoring these into shared plugin code.",
+      "patterns": [
+        "src/plugins/Plugins/addon-*/frontend/src/index.tsx",
+        "src/plugins/Plugins/addon-*/frontend/src/format.ts",
+        "src/plugins/Plugins/addon-*/frontend/src/hooks/*.ts",
+        "src/plugins/Plugins/addon-*/backend/backup_scheduler.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/addon-lxc/frontend/src/format.ts": {
+          "src/plugins/Plugins/addon-kvm/frontend/src/format.ts": 0.6462,
+          "src/plugins/Plugins/addon-compute/frontend/src/format.ts": 1
+        },
+        "src/plugins/Plugins/addon-kvm/backend/backup_scheduler.go": {
+          "src/plugins/Plugins/addon-lxc/backend/backup_scheduler.go": 0.6752
+        },
+        "src/plugins/Plugins/addon-kvm/frontend/src/hooks/useHostEnvironments.ts": {
+          "src/plugins/Plugins/addon-compute/frontend/src/hooks/useHostEnvironments.ts": 1
+        },
+        "src/plugins/Plugins/addon-kvm/frontend/src/hooks/useKvmView.ts": {
+          "src/plugins/Plugins/addon-compute/frontend/src/hooks/useComputeView.ts": 1
+        },
+        "src/plugins/Plugins/addon-compute/frontend/src/format.ts": {
+          ".tmp/s1/src/plugins/Plugins/addon-kvm/frontend/src/format.ts": 0.6515,
+          ".tmp/s2/src/plugins/Plugins/addon-kvm/frontend/src/format.ts": 0.6825,
+          "src/plugins/Plugins/addon-kvm/frontend/src/format.ts": 0.6825,
+          "src/plugins/Plugins/addon-lxc/frontend/src/format.ts": 0.8571,
+          ".tmp/s1/src/plugins/Plugins/addon-compute/frontend/src/format.ts": 1,
+          ".tmp/s2/src/plugins/Plugins/addon-compute/frontend/src/format.ts": 1
+        }
+      }
+    }
+  ],
+  "baselineUpdated": "2026-10-16"
+}

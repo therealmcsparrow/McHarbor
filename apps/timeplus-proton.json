@@ -1,0 +1,41 @@
+{
+    "slug":  "timeplus-proton",
+    "name":  "Timeplus Proton",
+    "description":  "Single-binary streaming SQL engine for processing and querying real-time data streams.",
+    "category":  "Analytics",
+    "image":  "timeplus/proton:latest",
+    "logo":  "https://github.com/timeplus-io.png",
+    "website":  "https://www.timeplus.com",
+    "docsUrl":  "https://docs.timeplus.com/proton-quickstart",
+    "ports":  [
+                  {
+                      "host":  8123,
+                      "container":  8123,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8463,
+                      "container":  8463,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/timeplus-proton/data",
+                        "container":  "/var/lib/proton"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

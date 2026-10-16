@@ -1,0 +1,51 @@
+{
+  "page": {
+    "title": "Microsoft Entra ID",
+    "subtitle": "Verbindet die McHarbor-Anmeldung mit einem Azure-AD-Tenant. Das Plugin übernimmt den OIDC-Authorization-Code-Flow gegen die v2.0-Endpunkte unter login.microsoftonline.com sowie die Microsoft Graph API zum Abrufen von Admin-Gruppen.",
+    "registerHint": "Fügen Sie auf der Seite Einstellungen > Sicherheit > Identitätsanbieter des Hosts einen Anbieter hinzu und wählen Sie „Microsoft Entra ID“ als provider_type."
+  },
+  "fields": {
+    "tenant_id":     "Tenant-ID",
+    "client_id":     "Client-ID",
+    "client_secret": "Client-Secret",
+    "scopes":        "Scopes"
+  },
+  "help": {
+    "tenant_id":     "Azure-AD-Tenant-ID (UUID). Verwenden Sie 'common' für Multi-Tenant-Apps, 'organizations' für jedes Geschäfts- oder Schulkonto oder belassen Sie 'common', um auch persönliche Konten zuzulassen.",
+    "client_id":     "Anwendungs-(Client-)ID von der Übersichtsseite der App-Registrierung.",
+    "client_secret": "Wert des Client-Secrets von der Seite Certificates & secrets der App-Registrierung. Im Ruhezustand verschlüsselt gespeichert.",
+    "scopes":        "Durch Leerzeichen getrennte OAuth-Scopes. Standardmäßig openid profile email. Verwenden Sie 'https://graph.microsoft.com/.default', um den Gruppenabruf über die Graph API zu aktivieren."
+  },
+  "guide": {
+    "title":    "Microsoft Entra ID in McHarbor einrichten",
+    "subtitle": "Registrieren Sie eine vertrauliche Client-Anwendung in Ihrem Azure-AD-Tenant und gewähren Sie Microsoft-Graph-Berechtigungen, wenn der Abruf von Admin-Gruppen aktiviert sein soll.",
+    "step1": {
+      "title": "Blade App-Registrierung öffnen",
+      "body":  "Navigieren Sie im Azure-Portal zu Microsoft Entra ID > App registrations > New registration. Wählen Sie einen Namen (z. B. „McHarbor SSO“) und die Kontotypen, die Sie unterstützen möchten (Single-Tenant, Multi-Tenant oder persönlich)."
+    },
+    "step2": {
+      "title": "Redirect-URI festlegen",
+      "body":  "Wählen Sie unter Redirect URI die Option Web und geben Sie die auf der Bearbeitungsseite des Anbieters angezeigte McHarbor-Callback-URL ein. Der Host hängt /api/identity-providers/callback an Ihre McHarbor-Basis-URL an — kopieren Sie sie exakt, um unbemerkte Auth-Code-Abweichungen zu vermeiden."
+    },
+    "step3": {
+      "title": "Client-Secret erstellen",
+      "body":  "Öffnen Sie Certificates & secrets > New client secret. Wählen Sie eine sinnvolle Gültigkeit (90 oder 180 Tage) und setzen Sie eine Kalendererinnerung. Kopieren Sie den Secret-WERT (nicht die Secret-ID) in das Feld Client-Secret im Anbieterformular. McHarbor speichert es mit AES-256-GCM verschlüsselt."
+    },
+    "step4": {
+      "title": "Anwendungs-(Client-)ID kopieren",
+      "body":  "Kopieren Sie auf der Übersichtsseite der App-Registrierung die Anwendungs-(Client-)ID in das Feld Client-ID im Anbieterformular."
+    },
+    "step5": {
+      "title": "Verzeichnis-(Tenant-)ID kopieren",
+      "body":  "Kopieren Sie weiterhin auf der Übersichtsseite die Verzeichnis-(Tenant-)ID in das Feld Tenant-ID im Anbieterformular. Verwenden Sie „common“, wenn Sie die App als Multi-Tenant registriert haben."
+    },
+    "step6": {
+      "title": "(Optional) Microsoft Graph Group.Read.All gewähren",
+      "body":  "Wenn der Gruppenzuordnungs-Assistent der Admin-Gruppe Entra-Gruppen füllen soll, öffnen Sie API permissions > Add a permission > Microsoft Graph > Application permissions > Group.Read.All. Klicken Sie auf Grant admin consent for <tenant>."
+    },
+    "step7": {
+      "title": "Verbindung testen",
+      "body":  "Klicken Sie in McHarbor im Anbieterformular auf „Verbindung testen“. Ein grünes Ergebnis bedeutet, dass das OIDC-Discovery-Dokument aufgelöst wurde und ein Client-Credentials-Token-Austausch gegen login.microsoftonline.com erfolgreich war — die Konfiguration ist gültig. Sie können den Anbieter jetzt aktivieren und „Mit Microsoft anmelden“ auf der Anmeldeseite verwenden."
+    }
+  }
+}

@@ -1,0 +1,591 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+schema: "mcharbor.plugin/v1"
+
+slug:     "addon-lxc"
+name:     "System Containers"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: >-
+  Run full-system LXC containers on your own hosts — a whole distribution with
+  its own init, users and services, in a fraction of a VM's memory and starting
+  in about a second. Unprivileged by default, with live CPU, memory and pid
+  limits that apply without a restart, a browser console, snapshots, clones and
+  templates. McHarbor drives libcontainer directly and supervises it with
+  systemd; there is no LXD, no Incus and no lxc-* toolchain.
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.25"
+
+# Compute Foundation carries the pools, networks, images and capability probe
+# this plugin builds on. The host installs it alongside this one and removes it
+# again when neither guest plugin is left.
+requires:
+  - "addon-compute"
+
+permissions:
+  - menu.sidebar.add
+  - i18n.namespace.add:ct
+  - rbac.permission.register
+  - db.migrations.run
+  - audit.emit
+  # The agent-rpc bridge. A plugin cannot extend `src/agent/protocol.go` or the
+  # agent's dispatch, and the agent binary is a versioned core artifact, so the
+  # host carries across exactly the messages the agent-rpc capability below lists.
+  - agent.rpc
+  # Three container report types for the Reporting plugin's Report Studio.
+  - reporting.adapter.register
+  # Six container alert conditions for the host's alert engine. The engine owns
+  # the thresholds, the schedule, the firing state and the delivery.
+  - alerting.adapter.register
+  # AI-assisted diagnosis of a container that will not start or that exited.
+  # Opt-in per request, and only the container's own definition, its limits and
+  # its exit reason cross the boundary — never a console stream, never a rootfs
+  # path listing, never the contents of a mount.
+  - ai.invoke
+
+adds_permissions:
+  - key:      "ct.view"
+    presets:      [viewer, editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "View system containers"
+    description: "Allows seeing system containers, their mounts, their snapshots, their processes and their resource usage."
+
+  - key:      "ct.manage"
+    presets:      [editor, operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Manage system containers"
+    description: "Allows creating, editing, starting, stopping, freezing, snapshotting and cloning system containers, and changing their CPU, memory and pid limits. Destroying one needs ct.delete."
+
+  - key:      "ct.delete"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Delete system containers"
+    description: "Allows destroying a system container and its rootfs, and deleting its snapshots."
+
+  # Console is separate from manage on purpose. A container console is a shell
+  # as root inside that container, and plenty of operators want to grant
+  # start/stop control without it — the same reasoning that separates
+  # containers.manage from exec.
+  - key:      "ct.console"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Open a system container console"
+    description: "Allows attaching a console to a system container. This is a root shell inside the container, which is why it is separate from ct.manage."
+
+  # Backups are their own pair of keys rather than folded into ct.manage. Plenty
+  # of estates want an operator who can start and stop containers without being
+  # able to reach the off-host copies, and restore is separate again because it
+  # replaces a whole filesystem and cannot be undone.
+  - key:      "ct.backup"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Back up system containers"
+    description: "Allows seeing backup schedules and history, creating and editing schedules, starting a backup and deleting one. Restoring is separate and needs ct.restore."
+
+  - key:      "ct.restore"
+    presets:      [operator]
+    scope:    "env"
+    category: "Plugins"
+    label:    "Restore a system container from a backup"
+    description: "Allows rebuilding a container's filesystem from a backup, replacing everything on it now. The container has to be stopped and its name typed out. Recreating a deleted container from its backup also needs ct.manage."
+
+  # Never in a role preset. Each of these removes a boundary between the
+  # container and the host itself.
+  - key:      "ct.privileged"
+    presets:      []
+    scope:    "env"
+    category: "Plugins"
+    label:    "Run privileged containers and mount host paths"
+    description: "Allows turning off the user namespace, binding arbitrary host paths into a container, passing host devices through, and enabling nesting. Root in a privileged container is root on the host in every way that matters, so this is never granted by a role preset."
+
+consumes_permissions:
+  # The container pages link to pools, networks and rootfs images, and the
+  # create dialog reads all three. A user without compute.view sees those
+  # affordances disabled with a tooltip naming the key, rather than a broken
+  # picker.
+  - "compute.view"
+  # A host reboot drains this plugin's containers through the two reboot-drain
+  # routes, gated on the host's own reboot keys: the reboot's requester holds them.
+  - "host_updates.view"
+  - "host_updates.reboot"
+
+contributes:
+  capabilities:
+    - kind: agent-rpc
+      send:
+        - ct_create
+        - ct_start
+        - ct_shutdown
+        - ct_stop
+        - ct_restart
+        - ct_freeze
+        - ct_unfreeze
+        - ct_delete
+        - ct_query
+        - ct_update_limits
+        - ct_processes
+        - ct_snapshot_create
+        - ct_snapshot_revert
+        - ct_snapshot_delete
+        - ct_clone_request
+        - ct_backup_run
+        - ct_backup_restore
+        - compute_probe_request
+        - compute_image_list
+        - pool_file_request
+      observe:
+        - ct_backup_progress
+    - kind: runbook-provider
+      domain: ct
+      i18n_ns: ct
+      targets:
+        - kind: ct
+          label_key: runbook.targets.ct
+          path: "/api/system-containers"
+          query: {env: "$env"}
+          id: id
+          name: [name]
+          detail: [state]
+          attach: {kind: ct, label_key: runbook.attach.ct}
+      steps:
+        - key: ct.start
+          description_key: runbook.steps.ct_start
+          kind: action
+          target: ct
+          destructive: true
+          permissions: [ct.manage]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/start"
+        - key: ct.stop
+          description_key: runbook.steps.ct_stop
+          kind: action
+          target: ct
+          destructive: true
+          permissions: [ct.manage]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/stop"
+        - key: ct.restart
+          description_key: runbook.steps.ct_restart
+          kind: action
+          target: ct
+          destructive: true
+          permissions: [ct.manage]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/restart"
+        - key: ct.freeze
+          description_key: runbook.steps.ct_freeze
+          kind: action
+          target: ct
+          destructive: true
+          permissions: [ct.manage]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/freeze"
+        - key: ct.unfreeze
+          description_key: runbook.steps.ct_unfreeze
+          kind: action
+          target: ct
+          destructive: true
+          permissions: [ct.manage]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/unfreeze"
+        - key: ct.backup.run
+          description_key: runbook.steps.ct_backup_run
+          kind: action
+          target: ct
+          permissions: [ct.backup]
+          params:
+            - {name: ct, type: target, target: ct}
+            - {name: kind, type: enum, options: [full, incremental]}
+          call:
+            method: POST
+            path: "/api/system-containers/{ct}/backups"
+            body: [{json: kind, param: kind, type: string}]
+        - key: ct.state
+          description_key: runbook.steps.ct_state
+          kind: diagnostic
+          target: ct
+          permissions: [ct.view]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: GET
+            path: "/api/system-containers/{ct}"
+        - key: ct.backups
+          description_key: runbook.steps.ct_backups
+          kind: diagnostic
+          target: ct
+          permissions: [ct.backup]
+          params:
+            - {name: ct, type: target, target: ct}
+          call:
+            method: GET
+            path: "/api/system-containers/{ct}/backups"
+            query: {limit: "=20"}
+    - kind: picker-source
+      target: ct
+    - kind: console-subject
+      subject_type: ct
+      consoles: [tty, exec]
+      permission: ct.console
+    - kind: reboot-drain
+      subject_type: ct
+      routes:
+        running: "/api/system-containers/reboot-drain"
+        stop: "/api/system-containers/reboot-drain"
+    - kind: estate-source
+      metric: system_containers
+      path: "/api/system-containers"
+      env_scoped: true
+      label_key: estate.containers
+      i18n_ns: ct
+      icon: box
+      running_field: state
+      running_values: [running]
+      link: "/plugins/addon-lxc"
+    - kind: search-source
+      i18n_ns: ct
+      sources:
+        - key: ct
+          label_key: search.group.containers
+          path: "/api/system-containers"
+          env_scoped: true
+          id: id
+          name: [name]
+          detail: [state, description]
+          link: "/plugins/addon-lxc/{id}"
+          icon: box
+    - kind: search-action
+      i18n_ns: ct
+      actions:
+        - key: ct.create
+          label_key: search.action.createContainer
+          keywords_key: search.action.createContainerKeywords
+          icon: plus
+          link: "/plugins/addon-lxc?action=create"
+          permission: ct.manage
+  routes:
+    - method: GET
+      path: "/api/system-containers/reboot-drain"
+      requires_permission: "host_updates.view"
+    - method: POST
+      path: "/api/system-containers/reboot-drain"
+      requires_permission: "host_updates.reboot"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.reboot_drain_stop"
+      audit_entity_type: "container"
+    - method: GET
+      path: "/api/system-containers"
+      requires_permission: "ct.view"
+    - method: GET
+      path: "/api/system-containers/{id}"
+      requires_permission: "ct.view"
+    - method: GET
+      path: "/api/system-containers/{id}/stats"
+      requires_permission: "ct.view"
+    # The process list from the container's cgroup — something a system
+    # container genuinely has and a VM does not.
+    - method: GET
+      path: "/api/system-containers/{id}/processes"
+      requires_permission: "ct.view"
+
+    - method: POST
+      path: "/api/system-containers"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.created"
+      audit_entity_type: "container"
+    - method: PUT
+      path: "/api/system-containers/{id}"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.updated"
+      audit_entity_type: "container"
+
+    - method: POST
+      path: "/api/system-containers/{id}/start"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.started"
+      audit_entity_type: "container"
+    # Shutdown records whether the SIGRTMIN+3 grace period had to escalate to a
+    # SIGKILL of the cgroup, so a container whose init ignores its stop signal
+    # is visible in the trail rather than looking like a slow clean shutdown.
+    - method: POST
+      path: "/api/system-containers/{id}/shutdown"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.shutdown"
+      audit_entity_type: "container"
+    - method: POST
+      path: "/api/system-containers/{id}/stop"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.stopped"
+      audit_entity_type: "container"
+    - method: POST
+      path: "/api/system-containers/{id}/restart"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.restarted"
+      audit_entity_type: "container"
+    - method: POST
+      path: "/api/system-containers/{id}/freeze"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.frozen"
+      audit_entity_type: "container"
+    - method: POST
+      path: "/api/system-containers/{id}/unfreeze"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.unfrozen"
+      audit_entity_type: "container"
+
+    - method: DELETE
+      path: "/api/system-containers/{id}"
+      requires_permission: "ct.delete"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.deleted"
+      audit_entity_type: "container"
+
+    # Limits are their own route rather than part of the update body, because
+    # cgroup v2 applies them to a running container immediately and the reply
+    # carries what the kernel actually accepted — which is not always what was
+    # asked for.
+    - method: PUT
+      path: "/api/system-containers/{id}/limits"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.limits_changed"
+      audit_entity_type: "container"
+
+    - method: GET
+      path: "/api/system-containers/{id}/nics"
+      requires_permission: "ct.view"
+    - method: POST
+      path: "/api/system-containers/{id}/nics"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.nic.added"
+      audit_entity_type: "ct_nic"
+    - method: DELETE
+      path: "/api/system-containers/{id}/nics/{nicId}"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.nic.deleted"
+      audit_entity_type: "ct_nic"
+
+    # A volume mount inside the pool takes ct.manage; a bind of an arbitrary
+    # host path takes ct.privileged. Both arrive here, and the handler picks
+    # the stronger key from the request body — see the note in handler.go on
+    # why a single route with a body-dependent check is the honest shape.
+    - method: GET
+      path: "/api/system-containers/{id}/mounts"
+      requires_permission: "ct.view"
+    - method: POST
+      path: "/api/system-containers/{id}/mounts"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.mount.added"
+      audit_entity_type: "ct_mount"
+    - method: DELETE
+      path: "/api/system-containers/{id}/mounts/{mountId}"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.mount.deleted"
+      audit_entity_type: "ct_mount"
+
+    - method: GET
+      path: "/api/system-containers/{id}/snapshots"
+      requires_permission: "ct.view"
+    - method: POST
+      path: "/api/system-containers/{id}/snapshots"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.snapshot.created"
+      audit_entity_type: "ct_snapshot"
+    - method: POST
+      path: "/api/system-containers/{id}/snapshots/{snapId}/revert"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.snapshot.reverted"
+      audit_entity_type: "ct_snapshot"
+    - method: DELETE
+      path: "/api/system-containers/{id}/snapshots/{snapId}"
+      requires_permission: "ct.delete"
+      audit_required: true
+      audit_action: "plugin.lxc.snapshot.deleted"
+      audit_entity_type: "ct_snapshot"
+
+    - method: POST
+      path: "/api/system-containers/{id}/clone"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.cloned"
+      audit_entity_type: "container"
+    - method: POST
+      path: "/api/system-containers/{id}/template"
+      requires_permission: "ct.manage"
+      audit_required: true
+      audit_action: "plugin.lxc.ct.templated"
+      audit_entity_type: "container"
+
+    # AI-assisted diagnosis of a container that will not start. POST only
+    # because it submits the container's state for analysis; it changes nothing.
+    - method: POST
+      path: "/api/system-containers/{id}/diagnose"
+      requires_permission: "ct.view"
+      audit_required: false
+
+    # Backups. Reads and writes both take ct.backup; only the restore takes
+    # ct.restore, because only the restore destroys what is there now.
+    - method: GET
+      path: "/api/system-containers/{id}/backup-plans"
+      requires_permission: "ct.backup"
+    - method: GET
+      path: "/api/system-containers/{id}/backups"
+      requires_permission: "ct.backup"
+    - method: GET
+      path: "/api/system-containers/backups/{runId}"
+      requires_permission: "ct.backup"
+
+    - method: POST
+      path: "/api/system-containers/{id}/backup-plans"
+      requires_permission: "ct.backup"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.plan_created"
+      audit_entity_type: "ct_backup_plan"
+    - method: PUT
+      path: "/api/system-containers/backup-plans/{planId}"
+      requires_permission: "ct.backup"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.plan_updated"
+      audit_entity_type: "ct_backup_plan"
+    - method: DELETE
+      path: "/api/system-containers/backup-plans/{planId}"
+      requires_permission: "ct.backup"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.plan_deleted"
+      audit_entity_type: "ct_backup_plan"
+    - method: POST
+      path: "/api/system-containers/{id}/backups"
+      requires_permission: "ct.backup"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.started"
+      audit_entity_type: "ct_backup"
+    - method: DELETE
+      path: "/api/system-containers/backups/{runId}"
+      requires_permission: "ct.backup"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.deleted"
+      audit_entity_type: "ct_backup"
+
+    # Replaces the container's whole filesystem, which is why it is its own key
+    # rather than part of managing backups.
+    - method: POST
+      path: "/api/system-containers/backups/{runId}/restore"
+      requires_permission: "ct.restore"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.restored"
+      audit_entity_type: "ct_backup"
+
+    # Backups whose container row is gone. They survive the delete on purpose,
+    # and this is how an operator finds them again.
+    - method: GET
+      path: "/api/system-containers/orphaned-backups"
+      requires_permission: "ct.backup"
+    # The container definition stored beside a backup, read back from a
+    # destination and turned into a pre-filled create form.
+    - method: GET
+      path: "/api/system-containers/backups/{runId}/manifest"
+      requires_permission: "ct.backup"
+    # Creates a container from a backup's manifest and restores the chain into
+    # it. The route declares ct.restore; the handler also requires ct.manage on
+    # the target host, and ct.privileged when the definition asks for it,
+    # because a manifest can carry one key's worth of change and a create another.
+    - method: POST
+      path: "/api/system-containers/backups/{runId}/recreate"
+      requires_permission: "ct.restore"
+      audit_required: true
+      audit_action: "plugin.lxc.backup.recreated"
+      audit_entity_type: "container"
+
+    # The two agent transfer routes. Public because the caller is a remote agent
+    # with no session, redeeming a one-shot grant McHarbor minted seconds
+    # earlier and compared in constant time. Declared here so the manifest and
+    # the registration agree rather than the loader inferring anything.
+    - method: PUT
+      path: "/api/system-containers/backups/internal/{grantId}"
+      public: true
+      audit_required: false
+    - method: GET
+      path: "/api/system-containers/backups/internal/download/{grantId}"
+      public: true
+
+  menu:
+    - parent: "compute"
+      label_ns: "ct"
+      label_key: "nav.containers"
+      path: "/plugins/addon-lxc"
+      icon: "IconBox"
+      required_permission: "ct.view"
+      priority: 85
+    - parent: "compute"
+      label_ns: "ct"
+      label_key: "nav.templates"
+      path: "/plugins/addon-lxc/templates"
+      icon: "IconTemplate"
+      required_permission: "ct.view"
+      priority: 45
+
+  widgets:
+    - "ct-summary"
+    - "ct-density"
+
+  # Workflow nodes (backend/nodes.go). Keys are plugin-local; the host exposes
+  # them on the canvas as plugin:addon-lxc:<key>.
+  nodes:
+    - "ct-lifecycle"
+    - "ct-limits"
+    - "ct-snapshot"
+    - "ct-clone"
+    - "ct-state"
+
+  migrations:
+    - "migrations/0001_init.sql"
+    # 0002_nic_attachment.sql is deliberately absent: it is three bare ALTER TABLE
+    # ADD COLUMN statements that EnsureSchema already applies idempotently, and
+    # listing it would make a repair run them a second time and fail on a
+    # duplicate column.
+    - "migrations/0003_ct_backups.sql"
+
+  i18n_namespaces:
+    - "ct"
+
+signature: ""
+checksum:  ""

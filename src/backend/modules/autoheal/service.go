@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
+	"github.com/moby/moby/client"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
@@ -31,10 +31,10 @@ type Service struct {
 }
 
 type prefState struct {
-	enabled         bool
-	wasEverHealthy  bool
-	restartCount    int
-	lastHealAt      time.Time
+	enabled        bool
+	wasEverHealthy bool
+	restartCount   int
+	lastHealAt     time.Time
 }
 
 // NewService creates a new autoheal service.
@@ -162,25 +162,27 @@ func (s *Service) ResetForContainer(envID, containerID string) {
 
 // Restart restarts a container via the Docker SDK.
 func (s *Service) Restart(ctx context.Context, envID, containerID string) error {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return fmt.Errorf("getting docker client: %w", err)
 	}
 	timeout, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	return cli.ContainerRestart(timeout, containerID, container.StopOptions{})
+	_, err = cli.ContainerRestart(timeout, containerID, client.ContainerRestartOptions{})
+	return err
 }
 
 // Inspect returns the container's running state and health.
 func (s *Service) Inspect(ctx context.Context, envID, containerID string) (*Inspect, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting docker client: %w", err)
 	}
-	info, err := cli.ContainerInspect(ctx, containerID)
+	infoRes, err := cli.ContainerInspect(ctx, containerID, client.ContainerInspectOptions{})
 	if err != nil {
 		return nil, err
 	}
+	info := infoRes.Container
 	out := &Inspect{}
 	if info.State != nil {
 		st := &InspectState{
@@ -198,14 +200,15 @@ func (s *Service) Inspect(ctx context.Context, envID, containerID string) (*Insp
 
 // ListRunning returns all running containers in the environment.
 func (s *Service) ListRunning(ctx context.Context, envID string) ([]Container, error) {
-	cli, err := s.pool.Get(envID)
+	cli, err := s.pool.GetContext(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("getting docker client: %w", err)
 	}
-	items, err := cli.ContainerList(ctx, container.ListOptions{All: false})
+	itemsRes, err := cli.ContainerList(ctx, client.ContainerListOptions{All: false})
 	if err != nil {
 		return nil, fmt.Errorf("listing containers: %w", err)
 	}
+	items := itemsRes.Items
 	out := make([]Container, 0, len(items))
 	for _, c := range items {
 		// Strip leading slash from container name.
@@ -216,7 +219,7 @@ func (s *Service) ListRunning(ctx context.Context, envID string) ([]Container, e
 		out = append(out, Container{
 			ID:     c.ID,
 			Name:   name,
-			State:  c.State,
+			State:  string(c.State),
 			Labels: c.Labels,
 		})
 	}

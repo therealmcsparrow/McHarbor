@@ -1,0 +1,19 @@
+{
+  "label": "Codificar",
+  "description": "Codificar o decodificar en Base64, o calcular el hash de un valor",
+  "config": {
+    "algorithm": "Algoritmo",
+    "property": "Propiedad",
+    "output_property": "Propiedad de salida"
+  },
+  "options": {
+    "algorithm": {
+      "base64-encode": "Codificar Base64",
+      "base64-decode": "Decodificar Base64",
+      "md5": "MD5",
+      "sha1": "SHA1",
+      "sha256": "SHA256",
+      "sha512": "SHA512"
+    }
+  }
+}

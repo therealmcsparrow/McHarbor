@@ -1,0 +1,28 @@
+{
+  "label": "Container-Backups verwalten",
+  "description": "Backup-Pläne oder Läufe auflisten oder einen Backup-Lauf abrufen, abbrechen und löschen",
+  "config": {
+    "environment": "Umgebung",
+    "action": "Aktion",
+    "container": "Container (Filter)",
+    "status": "Status",
+    "limit": "Limit",
+    "run_id": "Backup-Lauf"
+  },
+  "options": {
+    "action": {
+      "list_plans": "Pläne auflisten",
+      "list_runs": "Läufe auflisten",
+      "get_run": "Lauf abrufen",
+      "cancel_run": "Lauf abbrechen",
+      "delete_run": "Lauf löschen"
+    },
+    "status": {
+      "all": "Alle",
+      "completed": "Abgeschlossen",
+      "running": "Läuft",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
+    }
+  }
+}

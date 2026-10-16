@@ -1,0 +1,17 @@
+{
+  "label": "Objekt",
+  "description": "Felder auswählen oder entfernen, oder ein Objekt neu abbilden",
+  "config": {
+    "operation": "Vorgang",
+    "property": "Eigenschaft",
+    "fields": "Felder",
+    "mapping": "Zuordnung"
+  },
+  "options": {
+    "operation": {
+      "pick": "Auswählen",
+      "omit": "Weglassen",
+      "map": "Abbilden"
+    }
+  }
+}

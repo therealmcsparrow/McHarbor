@@ -1,0 +1,49 @@
+{
+    "slug":  "nginx-ui",
+    "name":  "Nginx UI",
+    "description":  "Web interface for creating and managing Nginx server configurations.",
+    "category":  "Networking",
+    "image":  "uozi/nginx-ui:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/nginx.svg",
+    "website":  "https://nginxui.com",
+    "docsUrl":  "https://nginxui.com",
+    "ports":  [
+                  {
+                      "host":  9010,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nginx-ui/config",
+                        "container":  "/etc/nginx-ui"
+                    },
+                    {
+                        "host":  "/opt/appdata/nginx-ui/nginx",
+                        "container":  "/etc/nginx"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

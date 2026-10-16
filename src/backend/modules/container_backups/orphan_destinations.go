@@ -10,6 +10,8 @@ import (
 	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/therealmcsparrow/mcharbor/core/db"
 )
 
 // cleanupOrphanDestinations reconciles destination rows whose parent
@@ -25,11 +27,11 @@ import (
 // normal path.
 //
 // For each orphan, we:
-//   1. Try to delete the cloud file using the destination's stored
-//      path + its location's credentials. Failure here is logged but
-//      does NOT block the row from being removed — we still want
-//      the local DB consistent so the orphan doesn't recur.
-//   2. Delete the destination row.
+//  1. Try to delete the cloud file using the destination's stored
+//     path + its location's credentials. Failure here is logged but
+//     does NOT block the row from being removed — we still want
+//     the local DB consistent so the orphan doesn't recur.
+//  2. Delete the destination row.
 //
 // The function deliberately separates run_id presence and status
 // checks. We only attempt a cloud delete for `success` destinations
@@ -54,6 +56,7 @@ func (s *Service) cleanupOrphanDestinations(ctx context.Context, logger *slog.Lo
 	}
 
 	reconciled := 0
+	// bounded by the orphaned destination rows of one reconcile pass; each is cleaned independently
 	for _, dest := range destinations {
 		var location *backupStorageDestination
 		if strings.TrimSpace(dest.StorageLocationID) != "" {
@@ -105,12 +108,11 @@ func (s *Service) orphanLocationsByID(ctx context.Context) (map[string]*backupSt
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 	out := map[string]*backupStorageDestination{}
 	for rows.Next() {
 		var id string
 		if scanErr := rows.Scan(&id); scanErr != nil {
-			_ = rows.Close()
 			return nil, scanErr
 		}
 		location, loadErr := s.backupStorageDestination(ctx, id)
@@ -165,7 +167,7 @@ func (s *Service) orphanDestinations(ctx context.Context) ([]BackupRunDestinatio
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { db.CloseRows(rows) }()
 	var out []BackupRunDestination
 	for rows.Next() {
 		var dest BackupRunDestination

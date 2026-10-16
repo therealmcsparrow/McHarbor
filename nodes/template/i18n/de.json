@@ -1,6 +1,6 @@
 {
   "label": "Vorlage",
-  "description": "Render a text template using values from the workflow message",
+  "description": "Eine Textvorlage mit Werten aus der Workflow-Nachricht rendern",
   "config": {
     "template": "Vorlage",
     "output_property": "Ausgabe-Eigenschaft"

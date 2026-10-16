@@ -1,0 +1,30 @@
+{
+  "label": "Gerenciar imagem",
+  "description": "Baixar, enviar, marcar ou remover uma imagem Docker",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Ação",
+    "registry_mode": "Registro",
+    "registry_id": "Registro",
+    "registry_url": "URL do registro",
+    "registry_username": "Usuário do registro",
+    "registry_password": "Senha do registro",
+    "image": "Imagem",
+    "source": "Imagem de origem",
+    "target": "Imagem alvo",
+    "force": "Vigor",
+    "prune_children": "Podar crianças"
+  },
+  "options": {
+    "action": {
+      "pull": "Pull",
+      "push": "Push",
+      "tag": "Tag",
+      "remove": "Remover"
+    },
+    "registry_mode": {
+      "configured": "Registro configurado",
+      "custom": "Outro"
+    }
+  }
+}

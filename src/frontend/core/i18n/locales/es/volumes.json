@@ -8,6 +8,18 @@
   "pruneUnused": "Podar sin usar",
   "pruneDescription": "Elimine los volúmenes que no estén adjuntos a ningún contenedor.",
   "columns": {
+    "scope": "Ámbito",
+    "labels": "Etiquetas",
+    "options": "Opciones",
+    "status": "Estado",
+    "size": "Tamaño",
+    "refCount": "Referencias",
+    "stack": "Stack",
+    "protected": "Protegido",
+    "groupVolume": "Volumen",
+    "usedBy": "Usado por",
+    "groupRelations": "Relaciones",
+    "groupStack": "Stack",
     "name": "Nombre",
     "driver": "Conductor",
     "usage": "Uso",
@@ -17,7 +29,8 @@
   },
   "badges": {
     "inUse": "en uso",
-    "unused": "no usado"
+    "unused": "No usado",
+    "inUseCount": "{{count}} en uso"
   },
   "create": {
     "title": "Crear volumen",
@@ -36,5 +49,40 @@
   "confirm": {
     "removeTitle": "Quitar volumen",
     "removeDescription": "Esto eliminará permanentemente este volumen y todos sus datos."
+  },
+  "detail": {
+    "tabs": {
+      "ariaLabel": "Secciones del volumen",
+      "overview": "Resumen",
+      "containers": "Contenedores",
+      "configuration": "Configuración"
+    },
+    "notFound": "Volumen no encontrado",
+    "backToVolumes": "Volver a los volúmenes",
+    "general": "General",
+    "name": "Nombre",
+    "driver": "Controlador",
+    "scope": "Ámbito",
+    "mountpoint": "Punto de montaje",
+    "created": "Creado",
+    "usage": "Uso",
+    "status": "Estado",
+    "size": "Tamaño",
+    "sizeUnknown": "No informado",
+    "sizeDescription": "El daemon de Docker informa el tamaño solo cuando ha recopilado datos de uso de este volumen.",
+    "mountedBy": "Montado por",
+    "mountedByContainers": "Contenedores que usan este volumen",
+    "noContainers": "Ningún contenedor monta actualmente este volumen.",
+    "containerName": "Contenedor",
+    "containerId": "ID del contenedor",
+    "mountPath": "Ruta de montaje",
+    "access": "Acceso",
+    "readWrite": "lectura-escritura",
+    "readOnly": "solo lectura",
+    "options": "Opciones",
+    "labels": "Etiquetas",
+    "noConfiguration": "Este volumen no tiene opciones ni etiquetas propias.",
+    "protectedCannotRemove": "Este volumen está protegido y no se puede eliminar.",
+    "inUseCannotRemove": "Un contenedor todavía monta este volumen. Elimínelo o deténgalo primero."
   }
 }

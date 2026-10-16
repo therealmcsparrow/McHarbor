@@ -1,9 +1,0 @@
-{
-  "label": "Lista de contenedores",
-  "description": "Listar contenedores en un entorno",
-  "config": {
-    "environment": "Ambiente",
-    "show_all": "Mostrar todo",
-    "name_filter": "Filtro de nombre"
-  }
-}

@@ -1,0 +1,51 @@
+{
+    "slug":  "gameyfin",
+    "name":  "Gameyfin",
+    "description":  "Self-hosted game library manager that indexes a ROM or PC game collection with metadata and download links.",
+    "category":  "Gaming",
+    "image":  "ghcr.io/gameyfin/gameyfin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gameyfin.png",
+    "website":  "https://gameyfin.app",
+    "docsUrl":  "https://gameyfin.app/docs",
+    "ports":  [
+                  {
+                      "host":  8095,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gameyfin/data",
+                        "container":  "/opt/gameyfin/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/gameyfin/library",
+                        "container":  "/library"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "IGDB_CLIENT_ID",
+                        "default":  "",
+                        "description":  "IGDB API client ID for scraping metadata"
+                    },
+                    {
+                        "key":  "IGDB_CLIENT_SECRET",
+                        "default":  "change-me",
+                        "description":  "IGDB API client secret",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

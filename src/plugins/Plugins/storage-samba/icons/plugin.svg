@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Samba/SMB destination plugin tile.
+     Glyph: Tabler `cloud-share` (MIT — tabler-icons, Paweł Kuna)
+     https://github.com/tabler/tabler-icons/blob/main/icons/outline/cloud-share.svg
+     License: https://github.com/tabler/tabler-icons/blob/main/LICENSE
+     Color: Samba brand green #0066B3 (a hue commonly associated
+     with samba.org's classic mark — the project itself has no
+     single-color icon, so we lean on the standard "distributed
+     file share" metaphor that fits the SMB tile).
+
+     Used for the storage-location picker and the backup overview
+     destination list when the operator picks the samba
+     LocationType. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+     fill="none" stroke="#0066B3" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round"
+     role="img">
+  <title>Samba / SMB</title>
+  <path d="M12.5 18.004h-5.843c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.41 0 2.624 .848 3.164 2.065" />
+  <path d="M16 22l5 -5" />
+  <path d="M21 21.5v-4.5h-4.5" />
+</svg>

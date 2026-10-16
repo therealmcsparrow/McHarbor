@@ -2,15 +2,66 @@
 /* McHarbor is licensed under the McHarbor License. See LICENSE for details. */
 
 @import 'tailwindcss';
-@import "./node_modules/preline/variants.css";
+@import './node_modules/preline/variants.css';
 
 @source "./node_modules/preline/dist/*.js";
+
+/* The widget and node catalogues live at the repo root, two levels above
+   this file, so Tailwind's automatic source detection — which starts from
+   this stylesheet — never sees them. Without these, any utility used *only*
+   by a widget is silently absent from the bundle: `bg-glass-2` was missing
+   from five widgets' markup for exactly this reason. */
+@source "../../widgets/**/*.{ts,tsx}";
+@source "../../nodes/**/*.{ts,tsx}";
+
+/* Plugin frontends have the same blind spot, and a worse failure mode: a
+   plugin ships as a UMD bundle with no stylesheet of its own, so every
+   utility its markup names has to already be in the host's CSS. A class
+   used only inside a plugin page is otherwise emitted nowhere and the page
+   renders unstyled. */
+@source "../plugins/Plugins/*/frontend/src/**/*.{ts,tsx}";
+
 @plugin "@tailwindcss/forms";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════════
+   THE THEME TOKEN CONTRACT
+
+   Every colour in McHarbor is theme-addressable. A theme file under
+   public/themes/ may override any token below, and `scripts/theme-lint.mjs`
+   fails CI when a theme is missing one the contract requires.
+
+   Four groups:
+     1. Surface + text — background, card, popover, border, primary…
+     2. Status tones   — success / warning / danger / critical / info /
+                         neutral, each with a readable `-fg` for solid fills.
+     3. Chart ramp     — --chart-1 … --chart-8. Assigned in fixed order,
+                         never cycled. Also the source for the 13 driver
+                         accents, which are assigned per category so the
+                         same step can serve `bridge` and `runc` safely.
+     4. Type + motion  — the three faces and the four permitted motions.
+
+   Nothing renders from a Tailwind palette class (bg-emerald-500) or a
+   colour literal (#10b981, hsl(...)). A user on Dracula gets Dracula's
+   idea of "warning", not Tailwind's amber.
+   ═══════════════════════════════════════════════════════════════════ */
+
 @theme inline {
-  --radius: 0.625rem;
+  --radius: 0rem;
+  --radius-xs: 0rem;
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+  --radius-2xl: 0rem;
+  --radius-3xl: 0rem;
+  --radius-4xl: 0rem;
+
+  /* Type — three jobs, three faces. */
+  --font-sans: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Inter Tight', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -41,78 +92,240 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Preline semantic tokens */
-  --color-layer: var(--card);
-  --color-surface: var(--background);
-  --color-overlay: var(--popover);
-  --color-card-line: var(--border);
-  --color-table-line: var(--border);
+  /* Status tones — the 6 in status-palette.ts, now themeable.
+     `bg-success/15`, `text-warning`, `border-danger/40` all resolve. */
+  --color-success: var(--status-success);
+  --color-success-foreground: var(--status-success-fg);
+  --color-warning: var(--status-warning);
+  --color-warning-foreground: var(--status-warning-fg);
+  --color-danger: var(--status-danger);
+  --color-danger-foreground: var(--status-danger-fg);
+  --color-critical: var(--status-critical);
+  --color-critical-foreground: var(--status-critical-fg);
+  --color-info: var(--status-info);
+  --color-info-foreground: var(--status-info-fg);
+  /* Workflow canvas: the utility node header. Its own hue rather than a
+     status tone, because "utility" is a category and not a judgement, and
+     because logic already owns the amber. */
+  --color-node-utility: var(--node-utility);
+  --color-node-utility-foreground: var(--node-utility-fg);
+
+  --color-neutral: var(--status-neutral);
+  --color-neutral-foreground: var(--status-neutral-fg);
+  --color-workflow-utility: var(--workflow-utility);
+  --color-workflow-utility-foreground: var(--workflow-utility-fg);
+
+  /* Chart series — fixed assignment order, never cycled. */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  /* Structure — the deep-blue counterpart to the teal accent. Used for
+     rules, dividers and the pointer-tracked panel edge. */
+  --color-structure: var(--structure);
+
+  /* Tidal surface language. Glass panels over a drifting aurora, held
+     together by hairlines rather than solid borders — the treatment the
+     preview build is built on. Exposed as utilities so components read
+     `bg-glass border-hairline` instead of restating the values. */
+  --color-canvas-2: var(--canvas-2);
+  --color-glass: var(--glass);
+  --color-glass-2: var(--glass-2);
+  --color-glass-solid: var(--glass-solid);
+  --color-hairline: var(--border);
+  --color-hairline-2: var(--border);
+  --color-edge-hi: var(--edge-hi);
+  --color-shine: var(--shine);
+  --color-scrim: var(--scrim);
 }
 
-/* McHarbor Brand Theme
-   Primary: teal rgb(38, 176, 198) = oklch(0.698 0.114 211.4)
-   Secondary: deep blue rgb(39, 106, 162) = oklch(0.510 0.111 247.6) */
+/* ── Tidal · Shallow (light) ──────────────────────────────────────────
+   Derived in OKLCH from the logo — teal rgb(38,176,198), deep blue
+   rgb(39,106,162) — so both modes share one token set rather than being
+   hand-tuned twice. */
 
 :root {
-  --background: oklch(0.986 0.008 207);
-  --foreground: oklch(0.252 0.045 253);
+  --background: oklch(0.978 0.007 226);
+  --foreground: oklch(0.225 0.032 252);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.252 0.045 253);
+  --card-foreground: oklch(0.225 0.032 252);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.252 0.045 253);
-  --primary: oklch(0.698 0.114 211.4);
+  --popover-foreground: oklch(0.225 0.032 252);
+  --primary: oklch(0.56 0.118 205);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.963 0.015 207);
-  --secondary-foreground: oklch(0.311 0.048 252);
-  --muted: oklch(0.963 0.015 207);
-  --muted-foreground: oklch(0.555 0.040 244);
-  --accent: oklch(0.956 0.018 214);
-  --accent-foreground: oklch(0.311 0.048 252);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.906 0.033 216);
-  --input: oklch(0.906 0.033 216);
-  --ring: oklch(0.698 0.114 211.4);
+  --secondary: oklch(0.95 0.01 222);
+  --secondary-foreground: oklch(0.285 0.038 250);
+  --muted: oklch(0.95 0.01 222);
+  --muted-foreground: oklch(0.505 0.03 245);
+  --accent: oklch(0.94 0.016 210);
+  --accent-foreground: oklch(0.285 0.038 250);
+  --destructive: oklch(0.545 0.19 24);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.898 0.014 222);
+  --input: oklch(0.898 0.014 222);
+  --ring: oklch(0.56 0.118 205);
 
-  --sidebar: oklch(0.978 0.011 211);
-  --sidebar-foreground: oklch(0.252 0.045 253);
-  --sidebar-primary: oklch(0.698 0.114 211.4);
+  --structure: oklch(0.44 0.118 250);
+
+  --sidebar: oklch(0.962 0.01 224);
+  --sidebar-foreground: oklch(0.225 0.032 252);
+  --sidebar-primary: oklch(0.56 0.118 205);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.956 0.018 214);
-  --sidebar-accent-foreground: oklch(0.311 0.048 252);
-  --sidebar-border: oklch(0.906 0.033 216);
-  --sidebar-ring: oklch(0.698 0.114 211.4);
+  --sidebar-accent: oklch(0.94 0.016 210);
+  --sidebar-accent-foreground: oklch(0.285 0.038 250);
+  --sidebar-border: oklch(0.898 0.014 222);
+  --sidebar-ring: oklch(0.56 0.118 205);
+
+  /* ── Tidal surface language · Shallow ──────────────────────────────
+     Glass over aurora, hairlines instead of solid borders, layered
+     shadows. These are what make the interface look built rather than
+     assembled; the palette above only decides what colour it is. */
+  --canvas-2: oklch(0.995 0.003 226);
+  --glass: oklch(1 0 0 / 0.7);
+  --glass-2: oklch(1 0 0 / 0.92);
+  --glass-solid: oklch(1 0 0);
+  --glass-blur: 22px;
+  --mc-control-h: 1.875rem;
+  --hairline: oklch(0.52 0.045 244 / 0.17);
+  --hairline-2: oklch(0.52 0.045 244 / 0.3);
+  --edge-hi: oklch(1 0 0 / 0.9);
+  --shine: oklch(1 0 0 / 0.55);
+  --grid-line: oklch(0.42 0.05 250 / 0.09);
+  --scrim: oklch(0.42 0.05 250 / 0.28);
+
+  --accent-wash: oklch(0.56 0.118 205 / 0.13);
+  --accent-glow: oklch(0.56 0.118 205 / 0.26);
+
+  --shadow-1: 0 1px 2px oklch(0.45 0.04 248 / 0.1);
+  --shadow-2: 0 2px 5px oklch(0.45 0.04 248 / 0.09), 0 14px 34px -16px oklch(0.42 0.05 250 / 0.2);
+  --shadow-3: 0 4px 10px oklch(0.45 0.04 248 / 0.1), 0 32px 64px -24px oklch(0.42 0.05 250 / 0.24);
+
+  /* Three slow blurred washes behind everything. Light mode keeps them
+     faint — on a white canvas a little goes a long way. */
+  --aurora-a: oklch(0.86 0.1 200 / 0.3);
+  --aurora-b: oklch(0.8 0.09 262 / 0.26);
+  --aurora-c: oklch(0.88 0.08 176 / 0.22);
+
+  /* Status tones. Every value clears WCAG AA (4.5:1) both as text on
+     --card and as a solid fill carrying its own -fg. */
+  --status-success: oklch(0.535 0.123 158);
+  --status-success-fg: oklch(1 0 0);
+  --status-warning: oklch(0.568 0.123 68);
+  --node-utility: oklch(0.842 0.15 96);
+  --node-utility-fg: oklch(0.168 0.026 252);
+  --status-warning-fg: oklch(1 0 0);
+  --status-danger: oklch(0.545 0.19 24);
+  --status-danger-fg: oklch(1 0 0);
+  --status-critical: oklch(0.47 0.186 18);
+  --status-critical-fg: oklch(1 0 0);
+  --status-info: oklch(0.52 0.13 245);
+  --status-info-fg: oklch(1 0 0);
+  --status-neutral: oklch(0.52 0.025 250);
+  --workflow-utility: oklch(0.64 0.17 48);
+  --workflow-utility-fg: oklch(1 0 0);
+  --status-neutral-fg: oklch(1 0 0);
+
+  /* Chart ramp — validated for lightness band, chroma floor,
+     adjacent-pair colour-vision separation and contrast against the
+     surface. Assign in order; never cycle. */
+  --chart-1: oklch(0.588 0.101 206.2);
+  --chart-2: oklch(0.601 0.136 64.3);
+  --chart-3: oklch(0.53 0.175 290);
+  --chart-4: oklch(0.58 0.144 154.8);
+  --chart-5: oklch(0.522 0.152 251);
+  --chart-6: oklch(0.54 0.185 20);
+  --chart-7: oklch(0.539 0.169 337.2);
+  --chart-8: oklch(0.552 0.119 116.1);
 }
 
-.dark {
-  --background: oklch(0.233 0.033 258);
-  --foreground: oklch(0.949 0.013 229);
-  --card: oklch(0.275 0.038 258);
-  --card-foreground: oklch(0.949 0.013 229);
-  --popover: oklch(0.275 0.038 258);
-  --popover-foreground: oklch(0.949 0.013 229);
-  --primary: oklch(0.754 0.118 211);
-  --primary-foreground: oklch(0.185 0.025 258);
-  --secondary: oklch(0.313 0.041 256);
-  --secondary-foreground: oklch(0.949 0.013 229);
-  --muted: oklch(0.313 0.041 256);
-  --muted-foreground: oklch(0.640 0.040 242);
-  --accent: oklch(0.305 0.042 254);
-  --accent-foreground: oklch(0.949 0.013 229);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.949 0.013 229);
-  --border: oklch(0.360 0.046 256);
-  --input: oklch(0.360 0.046 256);
-  --ring: oklch(0.754 0.118 211);
+/* ── Tidal · Deep (dark) ─────────────────────────────────────────── */
 
-  --sidebar: oklch(0.213 0.033 260);
-  --sidebar-foreground: oklch(0.860 0.025 229);
-  --sidebar-primary: oklch(0.754 0.118 211);
-  --sidebar-primary-foreground: oklch(0.949 0.013 229);
-  --sidebar-accent: oklch(0.294 0.042 256);
-  --sidebar-accent-foreground: oklch(0.949 0.013 229);
-  --sidebar-border: oklch(0.360 0.046 256);
-  --sidebar-ring: oklch(0.754 0.118 211);
+.dark {
+  --background: oklch(0.168 0.026 252);
+  --foreground: oklch(0.945 0.012 220);
+  --card: oklch(0.216 0.028 252);
+  --card-foreground: oklch(0.945 0.012 220);
+  --popover: oklch(0.216 0.028 252);
+  --popover-foreground: oklch(0.945 0.012 220);
+  --primary: oklch(0.775 0.115 203);
+  --primary-foreground: oklch(0.15 0.024 252);
+  --secondary: oklch(0.262 0.03 252);
+  --secondary-foreground: oklch(0.945 0.012 220);
+  --muted: oklch(0.262 0.03 252);
+  --muted-foreground: oklch(0.66 0.028 235);
+  --accent: oklch(0.272 0.034 250);
+  --accent-foreground: oklch(0.945 0.012 220);
+  --destructive: oklch(0.68 0.18 22);
+  --destructive-foreground: oklch(0.15 0.024 252);
+  --border: oklch(0.305 0.032 252);
+  --input: oklch(0.305 0.032 252);
+  --ring: oklch(0.775 0.115 203);
+
+  --structure: oklch(0.56 0.12 250);
+
+  --sidebar: oklch(0.148 0.024 254);
+  --sidebar-foreground: oklch(0.86 0.02 224);
+  --sidebar-primary: oklch(0.775 0.115 203);
+  --sidebar-primary-foreground: oklch(0.15 0.024 252);
+  --sidebar-accent: oklch(0.248 0.032 252);
+  --sidebar-accent-foreground: oklch(0.945 0.012 220);
+  --sidebar-border: oklch(0.305 0.032 252);
+  --sidebar-ring: oklch(0.775 0.115 203);
+
+  /* ── Tidal surface language · Deep ─────────────────────────────── */
+  --canvas-2: oklch(0.205 0.03 252);
+  --glass: oklch(1 0 0 / 0.048);
+  --glass-2: oklch(1 0 0 / 0.075);
+  --glass-solid: oklch(0.225 0.03 252);
+  --glass-blur: 22px;
+  --hairline: oklch(1 0 0 / 0.085);
+  --hairline-2: oklch(1 0 0 / 0.16);
+  --edge-hi: oklch(1 0 0 / 0.1);
+  --shine: oklch(1 0 0 / 0.07);
+  --grid-line: oklch(1 0 0 / 0.06);
+  --scrim: oklch(0.1 0.02 250 / 0.62);
+
+  --accent-wash: oklch(0.775 0.115 203 / 0.13);
+  --accent-glow: oklch(0.775 0.115 203 / 0.32);
+
+  --shadow-1: 0 1px 2px oklch(0.1 0.02 250 / 0.4);
+  --shadow-2: 0 2px 5px oklch(0.1 0.02 250 / 0.34), 0 14px 34px -16px oklch(0.08 0.02 250 / 0.72);
+  --shadow-3: 0 4px 10px oklch(0.1 0.02 250 / 0.38), 0 32px 64px -24px oklch(0.06 0.02 250 / 0.82);
+
+  --aurora-a: oklch(0.7 0.15 200 / 0.17);
+  --aurora-b: oklch(0.52 0.17 268 / 0.26);
+  --aurora-c: oklch(0.62 0.13 176 / 0.11);
+
+  --status-success: oklch(0.735 0.15 158);
+  --status-success-fg: oklch(0.168 0.026 252);
+  --status-warning: oklch(0.782 0.145 78);
+  --node-utility: oklch(0.868 0.158 98);
+  --node-utility-fg: oklch(0.168 0.026 252);
+  --status-warning-fg: oklch(0.168 0.026 252);
+  --status-danger: oklch(0.68 0.18 22);
+  --status-danger-fg: oklch(0.168 0.026 252);
+  --status-critical: oklch(0.645 0.212 16);
+  --status-critical-fg: oklch(0.168 0.026 252);
+  --status-info: oklch(0.72 0.115 232);
+  --status-info-fg: oklch(0.168 0.026 252);
+  --status-neutral: oklch(0.68 0.025 250);
+  --workflow-utility: oklch(0.74 0.16 50);
+  --workflow-utility-fg: oklch(0.168 0.026 252);
+  --status-neutral-fg: oklch(0.168 0.026 252);
+
+  --chart-1: oklch(0.662 0.113 205.4);
+  --chart-2: oklch(0.66 0.145 67.9);
+  --chart-3: oklch(0.6 0.155 290.1);
+  --chart-4: oklch(0.659 0.144 155.2);
+  --chart-5: oklch(0.581 0.145 249.8);
+  --chart-6: oklch(0.6 0.174 20);
+  --chart-7: oklch(0.628 0.157 334.8);
+  --chart-8: oklch(0.653 0.14 116.3);
 }
 
 @layer base {
@@ -126,27 +339,97 @@
   }
   body {
     margin: 0;
+    font-family: var(--font-sans);
+    /* Slight negative tracking is what makes a grotesque read as designed
+       rather than as the browser default, and tabular figures keep a
+       column of numbers from shuffling as values change. */
+    letter-spacing: -0.006em;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
     @apply bg-background text-foreground;
+  }
+
+  /* Headings take the display face and tighter tracking. `opsz` is a real
+     axis on Bricolage Grotesque — setting it per size is the difference
+     between using a variable font and merely loading one. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-variation-settings: 'opsz' 40;
+  }
+
+  h2 {
+    font-variation-settings: 'opsz' 32;
+  }
+
+  h3,
+  h4 {
+    font-variation-settings: 'opsz' 20;
+  }
+
+  /* ── Browser surfaces ──────────────────────────────────────────────
+     The parts a design system usually leaves to the browser. Cheapest
+     available signal that a page was built rather than assembled. */
+
+  ::selection {
+    background-color: var(--accent-glow);
+    color: var(--foreground);
+  }
+
+  html {
+    caret-color: var(--primary);
+    text-underline-offset: 0.2em;
+  }
+
+  a {
+    text-decoration-thickness: 1px;
+  }
+
+  /* Tabular figures everywhere a number is read as a quantity rather
+     than as prose — counts, ports, metrics, sizes, uptimes. Keeps a
+     column of digits aligned as values change. */
+  table,
+  time,
+  output,
+  [data-numeric],
+  .font-mono,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) * 0.5);
   }
 
   /* Pointer cursor on all interactive elements */
   button,
-  [role="button"],
+  [role='button'],
   a,
   select,
-  input[type="checkbox"],
-  input[type="radio"],
+  input[type='checkbox'],
+  input[type='radio'],
   label[for],
   summary,
-  [tabindex]:not([tabindex="-1"]) {
+  [tabindex]:not([tabindex='-1']) {
     cursor: pointer;
   }
 
-  /* Subtle glow on button hover */
-  button:not(:disabled):hover,
-  [role="button"]:not(:disabled):hover {
-    box-shadow: 0 0 8px 0 oklch(from var(--primary) l c h / 0.3);
-  }
+  /* NOTE: the former blanket `button:hover { box-shadow: 0 0 8px … }`
+     glow is gone. It was a zero-offset halo rather than a depth cue and
+     it applied equally to a ghost icon button in a table row and the
+     primary deploy action. Hover feedback now lives in the Button
+     variants, where it can differ by emphasis. */
 
   /* Themed scrollbars */
   * {
@@ -154,9 +437,13 @@
     scrollbar-color: var(--border) transparent;
   }
 
+  * {
+    scrollbar-color: var(--hairline-2) transparent;
+  }
+
   *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
 
   *::-webkit-scrollbar-track {
@@ -164,12 +451,14 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: var(--border);
-    border-radius: 9999px;
+    background: var(--hairline-2);
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: var(--muted-foreground);
+    background: var(--muted-foreground);
+    background-clip: content-box;
   }
 
   *::-webkit-scrollbar-corner {
@@ -177,11 +466,693 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   TIDAL SURFACES
+
+   Two primitives carry the look, and everything else composes them:
+
+     .mc-aurora  three slow blurred washes, fixed behind the whole app
+     .mc-glass   a translucent panel that blurs what drifts beneath it
+
+   Glass only reads as glass when there is something behind it worth
+   blurring — that is why the aurora exists. Without it the blur has
+   nothing to do and the panels look like flat cards with low-contrast
+   borders, which is what a "glassmorphism" pass usually degenerates into.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.mc-aurora {
+  display: none;
+}
+
+.mc-aurora span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.mc-aurora .a {
+  width: 56vw;
+  height: 56vw;
+  left: -22vw;
+  top: -30vw;
+  background: var(--aurora-a);
+  animation: mc-drift-a 34s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+}
+
+.mc-aurora .b {
+  width: 48vw;
+  height: 48vw;
+  right: -12vw;
+  top: -8vw;
+  background: var(--aurora-b);
+  animation: mc-drift-b 42s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+}
+
+.mc-aurora .c {
+  width: 40vw;
+  height: 40vw;
+  left: 36vw;
+  bottom: -24vw;
+  background: var(--aurora-c);
+  animation: mc-drift-c 50s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+}
+
+@keyframes mc-drift-a {
+  to {
+    transform: translate3d(9vw, 7vh, 0) scale(1.14);
+  }
+}
+@keyframes mc-drift-b {
+  to {
+    transform: translate3d(-11vw, 10vh, 0) scale(1.08);
+  }
+}
+@keyframes mc-drift-c {
+  to {
+    transform: translate3d(7vw, -9vh, 0) scale(1.18);
+  }
+}
+
+/* The panel primitive. Solid rather than translucent: the surface is a
+   step of lightness off the canvas and a 1px seam does the separating,
+   so nothing depends on what drifts underneath. */
+.mc-glass {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+:is(button, a, [role='button']).mc-glass:not(:disabled):not([aria-disabled='true']):hover {
+  background: var(--muted);
+}
+
+:is(button, a, [role='button']).mc-glass:not(:disabled):not([aria-disabled='true']):active {
+  background: var(--accent);
+}
+
+/* A terminal in fullscreen is `position: fixed; inset: 0`, and a
+   `backdrop-filter` on ANY ancestor makes that resolve against the filtered
+   element instead of the viewport — so a terminal dropped inside a glass
+   section silently stops being fullscreen. `useTerminalFullscreen` sets
+   `mc-terminal-fullscreen` on <body> for exactly this window.
+
+   Dropping the blur costs nothing while it is set: every glass panel on the
+   page is completely covered by the overlay anyway.
+
+   Both spellings are reset because the build's CSS transform emits only the
+   -webkit- form for the glass rules above, and that is the declaration this
+   has to cancel; the unprefixed one keeps the source honest. */
+body.mc-terminal-fullscreen .mc-glass,
+body.mc-terminal-fullscreen .mc-glass-plain {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Same treatment, no border — for a full-height shell region that
+   already has a single dividing seam of its own. */
+.mc-glass-plain {
+  background: var(--card);
+}
+
+/* Floating surfaces — dropdowns, pulldown menus, popovers, tour steps.
+   These do NOT sit over the aurora, they sit over arbitrary page content:
+   tables, logs, code. `--glass` is 4.8% white in dark mode, which is
+   deliberate for anchored panels and unreadable for a menu, so the overlay
+   variant is opaque. It keeps the blur, the hairline and the lit top edge
+   so it still reads as the same material — only the substrate is solid.
+   Owns its own shadow: do not add a Tailwind shadow-* utility on top, it
+   would replace the box-shadow and take the inset highlight with it. */
+.mc-glass-overlay {
+  background: var(--popover);
+  border: 1px solid var(--border);
+}
+
+/* A tooltip. The same solid substrate as every other overlay, and
+   deliberately no border.
+
+   `--border` is oklch(0.898) in light mode, which is a hairline on a panel
+   and a white halo around a 24px label — the box ends up reading as an
+   outline with text in it rather than as a floating hint. A shadow separates
+   it from the page instead, which is what a transient surface an inch from
+   the cursor actually needs. */
+.mc-tooltip {
+  background: var(--popover);
+  border: 0;
+  box-shadow: var(--shadow-2);
+}
+
+/* The scrim behind a blocking surface. Not a flat black wash: it carries the
+   deep end of the palette and blurs what it covers, so the page under a modal
+   reads as submerged rather than merely dimmed — the same idea as the glass,
+   seen from the other side. Its blur is far shallower than a panel's; the
+   scrim has to hide detail, not texture, and 22px over a whole viewport is
+   both expensive and murky.
+
+   One definition for every blocking surface — Radix overlays and the
+   hand-rolled quick-look panels alike. */
+.mc-scrim {
+  background: var(--scrim);
+}
+
+/* The modal body. A solid raised surface — `bg-popover`, a hairline border and
+   `--shadow-3`, set by `DialogContent` as utilities so a call site can still
+   override them. This class only decides that it is a *modal*: how it arrives.
+   Old plugin bundles that still ship `mc-glass-overlay mc-modal` get the same
+   solid `--popover` fill from `.mc-glass-overlay`. */
+.mc-modal {
+  transform-origin: center;
+}
+
+/* An open list — pulldown, combobox, dropdown menu, filter popover.
+
+   `.mc-glass-overlay` alone fills with `--glass-solid`, which made an open list
+   read as a black slab. It takes the solid `--popover` surface modals use, so a
+   list opened inside a dialog matches the dialog behind it.
+
+   Deliberately not folded into `.mc-glass-overlay`: `Tooltip` shares that base
+   class and keeps its own fill. Opt in. */
+.mc-menu {
+  background: var(--popover);
+}
+
+/* A side sheet. Same material, but it enters from the edge it is docked to and
+   keeps only that edge's border — `.mc-glass-overlay` sets the `border`
+   *shorthand* and is unlayered, so it would otherwise beat `border-r-0` and
+   draw a hairline down the outside of the viewport. */
+.mc-sheet {
+  border-width: 0 0 0 1px;
+}
+
+/* ── The form-control surface ──────────────────────────────────────
+   One material for every field: text inputs, textareas, number inputs
+   and their +/- segments, password inputs, and pulldown triggers. If a
+   control accepts input, it wears this.
+
+   Two rules make it work:
+
+   1. It sets `border-color`, never the `border` shorthand. Everything
+      below `@import 'tailwindcss'` is unlayered and therefore beats every
+      Tailwind utility — the shorthand would silently kill `border-l-0`,
+      and `.mc-glass` killing `focus:border-primary` is exactly why the
+      number field never showed a focus border. Width and radius stay with
+      the utilities; only the colour lives here.
+   2. Focus and hover live in this block too, for the same reason. There is
+      one definition of "a field is focused" and no utility can override it.
+
+   No drop shadow — that belongs to panels and overlays. On an inline
+   control it reads as floating. The inset lit edge is the part that
+   actually sells the material, and it stays.
+   ────────────────────────────────────────────────────────────────── */
+/* One height for every interactive control.
+ *
+ * Buttons, selects and inputs used to derive their height from padding, which
+ * differs by text size and border — a single filter band rendered controls at
+ * 28, 30, 38 and 42px. The height is explicit now, so a row of mixed controls
+ * lines up by construction. The value is the Time Range trigger's height, which
+ * is the reference the design uses.
+ *
+ * `Button size="lg"` deliberately opts out: it exists to be larger.
+ *
+ * It lives in `@layer components`, unlike `.mc-field` below. Unlayered CSS beats
+ * every Tailwind utility, which is right for `.mc-field`'s colours but wrong for
+ * a height — a caller passing `size-5` on a chip's close button, or any `h-*`,
+ * must still win. The components layer sits below utilities, so it does.
+ */
+@layer components {
+  .mc-control {
+    height: var(--mc-control-h);
+  }
+}
+
+.mc-slider {
+  background: linear-gradient(
+    to right,
+    var(--primary) 0%,
+    var(--primary) var(--mc-slider-filled, 0%),
+    var(--muted) var(--mc-slider-filled, 0%),
+    var(--muted) 100%
+  );
+}
+
+.mc-slider-zoned {
+  background:
+    linear-gradient(
+      to right,
+      transparent 0%,
+      transparent var(--mc-slider-filled, 0%),
+      color-mix(in oklch, var(--background) 62%, transparent) var(--mc-slider-filled, 0%),
+      color-mix(in oklch, var(--background) 62%, transparent) 100%
+    ),
+    var(--mc-slider-track, var(--muted));
+}
+
+.mc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1rem;
+  width: 1rem;
+  background: var(--primary);
+  border: 2px solid var(--background);
+  box-shadow: var(--shadow-1);
+  cursor: inherit;
+}
+
+.mc-slider::-moz-range-thumb {
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid var(--background);
+  background: var(--primary);
+  box-shadow: var(--shadow-1);
+  cursor: inherit;
+}
+
+.mc-field {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.mc-field:hover:not(:disabled):not([data-disabled]) {
+  border-color: var(--muted-foreground);
+}
+
+.mc-field:focus,
+.mc-field:focus-visible {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow:
+    inset 0 1px 0 var(--edge-hi),
+    0 0 0 1px var(--ring);
+}
+
+/* One member of a joined group — the number input and its two steppers.
+   Lifting the focused segment draws its ring whole instead of letting the
+   neighbour's border clip it. Scoped to the group on purpose: a blanket
+   lift would let a focused input paint over an absolutely-positioned
+   adornment sitting inside it, such as the password reveal toggle. */
+.mc-field-seg:focus,
+.mc-field-seg:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+/* The button-shaped members of the family — +/- steppers, pulldown
+   triggers. They take a background hover the typing surfaces don't. */
+.mc-field-btn:hover:not(:disabled):not([data-disabled]) {
+  background: var(--glass-2);
+  color: var(--foreground);
+}
+
+/* The brand mark: the two logo colours as a gradient, lit from above. */
+.mc-brand-mark {
+  background: linear-gradient(140deg, var(--primary), var(--structure));
+  box-shadow:
+    0 2px 8px oklch(0.55 0.12 220 / 0.45),
+    inset 0 1px 0 oklch(1 0 0 / 0.3);
+}
+
+/* ── The login plate ──────────────────────────────────────────────────
+   The pre-auth page is the one surface with a photograph on it. The photo
+   is pushed down into a cyanotype so it behaves as paper rather than as a
+   picture: desaturate, drop the exposure, lay the deep end of the palette
+   over it by `color`, then wash it back with a translucent pass. The
+   schematic is plotted on top in a light cyan derived from --primary.
+
+   Everything here derives from existing tokens, so a custom theme restyles
+   the plate for free and `theme-lint` gains no new required token. The
+   plate stays dark in both modes — it is a photograph, not a surface. */
+
+.mc-login-plate {
+  background: linear-gradient(168deg, var(--structure), oklch(0.16 0.04 254));
+}
+
+.mc-login-photo {
+  filter: grayscale(1) contrast(1.32) brightness(0.66);
+}
+
+.mc-login-cyano {
+  background: linear-gradient(168deg, var(--structure), oklch(0.155 0.042 254));
+  mix-blend-mode: color;
+}
+
+.mc-login-cyano-2 {
+  background: linear-gradient(168deg, oklch(0.24 0.07 252 / 0.7), oklch(0.14 0.035 254 / 0.92));
+}
+
+/* With no graph paper behind it, the line work needs its own ground or it
+   dissolves into whatever the photograph is doing underneath. */
+.mc-login-settle {
+  background: radial-gradient(105% 78% at 42% 30%, oklch(0.12 0.028 254 / 0.55), transparent 70%);
+}
+
+/* Paper tooth. Also the cheapest fix for the banding that `mix-blend-mode:
+   color` leaves across a large flat sky. */
+.mc-login-tooth {
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.mc-login-ink {
+  color: color-mix(in oklab, var(--primary) 55%, white);
+}
+
+/* The plate is a photograph in both themes, so its type cannot resolve from
+   --foreground — that would turn black on a dark picture the moment someone
+   switches to light. These four are the plate's own palette. */
+.mc-login-fg {
+  color: oklch(0.98 0.01 220);
+}
+
+.mc-login-fg-dim {
+  color: oklch(0.98 0.01 220 / 0.72);
+}
+
+.mc-login-box {
+  fill: oklch(0.16 0.04 250 / 0.62);
+}
+
+.mc-login-box-hi {
+  fill: oklch(0.56 0.118 205 / 0.32);
+}
+
+.mc-login-note {
+  fill: oklch(0.88 0.1 62);
+}
+
+.mc-login-scrim {
+  background: linear-gradient(180deg, transparent, oklch(0.11 0.024 254 / 0.86));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTION — seven, and no others.
+
+   1. `mc-pulse`         status pulse, on running containers only
+   2. `mc-segment`       the sliding segment pill under a tab bar
+   3. `mc-panel-edge`    pointer-tracked panel edge
+   4. view transition    circular theme reveal
+   5. overlay entrance   scrims, dropdowns, popovers, modals
+   6. sheet entrance     the side drawer
+   7. `mc-login-flow`    traffic along the login schematic's wires,
+                         and the login plate's 30s photo crossfade
+
+   5 and 6 are new. They are not decoration: until they existed, this app
+   had *no* dialog motion at all. The components asked for it — `animate-in`,
+   `fade-in-0`, `zoom-in-95`, `slide-in-from-right` were spread across
+   Dialog, Select, Popover and the drawer — but those classes belong to
+   `tailwindcss-animate`, which is not a dependency here and never was. Every
+   one of them compiled to nothing, so a modal appeared by simply *being
+   there* on the next frame. That single frame is most of what made the
+   modals feel older than the surfaces around them.
+
+   All seven are gated behind BOTH the OS `prefers-reduced-motion`
+   setting and the in-app "Reduce motion" preference, which writes
+   `data-reduce-motion="true"` onto <html>. The OS setting is not always
+   what a user wants specifically here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* A single short dash travelling each wire of the login schematic. One dot per
+   path, staggered so they do not all set off together — the drawing should read
+   as carrying traffic, not as a marquee. The dash gap (200) is longer than the
+   longest wire, which is what keeps it to one dot. */
+@keyframes mc-login-flow {
+  to {
+    stroke-dashoffset: -203;
+  }
+}
+
+.mc-login-flow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-dasharray: 3 200;
+  animation: mc-login-flow 4s linear infinite;
+}
+
+.mc-login-flow path:nth-child(2) {
+  animation-delay: -0.8s;
+}
+
+.mc-login-flow path:nth-child(3) {
+  animation-delay: -1.6s;
+}
+
+.mc-login-flow path:nth-child(4) {
+  animation-delay: -2.4s;
+}
+
+.mc-login-flow path:nth-child(5) {
+  animation-delay: -3.2s;
+}
+
+@keyframes mc-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 oklch(from var(--status-success) l c h / 0.55);
+  }
+  50% {
+    opacity: 0.82;
+    box-shadow: 0 0 0 4px oklch(from var(--status-success) l c h / 0);
+  }
+}
+
+.mc-status-pulse {
+  animation: mc-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* The segment pill slides between tabs rather than cross-fading, so the
+   eye can follow where it went. */
+/* `translate` first, and it is the load-bearing one: Tailwind v4 compiles
+   `translate-x-[…]` to the standalone `translate` property, not to
+   `transform`. Transitioning only `transform` matched nothing, so the pill
+   teleported instead of sliding. `transform` stays for anything wearing this
+   class that still animates the shorthand. */
+.mc-segment {
+  transition:
+    translate 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    width 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    height 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Overlay and sheet entrance ────────────────────────────────────
+   Radix stamps `data-state="open" | "closed"` onto every floating part, so
+   the material class carries its own motion and no component restates it.
+   Anything wearing `.mc-glass-overlay` *inside* a Radix part animates;
+   anything wearing it statically — a tour step, the hand-rolled header menu —
+   never receives the attribute and is untouched.
+
+   The exit halves are load-bearing, not symmetry for its own sake: Radix
+   keeps a closing node mounted for exactly as long as an animation is running
+   on it. Delete `mc-modal-out` and dialogs vanish on the frame they close.
+
+   These animate `opacity` and `transform` only. They must never touch the
+   `translate` or `scale` properties: Tailwind v4 compiles
+   `translate-x-[-50%] translate-y-[-50%]` to `translate: …`, which is what
+   centres the dialog, and `scale-*` to `scale: …`. `transform` is free, and
+   composes with both. */
+
+@keyframes mc-scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes mc-scrim-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Anchored surfaces — a dropdown belongs to the control it came from, so it
+   grows from that edge and moves barely at all. */
+@keyframes mc-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+@keyframes mc-float-out {
+  to {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.98);
+  }
+}
+
+/* A modal owns the viewport, so it may travel — but upward and briefly. The
+   easing is the same decelerating curve the tab pill uses. */
+@keyframes mc-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@keyframes mc-modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+}
+
+@keyframes mc-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes mc-sheet-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.mc-scrim {
+  animation: mc-scrim-in 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mc-scrim[data-state='closed'] {
+  animation: mc-scrim-out 150ms ease-in;
+}
+
+/* Tooltips report `delayed-open` / `instant-open` rather than `open`; without
+   them a tooltip would fade out but never fade in. */
+.mc-glass-overlay[data-state='open'],
+.mc-glass-overlay[data-state='delayed-open'],
+.mc-glass-overlay[data-state='instant-open'] {
+  animation: mc-float-in 140ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mc-glass-overlay[data-state='closed'] {
+  animation: mc-float-out 110ms ease-in;
+}
+
+/* Declared after the overlay rules and at equal specificity, so a modal that
+   is also a glass overlay takes the modal curve. */
+.mc-modal,
+.mc-modal[data-state='open'] {
+  animation: mc-modal-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mc-modal[data-state='closed'] {
+  animation: mc-modal-out 150ms ease-in;
+}
+
+.mc-sheet,
+.mc-sheet[data-state='open'] {
+  animation: mc-sheet-in 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mc-sheet[data-state='closed'] {
+  animation: mc-sheet-out 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Panel edge lit by pointer position. The component sets --mc-px/--mc-py
+   from the pointer; this only describes what to do with them. */
+.mc-panel-edge {
+  position: relative;
+}
+
+.mc-panel-edge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    220px circle at var(--mc-px, 50%) var(--mc-py, 0%),
+    oklch(from var(--primary) l c h / 0.55),
+    transparent 60%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.mc-panel-edge:hover::before {
+  opacity: 1;
+}
+
+/* Circular theme reveal, driven by the View Transition API. The origin
+   is set from the toggle's position by the theme store. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+  animation: mc-theme-reveal 480ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes mc-theme-reveal {
+  from {
+    clip-path: circle(0% at var(--mc-theme-x, 50%) var(--mc-theme-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--mc-theme-x, 50%) var(--mc-theme-y, 50%));
+  }
+}
+
+/* The OS setting is the floor. `data-motion-preference="full"` is the one
+   thing that overrides it, and only because the user asked for it here
+   explicitly — see `resources/stores/motion.ts`. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion-preference='full']) .mc-status-pulse,
+  :root:not([data-motion-preference='full']) .mc-segment,
+  :root:not([data-motion-preference='full']) .mc-aurora span,
+  :root:not([data-motion-preference='full']) .mc-panel-edge::before,
+  :root:not([data-motion-preference='full']) .mc-scrim,
+  :root:not([data-motion-preference='full']) .mc-glass-overlay,
+  :root:not([data-motion-preference='full']) .mc-modal,
+  :root:not([data-motion-preference='full']) .mc-sheet,
+  :root:not([data-motion-preference='full']) .mc-login-flow path,
+  :root:not([data-motion-preference='full']) .mc-login-photo {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  :root:not([data-motion-preference='full'])::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* And the in-app preference reduces motion even when the OS does not. */
+[data-reduce-motion='true'] .mc-status-pulse,
+[data-reduce-motion='true'] .mc-segment,
+[data-reduce-motion='true'] .mc-aurora span,
+[data-reduce-motion='true'] .mc-panel-edge::before,
+[data-reduce-motion='true'] .mc-scrim,
+[data-reduce-motion='true'] .mc-glass-overlay,
+[data-reduce-motion='true'] .mc-modal,
+[data-reduce-motion='true'] .mc-sheet,
+[data-reduce-motion='true'] .mc-login-flow path,
+[data-reduce-motion='true'] .mc-login-photo {
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-reduce-motion='true']::view-transition-new(root) {
+  animation: none !important;
+}
+
 /* react-grid-layout */
 .react-grid-placeholder {
   background: var(--primary) !important;
   opacity: 0.15 !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0 !important;
 }
 .react-resizable-handle::after {
   border-color: var(--muted-foreground) !important;

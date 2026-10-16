@@ -1,0 +1,215 @@
+{
+  "title": "RBAC-beleid",
+  "description": "Maak en beheer attribuutgebaseerd toegangsbeleid voor McHarbor-rechten.",
+  "actions": {
+    "new": "Beleid maken",
+    "edit": "Beleid bewerken",
+    "delete": "Beleid verwijderen",
+    "test": "Beleid testen",
+    "enable": "Beleid inschakelen",
+    "disable": "Beleid uitschakelen"
+  },
+  "table": {
+    "name": "Naam",
+    "effect": "Effect",
+    "resourceType": "Resource",
+    "priority": "Prioriteit",
+    "permissions": "Rechten",
+    "status": "Status",
+    "actions": "Acties"
+  },
+  "effect": {
+    "allow": "Toestaan",
+    "deny": "Weigeren"
+  },
+  "status": {
+    "enabled": "Ingeschakeld",
+    "disabled": "Uitgeschakeld"
+  },
+  "empty": {
+    "title": "Nog geen beleid",
+    "description": "Maak een ABAC-beleid om rechten toe te kennen of te weigeren op basis van gebruikers, omgevingen, resources, labels en tijd."
+  },
+  "delete": {
+    "title": "Beleid verwijderen",
+    "description": "{{name}} verwijderen?",
+    "warning": "Hiermee wordt het beleid definitief verwijderd en niet langer meegewogen bij toekomstige autorisatiecontroles.",
+    "cancel": "Annuleren",
+    "confirm": "Verwijderen"
+  },
+  "editor": {
+    "titleCreate": "Beleid maken",
+    "titleEdit": "Beleid bewerken",
+    "name": "Naam",
+    "namePlaceholder": "Toegang tot productiecontainers",
+    "resourceType": "Resourcetype",
+    "resourceContainer": "Container",
+    "resourceImage": "Image",
+    "resourceVolume": "Volume",
+    "resourceNetwork": "Netwerk",
+    "resourceStack": "Stack",
+    "description": "Beschrijving",
+    "descriptionPlaceholder": "Optionele toelichting voor beheerders die dit beleid beoordelen",
+    "effect": "Effect",
+    "effectAllow": "Toestaan",
+    "effectDeny": "Weigeren",
+    "priority": "Prioriteit",
+    "enabled": "Ingeschakeld",
+    "permissions": "Rechten",
+    "permissionsPlaceholder": "containers.view, containers.exec",
+    "permissionsHint": "Kommagescheiden rechtensleutels waarop dit beleid van toepassing is.",
+    "expression": "Expressie",
+    "cancel": "Annuleren",
+    "save": "Beleid opslaan",
+    "saving": "Opslaan...",
+    "anyResource": "Elke resource",
+    "pluginSource": "{{label}} · {{source}}",
+    "permissionsHintSelect": "Het beleid wordt alleen geëvalueerd voor de machtigingen die je opneemt.",
+    "include": "Opnemen",
+    "includeAll": "Alles opnemen",
+    "clear": "Wissen",
+    "noResolver": "McHarbor kan geen details voor dit type laden: alleen resource.type en resource.id zijn bekend."
+  },
+  "tester": {
+    "title": "{{name}} testen",
+    "description": "Voer deze beleidsexpressie uit op voorbeeldattributen voordat je het inschakelt.",
+    "expressionLabel": "Expressie",
+    "attributesLabel": "Attributen-JSON",
+    "attributesAriaLabel": "JSON met testattributen voor beleid",
+    "parseError": "Ongeldige JSON: {{error}}",
+    "matched": "Komt overeen",
+    "denied": "Komt niet overeen",
+    "errorBadge": "Fout",
+    "close": "Sluiten",
+    "run": "Test uitvoeren",
+    "running": "Bezig...",
+    "userLabelsTitle": "Gebruikerslabels",
+    "userIdPlaceholder": "Gebruikers-ID",
+    "lookup": "Opzoeken",
+    "noLabels": "Deze gebruiker heeft geen labels.",
+    "applyLabels": "Deze labels gebruiken"
+  },
+  "toast": {
+    "created": "Beleid aangemaakt",
+    "updated": "Beleid bijgewerkt",
+    "deleted": "Beleid verwijderd"
+  },
+  "reference": {
+    "title": "Expressiereferentie",
+    "intro": "Een expressie geeft true terug wanneer het beleid van toepassing is. Klik op een item om het bij de cursor in te voegen.",
+    "tabs": {
+      "variables": "Variabelen",
+      "helpers": "Functies",
+      "examples": "Voorbeelden"
+    },
+    "everywhere": "Beschikbaar in elk beleid",
+    "forType": "Voor dit resourcetype",
+    "insert": "Invoegen",
+    "types": {
+      "api_key": "API-sleutel",
+      "alert": "Waarschuwingsregel",
+      "communication_channel": "Communicatiekanaal",
+      "container": "Container",
+      "backup_plan": "Containerback-upplan",
+      "desired_state": "Gewenste status",
+      "environment": "Omgeving",
+      "git_repo": "Git-repository",
+      "group": "Groep",
+      "identity_provider": "Identiteitsprovider",
+      "image": "Image",
+      "incident": "Incident",
+      "network": "Netwerk",
+      "registry": "Registry",
+      "role": "Rol",
+      "schedule": "Schema",
+      "secret": "Geheim",
+      "stack": "Stack",
+      "storage_location": "Opslaglocatie",
+      "user": "Gebruiker",
+      "volume": "Volume",
+      "webhook": "Webhook",
+      "workflow": "Workflow"
+    },
+    "vars": {
+      "user_id": "Gebruikers-ID van de aanroeper",
+      "user_username": "Gebruikersnaam van de aanroeper",
+      "user_email": "E-mailadres van de aanroeper",
+      "user_roles": "Namen van alle rollen die de aanroeper heeft, direct of via groepen",
+      "user_groups": "Namen van de groepen van de aanroeper",
+      "user_labels": "Labels van de gebruiker; lees met hasLabel(user.labels, key)",
+      "env_id": "Omgeving van het verzoek, leeg bij globale acties",
+      "env_name": "Omgevingsnaam",
+      "env_type": "Verbindingstype: socket, tcp, agent …",
+      "request_method": "HTTP-methode",
+      "request_path": "Routepad",
+      "request_ip": "Clientadres, rekening houdend met vertrouwde proxy's",
+      "request_apiKey": "De aanroep is gedaan met een API-sleutel",
+      "request_readOnly": "GET, HEAD of OPTIONS",
+      "now_hour": "Uur 0–23, servertijd",
+      "now_minute": "Minuut 0–59",
+      "now_weekday": "0 = zondag … 6 = zaterdag",
+      "now_day": "Dag van de maand",
+      "now_month": "Maand 1–12",
+      "now_year": "Jaar",
+      "now_date": "YYYY-MM-DD, UTC",
+      "now_unixTime": "Seconden sinds 1970",
+      "resource_type": "Het resourcetype",
+      "resource_id": "De resource-ID uit de route",
+      "resource_name": "Weergavenaam",
+      "resource_owner": "Gebruikers-ID van de eigenaar, wanneer de resource er een vastlegt",
+      "resource_state": "Huidige status, wanneer de resource er een heeft",
+      "resource_environment": "ID van de omgeving waarin de resource staat",
+      "resource_labels": "Labels; lees met hasLabel(resource.labels, key)",
+      "resource_image": "Image-referentie waarmee de container draait",
+      "resource_attrs_connectionType": "socket, tcp, ssh of agent"
+    },
+    "helpers": {
+      "hasLabel": "De waarde van het label, of een lege tekenreeks als het ontbreekt.",
+      "labelIn": "Of het label een van de waarden is.",
+      "inList": "Of value gelijk is aan een van de items.",
+      "hasRole": "Of de gebruiker een rol met deze naam heeft.",
+      "inGroup": "Of de gebruiker lid is van deze groep.",
+      "startsWith": "Voorvoegseltest.",
+      "endsWith": "Achtervoegseltest.",
+      "contains": "Deeltekenreekstest.",
+      "matches": "Test met reguliere expressie (RE2-syntaxis, maximaal 256 tekens).",
+      "inCIDR": "Of het IP-adres in een van de netwerken valt.",
+      "between": "Test op inclusief bereik.",
+      "isWeekend": "Zaterdag of zondag, UTC."
+    },
+    "examples": {
+      "prodOnly": {
+        "title": "Alleen resources met een productielabel",
+        "expression": "hasLabel(resource.labels, \"env\") == \"prod\""
+      },
+      "officeHours": {
+        "title": "Alleen tijdens kantooruren",
+        "expression": "!isWeekend() && between(now.hour, 8, 18)"
+      },
+      "internalNetwork": {
+        "title": "Alleen vanaf het interne netwerk",
+        "expression": "inCIDR(request.ip, \"10.0.0.0/8\", \"192.168.0.0/16\")"
+      },
+      "noApiKeyWrites": {
+        "title": "Geen wijzigingen via API-sleutels",
+        "expression": "request.apiKey && !request.readOnly"
+      },
+      "teamOwnership": {
+        "title": "Het team van de gebruiker is eigenaar van de resource",
+        "expression": "hasLabel(resource.labels, \"team\") == hasLabel(user.labels, \"team\")"
+      },
+      "ownResources": {
+        "title": "Alleen resources waarvan de gebruiker eigenaar is",
+        "expression": "resource.owner == user.id"
+      },
+      "largeVms": {
+        "title": "Grote virtuele machines vereisen de platformgroep",
+        "expression": "resource.attrs.vcpus > 8 && !inGroup(\"platform\")"
+      },
+      "namePattern": {
+        "title": "Namen die een patroon volgen",
+        "expression": "matches(resource.name, \"^web-[0-9]+$\")"
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
     "slug":  "resilio-sync",
     "name":  "Resilio Sync",
     "description":  "Peer-to-peer file synchronization across devices with no cloud required.",
-    "category":  "Photos \u0026 Files",
+    "category":  "Photos & Files",
     "image":  "linuxserver/resilio-sync:latest",
     "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/resilio-sync.svg",
     "website":  "https://www.resilio.com",
@@ -50,5 +50,9 @@
                         "description":  "Group ID"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

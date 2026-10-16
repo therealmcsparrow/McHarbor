@@ -1,0 +1,48 @@
+{
+    "slug":  "huginn",
+    "name":  "Huginn",
+    "description":  "Self-hosted system for building agents that monitor and act on events from the web.",
+    "category":  "Message Queues",
+    "image":  "ghcr.io/huginn/huginn:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/huginn.png",
+    "website":  "https://github.com/huginn/huginn",
+    "docsUrl":  "https://github.com/huginn/huginn/blob/master/doc/manual/docker.md",
+    "ports":  [
+                  {
+                      "host":  3300,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/huginn/mysql",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APP_SECRET_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Rails secret key base",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "INVITATION_CODE",
+                        "default":  "change-me",
+                        "description":  "Sign-up invitation code required to register a new account",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

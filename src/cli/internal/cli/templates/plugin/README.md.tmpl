@@ -1,0 +1,77 @@
+<!-- Copyright (c) 2026 McSparrow. All rights reserved.
+McHarbor is licensed under the McHarbor License. See LICENSE for details. -->
+
+# example-plugin
+
+The smallest viable McHarbor plugin. No adapters, no routes, no widgets. Renders one form
+field and emits a single audit record on Init + Shutdown.
+
+This directory was scaffolded by `mcharbor plugin dev new example-plugin`, which copies the
+template embedded in the CLI binary and rewrites the slug in every file that names it.
+
+## Layout
+
+```
+example-plugin/
+├── plugin.yaml                       # manifest (the host's contract)
+├── README.md                         # this file
+├── go.mod                            # Go module for the plugin binary
+├── backend/
+│   └── main.go                       # exports the `Plugin` symbol
+├── frontend/
+│   ├── package.json                  # Vite + React deps
+│   ├── tsconfig.json
+│   ├── vite-plugin.config.ts
+│   └── src/
+│       └── index.tsx                 # UMD bundle entry
+├── icons/
+│   └── plugin.svg
+└── i18n/
+    └── en/
+        └── common.json
+```
+
+## What to edit first
+
+1. `plugin.yaml` — `name`, `description`, and the `mcharbor` version range. The `slug` is
+   already correct; changing it means changing it in all four places the loader compares
+   (see `.claude/rules/versioning.md`).
+2. `backend/main.go` — `manifest.Name`, and the `Register*` methods this plugin actually
+   needs. Each one is a no-op stub.
+3. `frontend/src/index.tsx` — the config form the operator sees.
+4. `i18n/en/common.json`, then the other five locales. Every user-facing string goes
+   through `t(...)`; a key must exist in all six before the call site does
+   (`.claude/rules/i18n-keys.md`).
+
+Do not copy a sibling plugin to start another one. A sibling carries its vendor quirks, its
+bugs, and whatever pattern was current when it was written — run
+`mcharbor plugin dev new <slug>` instead (`.claude/rules/plugin-authoring.md`).
+
+## Build
+
+```bash
+mcharbor plugin dev validate example-plugin
+mcharbor plugin dev package example-plugin
+```
+
+`validate` is worth running first: it catches a route the manifest never declares, which
+gets no permission middleware at all. To build by hand instead:
+
+```bash
+cd src/plugins/Plugins/example-plugin/frontend
+npm install && npm run build          # writes ../example-plugin.umd.cjs
+cd ../backend
+go build -buildmode=plugin -o ../example-plugin.so .
+```
+
+A built plugin reaches a running instance only after
+`docker compose up -d --force-recreate mcharbor`.
+
+## What the host does
+
+- `plugin.Open` loads the `.so` and resolves the `Plugin` symbol.
+- The runtime walks all seven `Register*` methods — each is a no-op here.
+- `Init(ctx, host)` is called, and this plugin emits one audit record.
+- `Shutdown(ctx)` is called on graceful stop, and emits another.
+- The UMD bundle loads on demand when the operator opens the plugin's config form, through
+  the `<PluginSlot slot="plugin.config_form.example-plugin">` outlet.

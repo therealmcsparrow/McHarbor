@@ -1,0 +1,36 @@
+{
+    "slug":  "moov-watchman",
+    "name":  "Moov Watchman",
+    "description":  "Sanctions and denied-party screening service that checks names against OFAC and other watch lists.",
+    "category":  "Finance",
+    "image":  "moov/watchman:v1.0.2",
+    "logo":  "https://www.google.com/s2/favicons?domain=moov.io\u0026sz=128",
+    "website":  "https://moov.io",
+    "docsUrl":  "https://github.com/moovfinancial/watchman",
+    "ports":  [
+                  {
+                      "host":  8303,
+                      "container":  8084,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/moov-watchman/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "v1.0.2",
+    "latest":  {
+        "version":  "v1.0.2",
+        "release_date":  "2026-09-29"
+    }
+}

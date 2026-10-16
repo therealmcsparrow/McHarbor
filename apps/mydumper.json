@@ -1,0 +1,47 @@
+{
+    "slug":  "mydumper",
+    "name":  "mydumper",
+    "description":  "Fast, multi-threaded logical backup and restore tool for MySQL and MariaDB.",
+    "category":  "Backups",
+    "image":  "mydumper/mydumper:latest",
+    "logo":  "https://github.com/mydumper.png",
+    "website":  "https://github.com/mydumper/mydumper",
+    "docsUrl":  "https://github.com/mydumper/mydumper#usage",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mydumper/backups",
+                        "container":  "/backups"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MYSQL_HOST",
+                        "default":  "mysql",
+                        "description":  "MySQL host to back up"
+                    },
+                    {
+                        "key":  "MYSQL_USER",
+                        "default":  "root",
+                        "description":  "MySQL account username"
+                    },
+                    {
+                        "key":  "MYSQL_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "MySQL account password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

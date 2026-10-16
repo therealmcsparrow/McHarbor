@@ -1,0 +1,41 @@
+{
+    "slug":  "mlserver",
+    "name":  "MLServer",
+    "description":  "Inference server for serving machine learning models from scikit-learn, XGBoost, MLflow, and custom runtimes.",
+    "category":  "Developer Tools",
+    "image":  "seldonio/mlserver:1.6.1",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/SeldonIO/MLServer",
+    "docsUrl":  "https://mlserver.readthedocs.io/en/latest/user-guide/deployment/docker.html",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8091,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mlserver/models",
+                        "container":  "/mnt/models"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "1.6.1",
+    "latest":  {
+        "version":  "1.6.1",
+        "release_date":  "2026-09-29"
+    }
+}

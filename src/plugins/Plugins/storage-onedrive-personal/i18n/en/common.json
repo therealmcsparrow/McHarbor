@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "OneDrive (Personal) Backup Destinations",
+    "subtitle": "Back up containers to your personal OneDrive. The plugin handles Test, Upload, Download, Delete, and List at backup time. Large backups use Microsoft's chunked upload session so there is no size cap.",
+    "registerHint": "Add a destination from the host's Storage Locations page and pick \"OneDrive (Personal)\" as the type."
+  },
+  "fields": {
+    "clientId":     "Azure AD application (client) ID",
+    "clientSecret": "Azure AD client secret",
+    "refreshToken": "Refresh token (delivered by the OAuth consent flow)",
+    "tenant":       "Tenant (consumers / common / organizations)"
+  },
+  "help": {
+    "clientId":     "Register an app at https://entra.microsoft.com → App registrations. The app must have Files.ReadWrite delegated permission and the redirect URI configured to your McHarbor instance.",
+    "clientSecret": "Generate a client secret in the Azure AD app registration. It is encrypted at rest by the host's AES-256-GCM service.",
+    "refreshToken": "After saving the destination, click \"Save and connect\" to complete the Microsoft consent flow and store a long-lived refresh token.",
+    "tenant":       "Use \"consumers\" for personal accounts. Use OneDrive for Business or SharePoint Online for work / school accounts."
+  },
+  "toast": {
+    "registered": "OneDrive (Personal) plugin registered.",
+    "testPassed": "OneDrive (Personal) connection test passed.",
+    "testFailed": "OneDrive (Personal) connection test failed: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure AD application (client) ID is required.",
+    "noClientSecret": "Azure AD client secret is required.",
+    "noRefreshToken": "Refresh token is required. Run \"Save and connect\" first."
+  },
+  "form": {
+    "driveId": {
+      "label": "Drive ID",
+      "help": "Optional. Leave blank to use the default drive returned by the provider."
+    },
+    "basePath": {
+      "label": "Base Path",
+      "help": "Optional. Graph path inside the drive, e.g. /Backups/2026. Leave blank to use the drive root."
+    },
+    "clientId": {
+      "label": "Client ID",
+      "help": "Optional. Leave blank to use the plugin-embedded default. Fill in your own Application (client) ID from the Entra admin center if you registered a custom Azure AD app for OneDrive Personal."
+    },
+    "clientSecret": {
+      "label": "Client Secret",
+      "help": "Optional. Leave blank if your app registration is a Mobile and desktop applications public client (the recommended path for Personal Microsoft accounts). Fill in only for Web registrations."
+    },
+    "intro": {
+      "title": "Microsoft account required",
+      "save": "Save this location, then click ",
+      "signIn": "Sign in with Microsoft",
+      "redirect": ". You will be redirected to ",
+      "account": " where you must sign in with the live.com (personal Microsoft) account that owns the OneDrive you want to back up to, and grant the requested ",
+      "comma": ", ",
+      "and": ", and ",
+      "tail": " scopes. McHarbor stores the returned refresh token encrypted and never shows it again."
+    }
+  },
+  "setup": {
+    "title": "OneDrive (Personal) setup guide",
+    "steps": {
+      "save": "Save this location. The plugin ships an embedded app registration so no fields are required. Optionally fill in your own <b>Client ID</b> if you registered a custom Azure AD app for OneDrive Personal, and <b>Drive ID</b> / <b>Base Path</b> if you want to pin a specific drive folder.",
+      "signIn": "Click <b>Sign in with Microsoft</b> (or <b>Connect</b> on the storage card). You will be redirected to <code>login.live.com</code> — sign in with the personal Microsoft (<code>live.com</code> / <code>hotmail.com</code> / <code>outlook.com</code>) account that owns the OneDrive you want to back up to.",
+      "grant": "Grant the requested <code>Files.ReadWrite</code>, <code>User.Read</code>, and <code>offline_access</code> scopes. McHarbor stores the returned refresh token encrypted and <warn>never shows it again</warn>.",
+      "test": "Click <b>Test connection</b> to round-trip a probe object in the chosen drive."
+    }
+  }
+}

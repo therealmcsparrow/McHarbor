@@ -1,0 +1,40 @@
+{
+    "slug":  "kanidm",
+    "name":  "Kanidm",
+    "description":  "Modern identity and single sign-on server built around a strict, secure-by-default directory model.",
+    "category":  "Identity & SSO",
+    "image":  "kanidm/server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/kanidm.svg",
+    "website":  "https://kanidm.com",
+    "docsUrl":  "https://kanidm.github.io/kanidm/stable/server_installation.html",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kanidm/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KANIDM_DOMAIN",
+                        "default":  "idm.example.com",
+                        "description":  "Public domain name used for TLS and OAuth2 issuer URLs"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

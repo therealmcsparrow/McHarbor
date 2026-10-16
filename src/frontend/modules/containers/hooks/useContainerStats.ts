@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
 import type { ContainerMetric } from '@core/types/docker';
@@ -10,95 +10,87 @@ const MAX_HISTORY = 60;
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 10;
 
-type UseContainerStatsResult = {
+export type UseContainerStatsResult = {
   current: ContainerMetric | null;
   history: ContainerMetric[];
   connected: boolean;
 };
 
+type StatsState = {
+  key: string;
+  current: ContainerMetric | null;
+  history: ContainerMetric[];
+  connected: boolean;
+};
+
+const EMPTY_STATE: StatsState = { key: '', current: null, history: [], connected: false };
+
 export function useContainerStats(containerId: string, enabled = true): UseContainerStatsResult {
   const envId = useEnvironmentStore((s) => s.currentId);
   const { collectContainerMetricsEnabled } = useCurrentEnvironmentActivitySettings();
   const shouldConnect = enabled && collectContainerMetricsEnabled;
-  const [current, setCurrent] = useState<ContainerMetric | null>(null);
-  const [history, setHistory] = useState<ContainerMetric[]>([]);
-  const [connected, setConnected] = useState(false);
-  const sourceRef = useRef<EventSource | null>(null);
-  const retriesRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const cleanup = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (sourceRef.current) {
-      sourceRef.current.close();
-      sourceRef.current = null;
-    }
-  }, []);
-
-  const connect = useCallback(() => {
-    if (!shouldConnect || !containerId) return;
-
-    cleanup();
-
-    const params = new URLSearchParams();
-    if (envId) params.set('env', envId);
-    const url = `/api/metrics/containers/${containerId}/stream?${params.toString()}`;
-
-    const es = new EventSource(url);
-    sourceRef.current = es;
-
-    es.addEventListener('connected', () => {
-      setConnected(true);
-      retriesRef.current = 0;
-    });
-
-    es.addEventListener('stats', (event) => {
-      const metric: ContainerMetric = JSON.parse(event.data);
-      setCurrent(metric);
-      setHistory((prev) => {
-        const next = [...prev, metric];
-        return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
-      });
-    });
-
-    es.addEventListener('error', () => {
-      setConnected(false);
-      es.close();
-      sourceRef.current = null;
-
-      if (retriesRef.current < MAX_RECONNECT_ATTEMPTS) {
-        retriesRef.current++;
-        timerRef.current = setTimeout(connect, RECONNECT_DELAY);
-      }
-    });
-
-    es.onerror = () => {
-      setConnected(false);
-      es.close();
-      sourceRef.current = null;
-
-      if (retriesRef.current < MAX_RECONNECT_ATTEMPTS) {
-        retriesRef.current++;
-        timerRef.current = setTimeout(connect, RECONNECT_DELAY);
-      }
-    };
-  }, [cleanup, containerId, envId, shouldConnect]);
+  const key = `${envId ?? ''}|${containerId}`;
+  const [state, setState] = useState<StatsState>(EMPTY_STATE);
 
   useEffect(() => {
-    if (!shouldConnect) {
-      cleanup();
-      setConnected(false);
-      setCurrent(null);
-      setHistory([]);
-      return cleanup;
-    }
+    if (!shouldConnect || !containerId) return;
+
+    let source: EventSource | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let retries = 0;
+    let disposed = false;
+
+    const patch = (update: (prev: StatsState) => Partial<StatsState>) => {
+      setState((prev) => {
+        const base = prev.key === key ? prev : { ...EMPTY_STATE, key };
+        return { ...base, ...update(base) };
+      });
+    };
+
+    const connect = () => {
+      if (disposed) return;
+      const params = new URLSearchParams();
+      if (envId) params.set('env', envId);
+      const es = new EventSource(`/api/metrics/containers/${containerId}/stream?${params.toString()}`);
+      source = es;
+
+      es.addEventListener('connected', () => {
+        if (source !== es) return;
+        retries = 0;
+        patch(() => ({ connected: true }));
+      });
+
+      es.addEventListener('stats', (message) => {
+        if (source !== es) return;
+        const metric: ContainerMetric = JSON.parse(message.data);
+        patch((prev) => {
+          const next = [...prev.history, metric];
+          return { current: metric, history: next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next };
+        });
+      });
+
+      es.onerror = () => {
+        if (source !== es) return;
+        patch(() => ({ connected: false }));
+        es.close();
+        source = null;
+        if (retries < MAX_RECONNECT_ATTEMPTS) {
+          retries++;
+          timer = setTimeout(connect, RECONNECT_DELAY);
+        }
+      };
+    };
 
     connect();
-    return cleanup;
-  }, [cleanup, connect, shouldConnect]);
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+      source?.close();
+      source = null;
+      setState(EMPTY_STATE);
+    };
+  }, [containerId, envId, key, shouldConnect]);
 
-  return { current, history, connected };
+  const view = shouldConnect && state.key === key ? state : EMPTY_STATE;
+  return { current: view.current, history: view.history, connected: view.connected };
 }

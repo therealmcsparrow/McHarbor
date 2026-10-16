@@ -1,0 +1,290 @@
+{
+  "overview": {
+    "section": "Soporte",
+    "bundle": {
+      "title": "Paquete de soporte",
+      "description": "Genere un paquete de diagnóstico con datos ocultos para el soporte de McHarbor."
+    },
+    "diagnostics": {
+      "title": "Diagnósticos",
+      "description": "Ejecute comprobaciones de estado con veredictos de correcto, advertencia y fallo."
+    },
+    "inventory": {
+      "title": "Inventario de estado",
+      "description": "Qué hay en el directorio de datos, su tamaño y si tiene copia de seguridad."
+    }
+  },
+  "status": {
+    "pass": "Correcto",
+    "warn": "Advertencia",
+    "fail": "Fallo",
+    "skip": "Omitido"
+  },
+  "check": {
+    "database": "Base de datos",
+    "migrations": "Migraciones de la base de datos",
+    "data_dir": "Directorio de datos",
+    "docker": "Accesibilidad de Docker",
+    "agents": "Agentes remotos",
+    "plugins": "Plugins",
+    "identity": "Proveedores de identidad",
+    "outbound": "Red saliente",
+    "tls": "Certificado TLS",
+    "backup_key": "Clave de cifrado de copias de seguridad",
+    "encryption_key": "Clave de cifrado de datos",
+    "readiness": "Preparación",
+    "target_migrations": "Migraciones de la versión objetivo",
+    "plugin_compat": "Compatibilidad de plugins",
+    "busy": "Copias de seguridad y exportaciones en curso"
+  },
+  "reason": {
+    "database": {
+      "ok": "La base de datos responde.",
+      "unreachable": "La base de datos no responde. Compruebe que se está ejecutando y que MCHARBOR_DB_DSN o DATABASE_PATH apunta a ella."
+    },
+    "migrations": {
+      "ok": "Se ha aplicado todas las migraciones que incluye esta versión.",
+      "pending": "Algunas migraciones no se han aplicado. Reinicie McHarbor para que las aplique y revise el registro si siguen fallando.",
+      "ahead": "La base de datos tiene migraciones que esta versión no conoce. La usó un McHarbor más reciente; no ejecute una versión anterior sobre ella.",
+      "unreadable": "No se pudo leer el registro de migraciones. Compruebe primero la conectividad de la base de datos."
+    },
+    "data_dir": {
+      "ok": "El directorio de datos existe, se puede escribir en él y tiene espacio.",
+      "missing": "El directorio de datos no existe. Compruebe DATA_DIR y el montaje del volumen.",
+      "not_writable": "McHarbor no puede escribir en el directorio de datos. Compruebe que el montaje no sea de solo lectura y que el proceso sea su propietario.",
+      "low_space": "Quedan menos de 2 GB libres. Libere espacio antes de ejecutar copias de seguridad, exportaciones o una actualización."
+    },
+    "docker": {
+      "ok": "Todos los hosts de Docker conectados directamente respondieron en 5 segundos.",
+      "some_unreachable": "Algunos hosts de Docker no respondieron en 5 segundos. Compruebe el montaje del socket o la dirección TCP de esos entornos.",
+      "unreachable": "Ningún host de Docker conectado directamente respondió. Compruebe el montaje del socket de Docker y que el daemon se esté ejecutando.",
+      "none": "No hay entornos de Docker conectados directamente.",
+      "unreadable": "No se pudo leer la lista de entornos."
+    },
+    "agents": {
+      "ok": "Todos los entornos de agente tienen un agente conectado.",
+      "disconnected": "Algunos agentes no están conectados a este nodo. Compruebe el servicio del agente en esos hosts y su ruta hacia McHarbor.",
+      "none": "No hay entornos de agente.",
+      "unreadable": "No se pudo leer la lista de entornos."
+    },
+    "plugins": {
+      "ok": "Se cargaron todos los plugins activados.",
+      "load_failed": "Algunos plugins no se cargaron. Un plugin compilado para otra compilación de McHarbor debe actualizarse o repararse desde la tienda de plugins.",
+      "runtime_off": "El runtime de plugins no está activo en esta plataforma o aún no se ha iniciado."
+    },
+    "identity": {
+      "configured": "Los proveedores de identidad externos están activados.",
+      "local_only": "Solo pueden iniciar sesión las cuentas locales. Añada un proveedor de identidad en Seguridad si usa inicio de sesión único.",
+      "unreadable": "No se pudo leer la lista de proveedores de identidad."
+    },
+    "outbound": {
+      "ok": "La URL del catálogo respondió.",
+      "unreachable": "La URL del catálogo no respondió en 5 segundos. Compruebe el DNS, el proxy y el firewall para HTTPS saliente.",
+      "server_error": "La URL del catálogo respondió con un error del servidor. El catálogo puede estar caído; inténtelo de nuevo más tarde.",
+      "not_configured": "No hay ninguna URL de catálogo configurada, por lo que no se probó el acceso saliente."
+    },
+    "tls": {
+      "ok": "El certificado es válido durante más de 30 días.",
+      "expiring": "El certificado caduca en menos de 30 días. Suba un certificado renovado o regenere el autofirmado.",
+      "expired": "El certificado ha caducado. Los navegadores y los agentes lo rechazarán hasta que se sustituya.",
+      "missing": "No se encontró ningún archivo de certificado.",
+      "unreadable": "No se pudo analizar el archivo de certificado.",
+      "disabled": "TLS está desactivado (TLS_ENABLED=false). Termine TLS en un proxy inverso."
+    },
+    "backup_key": {
+      "present": "Hay una clave de cifrado de copias de seguridad cargada.",
+      "missing": "No hay ninguna clave de cifrado de copias de seguridad cargada, por lo que las copias no se pueden cifrar. Monte una en BACKUP_ENCRYPTION_KEY_FILE."
+    },
+    "encryption_key": {
+      "env": "La clave de cifrado de datos procede de ENCRYPTION_KEY.",
+      "auto_generated": "La clave de cifrado de datos se generó en DATA_DIR/.encryption_key. Perder ese archivo supone perder todos los secretos almacenados, y cada nodo de HA generaría la suya. Cópiela en ENCRYPTION_KEY."
+    },
+    "readiness": {
+      "ok": "Este nodo está listo para recibir tráfico.",
+      "not_ready": "Este nodo no está listo: vea qué condición de preparación es falsa.",
+      "not_ready_yet": "El servicio de clúster aún no se ha iniciado."
+    },
+    "target_migrations": {
+      "target_unknown": "Las migraciones de la versión objetivo no se pueden conocer hasta que se descargue su imagen. La base de datos actual está completamente migrada.",
+      "pending": "Esta versión todavía tiene migraciones sin aplicar. Resuélvalas antes de actualizar.",
+      "ahead": "La base de datos ya tiene migraciones que esta versión no conoce.",
+      "unreadable": "No se pudo leer el registro de migraciones."
+    },
+    "plugin_compat": {
+      "ok": "Todos los plugins instalados declaran compatibilidad con la versión objetivo.",
+      "incompatible": "Algunos plugins no declaran compatibilidad con la versión objetivo. No se cargarán hasta que se actualicen.",
+      "unknown": "Algunos plugins no declaran un intervalo de versiones legible. Compruébelos tras la actualización.",
+      "unreadable": "No se pudo leer la lista de plugins instalados.",
+      "none": "No hay plugins instalados."
+    },
+    "busy": {
+      "idle": "No hay ninguna copia de seguridad, exportación ni paquete de soporte en ejecución.",
+      "running": "Hay una copia de seguridad, exportación o paquete de soporte en ejecución. Una actualización reinicia McHarbor y lo interrumpiría."
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnósticos",
+    "description": "Comprobaciones de estado de este nodo de McHarbor, cada una con lo que hacer cuando no se supera. Los resultados tienen los datos ocultos y se pueden compartir con el soporte.",
+    "runAll": "Ejecutar todas las comprobaciones",
+    "runCheck": "Ejecutar {{check}}",
+    "copyJson": "Copiar JSON",
+    "notRun": "Aún no se ha ejecutado",
+    "duration": "{{ms}} ms",
+    "generatedAt": "Última ejecución {{time}}",
+    "summary": "{{pass}} correctas, {{warn}} advertencias, {{fail}} fallidas"
+  },
+  "bundle": {
+    "title": "Paquete de soporte",
+    "description": "Empaqueta diagnósticos con los datos ocultos para el soporte de McHarbor. Nada sale de este servidor hasta que descargue el archivo.",
+    "categoriesTitle": "Incluir en el paquete",
+    "categoriesHint": "Las claves, tokens, contraseñas, kubeconfigs, tokens de agente y claves de API nunca se recopilan, y cada archivo se depura de credenciales antes de escribirse.",
+    "noneSelected": "Elija al menos una categoría.",
+    "preview": "Previsualizar la ocultación de datos",
+    "generate": "Generar paquete",
+    "estimate": "Tamaño estimado: {{size}}",
+    "running": "Generando: {{progress}}%",
+    "category": {
+      "system": {
+        "title": "Versión y configuración",
+        "description": "Versión, compilación, plataforma y variables de entorno, mostrando valores solo de las variables que se sabe que son seguras."
+      },
+      "logs": {
+        "title": "Registros recientes del servidor",
+        "description": "Los últimos 500 registros que este proceso guardó en memoria."
+      },
+      "plugins": {
+        "title": "Plugins",
+        "description": "Plugins activados y lo que el cargador informó de cada uno."
+      },
+      "cluster": {
+        "title": "Clúster",
+        "description": "Preparación y topología de alta disponibilidad."
+      },
+      "database": {
+        "title": "Base de datos",
+        "description": "Controlador, versión del servidor y lista de migraciones."
+      },
+      "environments": {
+        "title": "Entornos",
+        "description": "Nombres, tipos de conexión y versiones de agente. Sin direcciones, sockets ni credenciales."
+      },
+      "audit": {
+        "title": "Denegaciones de permisos",
+        "description": "Cuántas solicitudes se denegaron en el último día y la última semana."
+      },
+      "diagnostics": {
+        "title": "Diagnósticos",
+        "description": "El resultado de cada comprobación de diagnóstico."
+      }
+    },
+    "previewTitle": "Vista previa de la ocultación de datos",
+    "previewDescription": "Esto es exactamente lo que contendrá el paquete: {{count}} archivos, {{size}}.",
+    "previewTruncated": "Solo se muestran los primeros 64 KB; el paquete contiene el archivo completo.",
+    "historyTitle": "Paquetes generados",
+    "historyDescription": "Se conservan los {{count}} paquetes más recientes; los más antiguos se eliminan automáticamente.",
+    "empty": "Aún no se ha generado ningún paquete.",
+    "columns": {
+      "created": "Creado",
+      "createdBy": "Por",
+      "categories": "Contenido",
+      "size": "Tamaño",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "state": {
+      "running": "Generando",
+      "ready": "Listo",
+      "failed": "Fallido"
+    },
+    "failed": "La generación falló. El registro del servidor tiene los detalles.",
+    "download": "Descargar",
+    "delete": "Eliminar",
+    "deleteTitle": "¿Eliminar este paquete de soporte?",
+    "deleteDescription": "El archivo del paquete se elimina de este servidor. Las copias ya descargadas no se ven afectadas."
+  },
+  "inventory": {
+    "title": "Inventario de estado",
+    "description": "Todo lo que McHarbor guarda en su directorio de datos: cuánto ocupa, si McHarbor puede escribir en él, si una copia de seguridad de la instancia lo incluye y si se puede limpiar. Solo lectura.",
+    "dataDir": "Directorio de datos",
+    "used": "Usado por McHarbor",
+    "free": "Libre en el volumen",
+    "driver": "Base de datos",
+    "columns": {
+      "category": "Categoría",
+      "path": "Ruta",
+      "size": "Tamaño",
+      "writable": "Con escritura",
+      "backup": "Copia de seguridad de la instancia",
+      "cleanup": "Limpieza"
+    },
+    "missing": "No presente",
+    "files_one": "{{count}} archivo",
+    "files_other": "{{count}} archivos",
+    "truncated": "El tamaño es un límite inferior; el recorrido se detuvo antes de tiempo.",
+    "yes": "Sí",
+    "no": "No",
+    "category": {
+      "database": "Base de datos",
+      "encryption_key": "Clave de cifrado de datos",
+      "server_secret": "Secreto del servidor",
+      "tls": "Certificados TLS",
+      "plugins": "Plugins instalados",
+      "plugin_catalog": "Caché del catálogo de plugins",
+      "stacks": "Stacks",
+      "files": "Archivos subidos",
+      "custom_nodes": "Nodos de flujo de trabajo personalizados",
+      "widgets": "Widgets del panel",
+      "widgets_state": "Estado de los widgets",
+      "workflow_nodes": "Estado de los nodos de flujo de trabajo",
+      "git": "Copias de trabajo de Git",
+      "container_backups": "Copias de seguridad de contenedores",
+      "backup_staging": "Preparación de copias de seguridad",
+      "instance_backups": "Copias de seguridad de la instancia",
+      "restore_staging": "Preparación de restauraciones",
+      "restore_ledger": "Registro de restauraciones",
+      "restore_status": "Estado de las restauraciones",
+      "support_bundles": "Paquetes de soporte",
+      "other": "Otros"
+    },
+    "backup": {
+      "included": "Incluido",
+      "partial": "Parcialmente",
+      "excluded": "No incluido",
+      "database": "Como tablas"
+    },
+    "cleanup": {
+      "no": "Conservar",
+      "safe": "Se puede eliminar sin riesgo",
+      "managed": "Depurado por retención",
+      "regenerable": "Se recrea bajo demanda",
+      "unknown": "Desconocido, no creado por McHarbor"
+    }
+  },
+  "preUpgrade": {
+    "open": "Comprobación previa a la actualización",
+    "title": "Comprobación previa a la actualización",
+    "description": "Qué saber antes de actualizar de {{current}} a {{target}}. Esta comprobación no cambia nada y no bloquea la actualización.",
+    "rerun": "Ejecutar de nuevo",
+    "pluginsTitle": "Plugins instalados",
+    "pluginRange": "Declara {{range}}",
+    "noRange": "Sin intervalo de versiones",
+    "compat": {
+      "yes": "Compatible",
+      "no": "No compatible",
+      "unknown": "Desconocido"
+    },
+    "rollbackTitle": "Si la actualización sale mal",
+    "rollbackSqlite": "Haga primero una copia de seguridad de la instancia (Ajustes → Sistema → Copia de seguridad de la instancia). Las migraciones de SQLite solo avanzan: para revertir, detenga McHarbor, restaure la copia de seguridad o una copia del volumen de datos e inicie la etiqueta de imagen anterior.",
+    "rollbackExternal": "Haga primero un volcado de la base de datos externa. Las migraciones solo avanzan: para revertir, detenga todos los nodos, restaure el volcado e inicie la etiqueta de imagen anterior en todos los nodos a la vez.",
+    "rollbackImage": "La imagen anterior permanece en la caché local de imágenes, por lo que se puede volver a iniciar sin descargarla.",
+    "rollbackKey": "Mantenga sin cambios ENCRYPTION_KEY, MCHARBOR_SECRET y la clave de copias de seguridad durante la actualización y cualquier reversión.",
+    "compatTitle": "Antes de actualizar",
+    "compatLink": "Matriz de compatibilidad: bases de datos admitidas, versiones mínimas de agente, modos de HA y versiones probadas de Docker y Kubernetes"
+  },
+  "keyBanner": {
+    "title": "La clave de cifrado de datos solo existe dentro del directorio de datos",
+    "description": "ENCRYPTION_KEY no está definida, por lo que McHarbor generó DATA_DIR/.encryption_key. Si ese archivo se pierde, todos los secretos almacenados quedan ilegibles, y un segundo nodo generaría una clave distinta. Copie la clave en ENCRYPTION_KEY.",
+    "open": "Abrir diagnósticos",
+    "dismiss": "Descartar"
+  }
+}

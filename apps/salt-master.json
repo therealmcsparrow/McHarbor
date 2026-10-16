@@ -1,0 +1,49 @@
+{
+    "slug":  "salt-master",
+    "name":  "Salt Master",
+    "description":  "Configuration management and remote execution master that controls a fleet of Salt minions.",
+    "category":  "CI/CD",
+    "image":  "saltstack/salt:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/salt.svg",
+    "website":  "https://saltproject.io",
+    "docsUrl":  "https://github.com/saltstack/salt/tree/master/pkg/docker",
+    "ports":  [
+                  {
+                      "host":  4505,
+                      "container":  4505,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4506,
+                      "container":  4506,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/salt-master/etc",
+                        "container":  "/etc/salt"
+                    },
+                    {
+                        "host":  "/opt/appdata/salt-master/srv",
+                        "container":  "/srv/salt"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SALT_ROLE",
+                        "default":  "master",
+                        "description":  "Runs the container as either master or minion"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

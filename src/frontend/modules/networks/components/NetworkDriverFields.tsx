@@ -3,10 +3,11 @@
 
 import { useTranslation } from 'react-i18next';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { Input } from '@resources/components/ui/Input';
 import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
+import { Switch } from '@resources/components/ui/Switch';
 import type { Driver, DriverConfig } from './networkDriverConfig';
+import { ParentInterfaceField } from './ParentInterfaceField';
 
 interface NetworkDriverFieldsProps {
   driver: Driver;
@@ -24,7 +25,7 @@ interface NetworkDriverFieldsProps {
 export function NetworkDriverFields({
   driver,
   cfg,
-  parent,
+  parent: parentInterface,
   onParentChange,
   mode,
   onModeChange,
@@ -46,57 +47,37 @@ export function NetworkDriverFields({
       )}
 
       {/* Parent Interface */}
-      {cfg.hasParent && (
-        <div className="border-t border-border pt-4">
-          <Label className="mb-1">
-            {t('create.parentInterface')} <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            variant="outline"
-            type="text"
-            value={parent}
-            onChange={(e) => onParentChange(e.target.value)}
-            placeholder={t('create.parentPlaceholder')}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t('create.parentHelp')}
-          </p>
-        </div>
-      )}
+      {cfg.hasParent && <ParentInterfaceField value={parentInterface} onChange={onParentChange} />}
 
       {/* Mode */}
       {cfg.hasMode && cfg.modes && (
         <div className="border-t border-border pt-4">
           <Label className="mb-1">{t('create.mode')}</Label>
           <Select
+            ariaLabel={t('create.mode')}
             variant="outline"
             value={mode}
             onChange={onModeChange}
-            options={cfg.modes.map((m) => ({ value: m, label: m }))}
+            options={cfg.modes.map((m) => ({
+              value: m,
+              label: m,
+              description: t(`create.modeHelp.${driver}.${m}`),
+            }))}
           />
+          <p className="mt-1 text-xs text-muted-foreground">{t(`create.modeHelp.${driver}.${mode}`)}</p>
         </div>
       )}
 
       {/* Toggles */}
       {cfg.hasToggles && (
-        <div className="border-t border-border pt-4 space-y-2">
-          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              checked={internal}
-              onChange={(e) => onInternalChange(e.target.checked)}
-              className="rounded border-input"
-            />
+        <div className="space-y-2 border-t border-border pt-4">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+            <Switch checked={internal} onCheckedChange={onInternalChange} />
             {t('create.internal')}
             <span className="text-muted-foreground">— {t('create.internalHelp')}</span>
           </label>
-          <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              checked={attachable}
-              onChange={(e) => onAttachableChange(e.target.checked)}
-              className="rounded border-input"
-            />
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+            <Switch checked={attachable} onCheckedChange={onAttachableChange} />
             {t('create.attachable')}
             <span className="text-muted-foreground">— {t('create.attachableHelp')}</span>
           </label>

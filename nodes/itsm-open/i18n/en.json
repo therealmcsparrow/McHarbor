@@ -1,0 +1,18 @@
+{
+  "label": "Open Ticket",
+  "description": "Open or re-notify a ticket in an ITSM through an incident-capable channel",
+  "config": {
+    "channel_id": "Ticketing Channel",
+    "dedup_key": "Ticket Key",
+    "severity": "Severity",
+    "title": "Title",
+    "message": "Message"
+  },
+  "options": {
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+# plugin.yaml — manifest for the comm-gotify plugin.
+#
+# Single-channel Gotify notification adapter. This is intentionally a
+# communication plugin: it registers one NotificationAdapterSpec and
+# delivers messages through a configured Gotify application token.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-gotify"
+name:     "Gotify"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "Gotify communication channel. Delivers workflow, alert, and backup notifications to a Gotify server through an application token."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+adds_permissions:
+  - key:      "channels.use_comm_gotify"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through Gotify communication channels"
+    description: "Required to route workflow, alert, or backup events to a Gotify communication channel."
+
+contributes:
+  routes: []
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-gotify"
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "gotify"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "gotify"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-gotify"
+      channel_type: "gotify"
+
+signature: ""
+checksum:  ""

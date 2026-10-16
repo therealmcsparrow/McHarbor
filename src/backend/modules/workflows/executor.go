@@ -6,6 +6,7 @@ package workflows
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -65,6 +66,7 @@ func enqueueTargetsForEmission(
 	return queue
 }
 
+// ExecuteWorkflow walks the workflow graph from its trigger nodes, emitting progress events, and returns the run outcome; the caller records the run.
 func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workflowRunOptions, emit workflowEmitter) workflowRunResult {
 	timeout := opts.Timeout
 	if timeout <= 0 {
@@ -73,6 +75,9 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 
 	execCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
+	// A run acts for the system: whether its nodes may reach McHarbor is the decision
+	// recorded when the workflow was last saved, not whoever triggered this run.
+	execCtx = withSelfHostAuthorized(execCtx, wf.SelfHostAuthorized)
 
 	result := workflowRunResult{Status: "completed"}
 	runStart := time.Now()
@@ -86,6 +91,7 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 		return result
 	}
 
+	normalizeLegacyNodes(&canvas)
 	nodeMap := make(map[string]*CanvasNode, len(canvas.Nodes))
 	for i := range canvas.Nodes {
 		nodeMap[canvas.Nodes[i].ID] = &canvas.Nodes[i]
@@ -126,6 +132,7 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 		FlowVars:   ParseWorkflowVariables(wf.Variables),
 		GlobalVars: map[string]interface{}{},
 		Runtime:    newExecutionRuntime(),
+		UserID:     opts.UserID,
 	}
 	flowCtx.FlowVars["_workflowId"] = opts.WorkflowID
 
@@ -149,7 +156,7 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 		return result
 	}
 
-	s.UpdateLastRunAt(opts.WorkflowID)
+	s.UpdateLastRunAt(ctx, opts.WorkflowID)
 	safeEmit(emit, "run.started", RunStatusData{Status: "running"})
 
 	startOverrideUsed := false
@@ -206,21 +213,22 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 			execErr    error
 		)
 
-		if node.Skip {
+		switch {
+		case node.Skip:
 			outputPort = firstOutputPort(node.Action)
 			output = DeepCloneMsg(item.msg)
 			output = EnsureMsgID(output)
 			output["_skipped"] = true
-		} else if !startOverrideUsed && opts.StartMsg != nil && node.ID == opts.StartNodeID {
+		case !startOverrideUsed && opts.StartMsg != nil && node.ID == opts.StartNodeID:
 			startOverrideUsed = true
 			outputPort = "output"
 			output = DeepCloneMsg(opts.StartMsg)
 			output = EnsureMsgID(output)
-		} else if node.Action == "link-in" && item.msg != nil {
+		case node.Action == "link-in" && item.msg != nil:
 			outputPort = "output"
 			output = DeepCloneMsg(item.msg)
 			output = EnsureMsgID(output)
-		} else {
+		default:
 			outputPort, output, execErr = s.ExecuteNode(execCtx, node, item.msg, flowCtx, opts.FallbackEnvID)
 		}
 
@@ -246,11 +254,16 @@ func (s *Service) ExecuteWorkflow(ctx context.Context, wf *Workflow, opts workfl
 		}
 
 		if execErr != nil && outputPort == "" && len(emissions) == 0 {
+			failure := "Node execution failed"
+			var refusal *selfNodeRefusal
+			if errors.As(execErr, &refusal) {
+				failure = refusal.Message
+			}
 			safeEmit(emit, "node.failed", NodeFailedData{
 				NodeID: node.ID,
 				Label:  node.Label,
 				Action: node.Action,
-				Error:  "Node execution failed",
+				Error:  failure,
 			})
 
 			if caughtFrame, caughtTargets, caughtMsg, caught := catchTargetsForMessage(adjacency, item.msg, node, execErr); caught {

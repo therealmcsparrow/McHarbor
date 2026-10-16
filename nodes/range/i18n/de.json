@@ -1,6 +1,6 @@
 {
-  "label": "Range",
-  "description": "Read an array property and attach range metadata",
+  "label": "Bereich",
+  "description": "Eine Array-Eigenschaft lesen und Bereichsmetadaten anhängen",
   "config": {
     "property": "Eigenschaft"
   }

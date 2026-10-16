@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	sqlQueryMaxRows  = 200
-	sqlQueryTimeout  = 5 * time.Second
-	sqlResetTimeout  = 1 * time.Second
+	sqlQueryMaxRows = 200
+	sqlQueryTimeout = 5 * time.Second
+	sqlResetTimeout = 1 * time.Second
 )
 
 var (
@@ -78,7 +78,7 @@ func openReadOnlyWorkflowSQLRows(ctx context.Context, db *sql.DB, logger *slog.L
 	}
 
 	cleanup := func() {
-		resetCtx, resetCancel := context.WithTimeout(context.Background(), sqlResetTimeout)
+		resetCtx, resetCancel := context.WithTimeout(context.WithoutCancel(ctx), sqlResetTimeout)
 		defer resetCancel()
 
 		if _, resetErr := conn.ExecContext(resetCtx, "PRAGMA query_only = OFF"); resetErr != nil && logger != nil {
@@ -103,4 +103,3 @@ func openReadOnlyWorkflowSQLRows(ctx context.Context, db *sql.DB, logger *slog.L
 
 	return rows, cleanup, nil
 }
-

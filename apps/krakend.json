@@ -4,7 +4,7 @@
   "description": "High-performance API gateway that aggregates data from multiple sources in a single call.",
   "category": "Networking",
   "image": "devopsfaith/krakend:latest",
-  "logo": "https://www.krakend.io/images/logo_krakend.svg",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/krakend.svg",
   "website": "https://www.krakend.io",
   "docsUrl": "https://www.krakend.io/docs/",
   "ports": [
@@ -32,5 +32,9 @@
       "description": "Timezone"
     }
   ],
-  "version": "latest"
+  "version":  "latest",
+  "latest":  {
+      "version":  "latest",
+      "release_date":  "2026-09-10"
+  }
 }

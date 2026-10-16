@@ -1,0 +1,76 @@
+// Copyright (c) 2026 McSparrow. All rights reserved.
+// McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+// Workspace only used at Docker build time. The plugin's `go.mod`
+// declares a `replace` directive pointing at ../../../backend that
+// works on a developer workstation, but the per-package ABI hashes
+// still drift between the host's executable build and the plugin's
+// plugin build because Go walks the module graph twice. Joining the
+// two modules into a single workspace makes Go treat them as one
+// graph and the package hashes match.
+go 1.27.2
+
+use (
+	./src/backend
+	./src/plugins/Plugins/addon-compute
+	./src/plugins/Plugins/addon-kubernetes
+	./src/plugins/Plugins/addon-kvm
+	./src/plugins/Plugins/addon-lxc
+	./src/plugins/Plugins/addon-reporting
+	./src/plugins/Plugins/addon-swarm
+	./src/plugins/Plugins/ai-provider-anthropic
+	./src/plugins/Plugins/ai-provider-cohere
+	./src/plugins/Plugins/ai-provider-deepseek
+	./src/plugins/Plugins/ai-provider-fireworks
+	./src/plugins/Plugins/ai-provider-gemini
+	./src/plugins/Plugins/ai-provider-groq
+	./src/plugins/Plugins/ai-provider-llamacpp
+	./src/plugins/Plugins/ai-provider-lmstudio
+	./src/plugins/Plugins/ai-provider-localai
+	./src/plugins/Plugins/ai-provider-minimax
+	./src/plugins/Plugins/ai-provider-mistral
+	./src/plugins/Plugins/ai-provider-ollama
+	./src/plugins/Plugins/ai-provider-openai
+	./src/plugins/Plugins/ai-provider-openrouter
+	./src/plugins/Plugins/ai-provider-perplexity
+	./src/plugins/Plugins/ai-provider-together
+	./src/plugins/Plugins/ai-provider-vllm
+	./src/plugins/Plugins/ai-provider-xai
+	./src/plugins/Plugins/comm-discord
+	./src/plugins/Plugins/comm-exchange
+	./src/plugins/Plugins/comm-gmail
+	./src/plugins/Plugins/comm-gotify
+	./src/plugins/Plugins/comm-ntfy
+	./src/plugins/Plugins/comm-signal
+	./src/plugins/Plugins/comm-slack
+	./src/plugins/Plugins/comm-smtp
+	./src/plugins/Plugins/comm-teams
+	./src/plugins/Plugins/comm-telegram
+	./src/plugins/Plugins/comm-whatsapp
+	./src/plugins/Plugins/identity-entra-id
+	./src/plugins/Plugins/identity-generic-oidc
+	./src/plugins/Plugins/identity-google
+	./src/plugins/Plugins/identity-ldap
+	./src/plugins/Plugins/identity-saml
+	./src/plugins/Plugins/logging-siem
+	./src/plugins/Plugins/logging-syslog
+	./src/plugins/Plugins/scanner-clair
+	./src/plugins/Plugins/scanner-grype
+	./src/plugins/Plugins/scanner-trivy
+	./src/plugins/Plugins/snapshot-synology
+	./src/plugins/Plugins/snapshot-truenas
+	./src/plugins/Plugins/storage-box
+	./src/plugins/Plugins/storage-dropbox
+	./src/plugins/Plugins/storage-ftp
+	./src/plugins/Plugins/storage-google-drive
+	./src/plugins/Plugins/storage-nextcloud
+	./src/plugins/Plugins/storage-nfs
+	./src/plugins/Plugins/storage-onedrive-business
+	./src/plugins/Plugins/storage-onedrive-personal
+	./src/plugins/Plugins/storage-opencloud
+	./src/plugins/Plugins/storage-owncloud
+	./src/plugins/Plugins/storage-samba
+	./src/plugins/Plugins/storage-sftp
+	./src/plugins/Plugins/storage-sharepoint-online
+	./src/plugins/Plugins/storage-truenas
+)

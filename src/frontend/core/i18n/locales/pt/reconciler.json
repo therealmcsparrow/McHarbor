@@ -1,0 +1,239 @@
+{
+  "kind": {
+    "label": "O que monitorar",
+    "container": "Um contêiner",
+    "stack": "Uma stack",
+    "environment": "Tudo neste ambiente"
+  },
+  "kindHint": {
+    "container": "Há divergência quando o contêiner está ausente, parado, executando outra imagem ou sua configuração difere.",
+    "stack": "Há divergência quando um serviço do arquivo compose da stack está ausente ou parado, ou a stack executa contêineres que seu arquivo não declara.",
+    "environment": "Há divergência quando um contêiner em execução aqui não é contabilizado por nenhum monitoramento de contêiner ou stack neste ambiente. Marque um contêiner com o rótulo mcharbor.reconciler.ignore=true para excluí-lo."
+  },
+  "stackLabel": "Stack",
+  "stackPlaceholder": "Escolha uma stack",
+  "target": {
+    "environment": "Ambiente inteiro"
+  },
+  "class": {
+    "configuration": "Configuração",
+    "state": "Estado",
+    "existence": "Existência",
+    "image": "Imagem"
+  },
+  "details": {
+    "open": "Mostrar o que divergiu",
+    "title": "O que divergiu: {{name}}",
+    "description": "Verificado {{time}}.",
+    "field": "Campo",
+    "expected": "Esperado",
+    "actual": "Real",
+    "firstSeen": "Visto pela primeira vez",
+    "none": "Nenhuma divergência foi encontrada na última verificação."
+  },
+  "observeOnly": "Monitoramentos de stack e de ambiente não podem ser reconciliados diretamente; proponha uma correção.",
+  "report": {
+    "title": "Relatório de divergências",
+    "description": "Todas as divergências confirmadas em todos os monitoramentos, as mais antigas primeiro.",
+    "open": "Relatório de divergências",
+    "back": "Voltar aos monitoramentos",
+    "empty": "Nada divergiu.",
+    "classFilter": "Classe",
+    "allClasses": "Todas as classes",
+    "columns": {
+      "watch": "Monitoramento",
+      "class": "Classe",
+      "field": "Campo",
+      "expected": "Esperado",
+      "actual": "Real",
+      "firstSeen": "Visto pela primeira vez",
+      "checked": "Verificado"
+    }
+  },
+  "git": "Git",
+  "gitManagedDelete": "Gerenciado por uma fonte Git: exclua o documento dele no repositório.",
+  "mode": {
+    "column": "Resposta",
+    "change": "Alterar como a divergência é tratada",
+    "title": "Como tratar a divergência: {{name}}",
+    "description": "Escolha o que o McHarbor faz quando este monitoramento diverge.",
+    "label": "Quando divergir",
+    "observe": "Observar",
+    "propose": "Propor uma correção",
+    "enforce": "Aplicar",
+    "save": "Salvar",
+    "confirmEnforce": "Deixar o McHarbor corrigir automaticamente",
+    "enforceWarning": "Aplicar altera contêineres sem perguntar a ninguém. Só age enquanto a aplicação estiver ativada nas configurações do reconciliador, dentro do limite por passagem e do período de espera, e para após falhas repetidas até que alguém a reinicie.",
+    "hint": {
+      "observe": "Registra a divergência, alerta sobre ela e não altera nada.",
+      "propose": "Também escreve um plano para restaurar o estado desejado, para alguém revisar e aprovar.",
+      "enforce": "Aplica o plano automaticamente quando todas as etapas podem ser executadas sem uma pessoa; caso contrário, escreve um plano para revisão."
+    }
+  },
+  "proposals": {
+    "open": "Planos",
+    "proposeNow": "Propor uma correção",
+    "title": "Planos de reconciliação",
+    "description": "Planos para restaurar o estado desejado, aguardando revisão, e o registro de cada plano aplicado por uma pessoa ou pela aplicação automática.",
+    "statusFilter": "Status",
+    "allStatuses": "Todos os status",
+    "empty": "Nenhum plano.",
+    "errorTitle": "Por que o plano falhou",
+    "stepError": "Por que esta etapa falhou",
+    "dialogTitle": "Plano para {{name}}",
+    "dialogDescription": "Escrito {{time}}.",
+    "staleNotice": "A divergência mudou desde que este plano foi escrito, por isso ele não foi aplicado. Este é o plano para a divergência atual; revise-o novamente.",
+    "drift": "O que divergiu",
+    "plan": "O que o plano faz",
+    "noSteps": "Nada a fazer.",
+    "approveWarning": "Aprovar aplica estas etapas ao ambiente agora. O McHarbor verifica a divergência novamente antes e recusa se ela mudou.",
+    "rejectNote": "Por quê (opcional)",
+    "approve": "Aprovar e aplicar",
+    "reject": "Rejeitar",
+    "confirmApprove": "Aplicar agora",
+    "confirmReject": "Rejeitar plano",
+    "columns": {
+      "watch": "Monitoramento",
+      "status": "Status",
+      "origin": "Origem",
+      "steps": "Etapas",
+      "created": "Escrito",
+      "resolvedBy": "Resolvido por"
+    },
+    "status": {
+      "pending": "Aguardando revisão",
+      "applying": "Aplicando",
+      "applied": "Aplicado",
+      "failed": "Falhou",
+      "rejected": "Rejeitado",
+      "superseded": "Substituído"
+    },
+    "origin": {
+      "propose": "Proposta",
+      "enforce": "Aplicação automática"
+    }
+  },
+  "step": {
+    "start": "Iniciar",
+    "stop": "Parar",
+    "remove": "Remover",
+    "recreate": "Recriar",
+    "stack_up": "Implantar stack",
+    "manual": "Requer uma pessoa",
+    "plugin": "Alterar",
+    "disruptive": "Interrompe o serviço"
+  },
+  "stepResult": {
+    "done": "Concluído",
+    "failed": "Falhou",
+    "skipped": "Ignorado",
+    "manual": "Deixado para uma pessoa"
+  },
+  "manual": {
+    "missing": "O contêiner não existe, e o estado desejado não contém o suficiente para criá-lo. Implante-o e verifique novamente.",
+    "compose_managed": "O contêiner pertence a uma stack compose; altere a stack em vez do contêiner.",
+    "ports": "As portas publicadas não podem ser alteradas recriando; edite o contêiner ou a stack dele.",
+    "mounts": "As montagens não podem ser alteradas recriando; edite o contêiner ou a stack dele.",
+    "networks": "Anexe o contêiner às suas redes a partir da página do contêiner ou da rede.",
+    "protected": "Este é um contêiner protegido (o McHarbor ou o agente dele) e nunca é alterado automaticamente.",
+    "stack_remove": "A remoção de uma stack nunca é planejada; derrube-a na página da stack.",
+    "stack_stop": "A parada de uma stack nunca é planejada; pare-a na página da stack.",
+    "git_compose": "O arquivo compose da stack vem do Git; implante-o por meio do pipeline GitOps dela."
+  },
+  "refusal": {
+    "stale": "A divergência mudou desde que este plano foi escrito. Um plano novo foi escrito no lugar.",
+    "unknown": "O ambiente não pode ser alcançado agora, então nada foi alterado.",
+    "no_drift": "Não há divergência para tratar.",
+    "cannot_act": "Este nó do McHarbor não pode aplicar alterações.",
+    "not_pending": "Alguém já resolveu este plano.",
+    "git_managed": "Este monitoramento é gerenciado por uma fonte Git. Altere-o no repositório.",
+    "enforce_route": "A aplicação automática é concedida na configuração de resposta do monitoramento.",
+    "bad_mode": "Modo de resposta desconhecido.",
+    "not_git_managed": "Este monitoramento não é gerenciado por uma fonte Git.",
+    "not_expressible": "Nada desta divergência pode ser gravado de volta no repositório.",
+    "git_failed": "O Git recusou a alteração. Verifique as credenciais e a branch do repositório.",
+    "sync_failed": "A sincronização falhou; o motivo é exibido na fonte.",
+    "confirm_passes_range": "As passagens de confirmação devem estar entre 1 e 10.",
+    "actions_per_pass_range": "As ações por passagem devem estar entre 1 e 25.",
+    "cooldown_range": "O período de espera deve estar entre 0 e 86400 segundos.",
+    "failure_threshold_range": "O limite de falhas deve estar entre 1 e 20.",
+    "source_fields_required": "Um nome, um repositório e um ambiente são obrigatórios.",
+    "invalid_branch": "Esse nome de branch não é válido.",
+    "path_escapes_repo": "O caminho deve permanecer dentro do repositório.",
+    "invalid": "A requisição não era válida."
+  },
+  "pullRequest": {
+    "action": "Aceitar divergência no Git",
+    "title": "Aceitar divergência no Git: {{name}}",
+    "description": "O McHarbor reescreve o documento deste monitoramento para corresponder ao que está em execução, envia-o para uma nova branch e abre um pull request para revisão. Nada muda até que alguém faça o merge.",
+    "confirm": "Enviar branch e abrir solicitação",
+    "branch": "Branch:",
+    "open": "Abrir o pull request",
+    "noRequest": "A branch foi enviada, mas nenhum pull request foi aberto: {{error}}",
+    "changed": "Alterado: {{fields}}",
+    "skipped": "Não expressável, continua divergindo: {{fields}}"
+  },
+  "sources": {
+    "open": "Fontes Git",
+    "title": "Fontes Git",
+    "description": "Repositórios cujos documentos são o estado desejado. Um commit altera a intenção em uma passagem do reconciliador; as linhas vindas do Git são editadas no repositório.",
+    "add": "Adicionar fonte Git",
+    "addTitle": "Adicionar uma fonte Git",
+    "addDescription": "Cada documento YAML ou JSON no caminho se torna um monitoramento no ambiente atual.",
+    "name": "Nome",
+    "repository": "Repositório",
+    "repositoryPlaceholder": "Escolha um repositório",
+    "branch": "Branch",
+    "path": "Diretório",
+    "formatHint": "Um documento contém name, kind, containerName, imageRef, stackName, desiredStatus, restartPolicy, mode (observe ou propose) e config; um arquivo pode listar vários em desiredStates. A aplicação automática (enforce) não pode ser definida pelo Git.",
+    "where": "Branch e diretório",
+    "state": "Estado",
+    "failing": "Com falha",
+    "syncing": "Sincronizando",
+    "paused": "Pausado",
+    "errorTitle": "Por que a sincronização falhou",
+    "rows": "Monitoramentos",
+    "commit": "Commit",
+    "synced": "Última sincronização",
+    "syncNow": "Sincronizar agora",
+    "empty": "Nenhuma fonte Git.",
+    "deleteTitle": "Excluir fonte Git",
+    "deleteDescription": "Deixar de ler o estado desejado de {{name}}. Os monitoramentos dela permanecem e passam a poder ser editados aqui.",
+    "deleteConfirm": "Excluir fonte"
+  },
+  "settings": {
+    "title": "Configurações do reconciliador",
+    "description": "Como a divergência é confirmada e os limites dentro dos quais a aplicação automática atua.",
+    "confirmPasses": "Passagens para confirmar a divergência",
+    "confirmPassesHint": "A divergência só é registrada depois que essa quantidade de verificações consecutivas a detecta, para que uma atualização gradual não seja reportada. Aumente em hosts lentos.",
+    "save": "Salvar",
+    "enforcement": "Aplicação automática",
+    "enforcementHint": "Desativada por padrão. Só os monitoramentos definidos como Aplicar são tratados, e apenas dentro destes limites.",
+    "enforceEnabled": "Aplicação automática ativada",
+    "maxActions": "Alterações por passagem",
+    "cooldownMinutes": "Período de espera por monitoramento (minutos)",
+    "threshold": "Falhas antes de parar",
+    "saveEnforcement": "Salvar aplicação automática",
+    "breakerOpen": "A aplicação automática parou após falhas repetidas em {{time}}. Nada é aplicado até que seja reiniciada.",
+    "reset": "Reiniciar e retomar",
+    "confirmReset": "Retomar aplicação automática"
+  },
+  "pick": {
+    "manual": "Inserir manualmente…",
+    "fromList": "Escolher da lista",
+    "container": "Selecione um contêiner",
+    "containerHint": "Escolher um contêiner existente preenche a imagem e o status que ele executa agora. Insira um nome manualmente para declarar um que ainda não existe.",
+    "image": "Selecione uma imagem",
+    "select": "Selecionar…",
+    "loading": "Carregando…"
+  },
+  "plugin": {
+    "cluster": "Cluster",
+    "environment": "Ambiente",
+    "pinHint": "Fixe apenas o que deve ser mantido. Uma propriedade deixada em \"Não gerenciado\" nunca é verificada.",
+    "useCurrent": "Usar valores atuais",
+    "notManaged": "Não gerenciado",
+    "yes": "Sim",
+    "no": "Não"
+  }
+}

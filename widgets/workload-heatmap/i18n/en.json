@@ -1,0 +1,37 @@
+{
+  "widgets": {
+    "workloadHeatmap": {
+      "label": "Workload Heatmap",
+      "description": "One square per container, coloured by state"
+    }
+  },
+  "workloadHeatmapWidget": {
+    "title": "Workload states",
+    "count_one": "{{count}} container",
+    "count_other": "{{count}} containers",
+    "empty": "No containers found",
+    "emptyHint": "Workloads appear here as soon as this environment has any.",
+    "gridLabel_one": "{{count}} container, grouped by state",
+    "gridLabel_other": "{{count}} containers, grouped by state",
+    "cellLabel": "{{name}} — {{state}}",
+    "open": "Open container",
+    "none": "None",
+    "state": {
+      "running": "Running",
+      "created": "Created",
+      "removing": "Removing",
+      "paused": "Paused",
+      "restarting": "Restarting",
+      "exited": "Exited",
+      "dead": "Dead"
+    },
+    "field": {
+      "status": "Status",
+      "stack": "Stack",
+      "ports": "Ports",
+      "ip": "IP address",
+      "created": "Created",
+      "id": "ID"
+    }
+  }
+}

@@ -1,11 +1,11 @@
 {
-  "label": "HTTP Request",
-  "description": "Send an HTTP request and store the response on the message",
+  "label": "HTTP-Anfrage",
+  "description": "Eine HTTP-Anfrage senden und die Antwort an der Nachricht speichern",
   "config": {
     "url": "URL",
     "method": "Methode",
     "headers": "Header",
-    "body_source": "Body Source"
+    "body_source": "Body-Quelle"
   },
   "options": {
     "method": {

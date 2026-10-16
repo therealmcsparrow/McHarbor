@@ -1,7 +1,0 @@
-{
-  "label": "Host Info",
-  "description": "Read host information from a Docker environment",
-  "config": {
-    "environment": "Umgebung"
-  }
-}

@@ -19,6 +19,6 @@ export const useLanguageStore = create<LanguageState>()(
         set({ language: lang });
       },
     }),
-    { name: 'mcharbor-language' }
-  )
+    { name: 'mcharbor-language' },
+  ),
 );

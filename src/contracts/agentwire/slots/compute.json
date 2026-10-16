@@ -1,0 +1,176 @@
+{
+  "operation": "Operation",
+  "envId": "EnvID",
+  "roots": {
+    "vmRoot": "VMRoot",
+    "ctRoot": "CTRoot",
+    "imageRoot": "ImageRoot"
+  },
+  "migrate": {
+    "plan": true,
+    "repair": true,
+    "roots": {
+      "vmRoot": "VMRoot",
+      "ctRoot": "CTRoot",
+      "imageRoot": "ImageRoot"
+    },
+    "volumes": [
+      {
+        "kind": "Kind",
+        "from": "From",
+        "to": "To",
+        "guestId": "GuestID",
+        "slot": 4,
+        "bytes": 5
+      }
+    ],
+    "vmFrom": "VMFrom",
+    "ctFrom": "CTFrom",
+    "imageFrom": "ImageFrom",
+    "diskFrom": "DiskFrom",
+    "diskTo": "DiskTo",
+    "entries": 7,
+    "bytes": 5,
+    "moved": [
+      {
+        "kind": "Kind",
+        "from": "From",
+        "to": "To",
+        "guestId": "GuestID",
+        "slot": 4,
+        "bytes": 5
+      }
+    ],
+    "failures": [
+      {
+        "path": "Path",
+        "reason": "Reason"
+      }
+    ],
+    "notes": [
+      "Notes"
+    ],
+    "completed": true
+  },
+  "capability": {
+    "os": "OS",
+    "arch": "Arch",
+    "kernelVersion": "KernelVersion",
+    "agentVersion": "AgentVersion",
+    "supported": true,
+    "unsupportedWhy": "UnsupportedWhy",
+    "canRunVms": true,
+    "canRunContainers": true,
+    "seccompBuiltIn": true,
+    "supervisorMode": "SupervisorMode",
+    "hostCpus": 8,
+    "hostMemoryBytes": 15,
+    "hostSockets": 11,
+    "hostPhysicalCores": 17,
+    "hugePages": {
+      "total": 5,
+      "free": 4,
+      "sizeKb": 6,
+      "surplus": 7,
+      "reserved": 8
+    },
+    "numaNodes": [
+      {
+        "id": 2,
+        "cpus": [
+          4
+        ],
+        "memoryBytes": 11,
+        "freeBytes": 9
+      }
+    ],
+    "items": [
+      {
+        "key": "Key",
+        "present": true,
+        "detail": "Detail",
+        "remediation": "Remediation",
+        "critical": true,
+        "blocks": "Blocks",
+        "installable": true
+      }
+    ],
+    "qemuBinaries": [
+      {
+        "path": "Path",
+        "arch": "Arch",
+        "version": "Version",
+        "machineTypes": [
+          "MachineTypes"
+        ],
+        "kvmAccel": true,
+        "devices": [
+          "Devices"
+        ],
+        "cpuModels": [
+          "CPUModels"
+        ],
+        "qmpCommands": [
+          "QMPCommands"
+        ]
+      }
+    ],
+    "bridges": [
+      {
+        "name": "Name",
+        "kind": "Kind",
+        "mac": "MAC",
+        "mtu": 3,
+        "up": true,
+        "addresses": [
+          "Addresses"
+        ],
+        "master": "Master",
+        "managed": true,
+        "hasDefaultRoute": true,
+        "upper": [
+          "Upper"
+        ]
+      }
+    ],
+    "subuidRanges": [
+      {
+        "start": 5,
+        "count": 5
+      }
+    ],
+    "subgidRanges": [
+      {
+        "start": 5,
+        "count": 5
+      }
+    ],
+    "storageDrivers": [
+      {
+        "driver": "Driver",
+        "toolPath": "ToolPath",
+        "version": "Version",
+        "available": true,
+        "error": "Error",
+        "targets": [
+          {
+            "name": "Name",
+            "mountpoint": "Mountpoint",
+            "usedBytes": 9,
+            "driver": "Driver"
+          }
+        ]
+      }
+    ],
+    "probedAt": "2026-09-30T12:00:00Z"
+  },
+  "install": {
+    "item": "Item",
+    "packages": [
+      "Packages"
+    ],
+    "output": "Output"
+  },
+  "success": true,
+  "error": "Error"
+}

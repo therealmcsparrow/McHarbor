@@ -17,10 +17,7 @@ type BrowserFileSystemFileEntry = BrowserFileSystemEntryBase & {
 };
 
 type BrowserFileSystemDirectoryReader = {
-  readEntries: (
-    success: (entries: BrowserFileSystemEntry[]) => void,
-    error?: (error: DOMException) => void,
-  ) => void;
+  readEntries: (success: (entries: BrowserFileSystemEntry[]) => void, error?: (error: DOMException) => void) => void;
 };
 
 type BrowserFileSystemDirectoryEntry = BrowserFileSystemEntryBase & {
@@ -45,17 +42,14 @@ function readDirectoryEntries(reader: BrowserFileSystemDirectoryReader): Promise
   return new Promise((resolve, reject) => {
     const entries: BrowserFileSystemEntry[] = [];
     const readBatch = () => {
-      reader.readEntries(
-        (batch) => {
-          if (batch.length === 0) {
-            resolve(entries);
-            return;
-          }
-          entries.push(...batch);
-          readBatch();
-        },
-        reject,
-      );
+      reader.readEntries((batch) => {
+        if (batch.length === 0) {
+          resolve(entries);
+          return;
+        }
+        entries.push(...batch);
+        readBatch();
+      }, reject);
     };
     readBatch();
   });

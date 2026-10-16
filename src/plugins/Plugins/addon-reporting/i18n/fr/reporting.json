@@ -1,0 +1,597 @@
+{
+  "nav": {
+    "section": {
+      "reporting": "Rapports"
+    }
+  },
+  "menu": {
+    "studio": "Studio de rapports",
+    "library": "Bibliothèque de rapports",
+    "settings": "Paramètres des rapports",
+    "schedules": "Planifications de rapports"
+  },
+  "page": {
+    "studio": {
+      "title": "Studio de rapports",
+      "subtitle": "Choisissez un rapport, définissez la période et générez. Chaque chiffre provient des relevés de cette plateforme."
+    },
+    "library": {
+      "title": "Bibliothèque de rapports",
+      "subtitle": "Rapports déjà générés. Chacun est un relevé figé de ce qui était vrai au moment de son exécution."
+    },
+    "settings": {
+      "title": "Paramètres des rapports",
+      "subtitle": "Ce qui figure sur la couverture d'un rapport exporté, et la quantité d'historique conservée."
+    },
+    "schedules": {
+      "title": "Planifications de rapports",
+      "subtitle": "Des rapports qui s'exécutent et se livrent d'eux-mêmes"
+    }
+  },
+  "category": {
+    "board": {
+      "label": "Pour le conseil",
+      "description": "Un rapport, trois niveaux : posture et risque pour la direction, objectifs pour le responsable de la plateforme, détail pour les équipes d’astreinte."
+    },
+    "assurance": {
+      "label": "Assurance",
+      "description": "Les éléments de preuve pour la revue de sécurité, les retours d’incident, la recertification des accès et les tests de reprise."
+    },
+    "service": {
+      "label": "Performance de service",
+      "description": "La tenue de la plateforme face à ses objectifs, et la manière dont les changements l’atteignent."
+    },
+    "platform": {
+      "label": "Plateforme",
+      "description": "Le parc lui-même : environnements, capacité, images et configuration."
+    },
+    "workload": {
+      "label": "Profondeur des charges de travail",
+      "description": "Un objet à la fois, traité en profondeur : comment chaque charge de travail s'est comportée sur la période, et pas seulement son aspect actuel."
+    },
+    "operations": {
+      "label": "Opérations",
+      "description": "La mécanique qui maintient le parc en fonctionnement — planifications, mises à jour, alertes, agents, réseaux et stockage."
+    },
+    "finance": {
+      "label": "Coûts et efficacité",
+      "description": "Ce que le parc consomme et qui le consomme, sous forme de proportions que l'opérateur peut chiffrer."
+    },
+    "custom": {
+      "label": "Personnalisé",
+      "description": "Posez une question avec vos propres mots. Un modèle décide des données dont il a besoin et rédige le document."
+    }
+  },
+  "level": {
+    "strategic": "Stratégique",
+    "tactical": "Tactique",
+    "operational": "Opérationnel",
+    "summary": "Synthèse",
+    "annex": "Annexe"
+  },
+  "band": {
+    "strong": "Solide",
+    "stable": "Stable",
+    "watch": "À surveiller",
+    "at_risk": "À risque",
+    "critical": "Critique",
+    "not_assessed": "Non évalué"
+  },
+  "option": {
+    "include_detail": "Inclure le détail opérationnel",
+    "include_glossary": "Inclure le glossaire",
+    "include_narrative": "Inclure la narration",
+    "paper": {
+      "a4": "A4 · 210 × 297 mm",
+      "legal": "Legal · 216 × 356 mm"
+    }
+  },
+  "type": {
+    "change-approvals": {
+      "name": "Approbations de changements et accès privilégiés",
+      "description": "Les demandes d'approbation et leurs issues, les règles qui les déclenchent, et chaque élévation temporaire accordée sur la période."
+    },
+    "control-framework-evidence": {
+      "name": "Preuves du référentiel de contrôles",
+      "description": "Preuves pour un référentiel de contrôles nommé : quelles vérifications ont été exécutées et ce qu'elles ont trouvé, quels contrôles sont prouvés plutôt que jugés, et lesquels McHarbor ne peut pas voir."
+    },
+    "compliance-posture": {
+      "name": "Posture de conformité",
+      "description": "La posture de conformité de la plateforme contrôle par contrôle, avec ce qui réussit, ce qui échoue et ce qui n'a pas pu être évalué."
+    },
+    "drift-enforcement": {
+      "name": "Dérive de configuration et application",
+      "description": "Où l'état en cours d'exécution s'écarte de l'état souhaité, quelles propositions ont été approuvées, et ce que l'application automatique a modifié d'elle-même."
+    },
+    "ha-posture": {
+      "name": "Posture de haute disponibilité",
+      "description": "Nœuds du cluster, battements de cœur, leadership et historique des basculements, et si un nœud de secours est prêt à prendre le relais."
+    },
+    "incident-narrative": {
+      "name": "Revue narrative des incidents",
+      "description": "Les incidents ouverts sur la période, leurs constats et leurs sources, le temps mis à chacun pour être expliqué et résolu, et ce qui revient sans cesse."
+    },
+    "instance-dr-readiness": {
+      "name": "Préparation à la reprise après sinistre de l'instance",
+      "description": "Les sauvegardes de McHarbor lui-même : historique, planifications, ancienneté de la dernière sauvegarde valide, et chaque restauration tentée."
+    },
+    "itsm-integration": {
+      "name": "Intégration ITSM",
+      "description": "Les tickets ouverts à partir des alertes et des incidents, la façon dont ils ont été résolus, et les canaux dont la synchronisation a échoué."
+    },
+    "runbooks": {
+      "name": "Runbooks",
+      "description": "Les procédures que détient cette instance : à quoi chacune est rattachée, ses étapes dans l'ordre, si elle s'exécute sans surveillance, et quelles conditions d'alerte n'ont aucun runbook derrière elles. Limitez-le à un seul runbook pour imprimer celui-ci séparément."
+    },
+    "secrets-hygiene": {
+      "name": "Hygiène des secrets",
+      "description": "Ancienneté et rotation des secrets, secrets que rien ne référence, et jusqu'où irait la fuite d'un secret."
+    },
+    "webhook-delivery": {
+      "name": "Livraison des webhooks",
+      "description": "Chaque webhook sortant, son taux de réussite de livraison, les nouvelles tentatives et les points de terminaison qui échouent sans cesse."
+    },
+    "workflow-automation": {
+      "name": "Automatisation des workflows",
+      "description": "Les exécutions de workflows sur la période, leur taux de réussite, les échecs et les déclencheurs qui se produisent le plus."
+    },
+    "access-review": {
+      "name": "Revue des accès et identités",
+      "description": "Comptes, rôles, groupes et clés d'API, présentés pour une recertification périodique des accès."
+    },
+    "agent-fleet": {
+      "name": "Parc d'agents distants",
+      "description": "État de connexion des agents, dispersion des versions et obsolescence sur tous les hôtes distants."
+    },
+    "alerting-coverage": {
+      "name": "Couverture des alertes",
+      "description": "Quelles charges de travail une règle d'alerte surveille — et, d'après l'historique mesuré, quelles défaillances n'ont été signalées à personne."
+    },
+    "audit-assurance": {
+      "name": "Assurance de la piste d'audit",
+      "description": "L'exhaustivité de la piste d'audit elle-même : répartition par gravité, ce qu'elle couvre et les lacunes de capture."
+    },
+    "automation-schedules": {
+      "name": "Tâches planifiées et automatisation",
+      "description": "Chaque planification, politique de mise à jour et plan de sauvegarde, la date de leur dernière exécution, et lesquels ne se sont jamais exécutés."
+    },
+    "availability-slo": {
+      "name": "Disponibilité et niveaux de service",
+      "description": "Charges en cours d'exécution et déclarées saines, mesurées face à l'objectif, avec les angles morts nommés."
+    },
+    "backup-recovery": {
+      "name": "Sauvegarde et restauration",
+      "description": "Couverture des charges en exécution, taux de réussite et ancienneté de la sauvegarde exploitable la plus récente."
+    },
+    "capacity-utilisation": {
+      "name": "Capacité et utilisation",
+      "description": "Marge sur la plus contrainte du processeur et de la mémoire, consommation de stockage et ce qui peut être libéré aujourd'hui."
+    },
+    "change-delivery": {
+      "name": "Changements et livraison",
+      "description": "Fréquence de déploiement et taux d'échec des changements, situés face aux repères DORA."
+    },
+    "container-service": {
+      "name": "Rapport de service des conteneurs",
+      "description": "Une ligne par charge de travail rassemblant disponibilité, image, stack, couverture de sauvegarde et automatisation des mises à jour."
+    },
+    "cost-allocation": {
+      "name": "Répartition des coûts et showback",
+      "description": "La consommation attribuée à la stack qui l'a causée, en parts plutôt qu'en devise : la plateforme ne détient aucune grille tarifaire."
+    },
+    "credential-hygiene": {
+      "name": "Hygiène des identifiants",
+      "description": "Ancienneté, expiration, étendue des portées et dernière utilisation des clés d'API — une liste de révocation plutôt qu'un inventaire."
+    },
+    "data-protection-rpo": {
+      "name": "Protection des données et RPO",
+      "description": "Le point de reprise par rapport aux objectifs conventionnels, la couverture des charges de travail en cours d'exécution, et ce qui n'a jamais été sauvegardé."
+    },
+    "environment-comparison": {
+      "name": "Comparaison des environnements",
+      "description": "Les mêmes mesures pour chaque environnement côte à côte, afin que la dérive de version et les agents obsolètes soient visibles."
+    },
+    "environment-health": {
+      "name": "Santé des environnements",
+      "description": "État de l'environnement, du moteur, de l'agent et des ressources sur chaque hôte connecté."
+    },
+    "executive-overview": {
+      "name": "Vue d'ensemble de la plateforme",
+      "description": "Le rapport de référence pour le conseil : posture sur six domaines, registre des risques, performance face aux objectifs et le détail qui les étaye."
+    },
+    "healthcheck-quality": {
+      "name": "Qualité des contrôles de santé",
+      "description": "Si les contrôles de santé sont présents, réussissent et sont assez rapides — et quelles charges de travail en cours d'exécution n'en ont aucun."
+    },
+    "image-supply-chain": {
+      "name": "Images et chaîne d'approvisionnement",
+      "description": "Provenance et ancienneté des images, registres, automatisation des mises à jour et exposition évaluée."
+    },
+    "incident-problem": {
+      "name": "Revue des incidents et problèmes",
+      "description": "Ce qui a échoué sur la période, la rapidité du rétablissement et les charges de travail récurrentes."
+    },
+    "network-connectivity": {
+      "name": "Réseau et connectivité",
+      "description": "Réseaux, pilotes et rattachements, afin que le rayon d'impact d'une charge de travail compromise puisse être lu plutôt que deviné."
+    },
+    "operational-readiness": {
+      "name": "Préparation opérationnelle",
+      "description": "Chaque charge de travail notée sur cinq fondamentaux : contrôle de santé, disponibilité, sauvegarde, politique de mise à jour et image analysée."
+    },
+    "patch-currency": {
+      "name": "Actualité des correctifs et mises à jour",
+      "description": "De combien le parc d'images a dérivé, ce que l'automatisation rattrape, et quelles charges de travail aucune politique ne couvre."
+    },
+    "permission-matrix": {
+      "name": "Matrice des rôles et permissions",
+      "description": "Rôles classés par étendue d'accès, qui détient chacun d'eux, et quels rôles personne ne détient."
+    },
+    "platform-inventory": {
+      "name": "Inventaire de la plateforme",
+      "description": "La version de McHarbor elle-même, les environnements, agents, plugins et tâches planifiées."
+    },
+    "resource-efficiency": {
+      "name": "Efficacité des ressources",
+      "description": "La marge dans les deux sens — trop peu est un problème de résilience, trop est un problème d'efficacité — et ce qui peut être récupéré."
+    },
+    "security-compliance": {
+      "name": "Sécurité et conformité",
+      "description": "Exposition aux vulnérabilités par gravité, couverture et fraîcheur des analyses, contrôles d'accès et assurance d'audit."
+    },
+    "stability-flapping": {
+      "name": "Stabilité et instabilité",
+      "description": "Les charges de travail qui changent sans cesse d'état. Distingue les nombreuses transitions courtes des rares pannes longues, car les causes diffèrent."
+    },
+    "stack-portfolio": {
+      "name": "Portefeuille de stacks et d'applications",
+      "description": "L'enregistrement par conteneur consolidé au niveau de la stack, qui est l'unité dont une équipe est généralement responsable."
+    },
+    "uptime-availability": {
+      "name": "Historique de disponibilité",
+      "description": "Disponibilité mesurée par charge de travail, pannes, MTTR et budget d'erreur, d'après l'historique de 30 secondes de la plateforme plutôt que l'état actuel."
+    },
+    "user-activity": {
+      "name": "Activité des utilisateurs",
+      "description": "Qui a exploité la plateforme, dans quelle mesure, ce qu'ils ont modifié, et quelle part s'est déroulée en dehors des heures de travail."
+    },
+    "volume-data-estate": {
+      "name": "Volumes et patrimoine de données",
+      "description": "Les données persistantes : leur quantité, à qui elles appartiennent, ce qui est orphelin, et si quelque chose permettrait de les restaurer."
+    },
+    "workload-inventory": {
+      "name": "Inventaire des charges de travail",
+      "description": "Un relevé à un instant donné de chaque charge de travail sur chaque plateforme qui répond, avec les images, volumes et réseaux Docker associés, pour le contrôle des changements et la passation."
+    },
+    "ad-hoc": {
+      "name": "Rapport généré par IA",
+      "description": "Décrivez la question avec vos propres mots et un modèle rédige le document. Il sélectionne lui-même les données, et chaque chiffre qu'il utilise est vérifié par rapport aux propres enregistrements de la plateforme avant l'émission du rapport."
+    }
+  },
+  "studio": {
+    "searchPlaceholder": "Rechercher des rapports",
+    "searchEmptyTitle": "Aucun rapport ne correspond",
+    "searchEmptyDescription": "Aucun type de rapport ne correspond à ce texte. Effacez la recherche pour voir tout le catalogue.",
+    "searchCount": "{{shown}} sur {{total}}",
+    "configure": "Configurer",
+    "period": "Période",
+    "environment": "Environnement",
+    "customRange": "Période personnalisée",
+    "from": "Du",
+    "to": "Au",
+    "rangeInvalid": "La date de début doit être antérieure ou égale à la date de fin.",
+    "sections": "Sections",
+    "options": "Options",
+    "generate": "Générer le rapport",
+    "generating": "Collecte des données…",
+    "lastDays": "{{count}} derniers jours",
+    "pointInTime": "Instantané",
+    "pointInTimeHint": "Ce rapport décrit le présent ; il n'a donc pas de période.",
+    "scope": "Limité à {{environment}}. Le rapport ne contient que des données que vous pouvez déjà voir.",
+    "scopeAll": "Limité à tous les environnements que vous pouvez voir.",
+    "error": "Le rapport n'a pas pu être généré. Vérifiez que l'environnement est joignable puis réessayez.",
+    "empty": {
+      "title": "Aucun type de rapport disponible",
+      "description": "Le catalogue de rapports n'a pas pu être chargé. Vérifiez que le plugin est activé, puis rechargez la page."
+    },
+    "subject": "Portée",
+    "subjectKind": "Restreindre par",
+    "subjectHint": "Restreignez le rapport à un seul objet, ou laissez-le couvrir l’ensemble.",
+    "subjectEmpty": "Rien à restreindre",
+    "scopeSubject": "Restreint à {{subject}}. Le rapport ne contient que des données que vous pouvez déjà consulter.",
+    "environmentAll": "Tous les environnements",
+    "aiAuthored": "Rédigé par un modèle d'IA",
+    "prompt": "Que doit couvrir le rapport ?",
+    "promptPlaceholder": "p. ex. quelles images présentent des vulnérabilités critiques et s'exécutent toujours en production ?",
+    "aiConnection": "Connexion IA",
+    "aiConnectionHint": "Aucun fournisseur d'IA n'est configuré ou disponible sur cet hôte. Demandez à un administrateur d'en configurer un dans les paramètres IA — le récit utilisera une formulation standard d'ici là.",
+    "aiConnectionRequired": "Aucun fournisseur d'IA n'est configuré ou disponible sur cet hôte. Demandez à un administrateur d'en configurer un dans les paramètres IA avant de générer ce rapport."
+  },
+  "library": {
+    "count": "{{count}} rapport",
+    "count_other": "{{count}} rapports",
+    "allTypes": "Tous les types",
+    "filterByType": "Filtrer par type de rapport",
+    "searchPlaceholder": "Rechercher des rapports",
+    "noMatches": "Aucun rapport ne correspond à ces filtres",
+    "page": "Page {{page}} sur {{total}}",
+    "retired": "Type de rapport retiré",
+    "retiredHint": "Ce type de rapport a été remplacé par un rapport multiplateforme. Le document est conservé exactement tel qu'il a été généré.",
+    "col": {
+      "report": "Rapport",
+      "period": "Période",
+      "score": "Posture",
+      "generated": "Généré",
+      "actions": "Actions"
+    },
+    "delete": {
+      "title": "Supprimer ce rapport ?",
+      "description": "« {{title}} » sera supprimé définitivement. Les rapports sont des relevés d'un instant et ne peuvent pas être régénérés à l'identique."
+    },
+    "empty": {
+      "title": "Aucun rapport pour l'instant",
+      "description": "Générez votre premier rapport depuis le Studio. Cela prend quelques secondes et ne lit que ce à quoi vous avez déjà accès."
+    }
+  },
+  "viewer": {
+    "sections": "Sections du rapport",
+    "generatedBy": "Préparé par {{user}}",
+    "error": "Ce rapport n'a pas pu être chargé.",
+    "scope": "Portée : {{subject}}"
+  },
+  "scorecard": {
+    "overall": "Posture globale"
+  },
+  "settings": {
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "error": "Les paramètres n'ont pas pu être enregistrés.",
+    "organisation": {
+      "label": "Nom de l'organisation",
+      "help": "Imprimé au-dessus du titre, sur la couverture de chaque rapport exporté."
+    },
+    "classification": {
+      "label": "Mention de classification",
+      "help": "Affiché sur la couverture et dans le pied de chaque page. Par exemple : Interne, Confidentiel, Restreint."
+    },
+    "logo": {
+      "label": "Logo du rapport",
+      "help": "Le logotype imprimé en haut de la page de couverture et au début de chaque export Word. Laissez vide pour utiliser le logotype McHarbor."
+    },
+    "icon": {
+      "label": "Icône du rapport",
+      "help": "La petite marque répétée dans l'en-tête courant de chaque page PDF. Laissez vide pour utiliser la marque McHarbor."
+    },
+    "defaultDays": {
+      "label": "Période par défaut",
+      "help": "Nombre de jours couverts par un rapport lorsque son type n’en précise aucun."
+    },
+    "retain": {
+      "label": "Rapports à conserver",
+      "help": "Les rapports les plus anciens sont supprimés une fois ce nombre atteint. Chaque rapport conserve son document complet."
+    },
+    "ai": {
+      "label": "Narration par IA",
+      "help": "Autorise le fournisseur d’IA configuré à améliorer la formulation du paragraphe d’ouverture. Il ne peut jamais ajouter, retirer ni reformuler un chiffre, et toute erreur revient au texte standard. Désactivé par défaut, pour que les rapports restent reproductibles."
+    },
+    "paper": {
+      "label": "Format de page",
+      "help": "Le papier sur lequel chaque export PDF et Word est mis en page. Les marges sont de 1,27 cm sur les quatre côtés, quel que soit le format choisi."
+    },
+    "mark": {
+      "upload": "Téléverser",
+      "reset": "Utiliser la valeur par défaut",
+      "default": "Utilisation du logo de l'application défini dans Paramètres → Personnalisation.",
+      "hint": "PNG ou SVG. Un SVG est converti en PNG lors de sa sélection, car les générateurs PDF et Word intègrent des images plutôt que des dessins vectoriels.",
+      "badImage": "Ce fichier n'a pas pu être lu comme une image.",
+      "tooLarge": "Cette image est trop grande. Gardez-la sous 2 MB et 4000 pixels de côté."
+    },
+    "aiReports": {
+      "label": "Rapports rédigés par IA",
+      "help": "Permet au type de rapport généré par IA d'envoyer des détails du parc — enregistrements de conteneurs, d'images, d'utilisateurs et d'événements — au fournisseur d'IA configuré afin qu'un modèle rédige le document. Désactivé par défaut."
+    }
+  },
+  "action": {
+    "back": "Retour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "exportPdf": "Exporter en PDF",
+    "exportDocx": "Exporter en Word"
+  },
+  "error": {
+    "reporting": {
+      "invalid_request": "Cette requête n'a pas pu être interprétée.",
+      "unknown_type": "Ce type de rapport n'existe pas.",
+      "not_found": "Rapport introuvable.",
+      "generate_failed": "Le rapport n'a pas pu être généré.",
+      "export_failed": "L'export n'a pas pu être produit.",
+      "unsupported_format": "Ce format d'export n'est pas pris en charge.",
+      "internal": "Une erreur s'est produite. Consultez les journaux du serveur pour le détail.",
+      "schedule_no_targets": "Une planification doit livrer quelque part. Choisissez au moins un canal ou un emplacement de stockage.",
+      "schedule_bad_target": "Cette destination de livraison n'est ni un canal de communication ni un emplacement de stockage.",
+      "schedule_bad_cron": "Cette expression de planification n'a pas pu être lue. Elle nécessite cinq champs, par exemple 0 7 * * 1.",
+      "schedule_running": "Cette planification est déjà en cours d'exécution.",
+      "delivery_failed": "échec de la livraison",
+      "delivery_unavailable": "la livraison n'est pas disponible sur cette installation",
+      "delivery_target_gone": "la destination n'existe plus",
+      "schedule_bad_path": "Ce dossier de destination est inutilisable. Indiquez un dossier relatif sans barre oblique initiale, sans lettre de lecteur et sans segment « .. ».",
+      "schedule_bad_filename": "Ce nom de fichier est inutilisable. Indiquez un nom simple sans séparateur de dossier, sans « .. » et sans extension, en n'utilisant que les jetons listés par le champ.",
+      "schedule_bad_recipient": "Ce destinataire alternatif est inutilisable. Indiquez-le sur une seule ligne, et uniquement pour un canal qui en accepte un.",
+      "ai_disabled": "Les rapports IA sont désactivés. Un administrateur peut les activer dans les paramètres des rapports.",
+      "ai_unavailable": "Aucun fournisseur d'IA n'est configuré ou disponible sur cet hôte. Demandez à un administrateur d'en configurer un dans les paramètres IA.",
+      "ai_connection_unavailable": "La connexion IA sélectionnée est indisponible. Choisissez une autre connexion et réessayez.",
+      "prompt_required": "Décrivez ce que le rapport doit couvrir.",
+      "ai_plan_failed": "Le modèle n'a pas pu déterminer les données dont cette question a besoin. Essayez de la reformuler.",
+      "ai_author_failed": "Le modèle n'a pas pu produire un rapport exploitable à partir de ces données."
+    }
+  },
+  "findings": {
+    "recommended": "Recommandé :",
+    "owner": "Responsable : {{owner}}"
+  },
+  "chart": {
+    "aria": "Graphique"
+  },
+  "subject": {
+    "container": "Conteneur",
+    "stack": "Stack",
+    "image": "Image",
+    "volume": "Volume",
+    "network": "Réseau",
+    "user": "Utilisateur",
+    "group": "Groupe d’utilisateurs"
+  },
+  "subjectAll": {
+    "container": "Tous les conteneurs",
+    "stack": "Tous les stacks",
+    "image": "Toutes les images",
+    "volume": "Tous les volumes",
+    "network": "Tous les réseaux",
+    "user": "Tous les utilisateurs",
+    "group": "Tous les groupes d’utilisateurs"
+  },
+  "progress": {
+    "title": "Génération du rapport",
+    "description": "Lecture des enregistrements propres à la plateforme. Rien n’est enregistré tant que le document n’est pas terminé.",
+    "sources": "{{done}} sources sur {{total}} lues",
+    "failed": "Le rapport n’a pas pu être généré. Vérifiez que l’environnement est joignable et réessayez.",
+    "stage": {
+      "queued": "En file d’attente",
+      "collect": "Collecte des données",
+      "analyze": "Analyse",
+      "build": "Rédaction du document",
+      "store": "Enregistrement",
+      "done": "Prêt"
+    }
+  },
+  "schedule": {
+    "enable": "Planifier ce rapport",
+    "enableHint": "L'exécuter de façon récurrente et le livrer automatiquement, avec les paramètres ci-dessus.",
+    "name": "Nom de la planification",
+    "format": "Livré au format",
+    "formatPdf": "PDF",
+    "formatDocx": "Word (.docx)",
+    "frequency": "S'exécute",
+    "frequencyDaily": "Tous les jours",
+    "frequencyWeekly": "Toutes les semaines",
+    "frequencyMonthly": "Tous les mois",
+    "frequencyCustom": "Planification personnalisée",
+    "time": "À",
+    "weekdayLabel": "Le",
+    "dayOfMonth": "Le jour",
+    "cron": "Expression de planification",
+    "cronPreview": "S'exécute selon {{cron}} (UTC).",
+    "cronInvalid": "Une expression de planification nécessite cinq champs, par exemple 0 7 * * 1.",
+    "targets": "Livrer à",
+    "targetsHint": "Au moins une destination est requise. Une planification qui ne livre nulle part produit un rapport que personne ne lit.",
+    "targetsLoading": "Chargement des destinations…",
+    "targetsEmpty": "Aucun canal de communication ni emplacement de stockage n'est encore configuré. Ajoutez-en un avant de planifier un rapport.",
+    "linkOnly": "Lien uniquement",
+    "libraryNotice": "Les exécutions planifiées ne sont pas enregistrées dans la bibliothèque de rapports. Seule l'exécution la plus récente de chaque planification est conservée.",
+    "incomplete": "Donnez à la planification un nom, une expression valide et au moins une destination.",
+    "create": "Créer la planification",
+    "weekday": {
+      "0": "Dimanche",
+      "1": "Lundi",
+      "2": "Mardi",
+      "3": "Mercredi",
+      "4": "Jeudi",
+      "5": "Vendredi",
+      "6": "Samedi"
+    },
+    "path": "Dossier de destination",
+    "pathHint": "Relatif au chemin de base propre à l'emplacement. Laissez vide pour le dossier par défaut indiqué ci-dessus.",
+    "pathInvalid": "Utilisez un dossier relatif — sans barre oblique initiale, sans lettre de lecteur et sans « .. ».",
+    "filename": "Nom de fichier",
+    "filenamePlaceholder": "{name}-{date}",
+    "filenameHint": "Jetons : {{tokens}}. L'extension est ajoutée automatiquement, le fichier correspond donc toujours au format dans lequel il a été généré.",
+    "filenameInvalid": "Utilisez un nom de fichier simple — sans séparateur de dossier, sans « .. » et sans extension. Les accolades doivent contenir l'un des jetons listés ci-dessus.",
+    "recipient": "Envoyer plutôt à",
+    "recipientPlaceholder": "Laissez vide pour la destination propre au canal",
+    "recipientHint": "Livre cette planification ailleurs qu'à la destination configurée du canal. Le canal lui-même reste inchangé.",
+    "recipientHintMultiple": "Livre cette planification ailleurs qu'à la destination configurée du canal, séparées par des virgules pour plusieurs. Le canal lui-même reste inchangé.",
+    "recipientInvalid": "Cette destination est inutilisable. Indiquez-la sur une seule ligne, sans saut de ligne."
+  },
+  "schedules": {
+    "searchPlaceholder": "Rechercher des planifications…",
+    "noMatches": "Aucune planification ne correspond à cette recherche.",
+    "nextRun": "Prochaine : {{when}}",
+    "disabled": "Désactivée",
+    "neverRun": "Pas encore exécutée",
+    "runNow": "Exécuter maintenant",
+    "targetMissing": "Cette destination n'existe plus.",
+    "col": {
+      "schedule": "Planification",
+      "cadence": "S'exécute",
+      "targets": "Livre à",
+      "lastRun": "Dernière exécution",
+      "actions": "Actions"
+    },
+    "status": {
+      "running": "En cours",
+      "success": "Livré",
+      "partial": "Partiellement livré",
+      "failed": "Échec"
+    },
+    "delete": {
+      "title": "Supprimer cette planification ?",
+      "description": "« {{name}} » cessera de s'exécuter et sa dernière exécution sera supprimée. Les rapports déjà livrés ne sont pas affectés."
+    },
+    "empty": {
+      "title": "Aucun rapport planifié",
+      "description": "Ouvrez Report Studio, choisissez un rapport et cochez « Planifier ce rapport » pour qu'il s'exécute et se livre de lui-même."
+    },
+    "run": {
+      "ranAt": "Dernière exécution {{when}}",
+      "loading": "Chargement de la dernière exécution…",
+      "error": "La dernière exécution n'a pas pu être chargée.",
+      "delivery": "Livraison",
+      "noDelivery": "Cette exécution n'a rien livré.",
+      "attached": "document joint",
+      "linkOnly": "message envoyé, document non joint",
+      "failed": "échec de la livraison"
+    },
+    "edit": {
+      "action": "Modifier la planification",
+      "title": "Modifier la planification",
+      "enabled": "La planification est active",
+      "period": "Fenêtre du rapport (jours)",
+      "periodHint": "Chaque exécution couvre ce nombre de jours se terminant au moment de l'exécution.",
+      "hint": "Le type de rapport ne peut pas être modifié. Créez une nouvelle planification pour rapporter autre chose.",
+      "error": "La planification n'a pas pu être enregistrée."
+    }
+  },
+  "widgets": {
+    "recentReports": {
+      "label": "Rapports récents",
+      "description": "Les derniers documents de la bibliothèque avec leur score global",
+      "title": "Rapports récents",
+      "inLibrary": "{{count}} dans la bibliothèque",
+      "none": "Aucun rapport pour l'instant",
+      "noneHint": "Générez-en un depuis le Report Studio"
+    },
+    "reportSchedules": {
+      "label": "Planifications de rapports",
+      "description": "Chaque planification avec son dernier résultat et sa prochaine exécution, échecs d'abord",
+      "title": "Planifications",
+      "failing": "{{count}} en échec",
+      "enabled": "{{count}} actives",
+      "none": "Aucune planification",
+      "noneHint": "Planifiez un rapport pour le recevoir régulièrement",
+      "lastRun": "Dernière exécution {{when}}",
+      "neverRan": "Jamais exécuté",
+      "next": "prochaine {{when}}",
+      "paused": "En pause"
+    },
+    "common": {
+      "loading": "Lecture des rapports…",
+      "unavailable": "Rapports indisponibles",
+      "more": "{{count}} de plus",
+      "justNow": "à l’instant"
+    }
+  }
+}

@@ -3,22 +3,22 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPlayerPlay, IconPlayerStop, IconRotate, IconArrowUp, IconTrash } from '@tabler/icons-react';
+import { IconPlayerPlay, IconPlayerStop, IconRotate, IconBlocks, IconArrowUp, IconTrash } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
 import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
-import type { BatchAction } from '@resources/components/DataGrid';
+import type { BatchAction } from '@resources/layout/table-page/types';
 
 type UseContainerBatchActionsProps = {
   action: { mutate: (vars: { id: string; action: string }) => void };
   onUpdateSelected?: (rows: ContainerInfo[]) => void;
-  onReinstallSelected?: (rows: ContainerInfo[]) => void;
+  onRecreateSelected?: (rows: ContainerInfo[]) => void;
   onRemoveSelected?: (rows: ContainerInfo[]) => void;
 };
 
 export function useContainerBatchActions({
   action,
   onUpdateSelected,
-  onReinstallSelected,
+  onRecreateSelected,
   onRemoveSelected,
 }: UseContainerBatchActionsProps) {
   const { t: tc } = useTranslation('common');
@@ -28,7 +28,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.start'),
         icon: IconPlayerPlay,
-        iconClassName: 'text-emerald-500',
+        iconClassName: 'text-success',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -40,7 +40,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.stop'),
         icon: IconPlayerStop,
-        iconClassName: 'text-amber-500',
+        iconClassName: 'text-warning',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -52,7 +52,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.restart'),
         icon: IconRotate,
-        iconClassName: 'text-blue-400',
+        iconClassName: 'text-info',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -64,16 +64,16 @@ export function useContainerBatchActions({
       {
         label: tc('batch.updateSelected'),
         icon: IconArrowUp,
-        iconClassName: 'text-emerald-400',
+        iconClassName: 'text-success',
         variant: 'default',
         onClick: (rows) => onUpdateSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
-        label: tc('batch.reinstallSelected'),
-        icon: IconRotate,
-        iconClassName: 'text-blue-400',
+        label: tc('batch.recreateSelected'),
+        icon: IconBlocks,
+        iconClassName: 'text-info',
         variant: 'default',
-        onClick: (rows) => onReinstallSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
+        onClick: (rows) => onRecreateSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
         label: tc('batch.remove'),
@@ -86,6 +86,6 @@ export function useContainerBatchActions({
         },
       },
     ],
-    [tc, action, onUpdateSelected, onReinstallSelected, onRemoveSelected]
+    [tc, action, onUpdateSelected, onRecreateSelected, onRemoveSelected],
   );
 }

@@ -1,0 +1,33 @@
+{
+  "config": {
+    "name": { "help": "Weergavenaam voor dit Gotify-communicatiekanaal." },
+    "server_url": { "help": "Basis-URL van de Gotify-server." },
+    "token": { "help": "Gotify-applicatietoken. Versleuteld opgeslagen." },
+    "priority": { "help": "Optionele Gotify-prioriteit als geheel getal." }
+  },
+  "title": "Gotify-meldingsbezorging",
+  "subtitle": "Beheerd door de plugin",
+  "description": "Deze plugin beheert Gotify. Hij slaat Gotify-verbindingsinstellingen op in het kanaal zelf en verstuurt meldingen via de pluginruntime.",
+  "nameLabel": "Kanaalnaam",
+  "namePlaceholder": "Operations-Gotify",
+  "serverUrlLabel": "Server-URL",
+  "tokenLabel": "Applicatietoken",
+  "priorityLabel": "Prioriteit",
+  "securityTitle": "Beveiliging",
+  "securityHelp": "Versleuteld applicatietoken",
+  "securityDescription": "Het Gotify-applicatietoken wordt versleuteld opgeslagen. Gebruik een apart applicatietoken voor McHarbor zodat het onafhankelijk kan worden geroteerd.",
+  "testTitle": "Verbinding testen",
+  "testHelp": "Verstuurt een bericht",
+  "testDescription": "De testactie van de host plaatst een echt bericht in de geconfigureerde Gotify-applicatie. Gebruik eerst een testapplicatie als het token productieapparaten waarschuwt.",
+  "secretKeepHint": "Laat leeg om de opgeslagen waarde te behouden.",
+  "requiredField": "Verplicht",
+  "setupGuideTitle": "Installatiehandleiding voor het Gotify-communicatiekanaal",
+  "guide": {
+    "step1": { "body": "Open je Gotify-server en maak een aparte applicatie aan voor McHarbor-meldingen." },
+    "step2": { "body": "Kopieer het applicatietoken en plak het in deze kanaalconfiguratie. McHarbor slaat het versleuteld op en verbergt het in API-antwoorden." },
+    "step3": { "body": "Stel <b>Server-URL</b> in op de Gotify-basis-URL, bijvoorbeeld <code>https://gotify.example.com</code>, zonder het pad <code>/message</code>." },
+    "step4": { "body": "Stel optioneel <b>Prioriteit</b> in als geheel getal als je Gotify-clients meldingsregels op basis van prioriteit gebruiken." },
+    "step5": { "body": "Sla het kanaal op en klik op <b>Verbinding testen</b>. De plugin plaatst een echt testbericht via hetzelfde pad dat voor live workflow-, alarm- en back-upgebeurtenissen wordt gebruikt." },
+    "step6": { "body": "Als de test mislukt, controleer dan de server-URL, het applicatietoken, het reverse-proxypad en het vertrouwen van het TLS-certificaat." }
+  }
+}

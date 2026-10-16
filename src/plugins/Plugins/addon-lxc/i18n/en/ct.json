@@ -1,0 +1,635 @@
+{
+  "title": "System Containers",
+  "description": "A whole distribution with its own init, users and services, in a fraction of a virtual machine's memory.",
+  "nav": {
+    "containers": "System Containers",
+    "templates": "Container Templates",
+    "section": {
+      "compute": "Compute"
+    }
+  },
+  "actions": {
+    "create": "Create container",
+    "start": "Start",
+    "shutdown": "Shut down",
+    "stop": "Stop",
+    "restart": "Restart",
+    "freeze": "Freeze",
+    "unfreeze": "Thaw",
+    "console": "Console",
+    "delete": "Delete",
+    "snapshot": "Take snapshot",
+    "revert": "Revert",
+    "clone": "Clone",
+    "makeTemplate": "Make a template",
+    "unTemplate": "Stop being a template",
+    "addNic": "Add interface",
+    "addMount": "Add mount",
+    "editLimits": "Change limits",
+    "applyLimits": "Apply",
+    "diagnose": "Ask what is wrong",
+    "refresh": "Refresh",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next"
+  },
+  "list": {
+    "searchPlaceholder": "Search containers",
+    "title": "System Containers",
+    "empty": {
+      "title": "No system containers yet",
+      "body": "A system container runs a whole distribution — its own init, users and services — starting in about a second and using a fraction of a virtual machine's memory.",
+      "action": "Create the first one"
+    },
+    "emptyTemplates": {
+      "title": "No container templates yet",
+      "body": "Mark a stopped container as a template to clone new containers from it. On a copy-on-write pool each clone is nearly instant and costs almost no space."
+    },
+    "columns": {
+      "name": "Name",
+      "state": "State",
+      "host": "Host",
+      "os": "OS",
+      "init": "Init",
+      "memory": "Memory",
+      "processes": "Processes",
+      "address": "Address",
+      "uptime": "Uptime",
+      "pool": "Pool",
+      "isolation": "Isolation"
+    },
+    "filter": {
+      "all": "All",
+      "running": "Running",
+      "stopped": "Stopped",
+      "problem": "Needs attention"
+    }
+  },
+  "state": {
+    "defined": "Defined",
+    "running": "Running",
+    "frozen": "Frozen",
+    "stopping": "Stopping",
+    "stopped": "Stopped",
+    "crashed": "Crashed",
+    "unknown": "Unknown",
+    "unknownHint": "This container's host cannot be reached, so its state is genuinely unknown. It is supervised by systemd and is probably still running, but nothing can confirm that until the agent returns.",
+    "frozenHint": "Every process is suspended. Memory, open files and network connections are all still there, and thawing resumes exactly where it stopped."
+  },
+  "isolation": {
+    "privileged": "Privileged",
+    "unprivileged": "Unprivileged",
+    "privilegedHint": "This container has no user namespace. Root inside it is root on the host in every way that matters.",
+    "unprivilegedHint": "Root inside this container maps to an unprivileged user on the host.",
+    "nesting": "Nesting",
+    "nestingHint": "This container may run containers of its own, which needs a relaxed device cgroup and a permissive mount profile.",
+    "idMapping": "Id mapping",
+    "idMappingHint": "The range of host uids and gids this container's own uids map onto. No two containers share a range."
+  },
+  "address": {
+    "observed": "Observed address",
+    "observedHint": "Read from the container's network namespace by the agent, not reported from inside the container."
+  },
+  "detail": {
+    "tabs": {
+      "overview": "Overview",
+      "console": "Console",
+      "resources": "Resources",
+      "mounts": "Mounts",
+      "processes": "Processes",
+      "snapshots": "Snapshots",
+      "backups": "Backups"
+    },
+    "overview": {
+      "init": "Init system",
+      "os": "Operating system",
+      "pool": "Storage pool",
+      "isolation": "Isolation",
+      "memory": "Memory",
+      "processes": "Processes",
+      "started": "Started",
+      "neverStarted": "Never started",
+      "exitReason": "Exit reason",
+      "lastError": "Last error",
+      "unknown": "Unknown"
+    }
+  },
+  "console": {
+    "title": "Console",
+    "connecting": "Connecting…",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnect": "Reconnect",
+    "notRunning": "The container is not running, so there is nothing to attach to.",
+    "permissionHint": "Attaching a console is a root shell inside the container, which is why it needs its own permission.",
+    "shell": "Shell",
+    "modeHint": "Console attaches to the container's own terminal (PID 1) and replays its recent output; disconnecting leaves the container running. Shell starts a new root shell that ends when you disconnect.",
+    "rootShellWarning": "Anything typed here runs as root inside the container."
+  },
+  "resources": {
+    "title": "Resource limits",
+    "liveNote": "These apply to a running container immediately. There is no restart and no downtime — the change takes effect as soon as it is applied.",
+    "queuedNote": "This container is not running, so these are stored for its next start.",
+    "memoryMax": "Memory limit",
+    "memoryMaxHint": "The hard ceiling. Past it the kernel's OOM killer takes a process inside the container — usually not the one at fault.",
+    "memoryHigh": "Throttle at",
+    "memoryHighHint": "A soft limit the kernel throttles against before it starts killing anything, which turns a container that dies into a container that goes slow. Defaults to 90% of the hard limit.",
+    "swapMax": "Swap",
+    "swapMaxHint": "Off by default. Swap inside a container comes out of the host's swap and turns one container's memory pressure into everything else's latency.",
+    "cpuMax": "CPU limit",
+    "cpuMaxHint": "A quota and a period in microseconds — \"200000 100000\" is two cores' worth. Leave it as \"max\" for no limit.",
+    "cpuWeight": "CPU share",
+    "cpuWeightHint": "Relative weight when containers compete for the same cores. It has no effect while there are cores to spare.",
+    "cpuSet": "Pinned to cores",
+    "pidsMax": "Process limit",
+    "pidsMaxHint": "The maximum number of processes. Without one, a single container can exhaust the host's process space and take everything else down with it.",
+    "diskQuota": "Disk quota",
+    "diskQuotaHint": "Enforced by the storage pool. A directory pool cannot enforce a quota.",
+    "usage": {
+      "cpu": "CPU",
+      "memory": "Memory",
+      "processes": "Processes",
+      "rootfs": "Rootfs",
+      "ofLimit": "of limit",
+      "noLimit": "No limit"
+    },
+    "applied": {
+      "title": "In force now",
+      "clampedOne": "The kernel adjusted one value: {{fields}}.",
+      "clampedOther": "The kernel adjusted {{count}} values: {{fields}}.",
+      "clampedHint": "The kernel rounds and clamps. What is shown here is what is actually in force, not what was asked for.",
+      "never": "These limits have never reached a running kernel.",
+      "pidsBadge": "{{value}} pids"
+    },
+    "lxcfsNote": "Tools inside the container — free, top, /proc/cpuinfo — report the host's figures rather than the container's. The numbers here read the container's own cgroup and are correct."
+  },
+  "mounts": {
+    "title": "Mounts",
+    "empty": "No mounts. The container sees only its own rootfs.",
+    "columns": {
+      "kind": "Kind",
+      "source": "Source",
+      "destination": "Destination",
+      "options": "Options"
+    },
+    "kind": {
+      "volume": "Volume",
+      "bind": "Host bind",
+      "device": "Device"
+    },
+    "kindHint": {
+      "volume": "A directory inside this container's own storage pool.",
+      "bind": "A path on the host. Whatever is behind it is fully reachable from inside the container.",
+      "device": "A host device node."
+    },
+    "readonly": "Read-only",
+    "shiftIds": "Ids shifted",
+    "shiftIdsHint": "Without this, every file in the mount appears to belong to nobody from inside an unprivileged container.",
+    "hostBindWarning": "A bind mount of a host path gives this container everything behind that path. A container that can write to the host's /etc can rewrite the host's passwords.",
+    "mustBeStopped": "The container must be stopped before its mounts can be changed."
+  },
+  "processes": {
+    "title": "Processes",
+    "empty": "No processes. The container is not running.",
+    "columns": {
+      "pid": "PID",
+      "user": "User",
+      "command": "Command",
+      "cpu": "CPU",
+      "memory": "Memory"
+    },
+    "hostPidHint": "The same process seen from the host, where its pid is different.",
+    "note": "Read from the container's cgroup by the host. Nothing inside the container has to cooperate for this to work."
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "empty": "No snapshots yet.",
+    "columns": {
+      "name": "Name",
+      "taken": "Taken",
+      "mechanism": "Mechanism",
+      "consistency": "Consistency",
+      "size": "Size",
+      "depth": "Chain depth"
+    },
+    "consistent": "Consistent",
+    "crashConsistent": "Crash-consistent",
+    "consistentHint": "The container was frozen while this was taken, so its filesystem is in a state it could have been shut down from.",
+    "crashConsistentHint": "The container was running and unfrozen. Anything not yet written to disk is missing — the same state a power cut produces.",
+    "mechanismHint": {
+      "zfs": "A ZFS snapshot. Instant, and costs nothing until the container's data diverges from it.",
+      "btrfs": "A btrfs snapshot. Instant, and costs nothing until the container's data diverges from it.",
+      "lvm": "An LVM snapshot.",
+      "rsync": "A full copy. This pool has no snapshot mechanism of its own, so this is a real copy of the rootfs — correct, but far slower and it uses the space to match."
+    },
+    "chainWarning": "Deep snapshot chains slow every read. This is the usual reason a container becomes mysteriously slow.",
+    "revertWarning": "Reverting discards every change made since this snapshot, and every snapshot taken after it.",
+    "freezeOption": "Freeze the container while the snapshot is taken",
+    "freezeHint": "Costs milliseconds on a copy-on-write pool and is what makes the snapshot restorable."
+  },
+  "create": {
+    "title": "Create a system container",
+    "steps": {
+      "source": "Source",
+      "profile": "Profile",
+      "resources": "Resources",
+      "network": "Network",
+      "setup": "Setup",
+      "summary": "Summary"
+    },
+    "source": {
+      "title": "What should this container run?",
+      "image": "A distribution image",
+      "imageHint": "A root filesystem archive McHarbor has already downloaded and verified.",
+      "template": "One of your templates",
+      "templateHint": "A container you have marked as a template. On a copy-on-write pool this is nearly instant.",
+      "noImages": "No container images have been downloaded on this host yet.",
+      "downloadImages": "Download images"
+    },
+    "profile": {
+      "title": "How should it be isolated?",
+      "init": "Init system",
+      "initHint": "systemd needs a delegated cgroup subtree and its own stop signal. Choosing the wrong one produces a container that starts and immediately exits.",
+      "unprivileged": "Unprivileged (recommended)",
+      "unprivilegedHint": "Root inside the container maps to an unprivileged user on the host. This is what makes a container safe to hand to somebody.",
+      "privileged": "Privileged",
+      "privilegedHint": "No user namespace. Root inside the container is root on the host in every way that matters — use this only for something you would trust with the host itself.",
+      "nesting": "Allow containers inside this container",
+      "nestingHint": "Needed to run Docker or another container runtime inside. It relaxes the device cgroup and the mount profile.",
+      "privilegeRequired": "Needs the ct.privileged permission."
+    },
+    "resources": {
+      "title": "How much should it be allowed?",
+      "preset": "Preset",
+      "presets": {
+        "small": "Small — 512 MB, 1 core",
+        "medium": "Medium — 2 GB, 2 cores",
+        "large": "Large — 8 GB, 4 cores",
+        "custom": "Custom"
+      },
+      "liveNote": "All of these can be changed later while the container runs."
+    },
+    "network": {
+      "title": "How should it reach the network?",
+      "network": "Network",
+      "noNetworks": "No networks have been set up on this host yet.",
+      "addressMode": "Address",
+      "dhcp": "From DHCP",
+      "static": "Static",
+      "staticIp": "IP address",
+      "staticGateway": "Gateway",
+      "staticIpv6": "Static IPv6 (CIDR)",
+      "staticGateway6": "IPv6 gateway",
+      "staticIpv6Hint": "Optional, and independent of the address setting above: a container on DHCP can still hold a fixed IPv6 address.",
+      "staticDns": "DNS servers",
+      "staticHint": "A container has no cloud-init. A static address is written into the distribution's own network configuration, so getting it wrong leaves the container reachable only from its console.",
+      "networkPlaceholder": "Choose a network",
+      "attachment": "Attaches through {{attachment}}"
+    },
+    "setup": {
+      "title": "First-boot setup",
+      "hostname": "Hostname",
+      "timezone": "Time zone",
+      "sshKeys": "SSH keys",
+      "sshKeysHint": "One key per line. Written to root's authorized_keys before the container first starts.",
+      "password": "Root password",
+      "passwordHint": "Hashed before it is stored and before it leaves this server. The password itself is never written to disk anywhere.",
+      "noAccessWarning": "Without an SSH key or a password the only way into this container is its console."
+    },
+    "summary": {
+      "title": "Ready to create",
+      "startAfterCreate": "Start it once it is created",
+      "startHint": "Off by default, so you can check its network configuration before it is on the network."
+    }
+  },
+  "clone": {
+    "title": "Clone {{name}}",
+    "body": "Makes a new container from this one, on the same pool. By default it is a full copy: nothing is shared with the source afterwards.",
+    "name": "Name of the clone",
+    "linked": "Share storage with the source",
+    "linkedHint": "Asks the pool for a linked clone that shares unchanged data with the source. The source cannot be deleted while the clone exists. If the host cannot make a link, you get a full copy instead and the result says so.",
+    "linkedUnavailable": "This container's pool cannot share data, so the clone will be a full copy.",
+    "start": "Start the clone when it is ready",
+    "resultLinked": "{{name}} was created as a linked clone. It shares data with its source, which cannot be deleted while the clone exists.",
+    "resultFull": "{{name}} was created as a full copy. It shares nothing with its source."
+  },
+  "delete": {
+    "title": "Delete {{name}}?",
+    "body": "This removes the container and everything inside it.",
+    "keepRootfs": "Keep the filesystem",
+    "keepRootfsHint": "The container is removed from McHarbor but its files stay in the pool.",
+    "templateInUse": "This template still backs other containers. Deleting it would corrupt them.",
+    "confirm": "Type the container's name to confirm."
+  },
+  "diagnose": {
+    "title": "What is likely wrong",
+    "pending": "Reading the container's definition and its exit reason…",
+    "unavailable": "No AI provider is set up on this installation.",
+    "dismiss": "Dismiss",
+    "disclaimer": "A suggestion from a language model reading this container's definition, limits and exit reason. Nothing from inside the container was sent."
+  },
+  "widgets": {
+    "ctSummary": {
+      "label": "System containers",
+      "description": "How many containers there are and how many are running."
+    },
+    "ctDensity": {
+      "label": "Container density",
+      "description": "What your containers actually use against what they are allowed."
+    },
+    "empty": "No system containers yet.",
+    "running": "Running",
+    "stopped": "Stopped",
+    "problem": "Needs attention",
+    "memoryInUse": "Memory in use",
+    "nearLimit": "Near a limit",
+    "densityHint": "Containers share a kernel and page cache, so actual usage sits well below the sum of their limits."
+  },
+  "reports": {
+    "platform": "System containers",
+    "isolation": {
+      "label": "System container isolation",
+      "description": "Which containers have had a boundary with the host removed: privilege, host mounts, nesting and id mapping."
+    },
+    "options": {
+      "aiSummary": "Add a written assessment (uses your configured AI provider)"
+    }
+  },
+  "backups": {
+    "title": "Backup schedules",
+    "description": "A backup leaves this host. It is a compressed archive of the container's filesystem plus a manifest of its definition, written to the storage destinations you name — so a pool failure that takes the snapshots with it leaves the backups.",
+    "history": "Backup history",
+    "runNow": "Back up now",
+    "addPlan": "Add a schedule",
+    "editPlan": "Edit schedule",
+    "deletePlan": "Delete schedule",
+    "restore": "Restore",
+    "delete": "Delete backup",
+    "disabled": "Off",
+    "noPlans": "No backup schedule yet. Until there is one, this container is protected only by its snapshots, which live on the same pool it does.",
+    "noRuns": "Nothing has been backed up yet.",
+    "noDestinations": "No storage destination is configured. Add one under Settings before writing a backup.",
+    "fellBack": "Taken as a full copy",
+    "fellBackHint": "An incremental was due and a full copy was taken instead: {{reason}}",
+    "idShift": {
+      "none": "Owners unchanged",
+      "noneHint": "The backup was taken in this container's id range, so no file owner had to move.",
+      "shifted": "Owners moved",
+      "shiftedHint": "Ownership moved to this container's id range: every file owner was shifted from the range the backup was taken in.",
+      "skipped": "Owners not moved",
+      "skippedHint": "The host restored the files without moving their owners, so they still belong to the id range the backup was taken in."
+    },
+    "blocked": {
+      "template": "A template cannot be backed up: its filesystem is the backing store for every clone of it.",
+      "hostOffline": "This container's host cannot be reached, so a backup cannot start.",
+      "noDestination": "Add a storage destination under Settings first — a backup that goes nowhere is not a backup.",
+      "noPlan": "Add a schedule first, so the backup knows where to write."
+    },
+    "planColumns": {
+      "name": "Schedule",
+      "schedule": "Runs",
+      "retention": "Keeps",
+      "lastRun": "Last run",
+      "nextRun": "Next run"
+    },
+    "columns": {
+      "started": "Started",
+      "operation": "What",
+      "kind": "Kind",
+      "size": "Size",
+      "consistency": "Taken",
+      "destinations": "Written to",
+      "status": "Status"
+    },
+    "operation": {
+      "backup": "Backup",
+      "restore": "Restore"
+    },
+    "kind": {
+      "full": "Full",
+      "incremental": "Incremental"
+    },
+    "consistency": {
+      "snapshot": "From a snapshot",
+      "snapshotHint": "The archive was read from a point-in-time snapshot rather than the live filesystem. On a btrfs, ZFS or LVM pool the snapshot is instant and the container never stopped.",
+      "live-copy": "Live copy",
+      "live-copyHint": "The rootfs was copied while the container kept running, without a snapshot or a freeze. Files were read at different moments, so the copy is not point-in-time: a database or a package upgrade in progress can be captured half-written. Stop the container first, or use a btrfs, ZFS or LVM thin pool, when that matters.",
+      "frozen": "Frozen",
+      "frozenHint": "The container's processes were frozen for the length of the copy. Consistent, and it executed nothing while it ran.",
+      "filesystem": "At rest",
+      "filesystemHint": "The container was not running, so nothing was writing to the filesystem while it was read."
+    },
+    "status": {
+      "running": "Running",
+      "success": "Succeeded",
+      "failure": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "errorHint": {
+      "backupKeyMissing": "No backup encryption key is installed on this McHarbor, so no destination would accept the backup. Install one under Settings → Storage → Backup encryption key, then run the backup again."
+    },
+    "retention": {
+      "lastCount": "last {{count}}",
+      "forDays": "{{days}} days",
+      "forever": "Forever"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Nightly backup",
+      "schedule": "Schedule",
+      "scheduleHint": "When this backup runs. The readable builder covers the common cases; the advanced field takes any five-field cron expression.",
+      "enabled": "Run on this schedule",
+      "destinations": "Destinations",
+      "destinationsHint": "Every destination you pick gets its own copy. One copy is not a backup.",
+      "retentionCount": "Keep this many",
+      "retentionDays": "Keep for this many days",
+      "retentionHint": "Zero means forever. A backup that a later incremental still builds on is never deleted, and neither is the only remaining backup of a container that still exists.",
+      "fullEvery": "Take a full copy every",
+      "fullEveryUnit": "runs",
+      "fullEveryHint": "Incrementals are fast and each one depends on the copies before it. Restarting the chain regularly keeps a restore short. Zero never forces one.",
+      "quiesceNotice": "A running container is snapshotted where its pool can, and frozen for the length of the copy where it cannot. A copy that could be neither is refused rather than written, because a half-written filesystem cannot be told from a good one.",
+      "save": "Save schedule"
+    },
+    "deletePlanConfirm": {
+      "title": "Delete this schedule?",
+      "body": "The backups it has already written stay where they are and stay restorable. Only the schedule goes."
+    },
+    "deleteConfirm": {
+      "title": "Delete this backup?",
+      "body": "The copies at every destination are removed too. A backup that a later incremental builds on cannot be deleted."
+    },
+    "restoreDialog": {
+      "title": "Restore {{name}}?",
+      "description": "Rebuilds this container's filesystem from the backup taken on {{taken}}.",
+      "needsStop": "The container has to be stopped first. Replacing the filesystem under a running init does not fail cleanly.",
+      "spaceNotice": "The filesystem is rebuilt beside the current one and moved into place at the last step, so the host needs room for a second copy while it runs.",
+      "chainNote": "This is an incremental backup, so the full copy it builds on and every incremental between are downloaded and applied in order.",
+      "irreversible": "This replaces everything on the container's filesystem now. It cannot be undone.",
+      "confirm": "Type {{name}} to confirm",
+      "submit": "Restore this backup"
+    }
+  },
+  "recreate": {
+    "action": "Recreate as a new container",
+    "orphaned": {
+      "button": "Backups of deleted containers",
+      "title": "Backups of deleted containers",
+      "description": "These backups belong to containers McHarbor no longer has. A backup outlives its container on purpose — pick one to recreate the container from it.",
+      "empty": "Every backup belongs to a container that still exists.",
+      "container": "Container",
+      "unknownName": "Unnamed container"
+    },
+    "dialog": {
+      "title": "Recreate {{name}} from a backup",
+      "description": "Everything below comes from the definition stored with the backup taken on {{taken}}. Change anything that no longer fits — a name already in use, a pool or a network that is gone.",
+      "loading": "Reading the container's definition from the backup destination…",
+      "pool": "Storage pool",
+      "poolPlaceholder": "Pick a pool",
+      "poolMissing": "The pool this container lived on ({{backend}} at {{target}}) is not on this host. Pick another.",
+      "interfaces": "Interfaces",
+      "noInterfaces": "No interfaces. The container will have loopback only.",
+      "networkPlaceholder": "Pick a network",
+      "networkMissing": "The network this interface was on no longer exists. Pick another, or remove the interface.",
+      "removeInterface": "Remove interface {{name}}",
+      "mounts": "Mounts",
+      "noMounts": "No mounts.",
+      "removeMount": "Remove mount {{destination}}",
+      "startAfter": "Start it once the restore finishes",
+      "restoreNote": "The container is created stopped, then its filesystem is rebuilt from this backup and every backup it builds on. Interfaces get new MAC addresses, so a DHCP reservation keyed on the old one will not match.",
+      "submit": "Recreate container"
+    },
+    "warnings": {
+      "name_invalid": "The stored name is not one a container can take here. Choose a new one.",
+      "init_unknown": "The stored init system is not one McHarbor runs, so systemd was picked. Check it before creating.",
+      "pool_target_unknown": "The stored rootfs path does not say which pool it was on. Pick a pool.",
+      "nic_dropped": "An interface with no bridge or parent adapter was left out.",
+      "mount_dropped": "A mount with an unknown kind or no source was left out.",
+      "limits_adjusted": "A negative limit was reset to no limit."
+    }
+  },
+  "permissions": {
+    "ct.view": {
+      "label": "View system containers"
+    },
+    "ct.manage": {
+      "label": "Manage system containers"
+    },
+    "ct.delete": {
+      "label": "Delete system containers"
+    },
+    "ct.console": {
+      "label": "Open a system container console"
+    },
+    "ct.backup": {
+      "label": "Back up system containers"
+    },
+    "ct.restore": {
+      "label": "Restore a system container from a backup"
+    },
+    "ct.privileged": {
+      "label": "Run privileged containers and mount host paths"
+    }
+  },
+  "err": {
+    "ct": {
+      "unauthorized": "You need to sign in to do that.",
+      "privilege_required": "That needs the permission to run privileged containers and mount host paths.",
+      "invalid_request": "Something in that request was not usable.",
+      "not_found": "That container no longer exists.",
+      "name_taken": "A container on this host already has that name.",
+      "pool_mismatch": "That pool is already recorded with a different backend or path on this host. Pick the pool again from the list.",
+      "pool_required": "A storage pool is required.",
+      "running": "The container has to be stopped first.",
+      "not_running": "The container is not running.",
+      "host_offline": "This container's host cannot be reached.",
+      "no_capability": "This host cannot run system containers.",
+      "snapshot_chain_deep": "This container has too many stacked snapshots. Delete some before taking another.",
+      "template_in_use": "This template still backs other containers.",
+      "template_running": "A template cannot be started.",
+      "bad_mount": "That mount is not allowed.",
+      "id_range_exhausted": "This host has no free id range left for another unprivileged container.",
+      "command_failed": "The host could not carry that out.",
+      "agent_too_old": "This container's host runs an agent too old to build or remove a container's rootfs. Update the agent on that host, then try again.",
+      "image_not_cached": "That image has not been downloaded to this host yet. Download it to the host from Compute → Images, then create the container again.",
+      "stats_unavailable": "The host's agent returned no statistics for this running container. Update the agent on this host to see live usage.",
+      "nic_ipv6_invalid": "Enter an IPv6 address with a prefix length, such as 2001:db8::50/64, and an IPv6 gateway. IPv4 values are not accepted in these fields.",
+      "nic_ipv6_macvlan_only": "A static IPv6 address is only available on direct (macvlan) networks.",
+      "not_ready": "This section is still starting up. Try again in a moment.",
+      "backup_name_required": "A backup schedule needs a name.",
+      "backup_name_too_long": "That backup schedule name is too long.",
+      "backup_retention_invalid": "That retention setting is out of range.",
+      "backup_cron_invalid": "That is not a valid five-field cron expression.",
+      "backup_no_destination": "This backup has nowhere to go. Pick at least one storage destination.",
+      "backup_chain_incomplete": "This backup's chain is incomplete, so it cannot be restored.",
+      "backup_chain_unrestorable": "This backup cannot be restored: its incremental backups were read from a live copy of a dir-pool rootfs. Restore the full backup it builds on instead.",
+      "backup_idmap_conflict": "This backup cannot be restored: the backups in its chain recorded different id ranges, so their file owners cannot be moved into the target container consistently.",
+      "backup_not_confirmed": "Type the container's name to confirm the restore.",
+      "backup_template": "A template cannot be backed up or restored over.",
+      "backup_agent_too_old": "This container's host runs an agent too old to back up a container.",
+      "backup_store_failed": "McHarbor could not store the backup at its destination.",
+      "backup_manifest_missing": "This backup's container definition is no longer at any of its destinations. Create a container by hand and restore into it instead.",
+      "backup_manifest_unreadable": "This backup's container definition could not be read.",
+      "recreate_manage_required": "Recreating a container needs ct.manage on that host as well as ct.restore.",
+      "recreate_restore_required": "Recreating a container from a backup needs ct.restore on that host."
+    }
+  },
+  "msg": {
+    "ct": {
+      "created": "Container created.",
+      "updated": "Container updated.",
+      "started": "Container started.",
+      "stopped": "Container stopped.",
+      "shutdown_escalated": "The container did not stop on its own and was killed.",
+      "restarted": "Container restarted.",
+      "frozen": "Container frozen.",
+      "unfrozen": "Container thawed.",
+      "deleted": "Container deleted.",
+      "limits_applied": "Limits applied. They are in force now.",
+      "limits_queued": "Limits stored. They apply the next time the container starts.",
+      "snapshot_created": "Snapshot taken.",
+      "snapshot_reverted": "Container reverted.",
+      "snapshot_deleted": "Snapshot deleted.",
+      "cloned": "Container cloned.",
+      "templated": "Template updated.",
+      "nic_added": "Interface added.",
+      "mount_added": "Mount added.",
+      "backup_plan_saved": "Backup schedule saved.",
+      "backup_plan_deleted": "Backup schedule deleted.",
+      "backup_started": "Backup started. It keeps running if you leave this page.",
+      "backup_stored": "Backup stored.",
+      "backup_deleted": "Backup deleted.",
+      "restore_started": "Restore started.",
+      "recreate_started": "Container defined. Its filesystem is being restored from the backup, and it can be started once the restore finishes."
+    }
+  },
+  "runbook": {
+    "attach": {
+      "ct": "System container"
+    },
+    "targets": {
+      "ct": "System container"
+    },
+    "steps": {
+      "ct_start": "Start the system container",
+      "ct_stop": "Stop the system container",
+      "ct_restart": "Restart the system container",
+      "ct_freeze": "Freeze every process in the system container",
+      "ct_unfreeze": "Thaw a frozen system container",
+      "ct_backup_run": "Back the system container up now",
+      "ct_state": "The system container's state, limits and host",
+      "ct_backups": "The system container's 20 most recent backups"
+    }
+  },
+  "estate": {
+    "containers": "System containers"
+  },
+  "search": {
+    "group": {
+      "containers": "System containers"
+    },
+    "action": {
+      "createContainer": "Create system container",
+      "createContainerKeywords": "new lxc ct container"
+    }
+  }
+}

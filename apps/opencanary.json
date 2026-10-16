@@ -1,0 +1,49 @@
+{
+    "slug":  "opencanary",
+    "name":  "OpenCanary",
+    "description":  "Lightweight honeypot daemon that emulates common network services to alert on unauthorized access attempts.",
+    "category":  "Security",
+    "image":  "thinkst/opencanary:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=opencanary.org\u0026sz=128",
+    "website":  "https://opencanary.org",
+    "docsUrl":  "https://opencanary.help/en/latest/quickstart.html",
+    "ports":  [
+                  {
+                      "host":  21,
+                      "container":  21,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  445,
+                      "container":  445,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opencanary/config",
+                        "container":  "/etc/opencanaryd"
+                    },
+                    {
+                        "host":  "/opt/appdata/opencanary/logs",
+                        "container":  "/var/log/opencanary"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

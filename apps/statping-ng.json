@@ -1,0 +1,40 @@
+{
+    "slug":  "statping-ng",
+    "name":  "Statping-NG",
+    "description":  "Actively maintained fork of Statping, a status page and uptime monitor with notifications.",
+    "category":  "Monitoring",
+    "image":  "adamboutcher/statping-ng:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/statping-ng.png",
+    "website":  "https://github.com/statping-ng/statping-ng",
+    "docsUrl":  "https://github.com/statping-ng/statping-ng#installation",
+    "ports":  [
+                  {
+                      "host":  8098,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/statping-ng/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB_CONN",
+                        "default":  "sqlite",
+                        "description":  "Database driver used to store monitor data"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "adapter": {
+    "name": "SIEM (HTTP)",
+    "description": "JSON firmado por HTTPS a Splunk HEC, Sentinel, Elastic o cualquier recolector JSON."
+  },
+  "settings": {
+    "title": "SIEM (HTTP)",
+    "subtitle": "JSON firmado por HTTPS a Splunk HEC, Sentinel, Elastic o cualquier recolector JSON."
+  },
+  "reports": {
+    "delivery": {
+      "label": "Entrega del reenvío de registros a SIEM",
+      "description": "Eventos de auditoría entregados y fallidos por reenviador SIEM, tasa de éxito, el mayor período sin una entrega correcta y los motivos de fallo que se repiten."
+    }
+  },
+  "subject": {
+    "siem-forwarder": "Reenviador SIEM"
+  },
+  "subjectAll": {
+    "siem-forwarder": "Todos los reenviadores SIEM"
+  }
+}

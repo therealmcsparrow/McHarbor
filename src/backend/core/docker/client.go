@@ -15,11 +15,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 
 	"github.com/therealmcsparrow/mcharbor/core/agent"
+	"github.com/therealmcsparrow/mcharbor/core/nodelink"
 )
+
+// CallTimeout bounds a single Docker SDK call.
+//
+// One constant rather than a hundred copies of `30 * time.Second`: the number
+// is a policy about how long a daemon may take to answer one request — mostly
+// agent-transport latency — and tuning it should be one edit, not a sweep.
+// It does not belong on a stream (events, logs, an image export): those live
+// as long as their caller does.
+const CallTimeout = 30 * time.Second
 
 // ClientPool manages Docker SDK clients per environment.
 type ClientPool struct {
@@ -27,7 +36,17 @@ type ClientPool struct {
 	clients   map[string]*client.Client
 	db        *sql.DB
 	agentPool *agent.AgentPool
+	nodeLink  *nodelink.Link
 	logger    *slog.Logger
+}
+
+// SetNodeLink gives the pool the node-to-node link, so an agent held by another node is
+// reachable from here. Injected rather than taken in NewClientPool because the link
+// needs the database and the agent pool, which this pool is built alongside.
+func (p *ClientPool) SetNodeLink(link *nodelink.Link) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.nodeLink = link
 }
 
 // NewClientPool creates a new Docker client pool.
@@ -40,13 +59,22 @@ func NewClientPool(db *sql.DB, agentPool *agent.AgentPool, logger *slog.Logger) 
 	}
 }
 
-// Get returns a Docker client for the given environment ID.
-// If envID is empty, returns the default/local client.
+// Get returns a Docker client for the given environment ID; an empty ID returns the default/local client.
 func (p *ClientPool) Get(envID string) (*client.Client, error) {
-	// Resolve empty/default to actual environment ID so that
-	// tryAgentClient receives the real ID (not the literal "default").
+	return p.get(context.Background(), envID)
+}
+
+// GetContext is Get bound to the caller's context, so a cancelled request stops the environment lookup.
+func (p *ClientPool) GetContext(ctx context.Context, envID string) (*client.Client, error) {
+	return p.get(ctx, envID)
+}
+
+// get is Get with the caller's context threaded into the environment lookups so a cancelled request stops them.
+func (p *ClientPool) get(ctx context.Context, envID string) (*client.Client, error) {
+	// Resolve empty/default to the real environment ID so that
+	// tryAgentClient receives it (not the literal "default").
 	if envID == "" || envID == "default" {
-		if resolved, err := p.resolveDefaultEnvID(); err == nil {
+		if resolved, err := p.resolveEnvironmentID(ctx, envID); err == nil {
 			envID = resolved
 		}
 		// If no env found, envID stays empty — resolveConnection will auto-detect local socket
@@ -70,7 +98,7 @@ func (p *ClientPool) Get(envID string) (*client.Client, error) {
 
 	// Check if this is an agent-connected environment
 	if p.agentPool != nil {
-		c, err := p.tryAgentClient(envID)
+		c, err := p.tryAgentClient(ctx, envID)
 		if err == nil && c != nil {
 			p.clients[envID] = c
 			p.logger.Info("docker client created via agent", "env", envID)
@@ -81,7 +109,7 @@ func (p *ClientPool) Get(envID string) (*client.Client, error) {
 		}
 	}
 
-	conn, err := p.resolveConnection(envID)
+	conn, err := p.resolveConnection(ctx, envID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,14 +124,40 @@ func (p *ClientPool) Get(envID string) (*client.Client, error) {
 	return c, nil
 }
 
+// SetClient points envID at a client built elsewhere, bypassing connection
+// resolution; it is the seam the fleet fixture uses to put an in-process daemon behind an environment.
+func (p *ClientPool) SetClient(envID string, c *client.Client) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.clients[envID] = c
+}
+
+// ResolveEnvironmentID resolves the default environment alias to its stored ID.
+func (p *ClientPool) ResolveEnvironmentID(envID string) (string, error) {
+	return p.resolveEnvironmentID(context.Background(), envID)
+}
+
+// ResolveEnvironmentIDContext is ResolveEnvironmentID bound to the caller's context, so a cancelled request stops the lookup.
+func (p *ClientPool) ResolveEnvironmentIDContext(ctx context.Context, envID string) (string, error) {
+	return p.resolveEnvironmentID(ctx, envID)
+}
+
+// resolveEnvironmentID is ResolveEnvironmentID with the caller's context for the lookup.
+func (p *ClientPool) resolveEnvironmentID(ctx context.Context, envID string) (string, error) {
+	if envID == "" || envID == "default" {
+		return p.resolveDefaultEnvID(ctx)
+	}
+	return envID, nil
+}
+
 // resolveDefaultEnvID returns the actual environment ID for the default environment.
-func (p *ClientPool) resolveDefaultEnvID() (string, error) {
+func (p *ClientPool) resolveDefaultEnvID(ctx context.Context) (string, error) {
 	var id string
-	err := p.db.QueryRow("SELECT id FROM environments WHERE is_default = 1 LIMIT 1").Scan(&id)
+	err := p.db.QueryRowContext(ctx, "SELECT id FROM environments WHERE is_default = 1 LIMIT 1").Scan(&id)
 	if err == nil {
 		return id, nil
 	}
-	err = p.db.QueryRow("SELECT id FROM environments ORDER BY created_at ASC LIMIT 1").Scan(&id)
+	err = p.db.QueryRowContext(ctx, "SELECT id FROM environments ORDER BY created_at ASC LIMIT 1").Scan(&id)
 	if err == nil {
 		return id, nil
 	}
@@ -116,30 +170,41 @@ func (p *ClientPool) Remove(envID string) {
 	defer p.mu.Unlock()
 
 	if c, ok := p.clients[envID]; ok {
-		c.Close()
+		if err := c.Close(); err != nil {
+			p.logger.Warn("closing docker client", "env", envID, "error", err)
+		}
 		delete(p.clients, envID)
 	}
 }
 
 // Ping checks if a Docker client is reachable.
 func (p *ClientPool) Ping(ctx context.Context, envID string) error {
-	c, err := p.Get(envID)
+	c, err := p.get(ctx, envID)
 	if err != nil {
 		return err
 	}
-	pingCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, CallTimeout)
 	defer cancel()
-	_, err = c.Ping(pingCtx)
+	_, err = c.Ping(pingCtx, client.PingOptions{})
 	return err
 }
 
 // IsAgentEnv returns true if the environment uses agent connection type.
 func (p *ClientPool) IsAgentEnv(envID string) bool {
+	return p.IsAgentEnvContext(context.Background(), envID)
+}
+
+// IsAgentEnvContext is IsAgentEnv bound to the caller's context, so a cancelled request stops the connection-type lookup.
+func (p *ClientPool) IsAgentEnvContext(ctx context.Context, envID string) bool {
 	if envID == "" || envID == "default" {
-		return false
+		resolved, err := p.resolveEnvironmentID(ctx, envID)
+		if err != nil {
+			return false
+		}
+		envID = resolved
 	}
 	var connType sql.NullString
-	err := p.db.QueryRow("SELECT connection_type FROM environments WHERE id = ?", envID).Scan(&connType)
+	err := p.db.QueryRowContext(ctx, "SELECT connection_type FROM environments WHERE id = ?", envID).Scan(&connType)
 	if err != nil {
 		return false
 	}
@@ -148,23 +213,54 @@ func (p *ClientPool) IsAgentEnv(envID string) bool {
 
 // AgentVersion returns the connected agent version for an environment.
 func (p *ClientPool) AgentVersion(envID string) (string, bool) {
-	if p.agentPool == nil || envID == "" || envID == "default" {
+	return p.AgentVersionContext(context.Background(), envID)
+}
+
+// AgentVersionContext is AgentVersion bound to the caller's context, so a cancelled request stops the environment lookup.
+func (p *ClientPool) AgentVersionContext(ctx context.Context, envID string) (string, bool) {
+	if p.agentPool == nil {
 		return "", false
+	}
+	if envID == "" || envID == "default" {
+		resolved, err := p.resolveEnvironmentID(ctx, envID)
+		if err != nil {
+			return "", false
+		}
+		envID = resolved
 	}
 	return p.agentPool.Version(envID)
 }
 
-// AgentConnection returns the connected agent for an environment.
+// AgentConnection returns the connected agent for an environment: the local connection,
+// or in active/active one relayed through the node that holds it, so every agent message
+// (compute, console, Compose, prune, transfers, backups) works from any node.
 func (p *ClientPool) AgentConnection(envID string) (*agent.AgentConnection, bool) {
-	if p.agentPool == nil || envID == "" || envID == "default" {
+	return p.AgentConnectionContext(context.Background(), envID)
+}
+
+// AgentConnectionContext is AgentConnection bound to the caller's context, so a cancelled request stops the environment lookup.
+func (p *ClientPool) AgentConnectionContext(ctx context.Context, envID string) (*agent.AgentConnection, bool) {
+	if p.agentPool == nil {
 		return nil, false
 	}
-	return p.agentPool.Get(envID)
+	if envID == "" || envID == "default" {
+		resolved, err := p.resolveEnvironmentID(ctx, envID)
+		if err != nil {
+			return nil, false
+		}
+		envID = resolved
+	}
+	return p.agentPool.Resolve(envID)
 }
 
 // AgentAtLeast reports whether the connected agent meets a minimum version.
 func (p *ClientPool) AgentAtLeast(envID, minimum string) bool {
-	version, ok := p.AgentVersion(envID)
+	return p.AgentAtLeastContext(context.Background(), envID, minimum)
+}
+
+// AgentAtLeastContext is AgentAtLeast bound to the caller's context, so a cancelled request stops the environment lookup.
+func (p *ClientPool) AgentAtLeastContext(ctx context.Context, envID, minimum string) bool {
+	version, ok := p.AgentVersionContext(ctx, envID)
 	if !ok {
 		return false
 	}
@@ -201,12 +297,17 @@ func parseAgentVersion(version string) [3]int {
 // DockerHost returns the Docker host URL for an environment (e.g., "unix:///var/run/docker.sock").
 // Returns an error for agent-type environments (use IsAgentEnv to check first).
 func (p *ClientPool) DockerHost(envID string) (string, error) {
+	return p.DockerHostContext(context.Background(), envID)
+}
+
+// DockerHostContext is DockerHost bound to the caller's context, so a cancelled request stops the connection lookup.
+func (p *ClientPool) DockerHostContext(ctx context.Context, envID string) (string, error) {
 	if envID == "" || envID == "default" {
-		if resolved, err := p.resolveDefaultEnvID(); err == nil {
+		if resolved, err := p.resolveDefaultEnvID(ctx); err == nil {
 			envID = resolved
 		}
 	}
-	conn, err := p.resolveConnection(envID)
+	conn, err := p.resolveConnection(ctx, envID)
 	if err != nil {
 		return "", err
 	}
@@ -219,7 +320,9 @@ func (p *ClientPool) Close() {
 	defer p.mu.Unlock()
 
 	for id, c := range p.clients {
-		c.Close()
+		if err := c.Close(); err != nil {
+			p.logger.Warn("closing docker client", "env", id, "error", err)
+		}
 		delete(p.clients, id)
 	}
 }
@@ -228,17 +331,17 @@ func (p *ClientPool) Close() {
 // Used for agent environments where ContainerExecAttach can't work through
 // the agent transport (Docker SDK's postHijacked bypasses RoundTrip).
 func (p *ClientPool) AgentExec(ctx context.Context, envID, containerID string, cmd []string) ([]byte, error) {
-	cli, err := p.Get(envID)
+	cli, err := p.get(ctx, envID)
 	if err != nil {
 		return nil, fmt.Errorf("docker client: %w", err)
 	}
 
 	// Create exec on remote Docker via agent transport (standard HTTP, works through RoundTrip)
-	execResp, err := cli.ContainerExecCreate(ctx, containerID, container.ExecOptions{
+	execResp, err := cli.ExecCreate(ctx, containerID, client.ExecCreateOptions{
 		Cmd:          cmd,
 		AttachStdout: true,
 		AttachStderr: true,
-		Tty:          true, // Matches agent's rawExecAttach TTY setting
+		TTY:          true, // Matches agent's rawExecAttach TTY setting
 	})
 	if err != nil {
 		return nil, fmt.Errorf("exec create: %w", err)
@@ -247,7 +350,7 @@ func (p *ClientPool) AgentExec(ctx context.Context, envID, containerID string, c
 	if p.agentPool == nil {
 		return nil, fmt.Errorf("agent pool not initialized")
 	}
-	agentConn, ok := p.agentPool.Get(envID)
+	agentConn, ok := p.agentPool.Resolve(envID)
 	if !ok {
 		return nil, fmt.Errorf("agent not connected for env %s", envID)
 	}
@@ -300,10 +403,10 @@ func (p *ClientPool) AgentExec(ctx context.Context, envID, containerID string, c
 
 // tryAgentClient checks if the environment uses agent connection type and
 // has a connected agent, then returns a Docker client using the agent transport.
-func (p *ClientPool) tryAgentClient(envID string) (*client.Client, error) {
+func (p *ClientPool) tryAgentClient(ctx context.Context, envID string) (*client.Client, error) {
 	// Check connection type in DB
 	var connType sql.NullString
-	err := p.db.QueryRow("SELECT connection_type FROM environments WHERE id = ?", envID).Scan(&connType)
+	err := p.db.QueryRowContext(ctx, "SELECT connection_type FROM environments WHERE id = ?", envID).Scan(&connType)
 	if err != nil {
 		p.logger.Warn("tryAgentClient: DB query failed", "env", envID, "error", err)
 		return nil, fmt.Errorf("not an agent environment")
@@ -313,17 +416,32 @@ func (p *ClientPool) tryAgentClient(envID string) (*client.Client, error) {
 	}
 
 	agentConn, ok := p.agentPool.Get(envID)
-	if !ok {
+	var roundTripper http.RoundTripper
+	switch {
+	case ok:
+		p.logger.Debug("tryAgentClient: agent found in pool", "env", envID)
+		// Through the link even when the agent is local: the routing transport
+		// delegates to the local one, and resolving per request means a client
+		// cached now keeps working after the agent moves to another node.
+		roundTripper = agentConn.Transport
+		if p.nodeLink != nil {
+			roundTripper = p.nodeLink.Transport(envID)
+		}
+	case p.nodeLink != nil:
+		owner, remote := p.nodeLink.RemoteOwner(ctx, envID)
+		if !remote {
+			p.logger.Warn("tryAgentClient: agent not in pool", "env", envID, "poolConnected", p.agentPool.IsConnected(envID))
+			return nil, fmt.Errorf("agent not connected for env %s", envID)
+		}
+		p.logger.Info("docker client routed to the node holding the agent", "env", envID, "node", owner.NodeID)
+		roundTripper = p.nodeLink.Transport(envID)
+	default:
 		p.logger.Warn("tryAgentClient: agent not in pool", "env", envID, "poolConnected", p.agentPool.IsConnected(envID))
 		return nil, fmt.Errorf("agent not connected for env %s", envID)
 	}
-	p.logger.Debug("tryAgentClient: agent found in pool", "env", envID)
 
-	httpClient := &http.Client{Transport: agentConn.Transport}
-	c, err := client.NewClientWithOpts(
-		client.WithHTTPClient(httpClient),
-		client.WithAPIVersionNegotiation(),
-	)
+	httpClient := &http.Client{Transport: roundTripper}
+	c, err := client.New(client.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("creating agent Docker client: %w", err)
 	}

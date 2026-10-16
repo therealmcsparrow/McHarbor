@@ -4,7 +4,7 @@
     "description":  "Alpine Linux base image, lightweight and security-oriented for container tasks.",
     "category":  "Utilities",
     "image":  "alpine:latest",
-    "logo":  "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/alpine.svg",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/alpine-linux.svg",
     "website":  "https://alpinelinux.org",
     "docsUrl":  "https://hub.docker.com/_/alpine",
     "ports":  [
@@ -23,5 +23,9 @@
                         "description":  "Timezone"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

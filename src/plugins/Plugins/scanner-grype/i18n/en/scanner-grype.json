@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Grype",
+    "description": "Anchore's Grype: OS and language package vulnerabilities, scanned locally."
+  },
+  "settings": {
+    "title": "Grype",
+    "subtitle": "Anchore's Grype: OS and language package vulnerabilities, scanned locally."
+  }
+}

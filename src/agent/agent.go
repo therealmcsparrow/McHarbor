@@ -1,14 +1,19 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+// Command mcharbor-agent is the McHarbor remote agent: it connects outbound to
+// the server over WebSocket and proxies Docker and host operations for hosts
+// that cannot expose their Docker socket.
 package main
 
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,9 +24,79 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/therealmcsparrow/mcharbor-agent/internal/errlog"
 )
 
-const agentVersion = "2.0.8"
+// hostOpTimeout bounds one host-side operation the agent runs on behalf of the
+// server: a container unpause, a runtime probe, a stats read, an image removal.
+const hostOpTimeout = 30 * time.Second
+
+// probeHTTPTimeout bounds one peer-reachability probe, so an unresponsive peer
+// cannot hold the caller waiting on a transfer path decision.
+const probeHTTPTimeout = 10 * time.Second
+
+const agentVersion = "2026.10.01"
+
+// agentBuild is the yyyyMMddHHmm stamp of this binary, set with -ldflags at
+// build time. It stays "dev" for a `go build` from a source tree, which is
+// the honest answer for a binary nobody stamped.
+var agentBuild = "dev"
+
+// newAgentHTTPClient builds the client the agent uses for plain HTTP(S) calls
+// back to the McHarbor server and to peer agents: backup archive upload,
+// restore archive download, direct image/archive transfer, transfer probe.
+//
+// It must honour MCHARBOR_INSECURE for the same reason the WebSocket dialer
+// does — a self-signed server certificate whose SANs cover the container
+// address but not the LAN address the agent dials would otherwise connect the
+// control channel and fail every archive transfer.
+// The probe variant passes a short timeout: the server may try several
+// candidate addresses for one target, and an unreachable address is often
+// black-holed rather than refused, most commonly a container bridge address
+// that only exists on the target host. Left to the operating system's TCP
+// timeout, one such address would stall the whole selection for minutes; the
+// probe is a few bytes, so a short bound is safe. A zero timeout means no
+// client-side bound, which is what the archive transfers need.
+func newAgentHTTPClient(insecure bool, pin string, timeout time.Duration) *http.Client {
+	// Built explicitly rather than left to http.DefaultTransport, because the
+	// insecure variant used to replace it wholesale and inherited none of its
+	// deadlines. A transfer to a black-holed address then had no bound at all
+	// below the caller's context: a 6-hour import context meant six hours of
+	// silence for what is a failure to connect.
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   agentDialTimeout,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   agentTLSHandshakeTimeout,
+		ExpectContinueTimeout: time.Second,
+		// Bounds the wait for the *first* byte of the response only, so a long
+		// download is unaffected while a server that accepts a connection and
+		// then says nothing is not mistaken for slow progress.
+		ResponseHeaderTimeout: agentResponseHeaderTimeout,
+	}
+	// A pin verifies one exact key and therefore outranks the blanket
+	// skip-verify; a malformed pin falls through to the old behaviour
+	// rather than leaving the agent unable to connect at all.
+	if pinned, err := pinnedTLSConfig(pin); err == nil && pinned != nil {
+		transport.TLSClientConfig = pinned
+	} else if insecure {
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec // opt-in via MCHARBOR_INSECURE, same contract as the WebSocket dialer
+	}
+	return &http.Client{Timeout: timeout, Transport: transport}
+}
+
+// Deadlines every agent HTTP call inherits. None of them bounds a transfer:
+// they bound getting one started, which is the part that fails silently.
+const (
+	agentDialTimeout           = 20 * time.Second
+	agentTLSHandshakeTimeout   = 15 * time.Second
+	agentResponseHeaderTimeout = 60 * time.Second
+)
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -29,6 +104,29 @@ type Agent struct {
 	logger   *slog.Logger
 	proxy    *Proxy
 	transfer *TransferServer
+	// offline is nil when local buffering is disabled or its store could
+	// not be opened; every use is guarded.
+	offline     *OfflineBuffer
+	offlineAcks *offlineAcks
+	// httpClient carries every non-WebSocket call to the McHarbor server or a
+	// peer agent; probeClient is the same client with the short reachability
+	// bound. Both honour cfg.Insecure.
+	httpClient  *http.Client
+	probeClient *http.Client
+	// authenticated records whether the connection that is running (or the
+	// one that just ended) got past auth. RunWithReconnect reads it to tell
+	// "the server dropped a healthy session" from "the server is down", and
+	// only the latter should escalate the backoff.
+	authenticated atomic.Bool
+	// hostLinks holds the desired state of every host link this agent made,
+	// replayed at startup because a macvlan child does not survive a reboot.
+	hostLinks *hostLinkStore
+}
+
+// Authenticated reports whether the most recent connection attempt reached a
+// successful auth_result.
+func (a *Agent) Authenticated() bool {
+	return a.authenticated.Load()
 }
 
 type transferProgressReader struct {
@@ -50,7 +148,7 @@ type uploadBuffer struct {
 }
 
 type spooledUpload struct {
-	ctx    context.Context
+	ctx    context.Context //nolint:containedctx // upload-lifetime context paired with its cancel func; the spool outlives the call that created it
 	cancel context.CancelFunc
 	req    *WSHTTPRequest
 	file   *os.File
@@ -206,10 +304,25 @@ func (b *uploadBuffer) closeWithError(err error) {
 func NewAgent(cfg Config, logger *slog.Logger) *Agent {
 	proxy := NewProxy(cfg.DockerHost, logger)
 	return &Agent{
-		cfg:      cfg,
-		logger:   logger,
-		proxy:    proxy,
-		transfer: NewTransferServer(cfg.TransferListen, cfg.TransferAdvertiseURL, cfg.AgentToken, proxy, logger),
+		cfg:         cfg,
+		logger:      logger,
+		proxy:       proxy,
+		transfer:    NewTransferServer(cfg.TransferListen, cfg.TransferAdvertiseURL, cfg.AgentToken, proxy, logger),
+		offlineAcks: newOfflineAcks(),
+		httpClient:  newAgentHTTPClient(cfg.Insecure, cfg.Pin, 0),
+		probeClient: newAgentHTTPClient(cfg.Insecure, cfg.Pin, probeHTTPTimeout),
+		hostLinks:   newHostLinkStore(cfg.DataDir),
+	}
+}
+
+// SetOfflineBuffer attaches the local buffer used while disconnected.
+func (a *Agent) SetOfflineBuffer(b *OfflineBuffer) { a.offline = b }
+
+// MarkOffline records a failed or lost connection so the buffer starts
+// collecting. No-op when buffering is disabled.
+func (a *Agent) MarkOffline(ctx context.Context) {
+	if a.offline != nil {
+		a.offline.MarkOffline(ctx)
 	}
 }
 
@@ -230,33 +343,90 @@ func (a *Agent) RetireContainer(ctx context.Context, containerID string) {
 	a.logger.Info("retired agent container removed", "container", containerID)
 }
 
+// keepalivePeriod is how often the agent sends a WebSocket control ping and
+// keepaliveTimeout how long it waits for any frame before treating the
+// connection as dead and reconnecting. The agent pings on its own schedule
+// rather than relying on the server's configurable app-level ping interval,
+// so raising that interval can never starve this deadline.
+const (
+	keepalivePeriod  = 30 * time.Second
+	keepaliveTimeout = 90 * time.Second
+)
+
+// redactWSURL strips the query string before the connect URL is logged.
+//
+// The enrolment token travels as `?token=`, so logging the URL whole wrote a
+// live credential into the agent's stdout at Info level, on every connect and
+// every reconnect. That lands in `docker logs`, in McHarbor's own log viewer,
+// and in whatever ships logs off the host — three places a token has no
+// business being, for a value that grants an agent its environment.
+func redactWSURL(raw string) string {
+	if i := strings.IndexByte(raw, '?'); i >= 0 {
+		return raw[:i]
+	}
+	return raw
+}
+
+// tlsMode reports how the control channel to the host is secured, so the UI can
+// tell an operator that an agent is dialling in over plaintext or with
+// certificate verification switched off.
+func (a *Agent) tlsMode(wsURL string) string {
+	if !strings.HasPrefix(wsURL, "wss://") {
+		return "plaintext"
+	}
+	switch {
+	case strings.TrimSpace(a.cfg.Pin) != "":
+		return "pinned"
+	case a.cfg.Insecure:
+		return "insecure"
+	default:
+		return "verified"
+	}
+}
+
 // Connect establishes a WebSocket connection and runs the message loop.
 // Returns an error when the connection is lost.
 func (a *Agent) Connect(ctx context.Context) error {
+	a.authenticated.Store(false)
+
 	// Build WebSocket URL
 	wsURL, err := a.buildWSURL()
 	if err != nil {
 		return fmt.Errorf("building WebSocket URL: %w", err)
 	}
 
-	a.logger.Info("connecting to server", "url", wsURL)
+	a.logger.Info("connecting to server", "url", redactWSURL(wsURL))
 
 	dialer := *websocket.DefaultDialer
-	if a.cfg.Insecure {
-		a.logger.Warn("TLS verification disabled (insecure mode)")
+	pinned, pinErr := pinnedTLSConfig(a.cfg.Pin)
+	if pinErr != nil {
+		return fmt.Errorf("invalid MCHARBOR_PIN: %w", pinErr)
+	}
+	switch {
+	case pinned != nil:
+		dialer.TLSClientConfig = pinned
+		dialer.Proxy = http.ProxyFromEnvironment
+	case a.cfg.Insecure:
+		a.logger.Warn("TLS verification disabled (insecure mode); set MCHARBOR_PIN to verify the server certificate instead")
 		dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		dialer.Proxy = http.ProxyFromEnvironment
 	}
 
-	conn, _, err := dialer.DialContext(ctx, wsURL, nil)
+	conn, resp, err := dialer.DialContext(ctx, wsURL, nil)
+	if resp != nil && resp.Body != nil {
+		errlog.Log(resp.Body.Close())
+	}
 	if err != nil {
 		return fmt.Errorf("WebSocket dial: %w", err)
 	}
-	defer conn.Close()
+	defer errlog.Close(conn)
 
 	// Send auth message
-	hostname, _ := os.Hostname()
-	dockerVersion := a.proxy.DetectDockerVersion()
+	hostname, err := os.Hostname()
+	if err != nil {
+		a.logger.Warn("reading hostname failed; authenticating without one", "error", err)
+	}
+	dockerVersion := a.proxy.DetectDockerVersion(ctx)
 
 	authMsg := WSMessage{
 		Type: MsgAuth,
@@ -266,8 +436,16 @@ func (a *Agent) Connect(ctx context.Context) error {
 			OS:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			AgentVersion:  agentVersion,
+			AgentBuild:    agentBuild,
+			HostIP:        primaryOutboundIP(ctx),
 			DockerVersion: dockerVersion,
+			InstallKind:   detectInstallKind(),
+			Capabilities:  agentCapabilities(),
+			TLSMode:       a.tlsMode(wsURL),
 			TransferURL:   a.transferAdvertiseURL(),
+
+			TransferCandidates: a.transferCandidates(),
+			TransferPort:       a.transferPort(),
 		},
 	}
 	if err := conn.WriteJSON(authMsg); err != nil {
@@ -288,6 +466,72 @@ func (a *Agent) Connect(ctx context.Context) error {
 	}
 
 	a.logger.Info("authenticated", "envId", result.AuthResult.EnvID)
+	a.authenticated.Store(true)
+
+	// connCtx ends with this connection so the replay goroutine never
+	// outlives the socket it writes to.
+	connCtx, connCancel := context.WithCancel(ctx)
+	defer connCancel()
+
+	// Protocol-level keepalive, independent of the server's app-level ping
+	// interval. Without it a socket the network dropped without a FIN keeps
+	// this agent parked in ReadJSON — it never notices, never reconnects, and
+	// the server holds the pool slot until its own kernel gives up. Every
+	// inbound frame (including the pong to our ping) pushes the deadline out.
+	if err := conn.SetReadDeadline(time.Now().Add(keepaliveTimeout)); err != nil {
+		return fmt.Errorf("setting read deadline: %w", err)
+	}
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(keepaliveTimeout))
+	})
+	conn.SetPingHandler(func(appData string) error {
+		if err := conn.SetReadDeadline(time.Now().Add(keepaliveTimeout)); err != nil {
+			return err
+		}
+		// Same contract as every other writer on this socket: one at a time.
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		err := conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(keepalivePeriod/2))
+		if errors.Is(err, websocket.ErrCloseSent) {
+			return nil
+		}
+		return err
+	})
+	go func() {
+		ticker := time.NewTicker(keepalivePeriod)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-connCtx.Done():
+				return
+			case <-ticker.C:
+				writeMu.Lock()
+				err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(keepalivePeriod/2))
+				writeMu.Unlock()
+				if err != nil {
+					a.logger.Debug("keepalive ping failed", "error", err)
+					return
+				}
+			}
+		}
+	}()
+	if a.offline != nil {
+		// Stop collecting before replaying so nothing lands behind the flush.
+		a.offline.MarkOnline()
+		go a.flushOffline(connCtx, conn)
+	}
+
+	// Compute writes from several goroutines at once — console pumps, stats
+	// samplers, guest events — and the socket permits one writer, so they all
+	// go through the same mutex every other producer uses. Cleared on the way
+	// out so nothing writes into a connection that has gone.
+	setComputeSender(func(msg WSMessage) error {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		return conn.WriteJSON(msg)
+	})
+	defer setComputeSender(nil)
+
 	if a.transfer != nil {
 		a.transfer.SetReporter(func(msg WSMessage) {
 			writeMu.Lock()
@@ -319,12 +563,22 @@ func (a *Agent) Connect(ctx context.Context) error {
 			cancel()
 		}
 		for _, bodyReader := range uploads {
-			bodyReader.CloseWithError(context.Canceled)
+			errlog.Log(bodyReader.CloseWithError(context.Canceled))
 		}
 		for _, upload := range spooledUploads {
 			upload.Cleanup(a.logger)
 		}
 	}()
+
+	// The stats pusher lives and dies with this connection. It is touched only
+	// from this loop, so it needs no lock of its own.
+	var statsPush *statsPusher
+	var statsPushDone chan struct{}
+	sendStats := func(msg WSMessage) error {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		return conn.WriteJSON(msg)
+	}
 
 	// Message loop
 	for {
@@ -341,7 +595,16 @@ func (a *Agent) Connect(ctx context.Context) error {
 
 		switch msg.Type {
 		case MsgPing:
-			conn.WriteJSON(WSMessage{Type: MsgPong})
+			// Every other producer writes under writeMu and the socket
+			// permits exactly one writer; this reply is the most frequent
+			// write the agent makes, so an unsynchronised one here is the
+			// likeliest frame corruption in the whole session.
+			writeMu.Lock()
+			if err := conn.WriteJSON(WSMessage{Type: MsgPong}); err != nil {
+				writeMu.Unlock()
+				return fmt.Errorf("writing pong: %w", err)
+			}
+			writeMu.Unlock()
 
 		case MsgHTTPRequest:
 			if msg.HTTPRequest == nil {
@@ -395,7 +658,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 					delete(uploads, id)
 					cancelMu.Unlock()
 					reqCancel()
-					bodyReader.Close()
+					errlog.Close(bodyReader)
 				}()
 				a.proxy.HandleRequestStream(reqCtx, conn, id, req, bodyReader)
 			}(msg.ID, msg.HTTPRequest)
@@ -447,7 +710,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 					a.proxy.HandleRequestStream(upload.ctx, conn, id, upload.req, upload.file)
 				}(msg.ID, upload)
 			} else if bodyReader != nil {
-				bodyReader.Close()
+				errlog.Close(bodyReader)
 			}
 
 		case MsgHTTPCancel:
@@ -457,7 +720,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 				delete(cancels, msg.ID)
 			}
 			if bodyReader := uploads[msg.ID]; bodyReader != nil {
-				bodyReader.CloseWithError(context.Canceled)
+				errlog.Log(bodyReader.CloseWithError(context.Canceled))
 				delete(uploads, msg.ID)
 			}
 			if spooledUpload := spooledUploads[msg.ID]; spooledUpload != nil {
@@ -479,7 +742,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 
 		case MsgExecResize:
 			if msg.ExecResize != nil {
-				a.proxy.ResizeExec(msg.ExecResize.ExecID, msg.ExecResize.Cols, msg.ExecResize.Rows)
+				a.proxy.ResizeExec(ctx, msg.ExecResize.ExecID, msg.ExecResize.Cols, msg.ExecResize.Rows)
 			}
 
 		case MsgExecEnd:
@@ -628,6 +891,129 @@ func (a *Agent) Connect(ctx context.Context) error {
 		case MsgHostStatsRequest:
 			a.handleHostStatsRequest(ctx, conn, msg.ID)
 
+		// Host OS inventory and package updates. Each runs on its own goroutine:
+		// an apt-get update against a slow mirror blocks for minutes and the read
+		// loop still has every other guest's console to serve.
+		case MsgHostOSInfoRequest:
+			go a.handleHostOSInfoRequest(ctx, conn, msg.ID)
+
+		case MsgHostUpdateCheck:
+			go a.handleHostUpdateCheck(ctx, conn, msg.ID)
+
+		case MsgHostUpdateApply:
+			go a.handleHostUpdateApply(ctx, conn, msg.ID, msg.HostUpdate)
+
+		// Host systemd services, native Linux agents only. Its own goroutine,
+		// because a stop blocks for the unit's whole stop timeout.
+		case MsgHostServiceRequest:
+			if msg.HostService == nil {
+				continue
+			}
+			go a.handleHostServiceRequest(ctx, conn, msg.ID, *msg.HostService)
+
+		// Host links: a named macvlan child on the host itself, for Docker and
+		// compute networks alike. Its own goroutine, like the services above.
+		case MsgHostLinkRequest:
+			if msg.HostLink == nil {
+				continue
+			}
+			go a.handleHostLinkRequest(ctx, conn, msg.ID, *msg.HostLink)
+
+		// Compute: KVM virtual machines and LXC system containers.
+		//
+		// Every one of these is handled on its own goroutine with an explicit
+		// context, because a guest operation can take minutes and the read loop
+		// must keep serving console traffic for every other guest while it runs.
+		// handleComputeMessage owns the per-family timeout: a capability probe
+		// gets seconds, a disk allocation gets hours.
+		case MsgComputeProbeRequest, MsgComputeInstallRequest,
+			// compute_config_request was absent from this list, so every
+			// location McHarbor pushed was dropped by the default branch and
+			// the operator's choice silently never took effect.
+			MsgComputeConfigRequest, MsgComputeMigrateRequest,
+			MsgPoolDetectRequest, MsgPoolCreateRequest, MsgPoolStatsRequest,
+			MsgPoolRemoveRequest, MsgPoolBrowseRequest, MsgPoolFileRequest,
+			MsgNetDetectRequest, MsgNetEnsureRequest, MsgNetRemoveRequest,
+			MsgImageFetchRequest, MsgImageListRequest, MsgImageRemoveRequest,
+			MsgImageCancelRequest,
+			MsgVMDefine, MsgVMStart, MsgVMShutdown, MsgVMStop, MsgVMReset,
+			MsgVMPause, MsgVMResume, MsgVMDelete, MsgVMQuery, MsgVMStats,
+			MsgHostDeviceList,
+			MsgVMLog, MsgVMDiskList, MsgVMDiskCreate, MsgVMDiskResize, MsgVMDiskDelete,
+			MsgVMSnapshotCreate, MsgVMSnapshotRevert, MsgVMSnapshotDelete,
+			MsgVMImportInspect, MsgVMImportConvert, MsgVMImportStage, MsgVMImportDiscard,
+			MsgVMCloneRequest, MsgVMGuestQuery, MsgVMGuestAgentDisc, MsgVMMigrate, MsgVMCancel,
+			MsgVMQEMUCapability, MsgVMMemorySet, MsgVMCPUSet, MsgVMThrottleSet,
+			MsgVMImageInspect, MsgVMBackupRun, MsgVMBackupRestore,
+			MsgVMSpiceTicket, MsgVMDiskHotplug, MsgVMMediaChange, MsgVMNICHotplug,
+			MsgNetAdoptConfirm,
+			MsgCTCreate, MsgCTStart, MsgCTShutdown, MsgCTStop, MsgCTRestart,
+			MsgCTFreeze, MsgCTUnfreeze, MsgCTDelete, MsgCTQuery, MsgCTProcesses,
+			MsgCTUpdateLimits, MsgCTSnapshotCreate, MsgCTSnapshotRevert,
+			MsgCTSnapshotDelete, MsgCTCloneRequest, MsgCTCancel,
+			MsgCTBackupRun, MsgCTBackupRestore:
+			go a.handleComputeMessage(ctx, msg)
+
+		// Console byte streams. These are NOT dispatched on a goroutine per
+		// frame: the session's own pump owns the stream, and spawning a
+		// goroutine per input frame would reorder keystrokes.
+		case MsgConsoleStart:
+			if msg.Console == nil {
+				continue
+			}
+			go a.handleConsoleStart(ctx, msg.ID, *msg.Console)
+
+		case MsgConsoleInput, MsgConsoleResize, MsgConsoleEnd:
+			if msg.Console == nil {
+				continue
+			}
+			a.handleConsoleFrame(ctx, msg.Type, msg.ID, *msg.Console)
+
+		case MsgSnapshotDetectRequest, MsgSnapshotCapabilityRequest,
+			MsgSnapshotCreateRequest, MsgSnapshotRemoveRequest:
+			if msg.Snapshot == nil {
+				continue
+			}
+			// Five minutes is the outer bound for any snapshot call.
+			// A create on a large LVM volume is the slow case; detect
+			// and remove finish in well under a second.
+			snapshotCtx, snapshotCancel := context.WithTimeout(ctx, 5*time.Minute)
+			go func(id string, payload SnapshotPayload) {
+				defer snapshotCancel()
+				a.handleSnapshotRequest(snapshotCtx, conn, id, payload)
+			}(msg.ID, *msg.Snapshot)
+
+		case MsgOfflineBatchAck:
+			a.offlineAcks.deliver(msg.ID, msg.Offline)
+
+		case MsgStatsSubscribe:
+			if msg.StatsPush == nil {
+				continue
+			}
+			interval := time.Duration(msg.StatsPush.IntervalSeconds) * time.Second
+			if statsPush != nil && !channelClosed(statsPushDone) {
+				statsPush.Retune(interval)
+				continue
+			}
+			statsPush = newStatsPusher(a.proxy, a.offline, sendStats, interval, a.logger)
+			statsPushDone = make(chan struct{})
+			a.logger.Info("stats push started", "interval", clampStatsInterval(interval))
+			go func(p *statsPusher, done chan struct{}) {
+				defer close(done)
+				p.Run(connCtx)
+			}(statsPush, statsPushDone)
+
+		case MsgStatsPushAck:
+			if statsPush != nil {
+				statsPush.DeliverAck(msg.StatsPush)
+			}
+
+		case MsgAgentUpdateRequest:
+			if msg.AgentUpdate == nil {
+				continue
+			}
+			go a.handleAgentUpdateRequest(ctx, conn, msg.ID, *msg.AgentUpdate)
+
 		case MsgPruneRequest:
 			if msg.Prune == nil {
 				continue
@@ -695,6 +1081,21 @@ func (a *Agent) Connect(ctx context.Context) error {
 			if a.transfer != nil {
 				a.transfer.Cancel(msg.Transfer.TransferID)
 			}
+
+		default:
+			// Never silent, and never unanswered. A message type missing from
+			// the cases above used to be logged and dropped, which the server
+			// cannot tell from an operation that is simply slow — it waits out
+			// its whole timeout for a reply that will never come. Seven compute
+			// types shipped unrouted that way, and every feature behind them
+			// looked like a hang instead of a missing handler.
+			a.logger.Warn("agent: no handler for this message type; refusing it",
+				"type", msg.Type, "id", msg.ID)
+			if msg.ID != "" {
+				a.replyComputeError(msg, fmt.Errorf(
+					"this agent has no handler for %s; it is too old for this "+
+						"operation, or the operation was never wired", msg.Type))
+			}
 		}
 	}
 }
@@ -704,6 +1105,20 @@ func (a *Agent) transferAdvertiseURL() string {
 		return ""
 	}
 	return a.transfer.AdvertiseURL()
+}
+
+func (a *Agent) transferCandidates() []string {
+	if a.transfer == nil {
+		return nil
+	}
+	return a.transfer.Candidates()
+}
+
+func (a *Agent) transferPort() int {
+	if a.transfer == nil {
+		return 0
+	}
+	return a.transfer.Port()
 }
 
 func (a *Agent) handleTransferPrepare(conn *websocket.Conn, payload *TransferPayload) {
@@ -746,7 +1161,7 @@ func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payl
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, err)
 		return
 	}
-	defer reader.Close()
+	defer errlog.Close(reader)
 
 	progressReader := &transferProgressReader{
 		reader:     reader,
@@ -762,14 +1177,14 @@ func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payl
 	req.Header.Set("Authorization", "Bearer "+payload.Token)
 	req.Header.Set("Content-Type", "application/x-tar")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", 0, fmt.Errorf("uploading direct image transfer: %w", err))
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("target direct upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
@@ -792,7 +1207,7 @@ func (a *Agent) runArchiveTransfer(ctx context.Context, conn *websocket.Conn, pa
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, err)
 		return
 	}
-	defer reader.Close()
+	defer errlog.Close(reader)
 
 	progressReader := &transferProgressReader{
 		reader:     reader,
@@ -809,14 +1224,14 @@ func (a *Agent) runArchiveTransfer(ctx context.Context, conn *websocket.Conn, pa
 	req.Header.Set("Authorization", "Bearer "+payload.Token)
 	req.Header.Set("Content-Type", "application/x-tar")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", 0, fmt.Errorf("uploading direct archive transfer: %w", err))
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("target direct archive upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
@@ -842,15 +1257,15 @@ func (a *Agent) runTransferProbe(ctx context.Context, conn *websocket.Conn, payl
 	req.Header.Set("Authorization", "Bearer "+payload.Token)
 	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.probeClient.Do(req)
 	if err != nil {
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("running direct transfer probe: %w", err))
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	responderAgentMarker := strings.TrimSpace(resp.Header.Get("X-McHarbor-Agent-Marker"))
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		a.sendTransferResultWithResponder(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, responderAgentMarker, fmt.Errorf("target direct probe returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
@@ -894,14 +1309,14 @@ func (a *Agent) runRestoreTransfer(ctx context.Context, conn *websocket.Conn, pa
 		return
 	}
 	req.Header.Set("Authorization", "Bearer "+payload.Token)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("downloading restore archive: %w", err))
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { errlog.Log(resp.Body.Close()) }()
 	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		body := errlog.ReadAll(io.LimitReader(resp.Body, 4096))
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("restore archive download returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
@@ -963,14 +1378,14 @@ func (a *Agent) sendTransferProgress(conn *websocket.Conn, transferID string, by
 
 func sendTransferProgress(conn *websocket.Conn, transferID string, bytes int64, stage string) {
 	writeMu.Lock()
-	conn.WriteJSON(WSMessage{
+	errlog.Log(conn.WriteJSON(WSMessage{
 		Type: MsgTransferProgress,
 		Transfer: &TransferPayload{
 			TransferID: transferID,
 			Bytes:      bytes,
 			Stage:      strings.TrimSpace(stage),
 		},
-	})
+	}))
 	writeMu.Unlock()
 }
 
@@ -1016,6 +1431,17 @@ func (a *Agent) buildWSURL() (string, error) {
 		return "", fmt.Errorf("unsupported scheme: %s", u.Scheme)
 	}
 
+	// MCHARBOR_FORCE_TLS promotes ws → wss and http → https when
+	// the host is HTTPS-only. Only promote up — never downgrade.
+	if a.cfg.ForceTLS {
+		switch u.Scheme {
+		case "ws":
+			u.Scheme = "wss"
+		case "http":
+			u.Scheme = "https"
+		}
+	}
+
 	u.Path = "/api/agent/ws"
 	q := u.Query()
 	q.Set("token", a.cfg.AgentToken)
@@ -1050,6 +1476,17 @@ func (a *Agent) resolveServerURL(value string) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported McHarbor URL scheme: %s", base.Scheme)
 	}
+	// MCHARBOR_FORCE_TLS promotes ws → wss and http → https when
+	// the host is HTTPS-only. The promotion happens against the
+	// base URL before resolving any relative reference.
+	if a.cfg.ForceTLS {
+		switch base.Scheme {
+		case "ws":
+			base.Scheme = "wss"
+		case "http":
+			base.Scheme = "https"
+		}
+	}
 	base.Path = "/"
 	base.RawQuery = ""
 	base.Fragment = ""
@@ -1062,13 +1499,13 @@ func (a *Agent) resolveServerURL(value string) (string, error) {
 func (a *Agent) handleHostStatsRequest(ctx context.Context, conn *websocket.Conn, id string) {
 	stats, ok := readHostStats()
 	if !ok {
-		_ = writeHostStatsResponse(ctx, conn, id, HostStatsPayload{
+		errlog.Log(writeHostStatsResponse(ctx, conn, id, HostStatsPayload{
 			Supported: false,
 			Error:     "host stats are not supported on this platform",
-		})
+		}))
 		return
 	}
-	_ = writeHostStatsResponse(ctx, conn, id, stats)
+	errlog.Log(writeHostStatsResponse(ctx, conn, id, stats))
 }
 
 // handlePruneRequest runs a docker prune on the local socket and returns
@@ -1078,15 +1515,15 @@ func (a *Agent) handlePruneRequest(ctx context.Context, conn *websocket.Conn, id
 	result, err := a.proxy.Prune(ctx, payload)
 	if err != nil {
 		a.logger.Warn("agent prune failed", "type", payload.Type, "volumes", payload.Volumes, "error", err)
-		_ = writePruneResponse(ctx, conn, id, PrunePayload{
+		errlog.Log(writePruneResponse(ctx, conn, id, PrunePayload{
 			Type:    payload.Type,
 			Volumes: payload.Volumes,
 			Success: false,
 			Error:   err.Error(),
-		})
+		}))
 		return
 	}
-	_ = writePruneResponse(ctx, conn, id, result)
+	errlog.Log(writePruneResponse(ctx, conn, id, result))
 }
 
 func writeHostStatsResponse(ctx context.Context, conn *websocket.Conn, id string, payload HostStatsPayload) error {

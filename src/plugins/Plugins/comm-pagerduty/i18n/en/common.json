@@ -1,0 +1,73 @@
+{
+  "config": {
+    "name": { "label": "Channel name" },
+    "region": { "label": "Service region", "help": "us or eu. Must match the region your PagerDuty account lives in." },
+    "routing_key": { "label": "Integration (routing) key", "help": "32-character key from the service's Events API V2 integration." },
+    "rest_api_key": { "label": "REST API key (read-only)", "help": "Optional. Enables status polling and incident links." },
+    "webhook_signing_secret": { "label": "Webhook signing secret", "help": "Shown once when the v3 webhook subscription is created." },
+    "update_on_repeat": { "label": "Re-trigger on repeat firing" },
+    "poll_interval_minutes": { "label": "Poll interval (minutes)", "help": "0 disables polling. Needs a REST key." },
+    "severity_map": { "label": "Severity map (JSON)" }
+  },
+  "form": {
+    "name": {
+      "label": "Channel name",
+      "placeholder": "PagerDuty — Platform"
+    },
+    "region": {
+      "label": "Service region",
+      "help": "Must match the service region your PagerDuty account lives in.",
+      "us": "United States (default)",
+      "eu": "European Union"
+    },
+    "routing_key": {
+      "label": "Integration (routing) key",
+      "placeholder": "32-character key",
+      "help": "From the service's Events API V2 integration. Stored encrypted."
+    },
+    "rest_api_key": {
+      "label": "REST API key (read-only)",
+      "placeholder": "Optional",
+      "help": "Optional. Enables status polling, incident numbers and links."
+    },
+    "webhook_signing_secret": {
+      "label": "Webhook signing secret",
+      "placeholder": "Optional",
+      "help": "Shown once by PagerDuty when the v3 webhook subscription is created."
+    },
+    "update_on_repeat": {
+      "label": "Re-trigger on repeat firing",
+      "help": "When an alert fires again while its incident is open, send another trigger on the same key."
+    },
+    "poll_interval_minutes": {
+      "label": "Poll interval (minutes)",
+      "help": "0 turns polling off. Polling needs a REST API key."
+    },
+    "severity_map": {
+      "label": "Severity map (JSON)",
+      "placeholder": "{\"warning\":\"error\"}",
+      "help": "Optional. Maps critical, warning and info to PagerDuty's critical, error, warning or info."
+    },
+    "secretKeepHint": "Leave blank to keep the stored value.",
+    "errors": {
+      "required": "Required",
+      "routingKeyLength": "The routing key is exactly 32 characters.",
+      "pollRange": "Enter a number from 0 to 60."
+    }
+  },
+  "guide": {
+    "title": "PagerDuty channel setup",
+    "steps": {
+      "service": "In PagerDuty, open <b>Services → Service Directory</b> and select (or create) the service McHarbor alerts should page.",
+      "integration": "On the service, open the <b>Integrations</b> tab, choose <b>Add an integration</b>, pick <b>Events API V2</b> and save.",
+      "routingKey": "Copy the <b>Integration Key</b> (32 characters) into <b>Integration (routing) key</b> here.",
+      "region": "Pick <b>European Union</b> if your PagerDuty account is on the EU service region; otherwise leave <b>United States</b>.",
+      "restKey": "Optional: under <b>Integrations → API Access Keys</b>, create a read-only API key and paste it into <b>REST API key</b> to enable polling and incident links.",
+      "inbound": "Save this channel, open it again from <b>Settings → Integrations → Communications</b> and, under <b>Ticket status from the ITSM</b>, select <b>Create inbound URL</b>. Copy the URL; it ends in <code>/api/incident-webhooks/</code> followed by a token. The signing secret shown beside it is not used by PagerDuty.",
+      "webhook": "In PagerDuty, open <b>Integrations → Generic Webhooks (v3) → New Webhook</b>, paste the inbound URL, scope it to the same service, subscribe to <code>incident.triggered</code>, <code>incident.acknowledged</code>, <code>incident.unacknowledged</code>, <code>incident.resolved</code> and <code>incident.reopened</code>, then copy the signing secret <warn>it shows once</warn> into <b>Webhook signing secret</b> on this channel (or into <b>Signing secret issued by the ITSM</b>).",
+      "save": "Save the channel and select <b>Test connection</b>. It checks the configuration and the REST key without paging anyone.",
+      "testEvent": "To prove the routing key, use <b>Send Test Event</b> on the PagerDuty integration page. McHarbor's test never triggers an incident."
+    },
+    "note": "Alert grouping in PagerDuty can merge a McHarbor alert into another alert's incident. That incident carries the other alert's key, so McHarbor cannot read its acknowledge or resolve back; the alert still resolves in PagerDuty when it clears in McHarbor."
+  }
+}

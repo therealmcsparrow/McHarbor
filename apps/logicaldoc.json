@@ -1,0 +1,36 @@
+{
+    "slug":  "logicaldoc",
+    "name":  "LogicalDoc",
+    "description":  "Document management system for organizing, searching, and controlling access to business files.",
+    "category":  "Documents",
+    "image":  "logicaldoc/logicaldoc-ce:latest",
+    "logo":  "https://www.logicaldoc.com/favicon.ico",
+    "website":  "https://www.logicaldoc.com",
+    "docsUrl":  "https://wiki.logicaldoc.com/en/wiki/logicaldoc/community-edition/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8105,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/logicaldoc/data",
+                        "container":  "/var/lib/logicaldoc"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

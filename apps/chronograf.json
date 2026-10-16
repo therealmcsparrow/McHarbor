@@ -1,0 +1,40 @@
+{
+    "slug":  "chronograf",
+    "name":  "Chronograf",
+    "description":  "Web dashboard and admin UI for visualizing and exploring time-series sensor data stored in InfluxDB.",
+    "category":  "IoT & Industrial",
+    "image":  "chronograf:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chronograf.png",
+    "website":  "https://www.influxdata.com/time-series-platform/chronograf",
+    "docsUrl":  "https://docs.influxdata.com/chronograf/v1/introduction/installation",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/chronograf/data",
+                        "container":  "/var/lib/chronograf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "INFLUXDB_URL",
+                        "default":  "http://influxdb:8086",
+                        "description":  "URL of the InfluxDB instance to connect to"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

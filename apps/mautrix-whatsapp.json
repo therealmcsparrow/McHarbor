@@ -1,0 +1,37 @@
+{
+    "slug":  "mautrix-whatsapp",
+    "name":  "mautrix-whatsapp",
+    "description":  "Matrix bridge that connects a WhatsApp account into a Matrix room for two-way messaging.",
+    "category":  "Communications",
+    "image":  "dock.mau.dev/mautrix/whatsapp:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/whatsapp.png",
+    "website":  "https://docs.mau.fi/bridges/go/whatsapp/index.html",
+    "docsUrl":  "https://docs.mau.fi/bridges/general/docker-setup.html",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mautrix-whatsapp/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "HOMESERVER_ADDRESS",
+                        "default":  "https://matrix.example.com",
+                        "description":  "URL of the Matrix homeserver to bridge into"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

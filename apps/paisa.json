@@ -1,0 +1,35 @@
+{
+    "slug":  "paisa",
+    "name":  "Paisa",
+    "description":  "Self-hosted personal finance manager built on plain-text double-entry accounting files.",
+    "category":  "Finance",
+    "image":  "ananthakumaran/paisa:latest",
+    "logo":  "https://paisa.fyi/favicon.ico",
+    "website":  "https://paisa.fyi",
+    "docsUrl":  "https://paisa.fyi/docs/self-hosting/",
+    "ports":  [
+                  {
+                      "host":  8123,
+                      "container":  7500,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/paisa/data",
+                        "container":  "/root/.config/paisa"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

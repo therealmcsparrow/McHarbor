@@ -1,0 +1,73 @@
+{
+  "form": {
+    "introTitle": "Microsoft-365-Zustimmung",
+    "introBody": "Speichere diesen Speicherort und verwende dann „Verbinden“, um die Kontozustimmung zu erteilen. McHarbor speichert die zurückgegebenen Token verschlüsselt.",
+    "tenant_id": {
+      "label": "Tenant ID",
+      "help": "Microsoft-Entra-Tenant-ID (GUID). Zu finden im Entra Admin Center > Overview. Der OAuth-Zustimmungsablauf leitet an login.microsoftonline.com/{tenant_id}/… weiter"
+    },
+    "client_id": {
+      "label": "Client ID",
+      "help": "Application-(Client-)ID der Entra-App-Registrierung mit den delegierten Berechtigungen Files.ReadWrite und Sites.ReadWrite und einer Web-Redirect-URI, die auf diesen McHarbor-Host zeigt."
+    },
+    "client_secret": {
+      "label": "Client Secret",
+      "help": "Client-Secret-Wert aus dem Entra Admin Center → App registrations → Certificates & secrets. Verschlüsselt gespeichert."
+    },
+    "drive_id": {
+      "label": "Drive ID",
+      "help": "Optional. Vollqualifizierter Graph-Drive-Bezeichner. Leer lassen, um die Standarddokumentbibliothek der Website zu verwenden (aufgelöst über die Site ID)."
+    },
+    "base_path": {
+      "label": "Basispfad",
+      "help": "Optional. Graph-Pfad innerhalb des Drives, z. B. /Backups/2026. Leer lassen, um das Drive-Stammverzeichnis zu verwenden. Absichtlich nicht vorausgefüllt."
+    },
+    "site_id": {
+      "label": "SharePoint Site ID",
+      "help": "Graph-Site-ID, z. B. contoso.sharepoint.com,guid1,guid2. Erforderlich, wenn die Drive ID leer ist. Abrufbar über /sites/{hostname}:/sites/{path} im Graph Explorer."
+    }
+  },
+  "setup": {
+    "title": "SharePoint-Online-Einrichtungsanleitung",
+    "step1": "Öffne im Microsoft Entra Admin Center <b>App registrations > New registration</b>. Wähle <b>Accounts in this organizational directory only</b> als unterstützten Kontotyp und kopiere die <b>Tenant ID</b> von der Seite <b>Overview</b> — füge sie links in das Feld <b>Tenant ID</b> ein.",
+    "step2": "Erstelle unter <b>Certificates & secrets</b> ein neues Client Secret. Kopiere den <b>Value</b> (nicht die <b>Secret ID</b>) — füge ihn links in das Feld <b>Client Secret</b> ein. Kopiere die <b>Application (client) ID</b> in das Feld <b>Client ID</b>.",
+    "step3": "Erteile der App die Anwendungsberechtigungen <code>Files.ReadWrite.All</code>, <code>Sites.ReadWrite.All</code> und <code>User.Read</code> (Administratorzustimmung erforderlich). Der OAuth-Ablauf fordert im Namen des Operators <code>offline_access</code> an.",
+    "step4": "Setze die <b>SharePoint Site ID</b> auf den Graph-Site-Bezeichner (z. B. <code>contoso.sharepoint.com,guid1,guid2</code>). Leer lassen, wenn du stattdessen eine <b>Drive ID</b> angibst — die Drive ID hat Vorrang, wenn beide vorhanden sind.",
+    "step5": "Lass <b>Base Path</b> für das Drive-Stammverzeichnis leer oder gib einen expliziten Graph-Pfad wie <code>/Backups/2026</code> an. Das Formular füllt keinen Standardwert vor.",
+    "step6": "Klicke auf <b>Save and connect</b> (oder <b>Connect</b> auf der Speicherkarte). Microsoft fordert dich auf, dich anzumelden und die angeforderten Scopes zu erteilen. McHarbor speichert das zurückgegebene Refresh-Token verschlüsselt und <warn>zeigt es nie wieder an</warn>.",
+    "step7": "Klicke auf <b>Test connection</b>, um ein Testobjekt in der gewählten Dokumentbibliothek zu schreiben und wieder zu lesen."
+  },
+  "page": {
+    "title": "SharePoint-Online-Backup-Ziele",
+    "subtitle": "Sichert Container in SharePoint-Dokumentbibliotheken eines Geschäfts-/Schul-Tenants. Das Plugin übernimmt Test, Upload, Download, Löschen und Auflisten zur Backup-Zeit. Große Backups verwenden die Chunked-Upload-Sitzung von Microsoft, sodass es keine Größenbeschränkung gibt.",
+    "registerHint": "Fügen Sie auf der Seite Speicherorte des Hosts ein Ziel hinzu und wählen Sie „SharePoint“ als Typ."
+  },
+  "fields": {
+    "clientId":     "Azure-AD-Anwendungs-(Client-)ID",
+    "clientSecret": "Azure-AD-Client-Secret",
+    "refreshToken": "Refresh-Token (vom OAuth-Zustimmungsablauf geliefert)",
+    "tenantId":     "Azure-AD-Tenant-ID",
+    "siteId":       "SharePoint-Website-ID (Graph-Site-Kennung)",
+    "driveId":      "Drive-ID (leer lassen, um die Standard-Dokumentbibliothek der Website zu verwenden)"
+  },
+  "help": {
+    "clientId":     "Registrieren Sie eine App unter https://entra.microsoft.com → App registrations. Die App benötigt die delegierten Berechtigungen Files.ReadWrite.All, Sites.ReadWrite.All und User.Read.",
+    "clientSecret": "Erzeugen Sie in der Azure-AD-App-Registrierung ein Client-Secret. Es wird im Ruhezustand vom AES-256-GCM-Dienst des Hosts verschlüsselt.",
+    "refreshToken": "Klicken Sie nach dem Speichern des Ziels auf „Speichern und verbinden“, um den Microsoft-Zustimmungsablauf abzuschließen und einen langlebigen Refresh-Token zu speichern.",
+    "tenantId":     "Ihre Tenant-ID finden Sie unter https://entra.microsoft.com → Tenant properties.",
+    "siteId":       "Graph-Site-Kennung, z. B. contoso.sharepoint.com,guid1,guid2. Erforderlich, wenn die Drive-ID leer ist.",
+    "driveId":      "Optional. Leer lassen, um die Standard-Dokumentbibliothek der Website über /sites/{site_id}/drive anzusprechen."
+  },
+  "toast": {
+    "registered": "SharePoint-Online-Plugin registriert.",
+    "testPassed": "SharePoint-Online-Verbindungstest bestanden.",
+    "testFailed": "SharePoint-Online-Verbindungstest fehlgeschlagen: {{error}}"
+  },
+  "error": {
+    "noClientId":     "Azure-AD-Anwendungs-(Client-)ID ist erforderlich.",
+    "noClientSecret": "Azure-AD-Client-Secret ist erforderlich.",
+    "noRefreshToken": "Refresh-Token ist erforderlich. Führen Sie zuerst „Speichern und verbinden“ aus.",
+    "noTenantId":     "Die Azure-AD-Tenant-ID ist für SharePoint-Online-Ziele erforderlich.",
+    "noSiteId":       "Die SharePoint-Website-ID oder Drive-ID ist für SharePoint-Online-Ziele erforderlich."
+  }
+}

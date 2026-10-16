@@ -1,0 +1,75 @@
+{
+  "config": {
+    "method": { "label": "Método de conexão", "help": "Qual transporte do Signal usar. REST = signal-cli-rest-api oficial. Bot = servidor de bot baseado em token. signald = daemon signald via JSON-RPC. Simple = relé da comunidade sem autenticação." },
+    "server_url": { "label": "URL do servidor", "help": "URL base do gateway ou daemon do Signal. Exemplo: https://signal.example.com ou http://localhost:8080." },
+    "sender_number": { "label": "Número do remetente", "help": "Número da conta do Signal registrada no formato E.164. A identidade de saída do bot. Usado por todos os métodos." },
+    "auth_username": { "label": "Nome de usuário", "help": "Opcional. Nome de usuário da autenticação HTTP Basic para o signal-cli-rest-api. Deixe em branco se o daemon não exigir autenticação." },
+    "auth_password": { "label": "Senha", "help": "Opcional. Senha da autenticação HTTP Basic para o signal-cli-rest-api. Armazenada criptografada em repouso." },
+    "bot_token": { "label": "Token do bot", "help": "Somente para o bot baseado em token. Token Bearer do servidor de bot do Signal. Emitido quando você registra o bot na plataforma. Armazenado criptografado em repouso." },
+    "account_id": { "label": "ID da conta", "help": "Somente para o método signald. Identificador de conta do signald: o número de telefone E.164 ou o UUID atribuído em `signaldctl account register`. O plugin o usa no caminho de conta do JSON-RPC." }
+  },
+  "page": {
+    "title": "Signals",
+    "subtitle": "Encaminhe eventos de workflow, alerta e backup para um ou mais números de telefone do Signal por um de quatro métodos de conexão: signal-cli-rest-api, bot baseado em token, daemon JSON-RPC signald ou um relay da comunidade sem autenticação. O plugin trata Test (ida e volta barata de credenciais) e Send (mensagem real ao destinatário).",
+    "registerHint": "Adicione um canal na página Notificações > Canais do host e escolha \"Signal\" como channel_type."
+  },
+  "methods": {
+    "rest":       "API REST do Signal",
+    "restSub":    "signal-cli-rest-api oficial",
+    "bot":        "Signal Bot",
+    "botSub":     "Servidor de bot baseado em token",
+    "signald":    "signald",
+    "signaldSub": "API JSON-RPC do daemon signald",
+    "simple":     "Configuração simples",
+    "simpleSub":  "Não requer autenticação"
+  },
+  "fields": {
+    "server_url":    "URL do servidor",
+    "sender_number": "Número do remetente",
+    "recipients":    "Destinatários",
+    "auth_username": "Nome de usuário",
+    "auth_password": "Senha",
+    "bot_token":     "Token do bot",
+    "account_id":    "ID da conta"
+  },
+  "help": {
+    "rest":       "Usa o daemon Java oficial signal-cli-rest-api. A opção mais flexível; suporta autenticação HTTP Basic. Os destinatários devem ser números E.164.",
+    "bot":        "Usa um servidor de bot do Signal baseado em token (ponte da comunidade / frameworks de bot compatíveis com o Signal). Token Bearer obrigatório; o canal do destinatário é o número de telefone em E.164.",
+    "signald":    "Usa a API HTTP JSON-RPC 2.0 do daemon nativo signald. O ID da conta é o número E.164 ou o UUID de `signaldctl account register`.",
+    "simple":     "Usa um relay da comunidade sem autenticação. Somente endpoints públicos de teste e relays simples auto-hospedados; não use com workflows sensíveis.",
+    "server_url":    "URL base do gateway / daemon do Signal. Exemplo: https://signal.example.com ou http://localhost:8080.",
+    "sender_number": "Número da conta Signal registrada no formato E.164. A identidade de saída do bot. Usado por todos os métodos.",
+    "recipients":    "Lista de números de destinatários no formato E.164, separados por vírgula. O plugin divide nas vírgulas e envia uma mensagem do Signal por destinatário.",
+    "auth_username": "Opcional. Nome de usuário HTTP Basic para signal-cli-rest-api. Deixe em branco se o daemon não tem autenticação.",
+    "auth_password": "Opcional. Senha HTTP Basic para signal-cli-rest-api. Criptografada em repouso.",
+    "bot_token":     "Token Bearer do servidor de bot do Signal. Emitido ao registrar o bot na plataforma. Criptografado em repouso.",
+    "account_id":    "Identificador de conta do signald. O telefone em E.164 ou o UUID atribuído em `signaldctl account register`. O plugin o usa no caminho de conta do JSON-RPC."
+  },
+  "toast": {
+    "registered": "Canal Signal salvo.",
+    "testPassed": "Teste de conexão do Signal concluído com sucesso.",
+    "testFailed": "O teste de conexão do Signal falhou: {{error}}"
+  },
+  "error": {
+    "noCommon":    "URL do servidor, Número do remetente e Destinatários são obrigatórios.",
+    "noRecipients": "A lista de destinatários está vazia após a remoção de espaços. Adicione pelo menos um número E.164.",
+    "noAccount":   "O método signald exige account_id.",
+    "sendFailed":  "Falha ao enviar pelo Signal: {{error}}"
+  },
+  "guide": {
+    "title":    "Configurando notificações do Signal",
+    "subtitle": "Escolha um método de conexão que corresponda ao gateway do Signal que você implantou. Os quatro métodos abaixo estão listados por ordem de frequência em ambientes auto-hospedados.",
+    "step1":  { "title": "Escolha um método de conexão",          "body": "Escolha um dos quatro blocos de método no formulário do canal. A opção <b>API REST do Signal</b> (signal-cli-rest-api) é a mais comum em servidores domésticos. Servidores de bot baseados em token e o daemon signald são ambos viáveis; relays da comunidade são fáceis de começar, mas não têm credenciais." },
+    "step2":  { "title": "Instale um gateway do Signal",          "body": "Mensagens do Signal não podem ser enviadas diretamente do McHarbor — você precisa de um gateway que fale o protocolo Signal em seu nome. signal-cli-rest-api, signald e a maioria dos frameworks de bot são distribuídos como imagens Docker; signal-cli-rest-api é <code>bbernhard/signal-cli-rest-api</code> no Docker Hub." },
+    "step3":  { "title": "Registre uma conta do Signal",         "body": "Todo método precisa de uma conta do Signal registrada que possa enviar mensagens. Com signal-cli-rest-api: <code>signal-cli -u +1YOURNUMBER register</code> (o gateway pode pedir um código por SMS ou voz). Com signald: <code>signaldctl account register +1YOURNUMBER</code>. Servidores de bot normalmente tratam o registro dentro do framework do bot." },
+    "step4":  { "title": "Inicie o gateway",                 "body": "A porta padrão do signal-cli-rest-api é 8080; o signald expõe 8080 por padrão. Execute o gateway em um host que o McHarbor consiga alcançar — mesma rede Docker, LAN ou túnel VPN." },
+    "step5":  { "title": "Verifique a acessibilidade",               "body": "A partir do host do McHarbor: <code>curl http://<gateway>:8080/v1/health</code>. O signal-cli-rest-api retorna <code>204</code> quando está saudável. O signald responde com uma descrição de serviço JSON-RPC 2.0 em <code>GET /v1/accounts</code>." },
+    "step6":  { "title": "Preencha o formulário do canal",          "body": "Abra <b>Configurações > Notificações > Canais > Adicionar</b>, escolha \"Signal\". O formulário mostra os quatro blocos de método; clique no que corresponde ao seu gateway. Os campos correspondentes aparecem abaixo." },
+    "step7":  { "title": "Informe a URL do servidor e o remetente",       "body": "<b>URL do servidor</b> = a URL base do seu gateway (sem barra final). <b>Número do remetente</b> = a conta Signal registrada no formato E.164 (ex.: <code>+14155551234</code>). Estes dois são obrigatórios em todos os métodos." },
+    "step8":  { "title": "Informe os destinatários",                  "body": "Lista de números E.164, separados por vírgula, que devem receber alertas. O McHarbor divide nas vírgulas e envia uma mensagem do Signal por destinatário, então um número inválido não derruba o lote — apenas aquele falha." },
+    "step9":  { "title": "Método: REST — autenticação (opcional)",    "body": "Se o seu signal-cli-rest-api roda atrás de autenticação HTTP Basic, preencha <b>Nome de usuário</b> + <b>Senha</b>. Caso contrário, deixe ambos em branco. Ambos são criptografados em repouso." },
+    "step10": { "title": "Método: Bot — token",               "body": "Cole o token Bearer emitido pela plataforma do bot. Criptografado em repouso. As chamadas de teste vão para GET /, então o bot deve aceitar leituras anônimas no endpoint raiz." },
+    "step11": { "title": "Método: signald — ID da conta",      "body": "Cole o identificador de conta do signald: o telefone em E.164 ou o UUID atribuído em <code>signaldctl account register</code>. O plugin encaminha os envios para <code>/v1/accounts/<account>/rpc</code>." },
+    "step12": { "title": "Teste, salve e encaminhe eventos",      "body": "Clique em \"Testar\" para confirmar a ida e volta das credenciais. Salve o canal. A partir daí, encaminhe eventos de workflow, alerta ou conclusão de backup para ele como faria com qualquer outro no McHarbor." }
+  }
+}

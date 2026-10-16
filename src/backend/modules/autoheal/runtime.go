@@ -15,6 +15,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	"github.com/therealmcsparrow/mcharbor/core/inapp"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/quiesce"
 )
 
 const (
@@ -44,8 +45,19 @@ type Engine struct {
 	sendInApp   func(inapp.Record) error
 	sendChannel func(context.Context, corenotify.ChannelRequest) (*corenotify.Delivery, error)
 
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
+	coordinator engineCoordinator
+	nodeID      string
+	hasCoord    bool
+}
+
+// engineCoordinator is the subset of the cluster coordinator needed by the
+// auto-heal evaluator.
+type engineCoordinator interface {
+	LeaderOf(ctx context.Context, name string) bool
+	NodeID() string
 }
 
 // NewEngine creates a background autoheal engine.
@@ -59,6 +71,16 @@ func NewEngine(db *sql.DB, enc *encryption.Service, logger *slog.Logger, svc *Se
 		sendInApp:   func(record inapp.Record) error { return inapp.CreateBroadcast(db, record) },
 		sendChannel: dispatcher.SendChannel,
 	}
+}
+
+// NewEngineWithCoordinator creates an auto-heal engine that only evaluates on
+// the elected HA leader. SQLite coordinators always report leader=true.
+func NewEngineWithCoordinator(db *sql.DB, enc *encryption.Service, logger *slog.Logger, svc *Service, auditLog *audit.Logger, coord engineCoordinator, nodeID string) *Engine {
+	e := NewEngine(db, enc, logger, svc, auditLog)
+	e.coordinator = coord
+	e.nodeID = nodeID
+	e.hasCoord = coord != nil
+	return e
 }
 
 // Start launches the background auto-heal loop.
@@ -95,12 +117,17 @@ func (e *Engine) run(ctx context.Context) {
 		case <-startup.C:
 			e.tick(ctx)
 		case <-ticker.C:
-			e.tick(ctx)
+			quiesce.Run(func() { e.tick(ctx) })
 		}
 	}
 }
 
 func (e *Engine) tick(ctx context.Context) {
+	if !e.leaderFor(ctx) {
+		e.logger.Debug("autoheal: not leader this tick; skipping", "node", e.nodeID)
+		return
+	}
+
 	envs, err := e.listDockerEnvironments(ctx)
 	if err != nil {
 		e.logger.Warn("autoheal: list environments failed", "error", err)
@@ -115,6 +142,13 @@ func (e *Engine) tick(ctx context.Context) {
 	}
 }
 
+func (e *Engine) leaderFor(ctx context.Context) bool {
+	if !e.hasCoord {
+		return true
+	}
+	return e.coordinator.LeaderOf(ctx, "autoheal-engine")
+}
+
 type environmentRef struct {
 	ID   string
 	Name string
@@ -125,14 +159,17 @@ func (e *Engine) listDockerEnvironments(ctx context.Context) ([]environmentRef, 
 		`SELECT id, name
 		 FROM environments
 		 WHERE is_active = 1
-		   AND orchestrator_type = 'docker'
 		 ORDER BY is_default DESC, name ASC
 		 LIMIT 200`,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("listing docker environments: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("closing rows failed", "error", err)
+		}
+	}()
 
 	envs := make([]environmentRef, 0, 16)
 	for rows.Next() {

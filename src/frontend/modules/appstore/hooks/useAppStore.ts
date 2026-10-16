@@ -2,87 +2,36 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@core/api/client';
+import { assertSuccess } from '@resources/utils/api-mutation';
 import type { PaginatedData } from '@core/api/client';
-import type {
-  AppTemplate,
-  CategoryCount,
-  InstallRequest,
-  InstallResult,
-  InstalledApp,
-  SyncStatus,
-} from '../types';
+import type { AppTemplate, CategoryCount, SyncStatus } from '../types';
 
-export function useAppCatalog(category?: string, search?: string, page = 1, perPage = 50) {
-  const params: Record<string, string> = {
-    page: String(page),
-    per_page: String(perPage),
-  };
-  if (category) params.category = category;
-  if (search) params.search = search;
-
-  return useQuery({
-    queryKey: ['app-store', 'catalog', category, search, page],
-    queryFn: () =>
-      api
-        .get<PaginatedData<AppTemplate>>('/app-store', params)
-        .then((r) => r.data ?? { items: [], total: 0, page: 1, per_page: perPage, total_pages: 0 }),
-  });
-}
-
-export function useAppDetail(slug: string) {
-  return useQuery({
-    queryKey: ['app-store', 'detail', slug],
-    queryFn: () =>
-      api.get<AppTemplate>(`/app-store/${slug}`).then((r) => r.data),
-    enabled: !!slug,
+// The catalog runs to well over a thousand entries, so it is fetched page by
+// page as the grid scrolls; a single page used to be all "All" ever showed.
+export function useAppCatalog(category?: string, search?: string, perPage = 60) {
+  return useInfiniteQuery({
+    queryKey: ['app-store', 'catalog', category, search, perPage],
+    queryFn: async ({ pageParam }) => {
+      const params: Record<string, string> = {
+        page: String(pageParam),
+        per_page: String(perPage),
+      };
+      if (category) params.category = category;
+      if (search) params.search = search;
+      const res = await api.get<PaginatedData<AppTemplate>>('/app-store', params);
+      return assertSuccess(res) ?? { items: [], total: 0, page: pageParam, per_page: perPage, total_pages: 0 };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.page < lastPage.total_pages ? lastPage.page + 1 : undefined),
   });
 }
 
 export function useAppCategories() {
   return useQuery({
     queryKey: ['app-store', 'categories'],
-    queryFn: () =>
-      api
-        .get<CategoryCount[]>('/app-store/categories')
-        .then((r) => r.data ?? []),
-  });
-}
-
-export function useInstallApp() {
-  const { t } = useTranslation('common');
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (req: InstallRequest) =>
-      api.post<InstallResult>('/app-store/install', req).then((r) => {
-        if (!r.success) throw new Error(r.error ?? 'Install failed');
-        return r.data as InstallResult;
-      }),
-    meta: { success: t('appStore.mutationInstalled') },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['app-store'] });
-      queryClient.invalidateQueries({ queryKey: ['stacks'] });
-    },
-  });
-}
-
-export function useUninstallApp() {
-  const { t } = useTranslation('common');
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (installationId: string) =>
-      api.del(`/app-store/installations/${installationId}`).then((r) => {
-        if (!r.success) throw new Error(r.error ?? 'Uninstall failed');
-        return r.data;
-      }),
-    meta: { success: t('appStore.mutationUninstalled') },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['app-store'] });
-      queryClient.invalidateQueries({ queryKey: ['stacks'] });
-    },
+    queryFn: () => api.get<CategoryCount[]>('/app-store/categories').then((r) => assertSuccess(r) ?? []),
   });
 }
 
@@ -98,7 +47,7 @@ export function useSyncCatalog() {
       }),
     meta: { success: t('appStore.mutationSynced') },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['app-store'] });
+      void queryClient.invalidateQueries({ queryKey: ['app-store'] });
     },
   });
 }
@@ -106,20 +55,6 @@ export function useSyncCatalog() {
 export function useSyncStatus() {
   return useQuery({
     queryKey: ['app-store', 'sync-status'],
-    queryFn: () =>
-      api
-        .get<SyncStatus>('/app-store/sync/status')
-        .then((r) => r.data),
+    queryFn: () => api.get<SyncStatus>('/app-store/sync/status').then(assertSuccess),
   });
 }
-
-export function useInstalledApps() {
-  return useQuery({
-    queryKey: ['app-store', 'installed'],
-    queryFn: () =>
-      api
-        .get<InstalledApp[]>('/app-store/installed')
-        .then((r) => r.data ?? []),
-  });
-}
-

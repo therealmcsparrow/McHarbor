@@ -1,0 +1,180 @@
+{
+  "title": "Vorfälle",
+  "description": "Container, die in einer Absturzschleife waren, wiederholt beendet wurden, keinen Speicher mehr hatten, ungesund wurden oder einen Alarm auslösten — mit allem, was McHarbor über sie weiß, an einem Ort.",
+  "empty": "Keine Vorfälle.",
+  "notFound": "Dieser Vorfall existiert nicht.",
+  "columns": {
+    "container": "Container",
+    "signal": "Signal",
+    "signals": "Signale",
+    "status": "Status",
+    "narrative": "Erläuterung",
+    "started": "Gestartet",
+    "last": "Letztes Signal",
+    "subject": "Betreff"
+  },
+  "signal": {
+    "crash_loop": "Absturzschleife",
+    "exit_nonzero": "Wiederholter fehlerhafter Exit",
+    "oom": "Speicher erschöpft",
+    "unhealthy": "Ungesund",
+    "alert": "Alarm ausgelöst"
+  },
+  "status": {
+    "open": "Offen",
+    "resolved": "Gelöst",
+    "all": "Alle"
+  },
+  "narrativeStatus": {
+    "none": "Nicht erläutert",
+    "pending": "Wird erläutert…",
+    "ready": "Erläutert",
+    "failed": "Fehlgeschlagen",
+    "refused": "Abgelehnt"
+  },
+  "confidence": {
+    "low": "Geringe Konfidenz",
+    "medium": "Mittlere Konfidenz",
+    "high": "Hohe Konfidenz"
+  },
+  "detail": {
+    "description": "{{signal}} · {{count}} Signale · erstes {{first}} · letztes {{last}}",
+    "refresh": "Nachweise aktualisieren",
+    "resolve": "Lösen",
+    "resolveTitle": "Diesen Vorfall lösen?",
+    "resolveDescription": "Den Vorfall für {{name}} jetzt schließen und seine Zeitleiste erstellen. Ein neues Signal eröffnet einen neuen Vorfall.",
+    "resolveConfirm": "Vorfall lösen"
+  },
+  "narrative": {
+    "title": "Was geschehen ist",
+    "explain": "Das erklären",
+    "again": "Erneut erklären",
+    "working": "Das Modell wird gefragt…",
+    "none": "Noch keine Erläuterung. „Das erklären“ sendet die untenstehenden Nachweise an das für McHarbor konfigurierte KI-Modell.",
+    "lastFailed": "Die letzte Erläuterung ist fehlgeschlagen.",
+    "failedTitle": "Warum die Erläuterung fehlgeschlagen ist",
+    "undetermined": "Das Modell konnte aus den verfügbaren Nachweisen keine Ursache bestimmen. Was es betrachtet hat, steht unten.",
+    "changes": "Kurz zuvor geändert",
+    "causes": "Wahrscheinliche Ursachen",
+    "attribution": "Verfasst von {{model}} über {{connection}} ({{provider}}) für {{who}} um {{time}}.",
+    "attributionProactive": "Automatisch verfasst von {{model}} über {{connection}} ({{provider}}) um {{time}}.",
+    "shown": "Was dem Modell gezeigt wurde",
+    "shownHint": "Der genaue, geschwärzte gesendete Text. Fingerabdruck {{hash}}."
+  },
+  "refusal": {
+    "not_opted_in": "Die Erläuterung ist für diese Umgebung ausgeschaltet. Aktivieren Sie sie zuerst in den Erläuterungseinstellungen; es wurde nichts gesendet.",
+    "no_model": "Es ist kein KI-Modell konfiguriert und aktiviert. Fügen Sie eines unter den Einstellungen des KI-Assistenten hinzu; es wurde nichts gesendet.",
+    "in_progress": "Für diesen Vorfall läuft bereits eine Erläuterung.",
+    "cap_reached": "Das stündliche Erläuterungslimit für diese Umgebung ist erreicht.",
+    "not_resolved": "Nur ein gelöster Vorfall hat eine Zeitleiste, die sich zusammenfassen lässt.",
+    "model_failed": "Das Modell hat nicht geantwortet. Der Grund steht am Vorfall.",
+    "not_open": "Dieser Vorfall ist bereits gelöst."
+  },
+  "evidence": {
+    "title": "Nachweise",
+    "window": "Von {{from}} bis {{to}}",
+    "truncated": "Auf Größe gekürzt",
+    "pending": "Nachweise werden gesammelt.",
+    "nothing": "In diesem Zeitraum wurde nichts erfasst.",
+    "image": "Image",
+    "state": "Zustand",
+    "exitCode": "Exit-Code",
+    "restarts": "Neustarts",
+    "health": "Zustand",
+    "oomKilled": "Speicher erschöpft",
+    "yes": "Ja",
+    "no": "Nein",
+    "exit": "Exit {{code}}",
+    "events": "Container-Ereignisse",
+    "logs": "Letzte Protokollzeilen",
+    "imageChanges": "Image-Änderungen",
+    "audit": "Wer was geändert hat",
+    "deploys": "Deployments in diese Umgebung",
+    "alerts": "Alarme",
+    "drift": "Drift vom Soll-Zustand",
+    "metrics": "Metriken",
+    "peakContainerCpu": "CPU-Spitze des Containers",
+    "peakContainerMem": "Speicherspitze des Containers",
+    "peakHostCpu": "CPU-Spitze des Hosts",
+    "peakHostMem": "Speicherspitze des Hosts",
+    "pluginNote": {
+      "plugin_unloaded": "Das Plugin, das diesen Vorfall ausgelöst hat, ist nicht geladen, daher konnten seine Belege nicht gelesen werden.",
+      "plugin_unavailable": "Das Plugin, das diesen Vorfall ausgelöst hat, hat nicht rechtzeitig geantwortet."
+    }
+  },
+  "logsNote": {
+    "unavailable": "Logs sind hier nicht verfügbar.",
+    "unreachable": "Die Umgebung war für die Logs nicht erreichbar.",
+    "not_found": "Der Container existiert nicht mehr, daher gibt es keine Logs.",
+    "logs_unavailable": "Die Logs konnten nicht gelesen werden."
+  },
+  "timeline": {
+    "title": "Zeitachse",
+    "summarise": "Zusammenfassen",
+    "kind": {
+      "symptom": "Erstes Symptom",
+      "event": "Ereignis",
+      "action": "Aktion",
+      "alert": "Alarm",
+      "change": "Letzte Änderung",
+      "resolved": "Gelöst"
+    }
+  },
+  "settings": {
+    "open": "Einstellungen der Erläuterung",
+    "title": "Erläuterung für diese Umgebung",
+    "description": "Ob Vorfälle in dieser Umgebung vom KI-Modell erklärt werden dürfen und wie oft.",
+    "noModel": "Es ist kein KI-Modell konfiguriert und aktiviert, daher kann nichts gesendet werden. Konfigurieren Sie eines in den Einstellungen des KI-Assistenten.",
+    "destinationLocal": "Belege würden an {{connection}} gehen: {{provider}} mit {{model}} unter {{url}}, ein selbst gehostetes Modell.",
+    "destinationRemote": "Belege würden dieses Netzwerk verlassen: Sie gehen an {{connection}}, {{provider}} mit {{model}} unter {{url}}.",
+    "whatIsSent": "Was gesendet wird: die letzten Ereignisse und Logzeilen des Containers, Image-Änderungen, Audit-Einträge und Deployments, die ihn betreffen, Alarme, Drift und Metriken – wobei Passwörter, Tokens, Zugangsdaten, Adressen und Docker-Endpunkte zuvor entfernt werden. Umgebungsvariablen werden nie gesendet.",
+    "optIn": "Erläuterung für diese Umgebung zulassen",
+    "acknowledge": "Ich verstehe, dass Vorfallbelege aus dieser Umgebung an das oben genannte Modell gesendet werden.",
+    "proactive": "Neue Vorfälle automatisch erläutern",
+    "hourlyCap": "Automatische Erläuterungen pro Stunde",
+    "hourlyCapHint": "Die automatische Erläuterung pausiert, sobald in der letzten Stunde so viele Erläuterungen gelaufen sind. Ein manuelles Erklären wird deshalb nie abgelehnt.",
+    "save": "Speichern"
+  },
+  "snippet": {
+    "title": "Vorfallbeschreibung",
+    "pending": "Für diesen Alarm ist ein Vorfall offen; noch keine Beschreibung.",
+    "open": "Vorfall öffnen"
+  },
+  "findings": {
+    "open": "Verhalten",
+    "title": "Verhaltensbefunde",
+    "description": "Muster, die feste Regeln im aufgezeichneten Verlauf gefunden haben. Die Zahlen sind gemessen; ein Modell darf sie nur erklären.",
+    "back": "Zurück zu den Vorfällen",
+    "empty": "Keine Befunde.",
+    "explain": "Diesen Befund erklären",
+    "dismiss": "Verwerfen",
+    "explainedBy": "Erklärt von {{model}} für {{who}}.",
+    "columns": {
+      "kind": "Muster",
+      "subject": "Wo",
+      "numbers": "Was die Zahlen sagen",
+      "explanation": "Erklärung",
+      "lastSeen": "Zuletzt gesehen",
+      "actions": "Aktionen"
+    },
+    "kind": {
+      "memory_climb": "Speicher steigt",
+      "host_memory_forecast": "Host-Speicher wird knapp",
+      "scheduled_restarts": "Neustarts nach Zeitplan",
+      "post_deploy_failures": "Fehler nach einem Deployment",
+    "host_disk_forecast": "Host-Festplatte wird knapp",
+    "storage_location_forecast": "Speicherziel wird knapp"
+    },
+    "says": {
+      "memory_climb": "Der Speicher ist in {{days}} Tagen um {{growth}}% gewachsen, etwa {{perDay}} pro Tag (Anpassung {{r2}}).",
+      "host_memory_forecast": "Bei {{current}}% und einem Anstieg von {{perDay}} Punkten pro Tag ist der Speicher in etwa {{days}} Tagen voll.",
+      "scheduled_restarts": "Neustarts gegen {{time}} UTC an {{days}} verschiedenen Tagen.",
+      "post_deploy_failures": "{{after}} fehlgeschlagene Beendigungen am Tag nach einem Deployment, gegenüber {{before}} am Tag davor.",
+    "host_disk_forecast": "Bei {{current}}% und einem Anstieg von {{perDay}} Punkten pro Tag erreicht dieses Dateisystem in etwa {{days}} Tagen {{ceiling}}% (Anpassung {{r2}}).",
+    "storage_location_forecast": "Bei {{current}}% und einem Anstieg von {{perDay}} Punkten pro Tag erreicht dieses Ziel in etwa {{days}} Tagen {{ceiling}}% (Anpassung {{r2}})."
+    }
+  },
+  "subjectType": {
+    "container": "Container"
+  }
+}

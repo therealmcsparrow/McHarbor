@@ -1,0 +1,9 @@
+{
+  "label": "Update Ticket",
+  "description": "Add a note to the ticket a key opened, without changing its state",
+  "config": {
+    "channel_id": "Ticketing Channel",
+    "dedup_key": "Ticket Key",
+    "message": "Message"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "label": "Gerenciar backups do contêiner",
+  "description": "Lista planos ou execuções de backup, ou obtém, cancela e exclui uma execução",
+  "config": {
+    "environment": "Ambiente",
+    "action": "Ação",
+    "container": "Contêiner (filtro)",
+    "status": "Status",
+    "limit": "Limite",
+    "run_id": "Execução de backup"
+  },
+  "options": {
+    "action": {
+      "list_plans": "Listar planos",
+      "list_runs": "Listar execuções",
+      "get_run": "Obter execução",
+      "cancel_run": "Cancelar execução",
+      "delete_run": "Excluir execução"
+    },
+    "status": {
+      "all": "Todos",
+      "completed": "Concluída",
+      "running": "Em execução",
+      "failed": "Falhou",
+      "cancelled": "Cancelada"
+    }
+  }
+}

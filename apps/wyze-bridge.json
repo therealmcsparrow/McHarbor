@@ -1,0 +1,67 @@
+{
+    "slug":  "wyze-bridge",
+    "name":  "Docker Wyze Bridge",
+    "description":  "Bridges Wyze cameras to RTSP, RTMP and HLS streams for use in Frigate, Scrypted or any NVR that speaks standard video protocols.",
+    "category":  "Home Automation",
+    "image":  "mrlt8/wyze-bridge:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/png/wyze.png",
+    "website":  "https://github.com/mrlt8/docker-wyze-bridge",
+    "docsUrl":  "https://github.com/mrlt8/docker-wyze-bridge#quick-start",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8554,
+                      "container":  8554,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wyze-bridge/tokens",
+                        "container":  "/tokens"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WYZE_EMAIL",
+                        "default":  "",
+                        "description":  "Wyze account email"
+                    },
+                    {
+                        "key":  "WYZE_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Wyze account password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "API_ID",
+                        "default":  "",
+                        "description":  "Wyze developer API ID"
+                    },
+                    {
+                        "key":  "API_KEY",
+                        "default":  "change-me",
+                        "description":  "Wyze developer API key",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

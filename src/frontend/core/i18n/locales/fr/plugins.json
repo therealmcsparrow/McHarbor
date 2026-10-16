@@ -1,0 +1,225 @@
+{
+  "loading": "Chargement…",
+  "installed": {
+    "title": "Plugins installés",
+    "empty": "Aucun plugin installé pour l'instant. Le plugin hello-world se trouve sous src/plugins/Plugins/hello-world/.",
+    "update_badge": "Mise à jour disponible",
+    "update_to_version": "Mettre à jour vers v{{version}}",
+    "update_action": "Mettre à jour vers v{{version}}",
+    "update_action_short": "Mettre à jour",
+    "empty_description": "Parcourez les onglets du catalogue à droite pour installer un plugin."
+  },
+  "status": {
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "not_loaded": "Non chargé"
+  },
+  "actions": {
+    "enable": "Activer",
+    "disable": "Désactiver",
+    "uninstall": "Désinstaller",
+    "refresh": "Actualiser",
+    "retry": "Réessayer"
+  },
+  "confirm": {
+    "uninstall": "Désinstaller {{slug}} ? Ceci exécute la chaîne de 7 étapes et est irréversible.",
+    "uninstall_title": "Désinstaller {{name}} ?",
+    "uninstall_warning": "All saved data will be permanently lost. This includes configuration, plugin data tables, ABAC rules, the plugin's bundle files, and any widget or workflow-node instances. Cette action est irréversible et il n'existe aucune sauvegarde automatique.",
+    "uninstall_button": "Désinstaller",
+    "preview_loading": "Chargement du résumé d'impact…",
+    "preview_error": "Impossible de charger le résumé d'impact. La désinstallation se poursuivra quand même.",
+    "impact_title": "Ceci supprimera :",
+    "impact_empty": "Aucune contribution trouvée — la désinstallation ne supprimera que les fichiers du bundle.",
+    "impact": {
+      "routes": "routes",
+      "menu": "éléments de menu",
+      "topbar": "éléments de la barre supérieure",
+      "context_menus": "éléments de menu contextuel",
+      "tabs": "onglets",
+      "widgets": "widgets",
+      "nodes": "nœuds de workflow",
+      "abac_rules": "règles ABAC",
+      "data_tables": "tables de données du plugin",
+      "config_keys": "clés de configuration",
+      "permissions_claimed": "Permissions revendiquées",
+      "permissions_referenced": "Accordées dans des rôles (les attributions seront supprimées)"
+    },
+    "data_loss_warning": "Ce plugin stocke ses propres données ; la désinstallation les supprime définitivement. Si le plugin propose un export, utilisez-le avant de continuer.",
+    "roles_strip_warning_one": "{{count}} rôle accorde encore les permissions de ce plugin : {{roles}}. La désinstallation retire ces attributions du rôle.",
+    "roles_strip_warning_other": "{{count}} rôles accordent encore les permissions de ce plugin : {{roles}}. La désinstallation retire ces attributions des rôles.",
+    "purge_label": "Effacer aussi les données stockées de ce plugin",
+    "purge_help": "Supprime les paramètres et secrets enregistrés du plugin, ainsi que toute source de catalogue laissée pour une catégorie qu'aucun autre plugin ne fournit. Laissez décoché pour les conserver, afin qu'une réinstallation retrouve sa configuration intacte."
+  },
+  "errors": {
+    "load_failed": "Impossible de charger les plugins installés.",
+    "not_loaded": "Le plugin {{slug}} n'est pas encore chargé. Redémarrez McHarbor après l'installation ou l'activation pour le charger.",
+    "unknown_slug": "Le plugin {{slug}} n'est pas installé.",
+    "bundle_load_failed": "Echec du telechargement du bundle du plugin.",
+    "no_mount": "Le bundle du plugin {{slug}} n'a pas enregistré de fonction de montage.",
+    "widget_load_failed": "Le plugin {{slug}} n’a pas pu charger son widget de tableau de bord {{widget}}.",
+    "bundle_failed": "Impossible de télécharger le bundle du plugin {{slug}}."
+  },
+  "store": {
+    "search": "Rechercher des plugins…",
+    "count_one": "{{count}} plugin",
+    "count_other": "{{count}} plugins",
+    "empty": "Aucun plugin n'est disponible dans le catalogue.",
+    "no_results": "Aucun plugin ne correspond à votre recherche.",
+    "installing": "Installation…",
+    "updating": "Mise à jour…",
+    "update_action": "Mettre à jour vers v{{version}}",
+    "update_short": "Mise à jour v{{version}}",
+    "updateAvailable": "Mettre à jour",
+    "updateAction": "Mettre à jour",
+    "updateAllAction_one": "Mettre à jour {{count}} plugin",
+    "updateAllAction_other": "Mettre à jour les {{count}} plugins",
+    "updateAllDialogTitle": "Mettre à jour les plugins",
+    "updateAllDialogDescription": "Les plugins sont mis à jour un par un. Un plugin en échec est signalé sur sa ligne et l'exécution continue avec le suivant.",
+    "updateAllActionLabel": "Mettre à jour",
+    "installedVersion": "installée : v{{version}}",
+    "not_installed": "Non installé"
+  },
+  "iframe": {
+    "title": "Bac à sable du plugin",
+    "bridge_unavailable": "Le plugin intégré est hors ligne. Rechargez la page pour réessayer."
+  },
+  "catalog": {
+    "title": "Plugins disponibles",
+    "installedOnly": "Installés uniquement",
+    "count_one": "{{count}} disponible",
+    "count_other": "{{count}} disponibles",
+    "empty": "Aucun plugin n'est disponible dans le catalogue. Le répertoire du catalogue est vide ou non configuré — définissez MCHARBOR_PLUGIN_CATALOG_DIR ou montez un répertoire d'entrées *.json.",
+    "error": "Impossible de charger le catalogue de plugins.",
+    "install": "Installer",
+    "installed": "Installé",
+    "installed_badge": "Installé",
+    "install_action_label": "Installer {{name}}",
+    "no_description": "Aucune description fournie.",
+    "no_homepage": "Aucune page d'accueil",
+    "update_available_badge": "Mettre à jour vers v{{version}}",
+    "update_action": "Mettre à jour vers v{{version}}",
+    "update_action_label": "Mettre à jour {{name}} vers v{{version}}"
+  },
+  "toast": {
+    "enabled": "Plugin activé",
+    "disabled": "Plugin désactivé",
+    "uninstalled": "Plugin désinstallé",
+    "installed": "Plugin installé",
+    "updated": "Plugin mis à jour",
+    "uninstall_failed": "Impossible de désinstaller le plugin",
+    "uninstalled_roles_stripped": "Plugin désinstallé. Ses permissions ont été retirées de : {{roles}}"
+  },
+  "empty": {
+    "not_installed": {
+      "description": "{{purpose}}. Le plugin est fourni sous forme de paquet séparé et doit être installé.",
+      "title": "Le plugin {{name}} n'est pas installé",
+      "body": "Cette page est une couche de compatibilité de l'hôte. L'interface complète de {{name}} se trouve dans le bundle du plugin et n'est pas disponible dans cette version. Installez le plugin pour activer la fonctionnalité.",
+      "cta_browse": "Parcourir l'AppStore",
+      "cta_status": "État du plugin"
+    },
+    "installed_redirect": {
+      "description": "{{purpose}}. L'interface du plugin est montée sous /plugins/{{slug}}.",
+      "body": "Ouvrez la page du plugin pour utiliser {{name}}.",
+      "cta": "Ouvrir le plugin"
+    }
+  },
+  "install": {
+    "title": "Installer {{name}}",
+    "update_title": "Mettre à jour {{name}}",
+    "description": "Le bundle du plugin est en cours de téléchargement, vérification et enregistrement. Cette boîte de dialogue se fermera automatiquement une fois l'opération terminée.",
+    "starting": "Démarrage…",
+    "network_error": "Erreur réseau",
+    "connect_failed": "Échec de la connexion",
+    "failure": "Échec de l'opération",
+    "cancel": "Annuler",
+    "done": "Terminé",
+    "close": "Fermer",
+    "phases": {
+      "download": "Téléchargement",
+      "verify": "Vérification",
+      "extract": "Extraction",
+      "migrate": "Migration",
+      "persist": "Enregistrement",
+      "starting": "Démarrage",
+      "done": "Terminé",
+      "error": "Erreur",
+      "dependency": "Dépendances",
+      "uninstall": "Désinstaller"
+    }
+  },
+  "tabs": {
+    "updates_available": "Mises à jour disponibles",
+    "installed": "Installés",
+    "extensions": "Extensions",
+    "ai": "Fournisseurs d'IA",
+    "communication": "Fournisseurs de communication",
+    "identity": "Fournisseurs d'identité",
+    "storage": "Fournisseurs de stockage",
+    "snapshots": "Fournisseurs de snapshot",
+    "themes": "Thèmes",
+    "updates": "Mises à jour",
+    "all": "Tous",
+    "addons": "Extensions",
+    "logging": "Redirecteurs de journaux",
+    "scanners": "Scanners de vulnérabilités"
+  },
+  "updates": {
+    "empty": "Tous les plugins installés sont à jour.",
+    "banner_one": "{{count}} mise a jour disponible",
+    "banner_other": "{{count}} mises a jour disponibles"
+  },
+  "page": {
+    "title": "Plugins",
+    "subtitle": "Gérez les plugins installés et parcourez le catalogue par catégorie."
+  },
+  "filters": {
+    "installed_only": "Installés uniquement",
+    "updates_only": "Mises à jour en attente"
+  },
+  "categories": {
+    "ai": "Fournisseurs d'IA",
+    "communication": "Communication",
+    "identity": "Identité",
+    "storage": "Stockage",
+    "snapshots": "Fournisseurs de snapshot",
+    "other": "Autre",
+    "scanners": "Scanners de vulnérabilités"
+  },
+  "plugins": {
+    "catalog": {
+      "pickerHint": "Choisissez une version à installer. La plus récente est celle par défaut ; choisissez une version antérieure pour l'épingler ou revenir en arrière.",
+      "versionLabel": "Version",
+      "latestLabel": "la plus récente",
+      "versionSelectorLabel": "Version du plugin"
+    }
+  },
+  "unsigned": {
+    "title": "Ce plugin n'est pas signé",
+    "description": "McHarbor n'a pas pu vérifier ce plugin avec une clé de signature de confiance. Il peut exécuter du code backend, lire vos environnements Docker et Kubernetes et ajouter des pages à cette interface. Ne l'installez que si vous faites confiance à sa provenance.",
+    "acknowledge": "Je comprends le risque et souhaite installer ce plugin non signé.",
+    "hostPrivileges": "{{name}} s'exécute comme du code natif dans le processus McHarbor, avec le même accès à cet hôte que McHarbor lui-même.",
+    "serverUnverified": "Le serveur n'a pas pu vérifier cette version avec une clé de signature de confiance, et ne l'installera pas tant que vous n'aurez pas confirmé.",
+    "installAnyway": "Installer le plugin non signé",
+    "badge": "Non signé"
+  },
+  "signature": {
+    "signedTooltip": "Vérifié avec une clé de signature de confiance.",
+    "unsignedTooltip": "Aucune signature vérifiée provenant d'une clé de confiance. Installation à vos risques et périls."
+  },
+  "repair": {
+    "needed": "Réparation nécessaire",
+    "explanation": "Conçue pour McHarbor {{builtFor}}, cette installation est en {{current}}.",
+    "action": "Réparer",
+    "reconcile": "Réconcilier",
+    "reconcileHint": "Épingler ce plugin à la version {{version}} du catalogue. L'hôte le conserve, le déplace ou le réinstalle afin que l'enregistrement, les fichiers et le binaire concordent ; les attributions de rôles sont conservées.",
+    "reconciled": "{{slug}} réconcilié à {{version}} : {{outcome}}.",
+    "reconciledKept": "déjà à cette version",
+    "reconciledInstalled": "installé",
+    "reconciledUpdated": "déplacé vers cette version",
+    "failed": "Échec de la réparation"
+  },
+  "card": {
+    "createdBy": "Créé par",
+    "readOnlyShort": "ro"
+  }
+}

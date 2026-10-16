@@ -1,10 +1,10 @@
 {
   "label": "Container Exec",
-  "description": "Execute a command inside a running container",
+  "description": "Voer een opdracht uit in een draaiende container",
   "config": {
     "environment": "Omgeving",
     "container": "Container",
-    "command": "Command",
+    "command": "Opdracht",
     "workdir": "Werkmap"
   }
 }

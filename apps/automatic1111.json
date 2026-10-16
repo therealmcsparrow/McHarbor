@@ -1,0 +1,40 @@
+{
+    "slug":  "automatic1111",
+    "name":  "Stable Diffusion WebUI",
+    "description":  "Browser interface for Stable Diffusion image generation with extensions, LoRAs, and ControlNet; requires an NVIDIA GPU.",
+    "category":  "AI & Voice",
+    "image":  "ghcr.io/ai-dock/stable-diffusion-webui:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/automatic1111.svg",
+    "website":  "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
+    "docsUrl":  "https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki",
+    "ports":  [
+                  {
+                      "host":  7860,
+                      "container":  7860,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/automatic1111/models",
+                        "container":  "/opt/stable-diffusion-webui/models"
+                    },
+                    {
+                        "host":  "/opt/appdata/automatic1111/outputs",
+                        "container":  "/opt/stable-diffusion-webui/outputs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "6GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

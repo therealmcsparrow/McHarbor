@@ -1,0 +1,37 @@
+{
+  "label": "Speicherobjekt",
+  "description": "Objekte auf einem Speicherort über dessen Adapter auflisten, hochladen, herunterladen oder löschen",
+  "config": {
+    "storage_location_id": "Speicherort",
+    "action": "Aktion",
+    "prefix": "Präfix",
+    "key": "Objektschlüssel",
+    "source_mode": "Quelle",
+    "property": "Quelleigenschaft",
+    "content_encoding": "Quellkodierung",
+    "content": "Inhalt",
+    "output_encoding": "Ausgabekodierung",
+    "output_property": "Ausgabeeigenschaft"
+  },
+  "options": {
+    "action": {
+      "list": "Auflisten",
+      "upload": "Hochladen",
+      "download": "Herunterladen",
+      "delete": "Löschen"
+    },
+    "source_mode": {
+      "property": "Nachrichteneigenschaft",
+      "text": "Inline-Text"
+    },
+    "content_encoding": {
+      "auto": "Automatisch (Text oder JSON)",
+      "base64": "Base64"
+    },
+    "output_encoding": {
+      "text": "Text",
+      "json": "JSON",
+      "base64": "Base64"
+    }
+  }
+}

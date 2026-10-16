@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { IconLock } from '@tabler/icons-react';
 import type { NetworkInfo } from '@core/types/docker';
@@ -17,6 +17,7 @@ import {
 import { Button } from '@resources/components/ui/Button';
 import { Switch } from '@resources/components/ui/Switch';
 import { useRemoveNetwork } from '@resources/hooks/useNetworks';
+import { PERM } from '@core/auth/permissionKeys';
 
 type BulkRemoveNetworkDialogProps = {
   networks: NetworkInfo[];
@@ -24,28 +25,24 @@ type BulkRemoveNetworkDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function BulkRemoveNetworkDialog({
-  networks,
-  open,
-  onOpenChange,
-}: BulkRemoveNetworkDialogProps) {
+export function BulkRemoveNetworkDialog({ networks, open: isOpen, onOpenChange }: BulkRemoveNetworkDialogProps) {
   const { t } = useTranslation('networks');
   const removeMutation = useRemoveNetwork();
-  const [confirm, setConfirm] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
-  const removable = useMemo(
-    () => networks.filter((n) => !isNetworkInUse(n) && !isBuiltInNetwork(n)),
-    [networks],
-  );
+  const removable = useMemo(() => networks.filter((n) => !isNetworkInUse(n) && !isBuiltInNetwork(n)), [networks]);
   const inUse = useMemo(() => networks.filter(isNetworkInUse), [networks]);
   const builtIn = useMemo(() => networks.filter(isBuiltInNetwork), [networks]);
   const allInUse = networks.length > 0 && removable.length === 0;
 
-  useEffect(() => {
-    if (open) setConfirm(false);
-  }, [open, networks.length]);
+  const resetKey = `${isOpen}|${networks.length}`;
+  const [appliedResetKey, setAppliedResetKey] = useState(resetKey);
+  if (appliedResetKey !== resetKey) {
+    setAppliedResetKey(resetKey);
+    if (isOpen) setConfirmed(false);
+  }
 
-  if (!open || networks.length === 0) return null;
+  if (!isOpen || networks.length === 0) return null;
 
   const handleRemove = async () => {
     for (const n of removable) {
@@ -60,7 +57,7 @@ export function BulkRemoveNetworkDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('bulkRemoveDialog.title')}</DialogTitle>
@@ -96,7 +93,7 @@ export function BulkRemoveNetworkDialog({
           </div>
 
           {builtIn.length > 0 && (
-            <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-700 dark:text-sky-300">
+            <div className="rounded-lg border border-info/30 bg-info/10 px-3 py-2 text-xs text-info">
               <div className="mb-1 flex items-center gap-1.5 font-medium">
                 <IconLock className="h-3.5 w-3.5" aria-hidden="true" />
                 {t('bulkRemoveDialog.builtInSkipped', { count: builtIn.length })}
@@ -117,7 +114,7 @@ export function BulkRemoveNetworkDialog({
           )}
 
           {inUse.length > 0 && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
               {t('bulkRemoveDialog.inUseWarning', { count: inUse.length })}
             </div>
           )}
@@ -125,7 +122,7 @@ export function BulkRemoveNetworkDialog({
           {allInUse && (
             <div className="flex items-center justify-between">
               <div className="text-sm">{t('bulkRemoveDialog.forceLabel')}</div>
-              <Switch checked={confirm} onCheckedChange={setConfirm} />
+              <Switch checked={confirmed} onCheckedChange={setConfirmed} />
             </div>
           )}
         </div>
@@ -135,13 +132,12 @@ export function BulkRemoveNetworkDialog({
             {t('actions.cancel', { ns: 'common' })}
           </Button>
           <Button
+            permission={PERM.NETWORKS_DELETE}
             variant="destructive"
             onClick={handleRemove}
-            disabled={removeMutation.isPending || removable.length === 0 || (allInUse && !confirm)}
+            disabled={removeMutation.isPending || removable.length === 0 || (allInUse && !confirmed)}
           >
-            {removeMutation.isPending
-              ? t('bulkRemoveDialog.removing')
-              : t('actions.remove', { ns: 'common' })}
+            {removeMutation.isPending ? t('bulkRemoveDialog.removing') : t('actions.remove', { ns: 'common' })}
           </Button>
         </DialogFooter>
       </DialogContent>

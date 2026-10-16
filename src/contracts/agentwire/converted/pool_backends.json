@@ -1,0 +1,17 @@
+[
+  {
+    "backend": "Backend",
+    "available": true,
+    "detail": "Detail",
+    "remediation": "Remediation",
+    "instant": true,
+    "candidates": [
+      {
+        "target": "Target",
+        "mountpoint": "Mountpoint",
+        "capacityBytes": 13,
+        "freeBytes": 9
+      }
+    ]
+  }
+]

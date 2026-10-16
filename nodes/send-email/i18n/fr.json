@@ -2,32 +2,32 @@
   "label": "Envoyer un e-mail",
   "description": "Envoyer un e-mail via un serveur de messagerie configuré",
   "config": {
-    "server_id": "Email Server",
-    "to": "To",
-    "subject": "Subject",
-    "body": "Body",
-    "delivery_mode": "Delivery",
-    "smtp_host": "SMTP Host",
-    "smtp_port": "SMTP Port",
-    "smtp_encryption": "Encryption",
-    "smtp_auth_method": "Auth Method",
-    "smtp_username": "Username",
-    "smtp_password": "Password",
-    "from_address": "From Address",
-    "from_name": "From Name"
+    "server_id": "Serveur de messagerie",
+    "to": "À",
+    "subject": "Objet",
+    "body": "Corps",
+    "delivery_mode": "Envoi",
+    "smtp_host": "Hôte SMTP",
+    "smtp_port": "Port SMTP",
+    "smtp_encryption": "Chiffrement",
+    "smtp_auth_method": "Méthode d'authentification",
+    "smtp_username": "Nom d'utilisateur",
+    "smtp_password": "Mot de passe",
+    "from_address": "Adresse d'expédition",
+    "from_name": "Nom de l'expéditeur"
   },
   "options": {
     "delivery_mode": {
-      "configured": "Configured Email Server",
-      "custom": "Other"
+      "configured": "Serveur de messagerie configuré",
+      "custom": "Autre"
     },
     "smtp_encryption": {
-      "none": "None",
+      "none": "Aucun",
       "starttls": "STARTTLS",
       "ssl_tls": "SSL/TLS"
     },
     "smtp_auth_method": {
-      "none": "None",
+      "none": "Aucune",
       "plain": "Plain",
       "login": "Login",
       "cram_md5": "CRAM-MD5"

@@ -51,6 +51,17 @@ const (
 			applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 		) ENGINE=InnoDB
 	`
+	// SQL Server has no CREATE TABLE IF NOT EXISTS, so the existence test is
+	// the statement. NVARCHAR(255) rather than NVARCHAR(MAX) because the column
+	// carries a UNIQUE constraint and SQL Server refuses to index a MAX type.
+	migrationsDDLMSSQL = `
+		IF OBJECT_ID(N'dbo.schema_migrations', N'U') IS NULL
+		CREATE TABLE schema_migrations (
+			id BIGINT IDENTITY(1,1) PRIMARY KEY,
+			name NVARCHAR(255) NOT NULL UNIQUE,
+			applied_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME()
+		)
+	`
 )
 
 // Migrate runs all pending SQL migrations in order. Each migration
@@ -64,6 +75,11 @@ const (
 // porting happened in a follow-up commit so this function never
 // has to translate.
 func Migrate(db *sql.DB, driver Driver) error {
+	return MigrateContext(context.Background(), db, driver)
+}
+
+// MigrateContext is Migrate bound to the caller's context, so a cancelled start-up stops applying further migrations.
+func MigrateContext(ctx context.Context, db *sql.DB, driver Driver) error {
 	// Bootstrap the tracking table with the correct DDL for the
 	// active driver. CREATE TABLE IF NOT EXISTS is idempotent so
 	// this is safe to re-run.
@@ -73,8 +89,10 @@ func Migrate(db *sql.DB, driver Driver) error {
 		ddl = migrationsDDLPostgres
 	case DriverMySQL:
 		ddl = migrationsDDLMySQL
+	case DriverMSSQL:
+		ddl = migrationsDDLMSSQL
 	}
-	if _, err := db.Exec(ddl); err != nil {
+	if _, err := db.ExecContext(ctx, ddl); err != nil {
 		return fmt.Errorf("creating migrations table: %w", err)
 	}
 
@@ -83,8 +101,16 @@ func Migrate(db *sql.DB, driver Driver) error {
 	// with the same `name` column. Rename it to `schema_migrations`
 	// once, then carry over. This is a no-op on fresh installs
 	// and on the second run.
-	if err := migrateRenameLegacyTable(db, driver); err != nil {
+	if err := migrateRenameLegacyTable(ctx, db, driver); err != nil {
 		return fmt.Errorf("migrating legacy _migrations table: %w", err)
+	}
+
+	// Reconcile the migration squash: a database that already ran the files
+	// written after 2.0.8 has no record of the merged files that replaced
+	// them, and would otherwise re-run all of them. See squash.go. No-op on
+	// 2.0.8 and fresh installs.
+	if err := reconcileSquashedMigrations(ctx, db, driver); err != nil {
+		return err
 	}
 
 	entries, err := migrationsFS.ReadDir("migrations")
@@ -99,6 +125,8 @@ func Migrate(db *sql.DB, driver Driver) error {
 		return entries[i].Name() < entries[j].Name()
 	})
 
+	// One applied-check per migration, bounded by the embedded migration set
+	// and run once at start-up.
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
 			continue
@@ -109,7 +137,8 @@ func Migrate(db *sql.DB, driver Driver) error {
 		// driver's placeholder syntax: $1 on Postgres, ? on
 		// SQLite and MySQL.
 		var count int
-		if err := db.QueryRow(
+		if err := db.QueryRowContext(
+			ctx,
 			migrationLookupSQL(driver), name,
 		).Scan(&count); err != nil {
 			return fmt.Errorf("checking migration %s: %w", name, err)
@@ -123,7 +152,7 @@ func Migrate(db *sql.DB, driver Driver) error {
 			return fmt.Errorf("reading migration %s: %w", name, err)
 		}
 
-		if err := applyMigration(db, driver, name, string(content)); err != nil {
+		if err := applyMigration(ctx, db, driver, name, string(content)); err != nil {
 			return err
 		}
 		slog.Info("migration applied", "name", name, "driver", driver)
@@ -135,8 +164,11 @@ func Migrate(db *sql.DB, driver Driver) error {
 // active driver. Postgres uses $1 placeholders; SQLite and
 // MySQL use ?.
 func migrationLookupSQL(driver Driver) string {
-	if driver == DriverPostgres {
+	switch driver {
+	case DriverPostgres:
 		return "SELECT COUNT(*) FROM schema_migrations WHERE name = $1"
+	case DriverMSSQL:
+		return "SELECT COUNT(*) FROM schema_migrations WHERE name = @p1"
 	}
 	return "SELECT COUNT(*) FROM schema_migrations WHERE name = ?"
 }
@@ -145,8 +177,11 @@ func migrationLookupSQL(driver Driver) string {
 // freshly applied migration. Same placeholder rule as
 // migrationLookupSQL.
 func migrationRecordSQL(driver Driver) string {
-	if driver == DriverPostgres {
+	switch driver {
+	case DriverPostgres:
 		return "INSERT INTO schema_migrations (name) VALUES ($1)"
+	case DriverMSSQL:
+		return "INSERT INTO schema_migrations (name) VALUES (@p1)"
 	}
 	return "INSERT INTO schema_migrations (name) VALUES (?)"
 }
@@ -163,11 +198,11 @@ func migrationRecordSQL(driver Driver) string {
 //  3. Drops the legacy table when the copy is complete.
 //
 // Fresh installs (no `_migrations` table) get a no-op.
-func migrateRenameLegacyTable(db *sql.DB, driver Driver) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func migrateRenameLegacyTable(parent context.Context, db *sql.DB, driver Driver) error {
+	ctx, cancel := context.WithTimeout(parent, 5*time.Second)
 	defer cancel()
 
-	legacyExists, err := tableExists(ctx, db, "_migrations")
+	legacyExists, err := tableExists(ctx, db, driver, "_migrations")
 	if err != nil {
 		slog.Warn("coordinator: legacy _migrations table check failed; skipping rename",
 			"error", err, "driver", driver)
@@ -181,6 +216,12 @@ func migrateRenameLegacyTable(db *sql.DB, driver Driver) error {
 	switch driver {
 	case DriverMySQL:
 		upsertSQL += " ON DUPLICATE KEY UPDATE name = name"
+	case DriverMSSQL:
+		// SQL Server has neither ON CONFLICT nor INSERT IGNORE. A NOT EXISTS
+		// predicate on the source is the portable equivalent and, unlike MERGE,
+		// carries none of MERGE's concurrency caveats.
+		upsertSQL = "INSERT INTO schema_migrations (name, applied_at) SELECT l.name, l.applied_at FROM _migrations l" +
+			" WHERE NOT EXISTS (SELECT 1 FROM schema_migrations m WHERE m.name = l.name)"
 	default:
 		upsertSQL += " ON CONFLICT (name) DO NOTHING"
 	}
@@ -193,7 +234,7 @@ func migrateRenameLegacyTable(db *sql.DB, driver Driver) error {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "DROP TABLE _migrations"); err != nil {
-		_ = tx.Rollback()
+		RollbackTx(tx)
 		return fmt.Errorf("dropping legacy _migrations: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -208,12 +249,16 @@ func migrateRenameLegacyTable(db *sql.DB, driver Driver) error {
 // MySQL 5+, and all Postgres versions we support) and fall
 // back to the SQLite-only sqlite_master if information_schema is
 // not exposed.
-func tableExists(ctx context.Context, db *sql.DB, name string) (bool, error) {
+func tableExists(ctx context.Context, db *sql.DB, driver Driver, name string) (bool, error) {
 	var n int
-	if err := db.QueryRowContext(ctx,
-		"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?",
-		name,
-	).Scan(&n); err == nil {
+	// SQL Server exposes information_schema but binds parameters as @p1; every
+	// other driver here takes `?`. Postgres reaches this through the dialect
+	// rewriter, which renumbers `?` for it.
+	query := "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?"
+	if driver == DriverMSSQL {
+		query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = @p1"
+	}
+	if err := db.QueryRowContext(ctx, query, name).Scan(&n); err == nil {
 		return n > 0, nil
 	}
 	return false, nil
@@ -223,75 +268,161 @@ func tableExists(ctx context.Context, db *sql.DB, name string) (bool, error) {
 // and records the applied row. We use a short context timeout
 // (5 minutes per migration) so a hung statement on a stuck
 // database can't wedge startup forever.
-func applyMigration(db *sql.DB, driver Driver, name, sqlText string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+func applyMigration(parent context.Context, db *sql.DB, driver Driver, name, sqlText string) error {
+	ctx, cancel := context.WithTimeout(parent, 5*time.Minute)
 	defer cancel()
+	if driver == DriverSQLite && strings.Contains(sqlText, noTransactionMarker) {
+		return applyMigrationNoTx(ctx, db, driver, name, sqlText)
+	}
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("beginning transaction for %s: %w", err)
+		return fmt.Errorf("beginning transaction for %s: %w", name, err)
 	}
-	if _, err := tx.ExecContext(ctx, translateSQLForDriver(driver, sqlText)); err != nil {
-		_ = tx.Rollback()
-		return fmt.Errorf("executing migration %s: %w", name, err)
+	if err := execMigrationBody(ctx, tx, driver, name, sqlText); err != nil {
+		RollbackTx(tx)
+		return err
+	}
+	if err := runMigrationStep(ctx, tx, driver, name); err != nil {
+		RollbackTx(tx)
+		return err
 	}
 	if _, err := tx.ExecContext(
 		ctx, migrationRecordSQL(driver), name,
 	); err != nil {
-		_ = tx.Rollback()
+		RollbackTx(tx)
 		return fmt.Errorf("recording migration %s: %w", name, err)
 	}
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("committing migration %s: %w", err)
+		return fmt.Errorf("committing migration %s: %w", name, err)
 	}
 	return nil
 }
 
-// translateSQLForDriver rewrites migration SQL into the dialect
-// of the active driver. SQLite and Postgres share enough syntax
-// (the migrations were ported to that union) that no translation
-// is needed. MySQL needs two rewrites:
+// execMigrationBody runs one migration file's contents.
 //
-//   - "INSERT ... ON CONFLICT (cols) DO NOTHING" — Postgres /
-//     SQLite upsert → MySQL's "ON DUPLICATE KEY UPDATE col = col"
-//     (a no-op upsert that swallows the duplicate-key error).
-//   - "datetime('now')" — SQLite scalar → MySQL's "CURRENT_TIMESTAMP".
-//     The form `datetime('now', mod)` is translated to
-//     `CURRENT_TIMESTAMP mod` (e.g. `-1 day`).
+// SQLite takes the whole file in one Exec, exactly as it always has: it is the
+// dialect the files are written in and it supports every construct in them, so
+// there is nothing to gain from splitting and a real risk in changing what the
+// default driver does.
 //
-// The rewrites are intentionally minimal: anything the active
-// driver accepts verbatim is left alone.
-func translateSQLForDriver(driver Driver, sqlText string) string {
-	if driver != DriverMySQL {
-		return sqlText
+// Every other driver is executed statement by statement, which is what makes
+// three things possible at once: MySQL does not need the `multiStatements`
+// connection flag (which would widen the blast radius of any future dynamic
+// query), a `CREATE INDEX IF NOT EXISTS` can be emulated by tolerating the
+// duplicate-key error, and a SQLite-only construct can be skipped without
+// taking the rest of the file with it.
+func execMigrationBody(ctx context.Context, tx migrationExecutor, driver Driver, name, sqlText string) error {
+	if driver == DriverSQLite {
+		if _, err := tx.ExecContext(ctx, sqlText); err != nil {
+			return fmt.Errorf("executing migration %s: %w", name, err)
+		}
+		return nil
 	}
-	out := onConflictMySQLRE.ReplaceAllStringFunc(sqlText, func(match string) string {
-		groups := onConflictMySQLRE.FindStringSubmatch(match)
-		if len(groups) < 2 {
-			return match
-		}
-		cols := strings.Split(groups[1], ",")
-		assignments := make([]string, 0, len(cols))
-		for _, col := range cols {
-			col = strings.TrimSpace(col)
-			if col == "" {
-				continue
+
+	for _, stmt := range SplitStatements(sqlText) {
+		switch ClassifyStatement(driver, stmt) {
+		case SkipStatement:
+			continue
+
+		case SkipStatementLoudly:
+			slog.Warn("migration statement skipped: no equivalent on this driver",
+				"migration", name, "driver", driver, "statement", firstLine(stmt))
+			continue
+
+		case TolerateDuplicate:
+			if _, err := tx.ExecContext(ctx, TranslateStatement(driver, stmt)); err != nil {
+				if isDuplicateObjectError(err) {
+					continue
+				}
+				return fmt.Errorf("executing migration %s (%s): %w", name, firstLine(stmt), err)
 			}
-			assignments = append(assignments, col+" = "+col)
-		}
-		return "ON DUPLICATE KEY UPDATE " + strings.Join(assignments, ", ")
-	})
-	out = datetimeNowRE.ReplaceAllStringFunc(out, func(match string) string {
-		if strings.Contains(match, ",") {
-			parts := datetimeNowRE.FindStringSubmatch(match)
-			if len(parts) < 2 {
-				return match
+
+		case TolerateMissing:
+			if _, err := tx.ExecContext(ctx, TranslateStatement(driver, stmt)); err != nil {
+				if isMissingObjectError(err) {
+					continue
+				}
+				return fmt.Errorf("executing migration %s (%s): %w", name, firstLine(stmt), err)
 			}
-			mod := strings.TrimSpace(parts[1])
-			return "CURRENT_TIMESTAMP " + mod
+
+		default:
+			// SQLite applies these migrations with foreign-key enforcement off,
+			// which is what lets the table-rebuild pattern — create new, copy,
+			// drop old, rename — drop a table other tables still reference.
+			// MySQL enforces foreign keys and rejects exactly that DROP.
+			//
+			// The checks come off for the DROP alone rather than for the whole
+			// migration: MariaDB refuses to *add* a foreign key while they are
+			// disabled, and several migrations drop one table and add a
+			// constraint to another in the same file.
+			//
+			// Postgres needs no equivalent — translatePostgres adds CASCADE to
+			// the DROP instead, which is both narrower and reversible.
+			guard := driver == DriverMySQL && dropTableRE.MatchString(stmt)
+			if guard {
+				if _, err := tx.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS = 0"); err != nil {
+					return fmt.Errorf("disabling foreign key checks for %s: %w", name, err)
+				}
+			}
+			translated := TranslateStatement(driver, stmt)
+			var followUps []string
+			if driver == DriverMSSQL {
+				// SQL Server refuses a second cascade path; the actions it would
+				// refuse become triggers, which need the live foreign-key graph.
+				var resolveErr error
+				translated, followUps, resolveErr = mssqlResolveCascadePaths(ctx, tx, translated)
+				if resolveErr != nil {
+					return fmt.Errorf("executing migration %s (%s): %w", name, firstLine(stmt), resolveErr)
+				}
+			}
+			_, err := tx.ExecContext(ctx, translated)
+			for _, followUp := range followUps {
+				if err != nil {
+					break
+				}
+				_, err = tx.ExecContext(ctx, followUp)
+			}
+			if guard {
+				if _, restoreErr := tx.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS = 1"); restoreErr != nil {
+					slog.Warn("restoring foreign key checks failed",
+						"migration", name, "error", restoreErr)
+				}
+			}
+			if err != nil {
+				return fmt.Errorf("executing migration %s (%s): %w", name, firstLine(stmt), err)
+			}
 		}
-		return "CURRENT_TIMESTAMP"
-	})
-	return out
+	}
+	return nil
+}
+
+// runMigrationStep runs the Go step bound to a migration file, if it has one,
+// on the same transaction as the file, so a failed step rolls the file back too.
+func runMigrationStep(ctx context.Context, q migrationQuerier, driver Driver, name string) error {
+	step, ok := migrationSteps[name]
+	if !ok {
+		return nil
+	}
+	if err := step(ctx, q, driver); err != nil {
+		return fmt.Errorf("executing migration %s (Go step): %w", name, err)
+	}
+	return nil
+}
+
+// firstLine renders a statement's opening line for an error or a log entry,
+// so a failure points at readable SQL rather than at 40 lines of DDL.
+func firstLine(stmt string) string {
+	for _, line := range strings.Split(stmt, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "--") {
+			continue
+		}
+		if len(trimmed) > 90 {
+			return trimmed[:90] + "…"
+		}
+		return trimmed
+	}
+	return "(empty)"
 }
 
 // onConflictMySQLRE matches `ON CONFLICT (col1[, col2, ...]) DO NOTHING`
@@ -299,6 +430,72 @@ func translateSQLForDriver(driver Driver, sqlText string) string {
 // MySQL `ON DUPLICATE KEY UPDATE col = col` equivalent.
 var onConflictMySQLRE = regexp.MustCompile(`ON\s+CONFLICT\s*\(([^)]+)\)\s+DO\s+NOTHING`)
 
+// onConflictUpdateRE matches `ON CONFLICT (cols) DO UPDATE SET ...`, the
+// upsert sibling of DO NOTHING, capturing the assignment list so that
+// `excluded.x` can become MySQL's `VALUES(x)`.
+var onConflictUpdateRE = regexp.MustCompile(`(?is)ON\s+CONFLICT\s*\(([^)]+)\)\s+DO\s+UPDATE\s+SET\s+(.*?)(;|$)`)
+
+// excludedRE matches the `excluded.<column>` pseudo-table Postgres and SQLite
+// expose inside an upsert.
+var excludedRE = regexp.MustCompile(`(?i)\bexcluded\.([a-z_][a-z0-9_]*)`)
+
 // datetimeNowRE matches `datetime('now'[, 'mod'])` (SQLite scalar)
 // for translation to `CURRENT_TIMESTAMP [mod]` on MySQL.
 var datetimeNowRE = regexp.MustCompile(`datetime\(\s*'now'\s*(?:,\s*'([^']+)')?\s*\)`)
+
+// noTransactionMarker opts a migration out of the transaction applyMigration
+// would otherwise open. It exists for one case: `PRAGMA foreign_keys = OFF` is
+// a documented no-op inside a SQLite transaction, so a table rebuild that has
+// to drop a table other tables reference cannot be expressed in the normal
+// path. A file carrying the marker opens and commits its own transaction, and
+// is expected to restore any pragma it changed.
+const noTransactionMarker = "-- mcharbor:no-transaction"
+
+// migrationExecutor is what execMigrationBody needs, satisfied by both *sql.Tx
+// and *sql.DB, so a no-transaction migration reuses the same body.
+type migrationExecutor interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+// applyMigrationNoTx runs a marked migration without the runner's transaction.
+// The file owns its own atomicity; a failure part-way leaves whatever it had
+// committed, which is why the marker is deliberately hard to reach for.
+func applyMigrationNoTx(ctx context.Context, db *sql.DB, driver Driver, name, sqlText string) error {
+	if err := execMigrationBody(ctx, db, driver, name, sqlText); err != nil {
+		return err
+	}
+	if err := runMigrationStep(ctx, db, driver, name); err != nil {
+		return err
+	}
+	if _, err := db.ExecContext(ctx, migrationRecordSQL(driver), name); err != nil {
+		return fmt.Errorf("recording migration %s: %w", name, err)
+	}
+	return nil
+}
+
+// MigrationNames returns every embedded migration file name, sorted. The
+// health check compares it against the schema_migrations ledger.
+func MigrationNames() ([]string, error) {
+	entries, err := migrationsFS.ReadDir("migrations")
+	if err != nil {
+		return nil, fmt.Errorf("reading embedded migrations: %w", err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".sql") {
+			continue
+		}
+		names = append(names, e.Name())
+	}
+	sort.Strings(names)
+	return names, nil
+}
+
+// MigrationSQL returns one embedded migration's contents.
+func MigrationSQL(name string) (string, error) {
+	content, err := migrationsFS.ReadFile("migrations/" + name)
+	if err != nil {
+		return "", fmt.Errorf("reading embedded migration %s: %w", name, err)
+	}
+	return string(content), nil
+}

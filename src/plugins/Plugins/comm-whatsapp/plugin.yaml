@@ -1,0 +1,99 @@
+# plugin.yaml — manifest for the comm-whatsapp plugin.
+#
+# Single-channel WhatsApp notification adapter. The plugin owns one
+# ChannelType ("whatsapp") and registers a NotificationAdapterClient
+# that delivers Title + Message payloads through one of four
+# connection methods selected at channel-config time:
+#
+#   1. cloud     Official Meta Cloud API
+#                (POST https://graph.facebook.com/v21.0/<phone_id>/messages)
+#   2. gateway   Self-hosted gateway (Baileys/wa-gateway/etc.)
+#                (POST <gateway_url>/send)
+#   3. bot       WhatsApp Business API / 360dialog-style platform
+#                (POST <provider_endpoint>/messages with api_key auth)
+#   4. saas      Third-party SaaS messaging provider
+#                (Twilio, MessageBird, Gupshup, ...)
+#                (POST <provider_url>/messages with provider_api_key)
+#
+# The method is a string field on the channel row; the backend's
+# Send branches on cfg["method"] to pick the right HTTP surface.
+# One ChannelType keeps the host's "Add Communication" picker
+# tidy (one WhatsApp tile) and lets the form's tabs control which
+# subset of fields shows up under the chosen method.
+#
+# Family: comm-* (notification channels). Distinct from storage-*
+# adapters: comm plugins implement plugin.NotificationAdapterClient
+# (Test + Send only) and never see Upload/Download/Delete/List.
+#
+# RBAC: comm channels register one adds_permission so operators can
+# grant "send alerts to this channel" as a discrete, auditable
+# capability. The menu sidebar entry is gated on that permission
+# and the host's "channels" admin UI is gated on settings.manage.
+schema: "mcharbor.plugin/v1"
+
+slug:     "comm-whatsapp"
+name:     "WhatsApp"
+version:  "2026.10.01"
+author:   "McSparrow"
+email:    "support@mcsparrow.eu"
+license:  "Apache-2.0"
+homepage: "https://www.mcharbor.eu/docs/plugins"
+description: "WhatsApp notification channel. Delivers workflow and backup events to a phone number via one of four connection methods: Meta Cloud API, self-hosted gateway, WhatsApp Business API platform, or a third-party SaaS provider. Install this plugin to add 'WhatsApp' as a channel_type in Settings > Notifications > Channels."
+
+mcharbor: ">=2026.10.01"
+go:       ">=1.23"
+
+# Capabilities the plugin needs from the host.
+#   notification.adapter.register  required — register NotificationAdapterSpec
+#   encryption.handle.read         optional — for fields typed `secret` in
+#                                   ConfigSchema (the host encrypts them at
+#                                   rest via AES-256-GCM automatically; this
+#                                   perm lets the plugin read them back).
+#   audit.emit                     required — every plugin should audit.
+permissions:
+  - notification.adapter.register
+  - encryption.handle.read
+  - audit.emit
+
+# Adds one permission key. Operators with channels.use_comm_whatsapp
+# (or the broader channels:send) can route events to this channel.
+# Hosts that don't use RBAC for comm plugins can ignore this block.
+adds_permissions:
+  - key:      "channels.use_comm_whatsapp"
+    scope:    "global"
+    category: "Communications"
+    label:    "Send alerts through WhatsApp channels"
+    description: "Required to route workflow, alert, or backup events to a WhatsApp channel."
+
+# No consumes_permissions — this plugin never gates itself on another
+# plugin's permission.
+
+contributes:
+  routes: []
+  # No `menu:` block — comm channels are managed from the host's
+  # Settings > Notifications > Channels page, which lists every
+  # registered ChannelType.
+  widgets: []
+  nodes: []
+  i18n_namespaces:
+    - "comm-whatsapp"
+  # Form slots this plugin owns. The host loads the frontend UMD
+  # bundle via `/api/plugins/loader/bundle?slug=<slug>` (which
+  # looks up `<dataDir>/plugins/<slug>@<version>/frontend/<slug>.umd.cjs`)
+  # and mounts it into the matching host slot at edit / setup-guide
+  # time. The bundle name is slug-derived, so no `frontend:` field
+  # is needed here — see wire-plugin-forms.ps1 for the canonical block.
+  forms:
+    - resource: "channel"
+      kind:     "config_form"
+      key:      "whatsapp"
+    - resource: "channel"
+      kind:     "setup_guide"
+      key:      "whatsapp"
+  capabilities:
+    - kind:         "workflow-node-alias"
+      alias:        "send-whatsapp"
+      channel_type: "whatsapp"
+
+signature: ""
+checksum:  ""

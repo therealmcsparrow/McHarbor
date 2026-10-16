@@ -7,6 +7,28 @@
   "tableView": "Tabellenansicht",
   "cardView": "Kartenansicht",
   "columns": {
+    "id": "ID",
+    "type": "Typ",
+    "orchestrator": "Orchestrator",
+    "createdAt": "Erstellt",
+    "updatedAt": "Aktualisiert",
+    "protected": "Geschützt",
+    "environment": "Umgebung",
+    "containerIds": "Container-IDs",
+    "owner": "Eigentümer",
+    "groupOwner": "Eigentümer",
+    "groupStack": "Stack",
+    "groupEnvironment": "Umgebung",
+    "groupContainers": "Container",
+    "containerName": "Containername",
+    "statusText": "Status",
+    "imageId": "Image-ID",
+    "command": "Befehl",
+    "networks": "Netzwerke",
+    "ipAddresses": "IP-Adressen",
+    "volumes": "Volumes",
+    "labels": "Labels",
+    "groupContainer": "Container",
     "name": "Name",
     "status": "Status",
     "services": "Services",
@@ -16,8 +38,8 @@
     "created": "Erstellt"
   },
   "badges": {
-    "managed": "verwaltet",
-    "discovered": "erkannt"
+    "managed": "Verwaltet",
+    "discovered": "Erkannt"
   },
   "actions": {
     "view": "Details anzeigen",
@@ -92,6 +114,8 @@
     "composeFile": "Compose-Datei",
     "editCompose": "Bearbeiten",
     "saveCompose": "Speichern",
+    "revealComposeValues": "Werte anzeigen",
+    "hideComposeValues": "Werte ausblenden",
     "readOnly": "Schreibgeschützt (erkannter Stack)",
     "envVars": "Umgebungsvariablen",
     "noEnvVars": "Keine Umgebungsvariablen konfiguriert.",
@@ -107,7 +131,10 @@
     "loadingLayers": "Schichten werden geladen...",
     "webhooks": "Webhooks",
     "editMode": "Bearbeiten",
-    "descriptionPlaceholder": "Stack-Beschreibung..."
+    "descriptionPlaceholder": "Stack-Beschreibung...",
+    "tabs": {
+      "ariaLabel": "Stack-Abschnitte"
+    }
   },
   "webhooks": {
     "title": "Webhooks",
@@ -138,19 +165,21 @@
     "button": "Verwaiste bereinigen",
     "pruning": "Bereinigen...",
     "noOrphans": "Keine verwaisten Services gefunden",
-    "removed": "{{count}} verwaiste(r) Service(s) entfernt"
+    "removed_one": "{{count}} verwaiste Service entfernt",
+    "removed_other": "{{count}} verwaister Services entfernt"
   },
   "editStack": {
     "editStack": "Stack bearbeiten",
     "saveStack": "Speichern",
     "saving": "Wird gespeichert...",
-    "cancel": "Abbrechen",
-    "envVarsSaved": "Umgebungsvariablen gespeichert"
+    "cancel": "Abbrechen"
   },
   "confirm": {
     "removeTitle": "Stack entfernen",
     "removeDescription": "Alle Container in \"{{name}}\" werden gestoppt, entfernt und dauerhaft gelöscht.",
-    "removeLabel": "Entfernen"
+    "removeLabel": "Entfernen",
+    "downTitle": "Stack herunterfahren",
+    "downDescription": "Dies stoppt und entfernt jeden Container und jedes Netzwerk von „{{name}}“. Volumes und die Stack-Definition bleiben erhalten."
   },
   "takeOver": {
     "title": "Verwaltung übernehmen",
@@ -199,7 +228,8 @@
     },
     "confirm": {
       "reinstallAllTitle": "Alle Stacks neu installieren",
-      "reinstallAllDescription": "{{count}} verwaltete Stack(s) mit ihren aktuellen Images zwangsweise neu erstellen. Laufende Dienste koennen dabei kurzzeitig unterbrochen werden."
+      "reinstallAllDescription_one": "{{count}} verwalteten Stack mit seinen aktuellen Images zwangsweise neu erstellen. Laufende Dienste koennen dabei kurzzeitig unterbrochen werden.",
+      "reinstallAllDescription_other": "{{count}} verwaltete Stacks mit ihren aktuellen Images zwangsweise neu erstellen. Laufende Dienste koennen dabei kurzzeitig unterbrochen werden."
     }
   },
   "toast": {
@@ -216,6 +246,13 @@
     "webhookUpdated": "Webhook aktualisiert",
     "webhookDeleted": "Webhook gelöscht",
     "envVarsSaved": "Umgebungsvariablen gespeichert",
-    "pruned": "{{count}} verwaiste(r) Service(s) bereinigt"
+    "pruned_one": "{{count}} verwaiste Service bereinigt",
+    "pruned_other": "{{count}} verwaister Services bereinigt"
+  },
+  "operations": {
+    "log": {
+      "waitingForApiRecovery": "Warten, bis die McHarbor-API wieder online ist...",
+      "apiRecoveryTimeout": "Die McHarbor-API ist nicht rechtzeitig wieder online gegangen."
+    }
   }
 }

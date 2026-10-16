@@ -1,0 +1,10 @@
+{
+  "adapter": {
+    "name": "Trivy",
+    "description": "Aqua Security's Trivy: OS-pakketten en taalafhankelijkheden, lokaal gescand."
+  },
+  "settings": {
+    "title": "Trivy",
+    "subtitle": "Aqua Security's Trivy: OS-pakketten en taalafhankelijkheden, lokaal gescand."
+  }
+}

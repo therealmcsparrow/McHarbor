@@ -4,7 +4,7 @@
     "description":  "Standalone Tempo query service exposing a Jaeger-compatible API for trace lookups.",
     "category":  "Monitoring",
     "image":  "grafana/tempo-query:latest",
-    "logo":  "https://icon.horse/icon/grafana.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/tempo.svg",
     "website":  "https://grafana.com/oss/tempo",
     "docsUrl":  "https://grafana.com/docs/tempo/latest/operations/tempo_query/",
     "ports":  [
@@ -29,5 +29,9 @@
                         "description":  "Tempo backend address"
                     }
                 ],
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

@@ -4,7 +4,7 @@
     "description":  "JavaScript runtime built on Chrome\u0027s V8 engine, lightweight Alpine image for development workloads.",
     "category":  "Developer Tools",
     "image":  "node:22-alpine",
-    "logo":  "https://icon.horse/icon/nodejs.org",
+    "logo":  "https://www.google.com/s2/favicons?domain=nodejs.org\u0026sz=128",
     "website":  "https://nodejs.org",
     "docsUrl":  "https://nodejs.org/en/docs",
     "ports":  [
@@ -32,5 +32,9 @@
                         "description":  "Node environment"
                     }
                 ],
-    "version":  "22-alpine"
+    "version":  "22-alpine",
+    "latest":  {
+        "version":  "22-alpine",
+        "release_date":  "2026-09-10"
+    }
 }

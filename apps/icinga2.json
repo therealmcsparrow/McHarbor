@@ -1,0 +1,44 @@
+{
+    "slug":  "icinga2",
+    "name":  "Icinga2",
+    "description":  "Distributed monitoring core that checks hosts and services and feeds Icinga Web 2 or other frontends.",
+    "category":  "Monitoring",
+    "image":  "icinga/icinga2:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/icinga.png",
+    "website":  "https://icinga.com",
+    "docsUrl":  "https://icinga.com/docs/icinga-2/latest/doc/02-installation/",
+    "ports":  [
+                  {
+                      "host":  5665,
+                      "container":  5665,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/icinga2/etc",
+                        "container":  "/data/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/icinga2/var",
+                        "container":  "/data/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ICINGA_MASTER",
+                        "default":  "yes",
+                        "description":  "Whether this node runs as the Icinga 2 cluster master"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

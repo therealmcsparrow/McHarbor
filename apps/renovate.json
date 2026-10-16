@@ -1,0 +1,42 @@
+{
+    "slug":  "renovate",
+    "name":  "Renovate",
+    "description":  "Automates dependency updates by opening pull requests across repositories on a schedule.",
+    "category":  "CI/CD",
+    "image":  "renovate/renovate:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/renovate.png",
+    "website":  "https://www.mend.io/renovate",
+    "docsUrl":  "https://docs.renovatebot.com/getting-started/running/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/renovate/config",
+                        "container":  "/usr/src/app/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RENOVATE_TOKEN",
+                        "default":  "change-me",
+                        "description":  "Platform API token Renovate uses to open pull requests",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "RENOVATE_PLATFORM",
+                        "default":  "github",
+                        "description":  "Git hosting platform to scan for repositories"
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

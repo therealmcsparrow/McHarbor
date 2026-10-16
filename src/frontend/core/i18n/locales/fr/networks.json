@@ -6,12 +6,21 @@
   "tableView": "Vue tableau",
   "cardView": "Vue carte",
   "columns": {
+    "attachable": "Attachable",
+    "ipamDriver": "Pilote IPAM",
+    "labels": "Étiquettes",
+    "builtIn": "Intégré",
+    "usedBy": "Utilisé par",
+    "groupRelations": "Relations",
+    "groupNetwork": "Réseau",
     "name": "Nom",
     "id": "ID",
     "driver": "Conducteur",
     "scope": "Portée",
     "subnet": "Sous-réseau",
     "gateway": "Porte",
+    "ipRange": "Plage IP",
+    "options": "Options",
     "internal": "Interne",
     "containers": "Conteneurs",
     "created": "Créé",
@@ -23,6 +32,11 @@
     "used": "Utilisé",
     "unused": "Inutilisé",
     "builtIn": "Intégré"
+  },
+  "filters": {
+    "all": "Tous",
+    "used": "Utilisés",
+    "unused": "Inutilisés"
   },
   "create": {
     "title": "Créer un réseau",
@@ -38,6 +52,40 @@
     "parentInterface": "Interface parents",
     "parentPlaceholder": "eth0",
     "parentHelp": "Interface réseau hôte à laquelle se connecter",
+    "parentSelect": "Sélectionner une interface",
+    "parentLoading": "Lecture des interfaces de l'hôte...",
+    "parentManual": "Saisir manuellement...",
+    "parentManualHelp": "Saisissez le nom de l'interface exactement comme l'hôte le signale.",
+    "parentBackToList": "Retour à la liste",
+    "parentKind": {
+      "physical": "Physique",
+      "bond": "Bond",
+      "vlan": "VLAN",
+      "unknown": "Interface"
+    },
+    "parentDown": "inactive",
+    "parentInUseShort": "utilisée",
+    "parentDetail": "{{kind}} \u00b7 MTU {{mtu}} \u00b7 {{addresses}}",
+    "parentNoAddress": "aucune adresse IP",
+    "parentDownHelp": "Cette interface est actuellement inactive. Activez-la sur l'hôte avant que les conteneurs puissent utiliser le réseau.",
+    "parentInUse": "Déjà parente de {{networks}}. Un second réseau sur la même interface est autorisé mais rarement voulu.",
+    "parentDefaultRoute": "Il s'agit de l'interface de la route par défaut de l'hôte. Les conteneurs du réseau atteindront le LAN, mais l'hôte lui-même ne pourra pas les joindre.",
+    "parentNoneFound": "Aucune interface physique, bond ou VLAN n'a été trouvée sur cet hôte.",
+    "parentNoAgent": "McHarbor ne peut pas lire les interfaces de cet hôte depuis son conteneur. Installez l'agent sur l'hôte pour les lister, ou saisissez le nom de l'interface.",
+    "parentAgentUnreachable": "L’agent de cet environnement n’a pas répondu, ses interfaces ne peuvent donc pas être listées. Vérifiez que l’agent est connecté (redémarrez-le sur l’hôte s’il est bloqué) ou saisissez le nom de l’interface.",
+    "modeHelp": {
+      "macvlan": {
+        "bridge": "Les conteneurs obtiennent leur propre MAC sur le LAN et communiquent directement entre eux. L'hôte ne peut pas les joindre. Le choix habituel.",
+        "vepa": "Tout le trafic, y compris entre conteneurs, sort par le commutateur physique. Nécessite un commutateur avec hairpin (relais réflectif) activé.",
+        "passthru": "Un conteneur prend entièrement le contrôle de l'interface parente. Un seul réseau et un seul point de terminaison sont possibles.",
+        "private": "Les conteneurs sont isolés les uns des autres, même via le commutateur. Seul le trafic extérieur passe."
+      },
+      "ipvlan": {
+        "l2": "Les conteneurs partagent le MAC du parent et obtiennent leur propre IP sur le même sous-réseau. Se comporte comme macvlan bridge sans MAC supplémentaires.",
+        "l3": "Le parent route entre les sous-réseaux des conteneurs. Pas de broadcast ni de DHCP ; les routes vers le sous-réseau des conteneurs doivent exister en amont.",
+        "l3s": "Couche 3 avec suivi des connexions, de sorte que netfilter et les ports publiés fonctionnent. Légèrement plus lent que l3."
+      }
+    },
     "mode": "Mode",
     "internal": "Interne",
     "internalHelp": "Restreindre l'accès externe",
@@ -46,9 +94,21 @@
     "ipam": "Configuration IPAM",
     "addSubnet": "Ajouter un sous-réseau",
     "ipamRequired": "Le sous-réseau et la passerelle sont généralement requis pour les réseaux {{driver}}.",
+    "ipv6": "Activer IPv6",
+    "ipv6Hint": "Permet au réseau de porter un sous-réseau IPv6 : ajoutez-en un ci-dessous, p. ex. le /64 de votre LAN pour macvlan, à côté du sous-réseau IPv4.",
     "subnetPlaceholder": "Sous-réseau (par exemple 192.168.1.0/24)",
     "gatewayPlaceholder": "Passerelle (par exemple 192.168.1.1)",
-    "ipRangePlaceholder": "Plage IP (facultatif)",
+    "ipRangePlaceholder": "Plage IP, CIDR (facultatif, ex. 192.168.1.192/27)",
+    "errors": {
+      "invalidSubnet": "Le sous-réseau doit être en notation CIDR, par exemple 192.168.1.0/24.",
+      "invalidGateway": "La passerelle doit être une seule adresse IP, par exemple 192.168.1.1, sans /préfixe.",
+      "invalidIpRange": "La plage IP doit être un bloc CIDR dans le sous-réseau, par exemple 192.168.1.192/27, et non une plage début-fin.",
+      "invalidAuxAddress": "Les adresses auxiliaires doivent être des adresses IP individuelles.",
+      "gatewayOutsideSubnet": "La passerelle doit se trouver dans le sous-réseau.",
+      "ipRangeOutsideSubnet": "La plage IP doit se trouver dans le sous-réseau.",
+      "ipv6SubnetNeedsEnable": "Un sous-réseau IPv6 nécessite qu'IPv6 soit activé sur le réseau.",
+      "addressFamilyMismatch": "La passerelle, la plage IP ou l'adresse réservée doivent être de la même version IP que leur sous-réseau."
+    },
     "advanced": "Options avancées",
     "customOptions": "Options personnalisées",
     "customOptionsHelp": "Options spécifiques au pilote sous forme de paires clé-valeur. Le parent et le mode sont définis à partir de leurs champs dédiés.",
@@ -57,7 +117,51 @@
     "optionKey": "Touche d'option",
     "optionValue": "Valeur des options",
     "labelKey": "Clé d'étiquette",
-    "labelValue": "Valeur de l'étiquette"
+    "labelValue": "Valeur de l'étiquette",
+    "removeSubnet": "Supprimer le sous-réseau"
+  },
+  "hostLink": {
+    "switch": "Créer une interface sur l'hôte",
+    "hint": "Ajoute sur l'hôte une interface à côté du parent macvlan, pour que l'hôte puisse joindre les conteneurs de ce réseau.",
+    "passthru": "Indisponible en mode passthru : un conteneur prend l'interface parente, l'hôte ne peut donc pas en avoir une à côté.",
+    "name": "Nom de l'interface",
+    "namePlaceholder": "mcvlan0",
+    "ipv4": "Adresse IPv4 de l'hôte",
+    "ipv4Placeholder": "p. ex. 192.168.1.250/24, hors de la plage IP",
+    "ipv6": "Adresse IPv6 de l'hôte",
+    "ipv6Placeholder": "p. ex. 2001:db8:1::250/64",
+    "auto": "Automatique (SLAAC)",
+    "autoHint": "Laisse l'hôte configurer son adresse IPv6 à partir des annonces du routeur plutôt qu'une adresse fixe.",
+    "title": "Interface de l'hôte",
+    "parent": "Interface parente",
+    "state": "État",
+    "states": {
+      "present": "Présente",
+      "missing": "Absente",
+      "unknown": "Inconnu",
+      "none": "Aucune"
+    },
+    "missingHint": "L'interface n'est pas sur l'hôte, par exemple après un redémarrage. Réappliquer la recrée avec les réglages enregistrés sur ce réseau.",
+    "reapply": "Réappliquer",
+    "reapplying": "Application...",
+    "applied": "Interface de l'hôte appliquée",
+    "unavailable": {
+      "agent_unreachable": "L'agent de cet environnement n'a pas répondu, l'interface de l'hôte ne peut donc pas être gérée pour le moment.",
+      "agent_outdated": "L'agent de cet hôte est trop ancien pour gérer les interfaces de l'hôte. Mettez l'agent à jour.",
+      "containerized": "McHarbor s'exécute ici dans un conteneur et ne peut pas modifier les interfaces de l'hôte. Reliez l'hôte par un agent."
+    },
+    "errors": {
+      "invalidName": "Le nom de l'interface doit comporter de 1 à 15 lettres, chiffres, points, tirets bas ou tirets, et ne peut pas être identique au parent.",
+      "nameReserved": "Ce nom d'interface commence par un préfixe que McHarbor réserve à ses propres interfaces. Choisissez un autre nom.",
+      "needsMacvlan": "Une interface de l'hôte nécessite un réseau macvlan avec une interface parente.",
+      "addressInvalid": "L'adresse de l'hôte doit être un CIDR comme 192.168.1.250/24, se trouver dans un sous-réseau du réseau et être de la même version d'IP ; pour une adresse IPv6, IPv6 doit être activé. Donnez au moins une adresse à l'interface.",
+      "addressInRange": "L'adresse de l'hôte se trouve dans la plage IP du réseau, dans laquelle Docker attribue des adresses aux conteneurs. Choisissez-en une en dehors.",
+      "passthru": "Une interface de l'hôte ne peut pas être utilisée avec le mode passthru de macvlan.",
+      "notConfigured": "Ce réseau n'a pas d'interface de l'hôte.",
+      "nameTaken": "Une interface portant ce nom existe déjà sur l'hôte et n'a pas été créée par McHarbor.",
+      "failed": "L'interface de l'hôte n'a pas pu être appliquée.",
+      "unavailable": "Les interfaces de l'hôte ne peuvent pas être gérées ici."
+    }
   },
   "toast": {
     "created": "Réseau créé",
@@ -79,11 +183,12 @@
     "description": "Cela supprimera définitivement <bold>{{count}}</bold> réseaux.",
     "networks": "Réseaux",
     "andXMore": "et {{count}} de plus",
-    "inUse": "en cours d'utilisation",
-    "inUseWarning": "{{count}} réseau(x) sélectionné(s) sont encore attachés à des conteneurs en cours d'exécution. La suppression échouera pour ceux-ci à moins que les conteneurs ne soient d'abord arrêtés ou déconnectés.",
+    "inUseWarning_one": "{{count}} réseau sélectionné est encore attaché à des conteneurs en cours d'exécution. La suppression échouera pour lui à moins que les conteneurs ne soient d'abord arrêtés ou déconnectés.",
+    "inUseWarning_other": "{{count}} réseaux sélectionnés sont encore attachés à des conteneurs en cours d'exécution. La suppression échouera pour ceux-ci à moins que les conteneurs ne soient d'abord arrêtés ou déconnectés.",
     "forceLabel": "Je comprends et je souhaite tout de même tenter la suppression",
     "removing": "Suppression...",
-    "builtInSkipped": "{{count}} réseau(x) intégré(s) ignoré(s) (ne peuvent pas être supprimés)",
+    "builtInSkipped_one": "{{count}} réseau intégré ignoré (ne peut pas être supprimé)",
+    "builtInSkipped_other": "{{count}} réseaux intégrés ignorés (ne peuvent pas être supprimés)",
     "noneEligible": "Aucun réseau n'est éligible à la suppression."
   },
   "actions": {
@@ -139,24 +244,31 @@
     "connect": "Connecter",
     "selectContainer": "Récipient",
     "selectPlaceholder": "Sélectionnez un conteneur...",
-    "view": "Afficher les détails"
+    "view": "Afficher les détails",
+    "tabs": {
+      "ariaLabel": "Sections du réseau",
+      "overview": "Aperçu",
+      "containers": "Conteneurs",
+      "configuration": "Configuration"
+    },
+    "noConfiguration": "Ce réseau ne porte aucune option ni aucun libellé personnalisé."
+  },
+  "keyValue": {
+    "removeRow": "Supprimer la ligne"
   },
   "networks": {
-    "filters": {
-      "all": "Tous",
-      "used": "Utilisés",
-      "unused": "Inutilisés"
-    },
     "create": {
       "removeSubnet": "Supprimer le sous-réseau"
     }
   },
-  "filters": {
-    "all": "Tous",
-    "used": "Utilisés",
-    "unused": "Inutilisés"
-  },
-  "keyValue": {
-    "removeRow": "Supprimer la ligne"
+  "recreate": {
+    "errors": {
+      "restored": "Docker a refusé les nouveaux paramètres. Le réseau d'origine a été restauré et ses conteneurs reconnectés sur leurs adresses ; rien n'a changé.",
+      "lost": "Docker a refusé les nouveaux paramètres et le réseau d'origine n'a pas pu être restauré. Ses conteneurs sont déconnectés : recréez le réseau et reconnectez-les."
+    },
+    "reconnectFailed_one": "{{count}} conteneur n'a pas pu être reconnecté : {{names}}",
+    "reconnectFailed_other": "{{count}} conteneurs n'ont pas pu être reconnectés : {{names}}",
+    "addressesChanged_one": "{{count}} conteneur a reçu une nouvelle adresse car l'ancienne est hors des nouveaux sous-réseaux : {{names}}",
+    "addressesChanged_other": "{{count}} conteneurs ont reçu de nouvelles adresses car les anciennes sont hors des nouveaux sous-réseaux : {{names}}"
   }
 }

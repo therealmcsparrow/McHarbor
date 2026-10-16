@@ -1,0 +1,461 @@
+{
+  "title": "Enterprise Overview",
+  "description": "Review enterprise readiness across identity, audit, backup, plugin, storage, and HA foundations.",
+  "actions": {
+    "open": "Open"
+  },
+  "values": {
+    "ready": "Ready",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "status": {
+    "success": "Configured",
+    "warning": "Needs attention",
+    "secondary": "Checking"
+  },
+  "sections": {
+    "surfaces": "Enterprise surfaces"
+  },
+  "cards": {
+    "ha": {
+      "title": "High availability",
+      "description": "Database mode and cluster coordination status."
+    },
+    "identity": {
+      "title": "Identity providers",
+      "description": "Configured SSO/OIDC/SAML/LDAP providers."
+    },
+    "scim": {
+      "title": "SCIM provisioning",
+      "description": "Provisioning endpoints and sync state."
+    },
+    "audit": {
+      "title": "Audit events",
+      "description": "Searchable privileged-action trail."
+    },
+    "auditExport": {
+      "title": "Signed Audit Export",
+      "description": "Filtered CSV/JSON export with checksum metadata."
+    },
+    "siem": {
+      "title": "Audit log forwarding",
+      "description": "Ship the audit trail off-box via a logging plugin."
+    },
+    "backups": {
+      "title": "Backup activity",
+      "description": "Backup and restore operation history."
+    },
+    "storage": {
+      "title": "Storage locations",
+      "description": "Configured backup and artifact destinations."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Loaded plugin runtime contributions."
+    },
+    "apiKeys": {
+      "title": "API keys",
+      "description": "Scoped automation credentials."
+    }
+  },
+  "links": {
+    "security": {
+      "title": "Security",
+      "description": "Users, roles, TLS, identity, and hardening."
+    },
+    "identity": {
+      "title": "Identity Providers",
+      "description": "Configure and test enterprise login providers."
+    },
+    "scim": {
+      "title": "SCIM",
+      "description": "Provision users and groups from external directories."
+    },
+    "policies": {
+      "title": "Roles and Policies",
+      "description": "Review RBAC and ABAC policy behavior."
+    },
+    "audit": {
+      "title": "Audit Center",
+      "description": "Trace privileged actions and denials."
+    },
+    "auditExport": {
+      "title": "Signed Audit Export",
+      "description": "Download verifiable audit evidence."
+    },
+    "siem": {
+      "title": "Audit log forwarding",
+      "description": "Configure audit log forwarding and delivery history."
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "description": "Manage scoped API credentials."
+    },
+    "backups": {
+      "title": "Backups",
+      "description": "Review backup runs and restore readiness."
+    },
+    "storage": {
+      "title": "Storage",
+      "description": "Manage external backup destinations."
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Install and inspect enterprise extensions."
+    },
+    "ha": {
+      "title": "HA Foundations",
+      "description": "Current node, database, and singleton leadership."
+    },
+    "license": {
+      "title": "License",
+      "description": "License type, what it covers, and how much is in use."
+    }
+  },
+  "haWizard": {
+    "title": "HA migration wizard",
+    "description": "Move between singleton SQLite and active-active HA with an operator-controlled migration checklist.",
+    "errorTitle": "Failed to load HA migration plan",
+    "mode": {
+      "singleton": "Singleton",
+      "ha": "High availability"
+    },
+    "summary": {
+      "database": "Database",
+      "node": "Node",
+      "target": "Recommended target"
+    },
+    "direction": {
+      "toHA": "Singleton to HA",
+      "toSingleton": "HA to singleton"
+    },
+    "resources": {
+      "title": "Operator resources",
+      "composeTemplate": {
+        "title": "HA compose template",
+        "description": "Validate or start the bundled two-node PostgreSQL HA example before adapting it for production."
+      },
+      "envExample": {
+        "title": "Environment template",
+        "description": "Copy this placeholder file to ha.env and fill in real secrets, database credentials, and node-specific values."
+      },
+      "backupKey": {
+        "title": "Shared backup key",
+        "description": "Generate one backup encryption key and mount the same file on every McHarbor node."
+      },
+      "documentation": {
+        "title": "Migration documentation",
+        "description": "Follow the full shared-database, shared-archive, rollback, and production hardening guide."
+      },
+      "postgresImport": {
+        "title": "PostgreSQL import commands",
+        "description": "Use these commands as the starting point for a scratch import and rollback dump when PostgreSQL is the HA database."
+      },
+      "mysqlImport": {
+        "title": "MySQL/MariaDB import commands",
+        "description": "Use these commands as the starting point for a scratch import and rollback dump when MySQL or MariaDB is the HA database."
+      }
+    },
+    "actions": {
+      "previous": "Previous",
+      "next": "Next",
+      "copyCommand": "Copy command",
+      "copyValue": "Copy value",
+      "copied": "Copied to clipboard",
+      "manualCopy": "Manual copy"
+    },
+    "checkStatus": {
+      "pass": "Ready",
+      "attention": "Needs attention"
+    },
+    "checks": {
+      "title": "Readiness checks",
+      "database": {
+        "title": "External database",
+        "detail": "Use PostgreSQL, MySQL/MariaDB or SQL Server with MCHARBOR_DB_DSN on every HA node."
+      },
+      "nodeId": {
+        "title": "Stable node ID",
+        "detail": "Set MCHARBOR_NODE_ID per node for readable logs and cluster status."
+      },
+      "sharedSecret": {
+        "title": "Shared session secret",
+        "detail": "Use the same MCHARBOR_SECRET on every node so sessions survive failover."
+      },
+      "encryptionKey": {
+        "title": "Shared encryption key",
+        "detail": "Set the same ENCRYPTION_KEY on every node; a node whose key does not match the database refuses to start."
+      },
+      "backupKey": {
+        "title": "Shared backup key",
+        "detail": "Mount the same backup encryption key secret on every node before cross-node restores."
+      },
+      "databaseReachable": {
+        "title": "Database reachable",
+        "detail": "The current database must respond before migration or rollback."
+      }
+    },
+    "steps": {
+      "progress": "Step {{current}} of {{total}}",
+      "prepare": {
+        "badge": "Plan",
+        "title": "Prepare shared services",
+        "description": "Create a PostgreSQL or MySQL database, choose a shared archive target, generate stable secrets, and validate docker-compose.ha.yml before stopping the singleton node."
+      },
+      "snapshot": {
+        "badge": "Backup",
+        "title": "Snapshot the singleton",
+        "description": "Stop writes, back up the SQLite database, and preserve the data directory before exporting any data."
+      },
+      "import": {
+        "badge": "Import",
+        "title": "Import into the shared database",
+        "description": "Load the SQLite dump into PostgreSQL or MySQL/MariaDB using a scratch database first, then let McHarbor run pending migrations on first HA boot."
+      },
+      "configure": {
+        "badge": "Configure",
+        "title": "Configure every node",
+        "description": "Set MCHARBOR_DB_DRIVER, MCHARBOR_DB_DSN, MCHARBOR_NODE_ID, MCHARBOR_SECRET, and the shared backup key on each McHarbor node."
+      },
+      "start": {
+        "badge": "Start",
+        "title": "Start behind the load balancer",
+        "description": "Start one node first, confirm cluster status is healthy, then add the remaining nodes to the load balancer."
+      },
+      "drain": {
+        "badge": "Drain",
+        "title": "Drain HA traffic",
+        "description": "Remove all but one node from the load balancer and pause scheduled writes during the rollback window."
+      },
+      "export": {
+        "badge": "Export",
+        "title": "Export the shared database",
+        "description": "Dump the PostgreSQL or MySQL/MariaDB database and convert it back to SQLite-compatible SQL, or restore the pre-HA SQLite snapshot if no HA writes should be kept."
+      },
+      "restore": {
+        "badge": "Restore",
+        "title": "Restore SQLite data",
+        "description": "Place the restored SQLite database under DATA_DIR and keep the shared archive target mounted if backup files live outside the node."
+      },
+      "singleNodeEnv": {
+        "badge": "Start",
+        "title": "Switch the environment back",
+        "description": "Unset MCHARBOR_DB_DRIVER and MCHARBOR_DB_DSN, keep MCHARBOR_SECRET stable, then start the singleton node."
+      }
+    },
+    "gaps": {
+      "title": "Roadmap gaps",
+      "agentRouting": {
+        "title": "Agents on more than one active node",
+        "description": "A remote agent holds one connection to one node. In active/active every Docker call and every terminal, console and log session is relayed to that node. An open session ends when its agent reconnects to another node and has to be reopened, and agent self-update acts only from the node holding the agent."
+      },
+      "mysqlRuntime": {
+        "title": "MySQL and MariaDB at runtime",
+        "description": "PostgreSQL, MySQL 8.4 and MariaDB 11 run the whole application; runtime statements are translated at the driver. A few SQLite-only migration statements (partial unique indexes, audit WORM triggers) have no MySQL equivalent and are skipped, so PostgreSQL remains the most complete choice."
+      }
+    }
+  },
+  "ha": {
+    "title": "High availability",
+    "description": "Every McHarbor node, which one is active, whether each is ready for traffic, and the controls to hand over or drain.",
+    "singleNode": "This instance runs on SQLite, which cannot be shared between nodes. High availability needs PostgreSQL, MySQL/MariaDB or SQL Server on every node.",
+    "facts": {
+      "mode": "Mode",
+      "thisNode": "This node",
+      "database": "Database",
+      "readiness": "Readiness",
+      "pluginStore": "Plugin packages"
+    },
+    "mode": {
+      "peer": "Peers",
+      "active-passive": "Active/passive"
+    },
+    "role": {
+      "peer": "Peer",
+      "active": "Active",
+      "standby": "Standby"
+    },
+    "state": {
+      "running": "Running",
+      "draining": "Draining",
+      "stopped": "Stopped"
+    },
+    "check": {
+      "database": "Database answers",
+      "coordinator": "Lock session alive",
+      "accepting": "Not draining",
+      "serving": "Not a standby"
+    },
+    "reachable": "Reachable",
+    "unreachable": "Unreachable",
+    "ready": "Ready",
+    "notReady": "Not ready",
+    "thisNode": "This node",
+    "notResponding": "Not responding",
+    "nodesTitle": "Nodes",
+    "searchPlaceholder": "Search nodes, hosts, versions...",
+    "empty": "No nodes have reported in yet.",
+    "health": {
+      "up": "Up",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "facet": {
+      "drift": "Version drift"
+    },
+    "filter": {
+      "allRoles": "All roles"
+    },
+    "columns": {
+      "health": "Health",
+      "advertiseUrl": "Advertise URL",
+      "started": "Started",
+      "node": "Node",
+      "role": "Role",
+      "state": "State",
+      "heartbeat": "Last heartbeat",
+      "version": "Version",
+      "agents": "Agents",
+      "actions": "Actions"
+    },
+    "actions": {
+      "makeActive": "Make active",
+      "drain": "Drain",
+      "resume": "Resume"
+    },
+    "confirm": {
+      "failover": {
+        "title": "Make {{node}} the active node?",
+        "description": "The active node releases its lock and every singleton job, and {{node}} takes over within seconds. Users and agents reconnect through the load balancer.",
+        "confirm": "Make active"
+      },
+      "drain": {
+        "title": "Drain {{node}}?",
+        "description": "{{node}} stops reporting ready, so the load balancer sends it no new traffic. An active node hands over first.",
+        "confirm": "Drain"
+      },
+      "resume": {
+        "title": "Resume {{node}}?",
+        "description": "{{node}} reports ready again and can take traffic or become active.",
+        "confirm": "Resume"
+      }
+    },
+    "splitBrain": {
+      "title": "More than one node claims to be active",
+      "description": "Nodes {{nodes}} both report the active role. Failover and drain are disabled until only one remains; check each node's database connection."
+    },
+    "jobsTitle": "Singleton jobs on this node",
+    "jobsDescription": "Jobs that must run exactly once across all nodes, and which of them this node currently runs.",
+    "jobsNone": "This node runs none of them.",
+    "banner": {
+      "title": "This is a standby node",
+      "description": "{{node}} is a standby: it serves reads, and changes are refused until it becomes active. Use the load balancer address to make changes."
+    },
+    "pluginStore": {
+      "local": "This node only",
+      "database": "Shared database",
+      "shared-fs": "Shared filesystem",
+      "object": "Storage location"
+    },
+    "pluginStoreLocal": "Plugin packages are kept on each node only. A standby cannot load a plugin installed while it was not active; set MCHARBOR_PLUGIN_STORE to database, shared-fs:<path> or object:<storage location id> on every node.",
+    "readiness": {
+      "title": "HA readiness",
+      "description": "Checks this cluster against a target mode. A failing gate blocks the target; a warning does not.",
+      "targetLabel": "Target mode",
+      "target": {
+        "active-active": "Active/active",
+        "active-passive": "Active/passive"
+      },
+      "status": {
+        "pass": "Pass",
+        "warn": "Warning",
+        "fail": "Fail"
+      },
+      "verdict": {
+        "ready": "Every gate passes for this target.",
+        "notReady": "At least one gate fails for this target."
+      },
+      "activeActiveDisabled": "Active/active stays disabled while a gate fails. Fix every failing gate below, then set MCHARBOR_HA_MODE=active-active on each node; warnings do not block it.",
+      "routing": {
+        "check": "Prove cross-node routing",
+        "proven": "A call to environment {{env}} was executed by node {{node}}, so forwarding works from here.",
+        "failed": "The last cross-node call failed: {{error}}",
+        "unproven_one": "{{nodes}} node holds agents this node does not. Nothing has been forwarded yet.",
+        "unproven_other": "{{nodes}} nodes hold agents this node does not. Nothing has been forwarded yet.",
+        "nothingToRoute": "No agent is held by another node, so there is nothing to forward and nothing to prove."
+      },
+      "gate": {
+        "externalDatabase": {
+          "title": "Shared database",
+          "pass": "PostgreSQL, MySQL or MariaDB is configured and answers from this node.",
+          "fail": "SQLite cannot be shared, or the shared database does not answer. Set MCHARBOR_DB_DRIVER and MCHARBOR_DB_DSN on every node."
+        },
+        "encryptionKey": {
+          "title": "Same encryption key on every node",
+          "pass": "The key comes from ENCRYPTION_KEY or ENCRYPTION_KEY_FILE and matches the key check every node verifies at boot.",
+          "fail": "The key is generated per node or does not match the database. Set the same ENCRYPTION_KEY (or ENCRYPTION_KEY_FILE) on every node."
+        },
+        "pluginStore": {
+          "title": "Shared plugin package store",
+          "pass": "Every node can fetch installed plugin packages.",
+          "fail": "Plugin packages live only on the node that installed them. Set MCHARBOR_PLUGIN_STORE to a shared store."
+        },
+        "sameVersion": {
+          "title": "Same version and build",
+          "pass": "Every live node runs the same version and build.",
+          "warn": "The node registry could not be read, so versions are unknown.",
+          "fail": "Live nodes run different versions or builds. Upgrade every node to the same image."
+        },
+        "agentRouting": {
+          "title": "Remote agent routing",
+          "pass": "Every agent call reaches the node holding the agent. With one active node every agent reconnects to it; in active/active, Docker calls and the session relay for terminals, the guest console, host logs and agent messages were both proven by a call that came back.",
+          "warn": "Docker API calls are forwarded to the node holding the agent, but the session relay that carries terminal exec, the host terminal, the guest console, host logs and agent messages has not been proven from this node, or its last attempt failed. Run the routing check; until it passes, those sessions reach only that node.",
+          "fail": "An agent held by another node cannot be reached from here: the node-to-node hop is unconfigured, or its last real call failed. Set the same MCHARBOR_SECRET and a reachable MCHARBOR_ADVERTISE_URL on every node."
+        },
+        "nodeLinkTransport": {
+          "title": "Encrypted node-to-node calls",
+          "pass": "Signed node-to-node calls never cross the network unencrypted: only one node is live, or every live node advertises an https address.",
+          "warn": "Node-to-node calls run on weakened TLS: MCHARBOR_NODE_LINK_ALLOW_HTTP=1 lets them reach nodes that advertise plain http, or MCHARBOR_NODE_LINK_SKIP_VERIFY=1 accepts any peer certificate. Anyone on the path can then read them and forge streamed request bodies, agent replies and relayed terminal, console and log sessions, which only TLS protects. Pin the nodes' CA with MCHARBOR_NODE_LINK_CA_FILE instead, or keep this only on a private network you trust.",
+          "fail": "Node-to-node calls are refused: some live nodes advertise an address that is not https, or MCHARBOR_NODE_LINK_CA_FILE on this node cannot be loaded. Give those nodes an https MCHARBOR_ADVERTISE_URL (or set MCHARBOR_NODE_LINK_ALLOW_HTTP=1 on every node for a trusted private network), and point MCHARBOR_NODE_LINK_CA_FILE at a readable PEM certificate or unset it."
+        },
+        "sessions": {
+          "title": "Sessions",
+          "pass": "Sessions live in the shared database, so sticky sessions are not required."
+        },
+        "perNodeState": {
+          "title": "Console tickets and rate limits",
+          "pass": "One node serves, so in-memory tickets and rate limits behave as on a single node.",
+          "warn": "Console tickets are in the shared database, so any node can redeem a ticket any node issued. Rate-limit counters and the console viewer cap stay per node by design: the effective limit is the configured one times the number of nodes.",
+          "fail": "The console ticket table did not answer from this node, so a console opened here could not be redeemed elsewhere."
+        },
+        "coordinator": {
+          "title": "Coordinator lock",
+          "pass": "The lock session that elects the active node and singleton jobs answers.",
+          "fail": "The lock session is not available. It needs an external database."
+        }
+      }
+    },
+    "startup": {
+      "title": "Startup health",
+      "description": "What this node found when it started ({{time}}).",
+      "haModeRefused": "MCHARBOR_HA_MODE=active-active was requested and refused because its readiness gates fail; this node runs active/passive.",
+      "database": "Database",
+      "dataDir": "Data directory",
+      "writable": "Writable",
+      "notWritable": "Not writable",
+      "free": "{{size}} free",
+      "keySource": "Encryption key",
+      "key": {
+        "env": "From ENCRYPTION_KEY",
+        "file": "Generated in the data directory"
+      },
+      "tls": "TLS",
+      "tlsMode": {
+        "off": "Off",
+        "https": "HTTPS",
+        "https-only": "HTTPS only"
+      }
+    }
+  }
+}

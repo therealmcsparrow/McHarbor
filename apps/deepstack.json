@@ -1,0 +1,46 @@
+{
+    "slug":  "deepstack",
+    "name":  "DeepStack",
+    "description":  "Self-hosted AI server providing face recognition and object detection for NVR tools like Frigate and Double Take.",
+    "category":  "Home Automation",
+    "image":  "deepquestai/deepstack:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=deepstackpython.readthedocs.io\u0026sz=128",
+    "website":  "https://deepstackpython.readthedocs.io",
+    "docsUrl":  "https://docs.deepstack.cc/index.html",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/deepstack/data",
+                        "container":  "/datastore"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VISION-FACE",
+                        "default":  "True",
+                        "description":  "Enable face recognition"
+                    },
+                    {
+                        "key":  "VISION-DETECTION",
+                        "default":  "True",
+                        "description":  "Enable object detection"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

@@ -1,0 +1,67 @@
+{
+  "config": {
+    "name": { "label": "Channel name" },
+    "webhook_url": { "label": "Receiver URL", "help": "Alertmanager webhook URL from the receiver. Often contains a token, so it is stored encrypted." },
+    "profile": { "label": "Receiver profile", "help": "generic, grafana_irm, squadcast, zenduty or keep." },
+    "receiver_name": { "label": "Receiver name", "help": "Sent as the payload's receiver field." },
+    "auth_mode": { "label": "Authentication", "help": "none, bearer or basic." },
+    "bearer_token": { "label": "Bearer token" },
+    "basic_username": { "label": "Basic auth username" },
+    "basic_password": { "label": "Basic auth password" },
+    "hmac_secret": { "label": "HMAC signing secret", "help": "Optional. Adds X-McHarbor-Signature: t=<unix>,v1=<hex> for custom gateways." },
+    "allow_http": { "label": "Allow plain http", "help": "Only for a receiver on a trusted private network, such as self-hosted Keep." },
+    "update_on_repeat": { "label": "Re-send firing on repeat" },
+    "test_sends_alert": { "label": "Test connection sends a test alert", "help": "When on, Test fires and immediately resolves an info alert named McHarborConnectionTest." },
+    "severity_map": { "label": "Severity map (JSON)" }
+  },
+  "form": {
+    "name": { "label": "Channel name", "placeholder": "Grafana IRM — Platform" },
+    "webhook_url": { "label": "Receiver URL", "placeholder": "https://…", "help": "The Alertmanager webhook URL your on-call tool gives you. Stored encrypted because it usually contains a token." },
+    "profile": { "label": "Receiver profile" },
+    "receiver_name": { "label": "Receiver name", "placeholder": "mcharbor", "help": "Sent as the payload's receiver field." },
+    "auth_mode": { "label": "Authentication", "none": "None (token in URL)", "bearer": "Bearer token", "basic": "Basic auth" },
+    "bearer_token": { "label": "Bearer token", "placeholder": "Token" },
+    "basic_username": { "label": "Username", "placeholder": "api_key" },
+    "basic_password": { "label": "Password", "placeholder": "Password or API key" },
+    "hmac_secret": { "label": "HMAC signing secret", "placeholder": "Optional", "help": "Adds X-McHarbor-Signature: t=<unix>,v1=<hex HMAC-SHA256 of t.body> for gateways that verify it." },
+    "allow_http": { "label": "Allow plain http (trusted private network only)" },
+    "update_on_repeat": { "label": "Re-send firing on repeat", "help": "When an alert fires again while it is open, send the same alert again, as Alertmanager does on its repeat interval." },
+    "test_sends_alert": { "label": "Test connection sends a test alert", "help": "Fires and immediately resolves an info alert named McHarborConnectionTest. Off by default because it can page." },
+    "severity_map": { "label": "Severity map (JSON)", "placeholder": "{\"critical\":\"P1\"}", "help": "Optional. Renames the severity label values critical, warning and info for receivers configured on other values." },
+    "secretKeepHint": "Leave blank to keep the stored value.",
+    "insecureWarning": "Alerts and credentials travel unencrypted. Use this only for a receiver on a trusted private network.",
+    "errors": { "https": "Use an https URL, or turn on plain http for a private receiver.", "trailingSlash": "Grafana IRM integration URLs end in /." }
+  },
+  "profiles": {
+    "generic": { "label": "Generic Alertmanager receiver", "hint": "Sends standard Alertmanager webhook v4 payloads, one group per McHarbor condition." },
+    "grafana_irm": { "label": "Grafana Cloud IRM / Grafana OnCall", "hint": "Groups by groupKey and auto-resolves on resolved. The URL must keep its trailing slash." },
+    "squadcast": { "label": "Squadcast (SolarWinds Incident Response)", "hint": "Always sends labels.severity, annotations.summary and annotations.description, which Squadcast requires." },
+    "zenduty": { "label": "Zenduty (Xurrent IMR)", "hint": "Zenduty groups by alertname, so McHarbor appends a short condition ID to keep conditions apart." },
+    "keep": { "label": "Keep", "hint": "Uses Basic auth with username api_key and your Keep API key as the password." }
+  },
+  "guide": {
+    "title": "Alertmanager webhook channel setup",
+    "general": {
+      "oneWay": "<warn>This channel is one-way</warn>: McHarbor opens and resolves alerts at the receiver, but acknowledgements made there do not flow back. Use a dedicated PagerDuty, incident.io, Rootly, Splunk On-Call or xMatters channel when you need that.",
+      "profile": "Choose the profile that matches your tool, paste its URL, and save.",
+      "test": "<b>Test connection</b> checks DNS, reachability and TLS without sending anything, unless you turn on <b>Test connection sends a test alert</b>."
+    },
+    "grafana_irm": {
+      "create": "In Grafana Cloud, open <b>IRM (OnCall) → Integrations → New integration</b> and choose <b>Alertmanager Prometheus</b>.",
+      "copy": "Copy the <b>OnCall Integration URL</b> from the <b>HTTP Endpoint</b> section, including the trailing slash, into <b>Receiver URL</b>.",
+      "templates": "Keep the default grouping and autoresolution templates; they match McHarbor's one-group-per-condition payloads."
+    },
+    "squadcast": {
+      "create": "In Squadcast, open <b>Services → your service → Alert Sources → Add</b>, choose <b>Prometheus</b>, and copy the <b>Webhook URL</b> into <b>Receiver URL</b>.",
+      "resolve": "Recoveries in McHarbor resolve the Squadcast incident automatically."
+    },
+    "zenduty": {
+      "create": "In Zenduty (Xurrent IMR), open your team's <b>service → Integrations → Add Integration</b>, choose <b>Prometheus</b>, and copy the webhook URL into <b>Receiver URL</b>.",
+      "grouping": "Zenduty groups by <code>alertname</code>; the Zenduty profile appends a short condition ID so two containers never share an incident."
+    },
+    "keep": {
+      "create": "In Keep, create an API key, set <b>Receiver URL</b> to <code><your Keep backend>/alerts/event/prometheus</code>, and choose <b>Basic auth</b> with username <code>api_key</code>.",
+      "private": "If Keep runs on your private network over http, turn on <b>Allow plain http</b>."
+    }
+  }
+}

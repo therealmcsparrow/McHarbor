@@ -8,13 +8,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/api/types/container"
 	"gopkg.in/yaml.v3"
 )
 
 // ReconstructCompose inspects a slice of container details and generates a
 // docker-compose.yml string that approximately recreates those containers.
-func ReconstructCompose(containers []types.ContainerJSON) (string, error) {
+func ReconstructCompose(containers []container.InspectResponse) (string, error) {
 	compose := map[string]any{}
 	services := map[string]any{}
 	topNetworks := map[string]any{}
@@ -62,10 +62,7 @@ func ReconstructCompose(containers []types.ContainerJSON) (string, error) {
 
 		// Volumes / bind mounts
 		if c.HostConfig != nil && len(c.HostConfig.Binds) > 0 {
-			var volumes []string
-			for _, bind := range c.HostConfig.Binds {
-				volumes = append(volumes, bind)
-			}
+			volumes := append([]string(nil), c.HostConfig.Binds...)
 			if len(volumes) > 0 {
 				svc["volumes"] = volumes
 			}
@@ -216,7 +213,7 @@ func filterLabels(labels map[string]string) map[string]string {
 }
 
 // buildPorts generates compose-style port mappings from HostConfig.PortBindings.
-func buildPorts(c types.ContainerJSON) []string {
+func buildPorts(c container.InspectResponse) []string {
 	var ports []string
 	if c.HostConfig == nil {
 		return ports
@@ -231,7 +228,7 @@ func buildPorts(c types.ContainerJSON) []string {
 			port := containerPort.Port()
 			entry := fmt.Sprintf("%s:%s", hostPort, port)
 			if proto != "tcp" {
-				entry += "/" + proto
+				entry += "/" + string(proto)
 			}
 			ports = append(ports, entry)
 		}

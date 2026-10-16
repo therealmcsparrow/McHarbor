@@ -8,10 +8,17 @@ export function csv(value?: string[]) {
 }
 
 export function splitCsv(value: string) {
-  return value.split(',').map((item) => item.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
-export function updateIpam(network: MoveNetworkConfig, field: 'Subnet' | 'Gateway' | 'IPRange', value: string): MoveNetworkConfig {
+export function updateIpam(
+  network: MoveNetworkConfig,
+  field: 'Subnet' | 'Gateway' | 'IPRange',
+  value: string,
+): MoveNetworkConfig {
   const first = network.ipam?.Config?.[0] ?? {};
   return {
     ...network,

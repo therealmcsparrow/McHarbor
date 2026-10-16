@@ -10,7 +10,9 @@ export const containerBackupPlanRun: NodeDefinition = {
   description: 'Run a saved container backup plan',
   icon: 'IconPlayerPlay',
   configSchema: [
-    { key: 'plan_id', label: 'Plan ID', type: 'text', required: true },
+    { key: 'environment', label: 'Environment', type: 'environment-select', required: true },
+    { key: 'container', label: 'Container (filter)', type: 'container-select', required: false },
+    { key: 'plan_id', label: 'Backup Plan', type: 'backup-plan-select', required: true },
   ],
   inputPorts: ['input'],
   outputPorts: ['output', 'error'],

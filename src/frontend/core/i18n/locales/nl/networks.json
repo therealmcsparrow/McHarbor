@@ -6,12 +6,21 @@
   "tableView": "Tabelweergave",
   "cardView": "Kaartweergave",
   "columns": {
+    "attachable": "Aankoppelbaar",
+    "ipamDriver": "IPAM-driver",
+    "labels": "Labels",
+    "builtIn": "Ingebouwd",
+    "usedBy": "Gebruikt door",
+    "groupRelations": "Relaties",
+    "groupNetwork": "Netwerk",
     "name": "Naam",
     "id": "ID",
     "driver": "Driver",
     "scope": "Bereik",
     "subnet": "Subnet",
     "gateway": "Gateway",
+    "ipRange": "IP-bereik",
+    "options": "Opties",
     "internal": "Intern",
     "containers": "Containers",
     "created": "Aangemaakt",
@@ -43,6 +52,40 @@
     "parentInterface": "Bovenliggende interface",
     "parentPlaceholder": "eth0",
     "parentHelp": "Hostnetwerkinterface om aan te koppelen",
+    "parentSelect": "Selecteer een interface",
+    "parentLoading": "Hostinterfaces worden gelezen...",
+    "parentManual": "Handmatig invoeren...",
+    "parentManualHelp": "Typ de interfacenaam precies zoals de host die meldt.",
+    "parentBackToList": "Terug naar lijst",
+    "parentKind": {
+      "physical": "Fysiek",
+      "bond": "Bond",
+      "vlan": "VLAN",
+      "unknown": "Interface"
+    },
+    "parentDown": "uit",
+    "parentInUseShort": "in gebruik",
+    "parentDetail": "{{kind}} \u00b7 MTU {{mtu}} \u00b7 {{addresses}}",
+    "parentNoAddress": "geen IP-adres",
+    "parentDownHelp": "Deze interface is momenteel uit. Zet hem op de host aan voordat containers het netwerk kunnen gebruiken.",
+    "parentInUse": "Is al de parent van {{networks}}. Een tweede netwerk op dezelfde interface is toegestaan, maar zelden de bedoeling.",
+    "parentDefaultRoute": "Dit is de interface van de standaardroute van de host. Containers op het netwerk bereiken het LAN, maar de host zelf kan ze niet bereiken.",
+    "parentNoneFound": "Er is geen fysieke, bond- of VLAN-interface gevonden op deze host.",
+    "parentNoAgent": "McHarbor kan de interfaces van deze host niet vanuit zijn container lezen. Installeer de agent op de host om ze op te sommen, of typ de interfacenaam.",
+    "parentAgentUnreachable": "De agent van deze omgeving antwoordde niet, dus de interfaces kunnen niet worden opgesomd. Controleer of de agent verbonden is (herstart hem op de host als hij vastzit), of typ de interfacenaam.",
+    "modeHelp": {
+      "macvlan": {
+        "bridge": "Containers krijgen een eigen MAC op het LAN en communiceren rechtstreeks met elkaar. De host kan ze niet bereiken. De gebruikelijke keuze.",
+        "vepa": "Al het verkeer, ook van container naar container, verlaat het systeem via de fysieke switch. Vereist een switch met hairpin (reflective relay) ingeschakeld.",
+        "passthru": "Eén container neemt de parent-interface volledig over. Er is maar één netwerk en endpoint mogelijk.",
+        "private": "Containers zijn van elkaar geïsoleerd, ook via de switch. Alleen extern verkeer wordt doorgelaten."
+      },
+      "ipvlan": {
+        "l2": "Containers delen de MAC van de parent en krijgen een eigen IP in hetzelfde subnet. Gedraagt zich als macvlan bridge zonder extra MAC's.",
+        "l3": "De parent routeert tussen containersubnets. Geen broadcast of DHCP; routes naar het containersubnet moeten upstream bestaan.",
+        "l3s": "Layer 3 met verbindingstracking, zodat netfilter en gepubliceerde poorten werken. Iets langzamer dan l3."
+      }
+    },
     "mode": "Modus",
     "internal": "Intern",
     "internalHelp": "Externe toegang beperken",
@@ -51,9 +94,21 @@
     "ipam": "IPAM-configuratie",
     "addSubnet": "Subnet toevoegen",
     "ipamRequired": "Subnet en gateway zijn meestal vereist voor {{driver}}-netwerken.",
+    "ipv6": "IPv6 inschakelen",
+    "ipv6Hint": "Laat het netwerk een IPv6-subnet dragen: voeg er hieronder een toe, bijv. de /64 van je LAN voor macvlan, naast het IPv4-subnet.",
     "subnetPlaceholder": "Subnet (bijv. 192.168.1.0/24)",
     "gatewayPlaceholder": "Gateway (bijv. 192.168.1.1)",
-    "ipRangePlaceholder": "IP-bereik (optioneel)",
+    "ipRangePlaceholder": "IP-bereik, CIDR (optioneel, bijv. 192.168.1.192/27)",
+    "errors": {
+      "invalidSubnet": "Het subnet moet in CIDR-notatie staan, bijvoorbeeld 192.168.1.0/24.",
+      "invalidGateway": "De gateway moet één IP-adres zijn, bijvoorbeeld 192.168.1.1, zonder /prefix.",
+      "invalidIpRange": "Het IP-bereik moet een CIDR-blok binnen het subnet zijn, bijvoorbeeld 192.168.1.192/27, geen begin-eindbereik.",
+      "invalidAuxAddress": "Hulpadressen moeten afzonderlijke IP-adressen zijn.",
+      "gatewayOutsideSubnet": "De gateway moet binnen het subnet liggen.",
+      "ipRangeOutsideSubnet": "Het IP-bereik moet binnen het subnet liggen.",
+      "ipv6SubnetNeedsEnable": "Een IPv6-subnet vereist dat IPv6 op het netwerk is ingeschakeld.",
+      "addressFamilyMismatch": "Een gateway, IP-bereik of gereserveerd adres moet dezelfde IP-versie hebben als het subnet."
+    },
     "advanced": "Geavanceerde opties",
     "customOptions": "Aangepaste opties",
     "customOptionsHelp": "Driver-specifieke opties als sleutel-waardeparen. Bovenliggende interface en modus worden ingesteld via hun eigen velden.",
@@ -62,7 +117,51 @@
     "optionKey": "Optiesleutel",
     "optionValue": "Optiewaarde",
     "labelKey": "Labelsleutel",
-    "labelValue": "Labelwaarde"
+    "labelValue": "Labelwaarde",
+    "removeSubnet": "Subnet verwijderen"
+  },
+  "hostLink": {
+    "switch": "Hostinterface aanmaken",
+    "hint": "Voegt naast de macvlan-parent een interface toe op de host, zodat de host de containers op dit netwerk kan bereiken.",
+    "passthru": "Niet beschikbaar in passthru-modus: één container neemt de parent-interface over, dus de host kan er geen ernaast hebben.",
+    "name": "Interfacenaam",
+    "namePlaceholder": "mcvlan0",
+    "ipv4": "IPv4-adres van de host",
+    "ipv4Placeholder": "bijv. 192.168.1.250/24, buiten het IP-bereik",
+    "ipv6": "IPv6-adres van de host",
+    "ipv6Placeholder": "bijv. 2001:db8:1::250/64",
+    "auto": "Automatisch (SLAAC)",
+    "autoHint": "Laat de host zijn IPv6-adres instellen via router advertisements in plaats van een vast adres.",
+    "title": "Hostinterface",
+    "parent": "Parent-interface",
+    "state": "Status",
+    "states": {
+      "present": "Aanwezig",
+      "missing": "Ontbreekt",
+      "unknown": "Onbekend",
+      "none": "Geen"
+    },
+    "missingHint": "De interface staat niet op de host, bijvoorbeeld na een herstart. Opnieuw toepassen maakt hem opnieuw aan met de instellingen die op dit netwerk zijn vastgelegd.",
+    "reapply": "Opnieuw toepassen",
+    "reapplying": "Toepassen...",
+    "applied": "Hostinterface toegepast",
+    "unavailable": {
+      "agent_unreachable": "De agent van deze omgeving antwoordde niet, dus de hostinterface kan nu niet worden beheerd.",
+      "agent_outdated": "De agent op deze host is te oud om hostinterfaces te beheren. Werk de agent bij.",
+      "containerized": "McHarbor draait hier in een container en kan de interfaces van de host niet wijzigen. Koppel de host via een agent."
+    },
+    "errors": {
+      "invalidName": "De interfacenaam moet 1 tot 15 letters, cijfers, punten, underscores of streepjes bevatten en mag niet gelijk zijn aan de parent.",
+      "nameReserved": "Die interfacenaam begint met een voorvoegsel dat McHarbor voor eigen interfaces reserveert. Kies een andere naam.",
+      "needsMacvlan": "Een hostinterface vereist een macvlan-netwerk met een parent-interface.",
+      "addressInvalid": "Het hostadres moet een CIDR zijn, zoals 192.168.1.250/24, binnen een van de subnetten van het netwerk en van dezelfde IP-versie; voor een IPv6-adres moet IPv6 zijn ingeschakeld. Geef de interface minstens één adres.",
+      "addressInRange": "Het hostadres valt binnen het IP-bereik van het netwerk, waaruit Docker adressen aan containers uitdeelt. Kies een adres erbuiten.",
+      "passthru": "Een hostinterface kan niet worden gebruikt met macvlan passthru-modus.",
+      "notConfigured": "Dit netwerk heeft geen hostinterface.",
+      "nameTaken": "Er bestaat al een interface met die naam op de host, die niet door McHarbor is aangemaakt.",
+      "failed": "De hostinterface kon niet worden toegepast.",
+      "unavailable": "Hostinterfaces kunnen hier niet worden beheerd."
+    }
   },
   "toast": {
     "created": "Netwerk aangemaakt",
@@ -84,11 +183,12 @@
     "description": "Dit zal <bold>{{count}}</bold> netwerken permanent verwijderen.",
     "networks": "Netwerken",
     "andXMore": "en nog {{count}}",
-    "inUse": "in gebruik",
-    "inUseWarning": "{{count}} geselecteerde netwerk(en) zijn nog gekoppeld aan draaiende containers. Verwijderen zal voor diegene mislukken tenzij containers eerst worden gestopt of ontkoppeld.",
+    "inUseWarning_one": "{{count}} geselecteerd netwerk is nog gekoppeld aan draaiende containers. Verwijderen zal hiervoor mislukken tenzij containers eerst worden gestopt of ontkoppeld.",
+    "inUseWarning_other": "{{count}} geselecteerde netwerken zijn nog gekoppeld aan draaiende containers. Verwijderen zal voor diegene mislukken tenzij containers eerst worden gestopt of ontkoppeld.",
     "forceLabel": "Ik begrijp het en wil de verwijdering toch proberen",
     "removing": "Verwijderen...",
-    "builtInSkipped": "{{count}} ingebouwde netwerk(en) overgeslagen (kunnen niet worden verwijderd)",
+    "builtInSkipped_one": "{{count}} ingebouwd netwerk overgeslagen (kan niet worden verwijderd)",
+    "builtInSkipped_other": "{{count}} ingebouwde netwerken overgeslagen (kunnen niet worden verwijderd)",
     "noneEligible": "Geen netwerken komen in aanmerking voor verwijdering."
   },
   "actions": {
@@ -144,7 +244,14 @@
     "connect": "Verbinden",
     "selectContainer": "Container",
     "selectPlaceholder": "Selecteer een container...",
-    "view": "Details bekijken"
+    "view": "Details bekijken",
+    "tabs": {
+      "ariaLabel": "Netwerksecties",
+      "overview": "Overzicht",
+      "containers": "Containers",
+      "configuration": "Configuratie"
+    },
+    "noConfiguration": "Dit netwerk heeft geen eigen opties of labels."
   },
   "keyValue": {
     "removeRow": "Rij verwijderen"
@@ -153,5 +260,15 @@
     "create": {
       "removeSubnet": "Subnet verwijderen"
     }
+  },
+  "recreate": {
+    "errors": {
+      "restored": "Docker weigerde de nieuwe instellingen. Het oorspronkelijke netwerk is hersteld en de containers zijn opnieuw verbonden op hun adressen; er is niets veranderd.",
+      "lost": "Docker weigerde de nieuwe instellingen en het oorspronkelijke netwerk kon niet worden hersteld. De containers zijn nu losgekoppeld: maak het netwerk opnieuw aan en verbind ze weer."
+    },
+    "reconnectFailed_one": "{{count}} container kon niet opnieuw worden verbonden: {{names}}",
+    "reconnectFailed_other": "{{count}} containers konden niet opnieuw worden verbonden: {{names}}",
+    "addressesChanged_one": "{{count}} container kreeg een nieuw adres omdat het oude buiten de nieuwe subnetten valt: {{names}}",
+    "addressesChanged_other": "{{count}} containers kregen nieuwe adressen omdat de oude buiten de nieuwe subnetten vallen: {{names}}"
   }
 }

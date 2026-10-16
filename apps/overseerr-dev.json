@@ -1,0 +1,45 @@
+{
+    "slug":  "overseerr-dev",
+    "name":  "Overseerr (Dev)",
+    "description":  "Dev channel build of Overseerr. Request management and media discovery tool for your Plex ecosystem.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/overseerr:develop",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/overseerr.png",
+    "website":  "https://overseerr.dev",
+    "docsUrl":  "https://docs.overseerr.dev",
+    "ports":  [
+                  {
+                      "host":  6055,
+                      "container":  5055,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/overseerr-dev/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "develop",
+    "latest":  {
+        "version":  "develop",
+        "release_date":  "2026-09-29"
+    }
+}

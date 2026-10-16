@@ -1,0 +1,16 @@
+{
+  "slug": "identity-entra-id",
+  "name": "Microsoft Entra ID",
+  "author": "McSparrow <support@mcsparrow.eu>",
+  "license": "Apache-2.0",
+  "homepage": "https://www.mcharbor.eu/docs/plugins",
+  "description": "Microsoft Entra ID identity provider. OIDC authorization-code flow against the v2.0 endpoints at login.microsoftonline.com plus the Microsoft Graph API for group fetching. Install this plugin to add 'Microsoft Entra ID' as a provider_type in Settings > Security > Identity Providers.",
+  "category": "Identity providers",
+  "icon": "IconBrandAzure",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "download_url": "file:///app/ai-plugin-catalog/identity-entra-id-1.0.0.tar.gz"
+    }
+  ]
+}

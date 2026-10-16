@@ -2,19 +2,12 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@resources/components/ui/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@resources/components/ui/Card';
 import { Label } from '@resources/components/ui/Label';
 import { CronSchedulePreview } from '@resources/components/CronSchedulePreview';
 import { Select, type SelectOption } from '@resources/components/ui/Select';
 import { Switch } from '@resources/components/ui/Switch';
-import type { EnvironmentInfo } from '../hooks/useEnvironments';
-import { SUPPORTED_TIMEZONES } from '../timezones';
+import { SUPPORTED_TIMEZONES } from '@resources/utils/timezones';
 
 function buildTimezoneOptions(): SelectOption[] {
   // Keep the browser out of timezone discovery so frontend choices stay aligned with Go validation.
@@ -49,12 +42,12 @@ function ToggleSettingRow({
       <div className="space-y-1">
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <span className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
             {checked ? statusOn : statusOff}
           </span>
         </div>
         <p className="text-sm text-muted-foreground">{description}</p>
-        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground/80">{hint}</p>
+        <p className="text-xs tracking-[0.14em] text-muted-foreground/80 uppercase">{hint}</p>
       </div>
 
       <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />
@@ -63,7 +56,6 @@ function ToggleSettingRow({
 }
 
 type EnvironmentAutomationTabProps = {
-  env: EnvironmentInfo;
   scheduledUpdateCheckEnabled: boolean;
   automaticImagePruningEnabled: boolean;
   imagePruneDanglingOnly: boolean;
@@ -76,7 +68,6 @@ type EnvironmentAutomationTabProps = {
 };
 
 export function EnvironmentAutomationTab({
-  env,
   scheduledUpdateCheckEnabled,
   automaticImagePruningEnabled,
   imagePruneDanglingOnly,
@@ -89,8 +80,6 @@ export function EnvironmentAutomationTab({
 }: EnvironmentAutomationTabProps) {
   const { t } = useTranslation('environments');
 
-  const isDocker = env.orchestratorType === 'docker';
-
   return (
     <Card>
       <CardHeader>
@@ -98,18 +87,12 @@ export function EnvironmentAutomationTab({
         <CardDescription>{t('detail.automation.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isDocker && (
-          <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-            {t('detail.automation.kubernetesNote')}
-          </div>
-        )}
-
         <ToggleSettingRow
           title={t('detail.automation.scheduledUpdateCheckTitle')}
           description={t('detail.automation.scheduledUpdateCheckDescription')}
           hint={t('detail.automation.scheduledUpdateCheckHint')}
           checked={scheduledUpdateCheckEnabled}
-          disabled={!isDocker || isSaving}
+          disabled={isSaving}
           onCheckedChange={onScheduledUpdateCheckChange}
           statusOn={t('detail.automation.statusOn')}
           statusOff={t('detail.automation.statusOff')}
@@ -120,7 +103,7 @@ export function EnvironmentAutomationTab({
           description={t('detail.automation.automaticImagePruningDescription')}
           hint={t('detail.automation.automaticImagePruningHint')}
           checked={automaticImagePruningEnabled}
-          disabled={!isDocker || isSaving}
+          disabled={isSaving}
           onCheckedChange={onAutomaticImagePruningChange}
           statusOn={t('detail.automation.statusOn')}
           statusOff={t('detail.automation.statusOff')}
@@ -138,7 +121,7 @@ export function EnvironmentAutomationTab({
             </div>
             <Switch
               checked={imagePruneDanglingOnly}
-              disabled={!isDocker || !automaticImagePruningEnabled || isSaving}
+              disabled={!automaticImagePruningEnabled || isSaving}
               onCheckedChange={onImagePruneDanglingOnlyChange}
             />
           </div>
@@ -149,17 +132,16 @@ export function EnvironmentAutomationTab({
             {t('detail.automation.timezoneLabel')}
           </Label>
           <p className="mb-3 text-sm text-muted-foreground">{t('detail.automation.timezoneDescription')}</p>
-          <Select
-            value={timezone}
-            onChange={onTimezoneChange}
-            options={TIMEZONE_OPTIONS}
-            className="max-w-md"
-          />
+          <Select value={timezone} onChange={onTimezoneChange} options={TIMEZONE_OPTIONS} className="max-w-md" />
           <div className="mt-4 space-y-2">
-            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground/80">
+            <p className="text-xs tracking-[0.14em] text-muted-foreground/80 uppercase">
               {t('detail.automation.prunePreviewLabel')}
             </p>
-            <CronSchedulePreview expression="0 3 * * *" timezone={timezone} className="rounded-md border border-border/60 bg-card/60 p-2" />
+            <CronSchedulePreview
+              expression="0 3 * * *"
+              timezone={timezone}
+              className="rounded-md border border-border/60 bg-card/60 p-2"
+            />
           </div>
         </div>
       </CardContent>

@@ -9,26 +9,41 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/client"
+	cerrdefs "github.com/containerd/errdefs"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	"github.com/therealmcsparrow/mcharbor/core/gpu"
+	"github.com/therealmcsparrow/mcharbor/core/hardware"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	"github.com/therealmcsparrow/mcharbor/core/telemetry"
 )
 
 // Handler holds dependencies for metrics HTTP handlers.
 type Handler struct {
 	app     *router.AppDeps
 	service *Service
+	history *HistoryService
+	gpu     *gpu.Reader
+	// hardware enumerates the host's devices for GET /metrics/hardware.
+	// Host-scoped like `gpu`, and for the same reason: sysfs describes the
+	// machine this process runs on, not the selected environment.
+	hardware *hardware.Reader
 }
 
 // NewHandler creates a new metrics handler.
 func NewHandler(app *router.AppDeps) *Handler {
 	svc := NewServiceWithAgent(app.DockerPool, app.AgentPool)
-	return &Handler{app: app, service: svc}
+	return &Handler{
+		app:      app,
+		service:  svc,
+		history:  NewHistoryService(app.DB),
+		gpu:      gpu.NewReader(),
+		hardware: hardware.NewReader(),
+	}
 }
 
 // HandleHostPrune runs a Docker prune operation. The request body must set
@@ -45,7 +60,7 @@ func (h *Handler) HandleHostPrune(w http.ResponseWriter, r *http.Request) {
 
 	var req PruneRequest
 	if err := response.DecodeBody(r, &req); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
 		return
 	}
 	if req.Type == "" {
@@ -56,7 +71,7 @@ func (h *Handler) HandleHostPrune(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.Prune(r.Context(), envID, req)
 	if err != nil {
 		h.app.Logger.Error("host prune failed", "env", envID, "type", req.Type, "error", err)
-		response.BadRequestCode(w, r, i18n.ErrMetricsFailed)
+		response.BadRequestCause(w, r, i18n.ErrMetricsFailed, err)
 		return
 	}
 
@@ -78,6 +93,16 @@ func boolStr(v bool) string {
 	return "false"
 }
 
+// scrapeHandler is built once; promhttp keeps per-handler state that must not be
+// recreated on every scrape.
+var scrapeHandler = telemetry.Handler()
+
+// HandleScrape serves McHarbor's own Prometheus exposition. Unlike the rest of
+// this module it describes the control plane, not containers, and reads only memory.
+func (h *Handler) HandleScrape(w http.ResponseWriter, r *http.Request) {
+	scrapeHandler.ServeHTTP(w, r)
+}
+
 // HandleHostInfo returns host system info and disk usage.
 func (h *Handler) HandleHostInfo(w http.ResponseWriter, r *http.Request) {
 	user := auth.RequireAuth(r)
@@ -90,30 +115,27 @@ func (h *Handler) HandleHostInfo(w http.ResponseWriter, r *http.Request) {
 	info, err := h.service.HostInfo(r.Context(), envID)
 	if err != nil {
 		h.app.Logger.Error("failed to get host info", "error", err, "env", envID)
-		response.InternalErrorCode(w, r, i18n.ErrMetricsHostInfoFailed)
+		response.InternalErrorCause(w, r, i18n.ErrMetricsHostInfoFailed, err)
 		return
 	}
 
 	response.OK(w, info)
 }
 
-// HandleContainerStats returns calculated stats for all running containers.
-func (h *Handler) HandleContainerStats(w http.ResponseWriter, r *http.Request) {
-	user := auth.RequireAuth(r)
-	if user == nil {
+// HandleStatsPath reports how envID's container stats reach McHarbor — pushed by
+// its agent, pulled, or not at all — and why, so a slower environment says so.
+// GET /metrics/stats-path
+func (h *Handler) HandleStatsPath(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
 		return
 	}
-
-	envID := response.ParseEnvID(r)
-	stats, err := h.service.AllContainerStats(r.Context(), envID)
+	envID, err := h.app.DockerPool.ResolveEnvironmentIDContext(r.Context(), response.ParseEnvID(r))
 	if err != nil {
-		h.app.Logger.Error("failed to get container stats", "error", err, "env", envID)
-		response.InternalErrorCode(w, r, i18n.ErrMetricsStatsFailed)
+		response.NotFoundCause(w, r, i18n.ErrEnvNotFound, err)
 		return
 	}
-
-	response.OK(w, stats)
+	response.OK(w, ResolveStatsPath(r.Context(), h.app.DB, h.app.DockerPool, h.app.StatsHub, envID))
 }
 
 // HandleContainerStatsStream streams live container stats via SSE.
@@ -134,7 +156,7 @@ func (h *Handler) HandleContainerStatsStream(w http.ResponseWriter, r *http.Requ
 
 	// Validate container exists and is running before opening SSE stream.
 	if err := h.service.ValidateContainerRunning(r.Context(), envID, containerID); err != nil {
-		if client.IsErrNotFound(err) {
+		if cerrdefs.IsNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrMetricsContainerNotFound)
 			return
 		}
@@ -150,7 +172,9 @@ func (h *Handler) HandleContainerStatsStream(w http.ResponseWriter, r *http.Requ
 
 	// Disable the server write deadline for this long-lived SSE stream.
 	rc := http.NewResponseController(w)
-	_ = rc.SetWriteDeadline(time.Time{})
+	if err := rc.SetWriteDeadline(time.Time{}); err != nil {
+		h.app.Logger.Debug("disabling stats stream write deadline failed", "container", containerID, "error", err)
+	}
 
 	// Set SSE headers
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -160,7 +184,9 @@ func (h *Handler) HandleContainerStatsStream(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 
 	// Send initial connection event
-	fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n")
+	if _, err := fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n"); err != nil {
+		return
+	}
 	flusher.Flush()
 
 	ctx := r.Context()
@@ -173,7 +199,9 @@ func (h *Handler) HandleContainerStatsStream(w http.ResponseWriter, r *http.Requ
 		case err := <-errCh:
 			if err != nil {
 				h.app.Logger.Error("stats stream error", "error", err, "container", containerID)
-				fmt.Fprintf(w, "event: error\ndata: {\"error\":\"%s\"}\n\n", "Stats stream ended")
+				if _, werr := fmt.Fprintf(w, "event: error\ndata: {\"error\":\"%s\"}\n\n", "Stats stream ended"); werr != nil {
+					return
+				}
 				flusher.Flush()
 			}
 			return
@@ -185,7 +213,9 @@ func (h *Handler) HandleContainerStatsStream(w http.ResponseWriter, r *http.Requ
 			if err != nil {
 				continue
 			}
-			fmt.Fprintf(w, "event: stats\ndata: %s\n\n", string(payload))
+			if _, werr := fmt.Fprintf(w, "event: stats\ndata: %s\n\n", string(payload)); werr != nil {
+				return
+			}
 			flusher.Flush()
 		}
 	}

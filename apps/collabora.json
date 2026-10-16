@@ -4,7 +4,7 @@
     "description":  "LibreOffice in the browser for collaborative document editing in Nextcloud and others.",
     "category":  "Documents",
     "image":  "collabora/code:latest",
-    "logo":  "https://icon.horse/icon/www.collaboraoffice.com",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/collabora-online.svg",
     "website":  "https://www.collaboraoffice.com",
     "docsUrl":  "https://www.collaboraoffice.com/code/",
     "ports":  [
@@ -35,5 +35,9 @@
                     }
                 ],
     "minMemory":  "2GB",
-    "version":  "latest"
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-10"
+    }
 }

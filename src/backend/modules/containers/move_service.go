@@ -9,8 +9,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	cerrdefs "github.com/containerd/errdefs"
 	"io"
 	"log/slog"
+	"net"
+	"net/netip"
 	"os"
 	"path"
 	"sort"
@@ -19,14 +22,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/mount"
-	networkTypes "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	networkTypes "github.com/moby/moby/api/types/network"
+	"github.com/moby/moby/client"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
@@ -57,22 +58,23 @@ func (s *Service) MovePlan(ctx context.Context, envID, id string, req MoveContai
 		return MoveContainerPlan{}, fmt.Errorf("target environment must be different from source")
 	}
 
-	sourceCli, err := s.getClient(envID)
+	sourceCli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return MoveContainerPlan{}, err
 	}
-	targetCli, err := s.getClient(req.TargetEnvID)
+	targetCli, err := s.getClient(ctx, req.TargetEnvID)
 	if err != nil {
 		return MoveContainerPlan{}, err
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	opCtx, cancel := context.WithTimeout(ctx, longDockerOpTimeout)
 	defer cancel()
 
-	info, err := sourceCli.ContainerInspect(opCtx, id)
+	infoRes, err := sourceCli.ContainerInspect(opCtx, id, client.ContainerInspectOptions{})
 	if err != nil {
 		return MoveContainerPlan{}, fmt.Errorf("inspecting source container: %w", err)
 	}
+	info := infoRes.Container
 
 	plan, err := s.buildMovePlan(opCtx, envID, req.TargetEnvID, req.TargetName, req.NetworkMode, req.Networks, req.Volumes, sourceCli, targetCli, info)
 	if err != nil {
@@ -137,11 +139,11 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	}
 
 	emitMoveProgress(emit, 1, "connect", "Connecting to Docker environments.", "progress")
-	sourceCli, err := s.getClient(envID)
+	sourceCli, err := s.getClient(ctx, envID)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
-	targetCli, err := s.getClient(req.TargetEnvID)
+	targetCli, err := s.getClient(ctx, req.TargetEnvID)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
@@ -154,9 +156,15 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	}
 
 	emitMoveProgress(emit, 2, "inspect", "Inspecting source container.", "progress")
-	info, err := sourceCli.ContainerInspect(opCtx, id)
+	infoRes, err := sourceCli.ContainerInspect(opCtx, id, client.ContainerInspectOptions{})
 	if err != nil {
 		return MoveContainerResult{}, fmt.Errorf("inspecting source container: %w", err)
+	}
+	info := infoRes.Container
+	// The target container is built from this spec, so moving a socket-mounting container
+	// onto McHarbor's own environment is the same escalation as creating one there.
+	if err := s.checkHostAccess(opCtx, req.TargetEnvID, info.HostConfig); err != nil {
+		return MoveContainerResult{}, err
 	}
 
 	emitMoveProgress(emit, 3, "plan", "Preparing target resources.", "progress")
@@ -172,14 +180,15 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if req.StopSource && info.State != nil && info.State.Running {
 		emitMoveProgress(emit, 4, "stop-source", "Stopping source container before snapshot.", "progress")
 		timeout := 10
-		if err := sourceCli.ContainerStop(opCtx, id, container.StopOptions{Timeout: &timeout}); err != nil {
+		if _, err := sourceCli.ContainerStop(opCtx, id, client.ContainerStopOptions{Timeout: &timeout}); err != nil {
 			return MoveContainerResult{}, fmt.Errorf("stopping source container: %w", err)
 		}
 		result.SourceStopped = true
-		info, err = sourceCli.ContainerInspect(opCtx, id)
+		stopped, err := sourceCli.ContainerInspect(opCtx, id, client.ContainerInspectOptions{})
 		if err != nil {
 			return MoveContainerResult{}, fmt.Errorf("inspecting stopped source container: %w", err)
 		}
+		info = stopped.Container
 	} else {
 		emitMoveProgress(emit, 4, "stop-source", "Source container stop skipped; snapshot will pause the container briefly.", "progress")
 	}
@@ -187,8 +196,8 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if !req.TransferImage {
 		return MoveContainerResult{}, fmt.Errorf("container filesystem data requires image transfer")
 	}
-	if s.pool.IsAgentEnv(req.TargetEnvID) && !s.pool.AgentAtLeast(req.TargetEnvID, moveAgentPullTransferMinVersion) {
-		version, _ := s.pool.AgentVersion(req.TargetEnvID)
+	if s.pool.IsAgentEnvContext(ctx, req.TargetEnvID) && !s.pool.AgentAtLeastContext(ctx, req.TargetEnvID, moveAgentPullTransferMinVersion) {
+		version, _ := s.pool.AgentVersionContext(ctx, req.TargetEnvID)
 		if version == "" {
 			version = "unknown"
 		}
@@ -202,11 +211,12 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	}
 	defer cleanupSnapshot()
 
-	if snapshotSize > 0 {
+	switch {
+	case snapshotSize > 0:
 		emitMoveProgress(emit, 4, "image", "Snapshot image size is "+formatMoveBytes(snapshotSize)+". Large images can take several minutes.", "progress")
-	} else if plan.Image.Size > 0 {
+	case plan.Image.Size > 0:
 		emitMoveProgress(emit, 4, "image", "Base image size is "+formatMoveBytes(plan.Image.Size)+". Snapshot transfer can take several minutes.", "progress")
-	} else {
+	default:
 		emitMoveProgress(emit, 4, "image", "Snapshot image size is unknown. Large images can take several minutes.", "progress")
 	}
 	emitMoveProgress(emit, 4, "image", "Transferring container filesystem snapshot to target.", "progress")
@@ -218,7 +228,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	originalImageRef := moveImageReference(info)
 	if originalImageRef != "" && originalImageRef != snapshotRef {
 		emitMoveProgress(emit, 4, "image", "Tagging snapshot with original image reference.", "progress")
-		if err := targetCli.ImageTag(opCtx, snapshotRef, originalImageRef); err != nil {
+		if _, err := targetCli.ImageTag(opCtx, client.ImageTagOptions{Source: snapshotRef, Target: originalImageRef}); err != nil {
 			slog.Warn("containers: failed to tag transferred snapshot with original image reference", "source", snapshotRef, "target", originalImageRef, "error", err)
 		}
 	}
@@ -245,7 +255,10 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		if !req.CreateMissingVolumes {
 			return MoveContainerResult{}, fmt.Errorf("volume %s is missing on target and creation is disabled", volumePlan.Name)
 		}
-		if err := createTargetVolume(opCtx, sourceCli, targetCli, volumePlan.Name, volumePlan.TargetName); err != nil {
+		checkOpts := func(driver string, opts map[string]string) error {
+			return s.checkVolumeHostAccess(opCtx, req.TargetEnvID, driver, opts)
+		}
+		if err := createTargetVolume(opCtx, sourceCli, targetCli, volumePlan.Name, volumePlan.TargetName, checkOpts); err != nil {
 			return MoveContainerResult{}, err
 		}
 		result.VolumesCreated = append(result.VolumesCreated, volumePlan.TargetName)
@@ -261,15 +274,17 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if creationImageRef == "" {
 		creationImageRef = snapshotRef
 	}
-	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, creationImageRef)
+	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, creationImageRef, nil)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
 	applyMoveVolumeSettings(info, hc, plan.Volumes)
-	applyMoveNetworkSettings(info, hc, netConfig, plan.NetworkMode, req.Networks)
+	if err := applyMoveNetworkSettings(info, hc, netConfig, plan.NetworkMode, req.Networks); err != nil {
+		return MoveContainerResult{}, err
+	}
 
 	emitMoveProgress(emit, 8, "create-target", "Creating target container.", "progress")
-	resp, err := targetCli.ContainerCreate(opCtx, cfg, hc, netConfig, nil, plan.TargetName)
+	resp, err := targetCli.ContainerCreate(opCtx, client.ContainerCreateOptions{Config: cfg, HostConfig: hc, NetworkingConfig: netConfig, Name: plan.TargetName})
 	if err != nil {
 		return MoveContainerResult{}, fmt.Errorf("creating target container: %w", err)
 	}
@@ -292,13 +307,13 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 
 	emitMoveProgress(emit, 10, "finalize", "Finalizing target container.", "progress")
 	if req.StartTarget {
-		if err := targetCli.ContainerStart(opCtx, resp.ID, container.StartOptions{}); err != nil {
+		if _, err := targetCli.ContainerStart(opCtx, resp.ID, client.ContainerStartOptions{}); err != nil {
 			return MoveContainerResult{}, fmt.Errorf("starting target container: %w", err)
 		}
 	}
 
 	if req.RemoveSource {
-		if err := sourceCli.ContainerRemove(opCtx, id, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+		if _, err := sourceCli.ContainerRemove(opCtx, id, client.ContainerRemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
 			return MoveContainerResult{}, fmt.Errorf("removing source container: %w", err)
 		}
 		result.SourceRemoved = true
@@ -326,7 +341,7 @@ func emitMoveProgressBytes(emit moveProgressEmitter, step int, phase, message, s
 	})
 }
 
-func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, targetName, networkMode string, networkConfigs []MoveNetworkConfig, volumeConfigs []MoveVolumeConfig, sourceCli, targetCli *client.Client, info types.ContainerJSON) (MoveContainerPlan, error) {
+func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, targetName, networkMode string, networkConfigs []MoveNetworkConfig, volumeConfigs []MoveVolumeConfig, sourceCli, targetCli *client.Client, info container.InspectResponse) (MoveContainerPlan, error) {
 	containerName := normalizedMoveName(info.Name, info.ID)
 	targetName = normalizedMoveName(targetName, containerName)
 	imageRef := moveImageReference(info)
@@ -415,7 +430,7 @@ func normalizedMoveName(name, fallback string) string {
 	return strings.TrimSpace(strings.TrimPrefix(fallback, "/"))
 }
 
-func moveImageReference(info types.ContainerJSON) string {
+func moveImageReference(info container.InspectResponse) string {
 	if info.Config != nil && strings.TrimSpace(info.Config.Image) != "" {
 		return info.Config.Image
 	}
@@ -426,8 +441,8 @@ func imageExists(ctx context.Context, cli *client.Client, ref string) (bool, err
 	if ref == "" {
 		return false, nil
 	}
-	if _, _, err := cli.ImageInspectWithRaw(ctx, ref); err != nil {
-		if client.IsErrNotFound(err) {
+	if _, err := cli.ImageInspect(ctx, ref); err != nil {
+		if cerrdefs.IsNotFound(err) {
 			return false, nil
 		}
 		return false, fmt.Errorf("inspecting target image %s: %w", ref, err)
@@ -444,7 +459,7 @@ func sourceImageSize(ctx context.Context, cli *client.Client, ref, id string) in
 		if imageRef == "" {
 			continue
 		}
-		info, _, err := cli.ImageInspectWithRaw(ctx, imageRef)
+		info, err := cli.ImageInspect(ctx, imageRef)
 		if err == nil && info.Size > 0 {
 			return info.Size
 		}
@@ -452,24 +467,24 @@ func sourceImageSize(ctx context.Context, cli *client.Client, ref, id string) in
 	return 0
 }
 
-func createMoveSnapshotImage(ctx context.Context, cli *client.Client, info types.ContainerJSON, targetName string) (string, int64, func(), error) {
+func createMoveSnapshotImage(ctx context.Context, cli *client.Client, info container.InspectResponse, targetName string) (string, int64, func(), error) {
 	if info.Config == nil {
 		return "", 0, func() {}, fmt.Errorf("inspected container has no config")
 	}
 
 	ref := moveSnapshotImageRef(info.ID, targetName)
 	cfg := *info.Config
-	commit, err := cli.ContainerCommit(ctx, info.ID, container.CommitOptions{
+	commit, err := cli.ContainerCommit(ctx, info.ID, client.ContainerCommitOptions{
 		Reference: ref,
 		Comment:   "McHarbor container move filesystem snapshot",
 		Author:    "McHarbor",
-		Pause:     info.State != nil && info.State.Running,
+		NoPause:   info.State == nil || !info.State.Running,
 		Config:    &cfg,
 	})
 	cleanup := func() {
-		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), docker.CallTimeout)
 		defer cancel()
-		if _, err := cli.ImageRemove(cleanupCtx, ref, image.RemoveOptions{Force: true, PruneChildren: true}); err != nil && !client.IsErrNotFound(err) {
+		if _, err := cli.ImageRemove(cleanupCtx, ref, client.ImageRemoveOptions{Force: true, PruneChildren: true}); err != nil && !cerrdefs.IsNotFound(err) {
 			slog.Warn("containers: remove temporary move snapshot image failed", "image", ref, "error", err)
 		}
 	}
@@ -537,7 +552,7 @@ func (s *Service) transferImage(ctx context.Context, sourceEnvID, targetEnvID st
 		slog.Warn("target agent pull image transfer unavailable; falling back to host relay", "source_env", sourceEnvID, "target_env", targetEnvID, "error", pullErr)
 	}
 	route := moveTransferRouteDefault
-	if s.pool.IsAgentEnv(sourceEnvID) && s.pool.IsAgentEnv(targetEnvID) {
+	if s.pool.IsAgentEnvContext(ctx, sourceEnvID) && s.pool.IsAgentEnvContext(ctx, targetEnvID) {
 		route = moveTransferRouteAgentHostAgent
 		if !directStarted {
 			emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer unavailable; using McHarbor host relay (agent-host-agent route).", "progress")
@@ -549,17 +564,17 @@ func (s *Service) transferImage(ctx context.Context, sourceEnvID, targetEnvID st
 }
 
 func (s *Service) tryTargetAgentImagePullTransfer(ctx context.Context, sourceEnvID, targetEnvID, ref string, imageSize int64, emit moveProgressEmitter) (bool, error) {
-	if !s.pool.IsAgentEnv(targetEnvID) {
+	if !s.pool.IsAgentEnvContext(ctx, targetEnvID) {
 		return false, nil
 	}
-	if !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
-		version, _ := s.pool.AgentVersion(targetEnvID)
+	if !s.pool.AgentAtLeastContext(ctx, targetEnvID, moveAgentPullTransferMinVersion) {
+		version, _ := s.pool.AgentVersionContext(ctx, targetEnvID)
 		if version == "" {
 			version = "unknown"
 		}
 		return false, fmt.Errorf("target agent %s does not support pull-based move transfers; update mcharbor-agent to %s or newer", version, moveAgentPullTransferMinVersion)
 	}
-	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	targetConn, ok := s.pool.AgentConnectionContext(ctx, targetEnvID)
 	if !ok || targetConn.Transport == nil {
 		return false, nil
 	}
@@ -612,19 +627,22 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 	if sourceEnvID == targetEnvID {
 		return false, nil
 	}
-	if !s.pool.IsAgentEnv(sourceEnvID) || !s.pool.IsAgentEnv(targetEnvID) {
+	if !s.pool.IsAgentEnvContext(ctx, sourceEnvID) || !s.pool.IsAgentEnvContext(ctx, targetEnvID) {
 		return false, nil
 	}
-	if !s.pool.AgentAtLeast(sourceEnvID, moveAgentDirectTransferMinVersion) || !s.pool.AgentAtLeast(targetEnvID, moveAgentDirectTransferMinVersion) {
+	if !s.pool.AgentAtLeastContext(ctx, sourceEnvID, moveAgentDirectTransferMinVersion) || !s.pool.AgentAtLeastContext(ctx, targetEnvID, moveAgentDirectTransferMinVersion) {
 		return false, nil
 	}
 
-	sourceConn, ok := s.pool.AgentConnection(sourceEnvID)
+	sourceConn, ok := s.pool.AgentConnectionContext(ctx, sourceEnvID)
 	if !ok || sourceConn.Transport == nil {
 		return false, nil
 	}
-	targetConn, ok := s.pool.AgentConnection(targetEnvID)
-	if !ok || targetConn.Transport == nil || strings.TrimSpace(targetConn.TransferURL) == "" {
+	targetConn, ok := s.pool.AgentConnectionContext(ctx, targetEnvID)
+	if !ok || targetConn.Transport == nil {
+		return false, nil
+	}
+	if len(targetConn.TransferCandidates) == 0 && strings.TrimSpace(targetConn.TransferURL) == "" {
 		return false, nil
 	}
 
@@ -638,9 +656,14 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 	}
 
 	emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer available; preparing target receiver (agent-to-agent route).", "progress")
-	prepareCtx, prepareCancel := context.WithTimeout(ctx, 30*time.Second)
+	prepareCtx, prepareCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	uploadURL, err := targetConn.Transport.PrepareTransfer(prepareCtx, transferID, token)
 	prepareCancel()
+	if err != nil {
+		targetConn.Transport.CancelTransfer(transferID)
+		return false, nil
+	}
+	uploadURL, err = s.resolveDirectUploadURL(ctx, sourceConn, targetConn, sourceEnvID, uploadURL)
 	if err != nil {
 		targetConn.Transport.CancelTransfer(transferID)
 		return false, nil
@@ -679,6 +702,21 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 	return started, nil
 }
 
+// resolveDirectUploadURL points a prepared receiver URL at an address the source
+// agent can actually reach the target on.
+//
+// The target registered one receiver keyed by transfer ID and bearer token, not
+// by address, so it answers on every address that host has. Choosing the route
+// before streaming means a multi-gigabyte image is never sent at an address
+// that was never going to answer. An error means "use the server relay".
+func (s *Service) resolveDirectUploadURL(ctx context.Context, sourceConn, targetConn *coreagent.AgentConnection, sourceEnvID, uploadURL string) (string, error) {
+	base, err := coreagent.SelectTransferRoute(ctx, sourceConn, targetConn, sourceEnvID)
+	if err != nil {
+		return "", err
+	}
+	return coreagent.RebaseTransferURL(uploadURL, base)
+}
+
 func newMoveTransferToken() (string, error) {
 	var buf [32]byte
 	if _, err := rand.Read(buf[:]); err != nil {
@@ -695,7 +733,7 @@ func newMoveTransferID() (string, error) {
 	return "move-" + hex.EncodeToString(buf[:]), nil
 }
 
-func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.ContainerJSON, configs []MoveVolumeConfig) []MoveVolumePlan {
+func moveVolumePlans(ctx context.Context, targetCli *client.Client, info container.InspectResponse, configs []MoveVolumeConfig) []MoveVolumePlan {
 	configBySource := moveVolumeConfigBySource(configs)
 	plans := make([]MoveVolumePlan, 0, len(info.Mounts))
 	for _, mount := range info.Mounts {
@@ -732,7 +770,7 @@ func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.C
 	return plans
 }
 
-func moveMountType(mountPoint types.MountPoint) string {
+func moveMountType(mountPoint container.MountPoint) string {
 	if mountPoint.Type == mount.TypeVolume || strings.TrimSpace(mountPoint.Name) != "" {
 		return "volume"
 	}
@@ -805,13 +843,13 @@ func targetVolumeExists(ctx context.Context, cli *client.Client, name string) bo
 	if name == "" {
 		return false
 	}
-	if _, err := cli.VolumeInspect(ctx, name); err != nil {
+	if _, err := cli.VolumeInspect(ctx, name, client.VolumeInspectOptions{}); err != nil {
 		return false
 	}
 	return true
 }
 
-func moveNetworkPlans(ctx context.Context, sourceCli, targetCli *client.Client, info types.ContainerJSON, configs []MoveNetworkConfig) []MoveNetworkPlan {
+func moveNetworkPlans(ctx context.Context, sourceCli, targetCli *client.Client, info container.InspectResponse, configs []MoveNetworkConfig) []MoveNetworkPlan {
 	if info.NetworkSettings == nil || len(info.NetworkSettings.Networks) == 0 {
 		return nil
 	}
@@ -827,9 +865,9 @@ func moveNetworkPlans(ctx context.Context, sourceCli, targetCli *client.Client, 
 			ID:               endpoint.NetworkID,
 			Aliases:          endpoint.Aliases,
 			TargetAliases:    nonNilStrings(cfg.Aliases, endpoint.Aliases),
-			IPAddress:        endpoint.IPAddress,
+			IPAddress:        addrString(endpoint.IPAddress),
 			TargetIPAddress:  strings.TrimSpace(cfg.IPAddress),
-			MacAddress:       endpoint.MacAddress,
+			MacAddress:       endpoint.MacAddress.String(),
 			TargetMacAddress: strings.TrimSpace(cfg.MacAddress),
 			Builtin:          isBuiltinNetwork(targetName),
 			Internal:         cfg.Internal,
@@ -838,7 +876,8 @@ func moveNetworkPlans(ctx context.Context, sourceCli, targetCli *client.Client, 
 			Options:          cfg.Options,
 			Labels:           cfg.Labels,
 		}
-		if sourceNet, err := sourceCli.NetworkInspect(ctx, name, networkTypes.InspectOptions{}); err == nil {
+		if inspected, err := sourceCli.NetworkInspect(ctx, name, client.NetworkInspectOptions{}); err == nil {
+			sourceNet := inspected.Network
 			plan.Driver = firstNonEmpty(cfg.Driver, sourceNet.Driver, "bridge")
 			plan.Internal = sourceNet.Internal
 			plan.Attachable = sourceNet.Attachable
@@ -858,7 +897,7 @@ func moveNetworkPlans(ctx context.Context, sourceCli, targetCli *client.Client, 
 		}
 		if plan.Builtin {
 			plan.Exists = true
-		} else if _, err := targetCli.NetworkInspect(ctx, targetName, networkTypes.InspectOptions{}); err == nil {
+		} else if _, err := targetCli.NetworkInspect(ctx, targetName, client.NetworkInspectOptions{}); err == nil {
 			plan.Exists = true
 		}
 		plan.WillCreate = !plan.Exists && !plan.Builtin
@@ -916,20 +955,20 @@ func isBuiltinNetwork(name string) bool {
 	}
 }
 
-func movePortPlans(info types.ContainerJSON) []MovePortPlan {
+func movePortPlans(info container.InspectResponse) []MovePortPlan {
 	if info.NetworkSettings == nil || len(info.NetworkSettings.Ports) == 0 {
 		return nil
 	}
 	ports := make([]MovePortPlan, 0)
 	for port, bindings := range info.NetworkSettings.Ports {
 		if len(bindings) == 0 {
-			ports = append(ports, MovePortPlan{ContainerPort: string(port)})
+			ports = append(ports, MovePortPlan{ContainerPort: port.String()})
 			continue
 		}
 		for _, binding := range bindings {
 			ports = append(ports, MovePortPlan{
-				ContainerPort: string(port),
-				HostIP:        binding.HostIP,
+				ContainerPort: port.String(),
+				HostIP:        addrString(binding.HostIP),
 				HostPort:      binding.HostPort,
 			})
 		}
@@ -940,7 +979,7 @@ func movePortPlans(info types.ContainerJSON) []MovePortPlan {
 	return ports
 }
 
-func moveWarnings(info types.ContainerJSON) []string {
+func moveWarnings(info container.InspectResponse) []string {
 	warnings := make([]string, 0)
 	if info.State != nil && info.State.Running {
 		warnings = append(warnings, "The source container is running; stop it during the move for consistent volume data.")
@@ -988,7 +1027,11 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 	if err != nil {
 		return fmt.Errorf("exporting image %s: %w", ref, err)
 	}
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
 	archiveFile, err := os.CreateTemp("", "mcharbor-image-move-*.tar")
 	if err != nil {
@@ -1042,14 +1085,18 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 		}
 		return fmt.Errorf("loading image %s: %w", ref, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Close(); err != nil {
+			slog.Warn("closing resp failed", "error", err)
+		}
+	}()
 	transferred := targetProgress.bytes.Load()
 	if transferred > 0 {
 		displayTotal := moveProgressTotalBytes(transferred, archiveSize)
 		emitMoveProgressBytes(emit, 4, "image", moveRelayTargetProgressFormatter(route)(transferred, displayTotal), "progress", transferred, displayTotal)
 	}
 	emitMoveProgress(emit, 4, "image", moveRelayAcceptedMessage(route), "progress")
-	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+	if _, err := io.Copy(io.Discard, resp); err != nil {
 		return fmt.Errorf("reading image load response: %w", err)
 	}
 	emitMoveProgress(emit, 4, "image", moveRelayFinishedMessage(route), "progress")
@@ -1204,15 +1251,16 @@ func moveProgressTotalBytes(transferred, total int64) int64 {
 }
 
 func createTargetNetwork(ctx context.Context, sourceCli, targetCli *client.Client, plan MoveNetworkPlan) error {
-	sourceNet, err := sourceCli.NetworkInspect(ctx, plan.SourceName, networkTypes.InspectOptions{})
+	sourceNetRes, err := sourceCli.NetworkInspect(ctx, plan.SourceName, client.NetworkInspectOptions{})
 	if err != nil {
 		return fmt.Errorf("inspecting source network %s: %w", plan.SourceName, err)
 	}
+	sourceNet := sourceNetRes.Network
 	ipam := sourceNet.IPAM
 	if plan.IPAM != nil {
 		ipam = *plan.IPAM
 	}
-	opts := networkTypes.CreateOptions{
+	opts := client.NetworkCreateOptions{
 		Driver:     firstNonEmpty(plan.Driver, sourceNet.Driver),
 		Internal:   plan.Internal,
 		Attachable: plan.Attachable,
@@ -1226,7 +1274,7 @@ func createTargetNetwork(ctx context.Context, sourceCli, targetCli *client.Clien
 	return nil
 }
 
-func effectiveMoveNetworkMode(info types.ContainerJSON, requested string, configs []MoveNetworkConfig) string {
+func effectiveMoveNetworkMode(info container.InspectResponse, requested string, configs []MoveNetworkConfig) string {
 	if strings.TrimSpace(requested) != "" {
 		return strings.TrimSpace(requested)
 	}
@@ -1241,12 +1289,12 @@ func effectiveMoveNetworkMode(info types.ContainerJSON, requested string, config
 	return mode
 }
 
-func applyMoveNetworkSettings(info types.ContainerJSON, hc *container.HostConfig, netConfig *networkTypes.NetworkingConfig, networkMode string, configs []MoveNetworkConfig) {
+func applyMoveNetworkSettings(info container.InspectResponse, hc *container.HostConfig, netConfig *networkTypes.NetworkingConfig, networkMode string, configs []MoveNetworkConfig) error {
 	if hc != nil && strings.TrimSpace(networkMode) != "" {
 		hc.NetworkMode = container.NetworkMode(strings.TrimSpace(networkMode))
 	}
 	if netConfig == nil || len(netConfig.EndpointsConfig) == 0 {
-		return
+		return nil
 	}
 	configBySource := moveNetworkConfigBySource(configs)
 	endpoints := make(map[string]*networkTypes.EndpointSettings, len(netConfig.EndpointsConfig))
@@ -1258,23 +1306,32 @@ func applyMoveNetworkSettings(info types.ContainerJSON, hc *container.HostConfig
 			if cfg.Aliases != nil {
 				endpoint.Aliases = cfg.Aliases
 			}
-			if strings.TrimSpace(cfg.MacAddress) != "" {
-				endpoint.MacAddress = strings.TrimSpace(cfg.MacAddress)
+			if mac := strings.TrimSpace(cfg.MacAddress); mac != "" {
+				hw, err := net.ParseMAC(mac)
+				if err != nil {
+					return fmt.Errorf("network %s mac address %q: %w", sourceName, mac, err)
+				}
+				endpoint.MacAddress = networkTypes.HardwareAddr(hw)
 			}
-			if strings.TrimSpace(cfg.IPAddress) != "" {
+			if ip := strings.TrimSpace(cfg.IPAddress); ip != "" {
+				addr, err := netip.ParseAddr(ip)
+				if err != nil {
+					return fmt.Errorf("network %s ip address %q: %w", sourceName, ip, err)
+				}
 				if endpoint.IPAMConfig == nil {
 					endpoint.IPAMConfig = &networkTypes.EndpointIPAMConfig{}
 				}
-				endpoint.IPAMConfig.IPv4Address = strings.TrimSpace(cfg.IPAddress)
+				endpoint.IPAMConfig.IPv4Address = addr
 			}
 		}
 		endpoints[targetName] = endpoint
 	}
 	netConfig.EndpointsConfig = endpoints
 	_ = info
+	return nil
 }
 
-func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig, volumePlans []MoveVolumePlan) {
+func applyMoveVolumeSettings(info container.InspectResponse, hc *container.HostConfig, volumePlans []MoveVolumePlan) {
 	if hc == nil {
 		return
 	}
@@ -1325,7 +1382,7 @@ func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig,
 	}
 }
 
-func moveTargetMount(info types.ContainerJSON, volumePlan MoveVolumePlan) (mount.Mount, bool) {
+func moveTargetMount(info container.InspectResponse, volumePlan MoveVolumePlan) (mount.Mount, bool) {
 	targetDestination := cleanContainerPath(volumePlan.TargetDestination)
 	if targetDestination == "" {
 		return mount.Mount{}, false
@@ -1367,11 +1424,11 @@ func moveVolumePlansByDestination(volumePlans []MoveVolumePlan) map[string]MoveV
 	return result
 }
 
-func moveVolumeReadWrite(info types.ContainerJSON, plan MoveVolumePlan) bool {
+func moveVolumeReadWrite(info container.InspectResponse, plan MoveVolumePlan) bool {
 	return moveMountReadWrite(info, plan)
 }
 
-func moveMountReadWrite(info types.ContainerJSON, plan MoveVolumePlan) bool {
+func moveMountReadWrite(info container.InspectResponse, plan MoveVolumePlan) bool {
 	for _, mountPoint := range info.Mounts {
 		if string(mountPoint.Type) != plan.Type || path.Clean(mountPoint.Destination) != path.Clean(plan.Destination) {
 			continue
@@ -1401,12 +1458,20 @@ func bindMountDestination(bind string) string {
 	return ""
 }
 
-func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client, sourceName, targetName string) error {
-	sourceVolume, err := sourceCli.VolumeInspect(ctx, sourceName)
+func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client, sourceName, targetName string, check func(driver string, opts map[string]string) error) error {
+	sourceVolumeRes, err := sourceCli.VolumeInspect(ctx, sourceName, client.VolumeInspectOptions{})
 	if err != nil {
 		return fmt.Errorf("inspecting source volume %s: %w", sourceName, err)
 	}
-	_, err = targetCli.VolumeCreate(ctx, volume.CreateOptions{
+	sourceVolume := sourceVolumeRes.Volume
+	// The copy keeps the source driver options, and a local bind option there is a host bind
+	// on the target, so it is checked like a new container spec.
+	if check != nil {
+		if err := check(sourceVolume.Driver, sourceVolume.Options); err != nil {
+			return err
+		}
+	}
+	_, err = targetCli.VolumeCreate(ctx, client.VolumeCreateOptions{
 		Name:       firstNonEmpty(targetName, sourceVolume.Name),
 		Driver:     sourceVolume.Driver,
 		DriverOpts: sourceVolume.Options,
@@ -1419,7 +1484,7 @@ func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client
 }
 
 func (s *Service) copyContainerPath(ctx context.Context, sourceEnvID, targetEnvID string, sourceCli, targetCli *client.Client, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) error {
-	if s.pool.IsAgentEnv(sourceEnvID) && s.pool.IsAgentEnv(targetEnvID) {
+	if s.pool.IsAgentEnvContext(ctx, sourceEnvID) && s.pool.IsAgentEnvContext(ctx, targetEnvID) {
 		started, err := s.tryDirectAgentArchiveTransfer(ctx, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label, emit)
 		if err == nil && started {
 			return nil
@@ -1431,7 +1496,7 @@ func (s *Service) copyContainerPath(ctx context.Context, sourceEnvID, targetEnvI
 			slog.Warn("direct agent archive transfer unavailable; trying target pull route", "source_env", sourceEnvID, "target_env", targetEnvID, "error", err)
 		}
 	}
-	if s.pool.IsAgentEnv(targetEnvID) {
+	if s.pool.IsAgentEnvContext(ctx, targetEnvID) {
 		started, err := s.tryTargetAgentArchivePullTransfer(ctx, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label, emit)
 		if err == nil && started {
 			return nil
@@ -1445,28 +1510,36 @@ func (s *Service) copyContainerPath(ctx context.Context, sourceEnvID, targetEnvI
 	}
 
 	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
-	reader, _, err := sourceCli.CopyFromContainer(ctx, sourceID, sourceCopyPath)
+	readerRes, err := sourceCli.CopyFromContainer(ctx, sourceID, client.CopyFromContainerOptions{SourcePath: sourceCopyPath})
 	if err != nil {
 		return fmt.Errorf("copying from source path %s: %w", sourcePath, err)
 	}
-	defer reader.Close()
+	reader := readerRes.Content
+	defer func() {
+		if err := reader.Close(); err != nil {
+			slog.Warn("closing reader failed", "error", err)
+		}
+	}()
 
-	if err := targetCli.CopyToContainer(ctx, targetID, targetPath, reader, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false}); err != nil {
+	if _, err := targetCli.CopyToContainer(ctx, targetID, client.CopyToContainerOptions{DestinationPath: targetPath, Content: reader, AllowOverwriteDirWithFile: false}); err != nil {
 		return fmt.Errorf("copying to target path %s: %w", targetPath, err)
 	}
 	return nil
 }
 
 func (s *Service) tryDirectAgentArchiveTransfer(ctx context.Context, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) (bool, error) {
-	if !s.pool.AgentAtLeast(sourceEnvID, moveAgentPullTransferMinVersion) || !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
+	if !s.pool.AgentAtLeastContext(ctx, sourceEnvID, moveAgentPullTransferMinVersion) || !s.pool.AgentAtLeastContext(ctx, targetEnvID, moveAgentPullTransferMinVersion) {
 		return false, nil
 	}
-	sourceConn, ok := s.pool.AgentConnection(sourceEnvID)
+	sourceConn, ok := s.pool.AgentConnectionContext(ctx, sourceEnvID)
 	if !ok || sourceConn.Transport == nil {
 		return false, nil
 	}
-	targetConn, ok := s.pool.AgentConnection(targetEnvID)
-	if !ok || targetConn.Transport == nil || strings.TrimSpace(targetConn.TransferURL) == "" {
+	targetConn, ok := s.pool.AgentConnectionContext(ctx, targetEnvID)
+	if !ok || targetConn.Transport == nil {
+		return false, nil
+	}
+	if len(targetConn.TransferCandidates) == 0 && strings.TrimSpace(targetConn.TransferURL) == "" {
 		return false, nil
 	}
 
@@ -1480,9 +1553,14 @@ func (s *Service) tryDirectAgentArchiveTransfer(ctx context.Context, sourceEnvID
 	}
 	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
 
-	prepareCtx, prepareCancel := context.WithTimeout(ctx, 30*time.Second)
+	prepareCtx, prepareCancel := context.WithTimeout(ctx, docker.CallTimeout)
 	uploadURL, err := targetConn.Transport.PrepareArchiveTransfer(prepareCtx, transferID, token, targetID, targetPath)
 	prepareCancel()
+	if err != nil {
+		targetConn.Transport.CancelTransfer(transferID)
+		return false, nil
+	}
+	uploadURL, err = s.resolveDirectUploadURL(ctx, sourceConn, targetConn, sourceEnvID, uploadURL)
 	if err != nil {
 		targetConn.Transport.CancelTransfer(transferID)
 		return false, nil
@@ -1517,14 +1595,14 @@ func (s *Service) tryDirectAgentArchiveTransfer(ctx context.Context, sourceEnvID
 }
 
 func (s *Service) tryTargetAgentArchivePullTransfer(ctx context.Context, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) (bool, error) {
-	if !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
-		version, _ := s.pool.AgentVersion(targetEnvID)
+	if !s.pool.AgentAtLeastContext(ctx, targetEnvID, moveAgentPullTransferMinVersion) {
+		version, _ := s.pool.AgentVersionContext(ctx, targetEnvID)
 		if version == "" {
 			version = "unknown"
 		}
 		return false, fmt.Errorf("target agent %s does not support pull-based move transfers; update mcharbor-agent to %s or newer", version, moveAgentPullTransferMinVersion)
 	}
-	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	targetConn, ok := s.pool.AgentConnectionContext(ctx, targetEnvID)
 	if !ok || targetConn.Transport == nil {
 		return false, nil
 	}

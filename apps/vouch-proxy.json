@@ -1,0 +1,53 @@
+{
+    "slug":  "vouch-proxy",
+    "name":  "Vouch Proxy",
+    "description":  "Lightweight SSO authentication proxy that adds OAuth2/OIDC login in front of nginx for any web app.",
+    "category":  "Identity & SSO",
+    "image":  "voucher/vouch-proxy:latest",
+    "logo":  "https://www.google.com/s2/favicons?domain=github.com\u0026sz=128",
+    "website":  "https://github.com/vouch/vouch-proxy",
+    "docsUrl":  "https://github.com/vouch/vouch-proxy#configuration",
+    "ports":  [
+                  {
+                      "host":  9090,
+                      "container":  9090,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vouch-proxy/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OAUTH_CLIENT_ID",
+                        "default":  "change-me",
+                        "description":  "OAuth2 client ID registered with the upstream identity provider",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "OAUTH_CLIENT_SECRET",
+                        "default":  "change-me",
+                        "description":  "OAuth2 client secret registered with the upstream identity provider",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "VOUCH_JWT_SECRET",
+                        "default":  "change-me",
+                        "description":  "Secret used to sign Vouch's session JWT",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

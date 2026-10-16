@@ -17,11 +17,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/types/events"
-	dockerclient "github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/events"
+	dockerclient "github.com/moby/moby/client"
 
+	"github.com/therealmcsparrow/mcharbor/core/nodelink"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/quiesce"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	"github.com/therealmcsparrow/mcharbor/core/telemetry"
 )
 
 // TriggerService watches Docker events and auto-triggers matching workflows.
@@ -37,6 +40,22 @@ type TriggerService struct {
 	cronFired  sync.Map // key: "workflowID:nodeID" -> value: time bucket string
 	fileStates sync.Map // key: "workflowID:nodeID:path" -> value: fileWatchState
 	tagStates  sync.Map // key: "workflowID:nodeID:image" -> value: registry digest
+
+	coordinator triggerCoordinator
+	nodeID      string
+	hasCoord    bool
+
+	// fires relays plugin trigger fires to the workflow-trigger leader (trigger_forward.go).
+	fires *fireRelay
+	// startRun starts one triggered run in the background; tests replace it to count runs.
+	startRun func(ctx context.Context, workflowID, triggerNodeID, envID string, triggerMsg Msg)
+}
+
+// triggerCoordinator is the subset of the cluster coordinator needed by the
+// automatic workflow trigger runtime.
+type triggerCoordinator interface {
+	LeaderOf(ctx context.Context, name string) bool
+	NodeID() string
 }
 
 type fileWatchState struct {
@@ -50,6 +69,14 @@ type fileWatchStorageLocation struct {
 	Name         string
 	LocationType string
 	BasePath     string
+}
+
+// SetPluginNodeExecutor propagates the plugin node bridge to all workflow service instances.
+func (ts *TriggerService) SetPluginNodeExecutor(executor PluginNodeExecutor) {
+	ts.service.SetPluginNodeExecutor(executor)
+	if ts.handler != nil {
+		ts.handler.service.SetPluginNodeExecutor(executor)
+	}
 }
 
 // SetCustomExecutor propagates the custom node executor to all workflow service instances.
@@ -95,27 +122,51 @@ func (ts *TriggerService) SetStorageLocationRuntime(r StorageLocationReader) {
 	}
 }
 
+// SetStorageObjectRuntime propagates the storage-object runtime adapter to workflow services.
+func (ts *TriggerService) SetStorageObjectRuntime(r StorageObjectOperator) {
+	ts.service.SetStorageObjectRuntime(r)
+	if ts.handler != nil {
+		ts.handler.service.SetStorageObjectRuntime(r)
+	}
+}
+
 // NewTriggerService creates a new background trigger service.
 func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
-	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption), app.Config.DataDir, app.BackupCrypto)
-	return &TriggerService{
+	dispatcher := corenotify.NewDispatcher(app.DB, app.Encryption).SetPluginRuntime(app.PluginAdapters)
+	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, dispatcher, app.Config.DataDir, app.BackupCrypto)
+	ts := &TriggerService{
 		app:     app,
 		hub:     hub,
 		service: svc,
 		logger:  app.Logger.With("component", "workflow-trigger"),
 	}
+	if registered, ok := app.LookupService("coordinator"); ok {
+		if coord, ok := registered.(triggerCoordinator); ok {
+			ts.coordinator = coord
+			ts.nodeID = coord.NodeID()
+			ts.hasCoord = true
+		}
+	}
+	if app.NodeLink != nil {
+		ts.fires = newFireRelay(app.NodeLink, app.DB)
+		app.NodeLink.SetTriggerFireReceiver(ts)
+	} else {
+		ts.fires = newFireRelay(nil, app.DB)
+	}
+	return ts
 }
 
 // Start begins listening for Docker events and metric polling in the background.
 func (ts *TriggerService) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	ts.cancel = cancel
-	ts.wg.Add(5)
+	ts.wg.Add(6)
 	go ts.run(ctx)
 	go ts.runMetricWatcher(ctx)
 	go ts.runTimeWatcher(ctx)
 	go ts.runFileWatcher(ctx)
 	go ts.runRegistryTagWatcher(ctx)
+	go ts.runFireLedgerPrune(ctx)
 	ts.logger.Info("workflow trigger service started")
 }
 
@@ -123,6 +174,9 @@ func (ts *TriggerService) Start() {
 func (ts *TriggerService) Stop() {
 	if ts.cancel != nil {
 		ts.cancel()
+	}
+	if ts.fires != nil {
+		ts.fires.close()
 	}
 	ts.wg.Wait()
 	ts.logger.Info("workflow trigger service stopped")
@@ -135,7 +189,7 @@ func (ts *TriggerService) run(ctx context.Context) {
 	watching := make(map[string]bool)
 
 	for {
-		envIDs, err := ts.service.ListActiveDockerEnvIDs()
+		envIDs, err := ts.service.ListActiveDockerEnvIDs(ctx)
 		if err != nil {
 			ts.logger.Error("workflow trigger: query environments error", "error", err)
 		}
@@ -176,13 +230,17 @@ func (ts *TriggerService) watchEnv(ctx context.Context, envID string) {
 }
 
 func (ts *TriggerService) listen(ctx context.Context, envID string) {
-	cli, err := ts.app.DockerPool.Get(envID)
+	cli, err := ts.app.DockerPool.GetContext(ctx, envID)
 	if err != nil {
 		ts.logger.Warn("workflow trigger: cannot get docker client", "error", err, "env", envID)
 		return
 	}
 
-	eventsCh, errCh := cli.Events(ctx, events.ListOptions{})
+	// No context.WithTimeout: the trigger watcher subscribes to the Docker
+	// event stream for the lifetime of the workflow engine. ctx is cancelled
+	// on shutdown, which is the bound that applies.
+	eventStream := cli.Events(ctx, dockerclient.EventsListOptions{})
+	eventsCh, errCh := eventStream.Messages, eventStream.Err
 
 	for {
 		select {
@@ -224,6 +282,11 @@ func dockerEventStreamClosed(ctx context.Context, err error) bool {
 }
 
 func (ts *TriggerService) handleDockerEvent(ctx context.Context, evt events.Message, envID string) {
+	if !ts.leaderFor(ctx) {
+		ts.logger.Debug("workflow trigger: not leader for docker event; skipping", "node", ts.nodeID)
+		return
+	}
+
 	activeWorkflows, err := ts.service.ListActiveWorkflows(ctx)
 	if err != nil {
 		ts.logger.Error("docker event trigger: query error", "error", err)
@@ -235,6 +298,7 @@ func (ts *TriggerService) handleDockerEvent(ctx context.Context, evt events.Mess
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		blockedNodeIDs := blockedNodeMap(canvas)
 		for _, node := range canvas.Nodes {
@@ -250,6 +314,11 @@ func (ts *TriggerService) handleDockerEvent(ctx context.Context, evt events.Mess
 }
 
 func (ts *TriggerService) handleContainerHealthEvent(ctx context.Context, evt events.Message, envID string) {
+	if !ts.leaderFor(ctx) {
+		ts.logger.Debug("workflow trigger: not leader for container health event; skipping", "node", ts.nodeID)
+		return
+	}
+
 	health := containerHealthFromEvent(evt)
 	if health == "" {
 		return
@@ -268,10 +337,11 @@ func (ts *TriggerService) handleContainerHealthEvent(ctx context.Context, evt ev
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		blockedNodeIDs := blockedNodeMap(canvas)
 		for _, node := range canvas.Nodes {
-			if node.Action != "container-health-trigger" || node.Disabled || blockedNodeIDs[node.ID] {
+			if !isContainerTrigger(&node, "health") || node.Disabled || blockedNodeIDs[node.ID] {
 				continue
 			}
 			cfgContainer, _ := node.Config["container"].(string)
@@ -316,6 +386,11 @@ func blockedNodeMap(canvas CanvasData) map[string]bool {
 }
 
 func (ts *TriggerService) handleContainerEvent(ctx context.Context, cli *dockerclient.Client, evt events.Message, envID string) {
+	if !ts.leaderFor(ctx) {
+		ts.logger.Debug("workflow trigger: not leader for container event; skipping", "node", ts.nodeID)
+		return
+	}
+
 	action := string(evt.Action)
 	// Normalize action: Docker may include suffixes like "exec_start: /bin/bash"
 	if idx := strings.Index(action, ":"); idx != -1 {
@@ -337,6 +412,7 @@ func (ts *TriggerService) handleContainerEvent(ctx context.Context, cli *dockerc
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		// Build set of blocked node IDs
 		blockedNodeIDs := make(map[string]bool)
@@ -349,7 +425,7 @@ func (ts *TriggerService) handleContainerEvent(ctx context.Context, cli *dockerc
 		}
 
 		for _, node := range canvas.Nodes {
-			if node.Action != "container-status-trigger" {
+			if !isContainerTrigger(&node, "status") {
 				continue
 			}
 			if node.Disabled || blockedNodeIDs[node.ID] {
@@ -409,7 +485,7 @@ func (ts *TriggerService) executeWorkflowWithOutput(ctx context.Context, workflo
 		ts.hub.Publish(workflowID, ExecutionEvent{Event: event, Data: payload})
 	}
 
-	wf, err := ts.service.Get(workflowID)
+	wf, err := ts.service.Get(ctx, workflowID)
 	if err != nil {
 		ts.logger.Error("workflow trigger: load error", "error", err, "workflow", workflowID)
 		return
@@ -427,8 +503,116 @@ func (ts *TriggerService) executeWorkflowWithOutput(ctx context.Context, workflo
 		FallbackEnvID: envID,
 	}, emit)
 
-	ts.service.RecordRun(workflowID, "auto", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
+	ts.service.RecordRun(ctx, workflowID, "auto", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
 	ts.logger.Info("workflow trigger: execution completed", "workflow", workflowID)
+}
+
+// PluginTriggerBinding is one placement of a plugin trigger node on an
+// active workflow. Exposed to internal/bootstrap, which bridges it to
+// the plugin runtime.
+type PluginTriggerBinding struct {
+	WorkflowID string
+	NodeID     string
+	Config     map[string]interface{}
+}
+
+// PluginTriggerBindings lists every enabled, unblocked node with the
+// given `plugin:<slug>:<key>` action across active workflows.
+func (ts *TriggerService) PluginTriggerBindings(ctx context.Context, actionKey string) ([]PluginTriggerBinding, error) {
+	activeWorkflows, err := ts.service.ListActiveWorkflows(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PluginTriggerBinding, 0, 8)
+	for _, aw := range activeWorkflows {
+		var canvas CanvasData
+		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
+			continue
+		}
+		blockedNodeIDs := blockedNodeMap(canvas)
+		for _, node := range canvas.Nodes {
+			if ts.service.resolveAction(node.Action) != actionKey || node.Disabled || blockedNodeIDs[node.ID] {
+				continue
+			}
+			cfg := node.Config
+			if cfg == nil {
+				cfg = map[string]interface{}{}
+			}
+			out = append(out, PluginTriggerBinding{WorkflowID: aw.ID, NodeID: node.ID, Config: cfg})
+		}
+	}
+	return out, nil
+}
+
+// FirePluginTrigger is the host's own entry to the plugin trigger path, for the
+// action keys named in hostFireActions (the ITSM status trigger); any other key is refused.
+func (ts *TriggerService) FirePluginTrigger(ctx context.Context, actionKey string, payload map[string]interface{}, match func(PluginTriggerBinding) bool) (int, error) {
+	return ts.fireFrom(ctx, FireSourceHost, actionKey, payload, match)
+}
+
+// FirePluginTriggerFor fires on behalf of plugin slug, which may only fire its own
+// `plugin:<slug>:` action keys; the leader re-checks a forwarded fire the same way.
+func (ts *TriggerService) FirePluginTriggerFor(ctx context.Context, slug, actionKey string, payload map[string]interface{}, match func(PluginTriggerBinding) bool) (int, error) {
+	if slug == FireSourceHost {
+		return 0, fmt.Errorf("%w: %q is reserved for the host", nodelink.ErrFireNotAllowed, slug)
+	}
+	return ts.fireFrom(ctx, slug, actionKey, payload, match)
+}
+
+// fireFrom starts every active workflow whose trigger node with the given
+// action accepts the event. The runs execute in the background exactly
+// like a Docker event trigger; the count of runs started is returned so
+// the caller can log it. On a node that does not lead the workflow
+// trigger the match runs here and the matched bindings are forwarded to
+// the leader, which starts them once.
+func (ts *TriggerService) fireFrom(ctx context.Context, source, actionKey string, payload map[string]interface{}, match func(PluginTriggerBinding) bool) (int, error) {
+	if err := fireAllowed(source, actionKey); err != nil {
+		return 0, err
+	}
+	bindings, err := ts.PluginTriggerBindings(ctx, actionKey)
+	if err != nil {
+		return 0, err
+	}
+	matched := make([]PluginTriggerBinding, 0, len(bindings))
+	for _, b := range bindings {
+		if match == nil || match(b) {
+			matched = append(matched, b)
+		}
+	}
+	if len(matched) == 0 {
+		return 0, nil
+	}
+	if !ts.leaderFor(ctx) {
+		return ts.forwardPluginFire(ctx, source, actionKey, payload, matched)
+	}
+	return ts.startPluginRuns(ctx, actionKey, payload, matched), nil
+}
+
+// startPluginRuns starts one background run per binding and returns how many started.
+func (ts *TriggerService) startPluginRuns(ctx context.Context, actionKey string, payload map[string]interface{}, bindings []PluginTriggerBinding) int {
+	run := ts.startRun
+	if run == nil {
+		run = ts.executeWorkflowWithOutput
+	}
+	key := actionKey[strings.LastIndex(actionKey, ":")+1:]
+	for _, b := range bindings {
+		envID, _ := b.Config["environment"].(string)
+		triggerMsg := NewMsg(payload)
+		triggerMsg["topic"] = key
+		// The background context: the plugin's ctx is typically its
+		// watcher's, and a run must not be cancelled because the event
+		// stream that produced it reconnected.
+		// goroutine lifecycle: the run ends when its flow completes, bounded by each node's own timeout.
+		go run(context.WithoutCancel(ctx), b.WorkflowID, b.NodeID, envID, triggerMsg)
+	}
+	return len(bindings)
+}
+
+// ActiveDockerEnvIDs exposes the Docker environments the trigger
+// service itself watches, for plugin watchers that subscribe per
+// environment.
+func (ts *TriggerService) ActiveDockerEnvIDs(ctx context.Context) ([]string, error) {
+	return ts.service.ListActiveDockerEnvIDs(ctx)
 }
 
 // triggerLinkInWorkflows finds all workflows with link-in nodes referencing the
@@ -447,6 +631,7 @@ func (ts *TriggerService) triggerLinkInWorkflows(ctx context.Context, sourceWork
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		for _, node := range canvas.Nodes {
 			if node.Action != "link-in" || node.Disabled {
@@ -479,7 +664,7 @@ func (ts *TriggerService) executeLinkInWorkflow(ctx context.Context, workflowID,
 		ts.hub.Publish(workflowID, ExecutionEvent{Event: event, Data: payload})
 	}
 
-	wf, err := ts.service.Get(workflowID)
+	wf, err := ts.service.Get(ctx, workflowID)
 	if err != nil || wf == nil {
 		return
 	}
@@ -491,7 +676,7 @@ func (ts *TriggerService) executeLinkInWorkflow(ctx context.Context, workflowID,
 		StartInputMsg: storedMsg,
 	}, emit)
 
-	ts.service.RecordRun(workflowID, "link", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
+	ts.service.RecordRun(ctx, workflowID, "link", result.Status, result.DurationMs, result.NodesExecuted, result.Error)
 	ts.logger.Info("link-in auto-execution completed", "workflow", workflowID)
 }
 
@@ -512,7 +697,11 @@ func (ts *TriggerService) runMetricWatcher(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			ts.checkMetricTriggers(ctx, lastChecked)
+			if !ts.leaderFor(ctx) {
+				ts.logger.Debug("workflow metric watcher: not leader this tick; skipping", "node", ts.nodeID)
+				continue
+			}
+			quiesce.Run(func() { ts.checkMetricTriggers(ctx, lastChecked) })
 		}
 	}
 }
@@ -540,6 +729,7 @@ func (ts *TriggerService) checkMetricTriggers(ctx context.Context, lastChecked m
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		// Build blocked node IDs
 		blockedNodeIDs := make(map[string]bool)
@@ -607,7 +797,7 @@ func (ts *TriggerService) checkMetricTriggers(ctx context.Context, lastChecked m
 		go func(sk statsKey) {
 			defer wg.Done()
 
-			cli, err := ts.app.DockerPool.Get(sk.envID)
+			cli, err := ts.app.DockerPool.GetContext(ctx, sk.envID)
 			if err != nil {
 				ts.logger.Warn("metric watcher: docker client error", "error", err, "env", sk.envID)
 				return
@@ -733,7 +923,11 @@ func (ts *TriggerService) runTimeWatcher(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			ts.checkTimeTriggers(ctx)
+			if !ts.leaderFor(ctx) {
+				ts.logger.Debug("workflow time watcher: not leader this tick; skipping", "node", ts.nodeID)
+				continue
+			}
+			quiesce.Run(func() { ts.checkTimeTriggers(ctx) })
 		}
 	}
 }
@@ -751,6 +945,7 @@ func (ts *TriggerService) checkTimeTriggers(ctx context.Context) {
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		blockedNodeIDs := make(map[string]bool)
 		for _, g := range canvas.Groups {
@@ -766,7 +961,7 @@ func (ts *TriggerService) checkTimeTriggers(ctx context.Context) {
 			if node.Disabled || blockedNodeIDs[node.ID] {
 				continue
 			}
-			if node.Action != "schedule-trigger" && node.Action != "cron-trigger" {
+			if node.Action != "schedule-trigger" {
 				continue
 			}
 
@@ -776,11 +971,9 @@ func (ts *TriggerService) checkTimeTriggers(ctx context.Context) {
 			}
 
 			runAt := nowUTC
-			if node.Action == "cron-trigger" {
-				if tz, _ := node.Config["timezone"].(string); strings.TrimSpace(tz) != "" {
-					if loc, err := time.LoadLocation(tz); err == nil {
-						runAt = nowUTC.In(loc)
-					}
+			if tz, _ := node.Config["timezone"].(string); strings.TrimSpace(tz) != "" {
+				if loc, err := time.LoadLocation(tz); err == nil {
+					runAt = nowUTC.In(loc)
 				}
 			}
 
@@ -794,6 +987,7 @@ func (ts *TriggerService) checkTimeTriggers(ctx context.Context) {
 				continue
 			}
 			ts.cronFired.Store(key, bucket)
+			telemetry.ScheduleFired("workflow", nowUTC.Truncate(time.Minute))
 
 			triggerMsg := NewMsg(map[string]interface{}{
 				"trigger":       strings.TrimSuffix(node.Action, "-trigger"),
@@ -804,11 +998,7 @@ func (ts *TriggerService) checkTimeTriggers(ctx context.Context) {
 				"unix":          nowUTC.Unix(),
 				"autoTriggered": true,
 			})
-			if node.Action == "schedule-trigger" {
-				triggerMsg["topic"] = "schedule"
-			} else {
-				triggerMsg["topic"] = "cron"
-			}
+			triggerMsg["topic"] = "schedule"
 
 			go ts.executeWorkflowWithOutput(ctx, aw.ID, node.ID, "", triggerMsg)
 		}
@@ -826,7 +1016,11 @@ func (ts *TriggerService) runFileWatcher(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			ts.checkFileWatchTriggers(ctx)
+			if !ts.leaderFor(ctx) {
+				ts.logger.Debug("workflow file watcher: not leader this tick; skipping", "node", ts.nodeID)
+				continue
+			}
+			quiesce.Run(func() { ts.checkFileWatchTriggers(ctx) })
 		}
 	}
 }
@@ -843,6 +1037,7 @@ func (ts *TriggerService) checkFileWatchTriggers(ctx context.Context) {
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		blockedNodeIDs := make(map[string]bool)
 		for _, g := range canvas.Groups {
@@ -1010,14 +1205,15 @@ func detectFileWatchEvent(previous, current fileWatchState) string {
 	}
 }
 
+// matchesFileWatchEvent accepts the multiselect array the editor stores
+// as well as the comma-separated string older workflows carry.
 func matchesFileWatchEvent(raw interface{}, eventType string) bool {
-	value, _ := raw.(string)
-	if strings.TrimSpace(value) == "" {
+	wanted := configStringSlice(raw)
+	if len(wanted) == 0 {
 		return true
 	}
-	parts := strings.Split(value, ",")
-	for _, part := range parts {
-		if strings.EqualFold(strings.TrimSpace(part), eventType) {
+	for _, part := range wanted {
+		if strings.EqualFold(part, eventType) {
 			return true
 		}
 	}
@@ -1035,9 +1231,20 @@ func (ts *TriggerService) runRegistryTagWatcher(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			if !ts.leaderFor(ctx) {
+				ts.logger.Debug("workflow registry tag watcher: not leader this tick; skipping", "node", ts.nodeID)
+				continue
+			}
 			ts.checkRegistryTagTriggers(ctx)
 		}
 	}
+}
+
+func (ts *TriggerService) leaderFor(ctx context.Context) bool {
+	if !ts.hasCoord {
+		return true
+	}
+	return ts.coordinator.LeaderOf(ctx, "workflow-trigger")
 }
 
 func (ts *TriggerService) checkRegistryTagTriggers(ctx context.Context) {
@@ -1053,6 +1260,7 @@ func (ts *TriggerService) checkRegistryTagTriggers(ctx context.Context) {
 		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
 			continue
 		}
+		normalizeLegacyNodes(&canvas)
 
 		blockedNodeIDs := blockedNodeMap(canvas)
 		for _, node := range canvas.Nodes {

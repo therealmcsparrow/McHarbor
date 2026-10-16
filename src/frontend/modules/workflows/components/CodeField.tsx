@@ -40,7 +40,7 @@ export function CodeField({ field, value, onChange, language, fieldLabel }: Code
         <Button
           variant="ghost"
           size="icon"
-          aria-label={t('expand')}
+          aria-label={t('actions.expand')}
           className="size-6"
           onClick={() => setModalOpen(true)}
         >
@@ -57,22 +57,14 @@ export function CodeField({ field, value, onChange, language, fieldLabel }: Code
       />
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-4xl h-[75vh] p-0">
+        <DialogContent className="h-[75vh] max-w-4xl p-0">
           <DialogHeader>
             <DialogTitle>{fieldLabel}</DialogTitle>
-            <DialogDescription className="sr-only">
-              {fieldLabel}
-            </DialogDescription>
+            <DialogDescription className="sr-only">{fieldLabel}</DialogDescription>
           </DialogHeader>
           <DialogBody className="p-0">
             <div className="min-h-0 px-4 py-2">
-              <CodeEditor
-                value={value}
-                onChange={onChange}
-                language={language}
-                minHeight="100%"
-                className="h-full"
-              />
+              <CodeEditor value={value} onChange={onChange} language={language} minHeight="100%" className="h-full" />
             </div>
           </DialogBody>
         </DialogContent>

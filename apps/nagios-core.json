@@ -1,0 +1,54 @@
+{
+    "slug":  "nagios-core",
+    "name":  "Nagios Core",
+    "description":  "Classic IT infrastructure and network monitoring engine with a web dashboard for hosts and services.",
+    "category":  "Monitoring",
+    "image":  "jasonrivers/nagios:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nagios.png",
+    "website":  "https://www.nagios.org",
+    "docsUrl":  "https://www.nagios.org/documentation/",
+    "ports":  [
+                  {
+                      "host":  8082,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nagios-core/etc",
+                        "container":  "/opt/nagios/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/nagios-core/var",
+                        "container":  "/opt/nagios/var"
+                    },
+                    {
+                        "host":  "/opt/appdata/nagios-core/plugins-custom",
+                        "container":  "/opt/nagios/libexec/custom"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NAGIOSADMIN_USER",
+                        "default":  "nagiosadmin",
+                        "description":  "Web UI administrator username"
+                    },
+                    {
+                        "key":  "NAGIOSADMIN_PASS",
+                        "default":  "change-me",
+                        "description":  "Web UI administrator password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}

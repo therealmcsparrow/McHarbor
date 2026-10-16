@@ -1,4 +1,4 @@
 {
-  "label": "Manual Trigger",
-  "description": "Start a workflow manually from the editor or run panel"
+  "label": "Manueller Auslöser",
+  "description": "Einen Workflow manuell über den Editor oder das Ausführungspanel starten"
 }

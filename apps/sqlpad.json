@@ -1,0 +1,46 @@
+{
+    "slug":  "sqlpad",
+    "name":  "SQLPad",
+    "description":  "Web-based SQL editor for running queries and building charts against Postgres, MySQL and other databases.",
+    "category":  "Developer Tools",
+    "image":  "sqlpad/sqlpad:latest",
+    "logo":  "https://github.com/sqlpad.png",
+    "website":  "https://getsqlpad.com",
+    "docsUrl":  "https://getsqlpad.com/en/install-docker/",
+    "ports":  [
+                  {
+                      "host":  3011,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sqlpad/data",
+                        "container":  "/var/lib/sqlpad"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SQLPAD_ADMIN",
+                        "default":  "admin@example.com",
+                        "description":  "Initial admin email"
+                    },
+                    {
+                        "key":  "SQLPAD_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest",
+    "latest":  {
+        "version":  "latest",
+        "release_date":  "2026-09-29"
+    }
+}
