@@ -87,10 +87,5 @@ src/**/.cursorrules
 src/**/.cursor/
 src/**/AI-*.md
 
-# Sanity baselines
-!/.instructions/
-/.instructions/*
-!/.instructions/sanity/
-/.instructions/sanity/*
-!/.instructions/sanity/baselines/
+/.instructions/
 /src/agent/mcharbor-agent
