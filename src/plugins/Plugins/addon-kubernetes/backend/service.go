@@ -256,6 +256,10 @@ func classifyConnectError(err error) SummaryReason {
 		return ReasonNoEnvironment
 	case errors.Is(err, ErrNotACluster):
 		return ReasonNotKubernetes
+	case errors.Is(err, errKubeconfigUnsafe):
+		return ReasonCredentialsRefused
+	case errors.Is(err, errAPIUnverified):
+		return ReasonAPIUnverified
 	default:
 		return ReasonUnreachable
 	}

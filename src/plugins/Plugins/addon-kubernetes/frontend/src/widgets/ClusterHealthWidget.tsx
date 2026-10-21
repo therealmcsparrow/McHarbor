@@ -7,17 +7,17 @@
 // each land on the page that explains them.
 
 import { useTranslation } from 'react-i18next';
-import { IconAlertTriangle, IconCloudOff, IconHexagons } from '@tabler/icons-react';
+import { IconAlertTriangle, IconHexagons } from '@tabler/icons-react';
 import {
   SegmentBar,
   WidgetBadge,
-  WidgetEmpty,
   WidgetFrame,
   WidgetLoading,
   WidgetTile,
   type Tone,
 } from '@modules/dashboard/components/widget-kit';
 import { list } from '../format';
+import { DisconnectedWidget } from './DisconnectedWidget';
 import { useWidgetContext } from './mount';
 import { PLUGIN_PATH, podBuckets, readyParts, useSummaryWidget } from './useSummaryWidget';
 
@@ -35,15 +35,9 @@ export function ClusterHealthWidget() {
     );
   }
   if (isError || !summary || !summary.connected) {
-    const reason = summary?.reason;
     return (
       <WidgetFrame title={t('widgets.clusterHealth.title')}>
-        <WidgetEmpty
-          tone={reason === 'unreachable' ? 'danger' : 'neutral'}
-          icon={<IconCloudOff className="size-5" aria-hidden="true" />}
-          title={reason === 'unreachable' ? t('widgets.common.unreachable') : t('widgets.common.notConfigured')}
-          hint={t('widgets.common.openHint')}
-        />
+        <DisconnectedWidget reason={summary?.reason} />
       </WidgetFrame>
     );
   }

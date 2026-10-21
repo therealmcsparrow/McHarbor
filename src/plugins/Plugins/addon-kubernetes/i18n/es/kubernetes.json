@@ -126,7 +126,9 @@
     "reason": {
       "no_environment": "Aún no hay ningún clúster de Kubernetes configurado. Añade uno en la página Entornos para ver recursos aquí.",
       "not_kubernetes": "El entorno seleccionado es un host de Docker, no un clúster de Kubernetes. Elige un clúster arriba.",
-      "unreachable": "No se pudo conectar con el clúster. Comprueba que el servidor de API esté activo y que las credenciales sigan siendo válidas."
+      "unreachable": "No se pudo conectar con el clúster. Comprueba que el servidor de API esté activo y que las credenciales sigan siendo válidas.",
+      "credentials_refused": "Las credenciales guardadas usan un plugin exec o un archivo del host de McHarbor, lo cual no está permitido. Edita el clúster y pega un kubeconfig con los datos de certificado y token incluidos.",
+      "api_unverified": "La dirección respondió, pero no como un servidor de API de Kubernetes. Comprueba la URL del servidor del clúster."
     }
   },
   "groups": {
@@ -380,6 +382,8 @@
       "loading": "Leyendo clúster…",
       "notConfigured": "Ningún clúster conectado",
       "unreachable": "Clúster inaccesible",
+      "credentialsRefused": "Credenciales rechazadas",
+      "apiUnverified": "No es una API de Kubernetes",
       "openHint": "Abre Kubernetes para añadir o reparar una conexión de clúster",
       "more": "{{count}} más"
     }

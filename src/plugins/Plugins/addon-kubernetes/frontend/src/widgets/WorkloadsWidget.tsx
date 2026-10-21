@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconCloudOff, IconTopologyStar3 } from '@tabler/icons-react';
+import { IconTopologyStar3 } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
 import { cssVars } from '@resources/utils/cssVars';
 import {
@@ -23,6 +23,7 @@ import {
   type Tone,
 } from '@modules/dashboard/components/widget-kit';
 import { list } from '../format';
+import { DisconnectedWidget } from './DisconnectedWidget';
 import { useWidgetContext } from './mount';
 import { PLUGIN_PATH, readyParts, useSummaryWidget } from './useSummaryWidget';
 
@@ -67,10 +68,7 @@ export function WorkloadsWidget() {
       {isLoading ? (
         <WidgetLoading label={t('widgets.common.loading')} />
       ) : !summary?.connected ? (
-        <WidgetEmpty
-          icon={<IconCloudOff className="size-5" aria-hidden="true" />}
-          title={t('widgets.common.notConfigured')}
-        />
+        <DisconnectedWidget reason={summary?.reason} withHint={false} />
       ) : rows.length === 0 ? (
         <WidgetEmpty
           icon={<IconTopologyStar3 className="size-5" aria-hidden="true" />}

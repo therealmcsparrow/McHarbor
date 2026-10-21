@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconAlertTriangle, IconCloudOff, IconInfoCircle } from '@tabler/icons-react';
+import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import {
   IconTile,
   ROW_HEIGHT,
@@ -19,6 +19,7 @@ import {
   useFittedRows,
 } from '@modules/dashboard/components/widget-kit';
 import { list } from '../format';
+import { DisconnectedWidget } from './DisconnectedWidget';
 import { useWidgetContext } from './mount';
 import { PLUGIN_PATH, useSummaryWidget } from './useSummaryWidget';
 
@@ -69,10 +70,7 @@ export function EventsWidget() {
       {isLoading ? (
         <WidgetLoading label={t('widgets.common.loading')} />
       ) : !summary?.connected ? (
-        <WidgetEmpty
-          icon={<IconCloudOff className="size-5" aria-hidden="true" />}
-          title={t('widgets.common.notConfigured')}
-        />
+        <DisconnectedWidget reason={summary?.reason} withHint={false} />
       ) : rows.length === 0 ? (
         <WidgetEmpty
           tone="success"

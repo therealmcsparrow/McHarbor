@@ -55,7 +55,7 @@ func guardCluster(t *testing.T) *httptest.Server {
 		Data:       map[string]string{"DB_PASSWORD": guardSecrets[3], "LOG_LEVEL": "info"},
 	}
 	routes := map[string]any{
-		"/version":                            map[string]string{"gitVersion": "v1.37.0"},
+		"/version":                            map[string]string{"major": "1", "minor": "37", "gitVersion": "v1.37.0"},
 		"/api/v1/pods":                        corev1.PodList{Items: []corev1.Pod{pod}},
 		"/api/v1/namespaces/default/pods/web": pod,
 		"/apis/apps/v1/deployments":           appsv1.DeploymentList{Items: []appsv1.Deployment{deployment}},

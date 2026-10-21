@@ -126,7 +126,9 @@
     "reason": {
       "no_environment": "Er is nog geen Kubernetes-cluster geconfigureerd. Voeg er een toe op de pagina Omgevingen om hier resources te zien.",
       "not_kubernetes": "De geselecteerde omgeving is een Docker-host, geen Kubernetes-cluster. Kies hierboven een cluster.",
-      "unreachable": "Het cluster is niet bereikbaar. Controleer of de API-server draait en of de gegevens nog geldig zijn."
+      "unreachable": "Het cluster is niet bereikbaar. Controleer of de API-server draait en of de gegevens nog geldig zijn.",
+      "credentials_refused": "De opgeslagen inloggegevens gebruiken een exec-plugin of een bestand op de McHarbor-host, wat niet is toegestaan. Bewerk het cluster en plak een kubeconfig met ingesloten certificaat- en tokengegevens.",
+      "api_unverified": "Het adres reageerde, maar niet als een Kubernetes API-server. Controleer de server-URL van het cluster."
     }
   },
   "groups": {
@@ -380,6 +382,8 @@
       "loading": "Cluster lezen…",
       "notConfigured": "Geen cluster verbonden",
       "unreachable": "Cluster onbereikbaar",
+      "credentialsRefused": "Inloggegevens geweigerd",
+      "apiUnverified": "Geen Kubernetes-API",
       "openHint": "Open Kubernetes om een clusterverbinding toe te voegen of te herstellen",
       "more": "{{count}} meer"
     }

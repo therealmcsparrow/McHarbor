@@ -211,6 +211,9 @@ func (s *clusterStore) create(ctx context.Context, in ClusterInput) (Cluster, er
 	if name == "" {
 		return Cluster{}, fmt.Errorf("cluster name is required")
 	}
+	if err := guardKubeconfigInput(in.Kubeconfig); err != nil {
+		return Cluster{}, err
+	}
 	kubeconfig, err := s.encrypt(deref(in.Kubeconfig))
 	if err != nil {
 		return Cluster{}, fmt.Errorf("encrypting kubeconfig: %w", err)
@@ -261,6 +264,9 @@ func (s *clusterStore) create(ctx context.Context, in ClusterInput) (Cluster, er
 // update applies a partial change. Nil credential fields are left as stored.
 func (s *clusterStore) update(ctx context.Context, id string, in ClusterInput) (Cluster, error) {
 	if _, err := s.get(ctx, id); err != nil {
+		return Cluster{}, err
+	}
+	if err := guardKubeconfigInput(in.Kubeconfig); err != nil {
 		return Cluster{}, err
 	}
 

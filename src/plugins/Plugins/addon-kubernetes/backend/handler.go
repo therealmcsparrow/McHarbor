@@ -220,6 +220,11 @@ func (p *KubernetesPlugin) clusterError(w http.ResponseWriter, r *http.Request, 
 		fail(w, http.StatusNotFound, codeClusterNotFound)
 		return
 	}
+	if errors.Is(err, errKubeconfigUnsafe) {
+		p.logErr(msg, err)
+		failCause(w, r, http.StatusBadRequest, codeClusterInvalid, err)
+		return
+	}
 	if errors.Is(err, errBadEnvironmentID) {
 		fail(w, http.StatusBadRequest, codeClusterInvalid)
 		return

@@ -8,7 +8,12 @@ export type Row = Record<string, unknown>;
  * sentence so the message can be translated client-side. Mirrors the
  * SummaryReason constants in `modules/kubernetes/model.go`.
  */
-export type SummaryReason = 'no_environment' | 'not_kubernetes' | 'unreachable';
+export type SummaryReason =
+  | 'no_environment'
+  | 'not_kubernetes'
+  | 'unreachable'
+  | 'credentials_refused'
+  | 'api_unverified';
 
 export type KubernetesSummary = {
   connected: boolean;

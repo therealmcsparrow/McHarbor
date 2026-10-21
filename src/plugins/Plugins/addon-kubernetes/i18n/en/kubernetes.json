@@ -126,7 +126,9 @@
     "reason": {
       "no_environment": "No Kubernetes cluster is configured yet. Add one on the Environments page to see resources here.",
       "not_kubernetes": "The selected environment is a Docker host, not a Kubernetes cluster. Pick a cluster above.",
-      "unreachable": "The cluster could not be reached. Check that the API server is up and the credentials are still valid."
+      "unreachable": "The cluster could not be reached. Check that the API server is up and the credentials are still valid.",
+      "credentials_refused": "The stored credentials use an exec plugin or a file on the McHarbor host, which is not allowed. Edit the cluster and paste a kubeconfig with inline certificate and token data.",
+      "api_unverified": "The address answered, but not like a Kubernetes API server. Check the server URL of the cluster."
     }
   },
   "groups": {
@@ -380,6 +382,8 @@
       "loading": "Reading cluster…",
       "notConfigured": "No cluster connected",
       "unreachable": "Cluster unreachable",
+      "credentialsRefused": "Credentials refused",
+      "apiUnverified": "Not a Kubernetes API",
       "openHint": "Open Kubernetes to add or repair a cluster connection",
       "more": "{{count}} more"
     }

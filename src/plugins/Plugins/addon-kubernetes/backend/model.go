@@ -15,6 +15,10 @@ const (
 	ReasonNotKubernetes SummaryReason = "not_kubernetes"
 	// ReasonUnreachable — the environment is a cluster, but the connection failed.
 	ReasonUnreachable SummaryReason = "unreachable"
+	// ReasonCredentialsRefused marks a stored connection that names an exec plugin, auth provider, proxy or host file, none of which McHarbor honours.
+	ReasonCredentialsRefused SummaryReason = "credentials_refused"
+	// ReasonAPIUnverified marks an address that answered with a 2xx but not with a Kubernetes /version document.
+	ReasonAPIUnverified SummaryReason = "api_unverified"
 )
 
 type Summary struct {

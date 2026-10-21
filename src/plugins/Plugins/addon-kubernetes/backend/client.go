@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"k8s.io/client-go/kubernetes"
 
@@ -33,10 +34,15 @@ var (
 // handle. What did not change is the caching contract — client-go dials
 // lazily, so a cached clientset is cheap and a dead cluster is only
 // discovered on the first real call.
+//
+// Get additionally gates every clientset on a cached /version probe, so no
+// caller reads from an address that is not a Kubernetes API server.
 type ClientPool struct {
 	mu      sync.RWMutex
 	clients map[string]*kubernetes.Clientset
+	trust   map[string]*apiTrust
 	store   *clusterStore
+	now     func() time.Time
 }
 
 // NewClientPool creates a Kubernetes client pool backed by the plugin's own
@@ -44,11 +50,15 @@ type ClientPool struct {
 func NewClientPool(store *clusterStore) *ClientPool {
 	return &ClientPool{
 		clients: make(map[string]*kubernetes.Clientset),
+		trust:   make(map[string]*apiTrust),
 		store:   store,
+		now:     time.Now,
 	}
 }
 
-// Get returns a Kubernetes clientset for the given cluster ID.
+// Get returns a Kubernetes clientset for the given cluster ID, once the cluster has
+// answered a real /version probe within versionProbeTTL. An address that answers 2xx
+// without a Kubernetes version document yields errAPIUnverified and no clientset.
 func (p *ClientPool) Get(ctx context.Context, clusterID string) (*kubernetes.Clientset, error) {
 	resolved, err := p.ResolveClusterID(ctx, clusterID)
 	if err != nil {
@@ -56,29 +66,44 @@ func (p *ClientPool) Get(ctx context.Context, clusterID string) (*kubernetes.Cli
 	}
 	clusterID = resolved
 
+	cs, trust, err := p.entry(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	if err := trust.ensure(ctx, func(ctx context.Context) error { return probeAPIServer(ctx, cs) }); err != nil {
+		return nil, fmt.Errorf("verifying Kubernetes cluster %s: %w", clusterID, err)
+	}
+	return cs, nil
+}
+
+// entry returns the cached clientset and its trust, building both on first use.
+func (p *ClientPool) entry(ctx context.Context, clusterID string) (*kubernetes.Clientset, *apiTrust, error) {
 	p.mu.RLock()
 	if c, ok := p.clients[clusterID]; ok {
+		t := p.trust[clusterID]
 		p.mu.RUnlock()
-		return c, nil
+		return c, t, nil
 	}
 	p.mu.RUnlock()
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if c, ok := p.clients[clusterID]; ok {
-		return c, nil
+		return c, p.trust[clusterID], nil
 	}
 
 	conn, err := p.store.connection(ctx, clusterID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	c, err := conn.createClient()
+	trust := newAPITrust(p.now)
+	c, err := conn.createClientFor(trust)
 	if err != nil {
-		return nil, fmt.Errorf("creating Kubernetes client for cluster %s: %w", clusterID, err)
+		return nil, nil, fmt.Errorf("creating Kubernetes client for cluster %s: %w", clusterID, err)
 	}
 	p.clients[clusterID] = c
-	return c, nil
+	p.trust[clusterID] = trust
+	return c, trust, nil
 }
 
 // ResolveClusterID resolves empty/default aliases to the default cluster.
@@ -96,6 +121,7 @@ func (p *ClientPool) Remove(clusterID string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	delete(p.clients, clusterID)
+	delete(p.trust, clusterID)
 }
 
 // Close clears all cached Kubernetes clientsets.
@@ -104,6 +130,9 @@ func (p *ClientPool) Close() {
 	defer p.mu.Unlock()
 	for id := range p.clients {
 		delete(p.clients, id)
+	}
+	for id := range p.trust {
+		delete(p.trust, id)
 	}
 }
 

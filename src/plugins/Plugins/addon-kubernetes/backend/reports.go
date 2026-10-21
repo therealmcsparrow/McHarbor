@@ -432,6 +432,10 @@ func reasonText(reason SummaryReason) string {
 		return "the selected target is not a Kubernetes cluster"
 	case ReasonUnreachable:
 		return "the cluster's API server did not answer"
+	case ReasonCredentialsRefused:
+		return "the stored kubeconfig uses credentials that are not inline data"
+	case ReasonAPIUnverified:
+		return "the address answered, but not as a Kubernetes API server"
 	}
 	return "the cluster could not be read"
 }
