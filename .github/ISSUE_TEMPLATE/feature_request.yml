@@ -1,0 +1,59 @@
+name: "Feature request (McHarbor)"
+description: "Suggest a change or a new option for McHarbor, its remote agent or a plugin."
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the idea. Describe the problem first. A clear problem makes it easier to judge a proposal.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Before you submit"
+      options:
+        - label: "I searched the existing issues and discussions and found no similar request."
+          required: true
+        - label: "This is not a security issue. Security problems go to security@mcsparrow.eu, not this form."
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Which part of McHarbor is this about?"
+      options:
+        - "McHarbor itself (web interface or API)"
+        - "Remote agent"
+        - "A plugin, or a new plugin"
+        - "The mcharbor command-line tool"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "What problem would this solve?"
+      description: "Describe what you cannot do today, or what gets in the way."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: "What would you like to happen?"
+      description: "Describe the change or new option. Name the page, setting or plugin if it applies."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives you have tried or considered"
+
+  - type: textarea
+    id: who_benefits
+    attributes:
+      label: "Who benefits?"
+      description: "Describe the people or the setup this helps, for example a homelab with a few hosts or a team running several clusters."

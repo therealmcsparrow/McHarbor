@@ -1,0 +1,128 @@
+name: "Bug report (McHarbor)"
+description: "Something in McHarbor, its remote agent or a plugin does not work as expected."
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Fill in every part of this form. A report without the version, the build and the McHarbor log is hard to act on.
+
+        Do not report security problems here. Email security@mcsparrow.eu, as the security policy at https://github.com/therealmcsparrow/McHarbor/security/policy describes.
+
+        Never paste real credentials, API keys, agent tokens, kubeconfigs or certificates into this form.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Before you submit"
+      description: "Tick every box. The form is for problems you can reproduce on the latest release."
+      options:
+        - label: "I searched the existing issues and found no report of this problem."
+          required: true
+        - label: "I am on the latest McHarbor release, and any plugin involved is on its latest version in the Plugin Store."
+          required: true
+        - label: "I cleared the browser cache and did a hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on macOS)."
+          required: true
+        - label: "I removed every credential, token, key and private host name from what I paste below."
+          required: true
+        - label: "This is not a security issue. Security problems go to security@mcsparrow.eu, not this form."
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "McHarbor version and build"
+      description: "Settings → Updates, or the VERSION and BUILD files."
+      placeholder: "for example 2026.10.01, build 202610211757"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: "How is McHarbor deployed?"
+      options:
+        - "Docker container"
+        - "Native Linux package (.deb, .rpm or tarball)"
+        - "Other (describe it in the steps)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Where does the problem happen?"
+      options:
+        - "McHarbor itself (web interface or API)"
+        - "Remote agent on another host"
+        - "A plugin"
+        - "The mcharbor command-line tool"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: component_version
+    attributes:
+      label: "Agent or plugin name and version"
+      description: "Only if the problem involves the remote agent or a plugin. The Plugin Store shows the plugin version."
+      placeholder: "for example Kubernetes plugin 2026.10.02"
+
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment being managed"
+      description: "Docker version, or the Kubernetes or Swarm version if a cluster is involved, and the host operating system."
+      placeholder: "for example Docker 28.1 on Debian 12"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: "Browser and version"
+      description: "Only if the problem is in the web interface."
+      placeholder: "for example Firefox 140 on Windows 11"
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: "What happened?"
+      description: "Describe the problem and what you see. Name the page, setting or action if it applies."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "What did you expect to happen?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to reproduce"
+      description: "Numbered steps from a clean start to the problem."
+      placeholder: |
+        1. Open Containers in the environment "Home".
+        2. Select ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "McHarbor log"
+      description: "Reproduce the problem, then copy the lines around it from `docker logs mcharbor`, or from `journalctl -u mcharbor` on a native install. Remove any secrets first."
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Screenshots or screen recording"
+      description: "Drag files into this box. Blur host names, IP addresses and tokens you do not want to share."
