@@ -25,6 +25,8 @@ tsconfig.tsbuildinfo
 !/agents/VERSION
 # Secrets
 /signing/*
+!/signing/plugin-signing.pub
+!/signing/busybox-vda.linux.asc
 /secrets/*
 
 # Test output
@@ -76,6 +78,8 @@ cookies.txt
 !/scripts/sanity/
 !/scripts/hooks/
 !/scripts/lint/
+!/scripts/development/
+/scripts/development/output/
 .tmp_c.jar
 
 # AI-Sanity
