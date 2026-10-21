@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@resources/components/ui/Dialog';
+import { ErrorState } from '@resources/components/ui/ErrorState';
 import { Label } from '@resources/components/ui/Label';
 import { NumberInput } from '@resources/components/ui/NumberInput';
 import { Spinner } from '@resources/components/ui/Spinner';
@@ -113,7 +114,13 @@ export function NarrationSettingsDialog({
           <DialogTitle>{t('settings.title')}</DialogTitle>
           <DialogDescription>{t('settings.description')}</DialogDescription>
         </DialogHeader>
-        {settings.data ? <Form settings={settings.data} onDone={() => onOpenChange(false)} /> : <Spinner />}
+        {settings.data ? (
+          <Form settings={settings.data} onDone={() => onOpenChange(false)} />
+        ) : settings.isError ? (
+          <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />
+        ) : (
+          <Spinner />
+        )}
       </DialogContent>
     </Dialog>
   );

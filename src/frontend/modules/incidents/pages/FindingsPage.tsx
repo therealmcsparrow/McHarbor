@@ -8,13 +8,12 @@ import { IconArrowLeft, IconEyeOff, IconSparkles } from '@tabler/icons-react';
 import type { ColumnDef } from '@resources/components/table-features';
 import { TablePage } from '@resources/layout/TablePage';
 import type { SearchMode } from '@resources/utils/search-filter';
-import { Alert } from '@resources/components/ui/Alert';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { formatBytes, timeAgo } from '@resources/utils/format';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { PERM } from '@core/auth/permissionKeys';
-import { reasonOf } from '@resources/hooks/useIncidents';
+import { RefusalAlert } from '../components/RefusalAlert';
 import { type Finding, useDismissFinding, useExplainFinding, useFindings } from '../hooks/useNarrationSettings';
 
 function firstNumber(f: Finding): number | null {
@@ -61,7 +60,7 @@ export default function FindingsPage() {
   const dismiss = useDismissFinding();
   const [query, setQuery] = useState('');
   const [searchMode, setSearchMode] = useState<SearchMode>('contains');
-  const reason = reasonOf(explain.error);
+  const [explainedEnvId, setExplainedEnvId] = useState<string | null>(null);
 
   const columns = useMemo<ColumnDef<Finding, unknown>[]>(
     () => [
@@ -119,7 +118,10 @@ export default function FindingsPage() {
               aria-label={t('findings.explain')}
               title={t('findings.explain')}
               disabled={explain.isPending}
-              onClick={() => explain.mutate(row.original.id)}
+              onClick={() => {
+                setExplainedEnvId(row.original.envId);
+                explain.mutate(row.original.id);
+              }}
             >
               <IconSparkles className="h-4 w-4" />
             </Button>
@@ -143,7 +145,7 @@ export default function FindingsPage() {
 
   return (
     <>
-      {explain.error && <Alert variant="destructive">{reason ? t(`refusal.${reason}`) : explain.error.message}</Alert>}
+      {explain.error && <RefusalAlert error={explain.error} envId={explainedEnvId} />}
       <TablePage
         id="incident-findings"
         title={t('findings.title')}

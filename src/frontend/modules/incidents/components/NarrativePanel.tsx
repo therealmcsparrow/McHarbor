@@ -11,7 +11,8 @@ import { Disclosure } from '@resources/components/ui/Disclosure';
 import { StatusError } from '@resources/components/ui/StatusError';
 import { PERM } from '@core/auth/permissionKeys';
 import { formatDate } from '@resources/utils/format';
-import { type Confidence, type Incident, reasonOf, useNarrate } from '@resources/hooks/useIncidents';
+import { type Confidence, type Incident, useNarrate } from '@resources/hooks/useIncidents';
+import { RefusalAlert } from './RefusalAlert';
 
 const CONFIDENCE_VARIANT: Record<Confidence, 'secondary' | 'warning' | 'success'> = {
   low: 'secondary',
@@ -25,7 +26,6 @@ export function NarrativePanel({ incident }: { incident: Incident }) {
   const n = incident.narrative;
   const meta = incident.narrativeMeta;
   const pending = narrate.isPending || incident.narrativeStatus === 'pending';
-  const reason = reasonOf(narrate.error);
 
   return (
     <Card className="space-y-4 p-5">
@@ -42,7 +42,7 @@ export function NarrativePanel({ incident }: { incident: Incident }) {
           {pending ? t('narrative.working') : n ? t('narrative.again') : t('narrative.explain')}
         </Button>
       </div>
-      {narrate.error && <Alert variant="destructive">{reason ? t(`refusal.${reason}`) : narrate.error.message}</Alert>}
+      {narrate.error && <RefusalAlert error={narrate.error} envId={incident.envId} />}
       {incident.narrativeStatus === 'failed' && !narrate.error && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           {t('narrative.lastFailed')}

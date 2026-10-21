@@ -2,13 +2,13 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@resources/components/ui/Alert';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Card } from '@resources/components/ui/Card';
 import { PERM } from '@core/auth/permissionKeys';
 import { formatDate } from '@resources/utils/format';
-import { type Incident, reasonOf, useSummarise } from '@resources/hooks/useIncidents';
+import { type Incident, useSummarise } from '@resources/hooks/useIncidents';
+import { RefusalAlert } from './RefusalAlert';
 
 const KIND_VARIANT: Record<string, 'destructive' | 'secondary' | 'info' | 'warning' | 'success' | 'default'> = {
   symptom: 'destructive',
@@ -22,7 +22,6 @@ const KIND_VARIANT: Record<string, 'destructive' | 'secondary' | 'info' | 'warni
 export function TimelinePanel({ incident }: { incident: Incident }) {
   const { t } = useTranslation('incidents');
   const summarise = useSummarise();
-  const reason = reasonOf(summarise.error);
   const items = incident.timeline ?? [];
 
   return (
@@ -39,9 +38,7 @@ export function TimelinePanel({ incident }: { incident: Incident }) {
           {summarise.isPending ? t('narrative.working') : t('timeline.summarise')}
         </Button>
       </div>
-      {summarise.error && (
-        <Alert variant="destructive">{reason ? t(`refusal.${reason}`) : summarise.error.message}</Alert>
-      )}
+      {summarise.error && <RefusalAlert error={summarise.error} envId={incident.envId} />}
       {incident.summary && <p className="text-sm whitespace-pre-wrap text-foreground">{incident.summary}</p>}
       <ol className="space-y-1.5">
         {items.map((it) => (

@@ -191,6 +191,8 @@ const FLOOR: Record<string, number> = {
   'modules/settings/components/AlertTemplateField.test.tsx': 4,
   'resources/layout/PageActionsSlot.test.tsx': 2,
   'modules/incidents/components/PluginIncidents.test.tsx': 1,
+  'modules/incidents/components/NarrationRefusalLink.test.tsx': 5,
+  'modules/incidents/components/NarrationSettingsDialog.test.tsx': 2,
   'modules/notifications/pages/NotificationsPage.test.tsx': 1,
   'modules/reconciler/components/CreateDesiredStateDialog.test.tsx': 3,
   'test/plugins/lxc-backup-run-error.test.tsx': 2,
