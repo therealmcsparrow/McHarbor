@@ -50,7 +50,7 @@ RUN MCHARBOR_BUILD="$(tr -d '[:space:]' < /BUILD)" && \
 RUN ! ldd /mcharbor-agent 2>/dev/null | grep -q "=>" || \
     (echo "ERROR: agent binary is dynamically linked" && exit 1)
 
-FROM alpine:3.20
+FROM alpine:3.22
 RUN apk add --no-cache tini ca-certificates docker-cli docker-cli-compose iptables
 COPY --from=builder /mcharbor-agent /usr/local/bin/mcharbor-agent
 RUN ln -s mcharbor-agent /usr/local/bin/mcharbor

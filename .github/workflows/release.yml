@@ -360,7 +360,7 @@ jobs:
             org.opencontainers.image.ref=release
 
       - name: Generate image SBOM
-        uses: anchore/sbom-action@v0.17.8
+        uses: anchore/sbom-action@55dc4ee22412511ee8c3142cbea40418e6cec693
         with:
           image: ghcr.io/${{ github.repository_owner }}/mcharbor@${{ steps.build.outputs.digest }}
           format: spdx-json
@@ -445,7 +445,7 @@ jobs:
             org.opencontainers.image.ref=release
 
       - name: Generate agent image SBOM
-        uses: anchore/sbom-action@v0.17.8
+        uses: anchore/sbom-action@55dc4ee22412511ee8c3142cbea40418e6cec693
         with:
           image: ghcr.io/${{ github.repository_owner }}/mcharbor-agent@${{ steps.build.outputs.digest }}
           format: spdx-json
@@ -628,7 +628,7 @@ jobs:
           done
 
       - name: Generate packages SBOM
-        uses: anchore/sbom-action@v0.17.8
+        uses: anchore/sbom-action@55dc4ee22412511ee8c3142cbea40418e6cec693
         with:
           path: dist/packages
           format: spdx-json

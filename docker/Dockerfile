@@ -153,6 +153,30 @@ COPY signing/plugin-signing.pub /trust/plugin-signing.pub
 COPY VERSION /VERSION
 COPY BUILD /BUILD
 
+FROM --platform=$BUILDPLATFORM alpine:3.22 AS scanners
+ARG TARGETARCH
+ARG TRIVY_VERSION=0.75.0
+ARG TRIVY_SHA256_AMD64=c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f
+ARG TRIVY_SHA256_ARM64=a1ee9f6ffb7d112b64ff726a2a0717c21175c1114361391f4a132956751a13b3
+ARG GRYPE_VERSION=0.120.0
+ARG GRYPE_SHA256_AMD64=a5a1218dce63acdac152a6b3b5bb366e7267e36f4069848cf455543b3fa5700e
+ARG GRYPE_SHA256_ARM64=bc0e52b1a0de37e2ff021c4924d689dce7dcff2e7d74b39aea16c0453e69be18
+RUN apk add --no-cache curl
+RUN set -eu; \
+    case "${TARGETARCH:-amd64}" in \
+      amd64) trivy_os=Linux-64bit; trivy_sha="$TRIVY_SHA256_AMD64"; grype_arch=amd64; grype_sha="$GRYPE_SHA256_AMD64" ;; \
+      arm64) trivy_os=Linux-ARM64; trivy_sha="$TRIVY_SHA256_ARM64"; grype_arch=arm64; grype_sha="$GRYPE_SHA256_ARM64" ;; \
+      *) echo "unsupported TARGETARCH ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    mkdir -p /out /tmp/dl && cd /tmp/dl && \
+    curl -fsSLo trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_${trivy_os}.tar.gz" && \
+    curl -fsSLo grype.tar.gz "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/grype_${GRYPE_VERSION}_linux_${grype_arch}.tar.gz" && \
+    echo "${trivy_sha}  trivy.tar.gz" | sha256sum -c - && \
+    echo "${grype_sha}  grype.tar.gz" | sha256sum -c - && \
+    tar -xzf trivy.tar.gz -C /out trivy && \
+    tar -xzf grype.tar.gz -C /out grype && \
+    chmod 0755 /out/trivy /out/grype
+
 # Stage 3: Production
 FROM debian:bookworm-slim AS production
 RUN apt-get update \
@@ -166,11 +190,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin \
     && apt-get clean && find /var/lib/apt/lists -mindepth 1 -delete
 
-# Install Trivy vulnerability scanner
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-
-# Install Grype vulnerability scanner
-RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+COPY --from=scanners /out/trivy /out/grype /usr/local/bin/
 
 WORKDIR /app
 
