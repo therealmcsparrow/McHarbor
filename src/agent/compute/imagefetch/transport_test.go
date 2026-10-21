@@ -60,8 +60,10 @@ func TestFetchIgnoresAMirrorsOnTheFlyGzip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Trust the test server's certificate but keep the transport New built,
-	// since the transport's settings are what is under test.
+	// Trust the test server's certificate but keep the transport newMirrorClient
+	// builds, since the transport's settings are what is under test; loopback is
+	// opened only because the test server listens there.
+	f.client = newMirrorClient(true)
 	transport, ok := f.client.Transport.(*http.Transport)
 	if !ok {
 		t.Fatalf("fetcher transport is %T, want *http.Transport", f.client.Transport)

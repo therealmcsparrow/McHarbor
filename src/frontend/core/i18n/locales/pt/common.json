@@ -1587,6 +1587,10 @@
                                         "accessibility":  {
                                                                "title":  "Mais claro para leitores de ecrã e teclado",
                                                                "description":  "As mensagens de estado, os grupos de opções e as barras de progresso são agora anunciados pelos leitores de ecrã, cada campo está ligado à sua etiqueta e um botão desativado continua a poder receber o foco para que a dica indique a permissão necessária."
+                                        },
+                                        "outboundGuards":  {
+                                                               "title":  "Os pedidos de saída verificam primeiro o endereço",
+                                                               "description":  "Os pedidos de catálogos, imagens e clusters recusam agora endereços de loopback, link-local e de metadados da cloud, e um redirecionamento de https para http. As ligações Kubernetes ignoram HTTP_PROXY, os catálogos em localhost precisam de um endereço da rede local e o nó SQL Query só lê as tabelas de workflows. O plugin LDAP já não aceita URLs ldapi://. Consulte Definições → Catálogos."
                                         }
                                     },
                      "2_0_7":  {

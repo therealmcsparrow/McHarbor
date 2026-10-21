@@ -10,7 +10,7 @@ Everything this plugin asks for, as the plugin itself declares it.
 
 | Field | Type | Required | Default | What it is |
 |---|---|---|---|---|
-| `url` | string | Yes | — | LDAP server URL: ldap://host:389 for plain, ldaps://host:636 for implicit TLS. Use StartTLS instead of LDAPS when the server listens on 389. |
+| `url` | string | Yes | — | LDAP server URL: ldap://host:389 for plain, ldaps://host:636 for implicit TLS. Use StartTLS instead of LDAPS when the server listens on 389. `ldapi://` is refused. |
 | `bind_dn` | string | No | — | DN of a service account used to search for users and groups. Empty = anonymous bind (most directories refuse to return user entries anonymously). Example: cn=mcharbor-svc,ou=service,dc=example,dc=com. |
 | `bind_password` | secret | No | — | Password for the service account. Stored encrypted at rest (AES-256-GCM). |
 | `user_base_dn` | string | Yes | — | Base DN under which user entries live. Searches for incoming usernames are scoped to this subtree. Example: ou=users,dc=example,dc=com. |
@@ -27,6 +27,10 @@ Everything this plugin asks for, as the plugin itself declares it.
 Secrets are encrypted with the host's AES-256-GCM service before they are written, and
 the API never returns them once saved. Editing an existing entry leaves a stored secret
 in place unless you replace it.
+
+## Destination rules
+
+The plugin checks the address it resolved, right before it connects, and refuses an address that is never a real directory: `0.0.0.0/8`, link-local (`169.254.0.0/16`, `fe80::/10`), the cloud metadata endpoints (`169.254.169.254`, `100.100.100.200`, `fd00:ec2::/32`), multicast, broadcast and `::`. IPv6 forms that carry one of these (NAT64, 6to4, Teredo, ISATAP, IPv4-compatible) are refused as well. A name that resolves to a refused address is refused like the address itself. Loopback, private ranges (RFC 1918) and ULA stay allowed, so a directory on your LAN or on the McHarbor host works. `ldapi://` URLs (a Unix socket) are refused too, so an LDAP server must be reached over `ldap://` or `ldaps://`. A refusal reads "identity-ldap: the LDAP server address is not an allowed destination".
 
 ## Setting it up
 

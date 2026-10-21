@@ -1587,6 +1587,10 @@
                                         "accessibility":  {
                                                                "title":  "Klarer für Screenreader und Tastatur",
                                                                "description":  "Statusmeldungen, Optionsgruppen und Fortschrittsbalken werden jetzt von Screenreadern angesagt, jedes Eingabefeld ist mit seiner Beschriftung verknüpft, und eine deaktivierte Schaltfläche lässt sich weiterhin fokussieren, damit ihr Tooltip die benötigte Berechtigung nennt."
+                                        },
+                                        "outboundGuards":  {
+                                                               "title":  "Ausgehende Abrufe prüfen zuerst die Adresse",
+                                                               "description":  "Katalog-, Image- und Cluster-Abrufe verweigern jetzt Loopback-, Link-Local- und Cloud-Metadaten-Adressen sowie eine Weiterleitung von https auf http. Kubernetes-Verbindungen ignorieren HTTP_PROXY, Kataloge auf localhost brauchen eine LAN-Adresse, und der SQL-Query-Node liest nur die Workflow-Tabellen. Das LDAP-Plugin akzeptiert keine ldapi://-URLs mehr. Siehe Einstellungen → Kataloge."
                                         }
                                     },
                      "2_0_7":  {

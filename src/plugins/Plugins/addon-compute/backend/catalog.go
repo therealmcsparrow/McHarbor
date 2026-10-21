@@ -214,6 +214,12 @@ func readCatalogSource(ctx context.Context, source plugin.CatalogSourceRef) ([]C
 
 // fetchCatalogIndex GETs one index document and returns the entries it holds.
 func fetchCatalogIndex(ctx context.Context, url string) ([]CatalogEntry, []string, error) {
+	return fetchCatalogIndexWith(ctx, catalogHTTPClient, url)
+}
+
+// fetchCatalogIndexWith is fetchCatalogIndex over a given client, so a test can trust its own
+// loopback TLS server without loosening the production client.
+func fetchCatalogIndexWith(ctx context.Context, client *http.Client, url string) ([]CatalogEntry, []string, error) {
 	ctx, cancel := context.WithTimeout(ctx, catalogFetchTimeout)
 	defer cancel()
 
@@ -223,7 +229,7 @@ func fetchCatalogIndex(ctx context.Context, url string) ([]CatalogEntry, []strin
 	}
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, nil, err
 	}

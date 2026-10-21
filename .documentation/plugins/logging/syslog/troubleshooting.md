@@ -5,6 +5,7 @@
 | No events arrive over UDP and no errors are logged | UDP has no delivery confirmation | Switch to TCP or TLS before concluding the forwarder is broken. |
 | TLS handshake fails | The collector uses a private CA | Trust the CA in the McHarbor image, or terminate TLS on a proxy the host already trusts. |
 | Messages are truncated | A collector-side message-size limit | Raise `$MaxMessageSize` (rsyslog) or the equivalent. |
+| "logging-syslog: the syslog collector address is not an allowed destination" | The host is, or resolves to, a link-local, metadata, multicast, unspecified or broadcast address | Use the collector's routable address. A collector on your LAN or on the McHarbor host itself is allowed. |
 
 **Test** delivers one real event. After that, delivery history is the thing to read: it
 records every attempt and its outcome, so a forwarder that stops working is a list of

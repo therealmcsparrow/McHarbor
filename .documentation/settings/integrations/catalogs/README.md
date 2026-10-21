@@ -54,6 +54,30 @@ accepted. A fetched icon is cached for 24 hours, a missing one is remembered for
 cached copy is still served while the catalog host is down. The dark-theme variant is
 `<name>_dark.<ext>` when the catalog has one.
 
+## Which addresses McHarbor will fetch from
+
+Catalog fetches go through one shared check that looks at the address a connection is about to
+use, after DNS, so a hostname that resolves to a refused address is refused like the address
+itself.
+
+- **Refused for catalog indexes:** loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`,
+  `fe80::/10`), unspecified, multicast, and the cloud metadata endpoints (`169.254.169.254`,
+  `100.100.100.200`, `fd00:ec2::/32`). IPv6 addresses that carry one of these (NAT64, 6to4,
+  Teredo, ISATAP, IPv4-compatible) are refused too. This covers the App Store index, the plugin
+  index, plugin icons and **Test catalog**. A catalog served from `http://localhost` no longer
+  loads; use the host's LAN address or a hostname.
+- **Still allowed:** private ranges (RFC 1918 and ULA), because a catalog on your network is a
+  normal setup. Downloading a plugin tarball and looking up registry metadata also still accept
+  loopback, for a local mirror or registry; link-local and metadata addresses stay refused there.
+- **Redirects.** A redirect from `https` to `http` is refused, and a chain stops after five hops.
+  Each hop is checked again.
+- **Proxies.** `HTTP_PROXY` and `HTTPS_PROXY` are still honoured. McHarbor resolves the target
+  and checks it before handing the request to the proxy. The proxy resolves the name again, so
+  this is a weaker guarantee than a direct connection.
+
+A refused fetch shows as a failed **Reachability** step in **Test catalog** and a failed load in
+the App Store.
+
 ## Testing a catalog
 
 **Test catalog** walks the source end to end and reports each step separately

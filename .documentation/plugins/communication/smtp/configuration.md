@@ -26,6 +26,10 @@ Secrets are encrypted with the host's AES-256-GCM service before they are writte
 the API never returns them once saved. Editing an existing entry leaves a stored secret
 in place unless you replace it.
 
+## Destination rules
+
+The plugin checks the address it resolved, right before it connects, and refuses an address that is never a real relay: `0.0.0.0/8`, link-local (`169.254.0.0/16`, `fe80::/10`), the cloud metadata endpoints (`169.254.169.254`, `100.100.100.200`, `fd00:ec2::/32`), multicast, broadcast and `::`. IPv6 forms that carry one of these (NAT64, 6to4, Teredo, ISATAP, IPv4-compatible) are refused as well. A name that resolves to a refused address is refused like the address itself. Loopback, private ranges (RFC 1918) and ULA stay allowed, so a relay on your LAN or on the McHarbor host works. A Unix socket is never a valid destination. A refusal reads "comm-smtp: the SMTP relay address is not an allowed destination".
+
 ## Setting it up
 
 1. Install the plugin from **App Store → Plugins**.

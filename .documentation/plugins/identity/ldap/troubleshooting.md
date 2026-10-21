@@ -10,6 +10,7 @@
 | A user is locked out after mistyped directory passwords | Directory failures count towards the same per-account and per-address lockout as local ones | Wait for the lock to expire, or unlock the account from the user's page as for a local account. |
 | A correct directory password is refused as invalid | **Auto-provision** is off and no McHarbor account is linked to the entry or has its email address | Turn **Auto-provision** on, or create the account with the directory email first. |
 | Signed in, but with no roles | No default role on the provider, and no group mapping matched | Set a default role, or map the groups the user carries (`memberOf`, or the `group_filter` search). |
+| "identity-ldap: the LDAP server address is not an allowed destination" | The URL is, or resolves to, a link-local, metadata, multicast or unspecified address, or it is an `ldapi://` URL | Use `ldap://` or `ldaps://` with the server's routable address. `ldapi://` (Unix socket) is no longer accepted. |
 
 Test a provider by signing in from a private browser window rather than by trusting the
 form. A configuration that saves cleanly can still fail at the identity provider, and the

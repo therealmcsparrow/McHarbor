@@ -2,7 +2,7 @@
 
 All notable changes to McHarbor are documented in this file.
 
-## [2026.10.01] - 2026-09-21
+## [2026.10.01] - 2026-10-21
 
 This compares McHarbor 2026.10.01 with the 2.0.8 release of 2026-07-26. It lists what an
 operator coming from 2.0.8 gets, loses or must act on. Fixes to features that did not exist in
@@ -21,6 +21,26 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
   cluster, it checks `/version`. An address that answers in any other way shows **Not a
   Kubernetes API**. Link-local and cloud-metadata addresses are refused and show **Cluster
   unreachable**. Loopback and private addresses still work.
+
+- **Kubernetes cluster connections ignore `HTTP_PROXY` and `HTTPS_PROXY`.** The address check
+  runs on the connection McHarbor opens, and through a proxy it would only see the proxy. A
+  setup that reaches a cluster only through a proxy shows **Cluster unreachable** until the
+  McHarbor host has a direct route to the API server. The change ships in the Kubernetes
+  plugin, so update it from the Plugin Store.
+- **Catalog indexes are no longer read from loopback.** An App Store catalog, a plugin catalog
+  or a plugin icon served from `localhost` or `127.0.0.1` is refused, and so is **Test
+  catalog** against one. Serve the catalog on a LAN address or a hostname. Plugin tarball
+  downloads and registry lookups still accept loopback.
+- **A redirect from `https` to `http` is refused** when McHarbor fetches a catalog, a plugin, a
+  compute image catalog or an image download. Publish the final `https` URL.
+- **The SQL Query workflow node refuses table-valued functions.** `json_each`, `json_tree` and
+  `pragma_*` functions in a `FROM` clause now end on the node's `error` port. The node reads
+  only the five workflow tables; see the [utility nodes](.documentation/workflows/nodes/utility/README.md).
+- **The LDAP plugin no longer accepts `ldapi://` URLs.** A directory reached over a Unix socket
+  must be reached over `ldap://` or `ldaps://`. The change ships in the LDAP plugin; update it
+  from the Plugin Store.
+- **The agent refuses loopback image sources.** A compute image downloaded from a mirror on
+  `127.0.0.1` fails; use the host's LAN address. This needs an agent built with the change.
 
 ### Added
 
@@ -518,6 +538,33 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
 
 ### Security
 
+- **A security policy.** [SECURITY.md](SECURITY.md) says how to report a vulnerability
+  (`security@mcsparrow.eu`), that only the latest release is supported, and the response
+  targets: acknowledgement within 3 working days, a first assessment within 10, and a fix with
+  coordinated disclosure within 90 days.
+- **The SQL Query workflow node reads only the workflow tables.** The earlier table allow-list
+  could be bypassed with comma joins, quoted names, comments, `"main".` prefixes and
+  `pragma_table_info`. The node now has SQLite describe how a query would run and refuses one
+  that opens any table outside `workflows`, `workflow_runs`, `workflow_metrics`, `workflow_kv`
+  and `workflow_link_messages`, any other schema, or any virtual table. A refusal reports a
+  fixed reason and keeps the detail in the log. Names given to a `WITH` query now work.
+- **Outbound fetches of operator or catalog URLs check the address they connect to.** Loopback,
+  link-local, unspecified, multicast and cloud metadata addresses are refused after DNS, as are
+  IPv6 forms that encode one (NAT64, 6to4, Teredo, ISATAP, IPv4-compatible), and each redirect
+  is checked again. Private ranges stay allowed. This covers:
+  - **Host catalogs:** the App Store index, the plugin index and icons, the plugin tarball
+    download, registry metadata lookups and **Test catalog**, through a shared `core/egress`
+    package. A proxy from the environment is still used, after McHarbor checks the target.
+  - **Compute:** the image catalog index in the Compute Foundation plugin, and image, checksum
+    and signature downloads on the agent.
+  - **Kubernetes:** the cluster address check also refuses the embedded forms above and no longer
+    consults the proxy environment.
+  - **SMTP, LDAP, syslog and Samba:** the SMTP relay, LDAP server, syslog collector and SMB
+    server each check the resolved address on every connection. Loopback and private ranges stay
+    allowed, since a relay, directory or collector on the same host or LAN is an ordinary setup,
+    and Unix sockets are refused.
+  - **Alertmanager webhook:** the receiver URL check refuses the embedded forms and the
+    `100.100.100.200` and `fd00:ec2::/32` metadata addresses.
 - **Sessions:**
   - **Storage:** sessions are stored as a SHA-256 hash, and session ids are 32 random bytes.
   - **Throttling and lockout:** login throttling works behind a reverse proxy, with a

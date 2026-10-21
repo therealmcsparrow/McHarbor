@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/catalogindex"
+	"github.com/therealmcsparrow/mcharbor/core/egress"
 )
 
 // Step statuses. The UI maps each to an icon and a colour; `warn` is a
@@ -120,8 +121,10 @@ type TestEvent struct {
 
 // testHTTPClient is package-scoped for connection reuse across repeat
 // runs against the same host. Redirects are followed (a catalog served
-// from a CDN alias is legitimate) and TLS verification stays on.
-var testHTTPClient = &http.Client{Timeout: testHTTPTimeout}
+// from a CDN alias is legitimate) and TLS verification stays on. The
+// egress guard keeps an operator-entered URL off loopback and the
+// cloud-metadata service, since the probe echoes what it read.
+var testHTTPClient = egress.NewClient(egress.Options{Timeout: testHTTPTimeout})
 
 // Test probes one catalog and reports progress through emit. It never
 // mutates the row; the only side effects are one filesystem read or one

@@ -172,7 +172,7 @@ func (c *sambaClient) sambaDial(ctx context.Context, cfg map[string]string) (*sm
 	if !strings.Contains(addr, ":") {
 		addr = net.JoinHostPort(addr, fmt.Sprintf("%d", sambaSMBPort))
 	}
-	dialer := &net.Dialer{Timeout: sambaDialTimeout}
+	dialer := guardedDialer(sambaDialTimeout)
 	conn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("samba: TCP dial %s: %w", addr, err)

@@ -1587,6 +1587,10 @@
                                         "accessibility":  {
                                                                "title":  "Plus clair pour les lecteurs d'écran et le clavier",
                                                                "description":  "Les messages d'état, les groupes d'options et les barres de progression sont désormais annoncés par les lecteurs d'écran, chaque champ est relié à son libellé, et un bouton désactivé peut toujours recevoir le focus pour que son info-bulle indique l'autorisation requise."
+                                        },
+                                        "outboundGuards":  {
+                                                               "title":  "Les requêtes sortantes vérifient d'abord l'adresse",
+                                                               "description":  "Les requêtes de catalogues, d'images et de clusters refusent désormais les adresses de bouclage, link-local et de métadonnées cloud, ainsi qu'une redirection de https vers http. Les connexions Kubernetes ignorent HTTP_PROXY, les catalogues sur localhost demandent une adresse du réseau local et le nœud SQL Query ne lit que les tables de workflows. Le plugin LDAP n'accepte plus les URL ldapi://. Voir Paramètres → Catalogues."
                                         }
                                     },
                      "2_0_7":  {

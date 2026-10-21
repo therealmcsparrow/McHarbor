@@ -5,6 +5,7 @@
 | `535 authentication failed` with the right password | The provider requires an app password | Gmail, Outlook and Yahoo all reject account passwords for SMTP; generate an app password. |
 | Test hangs on port 465 | `starttls` selected for an implicit-TLS port | Port 465 needs `ssl_tls`; 587 needs `starttls`. |
 | Mail is accepted but never arrives | SPF or DMARC rejects the From address downstream | Use a From address the relay is authorised to send for. |
+| "comm-smtp: the SMTP relay address is not an allowed destination" | The relay host is, or resolves to, a link-local, metadata, multicast, unspecified or broadcast address | Use the relay's routable address. A relay on your LAN or on the McHarbor host itself is allowed. |
 
 **Send test notification** delivers a real message. There is no dry run: if the test
 succeeds, someone received it.

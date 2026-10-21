@@ -10,6 +10,39 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-10-21 23:30 — McHarbor 2026.10.01 — Destination checks in the SMTP, LDAP, syslog and Samba plugins
+
+### Changed
+
+- `plugins/communication/smtp/configuration.md`, `plugins/identity/ldap/configuration.md`,
+  `plugins/logging/syslog/configuration.md`, `plugins/storage/samba/configuration.md` — a
+  **Destination rules** section: the refused addresses, the embedded-IPv4 forms, loopback and
+  private ranges allowed, Unix sockets refused, and the error text.
+- The four matching `troubleshooting.md` pages — a row for "the ... address is not an allowed
+  destination".
+- `plugins/identity/ldap/configuration.md` — the `url` field notes that `ldapi://` is refused.
+
+## 2026-10-21 23:23 — McHarbor 2026.10.01 — Outbound fetch checks and SQL Query node isolation
+
+### Changed
+
+- `workflows/nodes/utility/README.md` — **SQL Query**: the five readable tables, what is
+  refused (writes, several statements, other schemas, virtual tables, `json_each` and other
+  table-valued functions), the fixed refusal messages, the 200-row and 5-second limits, and the
+  keys `workflows.manage` and `workflows.run`.
+- `kubernetes/configuration.md` — **Connection checks**: embedded-IPv4 forms (NAT64, 6to4,
+  Teredo, ISATAP) are refused, and cluster connections ignore `HTTP_PROXY` and `HTTPS_PROXY`.
+- `kubernetes/troubleshooting.md` — the metadata row names the embedded forms; a row for clusters
+  that became unreachable behind a proxy.
+- `compute-foundation/image-catalog.md` — **How the catalog and the downloads are fetched**:
+  refused addresses, https-only redirects, no proxy, and loopback refused on the agent.
+- `settings/integrations/catalogs/README.md` — **Which addresses McHarbor will fetch from**:
+  what catalog fetches refuse and allow, redirects and proxies.
+- `settings/integrations/catalogs/reference.md` — symptom rows for a catalog on loopback and for
+  an `https` to `http` redirect.
+- `plugins/communication/alertmanager-webhook/README.md`, `troubleshooting.md` — embedded-IPv4
+  forms and the extra metadata addresses are refused.
+
 ## 2026-10-21 14:06 — McHarbor 2026.10.01 — Kubernetes credential rules
 
 ### Changed

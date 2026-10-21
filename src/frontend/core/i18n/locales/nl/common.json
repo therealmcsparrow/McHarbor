@@ -1587,6 +1587,10 @@
                                         "accessibility":  {
                                                                "title":  "Duidelijker voor schermlezers en toetsenbord",
                                                                "description":  "Statusmeldingen, optiegroepen en voortgangsbalken worden nu door schermlezers voorgelezen, elk invoerveld is aan zijn label gekoppeld, en een uitgeschakelde knop kan nog steeds focus krijgen zodat de tooltip zegt welke rechten nodig zijn."
+                                        },
+                                        "outboundGuards":  {
+                                                               "title":  "Uitgaande verzoeken controleren eerst het adres",
+                                                               "description":  "Catalogus-, image- en clusterverzoeken weigeren nu loopback-, link-local- en cloudmetadata-adressen, en een redirect van https naar http. Kubernetes-verbindingen negeren HTTP_PROXY, catalogi op localhost hebben een LAN-adres nodig en de SQL Query-node leest alleen de workflowtabellen. De LDAP-plugin accepteert geen ldapi://-URL's meer. Zie Instellingen → Catalogi."
                                         }
                                     },
                      "2_0_7":  {

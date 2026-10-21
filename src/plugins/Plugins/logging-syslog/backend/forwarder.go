@@ -425,14 +425,14 @@ func (c *syslogClient) deliver(ctx context.Context, cfg resolved, message string
 	var err error
 	switch cfg.protocol {
 	case "udp":
-		var d net.Dialer
+		d := guardedDialer(timeout)
 		conn, err = d.DialContext(dialCtx, "udp", cfg.address())
 	case "tcp":
-		var d net.Dialer
+		d := guardedDialer(timeout)
 		conn, err = d.DialContext(dialCtx, "tcp", cfg.address())
 	case "tls":
 		d := &tls.Dialer{
-			NetDialer: &net.Dialer{Timeout: timeout},
+			NetDialer: guardedDialer(timeout),
 			// ServerName is set explicitly so certificate
 			// verification checks the configured hostname. The zero
 			// Config would still verify, but leaving it implicit

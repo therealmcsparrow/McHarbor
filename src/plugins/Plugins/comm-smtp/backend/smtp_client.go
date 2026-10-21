@@ -162,12 +162,13 @@ func parseRecipients(value string) ([]string, error) {
 
 func sendSMTP(ctx context.Context, cfg smtpConfig, msg []byte) error {
 	addr := net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
-	dialer := &net.Dialer{Timeout: smtpTimeout}
+	dialer := guardedDialer(smtpTimeout)
 
 	var conn net.Conn
 	var err error
 	if cfg.Encryption == "ssl_tls" {
-		conn, err = tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{ServerName: cfg.Host, MinVersion: tls.VersionTLS12})
+		tlsDialer := &tls.Dialer{NetDialer: dialer, Config: &tls.Config{ServerName: cfg.Host, MinVersion: tls.VersionTLS12}}
+		conn, err = tlsDialer.DialContext(ctx, "tcp", addr)
 	} else {
 		conn, err = dialer.DialContext(ctx, "tcp", addr)
 	}

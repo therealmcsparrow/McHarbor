@@ -54,7 +54,7 @@ Jira Service Management's "Prometheus" integration uses Alertmanager's `opsgenie
 
 The receiver URL is operator-supplied, so the plugin treats it as untrusted:
 
-- **Blocked destinations.** The connection is refused, after DNS resolution, when the address is loopback, link-local (`169.254.0.0/16`, which includes cloud metadata services, and `fe80::/10`), unspecified or multicast. A hostname that resolves to one of these is refused like the address itself. Private RFC 1918 ranges are allowed, because self-hosted receivers live there. No HTTP proxy from the environment is used.
+- **Blocked destinations.** The connection is refused, after DNS resolution, when the address is loopback, link-local (`169.254.0.0/16`, which includes cloud metadata services, and `fe80::/10`), unspecified or multicast. A hostname that resolves to one of these is refused like the address itself. IPv6 addresses that carry a refused IPv4 address (NAT64 such as `64:ff9b::a9fe:a9fe`, 6to4, Teredo, ISATAP and the IPv4-compatible form) are refused too, as are the other metadata endpoints (`100.100.100.200`, `fd00:ec2::/32`). Private RFC 1918 ranges are allowed, because self-hosted receivers live there. No HTTP proxy from the environment is used.
 - **No redirects.** A `3xx` answer is not followed and is a permanent failure, so credentials and the signature never travel to another host.
 - **The URL is a secret.** Errors name only `scheme://host` and the HTTP status. The path and query, where receivers put their token, never appear, and the receiver's response body is never echoed.
 - **Plain `http://`** is refused unless **Allow plain http** is on.

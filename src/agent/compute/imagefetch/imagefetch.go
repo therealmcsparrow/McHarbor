@@ -248,23 +248,7 @@ func New(root string, keyring Keyring) (*Fetcher, error) {
 		return nil, fmt.Errorf("imagefetch: create cache %s: %w", root, err)
 	}
 	f := &Fetcher{keyring: keyring,
-		client: &http.Client{
-			// No overall client timeout: that would cap a legitimate
-			// multi-gigabyte download. The per-request context carries the
-			// real budget, and the transport timeouts below catch a dead peer.
-			Transport: &http.Transport{
-				TLSHandshakeTimeout:   30 * time.Second,
-				ResponseHeaderTimeout: 60 * time.Second,
-				IdleConnTimeout:       90 * time.Second,
-				ForceAttemptHTTP2:     true,
-				// Without this Go asks for gzip and unpacks it out of sight. A CDN
-				// will gzip a disk image on the fly when asked (AlmaLinux's does),
-				// and a bad trailer from one edge then fails the whole download
-				// with "gzip: invalid checksum"; it also hides the real size from
-				// the progress bar. The bytes hashed are the identity bytes anyway.
-				DisableCompression: true,
-			},
-		},
+		client:   newMirrorClient(false),
 		inFlight: make(map[string]context.CancelFunc),
 	}
 	f.root.Store(root)

@@ -519,6 +519,25 @@
           ".tmp/s2/src/plugins/Plugins/addon-compute/frontend/src/format.ts": 1
         }
       }
+    },
+    {
+      "family": "plugin-dial-destination-guard",
+      "decision": "D-1",
+      "permanent": false,
+      "reason": "comm-smtp, identity-ldap, logging-syslog and storage-samba each carry the same net.Dialer Control guard (metadata, link-local, unspecified, multicast and broadcast refused; loopback, RFC1918 and ULA allowed; embedded IPv4 unwrapped). Plugins share no code, so a fix to one guard is owed to the other three; addon-compute, addon-kubernetes and comm-alertmanager-webhook hold the loopback-refusing variant of the same logic.",
+      "patterns": [
+        "src/plugins/Plugins/comm-smtp/backend/destination_guard.go",
+        "src/plugins/Plugins/identity-ldap/backend/destination_guard.go",
+        "src/plugins/Plugins/logging-syslog/backend/destination_guard.go",
+        "src/plugins/Plugins/storage-samba/backend/destination_guard.go"
+      ],
+      "baselines": {
+        "src/plugins/Plugins/logging-syslog/backend/destination_guard.go": {
+          "src/plugins/Plugins/comm-smtp/backend/destination_guard.go": 0.8936,
+          "src/plugins/Plugins/identity-ldap/backend/destination_guard.go": 0.8936,
+          "src/plugins/Plugins/storage-samba/backend/destination_guard.go": 0.8936
+        }
+      }
     }
   ],
   "baselineUpdated": "2026-10-16"

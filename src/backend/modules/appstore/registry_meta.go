@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/therealmcsparrow/mcharbor/core/egress"
 )
 
 // Registry lookup budget. No request ever waits on these numbers: one resolve
@@ -42,8 +44,13 @@ const (
 
 // registryHTTPClient is package-scoped so repeated lookups against the same
 // registry reuse connections. Anonymous pull scope only — no catalog lookup
-// ever sends a credential.
-var registryHTTPClient = &http.Client{Timeout: registryHTTPTimeout}
+// ever sends a credential. The registry host and the token realm both come
+// from catalog data, so the egress guard refuses the metadata service; loopback
+// stays open for a registry run on this host.
+var registryHTTPClient = egress.NewClient(egress.Options{
+	Timeout: registryHTTPTimeout,
+	Policy:  egress.Policy{AllowLoopback: true},
+})
 
 // registryMeta is what a card needs from the distribution: the newest release
 // tag the registry publishes and when that tag was built.

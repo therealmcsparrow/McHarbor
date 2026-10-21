@@ -29,6 +29,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
+	"github.com/therealmcsparrow/mcharbor/core/egress"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	"github.com/therealmcsparrow/mcharbor/core/plugin"
 	"github.com/therealmcsparrow/mcharbor/core/pluginslug"
@@ -447,7 +448,12 @@ func (d *DefaultInstaller) resolveTarball(ctx context.Context, src Source) ([]by
 // safety: a bounded timeout, redirect-loop protection, a body
 // size cap, and HTTPS-only redirects except back to loopback.
 func downloadHTTP(ctx context.Context, u *url.URL) ([]byte, error) {
-	client := &http.Client{Timeout: httpDownloadTimeout}
+	// Loopback stays open for the http mirror resolveTarball allows; the egress
+	// guard still refuses link-local and the metadata service on every hop.
+	client := egress.NewClient(egress.Options{
+		Timeout: httpDownloadTimeout,
+		Policy:  egress.Policy{AllowLoopback: true},
+	})
 
 	// Refuse redirects to non-HTTPS / non-loopback destinations.
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {

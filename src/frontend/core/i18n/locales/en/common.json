@@ -1587,6 +1587,10 @@
                                         "accessibility":  {
                                                                "title":  "Clearer for screen readers and keyboards",
                                                                "description":  "Status messages, option groups and progress bars are now announced by screen readers, every input is tied to its label, and a disabled button can still be focused so its tooltip tells you which permission it needs."
+                                        },
+                                        "outboundGuards":  {
+                                                               "title":  "Outbound fetches check the address first",
+                                                               "description":  "Catalog, image and cluster fetches now refuse loopback, link-local and cloud metadata addresses, and an https to http redirect. Kubernetes connections ignore HTTP_PROXY, catalogs on localhost need a LAN address, and the SQL Query node reads only the workflow tables. The LDAP plugin no longer accepts ldapi:// URLs. See Settings → Catalogs."
                                         }
                                     },
                      "2_0_7":  {

@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/therealmcsparrow/mcharbor/core/egress"
 )
 
 // remoteFetchTimeout caps the per-source HTTPS fetch so a slow
@@ -22,8 +24,9 @@ const remoteFetchTimeout = 15 * time.Second
 // remoteHTTPClient is package-scoped so connection pooling helps
 // when several sources share a host. TLS verification stays on —
 // http:// is rejected by readSource so MITM is impossible without
-// explicitly downgrading.
-var remoteHTTPClient = &http.Client{Timeout: remoteFetchTimeout}
+// explicitly downgrading. The egress guard refuses loopback and the
+// cloud-metadata service for the index and for icon fetches alike.
+var remoteHTTPClient = egress.NewClient(egress.Options{Timeout: remoteFetchTimeout})
 
 // readRemoteCatalog fetches a remote index.json over HTTPS and
 // parses it. A published index lists many plugins, so the payload is

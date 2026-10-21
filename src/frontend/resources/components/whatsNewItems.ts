@@ -82,6 +82,10 @@ export function getReleaseItems(version: string): WhatsNewItem[] {
         titleKey: 'whatsNew.2026_10_01.accessibility.title',
         descriptionKey: 'whatsNew.2026_10_01.accessibility.description',
       },
+      {
+        titleKey: 'whatsNew.2026_10_01.outboundGuards.title',
+        descriptionKey: 'whatsNew.2026_10_01.outboundGuards.description',
+      },
     ];
   }
   if (version === '2.0.7') {

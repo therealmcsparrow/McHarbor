@@ -8,7 +8,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -104,7 +103,7 @@ func (c ldapProviderConfig) dial() (*ldap.Conn, error) {
 	if c.URL == "" {
 		return nil, errors.New("ldap url is required")
 	}
-	dialOpts := []ldap.DialOpt{ldap.DialWithDialer(&net.Dialer{Timeout: ldapDialTimeout})}
+	dialOpts := []ldap.DialOpt{ldap.DialWithDialer(guardedDialer(ldapDialTimeout))}
 	isLDAPS := strings.HasPrefix(c.URL, "ldaps://")
 	if isLDAPS {
 		tlsCfg := &tls.Config{MinVersion: tls.VersionTLS12}

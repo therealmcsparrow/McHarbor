@@ -8,7 +8,8 @@
 | Save fails and the error names a user or cluster entry and a field | The kubeconfig names an exec plugin, auth provider, token file, certificate or key file, CA file, or proxy URL | Convert it as in [Cluster credentials](./configuration.md#cluster-credentials), then save again. |
 | The dashboard shows **Credentials refused** on a cluster that worked before | The stored kubeconfig was saved before this rule and is now refused | Edit the cluster and paste a converted kubeconfig. |
 | The dashboard shows **Not a Kubernetes API** | The address answers, but not with a Kubernetes `/version` document | Check the server URL and port. Point it at the API server, not a web page on that address. |
-| The dashboard shows **Cluster unreachable** for a `169.254.x.x` or metadata address | Link-local and cloud metadata addresses are refused by design | Use the cluster's real API server address. |
+| The dashboard shows **Cluster unreachable** for a `169.254.x.x` or metadata address | Link-local and cloud metadata addresses are refused by design, and so are IPv6 forms that carry one (NAT64, 6to4, Teredo, ISATAP) | Use the cluster's real API server address. |
+| Clusters that worked now show **Cluster unreachable** and McHarbor runs with `HTTPS_PROXY` set | Cluster connections no longer use the proxy from the environment | Give the McHarbor host a direct route to the API server. |
 A feature plugin has no connection to test. What to check after installing is that its
 sidebar section appears; it stays hidden until a role holds at least the `view` key it
 declares.

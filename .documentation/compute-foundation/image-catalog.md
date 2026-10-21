@@ -89,6 +89,25 @@ Rejected outright: unknown JSON fields (a typo in a field name is a mistake, not
 an extension), non-`https` URLs, an unknown `kind` or `checksumAlgo`, symlinks,
 files over 64 KiB, more than 500 entries, and two files claiming one `id`.
 
+## How the catalog and the downloads are fetched
+
+Both fetches treat the URL as untrusted, because an operator or a catalog entry supplies it.
+
+- **Reading a remote catalog.** The plugin connects only after checking the address it resolved.
+  Loopback, link-local (`169.254.0.0/16`, `fe80::/10`), unspecified and multicast addresses and
+  the cloud metadata endpoints are refused, including IPv6 forms that carry one (NAT64, 6to4,
+  Teredo, ISATAP). Private ranges (RFC 1918 and ULA) stay allowed, so a catalog on your LAN works.
+  A redirect is re-checked and may not leave `https`. `HTTP_PROXY` and `HTTPS_PROXY` are ignored.
+  An absolute directory path as a source is still read from disk as before.
+- **Downloading an image.** The agent applies the same rules to `sourceUrl`, `checksumUrl` and
+  `signatureUrl`, with one difference: loopback is refused too, because the agent runs as root
+  beside the Docker API and the hypervisor. A mirror on the host itself needs an address other
+  than `127.0.0.1`. Redirects are followed up to ten hops, each re-checked and each over `https`.
+  This needs an agent built with the change; update native agents from **Settings → Updates → Agents**.
+
+A refused address shows as a failed catalog load or a failed download, with the reason in the
+host's log.
+
 ## Publishing the official catalog
 
 The official catalog is prepared in the repository's `mnt/compute-catalog/` folder, one JSON

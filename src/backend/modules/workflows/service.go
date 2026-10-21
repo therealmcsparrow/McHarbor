@@ -5567,12 +5567,18 @@ func (s *Service) executeSQLQuery(ctx context.Context, node *CanvasNode, msg Msg
 	}
 
 	normalizedQuery, validationErr := validateWorkflowSQLQuery(query)
-	if validationErr != "" {
-		return "error", workflowErrorMsg(msg, validationErr, nil), nil
+	if validationErr != nil {
+		return "error", workflowErrorMsg(msg, validationErr.Error(), nil), nil
 	}
 
 	rows, cleanup, err := openReadOnlyWorkflowSQLRows(ctx, s.db, s.logger, normalizedQuery)
 	if err != nil {
+		if isWorkflowSQLRefusal(err) {
+			// The wrapped detail names opcodes and root pages; the workflow sees only the
+			// sentinel's own text, the log keeps the rest.
+			s.logger.Warn("workflows: sql query refused", "error", err)
+			return "error", workflowErrorMsg(msg, workflowSQLRefusalMessage(err), nil), nil
+		}
 		s.logger.Error("workflows: sql query failed", "error", err)
 		return "error", workflowErrorMsg(msg, "sql query failed", nil), nil
 	}

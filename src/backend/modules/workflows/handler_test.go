@@ -308,7 +308,7 @@ func TestExecuteSQLQueryRejectsDisallowedTable(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload map, got %#v", out["payload"])
 	}
-	if payload["error"] != `table "in_app_notifications" is not available to workflow SQL queries` {
+	if payload["error"] != ErrSQLQueryTableNotAllowed.Error() {
 		t.Fatalf("unexpected error payload: %#v", payload)
 	}
 }

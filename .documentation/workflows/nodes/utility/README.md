@@ -245,6 +245,31 @@ Run a read-only SQL query against the workflow database
   - Query (`query`): textarea, required
   - Output Property (`output_property`): expression, default `payload`
 
+The node reads McHarbor's own workflow tables and nothing else. Saving a workflow with this node
+needs `workflows.manage`; running it needs `workflows.run`.
+
+- **Tables it can read.** `workflows`, `workflow_runs`, `workflow_metrics`, `workflow_kv` and
+  `workflow_link_messages`, including their indexes. Joins, subqueries, `UNION` and aggregates
+  across them work, and so do `WITH` queries; a name you give a common table expression is not
+  mistaken for a table.
+- **What it refuses.** One statement only (any `;` inside the query is refused), starting with
+  `SELECT` or `WITH`. A query containing a write or maintenance keyword (`insert`, `update`,
+  `delete`, `replace`, `alter`, `create`, `drop`, `attach`, `detach`, `pragma`, `vacuum`,
+  `analyze`, `reindex`, or a transaction keyword) is refused before it runs. The check does not
+  stop at the words: McHarbor asks SQLite how it would run the query and refuses it when it
+  would open a table outside the list above, a table in another schema, or a virtual table.
+  Quoting a table name, adding comments, or writing `"main".users` does not get past it.
+- **Table-valued functions are refused.** `json_each`, `json_tree`, `pragma_table_info` and the
+  other functions that behave like a table cannot be used in the `FROM` clause. Scalar JSON
+  functions such as `json_extract` still work. A workflow that used `json_each` to unpack a
+  column needs to do that step in a **Node Script** or **JSON Path** node on the returned rows.
+- **What the error says.** A refused query leaves the node's `error` port with a plain reason:
+  "query reads a table that is not available to workflow SQL queries", "query uses a
+  table-valued function or virtual table, which workflow SQL queries cannot read", or one of the
+  statement-shape messages. It never names the internal table or page it tripped on; that detail
+  is in the server log. Any other failure reads "sql query failed".
+- **Limits.** The node returns at most 200 rows and gives up after 5 seconds.
+
 ### String Ops (`string-ops`)
 
 Apply common string operations to a value

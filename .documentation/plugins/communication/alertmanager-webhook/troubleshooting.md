@@ -2,7 +2,7 @@
 
 | Symptom | Usual cause | Fix |
 |---|---|---|
-| "receiver `<host>` resolves to a blocked address" | The URL, or the name it resolves to, is loopback, link-local (including `169.254.169.254`), unspecified or multicast | Use the receiver's routable address. A receiver on the McHarbor host itself must be reached through an address other than loopback. |
+| "receiver `<host>` resolves to a blocked address" | The URL, or the name it resolves to, is loopback, link-local (including `169.254.169.254`), unspecified, multicast, a cloud metadata address, or an IPv6 form that carries one of those | Use the receiver's routable address. A receiver on the McHarbor host itself must be reached through an address other than loopback. |
 | "receiver URL for `<host>` uses http://" | Plain `http` without the opt-in | Use `https`, or turn on **Allow plain http** for a receiver on a trusted private network. |
 | "Grafana IRM integration URLs end in /" | The trailing slash was lost when copying | Paste the OnCall Integration URL again, ending in `/`. |
 | "receiver `<host>` answered HTTP 3xx" | The receiver redirected, and redirects are never followed | Use the final URL the receiver documents, usually its `https` form. |

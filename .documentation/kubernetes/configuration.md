@@ -110,6 +110,14 @@ connection checks below apply to it.
 - Link-local addresses (`169.254.0.0/16`, `fe80::/10`) and cloud metadata endpoints
   (`100.100.100.200`, `fd00:ec2::/32`) are refused and show **Cluster unreachable**. Loopback and
   private addresses stay allowed, for local kind and k3s clusters.
+- Addresses that only encode a refused IPv4 address are refused the same way. That covers NAT64
+  (`64:ff9b::/96` and `64:ff9b:1::/48`, so `64:ff9b::a9fe:a9fe` is `169.254.169.254`), 6to4
+  (`2002::/16`), Teredo (`2001::/32`), ISATAP and the IPv4-compatible form (`::a.b.c.d`).
+- McHarbor ignores `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` for cluster connections. A proxy
+  between McHarbor and the cluster API is not used, because the address check would then see the
+  proxy and not the cluster. The cluster must be reachable directly from the McHarbor host; a
+  setup that only reaches the cluster through a proxy shows **Cluster unreachable** until the
+  host has a direct route to the API server.
 - The check is kept for five minutes per cluster. Editing or removing the cluster runs it again
   on the next request.
 - Error text from the cluster is shown only after the check passes. A verified API server's own

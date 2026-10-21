@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/catalogindex"
+	"github.com/therealmcsparrow/mcharbor/core/egress"
 )
 
 // Remote catalog limits. An index is a network payload whoever authored
@@ -28,8 +29,9 @@ const (
 // same host reuse connections. TLS verification stays on. A plaintext
 // http:// row an operator added is fetched as stored — never silently
 // upgraded, because that would hide the downgrade the Settings probe
-// flags with `transport.insecure`.
-var remoteHTTPClient = &http.Client{Timeout: remoteFetchTimeout}
+// flags with `transport.insecure`. The egress guard refuses loopback and
+// the cloud-metadata service, at dial time and on every redirect.
+var remoteHTTPClient = egress.NewClient(egress.Options{Timeout: remoteFetchTimeout})
 
 // RemoteCatalogIndexURL turns a stored catalog URL into the document the
 // loader should GET, reporting false when the URL names nothing

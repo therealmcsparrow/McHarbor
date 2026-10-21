@@ -6,7 +6,7 @@ import { IconTopologyStar3 } from '@tabler/icons-react';
 import { EmptyState } from '@resources/components/ui/EmptyState';
 import { CardSkeleton, TableSkeleton } from '@resources/components/ui/Skeleton';
 import { usePluginNavigate } from '../nav-context';
-import type { KubernetesSummary } from '../types';
+import type { KubernetesSummary, SummaryReason } from '../types';
 
 /**
  * No cluster answered. The reason code carries the fix, so this is an empty
@@ -16,9 +16,15 @@ import type { KubernetesSummary } from '../types';
 export function Disconnected({ summary }: { summary: KubernetesSummary }) {
   const { t } = useTranslation('kubernetes');
   const navigate = usePluginNavigate();
-  const fallback = t('errors.verifyCredentials');
-  // eslint-disable-next-line mcharbor/no-restricted-syntax -- i18n-open-set: reason codes come from the backend and a new one must degrade to the generic hint
-  const reasonText = summary.reason ? t(`errors.reason.${summary.reason}`, { defaultValue: fallback }) : fallback;
+  const reasons: Record<SummaryReason, string> = {
+    no_environment: t('errors.reason.no_environment'),
+    not_kubernetes: t('errors.reason.not_kubernetes'),
+    unreachable: t('errors.reason.unreachable'),
+    credentials_refused: t('errors.reason.credentials_refused'),
+    api_unverified: t('errors.reason.api_unverified'),
+  };
+  // A reason code newer than this bundle degrades to the generic hint instead of a raw key.
+  const reasonText = (summary.reason && reasons[summary.reason]) || t('errors.verifyCredentials');
 
   return (
     <EmptyState
