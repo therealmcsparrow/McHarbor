@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconTrash } from '@tabler/icons-react';
 import type { ColumnDef } from '@resources/components/table-features';
@@ -23,6 +23,13 @@ export function useRunbookColumns({ onEdit, onRemove }: RunbookColumnActions) {
   const { t } = useTranslation('runbooks');
   const { t: tCommon } = useTranslation('common');
   const attachLabel = useAttachLabel();
+
+  // onEdit wraps useSearchParams' setter, which changes with the URL; calling through a ref
+  // keeps the memoised columns off a stale one without rebuilding them per search keystroke.
+  const actions = useRef({ onEdit, onRemove });
+  useEffect(() => {
+    actions.current = { onEdit, onRemove };
+  }, [onEdit, onRemove]);
 
   return useMemo<ColumnDef<Runbook, unknown>[]>(
     () => [
@@ -100,7 +107,7 @@ export function useRunbookColumns({ onEdit, onRemove }: RunbookColumnActions) {
               variant="outline"
               size="sm"
               permission={PERM.RUNBOOKS_MANAGE}
-              onClick={() => onEdit(row.original.id)}
+              onClick={() => actions.current.onEdit(row.original.id)}
             >
               {t('list.edit')}
             </Button>
@@ -110,7 +117,7 @@ export function useRunbookColumns({ onEdit, onRemove }: RunbookColumnActions) {
               size="icon"
               aria-label={t('list.delete')}
               permission={PERM.RUNBOOKS_MANAGE}
-              onClick={() => onRemove(row.original.id)}
+              onClick={() => actions.current.onRemove(row.original.id)}
             >
               <IconTrash className="size-4" aria-hidden="true" />
             </Button>
@@ -118,10 +125,6 @@ export function useRunbookColumns({ onEdit, onRemove }: RunbookColumnActions) {
         ),
       },
     ],
-    // onEdit closes over setParams and onRemove over setPending, both stable for
-    // the lifetime of the route, so the columns do not need to be rebuilt on
-    // every search keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t, tCommon, attachLabel],
   );
 }

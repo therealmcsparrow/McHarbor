@@ -187,6 +187,7 @@ export function PluginFormOutlet({
         }
       }
     };
+    // oxlint-disable-next-line react/exhaustive-deps -- mount once per plugin identity; value, onChange and the other props are read at mount and later value changes are pushed through handle.update
   }, [match?.plugin_slug, match?.kind, match?.resource, keyName, i18nPrefix, cacheKey, mode]);
 
   // Push `value` updates into the bundle whenever the host's value

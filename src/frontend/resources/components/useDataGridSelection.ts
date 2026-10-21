@@ -87,7 +87,7 @@ export function useDataGridSelection<T>({
   useEffect(() => {
     if (!selectable || !onSelectionChange) return;
     onSelectionChange(selectedRows);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- fires whenever the selectedRows memo recomputes (selection, data refresh or getRowId identity change); a new onSelectionChange identity must not re-notify the parent
   }, [selectedRows]);
 
   return {

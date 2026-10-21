@@ -30,6 +30,7 @@ const FLOOR: Record<string, number> = {
   'modules/dashboard/widgets/downloaded-loader.test.tsx': 2,
   'modules/dashboard/stores/widget-registry.test.ts': 3,
   'resources/hooks/hostPermission.test.ts': 1,
+  'resources/ai/registry.test.tsx': 3,
   'core/auth/setupToken.test.ts': 3,
   'resources/hooks/useNetworks.test.tsx': 4,
   'modules/settings/hooks/useCatalogs.test.tsx': 2,

@@ -25,7 +25,7 @@ export function UpdatesTab({ containerId, containerImage }: UpdatesTabProps) {
       checkMutation.mutate([containerId]);
     }
     // run once on mount per container
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- runs once per container; re-running on result or pending would loop the check
   }, [containerId]);
 
   const running = checkMutation.isPending;

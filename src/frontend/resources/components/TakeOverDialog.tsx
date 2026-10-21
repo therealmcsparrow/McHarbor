@@ -53,7 +53,7 @@ export function TakeOverDialog({
       setName(containerName ?? '');
       preview.mutate({ containerId });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- the preview is requested when the dialog opens or the target changes; containerName and the preview mutation object are read but must not re-request it
   }, [isOpen, stackName, containerId]);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function TakeOverDialog({
         setName(preview.data.name);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- seeds the form from a fresh preview only; editing the name must not re-seed it
   }, [preview.data]);
 
   const handleSubmit = () => {

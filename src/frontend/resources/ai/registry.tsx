@@ -43,7 +43,17 @@
  * its context cleanly.
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 
 /** Resource kinds the assistant can talk about. Add new types as new modules ship. */
 export type AIResourceKind =
@@ -121,6 +131,9 @@ class AIContextRegistry {
   private store: AIContextStore = { contexts: [], providers: [] };
   private listeners = new Set<Listener>();
 
+  subscribeFn = (listener: Listener) => this.subscribe(listener);
+  snapshotFn = () => this.store;
+
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -137,14 +150,12 @@ class AIContextRegistry {
   /** Register a context. Returns an unregister function. */
   register(context: AIContext): () => void {
     const idx = this.store.contexts.findIndex((c) => c.source === context.source);
-    if (idx >= 0) {
-      this.store.contexts[idx] = context;
-    } else {
-      this.store.contexts = [...this.store.contexts, context];
-    }
+    const contexts =
+      idx >= 0 ? this.store.contexts.map((c, i) => (i === idx ? context : c)) : [...this.store.contexts, context];
+    this.store = { ...this.store, contexts };
     this.notify();
     return () => {
-      this.store.contexts = this.store.contexts.filter((c) => c.source !== context.source);
+      this.store = { ...this.store, contexts: this.store.contexts.filter((c) => c.source !== context.source) };
       this.notify();
     };
   }
@@ -152,14 +163,12 @@ class AIContextRegistry {
   /** Register or update a provider (addon / extension) descriptor. */
   registerProvider(provider: AIProviderInfo): () => void {
     const idx = this.store.providers.findIndex((p) => p.id === provider.id);
-    if (idx >= 0) {
-      this.store.providers[idx] = provider;
-    } else {
-      this.store.providers = [...this.store.providers, provider];
-    }
+    const providers =
+      idx >= 0 ? this.store.providers.map((p, i) => (i === idx ? provider : p)) : [...this.store.providers, provider];
+    this.store = { ...this.store, providers };
     this.notify();
     return () => {
-      this.store.providers = this.store.providers.filter((p) => p.id !== provider.id);
+      this.store = { ...this.store, providers: this.store.providers.filter((p) => p.id !== provider.id) };
       this.notify();
     };
   }
@@ -193,11 +202,8 @@ interface AIContextProviderProps {
  * authenticated tree once (already done in AppLayout).
  */
 export function AIContextProvider({ children }: AIContextProviderProps) {
-  const [store, setStore] = useState<AIContextStore>(registry.getSnapshot());
-
-  useEffect(() => {
-    return registry.subscribe(() => setStore(registry.getSnapshot()));
-  }, []);
+  // useSyncExternalStore also catches registrations children made before this component subscribed.
+  const store = useSyncExternalStore(registry.subscribeFn, registry.snapshotFn);
 
   const value = useMemo(() => ({ store, subscribe: registry.subscribe.bind(registry) }), [store]);
 
@@ -216,12 +222,44 @@ interface UseAIContextOptions {
  */
 export function useAIContext(context: AIContext | null | undefined, options: UseAIContextOptions = {}): void {
   const enabled = options.enabled ?? true;
+  const latest = useRef(context);
+  useEffect(() => {
+    latest.current = context;
+  });
+
+  const digest = context ? contextDigest(context) : '';
 
   useEffect(() => {
-    if (!enabled || !context) return;
-    return registry.register(context);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, context?.source, context?.type, context?.resourceId, context?.resourceName]);
+    const current = latest.current;
+    if (!enabled || !current) return;
+    // A capability's run is read through the ref so a fresh closure never forces a re-register.
+    const capabilities = current.capabilities?.map((cap) => ({
+      ...cap,
+      run: () => latest.current?.capabilities?.find((c) => c.id === cap.id)?.run(),
+    }));
+    return registry.register({ ...current, capabilities });
+    // digest stands in for the content fields read from latest, so only a real change re-registers.
+    // oxlint-disable-next-line react/exhaustive-deps -- context is read through latest; digest covers its content
+  }, [enabled, digest]);
+}
+
+/** Serialises everything about a context except capability callbacks, so equal content compares equal. */
+function contextDigest(context: AIContext): string {
+  try {
+    return JSON.stringify([
+      context.source,
+      context.type,
+      context.resourceId,
+      context.resourceName,
+      context.summary,
+      context.priority,
+      context.metadata,
+      context.capabilities?.map(({ run: _run, ...rest }) => rest),
+    ]);
+  } catch {
+    // Unserialisable metadata (a cycle): fall back to identity fields, the old behaviour.
+    return `${context.source}|${context.type}|${context.resourceId}|${context.resourceName}`;
+  }
 }
 
 /**
@@ -229,11 +267,14 @@ export function useAIContext(context: AIContext | null | undefined, options: Use
  * settings dashboard.
  */
 export function useAIProvider(provider: AIProviderInfo | null | undefined): void {
+  const id = provider?.id;
+  const providerName = provider?.name;
+  const version = provider?.version;
+  const description = provider?.description;
   useEffect(() => {
-    if (!provider) return;
-    return registry.registerProvider(provider);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [provider?.id, provider?.name, provider?.version]);
+    if (id === undefined || providerName === undefined) return;
+    return registry.registerProvider({ id, name: providerName, version, description });
+  }, [id, providerName, version, description]);
 }
 
 /**

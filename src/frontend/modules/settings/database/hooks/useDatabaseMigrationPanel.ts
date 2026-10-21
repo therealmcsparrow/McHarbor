@@ -29,6 +29,7 @@ export function useDatabaseMigrationPanel() {
 
   const config = useDatabaseConfig();
   const test = useDatabaseTest();
+  const { reset: resetTest } = test;
   const startMigration = useStartMigration();
   const cancelMigration = useCancelMigration();
 
@@ -47,13 +48,11 @@ export function useDatabaseMigrationPanel() {
   const jobActive = Boolean(migration.data && ACTIVE_MIGRATION_PHASES.includes(migration.data.phase));
 
   useEffect(() => {
+    // eslint-disable-next-line react/set-state-in-effect -- a driver change discards the connection typed for the previous driver
     setConnection(emptyConnection(driver));
     setMoveSameKind(false);
-    test.reset();
-    // `test` is a stable mutation object from TanStack Query; including it
-    // would re-run this on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driver]);
+    resetTest();
+  }, [driver, resetTest]);
 
   const target = useMemo(() => ({ ...connection, driver }), [connection, driver]);
   const readOnly = config.data?.envPinned ?? false;

@@ -98,7 +98,7 @@ export const lint: LintConfig = {
   options: { typeAware: true, typeCheck: true },
   rules: {
     'react/rules-of-hooks': 'error',
-    'react/exhaustive-deps': 'warn',
+    'react/exhaustive-deps': 'error',
     'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     'no-control-regex': 'off',
   },

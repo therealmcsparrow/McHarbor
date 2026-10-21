@@ -16,6 +16,7 @@ import { REVEAL_AUTO_HIDE_SECONDS, REVEAL_REASON_MIN_LENGTH, type Secret } from 
  */
 export function useRevealFlow(isOpen: boolean, secret: Secret | null) {
   const reveal = useRevealSecret();
+  const { reset: resetReveal } = reveal;
   const stepUp = useStepUp();
 
   const [reason, setReason] = useState('');
@@ -29,21 +30,20 @@ export function useRevealFlow(isOpen: boolean, secret: Secret | null) {
 
   useEffect(() => {
     if (isOpen) return;
+    // eslint-disable-next-line react/set-state-in-effect -- closing the dialog must wipe the revealed secret and the entered credentials
     setReason('');
     setValue('');
     setSecondsLeft(0);
     setPassword('');
     setTotpCode('');
     setSteppedUp(false);
-    reveal.reset();
-    // reveal is a stable mutation object; including it would re-run this on
-    // every mutation state change and wipe the value the user just asked for.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+    resetReveal();
+  }, [isOpen, resetReveal]);
 
   useEffect(() => {
     if (value === '') return;
     if (secondsLeft <= 0) {
+      // eslint-disable-next-line react/set-state-in-effect -- the countdown reaching zero clears the revealed value
       setValue('');
       return;
     }

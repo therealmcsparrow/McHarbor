@@ -86,8 +86,7 @@ export function useAIAssistantChat({
       setInput(seedPrompt);
       onSeedConsumed?.();
     }
-    // Only react to (open, seedPrompt) — input changes don't matter.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- reacts to open and seedPrompt only; a new onSeedConsumed identity must not re-consume the seed
   }, [isOpen, seedPrompt]);
 
   useEffect(() => {

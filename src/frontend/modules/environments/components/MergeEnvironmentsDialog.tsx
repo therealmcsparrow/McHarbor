@@ -49,7 +49,7 @@ export function MergeEnvironmentsDialog({
     }
     if (!sourceId) return;
     merge.mutate({ targetId: target.id, sourceId, dryRun: true }, { onSuccess: (result) => setPlan(result) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- merge is a mutation object; the dry run must fire only when the dialog, source or target changes
   }, [isOpen, sourceId, target.id]);
 
   const apply = () => {

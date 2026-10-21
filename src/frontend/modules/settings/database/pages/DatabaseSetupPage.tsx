@@ -36,6 +36,7 @@ export default function DatabaseSetupPage() {
 
   const currentStatus = useDatabaseSetupStatus();
   const test = useDatabaseSetupTest();
+  const { reset: resetTest } = test;
   const apply = useApplyDatabaseSetup();
 
   const [driver, setDriver] = useState<DatabaseDriver>('sqlite');
@@ -66,11 +67,10 @@ export default function DatabaseSetupPage() {
   }, [currentStatus.data, navigate]);
 
   useEffect(() => {
+    // eslint-disable-next-line react/set-state-in-effect -- a driver change discards the connection typed for the previous driver
     setConnection(emptyConnection(driver));
-    test.reset();
-    // The mutation object is stable; listing it would re-run this per render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driver]);
+    resetTest();
+  }, [driver, resetTest]);
 
   const target = useMemo(() => ({ ...connection, driver }), [connection, driver]);
   const needsTest = driver !== 'sqlite';

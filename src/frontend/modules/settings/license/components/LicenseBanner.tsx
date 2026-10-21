@@ -56,7 +56,7 @@ type LicenseBannerProps = {
 export function LicenseBanner({ className }: LicenseBannerProps = {}) {
   const { t } = useTranslation('license');
   const { data: currentStatus } = useLicenseStatus();
-  const acknowledge = useAcknowledgeNotice();
+  const { mutate: acknowledgeKind } = useAcknowledgeNotice();
   const restore = useDockedBanners((s) => s.restore);
 
   // The condition, not the cadence, decides what is on screen. The server
@@ -89,7 +89,7 @@ export function LicenseBanner({ className }: LicenseBannerProps = {}) {
     const begin = () => {
       startedFor.current = showing;
       timer = setTimeout(() => {
-        acknowledge.mutate(kind);
+        acknowledgeKind(kind);
       }, VISIBLE_MS);
     };
 
@@ -109,10 +109,7 @@ export function LicenseBanner({ className }: LicenseBannerProps = {}) {
       document.removeEventListener('visibilitychange', onVisible);
       clearTimeout(timer);
     };
-    // `acknowledge` is a stable mutation object; including it would
-    // re-run this on every render and restart the showing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind, due, currentStatus?.sampledAt, restore]);
+  }, [kind, due, currentStatus?.sampledAt, restore, acknowledgeKind]);
 
   if (!currentStatus || !kind) return null;
 

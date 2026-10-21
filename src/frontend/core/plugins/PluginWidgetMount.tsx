@@ -82,7 +82,7 @@ export function createPluginWidgetComponent(
         }
       };
       // Mount exactly once per tile instance; resizes go through `update`.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      // oxlint-disable-next-line react/exhaustive-deps -- mount exactly once per tile instance; resizes go through update
     }, []);
 
     useEffect(() => {

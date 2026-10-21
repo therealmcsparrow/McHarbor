@@ -126,7 +126,7 @@ function PluginTabMount({
         console.error(`plugin tab ${slug}:${tabKey} unmount threw`, err);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- the tab mounts once per registry entry; slug, tabKey and ctx are read at mount and later changes go through entry.update
   }, [entry]);
 
   useEffect(() => {

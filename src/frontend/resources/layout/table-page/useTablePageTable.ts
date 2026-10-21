@@ -132,7 +132,7 @@ export function useTablePageTable<T extends RowData>({
     if (!serverPaged && currentPageSize !== savedPageSize) {
       table.setPageSize(savedPageSize);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react/exhaustive-deps -- syncs the saved page size when it or serverPaged changes; table and currentPageSize are deliberately not triggers, a user page change must not be reverted
   }, [savedPageSize, serverPaged]);
 
   return { table, selection };
