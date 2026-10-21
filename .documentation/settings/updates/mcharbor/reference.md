@@ -26,6 +26,7 @@ Update manually or check the logs."
 | The automatic install switch does nothing | The checker is off | Enable the checker first; the section says so |
 | Update now fails | No writable Docker socket | Self-update starts a container and needs one |
 | No banner appears for a known release | The next scheduled check has not come yet | Use **Check now** for an immediate answer |
+| A rebuild of the running version is not offered | The release carries no `BUILD` file, or this install reports build `dev` | Builds are compared only when both sides carry a stamp; see [What counts as a new release](./README.md#what-counts-as-a-new-release) |
 | An update was found but not installed | It waits for the install window, or the window was skipped while work was running | The section shows the reason; widen the window or move it to a quieter time |
 | Agents broke after an update | They were left on the old version | Enable automatic agent updates, or run a sweep |
 

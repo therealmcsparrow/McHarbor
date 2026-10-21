@@ -22,6 +22,7 @@ import {
 import { PERM } from '@core/auth/permissionKeys';
 import { PreUpgradeCheckDialog } from '@resources/components/support/PreUpgradeCheckDialog';
 import { useCheckUpdate, useApplySelfUpdate } from '../hooks/useUpdates';
+import { releaseLabel } from '../hooks/releaseLabel';
 
 export function McHarborUpdateCard() {
   const { t } = useTranslation('settings');
@@ -64,15 +65,17 @@ export function McHarborUpdateCard() {
               <div className="flex items-center gap-2">
                 <IconArrowUp className="size-4 text-success" />
                 <span className="text-sm font-medium text-foreground">
-                  {t('about.updateAvailable', { version: versionCheck.latestVersion })}
+                  {t('about.updateAvailable', {
+                    version: releaseLabel(versionCheck.latestVersion, versionCheck.latestBuild),
+                  })}
                 </span>
                 <Badge variant="default">{t('about.newVersion')}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('about.currentVersionLabel')}:{' '}
                 {t('about.versionTransition', {
-                  current: versionCheck.currentVersion,
-                  latest: versionCheck.latestVersion,
+                  current: releaseLabel(versionCheck.currentVersion, versionCheck.currentBuild),
+                  latest: releaseLabel(versionCheck.latestVersion, versionCheck.latestBuild),
                 })}
               </p>
               {versionCheck.releaseNotes && (
@@ -117,7 +120,9 @@ export function McHarborUpdateCard() {
               <IconCheck className="size-4 text-success" />
               <span className="text-sm text-foreground">{t('about.upToDate')}</span>
               <span className="text-xs text-muted-foreground">
-                {t('about.versionShort', { version: versionCheck.currentVersion })}
+                {t('about.versionShort', {
+                  version: releaseLabel(versionCheck.currentVersion, versionCheck.currentBuild),
+                })}
               </span>
             </div>
           )}

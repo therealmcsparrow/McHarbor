@@ -220,8 +220,16 @@ jobs:
           version="${{ steps.version.outputs.version }}"
           tag="${{ steps.version.outputs.tag }}"
 
+          build="$(tr -d '[:space:]' < BUILD)"
+          if [[ ! "$build" =~ ^[0-9]{12}$ ]]; then
+            echo "::error::BUILD ($build) is not a yyyyMMddHHmm stamp."
+            exit 1
+          fi
+          printf '%s\n' "$build" > "$RUNNER_TEMP/BUILD"
+
           if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists; skipping."
+            echo "Release $tag already exists; refreshing its BUILD asset."
+            gh release upload "$tag" "$RUNNER_TEMP/BUILD" --clobber
             exit 0
           fi
 
@@ -235,7 +243,7 @@ jobs:
             notes="Release $version"
           fi
 
-          gh release create "$tag" \
+          gh release create "$tag" "$RUNNER_TEMP/BUILD" \
             --title "Release $version" \
             --notes "$notes" \
             --target main

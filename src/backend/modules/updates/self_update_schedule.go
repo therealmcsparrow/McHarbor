@@ -116,7 +116,7 @@ func (c *SelfUpdateChecker) tick(ctx context.Context, now time.Time) {
 		return
 	}
 	state := c.State()
-	pendingInstall := settings.AutoInstall && state.UpdateAvailable && state.LatestVersion != "" && state.AutoInstallVersion != state.LatestVersion
+	pendingInstall := settings.AutoInstall && state.UpdateAvailable && state.LatestVersion != "" && state.AutoInstallVersion != releaseLabel(state.LatestVersion, state.LatestBuild)
 	if !pendingInstall && !settings.AutoUpdateAgents {
 		c.closeWindow(ctx)
 		return

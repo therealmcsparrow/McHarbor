@@ -191,16 +191,19 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 
 // githubRelease is a subset of the GitHub release API response.
 type githubRelease struct {
-	TagName     string `json:"tag_name"`
-	HTMLURL     string `json:"html_url"`
-	PublishedAt string `json:"published_at"`
-	Body        string `json:"body"`
+	TagName     string        `json:"tag_name"`
+	HTMLURL     string        `json:"html_url"`
+	PublishedAt string        `json:"published_at"`
+	Body        string        `json:"body"`
+	Assets      []githubAsset `json:"assets"`
 }
 
 // VersionCheck is the response for the check-update endpoint.
 type VersionCheck struct {
 	CurrentVersion  string `json:"currentVersion"`
+	CurrentBuild    string `json:"currentBuild,omitempty"`
 	LatestVersion   string `json:"latestVersion"`
+	LatestBuild     string `json:"latestBuild,omitempty"`
 	UpdateAvailable bool   `json:"updateAvailable"`
 	ReleaseURL      string `json:"releaseUrl,omitempty"`
 	PublishedAt     string `json:"publishedAt,omitempty"`
@@ -245,6 +248,8 @@ func (h *Handler) HandleCheckUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	latest := strings.TrimPrefix(rel.TagName, "v")
+	latestBuild := h.selfUpdate.releaseBuild(ctx, rel.Assets)
+	currentBuild := appversion.Build()
 	notes := rel.Body
 	if len(notes) > 2000 {
 		notes = notes[:2000]
@@ -252,8 +257,10 @@ func (h *Handler) HandleCheckUpdate(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, VersionCheck{
 		CurrentVersion:  currentVersion,
+		CurrentBuild:    currentBuild,
 		LatestVersion:   latest,
-		UpdateAvailable: latest != currentVersion && compareVersions(latest, currentVersion) > 0,
+		LatestBuild:     latestBuild,
+		UpdateAvailable: releaseNewer(currentVersion, currentBuild, latest, latestBuild),
 		ReleaseURL:      rel.HTMLURL,
 		PublishedAt:     rel.PublishedAt,
 		ReleaseNotes:    notes,

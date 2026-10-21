@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,7 +30,9 @@ import (
 // without hitting GitHub on every request.
 type SelfUpdateState struct {
 	CurrentVersion  string `json:"currentVersion"`
+	CurrentBuild    string `json:"currentBuild,omitempty"`
 	LatestVersion   string `json:"latestVersion"`
+	LatestBuild     string `json:"latestBuild,omitempty"`
 	UpdateAvailable bool   `json:"updateAvailable"`
 	ReleaseURL      string `json:"releaseUrl,omitempty"`
 	PublishedAt     string `json:"publishedAt,omitempty"`
@@ -38,8 +41,10 @@ type SelfUpdateState struct {
 	LastError       string `json:"lastError,omitempty"`
 	NextCheckAt     string `json:"nextCheckAt,omitempty"`
 	IntervalHours   int    `json:"intervalHours"`
+	// NotifiedVersion is the releaseLabel last announced, so a rebuild of
+	// an announced version is announced again.
 	NotifiedVersion string `json:"notifiedVersion,omitempty"`
-	// AutoInstallVersion is the release the automatic installer last
+	// AutoInstallVersion is the releaseLabel the automatic installer last
 	// scheduled, so a failed or pending install is not re-scheduled on
 	// every tick.
 	AutoInstallVersion string `json:"autoInstallVersion,omitempty"`
@@ -150,6 +155,10 @@ type SelfUpdateChecker struct {
 	applier     SelfUpdateApplier
 	agentUpdate *AgentUpdater
 	currentImg  func(ctx context.Context) string
+	// running and assetAllowed are seams for tests; nil means the real
+	// VERSION/BUILD and the GitHub-only allow-list.
+	running      func() (version, build string)
+	assetAllowed func(*url.URL) bool
 
 	mu    sync.RWMutex
 	state SelfUpdateState
@@ -409,17 +418,18 @@ func (c *SelfUpdateChecker) CheckNow(ctx context.Context) (SelfUpdateState, erro
 
 	// Detect "new" version: the latest differs from the previously
 	// announced one AND from the version the operator dismissed.
+	latestLabel := releaseLabel(state.LatestVersion, state.LatestBuild)
 	announceable := state.UpdateAvailable &&
 		state.LatestVersion != "" &&
-		state.LatestVersion != settings.LastSeenVersion &&
-		state.LatestVersion != c.State().NotifiedVersion
+		latestLabel != settings.LastSeenVersion &&
+		latestLabel != c.State().NotifiedVersion
 
 	if announceable {
 		if err := c.notify(ctx, settings, state); err != nil {
 			c.logger.Warn("self-update: notification dispatch failed",
-				"version", state.LatestVersion, "error", err)
+				"version", latestLabel, "error", err)
 		}
-		state.NotifiedVersion = state.LatestVersion
+		state.NotifiedVersion = latestLabel
 	}
 
 	// Carry the installer / agent bookkeeping over from the previous
@@ -451,7 +461,8 @@ func (c *SelfUpdateChecker) AutoInstall(ctx context.Context, settings SelfUpdate
 	if !state.UpdateAvailable || state.LatestVersion == "" {
 		return false
 	}
-	if state.AutoInstallVersion == state.LatestVersion {
+	label := releaseLabel(state.LatestVersion, state.LatestBuild)
+	if state.AutoInstallVersion == label {
 		// Already scheduled (or failed) for this release; do not loop.
 		return false
 	}
@@ -461,27 +472,28 @@ func (c *SelfUpdateChecker) AutoInstall(ctx context.Context, settings SelfUpdate
 		target = imageForVersion(c.currentImg(ctx), state.LatestVersion)
 	}
 
-	state.AutoInstallVersion = state.LatestVersion
+	state.AutoInstallVersion = label
 	state.AutoInstallAt = time.Now().UTC().Format(time.RFC3339)
 	state.AutoInstallError = ""
 
+	from := releaseLabel(state.CurrentVersion, state.CurrentBuild)
 	c.logger.Info("self-update: automatic install scheduled",
-		"from", state.CurrentVersion, "to", state.LatestVersion, "image", target)
+		"from", from, "to", label, "image", target)
 	if err := c.applier(ctx, target); err != nil {
 		state.AutoInstallError = err.Error()
 		c.persistAndCache(ctx, state)
-		c.logger.Warn("self-update: automatic install failed", "version", state.LatestVersion, "error", err)
+		c.logger.Warn("self-update: automatic install failed", "version", label, "error", err)
 		c.notifyText(ctx, settings,
-			fmt.Sprintf("McHarbor automatic update to %s failed", state.LatestVersion),
+			fmt.Sprintf("McHarbor automatic update to %s failed", label),
 			fmt.Sprintf("The automatic update from %s to %s could not be scheduled. Open Settings > About to update manually.",
-				state.CurrentVersion, state.LatestVersion))
+				from, label))
 		return false
 	}
 	c.persistAndCache(ctx, state)
 	c.notifyText(ctx, settings,
-		fmt.Sprintf("McHarbor is updating to %s", state.LatestVersion),
+		fmt.Sprintf("McHarbor is updating to %s", label),
 		fmt.Sprintf("Automatic update from %s to %s has been scheduled. McHarbor restarts in a moment.",
-			state.CurrentVersion, state.LatestVersion))
+			from, label))
 	return true
 }
 
@@ -594,8 +606,14 @@ func (c *SelfUpdateChecker) fetchRelease(ctx context.Context) (SelfUpdateState, 
 		return SelfUpdateState{}, fmt.Errorf("decode github response: %w", err)
 	}
 
-	current := appversion.Current()
+	current, currentBuild := c.runningRelease()
 	latest := strings.TrimPrefix(rel.TagName, "v")
+	latestBuild := c.releaseBuild(ctx, rel.Assets)
+	if prev := c.State(); latestBuild == "" && prev.LatestVersion == latest {
+		// A failed BUILD download must not turn "v+build" back into "v": the
+		// label keys notification, install and dismiss, so a flip would redo all three.
+		latestBuild = prev.LatestBuild
+	}
 	notes := rel.Body
 	if len(notes) > 2000 {
 		notes = notes[:2000]
@@ -603,8 +621,10 @@ func (c *SelfUpdateChecker) fetchRelease(ctx context.Context) (SelfUpdateState, 
 
 	return SelfUpdateState{
 		CurrentVersion:  current,
+		CurrentBuild:    currentBuild,
 		LatestVersion:   latest,
-		UpdateAvailable: latest != "" && latest != current && compareVersions(latest, current) > 0,
+		LatestBuild:     latestBuild,
+		UpdateAvailable: releaseNewer(current, currentBuild, latest, latestBuild),
 		ReleaseURL:      rel.HTMLURL,
 		PublishedAt:     rel.PublishedAt,
 		ReleaseNotes:    notes,
@@ -613,6 +633,14 @@ func (c *SelfUpdateChecker) fetchRelease(ctx context.Context) (SelfUpdateState, 
 		IntervalHours:   0,
 		NotifiedVersion: "",
 	}, nil
+}
+
+// runningRelease is the version and build of this process.
+func (c *SelfUpdateChecker) runningRelease() (version, build string) {
+	if c.running != nil {
+		return c.running()
+	}
+	return appversion.Current(), appversion.Build()
 }
 
 // notify fires the configured channels with a release announcement.
@@ -628,10 +656,11 @@ func (c *SelfUpdateChecker) notify(ctx context.Context, settings SelfUpdateSetti
 		// the user sees the update inside McHarbor.
 		_, err := c.dispatcher.SendChannel(ctx, notify.ChannelRequest{
 			ChannelType: "internal",
-			Title:       fmt.Sprintf("McHarbor %s is available", state.LatestVersion),
+			Title:       fmt.Sprintf("McHarbor %s is available", releaseLabel(state.LatestVersion, state.LatestBuild)),
 			Message: fmt.Sprintf(
 				"A new McHarbor release is available. Running %s, latest is %s.\n\n%s",
-				state.CurrentVersion, state.LatestVersion, truncateNotes(state.ReleaseNotes, 500),
+				releaseLabel(state.CurrentVersion, state.CurrentBuild), releaseLabel(state.LatestVersion, state.LatestBuild),
+				truncateNotes(state.ReleaseNotes, 500),
 			),
 		})
 		return err
@@ -640,10 +669,11 @@ func (c *SelfUpdateChecker) notify(ctx context.Context, settings SelfUpdateSetti
 	for _, id := range settings.ChannelIDs {
 		_, err := c.dispatcher.SendChannel(ctx, notify.ChannelRequest{
 			ChannelID: id,
-			Title:     fmt.Sprintf("McHarbor %s is available", state.LatestVersion),
+			Title:     fmt.Sprintf("McHarbor %s is available", releaseLabel(state.LatestVersion, state.LatestBuild)),
 			Message: fmt.Sprintf(
 				"A new McHarbor release is available. Running %s, latest is %s.\n\n%s",
-				state.CurrentVersion, state.LatestVersion, truncateNotes(state.ReleaseNotes, 500),
+				releaseLabel(state.CurrentVersion, state.CurrentBuild), releaseLabel(state.LatestVersion, state.LatestBuild),
+				truncateNotes(state.ReleaseNotes, 500),
 			),
 		})
 		if err != nil && firstErr == nil {

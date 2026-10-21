@@ -3,7 +3,9 @@
 
 export type VersionCheck = {
   currentVersion: string;
+  currentBuild?: string;
   latestVersion: string;
+  latestBuild?: string;
   updateAvailable: boolean;
   releaseUrl?: string;
   publishedAt?: string;

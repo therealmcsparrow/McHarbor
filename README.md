@@ -78,7 +78,7 @@ McHarbor is built for the work that happens after deployment.
 - **Observable Control Plane**: McHarbor exposes its own health at `/api/metrics` for Prometheus — HTTP, the remote-agent transport, background jobs, the database pool and plugin state — behind a scrape-only `metrics.scrape` key, with a Grafana dashboard in the repository and optional OpenTelemetry traces that follow a request through the agent to the Docker daemon — including spans the agent measures itself, relayed so the agent never needs a route to your collector. A background loop keeps desired-state drift current, and its lag is on the dashboard.
 - **High Availability**: Run active/passive McHarbor nodes on a shared PostgreSQL, MySQL, MariaDB or SQL Server database — one active node fenced by a database lock, standbys that refuse changes, readiness probes for the load balancer, and Make active / Drain / Resume from Enterprise → High availability. Plugin packages are kept in the database, a shared mount or a storage location so every node can load them.
 - **HTTPS by Default**: McHarbor is its own certificate authority. A ten-year root signs a 90-day certificate on first boot and renews it without a restart; install the root once from Settings → Security → HTTPS and the browser warning is gone. Upload your own certificate there instead, or issue one automatically with the bundled ACME companion app. Connections negotiate **TLS 1.3**, the preferred and shipped floor; TLS 1.2 stays available for clients that predate 2019 via `TLS_MIN_VERSION=1.2`, and TLS 1.1 and below are refused.
-- **Self-Update Checker**: McHarbor periodically compares the running version against the latest GitHub release, surfaces an in-app banner when a newer version is available, and notifies configured channels. The check interval is configurable from Settings.
+- **Self-Update Checker**: McHarbor periodically compares the running version and build against the latest GitHub release, surfaces an in-app banner when a newer version, or a newer build of the same version, is available, and notifies configured channels. The check interval is configurable from Settings.
 
 ## What's New in 2026.10.01
 
@@ -254,7 +254,7 @@ McHarbor has grown from the initial public release into a broader operations pla
 - **Improved Self-Detection**: McHarbor recognizes its own container through Docker labels, compose metadata, image references, stored compose data, conventional names, and Docker inspect fallbacks.
 - **Release Version Metadata**: Runtime health/about metadata, update checks, startup logging, OpenAPI metadata, frontend package metadata, Docker image labels, and publishing workflows now use the canonical root `VERSION` file.
 - **Agent Install Commands**: Generated agent Docker install commands use the latest agent image by default, pull before restart, and mount a stable Compose workspace for agent-side stack deploys.
-- **Self-Update Checker**: McHarbor polls GitHub releases on a configurable interval (default 60 minutes, settable from Settings) and surfaces an in-app banner plus a notification whenever a newer version is available. The check is a coordinator singleton on multi-node installs, so only the leader polls; the result is replicated to followers through the shared database.
+- **Self-Update Checker**: McHarbor polls GitHub releases on a configurable interval (default 60 minutes, settable from Settings) and surfaces an in-app banner plus a notification whenever a newer version, or a newer build of the running version, is available. The check is a coordinator singleton on multi-node installs, so only the leader polls; the result is replicated to followers through the shared database.
 - **Update Status API**: `GET /api/updates/status` returns `{ current, latest, available, lastCheckedAt, releaseUrl }`. Operators can trigger an immediate check via `POST /api/updates/check` and adjust the interval via `PATCH /api/updates/settings`. The endpoint is auth-protected.
 
 ### Backups and External Storage
@@ -413,9 +413,10 @@ GET /api/versions
 Self-update checks are exposed through:
 
 ```text
-GET    /api/updates/status          # current version, latest release, last check time
-POST   /api/updates/check           # force an immediate refresh
-PATCH  /api/updates/settings        # adjust the check interval
+GET    /api/updates/state           # cached result: version and build, running and latest
+GET    /api/updates/check           # live check against the latest GitHub release
+PUT    /api/updates/settings        # check schedule, channels, automatic install
+POST   /api/updates/dismiss         # hide the banner for one release
 ```
 
 Container backup restores use:

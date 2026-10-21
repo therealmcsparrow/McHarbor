@@ -388,6 +388,12 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
 
 ### Fixed
 
+- **The update check offers a rebuild of the version you run.** It compared versions only, so
+  a newer build of the same version was never offered. It now compares the version, then the
+  build stamp, which it reads from a `BUILD` file attached to the GitHub release. A release
+  without that file is compared on version alone. The banner, the notification and the
+  automatic install name a rebuild as `<version>+<build>`, so each rebuild is announced and
+  installed once. A release you dismissed before this change may show its banner once more.
 - **The AI assistant follows the page you are on.** It kept the first value it saw on a page,
   such as a container's state, and did not pick up later changes. It now reads the current
   context.

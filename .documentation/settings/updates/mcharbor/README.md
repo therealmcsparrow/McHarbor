@@ -20,6 +20,22 @@ opening onto an empty panel.
 - Updating now, whether updates install automatically, and **the window in which an automatic
   install may happen**.
 
+## What counts as a new release
+
+The check reads the latest release on GitHub and compares it with the running McHarbor by
+**version, then build**. A newer version is always offered. A release with the same version is
+offered when its build stamp (`yyyyMMddHHmm`) is newer than the running one, so a rebuild of a
+version reaches you without a version bump.
+
+The release's build comes from a `BUILD` file attached to it. A release without that file, and
+an install whose own build is unstamped (`dev`), are compared on version alone. If the file
+cannot be downloaded, the check keeps the build it last saw for that version, rather than
+announcing the release again.
+
+The banner, the notification and the automatic install name a rebuild as
+`<version>+<build>` (`2026.10.01+202610220141`). Each rebuild is announced once and installed
+once, and dismissing the banner dismisses that build only.
+
 ## Updates never land in the middle of work
 
 The release check and the automatic install run on schedules of their own (**When updates

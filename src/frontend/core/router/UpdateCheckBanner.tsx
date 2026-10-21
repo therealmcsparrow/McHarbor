@@ -7,6 +7,7 @@ import { Link } from 'react-router';
 import { IconArrowUpRight, IconX } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { useSelfUpdateState, useDismissUpdate } from '@modules/settings/hooks/useUpdates';
+import { releaseLabel } from '@modules/settings/hooks/releaseLabel';
 
 const DISMISS_KEY = 'mcharbor-update-banner-dismissed';
 
@@ -25,21 +26,22 @@ export function UpdateCheckBanner() {
   // Reset the local dismiss when the latest version changes — that
   // way the user can re-dismiss an old banner, but a new release
   // re-surfaces without us having to clean localStorage manually.
+  // The server-side "last seen version" is the source of truth for
+  // the dismiss; the localStorage copy is just an optimistic mirror
+  // so the banner doesn't flicker on initial render.
+  const latest = data?.latestVersion ? releaseLabel(data.latestVersion, data.latestBuild) : undefined;
+
   useEffect(() => {
-    if (!data?.latestVersion) return;
-    if (dismissedLocal && dismissedLocal !== data.latestVersion) {
+    if (!latest) return;
+    if (dismissedLocal && dismissedLocal !== latest) {
       try {
         window.localStorage.removeItem(DISMISS_KEY);
       } catch {
         // Blocked storage only means the old dismiss is not cleared locally.
       }
     }
-  }, [data?.latestVersion, dismissedLocal]);
+  }, [latest, dismissedLocal]);
 
-  // The server-side "last seen version" is the source of truth for
-  // the dismiss; the localStorage copy is just an optimistic mirror
-  // so the banner doesn't flicker on initial render.
-  const latest = data?.latestVersion;
   // If the user already dismissed this exact version (via the
   // banner or the Settings page), the server would have set
   // lastSeenVersion; we don't have that on the public state
@@ -71,7 +73,7 @@ export function UpdateCheckBanner() {
         <div className="min-w-0 truncate">
           <p className="truncate font-medium">{t('updateCheck.banner.title', { version: latest })}</p>
           <p className="truncate text-xs text-muted-foreground">
-            {t('updateCheck.banner.subtitle', { version: data.currentVersion })}
+            {t('updateCheck.banner.subtitle', { version: releaseLabel(data.currentVersion, data.currentBuild) })}
           </p>
         </div>
       </div>

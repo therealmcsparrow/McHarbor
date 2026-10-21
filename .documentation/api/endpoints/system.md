@@ -33,7 +33,10 @@ an image match, a schedule, a strategy. The self-update endpoints
 
 **The self-update check is cached.** A background checker polls GitHub and writes the result
 to settings; `GET /api/updates/state` reads it back, so the frontend can poll for a new
-release without hammering the API. `GET /api/updates/check` forces a live check.
+release without hammering the API. `GET /api/updates/check` forces a live check. Both carry
+`currentVersion`, `currentBuild`, `latestVersion` and `latestBuild`; `updateAvailable` is true
+for a newer version, or for the same version with a newer build. The release's build is read
+from its `BUILD` asset, and `latestBuild` is empty when the release has none.
 
 **A self-update ends the process.** It schedules a detached helper container which replaces
 the image; the response returns first and the operator reconnects once the new image is up.

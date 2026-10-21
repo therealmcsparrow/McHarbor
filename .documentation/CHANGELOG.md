@@ -10,6 +10,18 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-10-22 01:58 — McHarbor 2026.10.01 — Update check compares the build
+
+### Changed
+
+- `settings/updates/mcharbor/README.md` — a **What counts as a new release** section: version
+  then build, the release's `BUILD` file, the version-only fallback, and the
+  `<version>+<build>` label the banner, notification and automatic install use.
+- `settings/updates/mcharbor/reference.md` — a troubleshooting row for a rebuild that is not
+  offered.
+- `api/endpoints/system.md` — the cached-check paragraph names `currentBuild` and
+  `latestBuild` and when `updateAvailable` is true.
+
 ## 2026-10-21 23:30 — McHarbor 2026.10.01 — Destination checks in the SMTP, LDAP, syslog and Samba plugins
 
 ### Changed

@@ -34,6 +34,7 @@ const FLOOR: Record<string, number> = {
   'core/auth/setupToken.test.ts': 3,
   'resources/hooks/useNetworks.test.tsx': 4,
   'modules/settings/hooks/useCatalogs.test.tsx': 2,
+  'modules/settings/hooks/releaseLabel.test.ts': 2,
   'modules/appstore/components/plugin-icons.test.tsx': 2,
   'resources/stores/mcharbor-restart.test.ts': 2,
   'resources/components/settings/BackupKeyInstallDialog.test.tsx': 2,
