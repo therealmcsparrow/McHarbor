@@ -8,6 +8,20 @@ This compares McHarbor 2026.10.01 with the 2.0.8 release of 2026-07-26. It lists
 operator coming from 2.0.8 gets, loses or must act on. Fixes to features that did not exist in
 2.0.8 are part of those features here, not separate entries.
 
+### Breaking
+
+- **Kubernetes clusters refuse a kubeconfig that runs a program or reads a host file.** A
+  kubeconfig with an exec plugin, an auth provider, a token file, a client certificate or key
+  file, a CA file, or a proxy URL is refused when you save it. A cluster stored that way shows
+  **Credentials refused** and is not connected. Inline `-data` fields and static tokens still
+  work. Convert each kubeconfig with `kubectl config view --minify --flatten --raw`, and replace
+  any exec login with a token; the Kubernetes documentation has the steps. The change ships in
+  the Kubernetes plugin, so update it from the Plugin Store.
+- **Kubernetes addresses must answer as Kubernetes API servers.** Before McHarbor reads a
+  cluster, it checks `/version`. An address that answers in any other way shows **Not a
+  Kubernetes API**. Link-local and cloud-metadata addresses are refused and show **Cluster
+  unreachable**. Loopback and private addresses still work.
+
 ### Added
 
 #### Plugins
@@ -125,7 +139,8 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
 - **Incidents** gather the evidence around a failing container, virtual machine, system
   container, pod or service into one timeline. They come with an optional AI narrative that you
   enable per environment, and detectors for memory growth, nightly restarts and failures after a
-  deploy.
+  deploy. A refusal from a narrative that is switched off links to that environment's narration
+  settings, and a settings dialog that fails to load shows the error with a retry.
 - **ITSM ticketing.** Alerts open, update and resolve tickets through a durable outbox, and the
   ITSM's status flows back. Plugins cover PagerDuty, Alertmanager-compatible receivers, Zammad,
   GLPI, iTop, OTRS/Znuny/OTOBO and Request Tracker, with matching workflow nodes and a trigger.
@@ -321,6 +336,7 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
   and the host itself, and fill for a host with no containers. The Disk Usage tile is now
   **Disk I/O**. The local environment reads the host through a read-only `/proc` mount in
   `docker-compose.yml`, and an agent host needs the 2026.10.01 agent.
+- **The standalone agent image is built on Alpine 3.22,** up from 3.20.
 - **Live stats and events are shared per environment,** not taken once per open tab. Host and
   activity pages reuse slow figures briefly.
 - **Self-update runs on a schedule and waits for work to finish.** **Settings → Updates →
@@ -352,6 +368,9 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
 
 ### Fixed
 
+- **The AI assistant follows the page you are on.** It kept the first value it saw on a page,
+  such as a container's state, and did not pick up later changes. It now reads the current
+  context.
 - **A table page could freeze the browser tab.** A table whose column list was rebuilt on every
   render (for example, columns computed inline) re-rendered without end once a column was sorted,
   until the tab ran out of memory. The table now keeps its saved layout stable, so sorting
@@ -544,6 +563,12 @@ operator coming from 2.0.8 gets, loses or must act on. Fixes to features that di
   - **Routes and slugs:** every plugin route takes the permission its manifest declares, and
     the slug `host` is reserved.
 - **McHarbor reports unsafe defaults at boot,** naming each variable that fixes them.
+- **Image scanners are pinned.** The container image ships Trivy 0.75.0 and Grype 0.120.0, each
+  checked against its SHA-256 at build time, instead of an unpinned install script. The release
+  workflow pins its SBOM action to a commit.
+- **Kubernetes error text is filtered.** A cluster's error body is not copied into a response,
+  except the API server's own `Status` message from an address that has passed the version
+  check.
 
 ## [2.0.8] - 2026-07-26
 

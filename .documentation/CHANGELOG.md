@@ -10,6 +10,18 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-10-21 14:06 — McHarbor 2026.10.01 — Kubernetes credential rules
+
+### Changed
+
+- `kubernetes/configuration.md` — **Cluster credentials**: the kubeconfig fields refused on save
+  and when stored, the connection checks (`/version`, refused link-local and metadata
+  addresses, the five-minute check), and how to convert a kubeconfig to inline data.
+- `kubernetes/troubleshooting.md` — symptom rows for a refused save, `credentials_refused`,
+  `api_unverified` and a metadata address; a **Reason codes** table with the dashboard titles.
+- `kubernetes/README.md` — the refusal in **How it works**; the plugin version and host range
+  now read `2026.10.01` and `>=2026.10.01`, matching `plugin.yaml`.
+
 ## 2026-10-16 15:29 — McHarbor 2026.10.01 — Frontend lint and format on Vite+
 
 ### Added

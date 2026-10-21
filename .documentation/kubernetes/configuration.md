@@ -52,6 +52,69 @@ in place unless you replace it.
 - Grant its permission keys to the roles that should see it.
 - Open its section in the sidebar.
 
+## Cluster credentials
+
+A kubeconfig can ask McHarbor to run a program, or to read a file on the McHarbor host.
+McHarbor refuses both, because that program or file would run on McHarbor's machine rather
+than in the cluster's own login flow. Inline data is accepted.
+
+| Field in the kubeconfig | Accepted | Refused |
+|---|---|---|
+| `users[].user.token` | Yes | |
+| `users[].user.client-certificate-data`, `client-key-data` | Yes | |
+| `clusters[].cluster.certificate-authority-data` | Yes | |
+| `users[].user.exec` | | Yes |
+| `users[].user.auth-provider` | | Yes |
+| `users[].user.tokenFile` | | Yes |
+| `users[].user.client-certificate`, `client-key` (file paths) | | Yes |
+| `clusters[].cluster.certificate-authority` (file path) | | Yes |
+| `clusters[].cluster.proxy-url` | | Yes |
+
+Every user and cluster entry is checked, not only the current context, so switching context
+later cannot make a refused entry live. A kubeconfig that does not parse is refused too.
+
+- **On save**, the request fails with HTTP 400 and nothing is stored. The error names the entry
+  and the field, for example `user "admin" sets exec`.
+- **When stored**, a cluster saved before this rule is not connected. The dashboard shows
+  **Credentials refused** (reason `credentials_refused`) until you edit it.
+
+The bearer-token form (server URL and token) is not affected by the kubeconfig rule. The
+connection checks below apply to it.
+
+### Convert a kubeconfig
+
+1. Where `kubectl` already reaches the cluster, write out the current context with its files
+   embedded:
+
+   ```bash
+   kubectl config view --minify --flatten --raw > cluster.kubeconfig
+   ```
+
+   `--flatten` turns certificate and key files into `-data` fields. `--raw` keeps those values
+   readable.
+2. Search the file for `exec:`, `auth-provider:`, `tokenFile:` and `proxy-url:`. Any match is
+   refused.
+3. For a `tokenFile`, replace the line with `token:` and the token. For an `exec` login (a cloud
+   CLI or an OIDC plugin), use a token instead: create one with
+   `kubectl create token <service-account> -n <namespace>` for a service account that holds the
+   RBAC the cluster needs. A token lasts as long as the cluster allows, so plan to renew it.
+4. Paste the file into the **Kubeconfig** field and save. Then delete `cluster.kubeconfig`. It
+   holds credentials in plain text.
+
+### Connection checks
+
+- Before McHarbor reads a cluster, it sends `GET /version`. Only an answer that is a Kubernetes
+  version document passes. A reachable address that answers in any other way shows **Not a
+  Kubernetes API** (`api_unverified`). A connection failure, or a non-2xx answer to `/version`,
+  shows **Cluster unreachable**.
+- Link-local addresses (`169.254.0.0/16`, `fe80::/10`) and cloud metadata endpoints
+  (`100.100.100.200`, `fd00:ec2::/32`) are refused and show **Cluster unreachable**. Loopback and
+  private addresses stay allowed, for local kind and k3s clusters.
+- The check is kept for five minutes per cluster. Editing or removing the cluster runs it again
+  on the next request.
+- Error text from the cluster is shown only after the check passes. A verified API server's own
+  `Status` message, such as an RBAC denial, is kept. Any other error body is dropped.
+
 ## Host scopes it requests
 
 These are the capabilities the manifest asks the host for. The installer refuses a

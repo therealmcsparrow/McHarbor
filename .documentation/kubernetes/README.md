@@ -2,8 +2,8 @@
 
 Manages Kubernetes clusters from McHarbor: workloads, services and networking, storage, config, namespaces, nodes and events, with pod logs, deployment scaling and rolling restarts. Cluster connections belong to the plugin, and their kubeconfig and bearer-token credentials are encrypted at rest with the host's own key.
 
-- **Slug** `addon-kubernetes`, **version** 2026.09.01
-- **Host range** `>=2026.09.01`
+- **Slug** `addon-kubernetes`, **version** 2026.10.01
+- **Host range** `>=2026.10.01`
 - **Where it appears** its own section in the sidebar, and its own pages under `/plugins/<slug>`
 - **Gated by** the permission keys it declares (see below)
 
@@ -11,6 +11,7 @@ Manages Kubernetes clusters from McHarbor: workloads, services and networking, s
 
 - Clusters are the plugin's own records, in `plugin_kubernetes_*` tables created by its migration. They are not McHarbor environments; a Docker environment and a Kubernetes cluster are separate connections.
 - Credentials are write-only on the API. The cluster list returns names and ids and never a kubeconfig, a bearer token or a CA certificate.
+- A kubeconfig that would run a program or read a file on the McHarbor host is refused, on save and when stored. Inline data is accepted. See [Cluster credentials](./configuration.md#cluster-credentials).
 - `kubernetes.logs` is separate from `kubernetes.view` on purpose: a pod's stdout routinely carries connection strings and tokens, so reading logs is a privileged read rather than part of the general view.
 - No view returns container environment values, Secret data or ConfigMap data. Secrets and config maps are listed by name, namespace, type and age; pod and deployment detail carry status, images and conditions. There is no YAML, describe or apply view, so there is nothing to mask and no reveal route. A regression test fails the build if a read surface starts returning one of those values.
 - The seven sidebar entries render as one **Kubernetes** section, grouped by the job a resource does for an application rather than by API group, the same split the Kubernetes Dashboard, Lens and Rancher settle on.
