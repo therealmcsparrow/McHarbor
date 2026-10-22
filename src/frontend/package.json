@@ -1,6 +1,6 @@
 {
   "name": "mcharbor-frontend",
-  "version": "2026.10.01",
+  "version": "2026.10.02",
   "private": true,
   "type": "module",
   "scripts": {
