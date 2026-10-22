@@ -10,7 +10,7 @@ import { renderWithProviders } from '../../../test/render';
 import { server } from '../../../test/server';
 import { WebhookSecretPanel } from './WebhookSecretPanel';
 
-const SECRET = 'whsec_0123456789abcdef0123456789abcdef';
+const SECRET = 'whsec_test-fixture-not-a-real-secret';
 const URL = '*/api/gitops/repos/repo-1/webhook-secret';
 
 describe('WebhookSecretPanel', () => {
