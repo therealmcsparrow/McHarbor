@@ -42,6 +42,30 @@ to the in-app notification center."
 Destinations that have since been deleted are reported rather than silently dropped:
 "2 destinations no longer exist and are ignored."
 
+## When the disk is full
+
+McHarbor reads a host's disk without asking Docker, so the disk check still runs when the disk
+is full. On first start McHarbor creates three default rules for every environment. They are
+ordinary rules: edit, disable or delete them.
+
+| Rule | Severity | Fires when | Sustained for |
+|---|---|---|---|
+| **Host disk usage warning** | Warning | The host filesystem is at 85% or more | 5 minutes |
+| **Host disk usage critical** | Critical | The host filesystem is at 95% or more | Immediately |
+| **Host disk data missing** | Warning | McHarbor has no usable disk reading for the host | 10 minutes |
+
+The rules notify in-app and by push, and send a recovery notice. Each enabled communication
+channel is attached at a minimum severity of Critical, so only the critical rule reaches a
+channel by default. To send the warning rules to a channel too, set that destination's minimum
+severity to Warning. The defaults are created once: a rule you delete stays deleted.
+
+A firing alert is delivered before its state is saved. A full disk therefore does not stop the
+notification. If the saved state cannot be written, the alert may notify once more after a
+restart.
+
+A host whose disk cannot be read is never reported as healthy. The **Host disk data missing**
+rule fires instead, and it counts from the last good reading.
+
 ## History
 
 "Every time a rule fired or resolved, and whether delivery succeeded." Delivery success is

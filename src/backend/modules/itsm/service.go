@@ -39,6 +39,7 @@ type Service struct {
 	logger  *slog.Logger
 	now     func() time.Time
 	trigger atomic.Pointer[StatusTrigger]
+	acked   atomic.Pointer[func(stateKey string)]
 
 	cancel     context.CancelFunc
 	wg         sync.WaitGroup
@@ -58,6 +59,10 @@ func NewService(database *sql.DB, disp Dispatcher, enc *encryption.Service, logg
 // SetStatusTrigger installs the workflow hook fired on every applied remote status.
 // It is atomic because main wires it after the poller has already started.
 func (s *Service) SetStatusTrigger(fn StatusTrigger) { s.trigger.Store(&fn) }
+
+// SetAcknowledgedHook installs the callback run after an ITSM acknowledgement is written to
+// alert_states, so a cache elsewhere can drop its stale copy without this module importing it.
+func (s *Service) SetAcknowledgedHook(fn func(stateKey string)) { s.acked.Store(&fn) }
 
 // Store exposes the link store to the handler.
 func (s *Service) Store() *Store { return s.store }
@@ -239,6 +244,9 @@ func (s *Service) ApplyRemote(ctx context.Context, channelID string, st incident
 			`UPDATE alert_states SET acknowledged_at = ?, acknowledged_by = ? WHERE state_key = ? AND active = 1`,
 			s.now().UTC().Format(time.RFC3339), "itsm:"+st.Assignee, link.DedupKey); err != nil {
 			return false, fmt.Errorf("itsm: recording acknowledgement: %w", err)
+		}
+		if hook := s.acked.Load(); hook != nil && *hook != nil {
+			(*hook)(link.DedupKey)
 		}
 	}
 	if st.State.Terminal() {

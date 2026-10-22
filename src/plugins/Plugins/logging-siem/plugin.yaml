@@ -41,7 +41,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Forward McHarbor audit events to an HTTP SIEM collector (Splunk HEC, Microsoft Sentinel, Elastic, Datadog). Each event is POSTed as a JSON document with an HMAC-SHA256 signature and a SHA-256 body checksum so the collector can verify integrity and origin. Configure it in Settings > Integrations > Logging."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host.

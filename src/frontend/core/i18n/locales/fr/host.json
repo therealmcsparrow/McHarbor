@@ -54,5 +54,19 @@
         "description": "Chaque conteneur de cet environnement a été exécuté récemment."
       }
     }
+  },
+  "diskStatus": {
+    "label": "Disque de l’hôte",
+    "stale": "Aucune donnée de disque, vu pour la dernière fois {{ago}}",
+    "unknown": "Pas encore de données de disque",
+    "unsupported": "Non surveillé",
+    "error": "Impossible de charger l’état du disque",
+    "usage": "{{percent}} % de {{total}} utilisés",
+    "requires": "L’état du disque nécessite l’autorisation {{permission}}",
+    "level": {
+      "normal": "dans les limites",
+      "warning": "au-dessus du seuil d’avertissement",
+      "critical": "au-dessus du seuil critique"
+    }
   }
 }

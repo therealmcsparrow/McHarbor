@@ -90,7 +90,7 @@ export function EnvironmentHostTab({ envId, env }: EnvironmentHostTabProps) {
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <DockerDiskPanel metrics={metrics} t={t} />
-            <HostFSPanel metrics={metrics} t={t} />
+            <HostFSPanel envId={envId} metrics={metrics} t={t} />
           </div>
 
           <PrunePanel onPrune={setPending} busy={prune.isPending} agentLimited={metrics.agentLimit} t={t} />

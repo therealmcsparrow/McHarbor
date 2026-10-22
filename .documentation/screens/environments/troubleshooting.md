@@ -18,6 +18,8 @@ environment accounts for the rest, because its "host" is Docker Desktop's own Li
 | Kernel packages stay listed after a successful apply | `linux-generic`, `linux-image-generic` and `linux-headers-generic` are metapackages, and a new kernel ABI needs image, module and header packages the host does not have. A plain upgrade never installs a new package, so apt reports them as **kept back** | Turn on **Install new packages when required** on the Updates tab and apply again. Nothing is removed by it |
 | The kernel version is unchanged after applying a kernel update | The new kernel is installed but not running | Reboot the host. The tab shows **reboot required** once the host says so; McHarbor never reboots a host on its own |
 | The new-packages setting saves but changes nothing on an agent host | The agent binary predates the setting and ignores it, upgrading conservatively as before | Update the agent from Settings → Updates → Agents. A native agent does not self-update across a build, only across a version |
+| A host's disk reads "No disk data" or "Not monitored" | No usable reading: the agent is offline, or it cannot report host stats. "Not monitored" means McHarbor cannot read that disk at all | Bring the agent online or update it. The **Host disk data missing** alert names the cause in its `reason` |
+| Backup archives take up space in the McHarbor data directory after a crash | An interrupted agent backup left a `.mcharbor-agent-backup-*` file in `backups/containers` or in one of its run folders | McHarbor removes such files older than ten minutes when it starts, and logs the count and bytes. A file younger than ten minutes is left alone, in case a transfer is still writing it |
 
 ## Reading the Logs tab's notices
 

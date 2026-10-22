@@ -11,7 +11,7 @@ license: "McHarbor"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Routes McHarbor AI chat completions through Mistral's OpenAI-compatible /v1/chat/completions endpoint. Models include Mistral Large, Mistral Medium, and Mixtral open-weights line."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

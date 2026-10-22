@@ -33,7 +33,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "SAML 2.0 identity provider. Service-Provider-side flow against any SAML 2.0 IdP (Okta, Auth0, Keycloak, ADFS, Google Workspace, Azure AD). SP metadata is auto-generated; optional signed AuthnRequests via uploaded SP keypair. Install to add 'SAML 2.0' as a provider_type in Settings > Security > Identity Providers."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host.

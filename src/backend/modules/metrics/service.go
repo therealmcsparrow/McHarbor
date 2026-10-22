@@ -5,6 +5,7 @@ package metrics
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -27,6 +28,16 @@ var fullDiskUsage = dockerclient.DiskUsageOptions{Containers: true, Images: true
 type Service struct {
 	dockerPool *docker.ClientPool
 	agentPool  *coreagent.AgentPool
+	// db feeds the restart fallback of HostFSStatus; nil disables it.
+	db *sql.DB
+	// fsb replaces the pool-backed host filesystem source in tests.
+	fsb hostFSBackend
+}
+
+// WithDB lets HostFSStatus fall back to the stored capacity series after a restart.
+func (s *Service) WithDB(db *sql.DB) *Service {
+	s.db = db
+	return s
 }
 
 // NewService creates a new metrics service.
@@ -64,7 +75,9 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 		return nil, fmt.Errorf("fetching disk usage: %w", err)
 	}
 
-	agentLimit := s.dockerPool.IsAgentEnvContext(ctx, envID)
+	isAgent := s.dockerPool.IsAgentEnvContext(ctx, envID)
+	agentLimit := isAgent
+	var agentStats *coreagent.HostStatsPayload
 
 	host := HostInfo{
 		NCPU:          info.NCPU,
@@ -110,6 +123,8 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 				host.Load5 = stats.Load5
 				host.Load15 = stats.Load15
 				host.Uptime = stats.Uptime
+				stats.Supported = true
+				agentStats = &stats
 				agentLimit = false
 			}
 		}
@@ -140,31 +155,17 @@ func (s *Service) HostInfo(ctx context.Context, envID string) (*HostMetricsRespo
 		Total:          total,
 	}
 
-	// Host filesystem usage — best-effort. For local envs we read it on
-	// the McHarbor process; for agent envs the agent reports it
-	// together with /proc stats above.
+	// Host filesystem usage is best-effort. Gate on isAgent, not agentLimit:
+	// agentLimit is cleared once the agent answers, which used to send an agent
+	// environment down the local branch and report McHarbor's own disk.
 	hostFS := HostFSUsage{Path: "/"}
-	if !agentLimit {
-		if totalBytes, usedBytes, ok := readRootFSUsage(); ok {
-			hostFS.Total = totalBytes
-			hostFS.Used = usedBytes
-			if totalBytes > 0 {
-				hostFS.Percent = float64(usedBytes) / float64(totalBytes) * 100.0
-			}
+	if isAgent && agentStats != nil {
+		if usage, err := usageFromAgentStats(*agentStats); err == nil {
+			hostFS = usage
+			s.recordHostFS(ctx, envID, usage)
 		}
-	} else if s.agentPool != nil {
-		if t := s.agentPool.ResolveTransport(envID); t != nil && t.HostStatsSupported() {
-			statsCtx, statsCancel := context.WithTimeout(ctx, 15*time.Second)
-			stats, supported, err := t.HostStats(statsCtx)
-			statsCancel()
-			if err == nil && supported {
-				hostFS.Total = stats.FSTotal
-				hostFS.Used = stats.FSUsed
-				if stats.FSTotal > 0 {
-					hostFS.Percent = float64(stats.FSUsed) / float64(stats.FSTotal) * 100.0
-				}
-			}
-		}
+	} else if usage, err := s.HostFS(ctx, envID); err == nil {
+		hostFS = usage
 	}
 
 	return &HostMetricsResponse{Host: host, Disk: disk, HostFS: hostFS, AgentLimit: agentLimit}, nil

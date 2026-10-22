@@ -343,11 +343,19 @@ func main() {
 		logger.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
+	bootstrap.SweepLocalBackupOrphans(cfg.DataDir, logger)
 	if driverName == string(db.DriverMySQL) {
 		if err := sqldialect.LoadMySQLTimeColumns(context.Background(), database); err != nil {
 			logger.Error("failed to read the DATETIME columns; RFC3339 timestamps will be refused", "error", err)
 		}
 	}
+	// The seed writes RFC3339 timestamps, which MySQL refuses until its time columns are known.
+	alertsService := alerts.NewService(database)
+	if err := alertsService.SeedDefaultRules(context.Background()); err != nil {
+		logger.Error("failed to seed the default disk alert rules", "error", err)
+	}
+	bootstrap.WireHostFSThresholds(alertsService)
+	bootstrap.WireMergeInvalidation(environments.SetMergedHook)
 
 	// A node that generated its own key (no ENCRYPTION_KEY, fresh DATA_DIR) against a
 	// shared database would silently mis-decrypt every secret; refuse that case outright.
@@ -1152,7 +1160,7 @@ func main() {
 			corenotify.NewDispatcher(database, enc).SetPluginRuntime(app.PluginAdapters),
 			cfg.DataDir, backupCrypto,
 		),
-		Alerts:    alerts.NewService(database),
+		Alerts:    alertsService,
 		Updates:   updates.NewService(database),
 		Schedules: schedules.NewService(database),
 	}))
@@ -1170,6 +1178,7 @@ func main() {
 	itsmSvc := itsm.NewService(database, corenotify.NewDispatcher(database, enc).SetPluginRuntime(app.PluginAdapters), enc, logger)
 	itsm.Mount(app, itsmSvc)
 	alerts.SetIncidentEmitter(itsmSvc)
+	itsmSvc.SetAcknowledgedHook(alerts.NoteAcknowledged)
 	itsmSvc.Start(context.Background(), coord)
 	defer itsmSvc.Stop()
 

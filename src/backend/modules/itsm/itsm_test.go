@@ -528,3 +528,30 @@ func TestRetryingUpdateIsNotOvertaken(t *testing.T) {
 		t.Fatalf("order = %v, want %v", got, want)
 	}
 }
+
+func TestApplyRemoteAcknowledgementNotifiesTheHook(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	if _, _, err := h.svc.store.EnsureLink(ctx, "ch1", "itsm", "k", "a", "", ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.db.Exec(`INSERT INTO alert_states (state_key, alert_id, active, last_seen, created_at, updated_at) VALUES ('k', 'a', 1, 'x', 'x', 'x')`); err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	h.svc.SetAcknowledgedHook(func(key string) { got = append(got, key) })
+	if _, err := h.svc.ApplyRemote(ctx, "ch1", incident.RemoteStatus{DedupKey: "k", Ref: incident.Ref{ExternalID: "X1"},
+		State: incident.RemoteOpen, UpdatedAt: h.now}); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("hook fired without an acknowledgement: %v", got)
+	}
+	if _, err := h.svc.ApplyRemote(ctx, "ch1", incident.RemoteStatus{DedupKey: "k", Ref: incident.Ref{ExternalID: "X1"},
+		State: incident.RemoteAcknowledged, Assignee: "ann", UpdatedAt: h.now.Add(time.Minute)}); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0] != "k" {
+		t.Fatalf("hook calls = %v, want [k]", got)
+	}
+}

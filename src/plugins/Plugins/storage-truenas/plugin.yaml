@@ -18,7 +18,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Back up containers to a TrueNAS instance via WebDAV (RFC 4918). TrueNAS exposes WebDAV on the share's configured path (default `/webdav` for the standard WebDAV share). Operators authenticate with a local TrueNAS user + password over HTTP Basic auth. Chunked uploads use Content-Range PUT; the TrueNAS Samba server is built on samba.org which supports Content-Range PUT in WebDAV. Same Test round-trip shape (write / change / delete) as the SharePoint, Google Drive, and Nextcloud plugins."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 permissions:

@@ -26,7 +26,7 @@ Releases up to 2.0.8 used `MAJOR.MINOR.PATCH`; 2026.10.01 is the first calendar 
 **The remote agent shares McHarbor's version** and is released with it. Some features still
 name an older agent floor (interactive terminal exec needs agent v1.1.0 or newer, offline
 buffering arrived with agent 2.4.0, compute needs 3.0.0). Those floors keep their old numbers,
-and every 2026.10.01 agent clears them. [Settings → Updates → Agents](../../settings/updates/agents/README.md)
+and every agent from 2026.10.01 on clears them. [Settings → Updates → Agents](../../settings/updates/agents/README.md)
 pushes the matching binary to every connected agent.
 
 ## Before you upgrade
@@ -37,6 +37,17 @@ moving to. A breaking change in 2.0.0 still applies if you jump from 1.6.6 to 20
 backing up the data volume is step 1.
 
 ## Current release
+
+### 2026.10.02 (2026-10-22)
+
+A patch over 2026.10.01. Nothing breaks and no existing setting changes. McHarbor now detects a
+full host disk, and shows a disk it cannot read as unknown rather than healthy.
+
+**What an upgrade asks of you:** three default disk alerts are added on first start. They are
+ordinary rules: edit, disable or delete them under Settings → Monitoring → Alerts. Update each
+agent to the 2026.10.02 build to get the startup cleanup of its orphaned temporary archives. An
+agent that cannot report host stats shows **No disk data**, and the alert names the cause as
+`agent_too_old`.
 
 ### 2026.10.01 (2026-09-21)
 
@@ -79,6 +90,7 @@ The full 2026.10.01 entry, including Fixed and Security, is in
 
 | Version | Date | What landed |
 |---|---|---|
+| **2026.10.02** | 2026-10-22 | Disk-full detection: host disk alerts and three default rules; a grey "No disk data" state where McHarbor cannot read the disk; startup cleanup of orphaned temporary archives. Patch; no breaking changes. |
 | **2026.10.01** | 2026-09-21 | Plugin platform and Plugin Store; compute (VMs and system containers); RBAC on every route; tamper-evident audit log; encryption at rest; HTTPS by default; calendar versioning. **Breaking**; see above. |
 | 2.0.8 | 2026-07-26 | First-run wizard, in-app help, keyboard shortcuts, skeleton loaders, empty states, bulk operations, saved searches, What's New overlay, dashboard templates. |
 | 2.0.7 | 2026-07-25 | Container update no longer resets a custom network to `bridge`; container move keeps the original image reference; self-update settings actually persist. `react-router` 8.3.0 clears a CSRF advisory. |

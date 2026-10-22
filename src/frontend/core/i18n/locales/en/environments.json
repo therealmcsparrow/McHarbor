@@ -13,6 +13,7 @@
     "endpoint": "Endpoint",
     "hostIp": "Host IP",
     "version": "Version",
+    "disk": "Disk",
     "status": "Status",
     "actions": "Actions",
     "type": "Type",
@@ -369,8 +370,7 @@
       },
       "hostFs": {
         "title": "Host filesystem",
-        "path": "Mount: {{path}}",
-        "unavailable": "Host filesystem usage is not available for this environment."
+        "path": "Mount: {{path}}"
       },
       "prune": {
         "title": "Prune",

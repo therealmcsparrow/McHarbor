@@ -76,9 +76,19 @@ func TemplateVariables() []TemplateVariable {
 }
 
 var hostContextKeys = map[string][]TemplateContextKey{
+	sourceHost + "/" + conditionHostFSPercent: {
+		{Key: "path", Description: "Mount path that was measured"},
+		{Key: "used_bytes", Description: "Bytes used on the filesystem"},
+		{Key: "total_bytes", Description: "Size of the filesystem"},
+	},
+	sourceHost + "/" + conditionHostFSStale: {
+		{Key: "last_seen", Description: "When the last good disk reading arrived"},
+		{Key: "reason", Description: "agent_offline, agent_too_old or read_failed"},
+	},
 	sourceHost + "/" + conditionDockerDisk: {
 		{Key: "used_bytes", Description: "Bytes Docker uses"},
 		{Key: "capacity_bytes", Description: "Capacity of the Docker storage"},
+		{Key: "capacity_source", Description: "driver or host_fs: where the capacity came from"},
 	},
 	sourceContainer + "/" + conditionImageUpdate: {
 		{Key: "current_digest", Description: "Digest the container runs"},

@@ -316,10 +316,13 @@ func (a alertSystemInfoSource) SystemInfo(ctx context.Context, envID string) (*a
 
 // NewAlertsEngineDeps builds the alert-engine adapters from the Docker-backed modules.
 func NewAlertsEngineDeps(db *sql.DB, dockerPool *docker.ClientPool, agentPool *coreagent.AgentPool) alerts.EngineDeps {
+	metricsSvc := metrics.NewServiceWithAgent(dockerPool, agentPool).WithDB(db)
 	return alerts.EngineDeps{
-		Metrics:    alertMetricsSource{svc: metrics.NewServiceWithAgent(dockerPool, agentPool)},
-		Containers: alertContainerSource{svc: containers.NewService(dockerPool, db, "", nil)},
-		SystemInfo: alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
+		Metrics:      alertMetricsSource{svc: metricsSvc},
+		HostFS:       alertHostFS{src: metricsSvc},
+		HostFSHealth: alertHostFSHealth{src: metricsSvc},
+		Containers:   alertContainerSource{svc: containers.NewService(dockerPool, db, "", nil)},
+		SystemInfo:   alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
 		// The platform source reads backup runs, scans, workflow runs
 		// and audit rows other modules own — read-only, and only
 		// through this handle.

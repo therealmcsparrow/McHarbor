@@ -17,7 +17,13 @@
     "scansNeedReview_one": "{{count}} scan needs review",
     "scansNeedReview_other": "{{count}} scans need review",
     "unreachable_one": "{{count}} host unreachable",
-    "unreachable_other": "{{count}} hosts unreachable"
+    "unreachable_other": "{{count}} hosts unreachable",
+    "diskCritical_one": "{{count}} host disk critical",
+    "diskCritical_other": "{{count}} host disks critical",
+    "diskWarning_one": "{{count}} host disk above warning",
+    "diskWarning_other": "{{count}} host disks above warning",
+    "diskNoData_one": "{{count}} host without disk data",
+    "diskNoData_other": "{{count}} hosts without disk data"
   },
   "addWidget": "Add Widget",
   "edit": "Edit",

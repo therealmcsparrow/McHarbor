@@ -39,7 +39,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Signal notification channel. Delivers workflow and backup events to phone numbers via one of four connection methods: official signal-cli-rest-api, token-based bot server, signald JSON-RPC daemon, or a no-auth community relay. Install this plugin to add 'Signal' as a channel_type in Settings > Notifications > Channels."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host.

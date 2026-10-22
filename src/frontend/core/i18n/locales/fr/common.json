@@ -1479,6 +1479,20 @@
                      "description":  "Un aperçu rapide des derniers changements.",
                      "dismiss":  "Ignorer",
                      "gotIt":  "Compris",
+                     "2026_10_02":  {
+                                        "diskAlerts":  {
+                                                               "title":  "Les disques pleins déclenchent des alertes",
+                                                               "description":  "Les alertes d'utilisation du disque de l'hôte lisent le disque sans interroger Docker. Trois règles par défaut sont créées au premier démarrage : à 85 % et à 95 %, et une pour les données de disque manquantes. Elles se trouvent sous Paramètres → Supervision → Alertes."
+                                        },
+                                        "diskStatus":  {
+                                                               "title":  "État du disque sur chaque environnement",
+                                                               "description":  "La carte de l'environnement, le tableau des environnements et l'onglet Host affichent le disque de l'hôte, ou une ligne grise indiquant qu'il n'y a pas de données de disque lorsque McHarbor ne peut pas le lire."
+                                        },
+                                        "tempCleanup":  {
+                                                               "title":  "Les archives orphelines sont supprimées",
+                                                               "description":  "L'agent et McHarbor suppriment au démarrage leurs propres archives temporaires restées en place plus de dix minutes. Cela libère l'espace dont a besoin un disque plein."
+                                        }
+                                    },
                      "2026_10_01":  {
                                         "selfProtection":  {
                                                                "title":  "Agir sur les conteneurs de McHarbor lui-même nécessite host_self.manage",

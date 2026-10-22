@@ -11,7 +11,7 @@ license: "McHarbor"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Routes McHarbor AI chat completions through a local LM Studio server over its OpenAI-compatible /v1 endpoint. Runs fully offline on the operator's own hardware."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

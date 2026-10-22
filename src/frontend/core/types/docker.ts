@@ -145,6 +145,21 @@ export type HostFSUsage = {
   percent: number;
 };
 
+export type HostFSState = 'ok' | 'stale' | 'unknown' | 'unsupported';
+
+export type HostFSStatus = {
+  environmentId: string;
+  state: HostFSState;
+  level: 'normal' | 'warning' | 'critical' | null;
+  path: string;
+  totalBytes: number;
+  usedBytes: number;
+  percent: number;
+  lastSeen: string | null;
+  reason?: 'agent_offline' | 'agent_too_old' | 'read_failed';
+  thresholds: { warning: number; critical: number };
+};
+
 export type HostMetrics = {
   host: HostInfo;
   disk: DiskUsage;

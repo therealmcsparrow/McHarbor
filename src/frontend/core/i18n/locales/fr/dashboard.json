@@ -17,7 +17,13 @@
     "scansNeedReview_one": "{{count}} analyse à examiner",
     "scansNeedReview_other": "{{count}} analyses à examiner",
     "unreachable_one": "{{count}} hôte injoignable",
-    "unreachable_other": "{{count}} hôtes injoignables"
+    "unreachable_other": "{{count}} hôtes injoignables",
+    "diskCritical_one": "{{count}} disque d’hôte critique",
+    "diskCritical_other": "{{count}} disques d’hôte critiques",
+    "diskWarning_one": "{{count}} disque d’hôte au-dessus du seuil d’avertissement",
+    "diskWarning_other": "{{count}} disques d’hôte au-dessus du seuil d’avertissement",
+    "diskNoData_one": "{{count}} hôte sans données de disque",
+    "diskNoData_other": "{{count}} hôtes sans données de disque"
   },
   "addWidget": "Ajouter un widget",
   "edit": "Modifier",

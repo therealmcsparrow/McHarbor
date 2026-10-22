@@ -20,7 +20,7 @@ description: >-
   inside McHarbor, and exports to PDF and Word with the product's own
   typography and marks.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 permissions:

@@ -6,7 +6,7 @@ description: "Backup destination backed by an NFS (RFC 7530) export. AUTH_SYS (U
 author: "Maintainer Name <maintainer@example.com>"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

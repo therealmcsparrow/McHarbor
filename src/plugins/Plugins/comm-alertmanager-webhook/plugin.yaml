@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Generic on-call channel. Sends McHarbor alerts as Prometheus Alertmanager webhook v4 payloads, one group per condition, to any receiver that ingests Alertmanager: Grafana Cloud IRM, Squadcast, Zenduty, Keep and others."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

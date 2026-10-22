@@ -17,7 +17,7 @@ description: >-
   (addon-kvm) or System Containers (addon-lxc) and this is installed with them,
   and removed again when the last one goes.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.25"
 
 # This plugin is a dependency rather than a destination.

@@ -78,6 +78,7 @@ remain open: they back the Docker logging tab and the dashboard panel.
 | `GET` | `/api/metrics/containers/{id}/stream` | `host.view` | Streams live container stats via SSE | `{id}` |
 | `GET` | `/api/metrics/hardware` | `host.view` | Returns the local host's device inventory | — |
 | `GET` | `/api/metrics/host` | `host.view` | Returns host system info and disk usage | — |
+| `GET` | `/api/metrics/host/fs` | `host.view` | Returns the host filesystem's usage as `state` (`ok`, `stale`, `unknown` or `unsupported`), the warning and critical `thresholds`, `lastSeen`, and a `reason` (`agent_offline`, `agent_too_old` or `read_failed`) when the reading is degraded. Reads no Docker data; an unknown environment returns 404 | `?env=` |
 | `GET` | `/api/metrics/host/history` | `host.view` | Returns the stored host series: CPU and memory are the host's own reading (container sums only where none is available), network and block I/O are container sums | — |
 | `POST` | `/api/metrics/host/prune` | `host.manage` | Runs a Docker prune operation | — |
 | `GET` | `/api/metrics/stats-path` | `host.view` | Reports how an environment's container stats reach McHarbor (pushed by its agent, pulled, or not at all) and why | — |

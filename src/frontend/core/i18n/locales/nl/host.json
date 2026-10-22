@@ -54,5 +54,19 @@
         "description": "Elke container in deze omgeving heeft recent gedraaid."
       }
     }
+  },
+  "diskStatus": {
+    "label": "Hostschijf",
+    "stale": "Geen schijfgegevens, laatst gezien {{ago}}",
+    "unknown": "Nog geen schijfgegevens",
+    "unsupported": "Niet bewaakt",
+    "error": "Schijfstatus kon niet worden geladen",
+    "usage": "{{percent}}% van {{total}} in gebruik",
+    "requires": "Schijfstatus vereist de machtiging {{permission}}",
+    "level": {
+      "normal": "binnen de grenzen",
+      "warning": "boven waarschuwingsdrempel",
+      "critical": "boven kritieke drempel"
+    }
   }
 }

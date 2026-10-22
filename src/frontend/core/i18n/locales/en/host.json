@@ -54,5 +54,19 @@
         "description": "Every container in this environment has run recently."
       }
     }
+  },
+  "diskStatus": {
+    "label": "Host disk",
+    "stale": "No disk data, last seen {{ago}}",
+    "unknown": "No disk data yet",
+    "unsupported": "Not monitored",
+    "error": "Disk status could not be loaded",
+    "usage": "{{percent}}% of {{total}} used",
+    "requires": "Disk status requires the {{permission}} permission",
+    "level": {
+      "normal": "within limits",
+      "warning": "above warning threshold",
+      "critical": "above critical threshold"
+    }
   }
 }

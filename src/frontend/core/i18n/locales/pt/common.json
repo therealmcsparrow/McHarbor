@@ -1479,6 +1479,20 @@
                      "description":  "Um tour rápido pelas últimas mudanças.",
                      "dismiss":  "Dispensar",
                      "gotIt":  "Entendi",
+                     "2026_10_02":  {
+                                        "diskAlerts":  {
+                                                               "title":  "Discos cheios geram alertas",
+                                                               "description":  "Os alertas de utilização do disco do host leem o disco sem perguntar ao Docker. No primeiro arranque são criadas três regras predefinidas: aos 85% e aos 95%, e uma para dados de disco em falta. Encontram-se em Configurações → Monitoramento → Alertas."
+                                        },
+                                        "diskStatus":  {
+                                                               "title":  "Estado do disco em cada ambiente",
+                                                               "description":  "O cartão do ambiente, a tabela de ambientes e o separador Host mostram o disco do host, ou uma linha cinzenta a indicar que não há dados de disco quando o McHarbor não o consegue ler."
+                                        },
+                                        "tempCleanup":  {
+                                                               "title":  "Os arquivos órfãos são removidos",
+                                                               "description":  "O agente e o McHarbor eliminam ao arrancar os seus próprios arquivos temporários com mais de dez minutos. Assim libertam o espaço de que um disco cheio precisa."
+                                        }
+                                    },
                      "2026_10_01":  {
                                         "selfProtection":  {
                                                                "title":  "Agir sobre os contêineres do próprio McHarbor exige host_self.manage",

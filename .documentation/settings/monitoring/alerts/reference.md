@@ -57,6 +57,21 @@ since the last restart, marked "Seen on this condition's recent evaluations".
 Routes, both behind `alerts.view`: `GET /api/alerts/template-reference?source=&condition=` and
 `POST /api/alerts/template-preview`, which stores and sends nothing.
 
+## Host disk conditions
+
+| Condition | What it does |
+|---|---|
+| **Host filesystem usage** (`host_fs_percent`) | Percentage of the filesystem under the host, read without asking Docker. Operators `>`, `>=`, `<` and `<=`; default `>=` 85%. A host whose disk cannot be read is skipped, never counted as 0%. |
+| **Host disk data missing** (`host_fs_stale`) | Active while McHarbor has no usable disk reading, counted from the last good one. After a restart it counts from the newest stored capacity sample. Silent for an environment McHarbor cannot read the disk of at all, such as a TCP or SSH connection that is not an agent. |
+| **Docker disk usage** (`docker_disk`) | When the Docker driver reports no capacity, the percentage uses the host filesystem's total. The `{{ctx.capacity_source}}` placeholder says which: `driver` or `host_fs`. |
+| **Days until full** (`capacity_days`) | A filesystem already at its red line reports 0, labelled "past the red line". Below the line, a subject with too little history reports nothing. |
+
+The environment card's disk bar uses the lowest enabled **Host filesystem usage** rule that covers
+the environment for its warning and critical colours. With none, the colours are 85% and 95%.
+
+The `host_fs_stale` rule puts its reason in `{{ctx.reason}}`: `agent_offline`, `agent_too_old` or
+`read_failed`. It also carries `{{ctx.last_seen}}` when there was a good reading.
+
 ## When something does not behave
 
 | Symptom | Usual cause | Fix |
@@ -66,6 +81,9 @@ Routes, both behind `alerts.view`: `GET /api/alerts/template-reference?source=&c
 | Alerts arrive in a flood | No cooldown | Set one; it is the minimum time between two notifications from the rule |
 | A destination vanished | The channel was deleted | "N destinations no longer exist and are ignored"; repoint the rule |
 | Nothing happens during an incident | The rule is Disabled | Muting is per rule and survives, which is why it beats deleting |
+| **Host disk data missing** fires | McHarbor has no usable disk reading; `{{ctx.reason}}` says why | `agent_offline`: bring the agent back online. `agent_too_old`: update the agent. `read_failed`: check the host's disk |
+| A disk bar is grey, reading "No disk data" | The same cause as above | Follow the fix above |
+| A disk bar reads "Not monitored" | McHarbor cannot read that environment's disk, so no disk alert fires for it | Connect it through an agent to monitor its disk |
 
 ## Related
 

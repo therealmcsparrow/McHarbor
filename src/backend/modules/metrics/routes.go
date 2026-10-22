@@ -19,6 +19,9 @@ func Mount(app *router.AppDeps) {
 				apispec.Summary("Scrape McHarbor's own metrics"), apispec.Text(),
 				apispec.Describe("Prometheus text exposition of the control plane itself: HTTP, agent transport, background work, runtime and plugin state. Not wrapped in the JSON envelope. Every value is read from memory; a scrape performs no Docker, agent or database call."))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/host", h.HandleHostInfo, apispec.Scoped())
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/host/fs", h.HandleHostFS,
+				apispec.Scoped(), apispec.Response(HostFSStatus{}),
+				apispec.Describe("Root filesystem of the host behind the environment with its freshness: ok, stale (last good sample kept), unknown or unsupported. Read from the tracker and the stored capacity series; it makes no Docker call, so it answers while the daemon is down."))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/containers/{id}/stream", h.HandleContainerStatsStream, apispec.SSE(), apispec.Scoped())
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/stats-path", h.HandleStatsPath, apispec.Response(StatsPath{}), apispec.Scoped())
 

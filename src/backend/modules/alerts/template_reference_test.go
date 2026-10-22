@@ -50,7 +50,7 @@ func TestLearnedContextKeys(t *testing.T) {
 	if len(keys) != 2 || keys[0].Key != "host" || !keys[0].Learned || keys[1].Key != "vm" {
 		t.Fatalf("keys = %+v", keys)
 	}
-	if got := ContextKeys(sourceHost, conditionDockerDisk); len(got) != 2 || got[0].Learned {
+	if got := ContextKeys(sourceHost, conditionDockerDisk); len(got) != 3 || got[0].Learned {
 		t.Fatalf("declared host keys = %+v", got)
 	}
 }

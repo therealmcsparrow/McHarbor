@@ -50,6 +50,13 @@ see [Installation → Troubleshooting](../installation/troubleshooting.md).
 | Buffered data disappeared after a container recreate | The data directory was not a volume | Mount it. The instance id lives there too |
 | Replay seems to stall | Batches are acknowledged one at a time | Watch the agent log; an interrupted replay resumes rather than duplicating |
 
+## Disk
+
+| Symptom | Usual cause | Fix |
+|---|---|---|
+| Temporary archives fill the host's disk after a crash | An interrupted backup, restore, image load or direct transfer left its archive in the OS temporary directory | The agent deletes its own archives older than ten minutes when it starts, from the 2026.10.02 build. It removes only regular files with its own prefixes and logs the count and bytes. An older agent leaves them in place, so update it, or remove them by hand |
+| The environment's disk reads "No disk data" | The agent is offline, or it cannot report host stats | Bring the agent online, or update it. The **Host disk data missing** alert names the cause as `reason` ([Alerts → Host disk conditions](../../settings/monitoring/alerts/reference.md#host-disk-conditions)) |
+
 ## Crashes on AVX-512 CPUs
 
 | Symptom | Usual cause | Fix |

@@ -18,7 +18,7 @@ description: >-
   already connected to, so the add-on stores nothing and needs no credentials
   of its own.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 permissions:

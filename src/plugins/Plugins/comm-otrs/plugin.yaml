@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "OTRS-family ITSM channel. Opens, updates and closes tickets in OTRS, Znuny or OTOBO through a GenericInterface REST web service and reads their state back."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

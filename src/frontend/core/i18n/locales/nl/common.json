@@ -1479,6 +1479,20 @@
                      "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
                      "dismiss":  "Sluiten",
                      "gotIt":  "Begrepen",
+                     "2026_10_02":  {
+                                        "diskAlerts":  {
+                                                               "title":  "Volle schijven geven een waarschuwing",
+                                                               "description":  "Waarschuwingen over het schijfgebruik van de host lezen de schijf zonder Docker te vragen. Bij de eerste start worden drie standaardregels aangemaakt, op 85% en 95% en voor ontbrekende schijfgegevens. Ze staan onder Instellingen → Monitoring → Alerts."
+                                        },
+                                        "diskStatus":  {
+                                                               "title":  "Schijfstatus bij elke omgeving",
+                                                               "description":  "De omgevingskaart, de omgevingentabel en het tabblad Host tonen de schijf van de host, of een grijze regel dat er geen schijfgegevens zijn wanneer McHarbor die niet kan lezen."
+                                        },
+                                        "tempCleanup":  {
+                                                               "title":  "Verweesde archieven worden verwijderd",
+                                                               "description":  "De agent en McHarbor verwijderen bij het starten hun eigen achtergebleven tijdelijke archieven die ouder zijn dan tien minuten. Zo komt ruimte vrij die een volle schijf nodig heeft."
+                                        }
+                                    },
                      "2026_10_01":  {
                                         "selfProtection":  {
                                                                "title":  "Handelen op de eigen containers van McHarbor vereist host_self.manage",

@@ -13,6 +13,7 @@
     "endpoint": "Eindpunt",
     "hostIp": "Host-IP",
     "version": "Versie",
+    "disk": "Schijf",
     "status": "Status",
     "actions": "Acties",
     "type": "Type",
@@ -369,8 +370,7 @@
       },
       "hostFs": {
         "title": "Hostbestandssysteem",
-        "path": "Koppeling: {{path}}",
-        "unavailable": "Hostbestandssysteemgebruik is niet beschikbaar voor deze omgeving."
+        "path": "Koppeling: {{path}}"
       },
       "prune": {
         "title": "Opschonen",

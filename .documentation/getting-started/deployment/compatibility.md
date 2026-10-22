@@ -3,7 +3,7 @@
 What this release of McHarbor runs with, and what it refuses. Read it before an upgrade: a
 row that says "not supported" is enforced in code, not a recommendation.
 
-Current release: **2026.09.01**. Versions in this page are the ones this release was built
+Current release: **2026.10.02**. Versions in this page are the ones this release was built
 and tested against; a version this page does not name is untested rather than forbidden,
 unless a row says otherwise.
 
@@ -48,7 +48,7 @@ mode is selectable once the HA readiness gates pass; see
 
 ## Remote agent
 
-The agent and McHarbor share one version, and both are at **2026.09.01** in this release.
+The agent and McHarbor share one version, and both are at **2026.10.02** in this release.
 Beyond that, individual features carry their own floor: an older agent does not refuse a
 message it does not know, it **drops** it, so the server would otherwise wait out the full
 timeout for a reply that is never coming. Each floor below turns that silent hang into a
@@ -69,7 +69,7 @@ while a genuinely old `3.5.3` agent still fails the `3.8.0` gate exactly as inte
 | Host OS details and host package upgrades | 2026.09.01 | `202609182336` |
 | The libvirt, agent and per-guest qemu log sources | 2026.09.01 | `202609231806` |
 | Pushed container stats instead of one pull per container | 2026.09.01 | `202609251653` |
-| Bundled agent version this release serves and updates toward | 2026.09.01 | the release's `BUILD` |
+| Bundled agent version this release serves and updates toward | 2026.10.02 | the release's `BUILD` |
 
 Every value in that table is a constant in `src/backend/core/agent/version.go`. Where a
 build stamp is listed, the version alone cannot separate the agents: calendar versioning

@@ -8,6 +8,22 @@ export type WhatsNewItem = {
 };
 
 export function getReleaseItems(version: string): WhatsNewItem[] {
+  if (version === '2026.10.02') {
+    return [
+      {
+        titleKey: 'whatsNew.2026_10_02.diskAlerts.title',
+        descriptionKey: 'whatsNew.2026_10_02.diskAlerts.description',
+      },
+      {
+        titleKey: 'whatsNew.2026_10_02.diskStatus.title',
+        descriptionKey: 'whatsNew.2026_10_02.diskStatus.description',
+      },
+      {
+        titleKey: 'whatsNew.2026_10_02.tempCleanup.title',
+        descriptionKey: 'whatsNew.2026_10_02.tempCleanup.description',
+      },
+    ];
+  }
   if (version === '2026.10.01') {
     return [
       {

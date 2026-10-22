@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Opens, follows up and solves GLPI tickets from McHarbor alerts through the GLPI REST API (v1) or high-level API (v2, GLPI 11), with signed GLPI 11 webhooks or polling for status."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

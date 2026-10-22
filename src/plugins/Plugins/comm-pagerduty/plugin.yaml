@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "PagerDuty incident channel. Triggers, re-notifies and resolves PagerDuty incidents through Events API v2 and reads acknowledge/resolve back through signed v3 webhooks or REST polling."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

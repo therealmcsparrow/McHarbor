@@ -11,7 +11,7 @@ license: "McHarbor"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Routes McHarbor AI chat completions through Google Gemini's OpenAI-compatible endpoint. Models include Gemini 2.5 Pro, Gemini 2.5 Flash, and Gemini 2.0 Flash."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

@@ -17,7 +17,13 @@
     "scansNeedReview_one": "{{count}} Scan muss geprüft werden",
     "scansNeedReview_other": "{{count}} Scans müssen geprüft werden",
     "unreachable_one": "{{count}} Host nicht erreichbar",
-    "unreachable_other": "{{count}} Hosts nicht erreichbar"
+    "unreachable_other": "{{count}} Hosts nicht erreichbar",
+    "diskCritical_one": "{{count}} Host-Datenträger kritisch",
+    "diskCritical_other": "{{count}} Host-Datenträger kritisch",
+    "diskWarning_one": "{{count}} Host-Datenträger über der Warnschwelle",
+    "diskWarning_other": "{{count}} Host-Datenträger über der Warnschwelle",
+    "diskNoData_one": "{{count}} Host ohne Datenträgerdaten",
+    "diskNoData_other": "{{count}} Hosts ohne Datenträgerdaten"
   },
   "addWidget": "Widget hinzufügen",
   "edit": "Bearbeiten",

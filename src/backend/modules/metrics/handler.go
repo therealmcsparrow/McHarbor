@@ -5,6 +5,7 @@ package metrics
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -36,7 +37,7 @@ type Handler struct {
 
 // NewHandler creates a new metrics handler.
 func NewHandler(app *router.AppDeps) *Handler {
-	svc := NewServiceWithAgent(app.DockerPool, app.AgentPool)
+	svc := NewServiceWithAgent(app.DockerPool, app.AgentPool).WithDB(app.DB)
 	return &Handler{
 		app:      app,
 		service:  svc,
@@ -120,6 +121,29 @@ func (h *Handler) HandleHostInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, info)
+}
+
+// HandleHostFS reports the host root filesystem for ?env= with its freshness,
+// served from the last-good tracker and never from Docker.
+// GET /metrics/host/fs
+func (h *Handler) HandleHostFS(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+	status, err := h.service.HostFSStatus(r.Context(), response.ParseEnvID(r))
+	if err != nil {
+		envID := response.ParseEnvID(r)
+		if errors.Is(err, ErrHostFSEnvNotFound) {
+			h.app.Logger.Warn("host filesystem status: environment not found", "env", envID, "error", err)
+			response.NotFoundCause(w, r, i18n.ErrEnvNotFound, err)
+			return
+		}
+		h.app.Logger.Error("host filesystem status failed", "env", envID, "error", err)
+		response.InternalErrorCause(w, r, i18n.ErrMetricsHostInfoFailed, err)
+		return
+	}
+	response.OK(w, status)
 }
 
 // HandleStatsPath reports how envID's container stats reach McHarbor — pushed by

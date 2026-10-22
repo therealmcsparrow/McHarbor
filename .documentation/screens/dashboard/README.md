@@ -42,7 +42,7 @@ Four rules govern what appears:
   fewer. No new permission key was added for it; every figure keeps the gate it already had.
 - **Exception counts appear only when they are not zero.** Agents behind, scans needing review
   and unreachable hosts are absent on a healthy estate, and render in the warning colour when
-  present. Environments and containers are always shown.
+  present. Environments and containers are always shown. Host disks that are critical, above their warning threshold, or without a reading follow the same rule, and each appears as its own segment only when its count is not zero.
 - **An unreachable host is said so.** Its containers are not counted, and the line reports how
   many hosts did not answer rather than quietly showing a smaller number.
 - **Virtual machines need the plugin.** The segment comes from `GET /api/vms` and appears only

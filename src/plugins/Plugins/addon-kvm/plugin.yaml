@@ -17,7 +17,7 @@ description: >-
   and serial console. McHarbor drives QEMU directly over QMP and supervises it
   with systemd; there is no libvirt, no Proxmox and no third-party hypervisor UI.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.25"
 
 # Compute Foundation carries the pools, networks, images and capability probe

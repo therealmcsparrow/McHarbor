@@ -92,7 +92,7 @@ func hostSourceSpec() alerting.AlertSourceAdapterSpec {
 			{
 				Key:              conditionDockerDisk,
 				DisplayName:      "Docker disk usage",
-				Description:      "Space used by Docker's storage driver, as a percentage of capacity or as an absolute size.",
+				Description:      "Space used by Docker, as a percentage of the filesystem that holds it, or as an absolute size.",
 				Kind:             alerting.KindThreshold,
 				Unit:             "%",
 				Operators:        []string{">", ">=", "<", "<="},
@@ -101,6 +101,8 @@ func hostSourceSpec() alerting.AlertSourceAdapterSpec {
 				SupportsFor:      true,
 				TargetKind:       alerting.TargetEnvironment,
 			},
+			hostFSPercentDecl(),
+			hostFSStaleDecl(),
 			capacityConditionDecl(),
 			{
 				Key:         conditionUnreachable,
@@ -129,6 +131,15 @@ func (s *hostSource) Evaluate(ctx context.Context, req alerting.EvaluateRequest)
 	// somebody wants to know how much room is left.
 	if req.ConditionKey == conditionCapacityDays {
 		return s.evaluateCapacity(ctx, req)
+	}
+
+	// The host filesystem conditions never touch Docker: a daemon that is slow
+	// because the disk is full must not be able to hide the full disk.
+	switch req.ConditionKey {
+	case conditionHostFSPercent:
+		return s.evaluateHostFSPercent(ctx, req)
+	case conditionHostFSStale:
+		return s.evaluateHostFSStale(ctx, req)
 	}
 
 	if s.deps.Metrics == nil {
@@ -214,6 +225,13 @@ func (s *hostSource) evaluateDockerDisk(ctx context.Context, req alerting.Evalua
 	}
 
 	capacityBytes, ok := resolveDiskCapacity(systemInfo, hostInfo.DiskTotal)
+	capacitySource := "driver"
+	if !ok || capacityBytes <= 0 {
+		// overlay2 reports no data space total; the filesystem under Docker is
+		// the capacity that matters there.
+		capacityBytes, ok = s.hostFSTotal(ctx, req.EnvironmentID)
+		capacitySource = "host_fs"
+	}
 	if !ok || capacityBytes <= 0 {
 		// Without a capacity there is no percentage to report. An
 		// empty result is wrong here — it would read as "no subjects,
@@ -229,8 +247,9 @@ func (s *hostSource) evaluateDockerDisk(ctx context.Context, req alerting.Evalua
 		Value:       value,
 		ValueLabel:  formatFloat(value) + "%",
 		Context: map[string]string{
-			"used_bytes":     strconv.FormatInt(hostInfo.DiskTotal, 10),
-			"capacity_bytes": strconv.FormatInt(capacityBytes, 10),
+			"used_bytes":      strconv.FormatInt(hostInfo.DiskTotal, 10),
+			"capacity_bytes":  strconv.FormatInt(capacityBytes, 10),
+			"capacity_source": capacitySource,
 		},
 	}}, nil
 }
@@ -297,4 +316,16 @@ func parseByteCount(value string) (int64, bool) {
 	}
 
 	return int64(amount * divisor), true
+}
+
+// hostFSTotal returns the size of the filesystem under the host, if it can be read.
+func (s *hostSource) hostFSTotal(ctx context.Context, envID string) (int64, bool) {
+	if s.deps.HostFS == nil {
+		return 0, false
+	}
+	usage, err := s.deps.HostFS.HostFS(ctx, envID)
+	if err != nil || usage.Total <= 0 {
+		return 0, false
+	}
+	return usage.Total, true
 }

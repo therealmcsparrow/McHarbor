@@ -35,7 +35,7 @@ const hostOpTimeout = 30 * time.Second
 // cannot hold the caller waiting on a transfer path decision.
 const probeHTTPTimeout = 10 * time.Second
 
-const agentVersion = "2026.10.01"
+const agentVersion = "2026.10.02"
 
 // agentBuild is the yyyyMMddHHmm stamp of this binary, set with -ldflags at
 // build time. It stays "dev" for a `go build` from a source tree, which is

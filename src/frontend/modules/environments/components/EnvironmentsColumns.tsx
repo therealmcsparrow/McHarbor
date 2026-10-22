@@ -8,6 +8,7 @@ import type { ColumnDef } from '@resources/components/table-features';
 import { IconDownload, IconTrash, IconRefresh } from '@tabler/icons-react';
 import { StatusBadge, ENVIRONMENT_STATUS } from '@resources/components/ui/StatusBadge';
 import { Badge } from '@resources/components/ui/Badge';
+import { HostDiskStatus } from '@resources/components/host/HostDiskStatus';
 import { Button } from '@resources/components/ui/Button';
 import type { EnvironmentListItem } from '../hooks/useEnvironmentActions';
 import { deriveEnvironmentStatus } from '../hooks/useEnvironmentActions';
@@ -108,6 +109,19 @@ export function useEnvironmentColumns({ onTest, onInstall, onRemove }: UseEnviro
           }
           return row.original.dockerVersion ?? '-';
         },
+      },
+      {
+        id: 'disk',
+        header: t('columns.disk'),
+        enableSorting: false,
+        meta: { label: t('columns.disk'), noExport: true },
+        cell: ({ row }) => (
+          <HostDiskStatus
+            envId={row.original.id}
+            enabled={row.original.isActive}
+            className="min-w-40"
+          />
+        ),
       },
       {
         id: 'status',

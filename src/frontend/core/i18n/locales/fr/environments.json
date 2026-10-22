@@ -13,6 +13,7 @@
     "endpoint": "Point de terminaison",
     "hostIp": "IP de l'hôte",
     "version": "Version",
+    "disk": "Disque",
     "status": "Statut",
     "actions": "Actes",
     "type": "Taper",
@@ -369,8 +370,7 @@
       },
       "hostFs": {
         "title": "Système de fichiers de l'hôte",
-        "path": "Montage : {{path}}",
-        "unavailable": "L'utilisation du système de fichiers de l'hôte n'est pas disponible pour cet environnement."
+        "path": "Montage : {{path}}"
       },
       "prune": {
         "title": "Élaguer",

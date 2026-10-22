@@ -13,6 +13,7 @@
     "endpoint": "Punto final",
     "hostIp": "IP del host",
     "version": "Versión",
+    "disk": "Disco",
     "status": "Estado",
     "actions": "Comportamiento",
     "type": "Tipo",
@@ -369,8 +370,7 @@
       },
       "hostFs": {
         "title": "Sistema de archivos del host",
-        "path": "Montaje: {{path}}",
-        "unavailable": "El uso del sistema de archivos del host no está disponible para este entorno."
+        "path": "Montaje: {{path}}"
       },
       "prune": {
         "title": "Poda",

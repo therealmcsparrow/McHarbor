@@ -17,7 +17,13 @@
     "scansNeedReview_one": "{{count}} verificação precisa de revisão",
     "scansNeedReview_other": "{{count}} verificações precisam de revisão",
     "unreachable_one": "{{count}} host inacessível",
-    "unreachable_other": "{{count}} hosts inacessíveis"
+    "unreachable_other": "{{count}} hosts inacessíveis",
+    "diskCritical_one": "{{count}} disco de host crítico",
+    "diskCritical_other": "{{count}} discos de host críticos",
+    "diskWarning_one": "{{count}} disco de host acima do limite de aviso",
+    "diskWarning_other": "{{count}} discos de host acima do limite de aviso",
+    "diskNoData_one": "{{count}} host sem dados de disco",
+    "diskNoData_other": "{{count}} hosts sem dados de disco"
   },
   "addWidget": "Adicionar widget",
   "edit": "Editar",

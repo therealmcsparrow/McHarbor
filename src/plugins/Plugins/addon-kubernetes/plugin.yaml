@@ -21,7 +21,7 @@ description: >-
   connections are owned by the plugin and their kubeconfig and bearer-token
   credentials are encrypted at rest with the host's own key.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 permissions:

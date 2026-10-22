@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Creates, comments on and resolves Best Practical Request Tracker (RT) tickets from McHarbor alerts through REST2, with a signed Scrip callout or polling for status."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

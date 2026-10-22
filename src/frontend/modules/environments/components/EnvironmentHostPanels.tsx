@@ -4,9 +4,10 @@
 import { useMemo } from 'react';
 import { IconDatabase, IconDeviceDesktop, IconTrash } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
+import { HostDiskStatus } from '@resources/components/host/HostDiskStatus';
 import type { HostMetrics, PruneType } from '@core/types/docker';
 import { cssVars } from '@resources/utils/cssVars';
-import { formatBytes, splitBytes } from '@resources/utils/format';
+import { splitBytes } from '@resources/utils/format';
 import { PERM } from '@core/auth/permissionKeys';
 
 const PRUNE_TYPES: PruneType[] = ['system', 'builder', 'volumes', 'images', 'containers', 'networks'];
@@ -66,45 +67,26 @@ export function DockerDiskPanel({
 }
 
 export function HostFSPanel({
+  envId,
   metrics,
   t,
 }: {
+  envId: string;
   metrics: HostMetrics;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const { hostFs } = metrics;
-  const available = hostFs.total > 0;
 
   return (
     <div className="mc-glass rounded-xl p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <IconDeviceDesktop className="h-4 w-4 text-muted-foreground" />
-          {t('detail.host.hostFs.title')}
-        </div>
-        {available && (
-          <div className="text-sm text-foreground tabular-nums">
-            {formatBytes(hostFs.used)}{' '}
-            <span className="text-xs text-muted-foreground">/ {formatBytes(hostFs.total)}</span>
-          </div>
-        )}
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+        <IconDeviceDesktop className="h-4 w-4 text-muted-foreground" />
+        {t('detail.host.hostFs.title')}
       </div>
-      {available ? (
-        <>
-          <div className="mb-2 text-xs text-muted-foreground">
-            {t('detail.host.hostFs.path', { path: hostFs.path })}
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className={hostFs.percent > 90 ? 'h-full w-(--w) bg-danger' : 'h-full w-(--w) bg-primary'}
-              style={cssVars({ w: `${Math.min(100, hostFs.percent)}%` })}
-            />
-          </div>
-          <div className="mt-1 text-right text-xs text-muted-foreground tabular-nums">{hostFs.percent.toFixed(1)}%</div>
-        </>
-      ) : (
-        <div className="text-xs text-muted-foreground">{t('detail.host.hostFs.unavailable')}</div>
+      {hostFs.path && (
+        <div className="mb-2 text-xs text-muted-foreground">{t('detail.host.hostFs.path', { path: hostFs.path })}</div>
       )}
+      <HostDiskStatus envId={envId} />
     </div>
   );
 }

@@ -25,7 +25,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Google Drive backup destination. OAuth refresh-token flow + Drive API v3 resumable upload so backups of any size are supported. List/Delete use the same API surface. Requires a Google Cloud project with the Drive API enabled and an OAuth client with the drive.file scope."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Bootstrap permissions only — they let the plugin register its

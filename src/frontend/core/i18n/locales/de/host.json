@@ -54,5 +54,19 @@
         "description": "Jeder Container in dieser Umgebung lief kürzlich."
       }
     }
+  },
+  "diskStatus": {
+    "label": "Host-Datenträger",
+    "stale": "Keine Datenträgerdaten, zuletzt gesehen {{ago}}",
+    "unknown": "Noch keine Datenträgerdaten",
+    "unsupported": "Nicht überwacht",
+    "error": "Der Datenträgerstatus konnte nicht geladen werden",
+    "usage": "{{percent}} % von {{total}} belegt",
+    "requires": "Der Datenträgerstatus erfordert die Berechtigung {{permission}}",
+    "level": {
+      "normal": "im Rahmen",
+      "warning": "über der Warnschwelle",
+      "critical": "über der kritischen Schwelle"
+    }
   }
 }

@@ -10,6 +10,28 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-10-22 21:06 — McHarbor 2026.10.02 — Disk-full detection
+
+### Added
+
+- `settings/monitoring/alerts/README.md` — a **When the disk is full** section: the three default
+  rules, which channels they reach, and the order in which a firing alert is delivered and saved.
+- `settings/monitoring/alerts/reference.md` — a **Host disk conditions** section for
+  `host_fs_percent`, `host_fs_stale`, the `docker_disk` fallback and the `capacity_days` red line,
+  and troubleshooting rows for a missing disk reading.
+- `api/endpoints/host.md` — `GET /api/metrics/host/fs`, gated by `host.view`.
+- `agents/troubleshooting/README.md` — a **Disk** section: the agent's startup sweep of temporary
+  archives.
+- `screens/environments/troubleshooting.md` — rows for a disk reading that is missing and for the
+  backup-archive sweep at McHarbor startup.
+
+### Changed
+
+- `screens/environments/README.md` — the card view's host disk status and the **Host filesystem**
+  panel on the Host tab.
+- `screens/dashboard/README.md` — the estate summary's host disk segments, which appear only when
+  their count is not zero.
+
 ## 2026-10-22 01:58 — McHarbor 2026.10.01 — Update check compares the build
 
 ### Changed

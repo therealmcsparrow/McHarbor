@@ -12,7 +12,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Creates, logs and resolves Combodo iTop incidents from McHarbor alerts through the iTop REST/JSON web service, following the iTop lifecycle, with webhook or polling status sync."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.26"
 
 permissions:

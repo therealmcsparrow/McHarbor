@@ -7,6 +7,7 @@ import { IconCpu, IconCpu2, IconPackage } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Card, CardContent } from '@resources/components/ui/Card';
 import { ENVIRONMENT_STATUS, StatusBadge } from '@resources/components/ui/StatusBadge';
+import { HostDiskStatus } from '@resources/components/host/HostDiskStatus';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { formatBytes } from '@resources/utils/format';
 import type { EnvironmentListItem } from '../hooks/useEnvironmentActions';
@@ -134,6 +135,8 @@ export function EnvironmentCard({
           <CountTile label={t('card.restarting')} value={containers?.restarting ?? '-'} tone="warning" />
           <CountTile label={t('card.killed')} value={containers?.killed ?? '-'} tone="danger" />
         </div>
+
+        <HostDiskStatus envId={environment.id} enabled={environment.isActive} />
 
         <EnvironmentEstateRow
           environmentId={environment.id}

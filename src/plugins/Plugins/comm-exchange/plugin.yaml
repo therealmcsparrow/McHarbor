@@ -15,7 +15,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Exchange Online communication channel. Delivers workflow, alert, and backup notifications as email through Microsoft Graph. Install this plugin to add 'Exchange Online' as a channel_type in Settings > Notifications > Channels."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 permissions:

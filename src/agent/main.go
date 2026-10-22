@@ -133,6 +133,8 @@ func main() {
 		}
 	}
 
+	sweepOrphanTemps(os.TempDir(), time.Now(), logger)
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Handle shutdown signals

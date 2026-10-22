@@ -4398,14 +4398,14 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 	return nil
 }
 
-func (s *Service) backupDir() string {
-	// Always resolve to an absolute path so downstream consumers like
-	// cleanLocalBackupPath (used by the agent-archives upload handler)
-	// accept it. The default DATA_DIR is "./data" (relative), which
-	// would otherwise be rejected by the absolute-path check.
-	abs, err := filepath.Abs(filepath.Join(s.dataDir, "backups", "containers"))
+func (s *Service) backupDir() string { return LocalBackupDir(s.dataDir) }
+
+// LocalBackupDir is the absolute local backup root under dataDir; it must be absolute because
+// cleanLocalBackupPath rejects the relative default DATA_DIR "./data".
+func LocalBackupDir(dataDir string) string {
+	abs, err := filepath.Abs(filepath.Join(dataDir, "backups", "containers"))
 	if err != nil {
-		return filepath.Join(s.dataDir, "backups", "containers")
+		return filepath.Join(dataDir, "backups", "containers")
 	}
 	return abs
 }

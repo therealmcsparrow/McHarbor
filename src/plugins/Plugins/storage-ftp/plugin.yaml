@@ -6,7 +6,7 @@ description: "Backup destination backed by an FTP (RFC 959) or FTPS (RFC 4217) s
 author: "McSparrow <support@mcsparrow.eu>"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

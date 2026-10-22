@@ -157,22 +157,19 @@ func (c *Collector) sampleRootFS(ctx context.Context, svc *Service, envID string
 		return
 	}
 	callCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	info, err := svc.HostInfo(callCtx, envID)
+	usage, err := svc.HostFS(callCtx, envID)
 	cancel()
 	if err != nil {
 		c.logger.Debug("capacity collector: skipping environment", "env", dbEnvID, "error", err)
-		return
-	}
-	if info.HostFS.Total <= 0 {
 		return
 	}
 	reading := capacity.Reading{
 		EnvironmentID: dbEnvID,
 		SubjectKind:   capacity.KindRootFS,
 		SubjectID:     dbEnvID,
-		SubjectName:   info.HostFS.Path,
-		UsedBytes:     info.HostFS.Used,
-		TotalBytes:    info.HostFS.Total,
+		SubjectName:   usage.Path,
+		UsedBytes:     usage.Used,
+		TotalBytes:    usage.Total,
 	}
 	if err := capacity.Write(ctx, c.db, reading, at); err != nil {
 		c.logger.Error("capacity collector: failed to record root filesystem sample", "env", dbEnvID, "error", err)

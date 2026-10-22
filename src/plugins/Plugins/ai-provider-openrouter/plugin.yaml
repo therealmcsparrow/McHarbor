@@ -11,7 +11,7 @@ license: "McHarbor"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Routes McHarbor AI chat completions through OpenRouter, a single OpenAI-compatible gateway in front of hundreds of hosted models from many vendors."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

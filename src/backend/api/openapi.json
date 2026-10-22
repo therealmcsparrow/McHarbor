@@ -10118,6 +10118,69 @@
         ],
         "type": "object"
       },
+      "Metrics.HostFSStatus": {
+        "properties": {
+          "environmentId": {
+            "type": "string"
+          },
+          "lastSeen": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "percent": {
+            "format": "double",
+            "type": "number"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/Metrics.HostFSThresholds"
+          },
+          "totalBytes": {
+            "type": "integer"
+          },
+          "usedBytes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "environmentId",
+          "state",
+          "path",
+          "totalBytes",
+          "usedBytes",
+          "percent",
+          "thresholds"
+        ],
+        "type": "object"
+      },
+      "Metrics.HostFSThresholds": {
+        "properties": {
+          "critical": {
+            "format": "double",
+            "type": "number"
+          },
+          "warning": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "warning",
+          "critical"
+        ],
+        "type": "object"
+      },
       "Metrics.IdleReport": {
         "properties": {
           "containers": {
@@ -49258,6 +49321,81 @@
           }
         ],
         "summary": "Host info",
+        "tags": [
+          "metrics"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "host.view"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      }
+    },
+    "/api/metrics/host/fs": {
+      "get": {
+        "description": "Root filesystem of the host behind the environment with its freshness: ok, stale (last good sample kept), unknown or unsupported. Read from the tracker and the stored capacity series; it makes no Docker call, so it answers while the daemon is down.",
+        "operationId": "metricsHostFS",
+        "parameters": [
+          {
+            "description": "Environment id the request applies to.",
+            "in": "query",
+            "name": "env",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Metrics.HostFSStatus"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Host f s",
         "tags": [
           "metrics"
         ],

@@ -1479,6 +1479,20 @@
                      "description":  "Eine kurze Übersicht über die neuesten Änderungen.",
                      "dismiss":  "Schließen",
                      "gotIt":  "Verstanden",
+                     "2026_10_02":  {
+                                        "diskAlerts":  {
+                                                               "title":  "Volle Festplatten lösen Warnungen aus",
+                                                               "description":  "Warnungen zur Festplattennutzung des Hosts lesen die Festplatte, ohne Docker zu fragen. Beim ersten Start werden drei Standardregeln angelegt: bei 85 % und bei 95 % sowie für fehlende Festplattendaten. Zu finden unter Einstellungen → Überwachung → Warnungen."
+                                        },
+                                        "diskStatus":  {
+                                                               "title":  "Festplattenstatus in jeder Umgebung",
+                                                               "description":  "Die Umgebungskarte, die Umgebungstabelle und der Tab Host zeigen die Festplatte des Hosts oder eine graue Zeile, dass keine Festplattendaten vorliegen, wenn McHarbor sie nicht lesen kann."
+                                        },
+                                        "tempCleanup":  {
+                                                               "title":  "Verwaiste Archive werden entfernt",
+                                                               "description":  "Der Agent und McHarbor entfernen beim Start ihre eigenen zurückgebliebenen temporären Archive, die älter als zehn Minuten sind. So wird Platz frei, den eine volle Festplatte braucht."
+                                        }
+                                    },
                      "2026_10_01":  {
                                         "selfProtection":  {
                                                                "title":  "Zugriffe auf die eigenen Container von McHarbor erfordern host_self.manage",

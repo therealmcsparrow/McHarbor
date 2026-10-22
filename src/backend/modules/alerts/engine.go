@@ -69,6 +69,8 @@ type Engine struct {
 	notifier *notifier
 	states   *stateStore
 	history  *historyStore
+	cache    *stateCache
+	clock    func() time.Time
 
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
@@ -107,6 +109,7 @@ func NewEngine(db *sql.DB, enc *encryption.Service, logger *slog.Logger, deps En
 		notifier: newNotifier(db, enc, logger),
 		states:   newStateStore(db),
 		history:  newHistoryStore(db),
+		cache:    sharedStateCache,
 		lastRun:  make(map[string]time.Time),
 	}
 }
@@ -163,6 +166,8 @@ func (e *Engine) run(ctx context.Context) {
 
 func (e *Engine) tick(ctx context.Context) {
 	if !e.leaderFor(ctx) {
+		// A node that is not the leader may have stale state by the time it leads again.
+		e.cache.dropAll()
 		e.logger.Debug("alerts engine: not leader this tick; skipping", "node", e.nodeID)
 		return
 	}
@@ -304,13 +309,9 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Alert, decl alerting.Ale
 		return
 	}
 
-	stored, err := e.states.loadForAlert(ctx, rule.ID)
-	if err != nil {
-		e.logger.Error("alerts engine: loading state failed", "alert", rule.ID, "error", err)
-		return
-	}
+	stored := e.stateFor(ctx, rule.ID)
 
-	now := time.Now().UTC()
+	now := e.nowUTC()
 	seen := make(map[string]struct{}, len(stored)+8)
 
 	for _, env := range scope {
@@ -358,12 +359,20 @@ func (e *Engine) evaluateRule(ctx context.Context, rule Alert, decl alerting.Ale
 			result.Next.Key = key
 			result.Next.AlertID = rule.ID
 
-			if err := e.states.save(ctx, result.Next); err != nil {
-				e.logger.Error("alerts engine: saving state failed", "alert", rule.ID, "error", err)
+			if !result.Next.Active {
+				// SQLite clears the acknowledgement when a state resolves; the cache must too.
+				result.Next.Acknowledged = false
 			}
+			e.cache.put(rule.ID, result.Next)
 
+			// Deliver before persisting: on a full disk the write fails, and the
+			// alert must still reach the channels (ADR 0002).
 			if result.Notify {
 				e.dispatch(ctx, rule, decl, env, observation, previous, result.State, now)
+			}
+
+			if err := e.states.save(ctx, result.Next); err != nil {
+				e.logger.Error("alerts engine: saving state failed", "alert", rule.ID, "error", err)
 			}
 		}
 	}
@@ -398,6 +407,7 @@ func (e *Engine) resolveMissing(ctx context.Context, rule Alert, decl alerting.A
 	if len(stale) == 0 {
 		return
 	}
+	e.cache.forget(rule.ID, stale)
 	if err := e.states.deleteKeys(ctx, stale); err != nil {
 		e.logger.Error("alerts engine: clearing stale state failed", "alert", rule.ID, "error", err)
 	}
@@ -429,11 +439,12 @@ func (e *Engine) dispatch(ctx context.Context, rule Alert, decl alerting.AlertCo
 		Now:             now,
 	})
 
-	deliveries := e.notifier.deliver(ctx, rule, deliveryInput{
+	input := deliveryInput{
 		Title: alertTitle(rule, state), Message: message, State: state,
 		StateKey:      stateKey(rule.ID, env.ID, observation.SubjectID),
 		EnvironmentID: env.ID, EnvironmentName: env.Name, SubjectID: observation.SubjectID, SubjectName: observation.SubjectName,
-	})
+	}
+	deliveries := e.notifier.deliverChannels(ctx, rule, input)
 	if fn := e.alertNotifier.Load(); fn != nil {
 		(*fn)(AlertNotice{
 			AlertID: rule.ID, Name: rule.Name, Title: alertTitle(rule, state), Message: message,
@@ -441,6 +452,8 @@ func (e *Engine) dispatch(ctx context.Context, rule Alert, decl alerting.AlertCo
 			EnvironmentID: env.ID, SubjectID: observation.SubjectID, SubjectName: observation.SubjectName,
 		})
 	}
+
+	e.notifier.deliverInApp(rule, input)
 
 	if err := e.history.record(ctx, AlertEvent{
 		AlertID:         rule.ID,
@@ -590,27 +603,39 @@ func (n *notifier) bindPluginRuntime(runtime any) {
 }
 
 // deliver sends to every destination whose minimum severity the rule
-// meets, and to the in-app feed when the rule asks for it.
+// meets, then to the in-app feed when the rule asks for it. Channels go first
+// because the in-app feed is a SQLite write and fails on a full disk.
 //
 // Channels are dispatched concurrently: one slow provider must not
 // delay the others, and a rule that pages three channels should not
 // take three timeouts to finish.
 func (n *notifier) deliver(ctx context.Context, rule Alert, in deliveryInput) []EventDelivery {
-	n.bindPluginRuntime(currentPluginRuntime())
-	title, message, state := in.Title, in.Message, in.State
+	deliveries := n.deliverChannels(ctx, rule, in)
+	n.deliverInApp(rule, in)
+	return deliveries
+}
 
-	if rule.SendInApp {
-		if err := n.sendInApp(inapp.Record{
-			Level:      inAppLevel(rule.Severity),
-			Title:      title,
-			Message:    message,
-			Action:     "alert." + state,
-			EntityType: "alert",
-			EntityID:   rule.ID,
-		}); err != nil {
-			n.logger.Error("alerts: in-app delivery failed", "alert", rule.ID, "error", err)
-		}
+// deliverInApp writes the in-app feed entry when the rule asks for one.
+func (n *notifier) deliverInApp(rule Alert, in deliveryInput) {
+	if !rule.SendInApp {
+		return
 	}
+	if err := n.sendInApp(inapp.Record{
+		Level:      inAppLevel(rule.Severity),
+		Title:      in.Title,
+		Message:    in.Message,
+		Action:     "alert." + in.State,
+		EntityType: "alert",
+		EntityID:   rule.ID,
+	}); err != nil {
+		n.logger.Error("alerts: in-app delivery failed", "alert", rule.ID, "error", err)
+	}
+}
+
+// deliverChannels sends to the rule's communication channels only.
+func (n *notifier) deliverChannels(ctx context.Context, rule Alert, in deliveryInput) []EventDelivery {
+	n.bindPluginRuntime(currentPluginRuntime())
+	title, message := in.Title, in.Message
 
 	targets := make([]AlertDestination, 0, len(rule.Destinations))
 	for _, destination := range rule.Destinations {
@@ -663,4 +688,27 @@ func (n *notifier) deliver(ctx context.Context, rule Alert, in deliveryInput) []
 
 	wg.Wait()
 	return results
+}
+
+func (e *Engine) nowUTC() time.Time {
+	if e.clock != nil {
+		return e.clock().UTC()
+	}
+	return time.Now().UTC()
+}
+
+// stateFor returns a rule's firing state from memory, loading it from SQLite only
+// when the rule is cold. A failed cold load proceeds with empty state: a duplicate
+// alert is better than silence on a disk that cannot be read.
+func (e *Engine) stateFor(ctx context.Context, alertID string) map[string]alertState {
+	if states, ok := e.cache.snapshot(alertID); ok {
+		return states
+	}
+	loaded, err := e.states.loadForAlert(ctx, alertID)
+	if err != nil {
+		e.logger.Error("alerts engine: loading state failed, continuing with empty state", "alert", alertID, "error", err)
+		loaded = map[string]alertState{}
+	}
+	e.cache.seed(alertID, loaded)
+	return loaded
 }

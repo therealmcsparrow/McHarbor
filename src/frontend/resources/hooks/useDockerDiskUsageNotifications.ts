@@ -71,7 +71,15 @@ function readDriverStatusBytes(info: DockerSystemInfo | undefined, keys: string[
   return null;
 }
 
-function resolveDiskCapacity(info: DockerSystemInfo | undefined, usedBytes: number): number | null {
+/**
+ * overlay2 reports no space in driver status, so the capacity falls back to the
+ * filesystem that holds Docker's data when the driver gives none.
+ */
+export function resolveDiskCapacity(
+  info: DockerSystemInfo | undefined,
+  usedBytes: number,
+  hostFsTotal = 0,
+): number | null {
   const total = readDriverStatusBytes(info, ['data space total', 'space total', 'total space']);
   if (total && total > 0) {
     return total;
@@ -82,7 +90,7 @@ function resolveDiskCapacity(info: DockerSystemInfo | undefined, usedBytes: numb
     return usedBytes + available;
   }
 
-  return null;
+  return hostFsTotal > 0 ? hostFsTotal : null;
 }
 
 export function useDockerDiskUsageNotifications() {
@@ -100,7 +108,7 @@ export function useDockerDiskUsageNotifications() {
       return null;
     }
 
-    const capacity = resolveDiskCapacity(dockerInfo, hostMetrics.disk.total);
+    const capacity = resolveDiskCapacity(dockerInfo, hostMetrics.disk.total, hostMetrics.hostFs.total);
     if (!capacity || capacity <= 0) {
       return null;
     }

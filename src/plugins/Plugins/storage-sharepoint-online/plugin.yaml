@@ -28,7 +28,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "SharePoint document library backup destination. Tenant-scoped Microsoft Graph API (/sites/{site_id}/drive). OAuth refresh-token flow + chunked upload session. Requires Sites.ReadWrite.All delegated permission. Install storage-onedrive-business separately for OneDrive for Business drives."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host. These are bootstrap

@@ -54,5 +54,19 @@
         "description": "Todos los contenedores de este entorno se han ejecutado recientemente."
       }
     }
+  },
+  "diskStatus": {
+    "label": "Disco del host",
+    "stale": "Sin datos de disco, visto por última vez {{ago}}",
+    "unknown": "Aún sin datos de disco",
+    "unsupported": "Sin supervisión",
+    "error": "No se pudo cargar el estado del disco",
+    "usage": "{{percent}}% de {{total}} en uso",
+    "requires": "El estado del disco requiere el permiso {{permission}}",
+    "level": {
+      "normal": "dentro de los límites",
+      "warning": "sobre el umbral de advertencia",
+      "critical": "sobre el umbral crítico"
+    }
   }
 }

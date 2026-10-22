@@ -40,7 +40,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "WhatsApp notification channel. Delivers workflow and backup events to a phone number via one of four connection methods: Meta Cloud API, self-hosted gateway, WhatsApp Business API platform, or a third-party SaaS provider. Install this plugin to add 'WhatsApp' as a channel_type in Settings > Notifications > Channels."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host.

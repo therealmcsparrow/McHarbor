@@ -6,6 +6,7 @@ package alerts
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 // MetricSample is the alert engine's normalized container metric snapshot.
@@ -29,6 +30,29 @@ type HostMetrics struct {
 	Load15     float64
 	MemTotal   int64
 	DiskTotal  int64
+}
+
+// HostFSUsage is one reading of the filesystem under a host, taken without
+// asking the Docker daemon.
+type HostFSUsage struct {
+	Path  string
+	Total int64
+	Used  int64
+}
+
+// Host filesystem freshness states, mirroring the metrics module's HostFSState.
+const (
+	HostFSStateOK          = "ok"
+	HostFSStateStale       = "stale"
+	HostFSStateUnknown     = "unknown"
+	HostFSStateUnsupported = "unsupported"
+)
+
+// HostFSHealth says whether the disk figure for a host can be trusted right now.
+type HostFSHealth struct {
+	State    string
+	LastSeen time.Time
+	Reason   string
 }
 
 // ContainerSummary is the alert engine's normalized container list item.
@@ -93,6 +117,17 @@ type SystemInfoSource interface {
 	SystemInfo(context.Context, string) (*SystemInfo, error)
 }
 
+// HostFSSource reads the host filesystem usage of an environment without
+// calling Docker, so a wedged daemon cannot hide a full disk.
+type HostFSSource interface {
+	HostFS(context.Context, string) (HostFSUsage, error)
+}
+
+// HostFSHealthSource reports how fresh the last good host filesystem reading is.
+type HostFSHealthSource interface {
+	HostFSHealth(context.Context, string) (HostFSHealth, error)
+}
+
 // EngineDeps supplies runtime dependencies without coupling the alerts module
 // directly to sibling feature packages.
 //
@@ -104,4 +139,9 @@ type EngineDeps struct {
 	Containers ContainerSource
 	SystemInfo SystemInfoSource
 	DB         *sql.DB
+
+	// HostFS and HostFSHealth are optional; nil makes the disk conditions
+	// that need them report an error, which the engine reads as "skip".
+	HostFS       HostFSSource
+	HostFSHealth HostFSHealthSource
 }

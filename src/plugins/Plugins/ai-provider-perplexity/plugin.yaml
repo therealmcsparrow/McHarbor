@@ -11,7 +11,7 @@ license: "McHarbor"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Routes McHarbor AI chat completions through Perplexity's OpenAI-compatible Sonar API, which answers with live web search grounding."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go: ">=1.23"
 
 permissions:

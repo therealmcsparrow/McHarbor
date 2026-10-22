@@ -19,7 +19,7 @@ entry you cannot use is hidden, because a dead-end page is not informative.
 ## What it shows
 
 - One row per environment: name, platform, connection, endpoint, the host’s own IP address, version, status and type, with one carrying the **default** badge.
-- A card view with live figures: CPU, RAM, container counts by state, and how many containers need updates.
+- A card view with live figures: CPU, RAM, container counts by state, how many containers need updates, and the host disk. A host disk McHarbor cannot read shows a grey "No disk data, last seen …" line rather than a bar, so an unmeasured disk never looks healthy. The table has a **Disk** column with the same status.
 - A detail page with ten tabs in four groups: Overview, Settings, Host and Console.
 
 ## Connection types
@@ -136,7 +136,7 @@ too.
 |---|---|---|
 | **Overview** | `overview` | Connection details, live host figures, agent status, and the **Container stats** card: whether this environment's stats are pushed by its agent, pulled, or read directly, and why ([Container stats](../../agents/stats/README.md)) |
 | **Settings** | `activity`, `automation`, `retention` | Per-environment events, automation and retention |
-| **Host** | `host`, `docker`, `processes`, `updates`, `services` | The machine, its daemon, what runs on it, its operating-system updates, and (on a native agent only) its systemd [services](./services/README.md) |
+| **Host** | `host`, `docker`, `processes`, `updates`, `services` | The machine, its daemon, what runs on it, its operating-system updates, and (on a native agent only) its systemd [services](./services/README.md). The **Host filesystem** panel shows the disk under the host. McHarbor reads it without asking Docker: directly for the local environment, through the agent for an agent host, so an agent host reports its own disk and not McHarbor's |
 | **Console** | `terminal`, `logs` | A shell on the **host**, and the host’s own logs: a source (system, kernel, auth, Docker), a line count, **Newest first** / **Oldest first**, and **Live**, which re-reads the log every 5 seconds while it is on (it is off by default, because each read runs a command on the host) |
 
 The **Updates** tab reports the host’s distribution, kernel and package manager, checks for

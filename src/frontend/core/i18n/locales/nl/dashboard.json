@@ -17,7 +17,13 @@
     "scansNeedReview_one": "{{count}} scan moet worden beoordeeld",
     "scansNeedReview_other": "{{count}} scans moeten worden beoordeeld",
     "unreachable_one": "{{count}} host onbereikbaar",
-    "unreachable_other": "{{count}} hosts onbereikbaar"
+    "unreachable_other": "{{count}} hosts onbereikbaar",
+    "diskCritical_one": "{{count}} hostschijf kritiek",
+    "diskCritical_other": "{{count}} hostschijven kritiek",
+    "diskWarning_one": "{{count}} hostschijf boven waarschuwingsdrempel",
+    "diskWarning_other": "{{count}} hostschijven boven waarschuwingsdrempel",
+    "diskNoData_one": "{{count}} host zonder schijfgegevens",
+    "diskNoData_other": "{{count}} hosts zonder schijfgegevens"
   },
   "addWidget": "Widget toevoegen",
   "edit": "Bewerken",

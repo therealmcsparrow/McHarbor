@@ -21,7 +21,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Back up containers to a Nextcloud instance via WebDAV (RFC 4918). Two auth modes: OAuth 2.0 refresh-token flow (with the operator creating an OAuth2 client in /settings/admin/oauth2) or direct app-password authentication (the operator generates an app password in Personal settings → Security). Chunked uploads use the WebDAV PUT stream with Content-Length + Content-Range; large uploads work because Nextcloud's WebDAV server supports chunked ranges server-side. Same Test round-trip shape (write / change / delete) as the SharePoint and Google Drive plugins."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Bootstrap permissions only — they let the plugin register its

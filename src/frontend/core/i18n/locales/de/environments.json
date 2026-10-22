@@ -13,6 +13,7 @@
     "endpoint": "Endpunkt",
     "hostIp": "Host-IP",
     "version": "Version",
+    "disk": "Datenträger",
     "status": "Status",
     "actions": "Aktionen",
     "type": "Typ",
@@ -369,8 +370,7 @@
       },
       "hostFs": {
         "title": "Host-Dateisystem",
-        "path": "Einhängung: {{path}}",
-        "unavailable": "Host-Dateisystemnutzung ist fur diese Umgebung nicht verfugbar."
+        "path": "Einhängung: {{path}}"
       },
       "prune": {
         "title": "Bereinigen",

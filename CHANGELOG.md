@@ -2,6 +2,41 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [2026.10.02] - 2026-10-22
+
+A patch over 2026.10.01. Nothing breaks and no setting needs to change. Agent hosts that cannot
+report host stats show **No disk data** until they are updated to the 2026.10.02 agent.
+
+### Added
+
+- **Host filesystem status.** `GET /api/metrics/host/fs?env=` (`host.view`) returns the disk
+  reading of an environment's host, its state, and the warning and critical thresholds in use.
+
+### Fixed
+
+- **A full disk is detected.** Disk alerts read the filesystem under the host without asking
+  Docker, so a full disk is no longer invisible. Three default rules are created on first start:
+  a warning at 85% for five minutes, a critical at 95% at once, and **Host disk data missing**
+  when there is no usable reading for ten minutes. They reach the in-app inbox and push, and every
+  enabled channel is attached at minimum severity Critical. Each default is created once, so a
+  rule you delete stays deleted. Find them under Settings → Monitoring → Alerts.
+- **A critical alert is sent once while the disk is full.** A firing alert is delivered before its
+  state is saved, and the state is held in memory. Before, an alert whose state could not be
+  saved was sent again on every evaluation, or never fired at all.
+- **A disk nobody can read is shown as unknown.** The environment card, the environments table,
+  and the Host tab show a grey **No disk data** line instead of a bar; the dashboard counts the
+  hosts without disk data. A disk McHarbor cannot read on that kind of connection reads **Not
+  monitored**. A bar is never green without a reading.
+- **An agent host reports its own disk.** The host filesystem of an agent environment is read
+  through the agent. It could show McHarbor's own disk.
+- **A filesystem already past its red line is reported.** The days-until-full forecast reports 0,
+  not nothing.
+- **Docker disk alerts work when the driver reports no capacity.** The host filesystem's total is
+  used instead, and the alert context says which source was used.
+- **Temporary archives are cleaned up.** The agent removes its own orphaned archives older than ten
+  minutes from the OS temporary directory when it starts, from the 2026.10.02 build. McHarbor does
+  the same for backup archives in its backup folder.
+
 ## [2026.10.01] - 2026-10-21
 
 This compares McHarbor 2026.10.01 with the 2.0.8 release of 2026-07-26. It lists what an

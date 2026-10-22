@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/capacity"
+	"github.com/therealmcsparrow/mcharbor/core/forecast"
 	"github.com/therealmcsparrow/mcharbor/core/plugin/specs/alerting"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
@@ -32,7 +33,7 @@ func capacityConditionDecl() alerting.AlertConditionDecl {
 	return alerting.AlertConditionDecl{
 		Key:              conditionCapacityDays,
 		DisplayName:      "Days until storage is full",
-		Description:      "How many days until a filesystem or storage destination reaches its red line, projected from the retained hourly capacity series. A subject with too little history reports nothing rather than a large number.",
+		Description:      "How many days until a filesystem or storage destination reaches its red line, projected from the retained hourly capacity series. A subject already past the red line reports 0; one with too little history reports nothing rather than a large number.",
 		Kind:             alerting.KindThreshold,
 		Unit:             "days",
 		Operators:        []string{"<", "<="},
@@ -66,12 +67,30 @@ func (s *hostSource) evaluateCapacity(ctx context.Context, req alerting.Evaluate
 	}
 	out := make([]alerting.AlertObservation, 0, len(forecasts))
 	for _, f := range forecasts {
-		if !f.HasDate() {
+		pastRedLine := !f.HasDate() && f.UsedPercent >= forecast.RedPercent
+		if !f.HasDate() && !pastRedLine {
 			continue
 		}
 		name := f.SubjectName
 		if name == "" {
 			name = f.SubjectID
+		}
+		if pastRedLine {
+			// A disk that is full and flat is refused before the projection runs,
+			// so the refusal reason cannot be trusted to say it is over the line.
+			out = append(out, alerting.AlertObservation{
+				SubjectID:   f.SubjectKind + ":" + f.SubjectID,
+				SubjectName: name,
+				Value:       0,
+				ValueLabel:  "past the red line",
+				Context: map[string]string{
+					"subject_kind": f.SubjectKind,
+					"used_percent": formatFloat(f.UsedPercent),
+					"ceiling":      formatFloat(forecast.RedPercent),
+					"refusal":      f.Refusal,
+				},
+			})
+			continue
 		}
 		out = append(out, alerting.AlertObservation{
 			SubjectID:   f.SubjectKind + ":" + f.SubjectID,

@@ -127,6 +127,8 @@ func (s *stateStore) deleteKeys(ctx context.Context, keys []string) error {
 // a rule is deleted or disabled so re-enabling it starts clean rather
 // than resolving conditions nobody was watching.
 func (s *stateStore) deleteForAlert(ctx context.Context, alertID string) error {
+	// Dropped after the delete, so a concurrent cold load cannot resurrect the rows.
+	defer sharedStateCache.drop(alertID)
 	if _, err := s.db.ExecContext(ctx, "DELETE FROM alert_states WHERE alert_id = ?", alertID); err != nil {
 		return fmt.Errorf("deleting alert states for %s: %w", alertID, err)
 	}

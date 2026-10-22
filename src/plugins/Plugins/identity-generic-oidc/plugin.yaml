@@ -31,7 +31,7 @@ license:  "Apache-2.0"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 description: "Generic OpenID Connect identity provider. OIDC authorization-code flow for any compliant IdP — Auth0, Okta, Keycloak, AWS Cognito, Ping, ForgeRock, LemonLDAP, and others. The plugin discovers endpoints via <issuer>/.well-known/openid-configuration. Install to add 'Generic OpenID Connect' as a provider_type in Settings > Security > Identity Providers."
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.23"
 
 # Capabilities the plugin needs from the host.

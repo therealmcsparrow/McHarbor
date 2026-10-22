@@ -1479,6 +1479,20 @@
                      "description":  "A quick tour of the latest changes.",
                      "dismiss":  "Dismiss",
                      "gotIt":  "Got it",
+                     "2026_10_02":  {
+                                        "diskAlerts":  {
+                                                               "title":  "Full disks raise alerts",
+                                                               "description":  "Host disk usage alerts read the disk without asking Docker. Three default rules, at 85% and 95% and for missing disk data, are added on first start. Find them under Settings → Monitoring → Alerts."
+                                        },
+                                        "diskStatus":  {
+                                                               "title":  "Disk status on every environment",
+                                                               "description":  "The environment card, the environments table and the Host tab show the host disk, or a grey line saying there is no disk data when McHarbor cannot read it."
+                                        },
+                                        "tempCleanup":  {
+                                                               "title":  "Orphaned archives are removed",
+                                                               "description":  "The agent and McHarbor delete their own leftover temporary archives older than ten minutes when they start, which frees space a full disk needs."
+                                        }
+                                    },
                      "2026_10_01":  {
                                         "selfProtection":  {
                                                                "title":  "Acting on McHarbor's own containers needs host_self.manage",

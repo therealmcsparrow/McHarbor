@@ -18,7 +18,7 @@ description: >-
   templates. McHarbor drives libcontainer directly and supervises it with
   systemd; there is no LXD, no Incus and no lxc-* toolchain.
 
-mcharbor: ">=2026.10.01"
+mcharbor: ">=2026.10.02"
 go:       ">=1.25"
 
 # Compute Foundation carries the pools, networks, images and capability probe

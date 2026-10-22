@@ -6,7 +6,7 @@ McHarbor is a self-hosted control plane for Docker environments, extendable to K
 
 Deploy it as a Docker container, connect it to the host Docker socket, and start managing infrastructure from one clean, dark-first interface. Add remote Docker hosts through the outbound McHarbor agent, install the Kubernetes or Swarm plugin to manage clusters beside Docker environments, stream logs, open browser terminals, build dashboards, automate routine work, and keep a clear record of operational changes without handing your infrastructure to a third party. McHarbor is free for personal and homelab use. Commercial and business use requires a commercial license.
 
-**Current release: 2026.10.01.** See [What's New in 2026.10.01](#whats-new-in-20261001) and the [CHANGELOG](CHANGELOG.md) for the breaking changes before upgrading from 2.x.
+**Current release: 2026.10.02.** See [What's New in 2026.10.02](#whats-new-in-20261002) and the [CHANGELOG](CHANGELOG.md). Upgrading from 2.x? Read the breaking changes of [2026.10.01](CHANGELOG.md#20261001---2026-10-21) first.
 
 ## Why McHarbor
 
@@ -35,6 +35,7 @@ McHarbor is built for the work that happens after deployment.
 - **Runbooks For The Person Holding The Pager**: Attach an ordered set of steps to an alert type, a container, a stack or an environment — instructions, read-only diagnostics that show their output inline, and actions that execute and are audited. Each step runs under the operator's own permissions, so a runbook cannot do what its operator could not; a run records which steps they completed, what they found and where they stopped, and appears in the post-incident timeline. Built for a phone at 03:00, one step at a time, and the read path works offline. A runbook can also run unattended on its alert or a schedule, as a service principal that holds ordinary roles and can never sign in. A runbook exports as a portable file so it can be handed to another install, and as a PDF or a Word document for the binder. A **Runbooks report** says which alert conditions can fire with no runbook behind them.
 - **Ephemeral Preview Environments**: A pull request opens an environment with a generated hostname, a TTL and a per-pipeline concurrency cap, and merging, closing or expiry destroys it. Cleanup survives a force-pushed branch, a deleted repository and a restart mid-teardown, and teardown only ever deletes an environment explicitly marked as that preview's.
 - **Active/Active, Or An Honest Reason Why Not**: Two nodes can now serve the same fleet: an agent's owning node is leased in the shared registry and a request arriving elsewhere is forwarded to the owner with the caller's identity and timeout intact, with the audit row recording which node executed it. The readiness check names the five stream paths that are pinned to the owning node rather than forwarded, instead of implying the mode is complete.
+- **Full Disks Are Detected**: McHarbor reads each host's disk without asking Docker, so a full disk raises an alert, and a disk McHarbor cannot read says so instead of looking healthy. The disk reading appears on the environment card, the environments table and the Host tab.
 - **Dark-First Interface**: Work in a modern UI designed for long operational sessions, with a light mode toggle available when you want it.
 - **Table Views**: Choose, reorder and resize the columns on any table and save named filters to reapply later — personal, server-stored, and the same wherever you sign in. A fresh install opens every table on a curated default layout, and Reset returns to it. Select every row matching a filter, across pages, before a bulk action.
 - **A Palette That Knows Your Plugins**: Ctrl+K lists the virtual machines, system containers, Swarm services, Kubernetes pods and compute hosts that installed plugins declare, and offers their actions — create a machine, add a cluster, deploy a stack — to whoever holds the permission. The host names none of them; a plugin declares `search-source` and `search-action` capabilities.
@@ -79,6 +80,14 @@ McHarbor is built for the work that happens after deployment.
 - **High Availability**: Run active/passive McHarbor nodes on a shared PostgreSQL, MySQL, MariaDB or SQL Server database — one active node fenced by a database lock, standbys that refuse changes, readiness probes for the load balancer, and Make active / Drain / Resume from Enterprise → High availability. Plugin packages are kept in the database, a shared mount or a storage location so every node can load them.
 - **HTTPS by Default**: McHarbor is its own certificate authority. A ten-year root signs a 90-day certificate on first boot and renews it without a restart; install the root once from Settings → Security → HTTPS and the browser warning is gone. Upload your own certificate there instead, or issue one automatically with the bundled ACME companion app. Connections negotiate **TLS 1.3**, the preferred and shipped floor; TLS 1.2 stays available for clients that predate 2019 via `TLS_MIN_VERSION=1.2`, and TLS 1.1 and below are refused.
 - **Self-Update Checker**: McHarbor periodically compares the running version and build against the latest GitHub release, surfaces an in-app banner when a newer version, or a newer build of the same version, is available, and notifies configured channels. The check interval is configurable from Settings.
+
+## What's New in 2026.10.02
+
+McHarbor 2026.10.02 is a patch release. It detects a full disk, which 2026.10.01 did not, and it delivers a critical alert even when the disk has no room to save the alert's state. Nothing breaks. The full list is in [CHANGELOG.md](CHANGELOG.md).
+
+- **Full disks raise alerts**: Host disk alerts read the filesystem under the host. Three default rules are created on first start, at 85% and at 95%, and one for missing disk data. Find them under Settings → Monitoring → Alerts.
+- **Disk status on every environment**: The environment card, the environments table and the Host tab show the host disk, or a grey "No disk data" line when McHarbor cannot read it.
+- **Temporary archives are cleaned up**: The agent and McHarbor remove their own orphaned archives older than ten minutes when they start.
 
 ## What's New in 2026.10.01
 

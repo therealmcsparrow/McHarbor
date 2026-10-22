@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
@@ -138,8 +139,29 @@ func (s *Service) MergeEnvironments(ctx context.Context, sourceID, targetID stri
 	s.disconnectAgent(sourceID)
 	s.dockerPool.Remove(sourceID)
 	s.dockerPool.Remove(targetID)
+	notifyMerged(sourceID, targetID)
 
 	return result, nil
+}
+
+var mergedHook atomic.Pointer[func(sourceID, targetID string)]
+
+// SetMergedHook installs the callback run after a merge commits, so in-memory
+// caches keyed by environment id (alert states, host disk tracking) can drop
+// the ids the merge just re-keyed. It is package-level because every handler
+// and tool builds its own Service; nil removes the hook.
+func SetMergedHook(fn func(sourceID, targetID string)) {
+	if fn == nil {
+		mergedHook.Store(nil)
+		return
+	}
+	mergedHook.Store(&fn)
+}
+
+func notifyMerged(sourceID, targetID string) {
+	if fn := mergedHook.Load(); fn != nil {
+		(*fn)(sourceID, targetID)
+	}
 }
 
 // mergeDriver names the active driver, treating "not opened yet" as SQLite
