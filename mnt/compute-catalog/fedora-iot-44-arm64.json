@@ -1,0 +1,16 @@
+{
+  "id": "img-fedora-iot-44-arm64",
+  "kind": "cloud_image",
+  "distro": "fedora",
+  "release": "44",
+  "arch": "aarch64",
+  "variant": "iot",
+  "displayName": "Fedora IoT 44 ARM64 (edge image)",
+  "sourceUrl": "https://download.fedoraproject.org/pub/alt/iot/44/IoT/aarch64/images/Fedora-IoT-raw-44-20260427.0.aarch64.raw.xz",
+  "checksumUrl": "https://download.fedoraproject.org/pub/alt/iot/44/IoT/aarch64/images/Fedora-IoT-44-aarch64-20260427.0-CHECKSUM",
+  "signatureUrl": "https://download.fedoraproject.org/pub/alt/iot/44/IoT/aarch64/images/Fedora-IoT-44-aarch64-20260427.0-CHECKSUM",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 885964916,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

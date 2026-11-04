@@ -1,0 +1,13 @@
+{
+  "id": "img-manjaro-2610-gnome-amd64",
+  "kind": "iso",
+  "distro": "manjaro",
+  "release": "26.1.0",
+  "arch": "x86_64",
+  "variant": "gnome",
+  "displayName": "Manjaro 26.1.0 GNOME (installer)",
+  "sourceUrl": "https://download.manjaro.org/gnome/26.1.0/manjaro-gnome-26.1.0-260812-linux71.iso",
+  "checksumUrl": "https://download.manjaro.org/gnome/26.1.0/manjaro-gnome-26.1.0-260812-linux71.iso.sha512",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 5299992576
+}

@@ -1,0 +1,12 @@
+{
+  "id": "img-blissos-bass-amd64",
+  "kind": "iso",
+  "distro": "blissos",
+  "release": "BlissBass 2023-10-11",
+  "arch": "x86_64",
+  "variant": "foss",
+  "displayName": "Bliss OS BlissBass GO (FOSS, live / installer)",
+  "sourceUrl": "https://downloads.sourceforge.net/project/blissos-dev/BlissBass/x86_64/Go/foss/20231011/BlissBass_GO-x86_64-2023101123.iso",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1539309568
+}

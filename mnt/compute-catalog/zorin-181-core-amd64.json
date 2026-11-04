@@ -1,0 +1,13 @@
+{
+  "id": "img-zorin-181-core-amd64",
+  "kind": "iso",
+  "distro": "zorin",
+  "release": "18.1",
+  "arch": "x86_64",
+  "variant": "core",
+  "displayName": "Zorin OS 18.1 Core (installer)",
+  "sourceUrl": "https://ftp.halifax.rwth-aachen.de/zorinos/18/Zorin-OS-18.1-Core-64-bit.iso",
+  "checksumUrl": "https://ftp.halifax.rwth-aachen.de/zorinos/18/SHA256SUMS",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 3909091328
+}

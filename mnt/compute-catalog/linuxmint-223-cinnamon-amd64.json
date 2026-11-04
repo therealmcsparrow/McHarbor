@@ -1,0 +1,13 @@
+{
+  "id": "img-linuxmint-223-cinnamon-amd64",
+  "kind": "iso",
+  "distro": "linuxmint",
+  "release": "22.3",
+  "arch": "x86_64",
+  "variant": "cinnamon",
+  "displayName": "Linux Mint 22.3 Cinnamon (installer)",
+  "sourceUrl": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3/linuxmint-22.3-cinnamon-64bit.iso",
+  "checksumUrl": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3/sha256sum.txt",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 3091660800
+}

@@ -637,16 +637,16 @@ func boolToInt(b bool) int {
 // non-GitHub URL through when it already names a .json file — a directory URL
 // here would resolve to nothing fetchable for both the loader and the connection probe.
 //
-// Moved from /addons/apps to /catalog/apps, beside the plugin and agent catalogs.
-// An existing install repairs itself: SeedDefaults rewrites a built-in row's URL
-// by stable ID on every boot, and absorbBuiltinDuplicate clears a hand-added row
-// already sitting on the new URL first, so the UNIQUE(kind, url) repair cannot wedge.
-const builtinAppCatalogURL = "https://www.mcharbor.eu/catalog/apps/index.json"
+// It lives in the McHarbor-Catalog GitHub repository, beside the plugin, agent and
+// VM image catalogs. An existing install repairs itself: SeedDefaults rewrites a
+// built-in row's URL by stable ID on every boot, and absorbBuiltinDuplicate clears a
+// hand-added row already sitting on the new URL first, so the UNIQUE(kind, url) repair cannot wedge.
+const builtinAppCatalogURL = "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Apps/index.json"
 
 // builtinPluginCatalogURL is the only place plugins come from now that the
 // image ships none. SeedDefaults rewrites the built-in row by stable ID on
 // every boot, so an install that predates the move repairs itself.
-const builtinPluginCatalogURL = "https://www.mcharbor.eu/catalog/plugins/index.json"
+const builtinPluginCatalogURL = "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins/index.json"
 
 // builtinCatalogs seeds the two official McHarbor-AddOns catalogs. Their
 // stable IDs let SeedDefaults repair names, kinds, and URLs while preserving

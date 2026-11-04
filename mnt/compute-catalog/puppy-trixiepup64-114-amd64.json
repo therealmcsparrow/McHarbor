@@ -1,0 +1,13 @@
+{
+  "id": "img-puppy-trixiepup64-114-amd64",
+  "kind": "iso",
+  "distro": "puppylinux",
+  "release": "TrixiePup64 11.4",
+  "arch": "x86_64",
+  "variant": "wayland",
+  "displayName": "Puppy Linux TrixiePup64 11.4 (Wayland, live)",
+  "sourceUrl": "https://distro.ibiblio.org/puppylinux/puppy-trixie/TrixiePup64/11.4/wayland/Trixiepup64_Wayland-11.4.iso",
+  "checksumUrl": "https://distro.ibiblio.org/puppylinux/puppy-trixie/TrixiePup64/11.4/wayland/Trixiepup64_Wayland-11.4.iso.sha256.txt",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1059061760
+}

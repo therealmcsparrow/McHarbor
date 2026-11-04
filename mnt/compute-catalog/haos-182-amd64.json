@@ -1,0 +1,13 @@
+{
+  "id": "img-haos-182-amd64",
+  "kind": "cloud_image",
+  "distro": "homeassistant",
+  "release": "18.2",
+  "arch": "x86_64",
+  "variant": "ova",
+  "displayName": "Home Assistant OS 18.2 (KVM/QEMU)",
+  "sourceUrl": "https://github.com/home-assistant/operating-system/releases/download/18.2/haos_ova-18.2.qcow2.xz",
+  "checksum": "254e53f354df0739e3afc09be5431a07df53f0df6b703885404f665c454f254e",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 535936800
+}

@@ -1,0 +1,14 @@
+{
+  "id": "img-oracle-linux-10-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "oraclelinux",
+  "release": "10.1",
+  "arch": "x86_64",
+  "variant": "kvm",
+  "displayName": "Oracle Linux 10 Update 1 (KVM image)",
+  "sourceUrl": "https://yum.oracle.com/templates/OracleLinux/OL10/u1/x86_64/OL10U1_x86_64-kvm-b291.qcow2",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1073872896,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "img-opensuse-leap-161-amd64",
+  "kind": "iso",
+  "distro": "opensuse",
+  "release": "Leap 16.1",
+  "arch": "x86_64",
+  "variant": "leap",
+  "displayName": "openSUSE Leap 16.1 (offline installer)",
+  "sourceUrl": "https://download.opensuse.org/distribution/leap/16.1/offline/Leap-16.1-offline-installer-x86_64.install.iso",
+  "checksumUrl": "https://download.opensuse.org/distribution/leap/16.1/offline/Leap-16.1-offline-installer-x86_64.install.iso.sha512",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 4567597056
+}

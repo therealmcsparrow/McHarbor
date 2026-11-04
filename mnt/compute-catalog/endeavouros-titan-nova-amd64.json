@@ -1,0 +1,13 @@
+{
+  "id": "img-endeavouros-titan-nova-amd64",
+  "kind": "iso",
+  "distro": "endeavouros",
+  "release": "Titan-Nova 2026.08.15",
+  "arch": "x86_64",
+  "variant": "installer",
+  "displayName": "EndeavourOS Titan-Nova 2026.08.15 (installer)",
+  "sourceUrl": "https://ftp.belnet.be/mirror/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso",
+  "checksumUrl": "https://ftp.belnet.be/mirror/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso.sha512sum",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 3898638336
+}

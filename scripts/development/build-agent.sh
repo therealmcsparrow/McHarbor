@@ -35,7 +35,8 @@ mirror; McHarbor itself serves agents/ as a built-in agent without checking it.
 
 The release is then copied into agents/catalog/<version>/<build>/ and
 agents/catalog/index.json is rewritten to list every build there (publish-agent-catalog.mjs); upload
-agents/catalog/ as-is to https://www.mcharbor.eu/catalog/agents/.
+agents/catalog/ as-is to the Agents/ folder of
+https://github.com/therealmcsparrow/McHarbor-Catalog.
 USAGE
 }
 

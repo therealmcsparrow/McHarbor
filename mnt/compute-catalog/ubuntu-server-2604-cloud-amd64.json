@@ -1,0 +1,16 @@
+{
+  "id": "img-ubuntu-server-2604-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "ubuntu",
+  "release": "26.04",
+  "arch": "x86_64",
+  "variant": "server",
+  "displayName": "Ubuntu Server 26.04 LTS (Resolute, cloud image)",
+  "sourceUrl": "https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img",
+  "checksumUrl": "https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS",
+  "signatureUrl": "https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS.gpg",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 863306240,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

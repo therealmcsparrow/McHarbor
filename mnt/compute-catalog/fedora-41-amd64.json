@@ -1,0 +1,14 @@
+{
+  "id": "img-fedora-41-amd64",
+  "kind": "cloud_image",
+  "distro": "fedora",
+  "release": "41",
+  "arch": "x86_64",
+  "displayName": "Fedora Cloud 41",
+  "sourceUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2",
+  "checksumUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-41-1.4-x86_64-CHECKSUM",
+  "signatureUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-41-1.4-x86_64-CHECKSUM",
+  "checksumAlgo": "sha256",
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

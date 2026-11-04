@@ -1,0 +1,15 @@
+{
+  "id": "img-opensuse-leap-161-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "opensuse",
+  "release": "Leap 16.1",
+  "arch": "x86_64",
+  "variant": "cloud",
+  "displayName": "openSUSE Leap 16.1 Minimal VM (cloud image)",
+  "sourceUrl": "https://download.opensuse.org/distribution/leap/16.1/appliances/Leap-16.1-Minimal-VM.x86_64-Cloud.qcow2",
+  "checksumUrl": "https://download.opensuse.org/distribution/leap/16.1/appliances/Leap-16.1-Minimal-VM.x86_64-Cloud.qcow2.sha256",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 341735936,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

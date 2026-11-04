@@ -1,0 +1,12 @@
+{
+  "id": "img-android-x86-90-amd64",
+  "kind": "iso",
+  "distro": "androidx86",
+  "release": "9.0-r2",
+  "arch": "x86_64",
+  "variant": "installer",
+  "displayName": "Android-x86 9.0-r2 (live / installer)",
+  "sourceUrl": "https://downloads.sourceforge.net/project/android-x86/Release%209.0/android-x86_64-9.0-r2.iso",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 965738496
+}

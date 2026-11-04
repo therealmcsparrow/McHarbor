@@ -1,0 +1,14 @@
+{
+  "id": "img-ubuntu-server-2404-amd64",
+  "kind": "iso",
+  "distro": "ubuntu",
+  "release": "24.04",
+  "arch": "x86_64",
+  "variant": "server",
+  "displayName": "Ubuntu Server 24.04.5 LTS (installer)",
+  "sourceUrl": "https://releases.ubuntu.com/24.04/ubuntu-24.04.5-live-server-amd64.iso",
+  "checksumUrl": "https://releases.ubuntu.com/24.04/SHA256SUMS",
+  "signatureUrl": "https://releases.ubuntu.com/24.04/SHA256SUMS.gpg",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 4080486400
+}

@@ -1,0 +1,15 @@
+{
+  "id": "img-rocky-10-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "rocky",
+  "release": "10",
+  "arch": "x86_64",
+  "variant": "genericcloud",
+  "displayName": "Rocky Linux 10 (generic cloud image)",
+  "sourceUrl": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2",
+  "checksumUrl": "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/CHECKSUM",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 544997376,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

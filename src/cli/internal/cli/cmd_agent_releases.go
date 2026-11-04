@@ -25,7 +25,7 @@ func agentReleasesCommand(g *globals) *cobra.Command {
 	releases := &cobra.Command{
 		Use:   "releases",
 		Short: "Agent releases stored in McHarbor, which every install and update is served from",
-		Long: "McHarbor pulls agent releases from the mcharbor.eu catalog, an operator's mirror\n" +
+		Long: "McHarbor pulls agent releases from the McHarbor-Catalog repository, a mirror\n" +
 			"or GitHub, verifies each against its signed SHA256SUMS, and serves agents only\n" +
 			"from what it stored.\n\n" +
 			"The target is the release installs, deploys and update sweeps hand out. With no\n" +

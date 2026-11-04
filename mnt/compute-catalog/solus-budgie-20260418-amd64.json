@@ -1,0 +1,13 @@
+{
+  "id": "img-solus-budgie-20260418-amd64",
+  "kind": "iso",
+  "distro": "solus",
+  "release": "2026-04-18",
+  "arch": "x86_64",
+  "variant": "budgie",
+  "displayName": "Solus 2026-04-18 Budgie (installer)",
+  "sourceUrl": "https://downloads.getsol.us/isos/2026-04-18/Solus-Budgie-Release-2026-04-18.iso",
+  "checksumUrl": "https://downloads.getsol.us/isos/2026-04-18/Solus-Budgie-Release-2026-04-18.iso.sha256sum",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 4338690048
+}

@@ -1,0 +1,14 @@
+{
+  "id": "img-ubuntu-2204-amd64",
+  "kind": "cloud_image",
+  "distro": "ubuntu",
+  "release": "22.04",
+  "arch": "x86_64",
+  "displayName": "Ubuntu 22.04 LTS (Jammy)",
+  "sourceUrl": "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img",
+  "checksumUrl": "https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS",
+  "signatureUrl": "https://cloud-images.ubuntu.com/jammy/current/SHA256SUMS.gpg",
+  "checksumAlgo": "sha256",
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

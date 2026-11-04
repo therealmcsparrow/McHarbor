@@ -80,6 +80,10 @@ cookies.txt
 !/scripts/lint/
 !/scripts/development/
 /scripts/development/output/
+!/scripts/compute/
+/scripts/compute/*
+!/scripts/compute/build-image-index.mjs
+!/mnt/compute-catalog/
 .tmp_c.jar
 
 # AI-Sanity

@@ -1,0 +1,13 @@
+{
+  "id": "img-debian-12-amd64",
+  "kind": "cloud_image",
+  "distro": "debian",
+  "release": "12",
+  "arch": "x86_64",
+  "displayName": "Debian 12 (Bookworm)",
+  "sourceUrl": "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2",
+  "checksumUrl": "https://cloud.debian.org/images/cloud/bookworm/latest/SHA512SUMS",
+  "checksumAlgo": "sha512",
+  "initSystem": "systemd",
+  "netConfigFormat": "interfaces"
+}

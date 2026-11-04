@@ -35,9 +35,13 @@ const (
 	SourceMirror = "mirror"
 )
 
-// OfficialSourceURL is the mcharbor.eu agent catalog index the default source reads. It
-// is the only address on the internet McHarbor contacts for agents unless an operator adds a mirror.
-const OfficialSourceURL = "https://www.mcharbor.eu/catalog/agents/index.json"
+// OfficialSourceURL is the agent index in the McHarbor-Catalog GitHub repository. It is the only
+// address on the internet McHarbor contacts for agents unless an operator adds a mirror.
+const OfficialSourceURL = "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json"
+
+// legacyOfficialSourceURL is the default before the catalog moved to GitHub; saved settings
+// still name it, so Settings re-points it to OfficialSourceURL on read.
+const legacyOfficialSourceURL = "https://www.mcharbor.eu/catalog/agents/index.json"
 
 // DefaultImageRepository is where McHarbor pulls agent images from when a
 // release does not name a digest-pinned image of its own.

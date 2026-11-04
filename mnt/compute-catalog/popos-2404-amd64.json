@@ -1,0 +1,13 @@
+{
+  "id": "img-popos-2404-amd64",
+  "kind": "iso",
+  "distro": "popos",
+  "release": "24.04",
+  "arch": "x86_64",
+  "variant": "cosmic",
+  "displayName": "Pop!_OS 24.04 LTS COSMIC (installer)",
+  "sourceUrl": "https://iso.pop-os.org/24.04/amd64/intel/20/pop-os_24.04_amd64_intel_20.iso",
+  "checksum": "a0ef3842ab710db4f4407cf3499560b59dddbbcd59bee17beab7b0e99dc22b4c",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 2955067392
+}

@@ -236,6 +236,11 @@ func (s *Store) Settings(ctx context.Context) (Settings, error) {
 	if out.ImagePlatforms == nil {
 		out.ImagePlatforms = []string{}
 	}
+	for i, src := range out.Sources {
+		if strings.TrimRight(strings.TrimSpace(src.URL), "/") == legacyOfficialSourceURL {
+			out.Sources[i].URL = OfficialSourceURL
+		}
+	}
 	normalized, err := NormalizeSettings(out)
 	if err != nil {
 		return DefaultSettings(), nil //nolint:nilerr // a stored value that no longer validates falls back to defaults so the page still loads

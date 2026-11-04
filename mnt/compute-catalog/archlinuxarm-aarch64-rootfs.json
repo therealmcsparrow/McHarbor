@@ -1,0 +1,14 @@
+{
+  "id": "img-archlinuxarm-aarch64-rootfs",
+  "kind": "rootfs",
+  "distro": "archlinuxarm",
+  "release": "latest",
+  "arch": "aarch64",
+  "variant": "generic",
+  "displayName": "Arch Linux ARM AArch64 (generic rootfs)",
+  "sourceUrl": "https://de3.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 829367415,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

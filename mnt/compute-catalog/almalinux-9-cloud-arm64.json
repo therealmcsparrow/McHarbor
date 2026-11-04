@@ -1,0 +1,14 @@
+{
+  "id": "img-almalinux-9-cloud-arm64",
+  "kind": "cloud_image",
+  "distro": "almalinux",
+  "release": "9",
+  "arch": "aarch64",
+  "variant": "genericcloud",
+  "displayName": "AlmaLinux 9 ARM64 (generic cloud image)",
+  "sourceUrl": "https://repo.almalinux.org/almalinux/9/cloud/aarch64/images/AlmaLinux-9-GenericCloud-latest.aarch64.qcow2",
+  "checksumUrl": "https://repo.almalinux.org/almalinux/9/cloud/aarch64/images/CHECKSUM",
+  "checksumAlgo": "sha256",
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

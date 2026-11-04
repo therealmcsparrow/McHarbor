@@ -1,0 +1,15 @@
+{
+  "id": "img-debian-13-cloud-arm64",
+  "kind": "cloud_image",
+  "distro": "debian",
+  "release": "13",
+  "arch": "aarch64",
+  "variant": "genericcloud",
+  "displayName": "Debian 13 (Trixie) ARM64 (cloud image)",
+  "sourceUrl": "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2",
+  "checksumUrl": "https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 336723968,
+  "initSystem": "systemd",
+  "netConfigFormat": "interfaces"
+}

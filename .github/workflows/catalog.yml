@@ -1,0 +1,330 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      agents:
+        description: Build, sign and publish the agent binaries (Agents/)
+        type: boolean
+        default: false
+      plugins:
+        description: Build, sign and publish plugins (Plugins/)
+        type: boolean
+        default: false
+      plugin_slugs:
+        description: Plugins to build - "all", or space-separated slugs
+        type: string
+        default: all
+      apps:
+        description: Publish the app catalog (Apps/)
+        type: boolean
+        default: true
+      images:
+        description: Publish the VM image catalog (Images/)
+        type: boolean
+        default: true
+  push:
+    branches:
+      - main
+    paths:
+      - apps/index.json
+      - mnt/compute-catalog/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catalog-publish
+  cancel-in-progress: false
+
+env:
+  CATALOG_REPO: therealmcsparrow/McHarbor-Catalog
+  CATALOG_BASE: https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main
+
+jobs:
+  agents:
+    if: github.event_name == 'workflow_dispatch' && inputs.agents
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache-dependency-path: |
+            src/backend/go.sum
+            src/agent/go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Write agent signing key
+        env:
+          AGENT_SIGNING_KEY: ${{ secrets.AGENT_SIGNING_KEY }}
+          AGENT_SIGNING_PUB: ${{ secrets.AGENT_SIGNING_PUB }}
+        run: |
+          if [ -z "$AGENT_SIGNING_KEY" ] || [ -z "$AGENT_SIGNING_PUB" ]; then
+            echo "::error::Secrets AGENT_SIGNING_KEY (base64) and AGENT_SIGNING_PUB are required: an unsigned agent release is refused by every McHarbor."
+            exit 1
+          fi
+          mkdir -p signing
+          printf '%s' "$AGENT_SIGNING_KEY" | base64 -d > signing/agent-signing.key
+          printf '%s\n' "$AGENT_SIGNING_PUB" > signing/agent-signing.pub
+          if [ "$(wc -c < signing/agent-signing.key)" -ne 32 ]; then
+            echo "::error::AGENT_SIGNING_KEY must be the base64 of the 32-byte signing/agent-signing.key."
+            exit 1
+          fi
+
+      - name: Seed from the published catalog
+        run: |
+          git clone --depth 1 "https://github.com/${CATALOG_REPO}.git" .catalog
+          mkdir -p agents/catalog
+          if [ -d .catalog/Agents ]; then
+            cp -a .catalog/Agents/. agents/catalog/
+          fi
+          rm -rf .catalog
+
+      - name: Build and sign agents
+        run: bash scripts/development/build-agent.sh --cross --linux-arm64
+
+      - name: Verify the release is signed
+        run: |
+          test -s agents/SHA256SUMS.sig || { echo "::error::SHA256SUMS.sig was not written."; exit 1; }
+          test -s agents/catalog/index.json || { echo "::error::agents/catalog/index.json was not written."; exit 1; }
+
+      - name: Upload Agents
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-Agents
+          path: agents/catalog/
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+  plugins:
+    if: github.event_name == 'workflow_dispatch' && inputs.plugins
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Stage the catalog outside the Docker build context
+        run: echo "PLUGIN_CATALOG_DIR=${RUNNER_TEMP}/plugin-catalog" >> "$GITHUB_ENV"
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache-dependency-path: src/backend/go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Write plugin signing key
+        env:
+          PLUGIN_SIGNING_KEY: ${{ secrets.PLUGIN_SIGNING_KEY }}
+        run: |
+          if [ -z "$PLUGIN_SIGNING_KEY" ]; then
+            echo "::error::Secret PLUGIN_SIGNING_KEY (base64) is required: a plugin signed with any other key installs as unsigned."
+            exit 1
+          fi
+          printf '%s' "$PLUGIN_SIGNING_KEY" | base64 -d > signing/plugin-signing.key
+          if [ "$(wc -c < signing/plugin-signing.key)" -ne 32 ]; then
+            echo "::error::PLUGIN_SIGNING_KEY must be the base64 of the 32-byte signing/plugin-signing.key."
+            exit 1
+          fi
+
+      - name: Seed from the published catalog
+        run: |
+          git clone --depth 1 "https://github.com/${CATALOG_REPO}.git" .catalog
+          mkdir -p "${PLUGIN_CATALOG_DIR}"
+          if [ -d .catalog/Plugins ]; then
+            cp -a .catalog/Plugins/. "${PLUGIN_CATALOG_DIR}/"
+          fi
+          rm -rf .catalog
+
+      - name: Build and sign plugins
+        env:
+          MCHARBOR_CATALOG_URL: ${{ env.CATALOG_BASE }}/Plugins
+          MCHARBOR_PLUGIN_OUTPUT_DIR: ${{ env.PLUGIN_CATALOG_DIR }}
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          cd scripts/development
+          if [ -z "$PLUGIN_SLUGS" ] || [ "$PLUGIN_SLUGS" = "all" ]; then
+            bash catalog.sh build --all --catalog "$MCHARBOR_CATALOG_URL" --jobs 2 --timeout 30
+          else
+            read -r -a slugs <<< "$PLUGIN_SLUGS"
+            bash catalog.sh build --catalog "$MCHARBOR_CATALOG_URL" --jobs 2 --timeout 30 "${slugs[@]}"
+          fi
+
+      - name: Verify every download_url
+        run: |
+          node - <<'EOF'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const dir = process.env.PLUGIN_CATALOG_DIR;
+          const prefix = `${process.env.CATALOG_BASE}/Plugins/files/`;
+          const doc = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
+          const plugins = Array.isArray(doc) ? doc : doc.plugins;
+          const bad = [];
+          for (const p of plugins) {
+            for (const v of p.versions || []) {
+              const url = v.download_url || '';
+              if (!url.startsWith(prefix)) bad.push(`${p.slug || p.id}: ${url}`);
+              else if (!fs.existsSync(path.join(dir, 'files', url.slice(prefix.length)))) bad.push(`${p.slug || p.id}: missing ${url.slice(prefix.length)}`);
+            }
+          }
+          if (bad.length) {
+            console.error(bad.join('\n'));
+            process.exit(1);
+          }
+          console.log(`${plugins.length} plugins, every download_url under ${prefix}`);
+          EOF
+          if grep -l 'file:///' "${PLUGIN_CATALOG_DIR}"/*.json; then
+            echo "::error::A catalog entry still names a file:// URL."
+            exit 1
+          fi
+
+      - name: Upload Plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-Plugins
+          path: ${{ env.PLUGIN_CATALOG_DIR }}/
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+  apps:
+    if: github.event_name == 'push' || inputs.apps
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Validate the app index
+        run: |
+          node - <<'EOF'
+          const fs = require('node:fs');
+          const raw = fs.readFileSync('apps/index.json');
+          if (raw.length > 8 << 20) throw new Error(`apps/index.json is ${raw.length} bytes, over the 8 MiB every install refuses`);
+          const doc = JSON.parse(raw);
+          if (!Array.isArray(doc.apps) || doc.apps.length === 0) throw new Error('apps/index.json lists no apps');
+          console.log(`${doc.apps.length} apps, ${(raw.length / 1024).toFixed(1)} KiB`);
+          EOF
+          mkdir -p .out/Apps
+          cp apps/index.json .out/Apps/index.json
+
+      - name: Upload Apps
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-Apps
+          path: .out/Apps/
+          retention-days: 1
+          if-no-files-found: error
+
+  images:
+    if: github.event_name == 'push' || inputs.images
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '26'
+
+      - name: Build the image index
+        run: |
+          mkdir -p .out/Images
+          find mnt/compute-catalog -maxdepth 1 -name '*.json' ! -name index.json -exec cp {} .out/Images/ \;
+          node scripts/compute/build-image-index.mjs .out/Images
+
+      - name: Upload Images
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-Images
+          path: .out/Images/
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [agents, plugins, apps, images]
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && contains(needs.*.result, 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Clone McHarbor-Catalog
+        env:
+          CATALOG_REPO_TOKEN: ${{ secrets.CATALOG_REPO_TOKEN }}
+        run: |
+          if [ -z "$CATALOG_REPO_TOKEN" ]; then
+            echo "::error::Secret CATALOG_REPO_TOKEN is required: a token with Contents read/write on ${CATALOG_REPO}."
+            exit 1
+          fi
+          git clone --depth 1 "https://x-access-token:${CATALOG_REPO_TOKEN}@github.com/${CATALOG_REPO}.git" .catalog
+          git -C .catalog checkout -B main
+
+      - name: Download built folders
+        uses: actions/download-artifact@v4
+        with:
+          pattern: catalog-*
+          path: .artifacts
+
+      - name: Replace the built folders
+        run: |
+          areas=()
+          for dir in .artifacts/catalog-*; do
+            area="${dir##*/catalog-}"
+            rm -rf ".catalog/${area}"
+            mkdir -p ".catalog/${area}"
+            cp -a "${dir}/." ".catalog/${area}/"
+            areas+=("${area}")
+          done
+          oversized="$(find .catalog -path .catalog/.git -prune -o -type f -size +100M -print)"
+          if [ -n "$oversized" ]; then
+            echo "::error::GitHub refuses files over 100 MB: ${oversized}"
+            exit 1
+          fi
+          echo "AREAS=${areas[*]}" >> "$GITHUB_ENV"
+
+      - name: Commit and push
+        run: |
+          cd .catalog
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Catalog already current for: ${AREAS}"
+            exit 0
+          fi
+          git commit -q -m "Publish ${AREAS// /, } from McHarbor ${GITHUB_SHA::12}"
+          git push origin main
+          echo "Published ${AREAS} to https://github.com/${CATALOG_REPO}" >> "$GITHUB_STEP_SUMMARY"

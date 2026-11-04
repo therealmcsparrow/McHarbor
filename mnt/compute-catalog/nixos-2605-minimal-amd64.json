@@ -1,0 +1,13 @@
+{
+  "id": "img-nixos-2605-minimal-amd64",
+  "kind": "iso",
+  "distro": "nixos",
+  "release": "26.05",
+  "arch": "x86_64",
+  "variant": "minimal",
+  "displayName": "NixOS 26.05 (minimal server installer)",
+  "sourceUrl": "https://channels.nixos.org/nixos-26.05/latest-nixos-minimal-x86_64-linux.iso",
+  "checksumUrl": "https://channels.nixos.org/nixos-26.05/latest-nixos-minimal-x86_64-linux.iso.sha256",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1738014720
+}

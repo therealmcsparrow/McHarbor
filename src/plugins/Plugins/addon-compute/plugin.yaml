@@ -550,7 +550,7 @@ contributes:
     - id:   "vm-images"
       kind: "vm_image"
       name: "McHarbor VM Images"
-      url:  "https://www.mcharbor.eu/catalog/images/index.json"
+      url:  "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Images/index.json"
 
   i18n_namespaces:
     - "compute"

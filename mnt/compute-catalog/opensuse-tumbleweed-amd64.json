@@ -1,0 +1,13 @@
+{
+  "id": "img-opensuse-tumbleweed-amd64",
+  "kind": "iso",
+  "distro": "opensuse",
+  "release": "Tumbleweed",
+  "arch": "x86_64",
+  "variant": "tumbleweed",
+  "displayName": "openSUSE Tumbleweed (rolling, current DVD)",
+  "sourceUrl": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso",
+  "checksumUrl": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso.sha256",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 4651483136
+}

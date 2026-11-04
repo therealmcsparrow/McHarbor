@@ -1,0 +1,15 @@
+{
+  "id": "img-flatcar-stable-4757-amd64",
+  "kind": "cloud_image",
+  "distro": "flatcar",
+  "release": "4757.2.0",
+  "arch": "x86_64",
+  "variant": "stable",
+  "displayName": "Flatcar Container Linux 4757.2.0 (stable)",
+  "sourceUrl": "https://stable.release.flatcar-linux.net/amd64-usr/4757.2.0/flatcar_production_qemu_image.img",
+  "checksum": "8762e3a573c993c343bd408c9ea5c26f2a0e2b3e09cbdb7fe82cad800147a44506d1c5dd766b417f0afd83d9346e004f20c7c94f1454b50cff15d918e30862ac",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 596836352,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

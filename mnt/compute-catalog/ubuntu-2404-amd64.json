@@ -1,0 +1,14 @@
+{
+  "id": "img-ubuntu-2404-amd64",
+  "kind": "cloud_image",
+  "distro": "ubuntu",
+  "release": "24.04",
+  "arch": "x86_64",
+  "displayName": "Ubuntu 24.04 LTS (Noble)",
+  "sourceUrl": "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img",
+  "checksumUrl": "https://cloud-images.ubuntu.com/noble/current/SHA256SUMS",
+  "signatureUrl": "https://cloud-images.ubuntu.com/noble/current/SHA256SUMS.gpg",
+  "checksumAlgo": "sha256",
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

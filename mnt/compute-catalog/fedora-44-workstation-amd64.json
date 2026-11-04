@@ -1,0 +1,14 @@
+{
+  "id": "img-fedora-44-workstation-amd64",
+  "kind": "iso",
+  "distro": "fedora",
+  "release": "44",
+  "arch": "x86_64",
+  "variant": "workstation",
+  "displayName": "Fedora Workstation 44 (live installer)",
+  "sourceUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-Live-44-1.7.x86_64.iso",
+  "checksumUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-44-1.7-x86_64-CHECKSUM",
+  "signatureUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-44-1.7-x86_64-CHECKSUM",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 2851612672
+}

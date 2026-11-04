@@ -1,0 +1,14 @@
+{
+  "id": "img-ubuntu-2404-rootfs-amd64",
+  "kind": "rootfs",
+  "distro": "ubuntu",
+  "release": "24.04",
+  "arch": "x86_64",
+  "displayName": "Ubuntu 24.04 Base (rootfs)",
+  "sourceUrl": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.5-base-amd64.tar.gz",
+  "checksumUrl": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/SHA256SUMS",
+  "signatureUrl": "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/SHA256SUMS.gpg",
+  "checksumAlgo": "sha256",
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

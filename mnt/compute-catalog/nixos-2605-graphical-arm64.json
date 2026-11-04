@@ -1,0 +1,13 @@
+{
+  "id": "img-nixos-2605-graphical-arm64",
+  "kind": "iso",
+  "distro": "nixos",
+  "release": "26.05",
+  "arch": "aarch64",
+  "variant": "graphical",
+  "displayName": "NixOS 26.05 ARM64 (graphical installer)",
+  "sourceUrl": "https://channels.nixos.org/nixos-26.05/latest-nixos-graphical-aarch64-linux.iso",
+  "checksumUrl": "https://channels.nixos.org/nixos-26.05/latest-nixos-graphical-aarch64-linux.iso.sha256",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 3922806784
+}

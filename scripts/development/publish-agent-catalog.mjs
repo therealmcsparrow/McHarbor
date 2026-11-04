@@ -70,4 +70,4 @@ console.log(`publish-agent-catalog: ${version}/${build} -> ${target} (${files.le
 console.log(
   `publish-agent-catalog: index.json lists ${versions.map((v) => `${v.version}/${v.build}`).join(", ")}; newest ${index.version}/${index.build}`,
 );
-console.log("Upload the contents of catalog/ to https://www.mcharbor.eu/catalog/agents/");
+console.log("Commit the contents of catalog/ to the Agents/ folder of https://github.com/therealmcsparrow/McHarbor-Catalog");

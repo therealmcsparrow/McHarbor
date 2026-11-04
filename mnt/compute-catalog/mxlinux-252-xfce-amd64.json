@@ -1,0 +1,13 @@
+{
+  "id": "img-mxlinux-252-xfce-amd64",
+  "kind": "iso",
+  "distro": "mxlinux",
+  "release": "25.2",
+  "arch": "x86_64",
+  "variant": "xfce",
+  "displayName": "MX Linux 25.2 Xfce (installer)",
+  "sourceUrl": "https://downloads.sourceforge.net/project/mx-linux/Final/Xfce/MX-25.2_Xfce_x64.iso",
+  "checksumUrl": "https://downloads.sourceforge.net/project/mx-linux/Final/Xfce/MX-25.2_Xfce_x64.iso.sha256",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 3001024512
+}

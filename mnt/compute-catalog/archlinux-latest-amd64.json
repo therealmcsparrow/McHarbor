@@ -1,0 +1,13 @@
+{
+  "id": "img-archlinux-latest-amd64",
+  "kind": "iso",
+  "distro": "archlinux",
+  "release": "latest",
+  "arch": "x86_64",
+  "variant": "installer",
+  "displayName": "Arch Linux (latest monthly installer)",
+  "sourceUrl": "https://geo.mirror.pkgbuild.com/iso/latest/archlinux-x86_64.iso",
+  "checksumUrl": "https://geo.mirror.pkgbuild.com/iso/latest/sha256sums.txt",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1608286208
+}

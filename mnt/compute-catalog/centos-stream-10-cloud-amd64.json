@@ -1,0 +1,15 @@
+{
+  "id": "img-centos-stream-10-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "centos",
+  "release": "10-stream",
+  "arch": "x86_64",
+  "variant": "genericcloud",
+  "displayName": "CentOS Stream 10 (generic cloud image)",
+  "sourceUrl": "https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2",
+  "checksumUrl": "https://cloud.centos.org/centos/10-stream/x86_64/images/CHECKSUM",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 1044840448,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

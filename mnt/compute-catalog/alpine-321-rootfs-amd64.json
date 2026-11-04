@@ -1,0 +1,14 @@
+{
+  "id": "img-alpine-321-rootfs-amd64",
+  "kind": "rootfs",
+  "distro": "alpine",
+  "release": "3.21",
+  "arch": "x86_64",
+  "displayName": "Alpine Linux 3.21 (minimal rootfs)",
+  "sourceUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-minirootfs-3.21.0-x86_64.tar.gz",
+  "checksumUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-minirootfs-3.21.0-x86_64.tar.gz.sha256",
+  "signatureUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/x86_64/alpine-minirootfs-3.21.0-x86_64.tar.gz.asc",
+  "checksumAlgo": "sha256",
+  "initSystem": "openrc",
+  "netConfigFormat": "interfaces"
+}

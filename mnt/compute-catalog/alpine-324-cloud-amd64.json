@@ -1,0 +1,16 @@
+{
+  "id": "img-alpine-324-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "alpine",
+  "release": "3.24.1",
+  "arch": "x86_64",
+  "variant": "cloudinit",
+  "displayName": "Alpine Linux 3.24.1 (UEFI cloud image)",
+  "sourceUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2",
+  "checksumUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2.sha512",
+  "signatureUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2.asc",
+  "checksumAlgo": "sha512",
+  "sizeBytes": 201981952,
+  "initSystem": "openrc",
+  "netConfigFormat": "interfaces"
+}

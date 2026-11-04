@@ -1,0 +1,16 @@
+{
+  "id": "img-fedora-44-cloud-amd64",
+  "kind": "cloud_image",
+  "distro": "fedora",
+  "release": "44",
+  "arch": "x86_64",
+  "variant": "cloud",
+  "displayName": "Fedora Cloud 44 (server base)",
+  "sourceUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2",
+  "checksumUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM",
+  "signatureUrl": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-44-1.7-x86_64-CHECKSUM",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 583729152,
+  "initSystem": "systemd",
+  "netConfigFormat": "systemd-networkd"
+}

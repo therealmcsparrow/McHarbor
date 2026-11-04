@@ -1,0 +1,12 @@
+{
+  "id": "img-elementary-81-amd64",
+  "kind": "iso",
+  "distro": "elementary",
+  "release": "8.1",
+  "arch": "x86_64",
+  "variant": "pantheon",
+  "displayName": "elementary OS 8.1 Circe (installer)",
+  "sourceUrl": "https://ams3.dl.elementary.io/download/MTc4OTc0MTA2NQ==/elementaryos-8.1-stable-amd64.20260219.iso",
+  "checksumAlgo": "sha256",
+  "sizeBytes": 3335405568
+}

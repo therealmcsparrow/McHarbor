@@ -14,7 +14,7 @@ COPY src/plugins/ThemePacks/theme-pack-classic /sdk/src/plugins/ThemePacks/theme
 COPY src/frontend/public/themes /sdk/src/frontend/public/themes
 COPY src/plugins/theme-catalog /sdk/src/plugins/theme-catalog
 # Plugins are no longer built here. They ship from the catalog at
-# https://www.mcharbor.eu/catalog/plugins and are compiled by
+# https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins and are compiled by
 # docker/Dockerfile.plugin-packager, which stages plugin source inside the
 # host module tree. Because this stage now builds the host alone, with no
 # go.work workspace, both sides resolve core/plugin through the same plain

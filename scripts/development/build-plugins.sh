@@ -5,7 +5,7 @@
 # Build, sign and index every first-party plugin for a release.
 #
 # Plugins no longer ship inside the McHarbor image. They are published to
-# https://www.mcharbor.eu/catalog/plugins and downloaded by the Plugin Store,
+# https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins and downloaded by the Plugin Store,
 # so this script produces the whole catalog in one pass: one signed tarball
 # per plugin, one <slug>.json per plugin, and the index.json the host fetches.
 #
@@ -28,7 +28,7 @@ set -eu
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="${MCHARBOR_REPO_ROOT:-$(cd "${script_dir}/../.." && pwd)}"
 
-CATALOG_URL="${1:-https://www.mcharbor.eu/catalog/plugins}"
+CATALOG_URL="${1:-https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins}"
 PLUGIN_LIST="${MCHARBOR_PLUGIN_LIST:-${script_dir}/plugins.list}"
 OUTPUT_DIR="${MCHARBOR_PLUGIN_OUTPUT_DIR:-${script_dir}/output}"
 
