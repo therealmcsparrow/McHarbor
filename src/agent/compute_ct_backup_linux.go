@@ -32,11 +32,10 @@ const (
 	ctBackupPartRootfs   = "rootfs"
 )
 
-// defaultCTBackupScratch is where artifacts are staged when McHarbor names no
-// directory. Under the container runtime root so it moves with the rest of the
-// host's container state.
-func defaultCTBackupScratch() string {
-	return filepath.Join(lxc.RuntimeRoot(), ".backups")
+// ctBackupScratch is where container artifacts are staged when McHarbor names no
+// directory: the ct folder of the agent's backup temp, not the container runtime root.
+func (rt *computeRuntime) ctBackupScratch() string {
+	return filepath.Join(rt.backupScratch, "ct")
 }
 
 // handleCTBackupRun answers ct_backup_run.
@@ -56,7 +55,7 @@ func (rt *computeRuntime) handleCTBackupRun(ctx context.Context, req *CTPayload,
 
 	scratch := spec.ScratchDir
 	if scratch == "" {
-		scratch = defaultCTBackupScratch()
+		scratch = rt.ctBackupScratch()
 	}
 
 	snapshot, isCopy := rt.ctRootfsSnapshotter(req.ContainerID, spec)
@@ -425,7 +424,7 @@ func (rt *computeRuntime) handleCTBackupRestore(ctx context.Context, req *CTPayl
 
 	scratch := spec.ScratchDir
 	if scratch == "" {
-		scratch = filepath.Join(defaultCTBackupScratch(), "restore-"+spec.RunID)
+		scratch = filepath.Join(rt.ctBackupScratch(), "restore-"+spec.RunID)
 	}
 	if err := os.MkdirAll(scratch, 0o700); err != nil {
 		return fmt.Errorf("compute: preparing the restore scratch directory: %w", err)

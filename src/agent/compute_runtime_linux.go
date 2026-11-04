@@ -55,6 +55,10 @@ type computeRuntime struct {
 	cts     *lxc.Manager
 	console *consoleRegistry
 
+	// backupScratch is backupScratchRoot of the agent's data directory; VM and
+	// container runs stage under its vm and ct folders.
+	backupScratch string
+
 	// capabilityMu guards the cached probe. Probing runs external binaries and
 	// is re-run on demand and every six hours, not on every message.
 	capabilityMu sync.RWMutex
@@ -235,8 +239,9 @@ func newComputeRuntime(ctx context.Context, a *Agent) (*computeRuntime, error) {
 	fetcher.UseServerClient(a.httpClient)
 
 	rt := &computeRuntime{
-		logger: logger,
-		sup:    sup,
+		logger:        logger,
+		sup:           sup,
+		backupScratch: backupScratchRoot(a.cfg.DataDir),
 		pools: storage.NewRegistry(
 			storage.NewDirDriver(),
 			storage.NewZFSDriver(),

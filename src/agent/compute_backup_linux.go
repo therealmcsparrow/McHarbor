@@ -29,11 +29,10 @@ import (
 // reading would otherwise leave the request open indefinitely.
 const backupUploadTimeout = 12 * time.Hour
 
-// defaultBackupScratch is where artifacts are staged when McHarbor names no
-// directory. Under the compute runtime root so it moves with the rest of the
-// host's compute state.
-func defaultBackupScratch() string {
-	return filepath.Join(vm.RuntimeRoot(), ".backups")
+// vmBackupScratch is where VM artifacts are staged when McHarbor names no
+// directory: the vm folder of the agent's backup temp, not the compute runtime root.
+func (rt *computeRuntime) vmBackupScratch() string {
+	return filepath.Join(rt.backupScratch, "vm")
 }
 
 // handleVMBackupRun answers vm_backup_run.
@@ -52,7 +51,7 @@ func (rt *computeRuntime) handleVMBackupRun(ctx context.Context, req *VMPayload,
 
 	scratch := spec.ScratchDir
 	if scratch == "" {
-		scratch = defaultBackupScratch()
+		scratch = rt.vmBackupScratch()
 	}
 
 	request := vm.BackupRequest{
@@ -357,7 +356,7 @@ func (rt *computeRuntime) handleVMBackupRestore(ctx context.Context, req *VMPayl
 
 	scratch := spec.ScratchDir
 	if scratch == "" {
-		scratch = filepath.Join(defaultBackupScratch(), "restore-"+spec.RunID)
+		scratch = filepath.Join(rt.vmBackupScratch(), "restore-"+spec.RunID)
 	}
 	defer func() { errlog.Log(os.RemoveAll(scratch)) }()
 

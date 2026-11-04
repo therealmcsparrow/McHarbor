@@ -371,3 +371,44 @@ func TestMissingAncestorsStopsAtTheFirstThatExists(t *testing.T) {
 		t.Fatalf("an existing directory listed %v", got)
 	}
 }
+
+func TestBackupStagesTheListingBesideItAndCleansUpAFailedRun(t *testing.T) {
+	requireGNUTar(t)
+	m := testManager(t)
+	tree := filepath.Join(t.TempDir(), "rootfs")
+	writeTree(t, tree)
+	listingDir := filepath.Join(RuntimeRoot(), ".backup-listings")
+	listing := filepath.Join(listingDir, "mcharbor-ct-chain1.snar")
+
+	backupOnce(t, m, tree, "run1", "full")
+	if staged := stagedListingPath(listing, "run1"); filepath.Dir(staged) != listingDir {
+		t.Fatalf("staged listing %q is not beside %q", staged, listing)
+	}
+	assertNoStagedListings(t, listingDir)
+	before, err := os.ReadFile(listing)
+	must(t, err)
+
+	scratch := filepath.Join(t.TempDir(), "scratch")
+	must(t, os.MkdirAll(filepath.Join(scratch, "run2-manifest.json"), 0o700))
+	if _, err := m.Backup(context.Background(), BackupRequest{
+		CTID: "ct-backup", RunID: "run2", Kind: "incremental", Manifest: []byte("{}"),
+		RootfsPath: tree, ListingName: "mcharbor-ct-chain1", ScratchDir: scratch,
+	}); err == nil {
+		t.Fatal("a run whose manifest cannot be written succeeded")
+	}
+	assertNoStagedListings(t, listingDir)
+	after, err := os.ReadFile(listing)
+	must(t, err)
+	if string(after) != string(before) {
+		t.Fatal("a failed run advanced the chain's listing")
+	}
+}
+
+func assertNoStagedListings(t *testing.T, dir string) {
+	t.Helper()
+	leftovers, err := filepath.Glob(filepath.Join(dir, ".*.snar.run"))
+	must(t, err)
+	if len(leftovers) != 0 {
+		t.Fatalf("staged listings left behind: %v", leftovers)
+	}
+}

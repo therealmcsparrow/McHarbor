@@ -161,7 +161,13 @@ func (m *Manager) Backup(ctx context.Context, req BackupRequest) (BackupResult, 
 		}
 	}
 
-	scratchListing := filepath.Join(req.ScratchDir, req.RunID+".snar")
+	scratchListing := stagedListingPath(listing, req.RunID)
+	recorded := false
+	defer func() {
+		if !recorded {
+			errlog.Log(os.Remove(scratchListing))
+		}
+	}()
 	if result.Kind == "full" {
 		errlog.Log(os.Remove(scratchListing))
 	} else if err := copyFile(working, scratchListing); err != nil {
@@ -194,6 +200,7 @@ func (m *Manager) Backup(ctx context.Context, req BackupRequest) (BackupResult, 
 	if err := os.Rename(scratchListing, listing); err != nil {
 		return BackupResult{}, fmt.Errorf("lxc: recording the incremental listing: %w", err)
 	}
+	recorded = true
 	if err := writeListingOrigin(listing, listingOriginFor(isCopy)); err != nil {
 		m.logBackup("lxc: recording where the incremental listing was read from failed", req.CTID, err)
 	}
@@ -275,6 +282,12 @@ func (m *Manager) quiesce(
 		return "", "", false, func() {}, err
 	}
 	return source, consistency, readsCopy(facts, source), release, nil
+}
+
+// stagedListingPath is where one run's working copy of listing lives: beside it, never in the
+// scratch directory, so advancing the chain stays a same-filesystem rename wherever scratch is.
+func stagedListingPath(listing, runID string) string {
+	return filepath.Join(filepath.Dir(listing), "."+filepath.Base(runID)+".snar.run")
 }
 
 // prepareListing returns where this chain's listing lives and a readable copy
