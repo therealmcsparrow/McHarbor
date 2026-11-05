@@ -7,12 +7,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/nativeupdate"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
+
+// nativeApplyTimeout bounds downloading and verifying a native release package.
+const nativeApplyTimeout = 15 * time.Minute
 
 // errSelfUpdateNotLocal aliases the core error so the handler can keep
 // matching it with errors.Is.
@@ -22,7 +27,12 @@ var errSelfUpdateNotLocal = coredocker.ErrSelfUpdateNotLocal
 type Service struct {
 	db        *sql.DB
 	agentPool *coreagent.AgentPool
+	// native installs a release package in place; nil on a container install.
+	native *nativeupdate.Updater
 }
+
+// SetNativeUpdater makes SelfUpdate install the release package on this host instead of replacing a container.
+func (s *Service) SetNativeUpdater(u *nativeupdate.Updater) { s.native = u }
 
 // NewService creates a version service.
 func NewService(db *sql.DB, agentPool *coreagent.AgentPool) *Service {
@@ -119,6 +129,17 @@ func (s *Service) applyLiveAgentMetadata(a *AgentVersion) {
 // installer). The call returns errSelfUpdateNotLocal when the McHarbor
 // container is not reachable via the local Docker socket.
 func (s *Service) SelfUpdate(ctx context.Context, targetImage string) (SelfUpdateResult, error) {
+	if s.native != nil {
+		// The package download can outlast the request on a slow link; the install must not be
+		// abandoned with it, and the page already waits for the restart if the response is lost.
+		applyCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), nativeApplyTimeout)
+		defer cancel()
+		res, err := s.native.Apply(applyCtx)
+		if err != nil {
+			return SelfUpdateResult{}, err
+		}
+		return SelfUpdateResult{NativeVersion: res.Version, NativePackage: res.Asset, NativeUnit: res.Unit, NativeLog: res.LogPath}, nil
+	}
 	res, err := coredocker.ApplyLocalSelfUpdate(ctx, targetImage)
 	if err != nil {
 		return SelfUpdateResult{}, err

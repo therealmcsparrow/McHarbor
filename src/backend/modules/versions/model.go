@@ -44,4 +44,10 @@ type SelfUpdateResult struct {
 	ContainerName string `json:"containerName"`
 	TargetImage   string `json:"targetImage"`
 	Output        string `json:"output"`
+	// NativeVersion, NativePackage, NativeUnit and NativeLog describe a native install's update: the
+	// release and package being installed, the transient systemd unit doing it and its log file.
+	NativeVersion string `json:"nativeVersion,omitempty"`
+	NativePackage string `json:"nativePackage,omitempty"`
+	NativeUnit    string `json:"nativeUnit,omitempty"`
+	NativeLog     string `json:"nativeLog,omitempty"`
 }

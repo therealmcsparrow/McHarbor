@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorState } from '@resources/components/ui/ErrorState';
-import { useIsNative } from '@resources/hooks/useInstallKind';
+import { useIsNative, useNativeSelfUpdate } from '@resources/hooks/useInstallKind';
 import { IconRefresh, IconArrowUp, IconCheck, IconDownload, IconListCheck } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -27,6 +27,8 @@ import { releaseLabel } from '../hooks/releaseLabel';
 export function McHarborUpdateCard() {
   const { t } = useTranslation('settings');
   const native = useIsNative();
+  const nativeSelfUpdate = useNativeSelfUpdate();
+  const offerUpdate = !native || nativeSelfUpdate;
   const userPermissions = useCurrentUserPermissions();
   const canSelfUpdate = hasPermission(userPermissions.data, SYSTEM_RESTART_PERMISSION);
 
@@ -101,7 +103,7 @@ export function McHarborUpdateCard() {
                 <IconListCheck className="size-4" />
                 {t('preUpgrade.open', { ns: 'support' })}
               </Button>
-              {canSelfUpdate && !native && (
+              {canSelfUpdate && offerUpdate && (
                 <Button
                   variant="default"
                   size="sm"
@@ -113,7 +115,7 @@ export function McHarborUpdateCard() {
                   {t('about.updateNow')}
                 </Button>
               )}
-              {native && <p className="w-full text-xs text-muted-foreground">{t('about.selfUpdateNative')}</p>}
+              {!offerUpdate && <p className="w-full text-xs text-muted-foreground">{t('about.selfUpdateNative')}</p>}
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -144,7 +146,7 @@ export function McHarborUpdateCard() {
           if (!isOpen && applySelfUpdate.isPending) return;
         }}
         title={t('about.selfUpdateConfirmTitle')}
-        description={t('about.selfUpdateConfirmDescription')}
+        description={t(native ? 'about.selfUpdateConfirmDescriptionNative' : 'about.selfUpdateConfirmDescription')}
         confirmLabel={t('about.selfUpdateConfirm')}
         variant="destructive"
         loading={applySelfUpdate.isPending}

@@ -11,6 +11,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
+	"github.com/therealmcsparrow/mcharbor/core/nativeupdate"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
@@ -25,8 +26,17 @@ type Handler struct {
 func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
 		app:     app,
-		service: NewService(app.DB, app.AgentPool),
+		service: newServiceFor(app),
 	}
+}
+
+// newServiceFor wires the native updater when McHarbor was installed as a package or tarball.
+func newServiceFor(app *router.AppDeps) *Service {
+	svc := NewService(app.DB, app.AgentPool)
+	if app.Config != nil && nativeupdate.IsNativeKind(app.Config.InstallKind) {
+		svc.SetNativeUpdater(nativeupdate.New(app.Config.InstallKind, app.Config.DataDir, app.Logger))
+	}
+	return svc
 }
 
 // HandleInfo returns McHarbor and agent version information.
@@ -80,12 +90,17 @@ func (h *Handler) HandleSelfUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	entityID, entityName, details := result.ContainerID, result.ContainerName, "McHarbor self-update scheduled by "+user.Username
+	if result.NativeUnit != "" {
+		entityID, entityName = result.NativeUnit, result.NativePackage
+		details = "McHarbor native update to " + result.NativeVersion + " scheduled by " + user.Username
+	}
 	h.app.AuditLog.Log(r, audit.Entry{
 		Action:     "self_update",
 		EntityType: "mcharbor",
-		EntityID:   result.ContainerID,
-		EntityName: result.ContainerName,
-		Details:    "McHarbor self-update scheduled by " + user.Username,
+		EntityID:   entityID,
+		EntityName: entityName,
+		Details:    details,
 	})
 
 	response.OK(w, struct {

@@ -48,11 +48,24 @@ waits for the next window.
 
 ## Before turning automatic installs on
 
-Self-update starts a container, so McHarbor needs a Docker socket it can write to.
+On a container install, self-update starts a helper container, so McHarbor needs a Docker socket
+it can write to.
 
-**A native install does not update itself.** **Update now** is not offered there; the section
-says instead to upgrade with the package manager (`apt` or `dnf`) or by running `install.sh`
-from a newer tarball, and the automatic-install setting says it has no effect. See
+**A native install updates itself from its own package.** On a `.deb`, `.rpm` or tarball install
+running as root, **Update now** and automatic installs download that kind's file from the GitHub
+release (`mcharbor_<version>_amd64.deb`, `mcharbor-<version>-1.x86_64.rpm` or
+`mcharbor-<version>-linux-amd64.tar.gz`), refuse it unless its SHA-256 matches the release's
+`SHA256SUMS`, and install it from a transient systemd unit, `mcharbor-native-update-<timestamp>`:
+`dpkg -i --force-confold`, `rpm -U --replacepkgs`, or the tarball's `install.sh`. The unit runs
+outside `mcharbor.service`, so the restart the install performs does not cut it off. The package,
+the script and `install.log` stay in `<DATA_DIR>/updates/native/` (`/var/lib/mcharbor/updates/native/`)
+until the next update; `journalctl -u 'mcharbor-native-update-*'` shows the same run. Edits to
+`mcharbor.env` and the run-as-account choice are kept.
+
+It is not offered, and the section says to upgrade with the package manager (`apt` or `dnf`) or a
+newer tarball instead, when McHarbor runs as the sandboxed `mcharbor` account
+(`--no-run-as-root`), when the host has no `systemd-run`, or on an Alpine package. Only amd64
+packages are published, so an arm64 host fails with "the release has no package for this host". See
 [Native Linux install → Upgrading](../../../getting-started/installation/native-linux.md#5-upgrading).
 
 More importantly, an automatic install is an unattended upgrade of the thing you would use

@@ -11,9 +11,9 @@ import { server } from '../../../test/server';
 import { McHarborUpdateCard } from './McHarborUpdateCard';
 import { StorageLocationSetupGuide } from './StorageLocationSetupGuide';
 
-const about = (native: boolean, sandboxed = false) =>
+const about = (native: boolean, sandboxed = false, selfUpdate = false) =>
   http.get('*/api/about', () =>
-    HttpResponse.json({ success: true, data: { version: '2026.10.01', native, sandboxed } }),
+    HttpResponse.json({ success: true, data: { version: '2026.10.01', native, sandboxed, selfUpdate } }),
   );
 
 describe('native install wording', () => {
@@ -55,6 +55,25 @@ describe('native install wording', () => {
     renderWithProviders(<McHarborUpdateCard />);
     await userEvent.setup().click(screen.getByRole('button', { name: 'Check Now' }));
     expect(await screen.findByText(/Upgrade it with your package manager/)).toBeInTheDocument();
+    expect(screen.queryByTestId('self-update-button')).not.toBeInTheDocument();
+  });
+
+  it('offers Update now on a native install that can update itself, and describes the package install', async () => {
+    server.use(about(true, false, true));
+    renderWithProviders(<McHarborUpdateCard />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Check Now' }));
+    await user.click(await screen.findByTestId('self-update-button'));
+    expect(await screen.findByText(/download this host's \.deb, \.rpm or tarball/)).toBeInTheDocument();
+    expect(screen.queryByText(/pull the new image/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Upgrade it with your package manager/)).not.toBeInTheDocument();
+  });
+
+  it('keeps a sandboxed native install on the manual upgrade path', async () => {
+    server.use(about(true, true, false));
+    renderWithProviders(<McHarborUpdateCard />);
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Check Now' }));
+    expect(await screen.findByText(/runs as the sandboxed mcharbor account/)).toBeInTheDocument();
     expect(screen.queryByTestId('self-update-button')).not.toBeInTheDocument();
   });
 

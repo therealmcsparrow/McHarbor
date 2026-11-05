@@ -141,7 +141,7 @@ const FLOOR: Record<string, number> = {
   'modules/settings/database/components/DatabaseSettingsPanel.test.tsx': 5,
   'modules/settings/components/AgentReleasesCard.test.tsx': 9,
   'modules/settings/components/AgentUpdateSettingsCard.test.tsx': 1,
-  'modules/settings/components/native-wording.test.tsx': 5,
+  'modules/settings/components/native-wording.test.tsx': 7,
   'modules/environments/components/EnvironmentHostLogsTab.test.tsx': 5,
   'modules/settings/components/AgentReleaseDeleteDialog.test.tsx': 5,
   'modules/settings/components/AgentReleasePullPicker.test.tsx': 7,

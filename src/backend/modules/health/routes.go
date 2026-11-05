@@ -52,6 +52,9 @@ type aboutResponse struct {
 	// Sandboxed is true for a native install running as the mcharbor account (installed with
 	// --no-run-as-root), where systemd lets it write only under its data directory.
 	Sandboxed bool `json:"sandboxed"`
+	// SelfUpdate is true for a native install that "Update now" can upgrade in place: root, systemd-run,
+	// and a deb, rpm or tarball install. A container install reports false and updates through Docker.
+	SelfUpdate bool `json:"selfUpdate"`
 }
 
 // nativeHost is set once at start-up from main.go; health may not import modules/system.
@@ -59,6 +62,12 @@ var nativeHost bool
 
 // SetNativeHost records whether McHarbor runs directly on its host rather than in a container.
 func SetNativeHost(native bool) { nativeHost = native }
+
+// nativeSelfUpdate is set once at start-up from main.go.
+var nativeSelfUpdate bool
+
+// SetNativeSelfUpdate records whether a native install can upgrade itself in place.
+func SetNativeSelfUpdate(ok bool) { nativeSelfUpdate = ok }
 
 type dependencyInfo struct {
 	Name    string `json:"name"`
@@ -189,6 +198,7 @@ func handleAbout(w http.ResponseWriter, r *http.Request) {
 		Platform:     platform,
 		Dependencies: deps,
 		Native:       nativeHost,
+		SelfUpdate:   nativeHost && nativeSelfUpdate,
 		Sandboxed:    nativeHost && os.Geteuid() != 0,
 	})
 }

@@ -115,10 +115,13 @@ clears the "data encryption key was generated into DATA_DIR/.encryption_key" war
 
 ## 5. Upgrading
 
-A normal package-manager upgrade: `apt upgrade`, `dnf upgrade`, or a fresh
-`install.sh` run over the top. **Settings → Updates → McHarbor** still checks for new
-releases, but offers no **Update now** on a native install, and automatic install has no
-effect: self-update replaces a container, and there is none. Data, installed plugins, and edits to `mcharbor.env` are all
+**Settings → Updates → McHarbor → Update now**, or an automatic install, downloads this
+install's package from the GitHub release, checks it against the release's `SHA256SUMS` and
+installs it from a transient systemd unit; see
+[McHarbor updates](../../settings/updates/mcharbor/README.md#before-turning-automatic-installs-on).
+That needs McHarbor to run as root. A sandboxed (`--no-run-as-root`) install, or a host without
+`systemd-run`, upgrades by hand: `apt upgrade`, `dnf upgrade`, or a fresh `install.sh` run over
+the top. Data, installed plugins, and edits to `mcharbor.env` are all
 preserved, because none of them live under `/opt/mcharbor`.
 
 Bundled plugins are **re-synced to the new binary automatically on the next start**. This is the

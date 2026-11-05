@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 
-type AboutInstall = { version: string; native?: boolean; sandboxed?: boolean };
+type AboutInstall = { version: string; native?: boolean; sandboxed?: boolean; selfUpdate?: boolean };
 
 /**
  * Whether McHarbor runs directly on its host under systemd rather than in a container. Shares
@@ -14,6 +14,14 @@ type AboutInstall = { version: string; native?: boolean; sandboxed?: boolean };
  */
 export function useIsNative(): boolean {
   return useAbout()?.native === true;
+}
+
+/**
+ * Whether "Update now" can upgrade this native install in place: it runs as root under systemd and
+ * was installed from a deb, rpm or tarball. Always false for a container, which updates through Docker.
+ */
+export function useNativeSelfUpdate(): boolean {
+  return useAbout()?.selfUpdate === true;
 }
 
 /**

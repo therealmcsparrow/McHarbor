@@ -10,6 +10,14 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-05 03:27 — McHarbor 2026.11.01 — Native installs update themselves
+
+### Changed
+- `settings/updates/mcharbor/README.md` — a native install's **Update now** and automatic install: the package
+  per kind, the `SHA256SUMS` check, the `mcharbor-native-update-*` unit, where the log is, and when it is not offered.
+- `settings/updates/mcharbor/reference.md` — the native confirm text and two troubleshooting rows.
+- `getting-started/installation/native-linux.md` — Upgrading starts with **Update now**.
+
 ## 2026-11-05 02:51 — McHarbor 2026.11.01 — Container backups without a server copy
 
 ### Changed

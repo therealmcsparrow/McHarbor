@@ -10,6 +10,13 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Added
 
+- **Native installs can update themselves.** On a `.deb`, `.rpm` or tarball install running as
+  root, **Settings → Updates → McHarbor → Update now** and automatic installs download that kind's
+  package from the GitHub release, check it against the release's `SHA256SUMS`, and install it from
+  a transient systemd unit (`mcharbor-native-update-<timestamp>`), so the restart cannot interrupt
+  it. The log stays in `<DATA_DIR>/updates/native/install.log`. A sandboxed install
+  (`--no-run-as-root`), a host without `systemd-run` and Alpine still upgrade by hand. Only amd64
+  packages are published.
 - **A backup plan can skip keeping its own copy.** Container backup plans have a **Keep a copy on
   this server** switch, on by default. Off, the archive under `<DATA_DIR>/backups/containers/<run>/`
   is deleted once every destination holds it, which stops that folder from growing with every run.

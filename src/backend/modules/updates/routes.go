@@ -8,6 +8,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/apispec"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/nativeupdate"
 	"github.com/therealmcsparrow/mcharbor/core/notify"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -31,10 +32,19 @@ func Mount(app *router.AppDeps, bins AgentBinaries) {
 	// Automatic install reuses the manual self-update path; automatic
 	// agent updates talk to the live agent pool.
 	imageForVersion = coredocker.ImageForVersion
-	checker.SetApplier(func(ctx context.Context, targetImage string) error {
-		_, err := coredocker.ApplyLocalSelfUpdate(ctx, targetImage)
-		return err
-	}, coredocker.CurrentMcHarborImage)
+	if app.Config != nil && nativeupdate.IsNativeKind(app.Config.InstallKind) {
+		// A native install has no image; it installs the release's package for its kind instead.
+		native := nativeupdate.New(app.Config.InstallKind, app.Config.DataDir, app.Logger)
+		checker.SetApplier(func(ctx context.Context, _ string) error {
+			_, err := native.Apply(ctx)
+			return err
+		}, nil)
+	} else {
+		checker.SetApplier(func(ctx context.Context, targetImage string) error {
+			_, err := coredocker.ApplyLocalSelfUpdate(ctx, targetImage)
+			return err
+		}, coredocker.CurrentMcHarborImage)
+	}
 	releases := agentreleases.Shared(app)
 	releasesHandler := agentreleases.NewHandler(app, releases)
 	checker.SetAgentUpdater(NewAgentUpdater(app.AgentPool, app.Logger, releases, bins))

@@ -48,6 +48,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/httpx"
 	coreinstancebackup "github.com/therealmcsparrow/mcharbor/core/instancebackup"
 	coremw "github.com/therealmcsparrow/mcharbor/core/middleware"
+	"github.com/therealmcsparrow/mcharbor/core/nativeupdate"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
 	"github.com/therealmcsparrow/mcharbor/core/pluginruntime"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
@@ -793,6 +794,7 @@ func main() {
 		}()
 	}
 	health.SetNativeHost(system.RunningNatively())
+	health.SetNativeSelfUpdate(nativeupdate.New(cfg.InstallKind, cfg.DataDir, logger).Supported() == nil)
 	networks.Mount(app)
 	environments.Mount(app)
 

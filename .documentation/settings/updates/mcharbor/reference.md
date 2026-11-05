@@ -11,7 +11,10 @@
 
 **Update now** confirms first: "McHarbor will pull the new image, stop the current
 container, and start a new one in its place. You will be disconnected and need to reload
-the page after it comes back online."
+the page after it comes back online." On a native install it says instead: "McHarbor will
+download this host's .deb, .rpm or tarball from the GitHub release, check it against the release
+checksums and install it. The service restarts during the install; reload the page once it is
+back. The install log is kept in updates/native/install.log under the data directory."
 
 Automatic install does nothing while the checker is off, and the section says so rather than
 leaving the switch looking armed: "The self-update checker is off, so nothing here runs."
@@ -25,6 +28,8 @@ Update manually or check the logs."
 |---|---|---|
 | The automatic install switch does nothing | The checker is off | Enable the checker first; the section says so |
 | Update now fails | No writable Docker socket | Self-update starts a container and needs one |
+| Update now is missing on a native install | It runs as the sandboxed `mcharbor` account, has no `systemd-run`, or is an Alpine package | Upgrade with the package manager or a newer tarball, or reinstall with `--run-as-root` |
+| A native update was scheduled but the version did not change | The package install failed | Read `<DATA_DIR>/updates/native/install.log` or `journalctl -u 'mcharbor-native-update-*'` |
 | No banner appears for a known release | The next scheduled check has not come yet | Use **Check now** for an immediate answer |
 | A rebuild of the running version is not offered | The release carries no `BUILD` file, or this install reports build `dev` | Builds are compared only when both sides carry a stamp; see [What counts as a new release](./README.md#what-counts-as-a-new-release) |
 | An update was found but not installed | It waits for the install window, or the window was skipped while work was running | The section shows the reason; widen the window or move it to a quieter time |

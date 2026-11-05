@@ -1484,6 +1484,10 @@
                                                                "title":  "Catalogs come from GitHub",
                                                                "description":  "Agent releases, apps, plugins and VM images now download from the McHarbor-Catalog repository on GitHub. Allow outbound HTTPS to raw.githubusercontent.com. A saved mcharbor.eu source under Settings → Updates → Agent releases is moved over by itself."
                                         },
+                                        "nativeUpdate":  {
+                                                               "title":  "Native installs update themselves",
+                                                               "description":  "On a .deb, .rpm or tarball install running as root, Update now (Settings → Updates → McHarbor) downloads the release package, checks its checksum and installs it. Automatic installs work there too."
+                                        },
                                         "keepLocalCopy":  {
                                                                "title":  "Backup plans can skip the server copy",
                                                                "description":  "Turn off \"Keep a copy on this server\" in a container's backup plan (Containers → a container → Backups) and the archive leaves McHarbor's data directory once every destination holds it. Restore and download fetch it back."

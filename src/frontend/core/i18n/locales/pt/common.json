@@ -1484,6 +1484,10 @@
                                                                "title":  "Os catálogos vêm do GitHub",
                                                                "description":  "Versões do agente, aplicações, plugins e imagens de VM são agora transferidos do repositório McHarbor-Catalog no GitHub. Permita HTTPS de saída para raw.githubusercontent.com. Uma origem mcharbor.eu guardada em Configurações → Atualizações → Versões do agente é alterada automaticamente."
                                         },
+                                        "nativeUpdate":  {
+                                                               "title":  "Instalações nativas atualizam-se sozinhas",
+                                                               "description":  "Numa instalação .deb, .rpm ou tarball que corre como root, Atualizar agora (Configurações → Atualizações → McHarbor) transfere o pacote da versão, verifica a soma de verificação e instala-o. As instalações automáticas também funcionam aí."
+                                        },
                                         "keepLocalCopy":  {
                                                                "title":  "Planos de backup podem dispensar a cópia do servidor",
                                                                "description":  "Desative \"Manter uma cópia neste servidor\" no plano de backup de um contêiner (Contêineres → um contêiner → Backups) e o arquivo sai do diretório de dados do McHarbor assim que todos os destinos o tiverem. Restaurar e baixar o buscam de volta."

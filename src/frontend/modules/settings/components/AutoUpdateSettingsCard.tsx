@@ -7,7 +7,7 @@
 // McHarbor sections.
 
 import { useTranslation } from 'react-i18next';
-import { useIsNative } from '@resources/hooks/useInstallKind';
+import { useIsNative, useNativeSelfUpdate } from '@resources/hooks/useInstallKind';
 import { IconRocket } from '@tabler/icons-react';
 import { PERM } from '@core/auth/permissionKeys';
 import {
@@ -21,6 +21,7 @@ import { GatedToggleRow } from './GatedToggleRow';
 export function AutoUpdateSettingsCard() {
   const { t } = useTranslation('settings');
   const native = useIsNative();
+  const nativeSelfUpdate = useNativeSelfUpdate();
   const { data: settings, isFetching } = useSelfUpdateSettings();
   const { data: state } = useSelfUpdateState();
   const save = useSaveSelfUpdateSettings();
@@ -51,7 +52,7 @@ export function AutoUpdateSettingsCard() {
       <div className="space-y-4">
         <GatedToggleRow
           label={t('about.autoUpdate.installLabel')}
-          hint={t(native ? 'about.autoUpdate.installHintNative' : 'about.autoUpdate.installHint')}
+          hint={t(installHintKey(native, nativeSelfUpdate))}
           checked={settings.autoInstall}
           disabled={busy || !settings.enabled}
           permission={PERM.SYSTEM_MANAGE}
@@ -66,4 +67,9 @@ export function AutoUpdateSettingsCard() {
       </div>
     </div>
   );
+}
+
+function installHintKey(native: boolean, nativeSelfUpdate: boolean): string {
+  if (!native) return 'about.autoUpdate.installHint';
+  return nativeSelfUpdate ? 'about.autoUpdate.installHintNativeSelf' : 'about.autoUpdate.installHintNative';
 }
