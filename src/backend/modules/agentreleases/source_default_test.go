@@ -35,14 +35,33 @@ func TestSettingsRepointsLegacyOfficialSource(t *testing.T) {
 	pub, _ := newKey(t)
 	rs := newReleaseServer(t)
 	mirror := Source{Kind: SourceMirror, URL: "https://mirror.example/agents"}
-	s := newTestStore(t.Context(), t, rs, pub, []Source{{Kind: SourceMirror, URL: legacyOfficialSourceURL}, mirror}, storeOpts{})
-
-	got, err := s.Settings(t.Context())
-	if err != nil {
-		t.Fatalf("settings: %v", err)
+	for _, legacy := range []string{
+		"https://www.mcharbor.eu/catalog/agents/index.json",
+		"https://www.mcharbor.eu/catalog/agents",
+		"https://www.mcharbor.eu/catalog/agents/",
+		"https://mcharbor.eu/catalog/agents/index.json",
+	} {
+		s := newTestStore(t.Context(), t, rs, pub, []Source{{Kind: SourceMirror, URL: legacy}, mirror}, storeOpts{})
+		got, err := s.Settings(t.Context())
+		if err != nil {
+			t.Fatalf("settings: %v", err)
+		}
+		want := []Source{{Kind: SourceMirror, URL: OfficialSourceURL}, mirror}
+		if len(got.Sources) != len(want) || got.Sources[0] != want[0] || got.Sources[1] != want[1] {
+			t.Fatalf("%s: sources = %+v, want %+v", legacy, got.Sources, want)
+		}
 	}
-	want := []Source{{Kind: SourceMirror, URL: OfficialSourceURL}, mirror}
-	if len(got.Sources) != len(want) || got.Sources[0] != want[0] || got.Sources[1] != want[1] {
-		t.Fatalf("sources = %+v, want %+v", got.Sources, want)
+}
+
+func TestIsLegacyOfficialSourceLeavesOtherMirrorsAlone(t *testing.T) {
+	for _, keep := range []string{
+		"https://www.mcharbor.eu/catalog/plugins/index.json",
+		"https://www.mcharbor.eu/catalog/agentsextra/index.json",
+		"https://mirror.example/catalog/agents/index.json",
+		OfficialSourceURL,
+	} {
+		if isLegacyOfficialSource(keep) {
+			t.Errorf("%s was treated as the old official source", keep)
+		}
 	}
 }

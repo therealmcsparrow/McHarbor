@@ -16,7 +16,7 @@ the payload can never disagree. Bump `plugin.yaml` to release a new version.
 
 ```bash
 scripts/development/build-plugin.sh comm-telegram  file:///mnt/plugin-catalog
-scripts/development/build-plugin.sh storage-dropbox https://www.mcharbor.eu/catalog/plugins
+scripts/development/build-plugin.sh storage-dropbox https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins
 ```
 
 The `<catalog-url>` is **not a write target**. It is the location the catalog will serve
@@ -162,7 +162,7 @@ version, keeping `plugin_config` rows and the enabled flag.
 
 **Update** is offered when the catalog carries a newer version than the one installed, or the
 same version with a newer build stamp. Both hold for a remote catalog such as
-`https://www.mcharbor.eu/catalog/plugins/index.json` as well as a local one.
+`https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins/index.json` as well as a local one.
 
 If the container will not come down cleanly on Windows (stuck "unhealthy", or `docker stop`
 reporting that it tried to kill the container but received no exit event), bounce the WSL2 VM

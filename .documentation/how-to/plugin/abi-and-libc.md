@@ -108,13 +108,13 @@ different module context from the packager.
 
 ## `built_for`, and what it protects
 
-Plugins are downloaded from `https://www.mcharbor.eu/catalog/plugins`; none ship inside
+Plugins are downloaded from `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins`; none ship inside
 McHarbor. Every catalog entry records the release it was compiled against:
 
 ```json
 { "version": "2026.09.03",
   "built_for": "2026.09.01",
-  "download_url": "https://www.mcharbor.eu/catalog/plugins/files/comm-slack-2026.09.03.tar.gz",
+  "download_url": "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins/files/comm-slack-2026.09.03.tar.gz",
   "checksum": "…",
   "signature": "…" }
 ```

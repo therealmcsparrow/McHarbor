@@ -9,7 +9,7 @@
 | **Check schedule** | `0 5 * * *` | When McHarbor asks its sources which agent version and build is newest; **Next check** is shown under it. A failed check runs again after 15 minutes, and at start-up when the last one failed |
 | **When a new release is found** | Notify only | Notify only · Download it · Download it and make it the target |
 | **Releases to keep** | 3 (1 to 20) | Older stored builds are removed after each download, never the target or a build a connected agent runs. Each build of a version counts as one |
-| **Sources, tried in order** | Mirror `https://www.mcharbor.eu/catalog/agents/index.json` | Up to eight `https://` sources: GitHub releases or a [mirror](../../../agents/releases/mirror-contract.md) |
+| **Sources, tried in order** | Mirror `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json` | Up to eight `https://` sources: GitHub releases or a [mirror](../../../agents/releases/mirror-contract.md) |
 | **Container agent images to store** | `linux/amd64` | Platforms whose agent image McHarbor keeps as a tarball for container agents |
 | **Image repository** | `ghcr.io/therealmcsparrow/mcharbor-agent` | Where McHarbor pulls the image when a release signs no digest |
 

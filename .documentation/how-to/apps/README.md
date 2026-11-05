@@ -1,7 +1,7 @@
 # Add an app to the catalog
 
 An app in the Store is one JSON file under `apps/`. The official catalog that every McHarbor
-reads, `https://www.mcharbor.eu/catalog/apps/index.json`, is a single document that carries
+reads, `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Apps/index.json`, is a single document that carries
 every one of those files inline. Adding an app is therefore three steps: write a spec line,
 generate the entry, rebuild the index and upload it.
 
@@ -67,7 +67,8 @@ or an index over 8 MiB, because every McHarbor refuses a remote catalog past tho
 
 ## 4. Publish
 
-Upload `apps/index.json` to `https://www.mcharbor.eu/catalog/apps/`. An installation picks it up
+Commit `apps/index.json` to `main`: the **Catalog** workflow validates it and publishes it as
+`Apps/index.json` in the McHarbor-Catalog repository. An installation picks it up
 on its next catalog sync, or straight away with **Sync** in the Store
 (`store_apps.manage`).
 

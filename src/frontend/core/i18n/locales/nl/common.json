@@ -1479,6 +1479,16 @@
                      "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
                      "dismiss":  "Sluiten",
                      "gotIt":  "Begrepen",
+                     "2026_11_01":  {
+                                        "catalogs":  {
+                                                               "title":  "Catalogi komen van GitHub",
+                                                               "description":  "Agent-releases, apps, plugins en VM-images worden nu gedownload uit de McHarbor-Catalog-repository op GitHub. Sta uitgaand HTTPS-verkeer naar raw.githubusercontent.com toe. Een opgeslagen mcharbor.eu-bron onder Instellingen → Updates → Agent-releases wordt vanzelf omgezet."
+                                        },
+                                        "backupTemp":  {
+                                                               "title":  "Tijdelijke back-upbestanden in de datamap van de agent",
+                                                               "description":  "Back-ups van VM's en LXC-containers zetten hun bestanden klaar in backups/tmp onder de datamap van de agent, niet meer in de compute-runtimemap. Werk je agents bij om dit te krijgen en zorg dat die schijf ruimte heeft voor een volledige kopie van de grootste schijf waarvan je een back-up maakt."
+                                        }
+                                    },
                      "2026_10_02":  {
                                         "diskAlerts":  {
                                                                "title":  "Volle schijven geven een waarschuwing",

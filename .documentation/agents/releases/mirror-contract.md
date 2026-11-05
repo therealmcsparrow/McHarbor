@@ -30,7 +30,7 @@ McHarbor reads the newest listed build's folder first and falls back to `<base>/
 when that folder does not exist, so flat mirrors keep working.
 
 A source may instead name its index file: any URL ending in `.json`, such as the default
-`https://www.mcharbor.eu/catalog/agents/index.json`. That file is read in place of
+`https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json`. That file is read in place of
 `latest.json`, with the same content, and `<base>` is the directory it sits in.
 
 | File | Content | Verified |
@@ -71,7 +71,8 @@ A release built in-house (`scripts/development/build-agent.sh`) produces the sam
 runs `scripts/development/publish-agent-catalog.mjs`, which copies it into
 `agents/catalog/<version>/<build>/` and rewrites `agents/catalog/index.json` to list every
 `{version, build}` folder there, newest first. Every development build gets its own folder,
-so uploading `agents/catalog/` as-is to `https://www.mcharbor.eu/catalog/agents/` publishes
+so committing `agents/catalog/` as-is to the `Agents/` folder of the
+[McHarbor-Catalog](https://github.com/therealmcsparrow/McHarbor-Catalog) repository publishes
 all of them. Old builds stay until they are deleted by hand. The flat files in `agents/`
 remain the copy the local container serves.
 

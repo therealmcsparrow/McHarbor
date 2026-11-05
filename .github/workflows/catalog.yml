@@ -25,6 +25,23 @@ on:
         description: Publish the VM image catalog (Images/)
         type: boolean
         default: true
+  workflow_call:
+    inputs:
+      agents:
+        type: boolean
+        default: false
+      plugins:
+        type: boolean
+        default: false
+      plugin_slugs:
+        type: string
+        default: all
+      apps:
+        type: boolean
+        default: false
+      images:
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -45,7 +62,7 @@ env:
 
 jobs:
   agents:
-    if: github.event_name == 'workflow_dispatch' && inputs.agents
+    if: inputs.agents == true
     runs-on: ubuntu-latest
     timeout-minutes: 150
     steps:
@@ -92,6 +109,7 @@ jobs:
           fi
 
       - name: Seed from the published catalog
+        id: seed
         run: |
           git clone --depth 1 "https://github.com/${CATALOG_REPO}.git" .catalog
           mkdir -p agents/catalog
@@ -99,16 +117,26 @@ jobs:
             cp -a .catalog/Agents/. agents/catalog/
           fi
           rm -rf .catalog
+          release="$(tr -d '[:space:]' < VERSION)/$(tr -d '[:space:]' < BUILD)"
+          if [ -f "agents/catalog/${release}/SHA256SUMS" ]; then
+            echo "Agents/${release} is already published; its signed binaries are left as they are."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build and sign agents
+        if: steps.seed.outputs.published != 'true'
         run: bash scripts/development/build-agent.sh --cross --linux-arm64
 
       - name: Verify the release is signed
+        if: steps.seed.outputs.published != 'true'
         run: |
           test -s agents/SHA256SUMS.sig || { echo "::error::SHA256SUMS.sig was not written."; exit 1; }
           test -s agents/catalog/index.json || { echo "::error::agents/catalog/index.json was not written."; exit 1; }
 
       - name: Upload Agents
+        if: steps.seed.outputs.published != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: catalog-Agents
@@ -118,7 +146,7 @@ jobs:
           if-no-files-found: error
 
   plugins:
-    if: github.event_name == 'workflow_dispatch' && inputs.plugins
+    if: inputs.plugins == true
     runs-on: ubuntu-latest
     timeout-minutes: 340
     steps:
@@ -220,7 +248,7 @@ jobs:
           if-no-files-found: error
 
   apps:
-    if: github.event_name == 'push' || inputs.apps
+    if: inputs.apps == true || (github.event_name == 'push' && inputs.apps == null)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -249,7 +277,7 @@ jobs:
           if-no-files-found: error
 
   images:
-    if: github.event_name == 'push' || inputs.images
+    if: inputs.images == true || (github.event_name == 'push' && inputs.images == null)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -293,6 +321,7 @@ jobs:
           git -C .catalog checkout -B main
 
       - name: Download built folders
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           pattern: catalog-*
@@ -300,6 +329,7 @@ jobs:
 
       - name: Replace the built folders
         run: |
+          shopt -s nullglob
           areas=()
           for dir in .artifacts/catalog-*; do
             area="${dir##*/catalog-}"
@@ -317,6 +347,10 @@ jobs:
 
       - name: Commit and push
         run: |
+          if [ -z "${AREAS}" ]; then
+            echo "Nothing was built; the catalog is left as it is."
+            exit 0
+          fi
           cd .catalog
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

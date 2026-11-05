@@ -2,6 +2,38 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [2026.11.01] - 2026-11-05
+
+Catalogs and agent releases now come from GitHub, and VM and LXC backups stage their files in the
+agent's data directory. Nothing breaks, but a host that may only reach www.mcharbor.eu now also
+needs outbound HTTPS to `raw.githubusercontent.com`.
+
+### Changed
+
+- **Catalogs come from the McHarbor-Catalog repository.** The default agent release source, the
+  built-in **McHarbor Apps** and **McHarbor Plugins** catalogs and the compute plugin's **McHarbor VM
+  Images** catalog read
+  `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/{Agents,Apps,Plugins,Images}/`
+  instead of `https://www.mcharbor.eu/catalog/…`. The built-in app and plugin catalog rows are
+  repaired on the first start. A saved agent release source that names the old mcharbor.eu agent
+  catalog, in any form, is read as the new address, so Settings → Updates → Agent releases needs no
+  edit. Plugin download links point at the same repository; installed plugins are not reinstalled.
+  The VM image catalog follows once the compute plugin is updated.
+- **VM and LXC backups stage in the agent's data directory.** A backup now copies disks and
+  archives into `<MCHARBOR_DATA_DIR>/backups/tmp/vm` and `…/ct` on the agent's host
+  (`/var/lib/mcharbor-agent/backups/tmp/` by default), and a restore downloads into a `restore-<run>`
+  folder there, instead of `.backups` under `/var/lib/mcharbor/compute/{vm,ct}`. That disk needs room
+  for a full copy of the largest disk being backed up. When it is not the disk the VM's storage is
+  on, a restore copies the rebuilt disk into place instead of moving it, which takes longer. Takes
+  effect once the agent is updated to 2026.11.01; the old `.backups` folders are left behind and can
+  be deleted.
+
+### Fixed
+
+- **An LXC incremental backup survives a backup folder on another disk.** The run's copy of the
+  incremental listing is written beside the listing instead of in the backup folder, so recording
+  it never crosses filesystems, and a failed run no longer leaves it behind.
+
 ## [2026.10.02] - 2026-10-22
 
 A patch over 2026.10.01. Nothing breaks and no setting needs to change. Agent hosts that cannot

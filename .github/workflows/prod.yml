@@ -139,6 +139,13 @@ jobs:
             org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
+  publish-agent-catalog:
+    needs: publish-agent
+    uses: ./.github/workflows/catalog.yml
+    with:
+      agents: true
+    secrets: inherit
+
   build-packages:
     name: Build native packages
     runs-on: ubuntu-latest
@@ -204,17 +211,21 @@ jobs:
             version="${BASH_REMATCH[1]}"
             echo "version=$version" >> "$GITHUB_OUTPUT"
             echo "tag=v$version" >> "$GITHUB_OUTPUT"
+            echo "release_commit=true" >> "$GITHUB_OUTPUT"
             echo "Release detected: $version"
           else
-            echo "version=" >> "$GITHUB_OUTPUT"
-            echo "tag=" >> "$GITHUB_OUTPUT"
-            echo "No release version detected; skipping GitHub release."
+            version="$(tr -d '[:space:]' < VERSION)"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "tag=v$version" >> "$GITHUB_OUTPUT"
+            echo "release_commit=false" >> "$GITHUB_OUTPUT"
+            echo "No release commit; an existing v$version release gets this build's BUILD and packages."
           fi
 
       - name: Create GitHub release
         if: steps.version.outputs.version != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_COMMIT: ${{ steps.version.outputs.release_commit }}
         shell: bash
         run: |
           version="${{ steps.version.outputs.version }}"
@@ -231,6 +242,11 @@ jobs:
             echo "Release $tag already exists; refreshing its BUILD asset."
             gh release upload "$tag" "$RUNNER_TEMP/BUILD" --clobber
             exit 0
+          fi
+
+          if [[ "$RELEASE_COMMIT" != "true" ]]; then
+            echo "::error::Release $tag does not exist and this is not a 'Release $version' commit, so no release was created; McHarbor installs will not see this build."
+            exit 1
           fi
 
           notes="$(awk -v ver="## [${version}]" '

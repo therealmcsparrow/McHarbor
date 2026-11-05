@@ -6,7 +6,7 @@ on **Compute → Images**:
 
 | Source | What it is |
 |---|---|
-| **McHarbor VM Images** | The official catalog, `https://www.mcharbor.eu/catalog/images/index.json`, listed under **Settings → Catalogs** once the compute plugin is installed. It starts **disabled**, like every source of bootable content; switch it on there. |
+| **McHarbor VM Images** | The official catalog, `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Images/index.json`, listed under **Settings → Catalogs** once the compute plugin is installed. It starts **disabled**, like every source of bootable content; switch it on there. |
 | **A mounted directory** | Optional JSON files you own, one per entry, read from `/mnt/compute-catalog` (below). An id defined here wins over the same id from a remote source. |
 
 Editing either one is the only way to change the built-in list. The list a fresh install
@@ -111,8 +111,9 @@ host's log.
 ## Publishing the official catalog
 
 The official catalog is prepared in the repository's `mnt/compute-catalog/` folder, one JSON
-file per entry, and that folder is uploaded as-is to
-`https://www.mcharbor.eu/catalog/images/`. Before uploading, build its index:
+file per entry, and that folder is committed as-is to the `Images/` folder of the McHarbor-Catalog repository on
+GitHub; the **Catalog** workflow validates and publishes it on every push to `main` that changes
+it. Before committing, build its index:
 
 ```bash
 node scripts/compute/build-image-index.mjs            # writes mnt/compute-catalog/index.json

@@ -10,6 +10,22 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-05 01:04 — McHarbor 2026.11.01 — Catalogs on GitHub, agent backup temp
+
+### Changed
+- `getting-started/changelog/README.md` — 2026.11.01 is the current release, with what an upgrade asks
+  (outbound HTTPS to `raw.githubusercontent.com`, agent update, room for backup temp) and a history row.
+- `getting-started/deployment/compatibility.md` — current release and bundled agent version 2026.11.01.
+- `agents/releases/README.md`, `agents/releases/mirror-contract.md`, `settings/updates/agents/reference.md` —
+  the default agent source is the McHarbor-Catalog repository's `Agents/index.json`; development builds are
+  published by committing `agents/catalog/` to its `Agents/` folder.
+- `settings/integrations/catalogs/README.md` — the built-in app and plugin catalog URLs.
+- `compute-foundation/image-catalog.md` — the official VM image catalog URL, and that `mnt/compute-catalog/`
+  is committed and published by the Catalog workflow rather than uploaded.
+- `how-to/apps/README.md` — publishing `apps/index.json` through the Catalog workflow.
+- `how-to/plugin/packaging.md`, `how-to/plugin/abi-and-libc.md`,
+  `getting-started/installation/native-linux.md` — plugin catalog and download URLs on GitHub.
+
 ## 2026-10-22 21:06 — McHarbor 2026.10.02 — Disk-full detection
 
 ### Added

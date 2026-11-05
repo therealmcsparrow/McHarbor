@@ -1479,6 +1479,16 @@
                      "description":  "A quick tour of the latest changes.",
                      "dismiss":  "Dismiss",
                      "gotIt":  "Got it",
+                     "2026_11_01":  {
+                                        "catalogs":  {
+                                                               "title":  "Catalogs come from GitHub",
+                                                               "description":  "Agent releases, apps, plugins and VM images now download from the McHarbor-Catalog repository on GitHub. Allow outbound HTTPS to raw.githubusercontent.com. A saved mcharbor.eu source under Settings → Updates → Agent releases is moved over by itself."
+                                        },
+                                        "backupTemp":  {
+                                                               "title":  "Backup temp lives in the agent's data folder",
+                                                               "description":  "VM and LXC backups stage their files in backups/tmp under the agent's data directory instead of the compute runtime folder. Update your agents to get it, and make sure that disk has room for a full copy of the largest disk you back up."
+                                        }
+                                    },
                      "2026_10_02":  {
                                         "diskAlerts":  {
                                                                "title":  "Full disks raise alerts",

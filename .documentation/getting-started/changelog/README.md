@@ -38,6 +38,19 @@ backing up the data volume is step 1.
 
 ## Current release
 
+### 2026.11.01 (2026-11-05)
+
+Agent releases and the app, plugin and VM image catalogs now come from the
+[McHarbor-Catalog](https://github.com/therealmcsparrow/McHarbor-Catalog) repository on GitHub,
+and VM and LXC backups stage their files in the agent's data directory. Nothing breaks.
+
+**What an upgrade asks of you:** allow outbound HTTPS to `raw.githubusercontent.com` where a
+firewall only allowed www.mcharbor.eu. A saved agent release source on mcharbor.eu is read as the
+new address, and the built-in catalogs repair themselves on first start. Update each agent to
+2026.11.01 to move its backup temp to `<MCHARBOR_DATA_DIR>/backups/tmp`, make sure that disk has
+room for a full copy of the largest disk being backed up, and delete the old `.backups` folders
+under `/var/lib/mcharbor/compute/vm` and `/var/lib/mcharbor/compute/ct`.
+
 ### 2026.10.02 (2026-10-22)
 
 A patch over 2026.10.01. Nothing breaks and no existing setting changes. McHarbor now detects a
@@ -90,6 +103,7 @@ The full 2026.10.01 entry, including Fixed and Security, is in
 
 | Version | Date | What landed |
 |---|---|---|
+| **2026.11.01** | 2026-11-05 | Catalogs and agent releases served from the McHarbor-Catalog repository on GitHub; VM and LXC backup temp in the agent's data directory; LXC incremental listings staged beside the listing. No breaking changes. |
 | **2026.10.02** | 2026-10-22 | Disk-full detection: host disk alerts and three default rules; a grey "No disk data" state where McHarbor cannot read the disk; startup cleanup of orphaned temporary archives. Patch; no breaking changes. |
 | **2026.10.01** | 2026-09-21 | Plugin platform and Plugin Store; compute (VMs and system containers); RBAC on every route; tamper-evident audit log; encryption at rest; HTTPS by default; calendar versioning. **Breaking**; see above. |
 | 2.0.8 | 2026-07-26 | First-run wizard, in-app help, keyboard shortcuts, skeleton loaders, empty states, bulk operations, saved searches, What's New overlay, dashboard templates. |

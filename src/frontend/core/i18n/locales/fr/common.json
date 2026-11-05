@@ -1479,6 +1479,16 @@
                      "description":  "Un aperçu rapide des derniers changements.",
                      "dismiss":  "Ignorer",
                      "gotIt":  "Compris",
+                     "2026_11_01":  {
+                                        "catalogs":  {
+                                                               "title":  "Les catalogues viennent de GitHub",
+                                                               "description":  "Les versions de l'agent, les applications, les plugins et les images de VM sont désormais téléchargés depuis le dépôt McHarbor-Catalog sur GitHub. Autorisez le HTTPS sortant vers raw.githubusercontent.com. Une source mcharbor.eu enregistrée sous Paramètres → Mises à jour → Versions de l'agent est remplacée automatiquement."
+                                        },
+                                        "backupTemp":  {
+                                                               "title":  "Les fichiers temporaires de sauvegarde dans le dossier de données de l'agent",
+                                                               "description":  "Les sauvegardes de VM et de conteneurs LXC préparent leurs fichiers dans backups/tmp sous le répertoire de données de l'agent, et non plus dans le dossier d'exécution compute. Mettez vos agents à jour pour en bénéficier et vérifiez que ce disque peut contenir une copie complète du plus grand disque sauvegardé."
+                                        }
+                                    },
                      "2026_10_02":  {
                                         "diskAlerts":  {
                                                                "title":  "Les disques pleins déclenchent des alertes",

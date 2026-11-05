@@ -25,8 +25,8 @@ edited, only enabled or disabled.
 
 | Name | Kind | URL |
 |---|---|---|
-| **McHarbor Apps** | Apps | `https://www.mcharbor.eu/catalog/apps/index.json` |
-| **McHarbor Plugins** | Plugins | `https://www.mcharbor.eu/catalog/plugins/index.json` |
+| **McHarbor Apps** | Apps | `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Apps/index.json` |
+| **McHarbor Plugins** | Plugins | `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins/index.json` |
 
 Each start rewrites a built-in row's name and URL by its fixed id and keeps its enabled
 state, so an install that still pointed the app catalog at the old

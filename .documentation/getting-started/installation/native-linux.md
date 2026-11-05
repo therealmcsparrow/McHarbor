@@ -297,8 +297,8 @@ binary, the static frontend, the bundled agent and the theme pack, with no `.so`
 plugin tarballs.
 
 Everything in the Plugin Store is downloaded from
-`https://www.mcharbor.eu/catalog/plugins`, so a native install needs outbound HTTPS to
-that host the first time it installs or repairs a plugin. An air-gapped host can still
+`https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins`, so a native install needs outbound HTTPS to
+`raw.githubusercontent.com` the first time it installs or repairs a plugin. An air-gapped host can still
 install one by uploading its tarball directly in the Plugin Store.
 
 Because every artifact links glibc, the tarball a native install downloads is the same

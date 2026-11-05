@@ -19,7 +19,7 @@ Settings → Updates → Agents → **Agent release downloads** → **Sources, t
 | Source type | Reads |
 |---|---|
 | **GitHub releases** | A repository's release assets: `<repo>/releases/download/v<version>/<file>` and `<repo>/releases/latest/download/latest.json` |
-| **Mirror** | A plain HTTPS directory laid out as the [mirror contract](./mirror-contract.md) says, given either as the directory or as its index file. The default list holds exactly one: `https://www.mcharbor.eu/catalog/agents/index.json` |
+| **Mirror** | A plain HTTPS directory laid out as the [mirror contract](./mirror-contract.md) says, given either as the directory or as its index file. The default list holds exactly one: `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json` |
 
 A source's index may list every version it carries, and several builds of each (`versions` in
 the [mirror contract](./mirror-contract.md)). **Check now** records up to the last five builds of
@@ -165,7 +165,7 @@ Settings → Updates → Agents → **Agent release downloads**. Gated by `updat
 | **Check schedule** | `0 5 * * *` (daily 05:00) | When to ask the sources which version is newest. **Next check** is shown under it. A check that fails runs again 15 minutes later instead of waiting for the next scheduled time, and McHarbor checks at start-up when the last check failed or never ran |
 | **When a new release is found** | Notify only | **Notify only**: one notification per version and build. **Download it**: download and verify into the store. **Download it and make it the target**: the same, then select it; the agent auto-update and its install window roll it out |
 | **Releases to keep** | 3 | After each download, older stored builds are removed, never the target and never a build a connected agent runs. Each build counts as one release |
-| **Sources, tried in order** | Mirror `https://www.mcharbor.eu/catalog/agents/index.json` | See above |
+| **Sources, tried in order** | Mirror `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json` | See above |
 | **Container agent images to store** | `linux/amd64` | Also `linux/arm64` |
 | **Image repository** | `ghcr.io/therealmcsparrow/mcharbor-agent` | Used when a release does not sign an image digest |
 

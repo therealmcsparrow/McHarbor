@@ -64,6 +64,20 @@ func NormalizeSources(in []Source) ([]Source, error) {
 	return out, nil
 }
 
+// isLegacyOfficialSource reports a source naming the agent catalog's former mcharbor.eu home, in any
+// form an operator saved it (index file, directory, trailing slash); Settings re-points those to OfficialSourceURL.
+func isLegacyOfficialSource(raw string) bool {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	if host != "www.mcharbor.eu" && host != "mcharbor.eu" {
+		return false
+	}
+	return strings.HasPrefix(strings.TrimRight(u.Path, "/")+"/", "/catalog/agents/")
+}
+
 // latestURL is where a source says which version is newest. The file is only a
 // hint: nothing in it is trusted until the version's SHA256SUMS verifies.
 func (s Source) latestURL() string {

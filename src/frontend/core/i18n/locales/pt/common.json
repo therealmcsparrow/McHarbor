@@ -1479,6 +1479,16 @@
                      "description":  "Um tour rápido pelas últimas mudanças.",
                      "dismiss":  "Dispensar",
                      "gotIt":  "Entendi",
+                     "2026_11_01":  {
+                                        "catalogs":  {
+                                                               "title":  "Os catálogos vêm do GitHub",
+                                                               "description":  "Versões do agente, aplicações, plugins e imagens de VM são agora transferidos do repositório McHarbor-Catalog no GitHub. Permita HTTPS de saída para raw.githubusercontent.com. Uma origem mcharbor.eu guardada em Configurações → Atualizações → Versões do agente é alterada automaticamente."
+                                        },
+                                        "backupTemp":  {
+                                                               "title":  "Os temporários de cópia de segurança ficam na pasta de dados do agente",
+                                                               "description":  "As cópias de segurança de VM e LXC preparam os ficheiros em backups/tmp no diretório de dados do agente, em vez da pasta de execução de compute. Atualize os seus agentes para o obter e confirme que esse disco tem espaço para uma cópia completa do maior disco copiado."
+                                        }
+                                    },
                      "2026_10_02":  {
                                         "diskAlerts":  {
                                                                "title":  "Discos cheios geram alertas",
