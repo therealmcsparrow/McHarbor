@@ -86,6 +86,7 @@ McHarbor is built for the work that happens after deployment.
 McHarbor 2026.11.01 moves its catalogs and agent releases to GitHub and stages VM and LXC backups in the agent's data directory. Nothing breaks; a host whose firewall only allows www.mcharbor.eu now also needs outbound HTTPS to raw.githubusercontent.com. The full list is in [CHANGELOG.md](CHANGELOG.md).
 
 - **Catalogs come from GitHub**: Agent releases, apps, plugins and VM images download from the [McHarbor-Catalog](https://github.com/therealmcsparrow/McHarbor-Catalog) repository. A saved mcharbor.eu agent source is read as the new address.
+- **Backup plans can skip the server copy**: Turn off **Keep a copy on this server** on a container backup plan and the archive is removed from McHarbor's data directory once every destination holds it. Restore and download fetch it back.
 - **Backup temp lives in the agent's data directory**: VM and LXC backups stage their files in `backups/tmp` under the agent's data directory instead of the compute runtime folder, once the agent is updated.
 
 ## What's New in 2026.10.02

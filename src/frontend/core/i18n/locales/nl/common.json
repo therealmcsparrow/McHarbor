@@ -1484,6 +1484,10 @@
                                                                "title":  "Catalogi komen van GitHub",
                                                                "description":  "Agent-releases, apps, plugins en VM-images worden nu gedownload uit de McHarbor-Catalog-repository op GitHub. Sta uitgaand HTTPS-verkeer naar raw.githubusercontent.com toe. Een opgeslagen mcharbor.eu-bron onder Instellingen → Updates → Agent-releases wordt vanzelf omgezet."
                                         },
+                                        "keepLocalCopy":  {
+                                                               "title":  "Back-upplannen kunnen de serverkopie overslaan",
+                                                               "description":  "Zet \"Kopie op deze server bewaren\" uit in het back-upplan van een container (Containers → een container → Back-ups) en het archief verdwijnt uit de datamap van McHarbor zodra elke bestemming het heeft. Herstellen en downloaden halen het terug."
+                                        },
                                         "backupTemp":  {
                                                                "title":  "Tijdelijke back-upbestanden in de datamap van de agent",
                                                                "description":  "Back-ups van VM's en LXC-containers zetten hun bestanden klaar in backups/tmp onder de datamap van de agent, niet meer in de compute-runtimemap. Werk je agents bij om dit te krijgen en zorg dat die schijf ruimte heeft voor een volledige kopie van de grootste schijf waarvan je een back-up maakt."

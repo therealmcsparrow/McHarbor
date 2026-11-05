@@ -125,7 +125,7 @@ func (s *Scheduler) check(ctx context.Context, now time.Time) {
 		       COALESCE(p.selections, ''), p.log_tail_lines,
 		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
 		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
-		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		       p.created_at, p.updated_at, COALESCE(sc.name, ''), p.keep_local_copy
 		FROM container_backup_plans p
 		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
 		WHERE p.enabled = 1 AND COALESCE(p.cron, '') <> ''

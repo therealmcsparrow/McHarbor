@@ -43,6 +43,7 @@ export function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
     enabled: plan.enabled,
     retentionCount: plan.retentionCount,
     retentionDays: plan.retentionDays,
+    keepLocalCopy: plan.keepLocalCopy ?? true,
   };
 }
 
@@ -59,6 +60,7 @@ export const EMPTY_BACKUP_INPUT: ContainerBackupInput = {
   enabled: true,
   retentionCount: 0,
   retentionDays: 0,
+  keepLocalCopy: true,
 };
 
 // withPrimaryDestination keeps the legacy single `storageLocationId`

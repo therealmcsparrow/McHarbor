@@ -4,6 +4,7 @@
 import { useTranslation } from 'react-i18next';
 import { Label } from '@resources/components/ui/Label';
 import { NumberInput } from '@resources/components/ui/NumberInput';
+import { Switch } from '@resources/components/ui/Switch';
 import { ReadableScheduleField } from '@resources/components/ReadableScheduleField';
 import type { ContainerBackupInput } from '@resources/hooks/useContainerBackups';
 
@@ -61,6 +62,17 @@ export function BackupSchedulingFields({ value, onChange }: BackupSchedulingFiel
             <p className="mt-1 text-xs text-muted-foreground">{t('backups.retentionDaysHint')}</p>
           </div>
         </div>
+      </div>
+      <div className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background p-3">
+        <div>
+          <h3 className="text-sm font-medium text-foreground">{t('backups.keepLocalCopy')}</h3>
+          <p className="text-xs text-muted-foreground">{t('backups.keepLocalCopyHint')}</p>
+        </div>
+        <Switch
+          checked={value.keepLocalCopy ?? true}
+          onCheckedChange={(keepLocalCopy) => onChange({ keepLocalCopy })}
+          aria-label={t('backups.keepLocalCopy')}
+        />
       </div>
     </>
   );

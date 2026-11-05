@@ -285,7 +285,7 @@ func (s *Service) ListPlans(ctx context.Context, envID, containerID string) ([]B
 		       COALESCE(p.selections, ''), p.log_tail_lines,
 		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
 		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
-		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		       p.created_at, p.updated_at, COALESCE(sc.name, ''), p.keep_local_copy
 		FROM container_backup_plans p
 		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
 		WHERE p.environment_id = ?`
@@ -417,13 +417,13 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 			include_config, include_logs, include_filesystem, include_image, selected_mounts,
 			selections, log_tail_lines,
 			cron, enabled, retention_count, retention_days, next_run_at,
-			consistency_mode, snapshot_config_id, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			consistency_mode, snapshot_config_id, keep_local_copy, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, name, envID, input.ContainerID, containerName, nullString(firstStorageLocationID(storageIDs)),
 		includeConfig, includeLogs, includeFilesystem, includeImage, string(selected),
 		encodedSelections, input.LogTailLines,
 		nullString(input.Cron), input.Enabled, input.RetentionCount, input.RetentionDays, nullString(nextRun),
-		consistencyMode, nullString(snapshotConfigID), now, now,
+		consistencyMode, nullString(snapshotConfigID), input.KeepLocalCopy == nil || *input.KeepLocalCopy, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating backup plan: %w", err)
@@ -442,7 +442,7 @@ func (s *Service) Plan(ctx context.Context, id string) (*BackupPlan, error) {
 		       COALESCE(p.selections, ''), p.log_tail_lines,
 		       COALESCE(p.cron, ''), p.enabled, p.retention_count, p.retention_days, COALESCE(p.last_run_at, ''), COALESCE(p.next_run_at, ''),
 		       COALESCE(p.consistency_mode, 'pause'), COALESCE(p.snapshot_config_id, ''),
-		       p.created_at, p.updated_at, COALESCE(sc.name, '')
+		       p.created_at, p.updated_at, COALESCE(sc.name, ''), p.keep_local_copy
 		FROM container_backup_plans p
 		LEFT JOIN container_backup_snapshot_configs sc ON sc.id = p.snapshot_config_id
 		WHERE p.id = ?`, id)
@@ -570,6 +570,11 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 			return nil, fmt.Errorf("updating backup plan retention: %w", err)
 		}
 	}
+	if input.KeepLocalCopy != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET keep_local_copy = ?, updated_at = ? WHERE id = ?", *input.KeepLocalCopy, now, id); err != nil {
+			return nil, fmt.Errorf("updating backup plan local copy: %w", err)
+		}
+	}
 	if input.ConsistencyMode != nil || input.SnapshotConfigID != nil {
 		mode := plan.ConsistencyMode
 		if input.ConsistencyMode != nil {
@@ -640,7 +645,7 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
 		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
 		       COALESCE(NULLIF(r.container_name, ''), p.container_name, '') AS container_name,
-		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, '')
+		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, ''), r.local_copy_dropped
 		FROM container_backup_runs r
 		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
 		WHERE r.environment_id = ?`
@@ -1264,6 +1269,7 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 	if err != nil {
 		return nil, err
 	}
+	s.dropLocalCopyAfterRun(finishCtx, run)
 	if err := s.pruneBackupPlanRuns(finishCtx, run); err != nil && s.logger != nil {
 		s.logger.Warn("container backup retention pruning failed", "plan", run.PlanID, "env", run.EnvironmentID, "container", run.ContainerID, "error", err)
 	}
@@ -1315,6 +1321,8 @@ func backupRunFailureHeadline(operation, stage string) string {
 			return "Restore failed while connecting to the Docker environment."
 		case "restore_inspecting":
 			return "Restore failed while inspecting the target container."
+		case "restore_fetching":
+			return "Restore failed while fetching the archive back from a backup destination."
 		case "restore_scanning":
 			return "Restore failed while reading the backup archive."
 		case "restore_image":
@@ -1719,7 +1727,7 @@ func (s *Service) runByIDLinked(ctx context.Context, id string, refreshLinks boo
 		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
 		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
 		       COALESCE(NULLIF(r.container_name, ''), p.container_name, '') AS container_name,
-		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, '')
+		       COALESCE(r.included_items, ''), COALESCE(r.available_items, ''), COALESCE(p.name, ''), COALESCE(r.origin, ''), r.local_copy_dropped
 		FROM container_backup_runs r
 		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
 		WHERE r.id = ?`, id)
@@ -2088,6 +2096,9 @@ func (s *Service) Download(ctx context.Context, runID string) (*BackupDownload, 
 	if run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
 	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, err
+	}
 
 	archivePath, err := s.validatedArchivePath(run.ArchivePath)
 	if err != nil {
@@ -2133,6 +2144,9 @@ func (s *Service) RestoreOptions(ctx context.Context, runID string, input Restor
 	}
 	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
+	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, err
 	}
 
 	file, decrypted, err := s.openRestoreArchive(run, input.SecretKey)
@@ -2256,6 +2270,12 @@ func (s *Service) restorePass(ctx context.Context, progressRunID string, run *Ba
 func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
 	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
+	}
+	if run.LocalCopyDropped && progressRunID != "" {
+		s.updateRunProgress(ctx, progressRunID, "restore_fetching", "")
+	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, err
 	}
 	// Applying configuration recreates the container and drops its filesystem
 	// layer, so a restore that wants both does it in two passes, in that order.
@@ -3706,6 +3726,9 @@ func (s *Service) FilesystemEntriesForRestore(ctx context.Context, runID, innerP
 	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
 	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, false, restoreChildrenCap, err
+	}
 	file, decrypted, err := s.openRestoreArchive(run, secretKey)
 	if err != nil {
 		return nil, false, restoreChildrenCap, err
@@ -3728,6 +3751,9 @@ func (s *Service) MountEntriesForRestore(ctx context.Context, runID, mountTarget
 	}
 	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
+	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, false, restoreChildrenCap, err
 	}
 	file, decrypted, err := s.openRestoreArchive(run, secretKey)
 	if err != nil {
@@ -3759,6 +3785,9 @@ func (s *Service) ConfigEntriesForRestore(ctx context.Context, runID, parentKey,
 	}
 	if run == nil || run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, false, restoreChildrenCap, ErrBackupRunNotDownloadable
+	}
+	if err := s.ensureDroppedArchive(ctx, run); err != nil {
+		return nil, false, restoreChildrenCap, err
 	}
 	file, decrypted, err := s.openRestoreArchive(run, secretKey)
 	if err != nil {
@@ -4504,7 +4533,7 @@ func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) 
 		&plan.StorageLocationID, &plan.IncludeConfig, &plan.IncludeLogs, &plan.IncludeFilesystem,
 		&plan.IncludeImage, &selected, &selections, &plan.LogTailLines, &plan.Cron, &plan.Enabled, &plan.RetentionCount,
 		&plan.RetentionDays, &plan.LastRunAt, &plan.NextRunAt, &plan.ConsistencyMode, &plan.SnapshotConfigID,
-		&plan.CreatedAt, &plan.UpdatedAt, &snapshotConfigName,
+		&plan.CreatedAt, &plan.UpdatedAt, &snapshotConfigName, &plan.KeepLocalCopy,
 	); err != nil {
 		return BackupPlan{}, err
 	}
@@ -4541,7 +4570,7 @@ func scanRun(scanner interface{ Scan(dest ...any) error }) (BackupRun, error) {
 		&run.ArchivePath, &run.ArchiveSize, &run.ArchiveEncryption, &run.ArchiveKeyID,
 		&run.Error, &run.ProgressStage, &run.ProgressMessage, &run.ProgressUpdatedAt, &run.StartedAt,
 		&run.CompletedAt, &run.DurationMS, &run.CreatedAt, &run.UpdatedAt,
-		&run.ContainerName, &includedItems, &availableItems, &planName, &run.Origin,
+		&run.ContainerName, &includedItems, &availableItems, &planName, &run.Origin, &run.LocalCopyDropped,
 	); err != nil {
 		return BackupRun{}, err
 	}

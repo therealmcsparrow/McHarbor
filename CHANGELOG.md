@@ -8,6 +8,15 @@ Catalogs and agent releases now come from GitHub, and VM and LXC backups stage t
 agent's data directory. Nothing breaks, but a host that may only reach www.mcharbor.eu now also
 needs outbound HTTPS to `raw.githubusercontent.com`.
 
+### Added
+
+- **A backup plan can skip keeping its own copy.** Container backup plans have a **Keep a copy on
+  this server** switch, on by default. Off, the archive under `<DATA_DIR>/backups/containers/<run>/`
+  is deleted once every destination holds it, which stops that folder from growing with every run.
+  Restore, download and migration then fetch the archive back from a destination first, so they
+  depend on that destination being reachable and take as long as the download. A run with a failed
+  destination keeps its copy. Adds migration 135.
+
 ### Changed
 
 - **Catalogs come from the McHarbor-Catalog repository.** The default agent release source, the

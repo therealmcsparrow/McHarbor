@@ -10,6 +10,14 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-05 02:51 — McHarbor 2026.11.01 — Container backups without a server copy
+
+### Changed
+- `backup/screen/fields.md` — the **Keep a copy on this server** plan field, where McHarbor keeps its own
+  archive copy, what happens when it is off, and how restore, download and migration fetch it back.
+- `getting-started/changelog/README.md` — the 2026.11.01 summary and history row mention the option.
+- `api/endpoints/backups.md` — `keepLocalCopy` on plan create and update.
+
 ## 2026-11-05 01:04 — McHarbor 2026.11.01 — Catalogs on GitHub, agent backup temp
 
 ### Changed

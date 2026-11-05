@@ -305,7 +305,11 @@ func (s *Service) MigrateCompletedRunsToLocalStorage(ctx context.Context, storag
 				)
 			}
 			targetPath := backupMigrationRemotePath(*location, run, migEnvSegment)
-			sourcePath, err := s.cleanBackupArchiveSource(run.ArchivePath)
+			err := s.ensureLocalArchive(ctx, run.ID, run.ArchivePath)
+			var sourcePath string
+			if err == nil {
+				sourcePath, err = s.cleanBackupArchiveSource(run.ArchivePath)
+			}
 			if err == nil {
 				err = s.copyBackupFileAtomic(ctx, sourcePath, targetPath, run.ArchiveSize, nil)
 			}

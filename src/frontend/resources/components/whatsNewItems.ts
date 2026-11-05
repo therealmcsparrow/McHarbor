@@ -15,6 +15,10 @@ export function getReleaseItems(version: string): WhatsNewItem[] {
         descriptionKey: 'whatsNew.2026_11_01.catalogs.description',
       },
       {
+        titleKey: 'whatsNew.2026_11_01.keepLocalCopy.title',
+        descriptionKey: 'whatsNew.2026_11_01.keepLocalCopy.description',
+      },
+      {
         titleKey: 'whatsNew.2026_11_01.backupTemp.title',
         descriptionKey: 'whatsNew.2026_11_01.backupTemp.description',
       },

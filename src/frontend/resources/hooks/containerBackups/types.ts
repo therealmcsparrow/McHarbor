@@ -65,6 +65,8 @@ export type ContainerBackupPlan = {
   enabled: boolean;
   retentionCount: number;
   retentionDays: number;
+  // false drops the server's archive once every destination holds it.
+  keepLocalCopy?: boolean;
   lastRunAt?: string;
   nextRunAt?: string;
   consistencyMode?: string;
@@ -107,6 +109,8 @@ export type ContainerBackupRun = {
   includedItems?: string[];
   availableItems?: string[];
   scope?: 'full' | 'partial';
+  // The server's own copy was dropped; restore and download fetch it from a destination.
+  localCopyDropped?: boolean;
   startedAt: string;
   completedAt?: string;
   durationMs: number;
@@ -198,6 +202,7 @@ export type ContainerBackupInput = {
   enabled?: boolean;
   retentionCount: number;
   retentionDays: number;
+  keepLocalCopy?: boolean;
   /**
    * How the archive is made consistent: "pause" stops the container,
    * "snapshot" freezes the filesystem and leaves it running, "live"

@@ -4183,6 +4183,9 @@
           "includeLogs": {
             "type": "boolean"
           },
+          "keepLocalCopy": {
+            "type": "boolean"
+          },
           "lastRunAt": {
             "type": "string"
           },
@@ -4248,6 +4251,7 @@
           "enabled",
           "retentionCount",
           "retentionDays",
+          "keepLocalCopy",
           "createdAt",
           "updatedAt"
         ],
@@ -4311,6 +4315,9 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "localCopyDropped": {
+            "type": "boolean"
           },
           "operation": {
             "type": "string"
@@ -4466,6 +4473,9 @@
             "type": "boolean"
           },
           "includeLogs": {
+            "type": "boolean"
+          },
+          "keepLocalCopy": {
             "type": "boolean"
           },
           "logTailLines": {
@@ -4658,6 +4668,9 @@
             "type": "boolean"
           },
           "includeLogs": {
+            "type": "boolean"
+          },
+          "keepLocalCopy": {
             "type": "boolean"
           },
           "logTailLines": {
@@ -17404,7 +17417,7 @@
     },
     "description": "McHarbor exposes a self-hosted control plane API for Docker, remote agents, workflows, notifications, store content, and operational telemetry. Most routes return the shared { success, data?, error?, message?, code? } envelope and require either the session cookie or a Bearer API key. Environment-scoped routes select the target runtime with ?env=\u003cenvironmentId\u003e.\n\nThis document is generated from the running router. Every operation carries the permission it enforces as x-mcharbor-permission, or x-mcharbor-exempt naming why it enforces none.",
     "title": "McHarbor API",
-    "version": "2026.10.01"
+    "version": "2026.11.01"
   },
   "openapi": "3.0.3",
   "paths": {

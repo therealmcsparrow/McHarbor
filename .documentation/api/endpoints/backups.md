@@ -137,7 +137,7 @@ live orchestrator and persisted if stale.
 
 ## Request bodies
 
-**`POST` `/api/container-backups`**: `name`, `containerId`, `storageLocationId`, `storageLocationIds`, `includeConfig`, `includeLogs`, `includeFilesystem`, `includeImage`, `selectedMounts`, `selections`?, `logTailLines`, `cron`, `enabled`, `retentionCount`, `retentionDays`, `consistencyMode`, `snapshotConfigId`
+**`POST` `/api/container-backups`**: `name`, `containerId`, `storageLocationId`, `storageLocationIds`, `includeConfig`, `includeLogs`, `includeFilesystem`, `includeImage`, `selectedMounts`, `selections`?, `logTailLines`, `cron`, `enabled`, `retentionCount`, `retentionDays`, `keepLocalCopy`? (default `true`), `consistencyMode`, `snapshotConfigId`
 
 **`POST` `/api/container-backups/runs/{runId}/restore`**: `secretKey`?, `restoreItems`?
 
@@ -153,7 +153,7 @@ live orchestrator and persisted if stale.
 
 **`PUT` `/api/container-backups/snapshot-configs/{id}`**: `name`?, `enabled`?, `poolName`?, `datasetPrefix`?, `sshTarget`?, `useLxd`?, `config`?
 
-**`PUT` `/api/container-backups/{planId}`**: `name`?, `storageLocationId`?, `storageLocationIds`?, `includeConfig`?, `includeLogs`?, `includeFilesystem`?, `includeImage`?, `selectedMounts`?, `selections`?, `logTailLines`?, `cron`?, `enabled`?, `retentionCount`?, `retentionDays`?, `consistencyMode`?, `snapshotConfigId`?
+**`PUT` `/api/container-backups/{planId}`**: `name`?, `storageLocationId`?, `storageLocationIds`?, `includeConfig`?, `includeLogs`?, `includeFilesystem`?, `includeImage`?, `selectedMounts`?, `selections`?, `logTailLines`?, `cron`?, `enabled`?, `retentionCount`?, `retentionDays`?, `keepLocalCopy`?, `consistencyMode`?, `snapshotConfigId`?
 
 **`POST` `/api/containers/{id}/backups/run`**: `name`, `storageLocationId`, `storageLocationIds`, `includeConfig`, `includeLogs`, `includeFilesystem`, `includeImage`, `selectedMounts`, `selections`?
 

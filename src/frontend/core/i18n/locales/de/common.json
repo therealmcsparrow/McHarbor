@@ -1484,6 +1484,10 @@
                                                                "title":  "Kataloge kommen von GitHub",
                                                                "description":  "Agent-Releases, Apps, Plugins und VM-Images werden jetzt aus dem Repository McHarbor-Catalog auf GitHub geladen. Erlauben Sie ausgehendes HTTPS zu raw.githubusercontent.com. Eine gespeicherte mcharbor.eu-Quelle unter Einstellungen → Updates → Agent-Releases wird automatisch umgestellt."
                                         },
+                                        "keepLocalCopy":  {
+                                                               "title":  "Sicherungspläne können die Serverkopie weglassen",
+                                                               "description":  "Schalten Sie „Kopie auf diesem Server behalten“ im Sicherungsplan eines Containers aus (Container → ein Container → Backups), und das Archiv verlässt das Datenverzeichnis von McHarbor, sobald jedes Ziel es enthält. Wiederherstellen und Herunterladen holen es zurück."
+                                        },
                                         "backupTemp":  {
                                                                "title":  "Temporäre Backup-Dateien im Datenordner des Agents",
                                                                "description":  "VM- und LXC-Backups legen ihre Dateien in backups/tmp im Datenverzeichnis des Agents ab statt im Compute-Laufzeitordner. Aktualisieren Sie Ihre Agents, und sorgen Sie dafür, dass dieser Datenträger Platz für eine vollständige Kopie der größten gesicherten Festplatte hat."

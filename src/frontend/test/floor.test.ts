@@ -50,6 +50,7 @@ const FLOOR: Record<string, number> = {
   'resources/components/CodeEditorImpl.test.tsx': 1,
   'modules/containers/types/mounts-edit.test.ts': 2,
   'modules/containers/components/tabs/MountsEditor.test.tsx': 3,
+  'modules/containers/components/plan-utils.keepLocalCopy.test.ts': 3,
   'modules/containers/components/ContainerConfigEditTabs.mounts.test.tsx': 1,
   'resources/components/ui/NumberInput.test.tsx': 6,
   'test/number-input-guard.test.ts': 2,

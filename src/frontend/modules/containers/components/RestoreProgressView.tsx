@@ -15,6 +15,7 @@ import type { ContainerBackupRun } from '@resources/hooks/useContainerBackups';
 const RESTORE_STAGE_LABELS: Record<string, string> = {
   restore_connecting: 'backups.progress.restore_connecting',
   restore_inspecting: 'backups.progress.restore_inspecting',
+  restore_fetching: 'backups.progress.restore_fetching',
   restore_scanning: 'backups.progress.restore_scanning',
   restore_image: 'backups.progress.restore_image',
   restore_filesystem: 'backups.progress.restore_filesystem',

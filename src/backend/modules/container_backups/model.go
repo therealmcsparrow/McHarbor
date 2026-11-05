@@ -29,10 +29,13 @@ type BackupPlan struct {
 	Enabled            bool                       `json:"enabled"`
 	RetentionCount     int                        `json:"retentionCount"`
 	RetentionDays      int                        `json:"retentionDays"`
-	LastRunAt          string                     `json:"lastRunAt,omitempty"`
-	NextRunAt          string                     `json:"nextRunAt,omitempty"`
-	ConsistencyMode    string                     `json:"consistencyMode,omitempty"`
-	SnapshotConfigID   string                     `json:"snapshotConfigId,omitempty"`
+	// KeepLocalCopy false removes the archive under <DATA_DIR>/backups/containers once every
+	// destination holds it; restore and download then fetch it back from a destination.
+	KeepLocalCopy    bool   `json:"keepLocalCopy"`
+	LastRunAt        string `json:"lastRunAt,omitempty"`
+	NextRunAt        string `json:"nextRunAt,omitempty"`
+	ConsistencyMode  string `json:"consistencyMode,omitempty"`
+	SnapshotConfigID string `json:"snapshotConfigId,omitempty"`
 	// SnapshotConfigName is joined from container_backup_snapshot_configs,
 	// empty unless SnapshotConfigID names a config that still exists.
 	SnapshotConfigName string `json:"snapshotConfigName,omitempty"`
@@ -82,11 +85,14 @@ type BackupRun struct {
 	IncludedItems  []string `json:"includedItems"`
 	AvailableItems []string `json:"availableItems"`
 	Scope          string   `json:"scope,omitempty"`
-	StartedAt      string   `json:"startedAt"`
-	CompletedAt    string   `json:"completedAt,omitempty"`
-	DurationMS     int64    `json:"durationMs"`
-	CreatedAt      string   `json:"createdAt"`
-	UpdatedAt      string   `json:"updatedAt"`
+	// LocalCopyDropped is true when the plan let the server delete its own copy after every
+	// destination succeeded, so the archive is fetched back from a destination when needed.
+	LocalCopyDropped bool   `json:"localCopyDropped,omitempty"`
+	StartedAt        string `json:"startedAt"`
+	CompletedAt      string `json:"completedAt,omitempty"`
+	DurationMS       int64  `json:"durationMs"`
+	CreatedAt        string `json:"createdAt"`
+	UpdatedAt        string `json:"updatedAt"`
 }
 
 // BackupRunDestination records where a backup archive was stored.
@@ -258,6 +264,8 @@ type CreateBackupPlanInput struct {
 	Enabled            bool                       `json:"enabled"`
 	RetentionCount     int                        `json:"retentionCount"`
 	RetentionDays      int                        `json:"retentionDays"`
+	// KeepLocalCopy is a pointer so a caller that never sends it keeps the server copy.
+	KeepLocalCopy *bool `json:"keepLocalCopy"`
 	// ConsistencyMode decides how the archive is made consistent:
 	// "pause" stops the container for the duration, "snapshot" freezes
 	// the filesystem instead and leaves it running, "live" accepts a
@@ -283,6 +291,7 @@ type UpdateBackupPlanInput struct {
 	Enabled            *bool                       `json:"enabled"`
 	RetentionCount     *int                        `json:"retentionCount"`
 	RetentionDays      *int                        `json:"retentionDays"`
+	KeepLocalCopy      *bool                       `json:"keepLocalCopy"`
 	ConsistencyMode    *string                     `json:"consistencyMode"`
 	SnapshotConfigID   *string                     `json:"snapshotConfigId"`
 }
