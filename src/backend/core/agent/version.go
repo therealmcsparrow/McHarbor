@@ -5,12 +5,6 @@ package agent
 
 import "strings"
 
-// BundledAgentVersion is the version of the remote agent that ships with
-// this McHarbor release (src/agent/agent.go `agentVersion`). The automatic
-// agent updater treats any connected agent older than this as outdated.
-// Keep the two constants in sync when releasing a new agent.
-const BundledAgentVersion = "2026.11.01"
-
 // AgentVersionAtLeast reports whether version a is >= b (semver-like,
 // exported so modules outside this package can compare agent versions).
 //

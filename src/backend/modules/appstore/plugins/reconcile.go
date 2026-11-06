@@ -56,6 +56,16 @@ func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
 		if !staleRelease && !staleBuild {
 			continue
 		}
+		// A different release label does not mean the .so stopped loading, and a
+		// missing artifact is no reason to touch it: SettleRepairState reports what
+		// the load actually proves.
+		if !repairAvailable(catalog, p, current, staleRelease) {
+			if logger != nil {
+				logger.Info("plugins: no catalog artifact for this release, keeping the installed build",
+					"slug", p.Slug, "built_for", p.BuiltFor, "host", current)
+			}
+			continue
+		}
 		// A repair reinstalls the version the operator already accepted, so an
 		// unsigned install stays repairable; one that was signed must still be.
 		if err := h.repairOne(ctx, p, !p.Signed, staleRelease); err != nil {
@@ -70,6 +80,52 @@ func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
 			logger.Info("plugins: repaired plugin", "slug", p.Slug,
 				"was", p.BuiltFor, "now", current,
 				"wasBuild", p.Build, "nowBuild", catalogBuild)
+		}
+	}
+}
+
+// repairAvailable reports whether the catalog holds an artifact this host would
+// accept for p, so a repair is only attempted when it can succeed.
+func repairAvailable(catalog []PluginEntry, p InstalledPlugin, current string, releaseChanged bool) bool {
+	for _, entry := range catalog {
+		if entry.Slug != p.Slug {
+			continue
+		}
+		v, ok := repairVersion(entry.Versions, p.Version, current, releaseChanged)
+		return ok && (v.BuiltFor == "" || v.BuiltFor == current)
+	}
+	return false
+}
+
+// SettleRepairState makes the store's "needs repair" state match the load that
+// just ran, because only plugin.Open can tell whether a .so still fits this host.
+// results maps slug to its load error, empty when it loaded; a slug the runtime
+// did not attempt is left as it was.
+func (h *Handler) SettleRepairState(ctx context.Context, results map[string]string, logger Logger) {
+	installed, err := h.svc.ListInstalled(ctx)
+	if err != nil {
+		if logger != nil {
+			logger.Error("plugins: could not list installs to settle repair state", "error", err.Error())
+		}
+		return
+	}
+	for _, p := range installed {
+		loadErr, attempted := results[p.Slug]
+		if !attempted || loadErr == p.RepairError {
+			continue
+		}
+		if err := h.svc.SetRepairState(ctx, p.Slug, p.BuiltFor, loadErr); err != nil {
+			if logger != nil {
+				logger.Error("plugins: could not record repair state", "slug", p.Slug, "error", err.Error())
+			}
+			continue
+		}
+		// A failed repair is what switched the plugin off, so a load that clears
+		// the error switches it back on.
+		if loadErr == "" {
+			if err := h.svc.MarkEnabled(ctx, p.Slug, true); err != nil && logger != nil {
+				logger.Warn("plugins: could not re-enable a plugin that loads", "slug", p.Slug, "error", err.Error())
+			}
 		}
 	}
 }

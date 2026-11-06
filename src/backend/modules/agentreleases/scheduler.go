@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/cronspec"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 )
 
 // Notifier announces a newly available agent release to the operator.
@@ -148,5 +148,5 @@ func (s *Store) isNewerThanServed(ctx context.Context, version, build string) bo
 	if rel, ok := s.targetRelease(ctx); ok {
 		return newer(version, build, rel.Version, rel.Build)
 	}
-	return newer(version, build, coreagent.BundledAgentVersion, "")
+	return newer(version, build, appversion.Current(), "")
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 	"github.com/therealmcsparrow/mcharbor/modules/agentreleases"
 )
@@ -218,7 +219,7 @@ func (u *AgentUpdater) GlobalTarget(ctx context.Context) (version, build string)
 	if rel, ok := u.targetRelease(ctx); ok {
 		return rel.Version, rel.Build
 	}
-	return coreagent.BundledAgentVersion, u.bins.LocalAgentBuild()
+	return appversion.Current(), u.bins.LocalAgentBuild()
 }
 
 func (u *AgentUpdater) targetRelease(ctx context.Context) (agentreleases.Release, bool) {
@@ -240,7 +241,7 @@ func (u *AgentUpdater) platformTarget(ctx context.Context, osName, arch string) 
 			}
 		}
 	}
-	return coreagent.BundledAgentVersion, u.platformTargetBuild(osName, arch)
+	return appversion.Current(), u.platformTargetBuild(osName, arch)
 }
 
 // Inventory lists every connected agent with what the table needs to show.

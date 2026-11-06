@@ -26,6 +26,9 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Changed
 
+- **A version bump no longer breaks plugins that link the agent package.** The bundled agent
+  version is read from `VERSION` instead of a constant in `core/agent`, so moving to a new release
+  stops changing that package's fingerprint. This one change needs a rebuilt plugin catalog.
 - **Catalogs come from the McHarbor-Catalog repository.** The default agent release source, the
   built-in **McHarbor Apps** and **McHarbor Plugins** catalogs and the compute plugin's **McHarbor VM
   Images** catalog read
@@ -46,6 +49,10 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Fixed
 
+- **Plugins only ask for repair when they fail to load.** A new McHarbor release no longer marks a
+  working plugin as "Needs repair" or switches it off because the catalog has no build for that
+  release yet. The state now comes from the plugin load at startup, and clears by itself on hosts
+  already showing it. A plugin that really fails to load shows the load error instead.
 - **An LXC incremental backup survives a backup folder on another disk.** The run's copy of the
   incremental listing is written beside the listing instead of in the backup folder, so recording
   it never crosses filesystems, and a failed run no longer leaves it behind.

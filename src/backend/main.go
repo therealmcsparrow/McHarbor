@@ -1086,6 +1086,13 @@ func main() {
 		pluginStoreHandler.Reconcile(context.Background(), logger)
 	}
 	bootPluginRuntime(app, database, dockerPool, enc, auditLog, rbacSvc, authSvc, mfaVerifier, logger, cfg.DataDir, pluginWorkflowBridge, agentBridge)
+	if rt, ok := app.PluginAdapters.(*pluginruntime.Runtime); ok && !coredemo.Active() {
+		results := make(map[string]string)
+		for slug, l := range rt.Loaded() {
+			results[slug] = l.Err
+		}
+		pluginStoreHandler.SettleRepairState(context.Background(), results, logger)
+	}
 	if coredemo.Active() {
 		demoRuntime, demoErr := modDemo.Start(context.Background(), app, logger)
 		if demoErr != nil {
