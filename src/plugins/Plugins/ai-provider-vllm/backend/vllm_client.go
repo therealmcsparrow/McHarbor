@@ -353,14 +353,7 @@ func (c *vllmClient) doJSON(ctx context.Context, config map[string]string, metho
 		return err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		switch resp.StatusCode {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			return errors.New("vllm: authentication failed")
-		case http.StatusTooManyRequests:
-			return errors.New("vllm: rate limit exceeded")
-		default:
-			return fmt.Errorf("vllm: API returned HTTP status %d", resp.StatusCode)
-		}
+		return vllmStatusError(resp.StatusCode, responseBody)
 	}
 	if destination == nil {
 		return nil
@@ -394,6 +387,60 @@ func vllmModelName(config map[string]string, requested string) string {
 		return model
 	}
 	return defaultVllmModel
+}
+
+// vllmStatusError keeps the provider's explanation, because a bare status cannot tell a refused
+// tool definition from an empty balance. A 429 says "rate limit" in those words, which the host
+// matches on; an authentication failure repeats nothing, since a provider may echo part of the key.
+func vllmStatusError(status int, body []byte) error {
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return errors.New("vllm: authentication failed")
+	case http.StatusTooManyRequests:
+		if detail := vllmErrorMessage(body); detail != "" {
+			return fmt.Errorf("vllm: rate limit exceeded: %s", detail)
+		}
+		return errors.New("vllm: rate limit exceeded")
+	}
+	if detail := vllmErrorMessage(body); detail != "" {
+		return fmt.Errorf("vllm: API returned HTTP status %d: %s", status, detail)
+	}
+	return fmt.Errorf("vllm: API returned HTTP status %d", status)
+}
+
+const vllmMaxErrorRunes = 500
+
+// vllmErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func vllmErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(vllmErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > vllmMaxErrorRunes {
+				text = text[:vllmMaxErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func vllmErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 func readVllmResponse(resp *http.Response) ([]byte, error) {

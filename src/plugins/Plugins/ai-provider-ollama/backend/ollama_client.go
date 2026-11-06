@@ -330,7 +330,7 @@ func (c *ollamaClient) do(ctx context.Context, config map[string]string, method,
 		return nil, err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("ollama request returned status %d", resp.StatusCode)
+		return nil, ollamaStatusError(resp.StatusCode, body)
 	}
 	return body, nil
 }
@@ -354,6 +354,60 @@ func ollamaEndpoint(config map[string]string, endpointPath string) (string, erro
 	baseURL.Path = strings.TrimRight(baseURL.Path, "/") + endpointPath
 	baseURL.RawPath = ""
 	return baseURL.String(), nil
+}
+
+// ollamaStatusError keeps the provider's explanation, because a bare status cannot tell a refused
+// tool definition from an empty balance. A 429 says "rate limit" in those words, which the host
+// matches on; an authentication failure repeats nothing, since a provider may echo part of the key.
+func ollamaStatusError(status int, body []byte) error {
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return errors.New("ollama authentication failed")
+	case http.StatusTooManyRequests:
+		if detail := ollamaErrorMessage(body); detail != "" {
+			return fmt.Errorf("ollama rate limit exceeded: %s", detail)
+		}
+		return errors.New("ollama rate limit exceeded")
+	}
+	if detail := ollamaErrorMessage(body); detail != "" {
+		return fmt.Errorf("ollama request returned status %d: %s", status, detail)
+	}
+	return fmt.Errorf("ollama request returned status %d", status)
+}
+
+const ollamaMaxErrorRunes = 500
+
+// ollamaErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func ollamaErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(ollamaErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > ollamaMaxErrorRunes {
+				text = text[:ollamaMaxErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func ollamaErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 func readOllamaBody(body io.ReadCloser) ([]byte, error) {

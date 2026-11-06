@@ -27,6 +27,7 @@ const (
 	anthropicHTTPTimeout      = 30 * time.Second
 	maxAnthropicResponseBytes = 4 << 20
 	maxAnthropicModelPages    = 10
+	maxAnthropicErrorRunes    = 500
 )
 
 type anthropicClient struct {
@@ -350,7 +351,7 @@ func (c *anthropicClient) doJSON(
 		return err
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("anthropic request failed with status %d", response.StatusCode)
+		return anthropicStatusError(response.StatusCode, responseBody)
 	}
 	if out == nil {
 		return nil
@@ -359,6 +360,45 @@ func (c *anthropicClient) doJSON(
 		return errors.New("anthropic returned an invalid response")
 	}
 	return nil
+}
+
+// anthropicStatusError names the status and Anthropic's own explanation, because a
+// bare "status 400" cannot tell a refused tool definition from an empty credit balance.
+// A 429 says "rate limit" in those words: the host matches on them to answer with its own code.
+// An authentication failure repeats nothing, as across the provider family.
+func anthropicStatusError(status int, body []byte) error {
+	if status == http.StatusUnauthorized || status == http.StatusForbidden {
+		return errors.New("anthropic authentication failed")
+	}
+	detail := anthropicErrorMessage(body)
+	if status == http.StatusTooManyRequests {
+		if detail == "" {
+			return errors.New("anthropic rate limit exceeded")
+		}
+		return fmt.Errorf("anthropic rate limit exceeded: %s", detail)
+	}
+	if detail == "" {
+		return fmt.Errorf("anthropic request failed with status %d", status)
+	}
+	return fmt.Errorf("anthropic request failed with status %d: %s", status, detail)
+}
+
+// anthropicErrorMessage reads the message of Anthropic's error envelope, and nothing
+// else of the body: a proxy in front of a custom base URL can answer with anything.
+func anthropicErrorMessage(body []byte) string {
+	var envelope struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	message := []rune(strings.TrimSpace(envelope.Error.Message))
+	if len(message) > maxAnthropicErrorRunes {
+		message = message[:maxAnthropicErrorRunes]
+	}
+	return string(message)
 }
 
 func anthropicEndpoint(config map[string]string, resource string, query url.Values) (string, error) {

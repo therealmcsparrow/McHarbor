@@ -357,14 +357,7 @@ func (c *openrouterClient) doJSON(ctx context.Context, config map[string]string,
 		return err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		switch resp.StatusCode {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			return errors.New("openrouter: authentication failed")
-		case http.StatusTooManyRequests:
-			return errors.New("openrouter: rate limit exceeded")
-		default:
-			return fmt.Errorf("openrouter: API returned HTTP status %d", resp.StatusCode)
-		}
+		return openrouterStatusError(resp.StatusCode, responseBody)
 	}
 	if destination == nil {
 		return nil
@@ -398,6 +391,60 @@ func openrouterModelName(config map[string]string, requested string) string {
 		return model
 	}
 	return defaultOpenrouterModel
+}
+
+// openrouterStatusError keeps the provider's explanation, because a bare status cannot tell a refused
+// tool definition from an empty balance. A 429 says "rate limit" in those words, which the host
+// matches on; an authentication failure repeats nothing, since a provider may echo part of the key.
+func openrouterStatusError(status int, body []byte) error {
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return errors.New("openrouter: authentication failed")
+	case http.StatusTooManyRequests:
+		if detail := openrouterErrorMessage(body); detail != "" {
+			return fmt.Errorf("openrouter: rate limit exceeded: %s", detail)
+		}
+		return errors.New("openrouter: rate limit exceeded")
+	}
+	if detail := openrouterErrorMessage(body); detail != "" {
+		return fmt.Errorf("openrouter: API returned HTTP status %d: %s", status, detail)
+	}
+	return fmt.Errorf("openrouter: API returned HTTP status %d", status)
+}
+
+const openrouterMaxErrorRunes = 500
+
+// openrouterErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func openrouterErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(openrouterErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > openrouterMaxErrorRunes {
+				text = text[:openrouterMaxErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func openrouterErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 func readOpenrouterResponse(resp *http.Response) ([]byte, error) {

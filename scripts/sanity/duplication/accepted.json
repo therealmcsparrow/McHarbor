@@ -96,19 +96,19 @@
       ],
       "baselines": {
         "src/plugins/Plugins/ai-provider-deepseek/backend/deepseek_client.go": {
-          "src/plugins/Plugins/ai-provider-gemini/backend/gemini_client.go": 0.5743,
-          "src/plugins/Plugins/ai-provider-mistral/backend/mistral_client.go": 0.6072,
-          "src/plugins/Plugins/ai-provider-perplexity/backend/perplexity_client.go": 0.6324,
-          "src/plugins/Plugins/ai-provider-llamacpp/backend/llamacpp_client.go": 0.9392,
-          "src/plugins/Plugins/ai-provider-lmstudio/backend/lmstudio_client.go": 0.9392,
-          "src/plugins/Plugins/ai-provider-localai/backend/localai_client.go": 0.9392,
-          "src/plugins/Plugins/ai-provider-vllm/backend/vllm_client.go": 0.9392,
-          "src/plugins/Plugins/ai-provider-openrouter/backend/openrouter_client.go": 0.9497,
-          "src/plugins/Plugins/ai-provider-xai/backend/xai_client.go": 0.9497,
-          "src/plugins/Plugins/ai-provider-cohere/backend/cohere_client.go": 0.9732,
-          "src/plugins/Plugins/ai-provider-fireworks/backend/fireworks_client.go": 0.9732,
-          "src/plugins/Plugins/ai-provider-groq/backend/groq_client.go": 0.9732,
-          "src/plugins/Plugins/ai-provider-together/backend/together_client.go": 0.9732
+          "src/plugins/Plugins/ai-provider-gemini/backend/gemini_client.go": 0.5608,
+          "src/plugins/Plugins/ai-provider-mistral/backend/mistral_client.go": 0.6383,
+          "src/plugins/Plugins/ai-provider-perplexity/backend/perplexity_client.go": 0.6651,
+          "src/plugins/Plugins/ai-provider-llamacpp/backend/llamacpp_client.go": 0.9447,
+          "src/plugins/Plugins/ai-provider-lmstudio/backend/lmstudio_client.go": 0.9447,
+          "src/plugins/Plugins/ai-provider-localai/backend/localai_client.go": 0.9447,
+          "src/plugins/Plugins/ai-provider-vllm/backend/vllm_client.go": 0.9447,
+          "src/plugins/Plugins/ai-provider-openrouter/backend/openrouter_client.go": 0.9543,
+          "src/plugins/Plugins/ai-provider-xai/backend/xai_client.go": 0.9543,
+          "src/plugins/Plugins/ai-provider-cohere/backend/cohere_client.go": 0.9757,
+          "src/plugins/Plugins/ai-provider-fireworks/backend/fireworks_client.go": 0.9757,
+          "src/plugins/Plugins/ai-provider-groq/backend/groq_client.go": 0.9757,
+          "src/plugins/Plugins/ai-provider-together/backend/together_client.go": 0.9757
         }
       }
     },

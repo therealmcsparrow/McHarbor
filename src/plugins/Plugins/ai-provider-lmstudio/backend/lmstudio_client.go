@@ -353,14 +353,7 @@ func (c *lmstudioClient) doJSON(ctx context.Context, config map[string]string, m
 		return err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		switch resp.StatusCode {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			return errors.New("lmstudio: authentication failed")
-		case http.StatusTooManyRequests:
-			return errors.New("lmstudio: rate limit exceeded")
-		default:
-			return fmt.Errorf("lmstudio: API returned HTTP status %d", resp.StatusCode)
-		}
+		return lmstudioStatusError(resp.StatusCode, responseBody)
 	}
 	if destination == nil {
 		return nil
@@ -394,6 +387,60 @@ func lmstudioModelName(config map[string]string, requested string) string {
 		return model
 	}
 	return defaultLmstudioModel
+}
+
+// lmstudioStatusError keeps the provider's explanation, because a bare status cannot tell a refused
+// tool definition from an empty balance. A 429 says "rate limit" in those words, which the host
+// matches on; an authentication failure repeats nothing, since a provider may echo part of the key.
+func lmstudioStatusError(status int, body []byte) error {
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return errors.New("lmstudio: authentication failed")
+	case http.StatusTooManyRequests:
+		if detail := lmstudioErrorMessage(body); detail != "" {
+			return fmt.Errorf("lmstudio: rate limit exceeded: %s", detail)
+		}
+		return errors.New("lmstudio: rate limit exceeded")
+	}
+	if detail := lmstudioErrorMessage(body); detail != "" {
+		return fmt.Errorf("lmstudio: API returned HTTP status %d: %s", status, detail)
+	}
+	return fmt.Errorf("lmstudio: API returned HTTP status %d", status)
+}
+
+const lmstudioMaxErrorRunes = 500
+
+// lmstudioErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func lmstudioErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(lmstudioErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > lmstudioMaxErrorRunes {
+				text = text[:lmstudioMaxErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func lmstudioErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 func readLmstudioResponse(resp *http.Response) ([]byte, error) {

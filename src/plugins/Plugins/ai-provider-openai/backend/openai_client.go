@@ -360,7 +360,7 @@ func (c *openAIClient) doJSON(
 		return err
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return upstreamStatusError(response.StatusCode)
+		return upstreamStatusError(response.StatusCode, responseBody)
 	}
 	if len(responseBody) == 0 {
 		return errors.New("provider returned an empty response")
@@ -386,22 +386,66 @@ func readAndCloseBody(body io.ReadCloser, limit int64) ([]byte, error) {
 	return data, nil
 }
 
-func upstreamStatusError(statusCode int) error {
+// upstreamStatusError keeps the provider's explanation, because "rejected the request" cannot
+// tell a refused tool definition from an empty balance. An authentication failure repeats nothing:
+// a provider may echo part of the key.
+func upstreamStatusError(statusCode int, body []byte) error {
+	var summary string
 	switch statusCode {
 	case http.StatusUnauthorized, http.StatusForbidden:
 		return errors.New("provider authentication failed")
 	case http.StatusNotFound:
-		return errors.New("provider endpoint or model was not found")
+		summary = "provider endpoint or model was not found"
 	case http.StatusTooManyRequests:
-		return errors.New("provider rate limit was exceeded")
+		summary = "provider rate limit was exceeded"
 	case http.StatusBadRequest, http.StatusUnprocessableEntity:
-		return errors.New("provider rejected the request")
+		summary = "provider rejected the request"
 	default:
 		if statusCode >= http.StatusInternalServerError {
-			return errors.New("provider service is unavailable")
+			summary = "provider service is unavailable"
+		} else {
+			summary = fmt.Sprintf("provider request failed with status %d", statusCode)
 		}
-		return fmt.Errorf("provider request failed with status %d", statusCode)
 	}
+	if detail := upstreamErrorMessage(body); detail != "" {
+		return fmt.Errorf("%s: %s", summary, detail)
+	}
+	return errors.New(summary)
+}
+
+const maxUpstreamErrorRunes = 500
+
+// upstreamErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func upstreamErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(upstreamErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > maxUpstreamErrorRunes {
+				text = text[:maxUpstreamErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func upstreamErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 var _ plugin.AIAdapterClient = (*openAIClient)(nil)

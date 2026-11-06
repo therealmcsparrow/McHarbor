@@ -49,6 +49,11 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Fixed
 
+- **AI provider plugins report what the provider said.** A refused request now logs and shows
+  the provider's own explanation instead of only a status or a generic sentence, in every provider
+  plugin. Authentication failures stay a plain "authentication failed", because a provider can echo
+  part of the key. MiniMax and Ollama now also name a rate limit as one, so the host answers with
+  its own rate-limit message. This needs each plugin's new build from the catalog.
 - **A URL can no longer be saved as the agent image repository.** It made every release's image
   download fail with `invalid reference format`. Saving one is now refused, and one already saved
   goes back to `ghcr.io/therealmcsparrow/mcharbor-agent`, so pull an affected release again.

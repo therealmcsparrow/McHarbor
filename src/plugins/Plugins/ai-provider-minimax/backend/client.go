@@ -342,9 +342,63 @@ func (c *miniMaxClient) request(
 		return nil, err
 	}
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return nil, fmt.Errorf("minimax API returned HTTP %d", resp.StatusCode)
+		return nil, miniMaxStatusError(resp.StatusCode, body)
 	}
 	return body, nil
+}
+
+// miniMaxStatusError keeps the provider's explanation, because a bare status cannot tell a refused
+// tool definition from an empty balance. A 429 says "rate limit" in those words, which the host
+// matches on; an authentication failure repeats nothing, since a provider may echo part of the key.
+func miniMaxStatusError(status int, body []byte) error {
+	switch status {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return errors.New("minimax authentication failed")
+	case http.StatusTooManyRequests:
+		if detail := miniMaxErrorMessage(body); detail != "" {
+			return fmt.Errorf("minimax rate limit exceeded: %s", detail)
+		}
+		return errors.New("minimax rate limit exceeded")
+	}
+	if detail := miniMaxErrorMessage(body); detail != "" {
+		return fmt.Errorf("minimax API returned HTTP %d: %s", status, detail)
+	}
+	return fmt.Errorf("minimax API returned HTTP %d", status)
+}
+
+const miniMaxMaxErrorRunes = 500
+
+// miniMaxErrorMessage reads the provider's explanation and nothing else of the body: a proxy in
+// front of a custom base URL can answer with anything, and the servers disagree on the envelope.
+func miniMaxErrorMessage(body []byte) string {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	for _, key := range []string{"error", "message", "detail"} {
+		text := []rune(miniMaxErrorText(envelope[key]))
+		if len(text) > 0 {
+			if len(text) > miniMaxMaxErrorRunes {
+				text = text[:miniMaxMaxErrorRunes]
+			}
+			return string(text)
+		}
+	}
+	return ""
+}
+
+func miniMaxErrorText(raw json.RawMessage) string {
+	var text string
+	if err := json.Unmarshal(raw, &text); err == nil {
+		return strings.TrimSpace(text)
+	}
+	var nested struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(raw, &nested); err == nil {
+		return strings.TrimSpace(nested.Message)
+	}
+	return ""
 }
 
 func readAndCloseResponse(body io.ReadCloser) ([]byte, error) {
