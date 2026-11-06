@@ -49,6 +49,9 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Fixed
 
+- **A URL can no longer be saved as the agent image repository.** It made every release's image
+  download fail with `invalid reference format`. Saving one is now refused, and one already saved
+  goes back to `ghcr.io/therealmcsparrow/mcharbor-agent`, so pull an affected release again.
 - **The AI assistant chat no longer sends tool names Anthropic refuses.** Chat failed with a 500 on
   every message while the connection check and an incident's **Explain this** worked, because
   Anthropic refused the assistant's dotted tool names. Tools now go out as `containers__list`, and audit entries and

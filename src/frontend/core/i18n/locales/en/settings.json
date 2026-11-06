@@ -2018,6 +2018,7 @@
       "imagePlatforms": "Container agent images to store",
       "imagePlatformsHint": "Container agents load their replacement image from McHarbor. It is pulled from the digest a release signs, else from this repository at the release version.",
       "imageRepository": "Image repository",
+      "imageRepositoryUrl": "Enter a Docker repository such as ghcr.io/therealmcsparrow/mcharbor-agent, not a URL.",
       "sourceUrlPlaceholder": "https://mirror.example.com/mcharbor-agent"
     },
     "toast": {

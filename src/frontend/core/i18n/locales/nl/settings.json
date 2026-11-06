@@ -2018,6 +2018,7 @@
       "imagePlatforms": "Op te slaan containeragent-images",
       "imagePlatformsHint": "Containeragents laden hun vervangende image vanuit McHarbor. Die wordt opgehaald via de digest die een release ondertekent, anders uit deze repository op de releaseversie.",
       "imageRepository": "Imagerepository",
+      "imageRepositoryUrl": "Voer een Docker-repository in, zoals ghcr.io/therealmcsparrow/mcharbor-agent, geen URL.",
       "sourceUrlPlaceholder": "https://mirror.example.com/mcharbor-agent"
     },
     "toast": {

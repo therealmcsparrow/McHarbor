@@ -2018,6 +2018,7 @@
       "imagePlatforms": "Images d'agent conteneur à stocker",
       "imagePlatformsHint": "Les agents conteneurs chargent leur image de remplacement depuis McHarbor. Elle est récupérée à partir du digest qu'une version signe, sinon depuis ce dépôt à la version correspondante.",
       "imageRepository": "Dépôt d'images",
+      "imageRepositoryUrl": "Saisissez un dépôt Docker tel que ghcr.io/therealmcsparrow/mcharbor-agent, et non une URL.",
       "sourceUrlPlaceholder": "https://mirror.example.com/mcharbor-agent"
     },
     "toast": {

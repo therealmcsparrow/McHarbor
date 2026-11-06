@@ -46,6 +46,7 @@ function ReleaseSettingsForm({ settings, nextCheckAt }: { settings: AgentRelease
   const save = useSaveAgentReleaseSettings();
   const [draft, setDraft] = useState<Draft>(() => toDraft(settings));
   const dirty = JSON.stringify(fromDraft(draft)) !== JSON.stringify(settings);
+  const repositoryIsUrl = draft.imageRepository.includes('://');
   const modes: { value: AgentReleaseMode; label: string }[] = [
     { value: 'notify', label: t('agentReleases.settings.modes.notify') },
     { value: 'download', label: t('agentReleases.settings.modes.download') },
@@ -121,8 +122,14 @@ function ReleaseSettingsForm({ settings, nextCheckAt }: { settings: AgentRelease
           value={draft.imageRepository}
           aria-label={t('agentReleases.settings.imageRepository')}
           placeholder={t('agentReleases.settings.imageRepository')}
+          aria-invalid={repositoryIsUrl}
           onChange={(e) => patch({ imageRepository: e.target.value })}
         />
+        {repositoryIsUrl ? (
+          <p role="alert" className="text-xs text-destructive">
+            {t('agentReleases.settings.imageRepositoryUrl')}
+          </p>
+        ) : null}
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" disabled={!dirty || save.isPending} onClick={() => setDraft(toDraft(settings))}>
@@ -130,7 +137,7 @@ function ReleaseSettingsForm({ settings, nextCheckAt }: { settings: AgentRelease
         </Button>
         <Button
           permission={PERM.UPDATES_MANAGE}
-          disabled={!dirty || save.isPending}
+          disabled={!dirty || save.isPending || repositoryIsUrl}
           onClick={() => save.mutate(fromDraft(draft))}
         >
           {t('actions.save', { ns: 'common' })}

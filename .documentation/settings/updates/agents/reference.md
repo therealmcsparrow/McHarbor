@@ -11,7 +11,7 @@
 | **Releases to keep** | 3 (1 to 20) | Older stored builds are removed after each download, never the target or a build a connected agent runs. Each build of a version counts as one |
 | **Sources, tried in order** | Mirror `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Agents/index.json` | Up to eight `https://` sources: GitHub releases or a [mirror](../../../agents/releases/mirror-contract.md) |
 | **Container agent images to store** | `linux/amd64` | Platforms whose agent image McHarbor keeps as a tarball for container agents |
-| **Image repository** | `ghcr.io/therealmcsparrow/mcharbor-agent` | Where McHarbor pulls the image when a release signs no digest |
+| **Image repository** | `ghcr.io/therealmcsparrow/mcharbor-agent` | Where McHarbor pulls the image when a release signs no digest. A Docker repository, not a URL: a URL is refused on save, and one already saved is replaced with the default |
 
 The **target** is set per build in the **Agent releases** table, and a download you start sets
 it too, keeping the builds stored before it. With no target, installs and updates are served the

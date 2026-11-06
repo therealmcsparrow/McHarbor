@@ -201,7 +201,8 @@ func NormalizeSettings(in Settings) (Settings, error) {
 	if out.ImageRepository == "" {
 		out.ImageRepository = DefaultImageRepository
 	}
-	if !imageRepositoryPattern.MatchString(out.ImageRepository) || strings.Contains(out.ImageRepository, "@") {
+	if !imageRepositoryPattern.MatchString(out.ImageRepository) || strings.Contains(out.ImageRepository, "@") ||
+		isRepositoryURL(out.ImageRepository) {
 		return in, settingsError("bad_repository")
 	}
 	platforms := make([]string, 0, len(out.ImagePlatforms))
@@ -218,6 +219,12 @@ func NormalizeSettings(in Settings) (Settings, error) {
 	}
 	out.ImagePlatforms = platforms
 	return out, nil
+}
+
+// isRepositoryURL reports a URL saved as an image repository. Its characters all pass
+// imageRepositoryPattern, and Docker then refuses the pull with "invalid reference format".
+func isRepositoryURL(repository string) bool {
+	return strings.Contains(repository, "://")
 }
 
 // Settings reads the stored configuration, falling back to defaults.
@@ -240,6 +247,9 @@ func (s *Store) Settings(ctx context.Context) (Settings, error) {
 		if isLegacyOfficialSource(src.URL) {
 			out.Sources[i] = Source{Kind: SourceMirror, URL: OfficialSourceURL}
 		}
+	}
+	if isRepositoryURL(out.ImageRepository) {
+		out.ImageRepository = DefaultImageRepository
 	}
 	normalized, err := NormalizeSettings(out)
 	if err != nil {

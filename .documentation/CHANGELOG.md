@@ -10,6 +10,11 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-06 07:18 — McHarbor 2026.11.01 — Agent image repository
+
+### Changed
+- `settings/updates/agents/reference.md` — **Image repository** takes a Docker repository, not a URL, and says what happens to a URL.
+
 ## 2026-11-05 03:27 — McHarbor 2026.11.01 — Native installs update themselves
 
 ### Changed
