@@ -726,6 +726,7 @@ func parseAssistantToolCall(content string) (string, json.RawMessage, bool) {
 }
 
 func (s *Service) resolveAssistantToolCall(ctx context.Context, userID, envID, conversationID, toolName string, args json.RawMessage, catalog []ai_tools.Descriptor, connectionID string) (string, error) {
+	toolName = canonicalToolName(toolName)
 	tool, ok := ai_tools.Get(toolName)
 	if !ok {
 		return "", nil
@@ -855,7 +856,7 @@ func buildSystemPrompt(env *EnvSummary, userMessage string, catalog []ai_tools.D
 			if cur.Focus.Name != "" {
 				sb.WriteString(" (" + cur.Focus.Name + ")")
 			}
-			sb.WriteString(". Use entity.relate to walk parents/children, or pin a new focal via the request.")
+			sb.WriteString(". Use entity__relate to walk parents/children, or pin a new focal via the request.")
 		}
 		if len(cur.Trail) > 0 {
 			sb.WriteString(" Recent entities: ")
@@ -872,7 +873,7 @@ func buildSystemPrompt(env *EnvSummary, userMessage string, catalog []ai_tools.D
 		sb.WriteString("\n\n# Available tools\n")
 		sb.WriteString("The following tools are available via the host's structured tool-calling channel — invoke them by emitting a tool call, never by writing JSON in your reply. Read-only tools execute automatically and the result is fed back to you in the next turn. Mutating or consent-required tools create a pending action and the user must approve before they run. Do not invent tool names.\n")
 		for _, d := range catalog {
-			sb.WriteString("- " + d.Name + ": " + d.Description)
+			sb.WriteString("- " + toolWireName(d.Name) + ": " + d.Description)
 			if !d.ReadOnly || d.RequiresConsent {
 				sb.WriteString(" (approval required)")
 			}

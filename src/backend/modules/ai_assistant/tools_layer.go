@@ -15,6 +15,21 @@ import (
 	ai_tools "github.com/therealmcsparrow/mcharbor/modules/ai_assistant/tools"
 )
 
+// toolWireName is the name a provider sees for a tool. Registered names are dotted,
+// and Anthropic and OpenAI refuse a whole request whose tool names contain a dot.
+func toolWireName(name string) string {
+	return strings.ReplaceAll(name, ".", "__")
+}
+
+// canonicalToolName maps a name a model called back to the registered tool. A model
+// may also repeat the dotted form, so a registered name is taken as it is.
+func canonicalToolName(name string) string {
+	if _, ok := ai_tools.Get(name); ok {
+		return name
+	}
+	return strings.ReplaceAll(name, "__", ".")
+}
+
 // BuildPluginTools converts the per-user filtered ai_tools catalog
 // into the wire-format plugin.LLMTool slice the provider adapters
 // consume. The catalog is filtered by RBAC and the request's
@@ -30,7 +45,7 @@ func BuildPluginTools(ctx context.Context, authz ai_tools.Authorizer, userID, en
 	out := make([]plugin.LLMTool, 0, len(catalog))
 	for _, d := range catalog {
 		out = append(out, plugin.LLMTool{
-			Name:        d.Name,
+			Name:        toolWireName(d.Name),
 			Description: d.Description,
 			Parameters:  d.InputSchema,
 		})
@@ -64,6 +79,7 @@ func DispatchPluginToolCall(ctx context.Context, svc *Service, scope ActionScope
 	if len(args) == 0 {
 		args = json.RawMessage(`{}`)
 	}
+	name = canonicalToolName(name)
 	t, ok := ai_tools.Get(name)
 	if !ok {
 		return "", nil, fmt.Errorf("tool %q is not registered", name)

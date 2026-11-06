@@ -49,6 +49,10 @@ needs outbound HTTPS to `raw.githubusercontent.com`.
 
 ### Fixed
 
+- **The AI assistant chat no longer sends tool names Anthropic refuses.** Chat failed with a 500 on
+  every message while the connection check and an incident's **Explain this** worked, because
+  Anthropic refused the assistant's dotted tool names. Tools now go out as `containers__list`, and audit entries and
+  pending actions keep the registered name.
 - **Plugins only ask for repair when they fail to load.** A new McHarbor release no longer marks a
   working plugin as "Needs repair" or switches it off because the catalog has no build for that
   release yet. The state now comes from the plugin load at startup, and clears by itself on hosts
