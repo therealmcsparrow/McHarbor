@@ -79,6 +79,7 @@ cookies.txt
 !/scripts/hooks/
 !/scripts/lint/
 !/scripts/development/
+!/scripts/release/
 /scripts/development/output/
 !/scripts/compute/
 /scripts/compute/*
