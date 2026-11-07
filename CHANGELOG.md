@@ -2,6 +2,52 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [2026.11.02] - 2026-11-07
+
+Test builds of McHarbor, agents and plugins can now be offered, through switches that are all off by default.
+Update McHarbor before its plugins: every plugin is rebuilt for this release. A browser UI on another origin, or
+a plain-http proxy that rewrites Host, also needs its origin in `ALLOWED_ORIGINS`.
+
+### Breaking
+
+- **Cross-site writes are refused on every route.** A `POST`, `PUT`, `PATCH` or `DELETE` that a browser marks as
+  cross-site, or sends with a foreign `Origin`, now gets a 403. Clients that send neither header, such as the CLI,
+  bearer tokens, agents and webhooks, are not affected, and the SAML assertion consumer stays open. Add the origin
+  of a UI on a sibling host, or of a plain-http proxy that rewrites Host, to `ALLOWED_ORIGINS`.
+- **Update McHarbor before its plugins.** All bundled plugins in the catalog are rebuilt for this code. An older
+  McHarbor cannot load them and does not refuse them when it installs them, so do not update or repair a plugin on an
+  older host. After the update, McHarbor repairs its installed plugins from the catalog on boot.
+
+### Added
+
+- **Prerelease channels for McHarbor, agents and plugins.** Test builds written with a `-` suffix, such as
+  `2026.11.03-rc.1`, sort below their final version and are offered only through five switches that are all
+  off on every install: **Include prereleases** and **Also install prereleases automatically** under
+  **Settings → Updates → McHarbor**, **Include agent prereleases** and **Also update agents to prereleases
+  automatically** under **Agents**, and **Offer plugin prereleases** in the Plugin Store header, with a
+  per-plugin override in each plugin's details. They are read and saved with `GET` and `PUT
+  /api/updates/channels` (a partial body, needing `updates.view` and `updates.manage`). On a prerelease host a
+  manual update must name an explicit version, and you cannot go back to an older McHarbor afterwards.
+- **A plugin or an agent can return from a prerelease to stable.** A plugin's **Return to stable** runs a
+  read-only check first and refuses when the prerelease ran a database migration the stable build lacks
+  (`plugins.manage`). An agent's return needs both `updates.manage` and `environments.manage` and pins the
+  agent: no update reaches it, security updates included, until **Release pin**. The CLI gains `settings channels
+  show|set`, `plugin channel`, `plugin return`, `agent return` and `agent unpin`.
+
+### Changed
+
+- **Plugins declare a minimum McHarbor version instead of the one release they were built for.**
+  Catalog entries carry `min_mcharbor`, taken from the plugin's `mcharbor:` range, in place of
+  `built_for`. A new McHarbor build or release no longer refuses or reinstalls a plugin whose build
+  has not changed. A plugin must still be rebuilt when a package it links, a backend dependency or
+  the Go toolchain changes; until then it shows as **Needs repair** with the load error.
+- **Version order is one shared rule, and the plugin catalog is format v2.** Go, the CLI, the frontend and
+  `catalog_entry.py` read the same cases, so a prerelease sorts below its final everywhere and `agentAtLeast`
+  no longer reads `2026.11.03-rc.1` as `2026.11.0`. Catalog entries hold up to two versions, the newest stable
+  first, and `versions[0]` no longer means what a host installs. A plugin floor in `mcharbor:` may carry a `-`
+  suffix, so every plugin is rebuilt once. A guard test fails on a version comparator that is missing from
+  `src/contracts/versionorder/sites.yaml`.
+
 ## [2026.11.01] - 2026-11-05
 
 Catalogs and agent releases now come from GitHub, and VM and LXC backups stage their files in the

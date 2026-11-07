@@ -40,7 +40,7 @@ mcharbor plugin dev [flags]
 
 * [mcharbor plugin](mcharbor_plugin.md)	 - Installed plugins and the plugin store
 * [mcharbor plugin dev build](mcharbor_plugin_dev_build.md)	 - Build, sign and index a plugin into the local catalog
-* [mcharbor plugin dev new](mcharbor_plugin_dev_new.md)	 - Scaffold a new plugin from the example skeleton
+* [mcharbor plugin dev new](mcharbor_plugin_dev_new.md)	 - Scaffold a new plugin from the template built into this binary
 * [mcharbor plugin dev package](mcharbor_plugin_dev_package.md)	 - Package and sign one plugin without touching the catalog index
 * [mcharbor plugin dev sign](mcharbor_plugin_dev_sign.md)	 - Sign the built tarballs in the local catalog directory
 * [mcharbor plugin dev validate](mcharbor_plugin_dev_validate.md)	 - Check a plugin's manifest, its route declarations and its build inputs

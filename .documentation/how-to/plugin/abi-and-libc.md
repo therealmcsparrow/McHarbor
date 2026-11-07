@@ -106,71 +106,72 @@ Both sides therefore see the same module graph and the hashes match. **Reintrodu
 `go.work` to the host build would break that**, because it would put the host in a
 different module context from the packager.
 
-## `built_for`, and what it protects
+## `min_mcharbor`, and what it protects
 
 Plugins are downloaded from `https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins`; none ship inside
-McHarbor. Every catalog entry records the release it was compiled against:
+McHarbor. Every catalog entry records the oldest McHarbor release it accepts, copied at build
+time from the `mcharbor:` range in the plugin's `plugin.yaml`:
 
 ```json
 { "version": "2026.09.03",
-  "built_for": "2026.09.01",
+  "build": "202609181858",
+  "min_mcharbor": "2026.09.01",
   "download_url": "https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main/Plugins/files/comm-slack-2026.09.03.tar.gz",
   "checksum": "…",
   "signature": "…" }
 ```
 
-The installer compares `built_for` against the running release and refuses a mismatch
-before unpacking. An empty `built_for` is accepted as a legacy entry.
+The installer refuses an artifact whose minimum is newer than the running release, before the
+download and again against the tarball's own manifest, which is all an uploaded plugin has. An
+empty value is accepted. Only the floor of a range is enforced; an upper bound is not.
 
-This is a deliberately small guard rather than a computed ABI token. It works because the
-catalog is republished with every release, so the only thing that can invalidate an
-artifact is a core release, which is precisely what `built_for` records. What it buys is
-a message naming both versions instead of the opaque `different version of package`
-failure arriving later, at load.
-
-**Release ordering is therefore not a convention but a requirement:** the catalog is
-published *before* the matching image or packages are. An install that upgrades first has
-no matching artifact to repair from.
+A newer McHarbor does not need a new plugin build, because neither `VERSION` nor `BUILD` is part
+of what `plugin.Open` compares.
 
 ### What it does not protect
 
-`built_for` records a **version string**, and `Reconcile` repairs a plugin only when that
-string differs from the running release. An ABI change that does not move `VERSION` is
-therefore invisible to it, and the affected plugins are skipped while being unloadable.
+`min_mcharbor` is a version string and says nothing about ABI. A plugin still has to be rebuilt
+when something it links changes:
 
-That is not hypothetical. When the container moved from Alpine to Debian, every installed
-`.so` was musl-linked and could not open on the glibc host, but `VERSION` had not moved,
-so `built_for` still matched and the repair pass walked straight past them:
+- a package it links, directly or through its imports; `go list -deps` on what the plugin imports
+  names them, and `core/plugin/**`, `core/i18n`, `core/response` and `core/auth` are among them
+- a backend dependency in `go.mod`
+- the Go toolchain, the base image or the libc
+
+The load is what proves it. When the container moved from Alpine to Debian, every installed
+`.so` was musl-linked and could not open on the glibc host:
 
 ```
 plugin runtime: load failed slug=addon-compute version=1.0.0
   err="… libc.musl-x86_64.so.1: cannot open shared object file"
 ```
 
-The recovery is to rebuild the affected plugins, republish them, and clear `built_for` on
-their `appstore_plugins` rows so the next boot treats them as legacy entries and repairs
-them. The lasting fix (recording something ABI-shaped rather than a version string) is
-not implemented; until it is, **a change to the toolchain, the base image or the libc is a
-reason to bump `VERSION`**, precisely so this guard fires.
+The plugin shows as **Needs repair** with that error until a rebuilt artifact is published.
+
+**Raise the floor when the ABI moves in a new release.** Otherwise an older host sees the new
+build in the catalog, installs it and can no longer load the plugin. Set `mcharbor:` in the
+affected plugins to the new release before rebuilding them, and publish the catalog before the
+matching image or packages. A rebuild for an ABI change that does not move `VERSION` has no floor
+to raise, so it reaches every host on that release.
 
 ## What happens on upgrade
 
-A core release invalidates every installed `.so` at once. On the first boot afterwards,
-McHarbor reconciles before the runtime loads anything:
+On every boot McHarbor reconciles before the runtime loads anything:
 
-1. Every installed plugin whose `built_for` differs from the running release is
-   re-downloaded at **the version already installed**; a repair never silently upgrades
-   you to a newer release.
-2. Its configuration, its enabled state, and the role grants on its permission keys are
-   preserved across the uninstall/reinstall cycle.
-3. Anything that cannot be fetched (no network, catalog unreachable, artifact not
-   published) is left **disabled** with the reason recorded, and appears in the Plugin
-   Store as **Needs repair** naming the release it was built for. **Repair** retries, and
-   requires `plugins.manage`.
+1. A plugin whose installed build differs from the catalog's build of the same version is
+   re-downloaded at **the version already installed**.
+2. A plugin whose installed version the catalog no longer carries moves to the newest version this
+   release meets the minimum of, but only on the first boot of a new release.
+3. Anything else is left alone. A new release with an unchanged catalog downloads nothing.
+4. Configuration, enabled state and the role grants on a plugin's permission keys are preserved
+   across a reinstall.
 
-Boot never fails because of this. The trade is that the first boot after an upgrade needs
-outbound HTTPS to the catalog; an air-gapped host installs a plugin by uploading its
-tarball in the Plugin Store instead.
+The load then decides what the Plugin Store shows. A plugin that fails to load appears as **Needs
+repair** with the load error. **Repair** fetches the catalog copy again and requires
+`plugins.manage`. It only helps once the catalog holds a build that fits this host.
+
+Boot never fails because of this. An air-gapped host installs a plugin by uploading its tarball in
+the Plugin Store instead.
 
 ## A toolchain mismatch fails one plugin, not the host
 
@@ -190,16 +191,15 @@ plugin runtime: load failed slug=addon-kvm version=2026.09.04
 The same message is the plugin's error in `GET /api/plugins/loader/status`. A file with no
 Go build info at all is refused the same way (`plugin has no Go build info`).
 
-The guard only makes the failure survivable; it does not repair anything. The boot repair
-keys on `built_for`, which records `VERSION`, so a toolchain bump that leaves `VERSION`
-alone is not noticed by it. Rebuild the plugins and the catalog, then **Update** each one
-from the Plugin Store; see [Building a plugin that will load](#building-a-plugin-that-will-load).
+The guard only makes the failure survivable; it does not repair anything. Rebuild the plugins
+and publish the catalog: the next boot sees the new build stamps and reinstalls them. See
+[Building a plugin that will load](#building-a-plugin-that-will-load).
 
 ## Building a plugin that will load
 
 Use `scripts/development/build-plugin.sh <slug> <catalog-url>`. It builds through
 `Dockerfile.plugin-packager`, which is the only path that guarantees the module context
-is right, and stamps `built_for` from the repo's `VERSION`.
+is right, and copies `min_mcharbor` from the plugin's `mcharbor:` range.
 
 ```sh
 ./scripts/development/build-plugin.sh comm-ntfy file:///mnt/plugin-catalog

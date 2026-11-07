@@ -7,8 +7,10 @@ import "github.com/therealmcsparrow/mcharbor/core/plugin"
 
 // PluginEntry is one row in the appstore plugin catalog. One entry
 // per plugin slug — not per version. The Versions slice carries
-// every release of that plugin the catalog has on hand, sorted
-// descending by semver so Versions[0] is always the latest.
+// every release of that plugin the catalog has on hand: the newest
+// stable first, older stable ones after it, then prereleases, so
+// Versions[0] is the newest stable (plugin-catalog v2) and never a
+// prerelease a host did not opt into.
 //
 // Wire format on disk accepts two shapes:
 //
@@ -39,7 +41,7 @@ import "github.com/therealmcsparrow/mcharbor/core/plugin"
 // frontend never see anything but PluginEntry-with-Versions.
 //
 // The top-level Version / DownloadURL / Checksum / Signature fields
-// are populated from Versions[0] (the latest release) as a
+// are populated from Versions[0] (the newest stable release) as a
 // convenience — single-version catalog files and legacy callers
 // reading `entry.download_url` keep working unchanged.
 type PluginEntry struct {
@@ -69,14 +71,17 @@ type PluginEntry struct {
 	// catalog can serve, sorted descending by semver. Always
 	// non-empty for a valid entry.
 	Versions []PluginVersion `json:"versions"`
+	// PrereleaseOverride is the stored per-plugin prerelease setting, absent when
+	// the plugin follows the global switch, so a client can show it after a reload.
+	PrereleaseOverride *bool `json:"prereleaseOverride,omitempty"`
 	// Top-level DownloadURL mirrors Versions[0].DownloadURL so the
 	// legacy "one entry per version" callers (handleUpdateStream)
 	// can keep reading `entry.DownloadURL` without changes.
 	DownloadURL string `json:"download_url,omitempty"`
-	// Top-level Checksum / Signature / BuiltFor likewise mirror Versions[0].
-	Checksum  string `json:"checksum,omitempty"`
-	Signature string `json:"signature,omitempty"`
-	BuiltFor  string `json:"built_for,omitempty"`
+	// Top-level Checksum / Signature / MinMcharbor likewise mirror Versions[0].
+	Checksum    string `json:"checksum,omitempty"`
+	Signature   string `json:"signature,omitempty"`
+	MinMcharbor string `json:"min_mcharbor,omitempty"`
 }
 
 // PluginVersion is one release of a plugin the catalog can serve.
@@ -101,9 +106,10 @@ type PluginVersion struct {
 	// Signature is an ed25519 signature over the catalog entry's
 	// canonical form. Verified by the installer before install.
 	Signature string `json:"signature,omitempty"`
-	// BuiltFor names the McHarbor release this artifact was compiled
-	// against. Empty means a legacy entry, which the installer accepts.
-	BuiltFor string `json:"built_for,omitempty"`
+	// MinMcharbor is the oldest McHarbor release this artifact accepts, from the
+	// mcharbor range in its plugin.yaml. Empty means no floor. It says nothing about
+	// ABI: only plugin.Open can tell whether the .so fits a given host.
+	MinMcharbor string `json:"min_mcharbor,omitempty"`
 }
 
 // InstalledPlugin is one row in the appstore_plugins table plus
@@ -130,9 +136,9 @@ type InstalledPlugin struct {
 	// will be stripped. Filled by ListInstalled.
 	PermissionsReferenced int      `json:"permissions_referenced"`
 	RolesReferencing      []string `json:"roles_referencing"`
-	// BuiltFor names the McHarbor release this install was compiled
-	// against. A value other than the running release means the .so
-	// cannot load and the reconciler must refetch it.
+	// BuiltFor is the McHarbor release that last installed or reconciled this
+	// plugin, despite the column name. A different value means the host release
+	// moved, which only matters when the catalog no longer carries this version.
 	BuiltFor string `json:"built_for"`
 	// RepairError is the last reason an automatic repair failed, kept
 	// so the store can explain a disabled plugin without re-deriving it.

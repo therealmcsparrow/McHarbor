@@ -4,7 +4,9 @@
 |---|---|---|
 | **Update remote agents automatically** | Off | "After McHarbor updates, push the matching agent binary to every connected agent that is not excluded" |
 | **Target agent version** | derived | The version this McHarbor expects, or a statement that it is not known yet |
-| **Exceptions** | none | "Agents selected here are skipped by automatic **and** manual agent update sweeps" |
+| **Exceptions** | none | "Agents selected here are skipped by automatic **and** manual agent update sweeps". A pinned agent is listed once here and cannot be edited |
+| **Include agent prereleases** | Off | Offers agent test builds that are not final; independent of the McHarbor setting. Saved with `PUT /api/updates/channels` |
+| **Also update agents to prereleases automatically** | Off | Needs **Include agent prereleases** and **Update remote agents automatically**. Pinned and excluded agents are skipped |
 | **Check for new agent releases** | On | Runs the release check on **Check schedule** |
 | **Check schedule** | `0 5 * * *` | When McHarbor asks its sources which agent version and build is newest; **Next check** is shown under it. A failed check runs again after 15 minutes, and at start-up when the last one failed |
 | **When a new release is found** | Notify only | Notify only · Download it · Download it and make it the target |
@@ -21,6 +23,10 @@ An agent update pushes the binary and the agent restarts into it. Its data direc
 the instance id and the offline buffer across the restart, which is why that volume
 matters, and why an agent without one loses its buffered events.
 
+## Return to stable and pins
+
+An agent on a prerelease can be returned to the newest stable build McHarbor holds for its platform. `POST /api/updates/agents/{envId}/return` needs both `updates.manage` and `environments.manage`, and it pins the agent: no update, automatic or manual, reaches it until `DELETE /api/updates/agents/{envId}/pin` releases the pin, which needs the same two keys. A failed move keeps the pin. Details are in [Prerelease channels](../prerelease-channels/README.md#agent).
+
 ## When something does not behave
 
 | Symptom | Usual cause | Fix |
@@ -33,9 +39,12 @@ matters, and why an agent without one loses its buffered events.
 | An agent lost its buffered events after an update | No persistent data directory | Mount `MCHARBOR_DATA_DIR` as a volume |
 | A download moved the target and you want the previous build back | A download you start becomes the target | **Make … the target** on the previous build's row; it is still stored |
 | A sweep fails with "McHarbor holds no agent for …" | Nothing McHarbor serves covers that platform | Download a release that does and make it the target, or build one locally |
+| An agent no longer updates and shows **Pinned** | It was returned to stable, which pins it | **Release pin** |
 | A release reads **Refused** | Its signature or a checksum did not verify | The reason is behind the error icon; see [Releases](../../../agents/releases/README.md#when-something-does-not-behave) |
 
 ## Related
+
+- [Prerelease channels](../prerelease-channels/README.md): the switches, returning to stable and pins
 
 - [Agents](./README.md): what the section is for
 - [Settings](../../README.md): the other groups

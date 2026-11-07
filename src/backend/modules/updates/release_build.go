@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
@@ -57,7 +58,7 @@ func releaseNewer(current, currentBuild, latest, latestBuild string) bool {
 	if latest == "" {
 		return false
 	}
-	if c := compareVersions(latest, current); c != 0 {
+	if c := versionorder.Compare(latest, current); c != 0 {
 		return c > 0
 	}
 	if !validBuild(currentBuild) || !validBuild(latestBuild) {

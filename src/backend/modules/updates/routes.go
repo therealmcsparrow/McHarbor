@@ -12,6 +12,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/notify"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 	"github.com/therealmcsparrow/mcharbor/modules/agentreleases"
 )
 
@@ -35,10 +36,7 @@ func Mount(app *router.AppDeps, bins AgentBinaries) {
 	if app.Config != nil && nativeupdate.IsNativeKind(app.Config.InstallKind) {
 		// A native install has no image; it installs the release's package for its kind instead.
 		native := nativeupdate.New(app.Config.InstallKind, app.Config.DataDir, app.Logger)
-		checker.SetApplier(func(ctx context.Context, _ string) error {
-			_, err := native.Apply(ctx)
-			return err
-		}, nil)
+		checker.SetApplier(nativeApplier(native), nil)
 	} else {
 		checker.SetApplier(func(ctx context.Context, targetImage string) error {
 			_, err := coredocker.ApplyLocalSelfUpdate(ctx, targetImage)
@@ -65,9 +63,12 @@ func Mount(app *router.AppDeps, bins AgentBinaries) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesView)).Get("/state", h.HandleState)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesView)).Get("/settings", h.HandleGetSettings)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesManage)).Put("/settings", h.HandleSaveSettings, apispec.Request(SelfUpdateSettings{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesView)).Get("/channels", h.HandleGetChannels, apispec.Response(updatechannel.Settings{}))
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesManage)).Put("/channels", h.HandlePutChannels, apispec.Request(updatechannel.Patch{}), apispec.Response(updatechannel.Settings{}))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesManage)).Post("/dismiss", h.HandleDismiss, apispec.Request(DismissRequest{}))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsView)).Get("/agents", h.HandleAgentInventory)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsManage)).Post("/agents/update", h.HandleUpdateAgents, apispec.Request(UpdateAgentsRequest{}))
+			mountAgentReturnRoutes(r, app.RBACService, h)
 			// The agent release store. Reading is updates.view; pulling, deleting,
 			// choosing the target and the schedule are updates.manage, like the
 			// McHarbor self-update settings they mirror. Rolling a target out to
@@ -87,5 +88,17 @@ func Mount(app *router.AppDeps, bins AgentBinaries) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUpdatesView)).Get("/{id}/history", h.HandleHistory, apispec.Paginated())
 			})
 		})
+	})
+}
+
+// mountAgentReturnRoutes registers the agent return and pin routes under /agents.
+// A prerelease agent returns to stable only for a caller holding both keys:
+// /agents/update needs environments.manage today, and updates.manage alone would
+// widen who can move an agent. Releasing the pin takes the same two keys.
+func mountAgentReturnRoutes(r *apispec.Router, svc *rbac.Service, h *Handler) {
+	r.Route("/agents/{envId}", func(r *apispec.Router) {
+		r.Use(rbac.PinEnvToPath("envId"))
+		r.With(rbac.RequirePermission(svc, rbac.PermUpdatesManage), rbac.RequirePermission(svc, rbac.PermEnvironmentsManage)).Post("/return", h.HandleAgentReturn)
+		r.With(rbac.RequirePermission(svc, rbac.PermUpdatesManage), rbac.RequirePermission(svc, rbac.PermEnvironmentsManage)).Delete("/pin", h.HandleAgentPinRemove)
 	})
 }

@@ -1,13 +1,16 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconRefresh, IconSearch } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { PERM } from '@core/auth/permissionKeys';
 import { Input } from '@resources/components/ui/Input';
+import { Spinner } from '@resources/components/ui/Spinner';
 import { Switch } from '@resources/components/ui/Switch';
+import { usePermission } from '@core/auth/usePermission';
+import { useSetUpdateChannel, useUpdateChannels } from '@resources/hooks/useUpdateChannels';
 import { CategorySidebar } from '../components/CategorySidebar';
 import { PluginCategoryGrid } from '../components/PluginCategoryGrid';
 import { PluginDetailDialog } from '../components/PluginDetailDialog';
@@ -22,13 +25,66 @@ import { ADDONS_EXCLUDE_PREFIXES } from './pluginStoreCategories';
 import { usePluginInstallFlow } from './usePluginInstallFlow';
 import { usePluginStoreCategories } from './usePluginStoreCategories';
 
+// Lives here because modules/settings' GatedToggleRow is off limits to this module. Denied
+// reads and writes show the switch disabled with the key named; neither is a page error.
+function PrereleaseSwitch() {
+  const { t } = useTranslation('plugins');
+  const base = useId();
+  const canManage = usePermission(PERM.UPDATES_MANAGE);
+  const { canView, settings, isLoading, isError, refetch } = useUpdateChannels();
+  const save = useSetUpdateChannel();
+
+  const busy = isLoading || save.isPending;
+  const locked = !canView || !canManage || isError || busy;
+  const reason = !canView
+    ? t('channels.unavailable', { permission: PERM.UPDATES_VIEW })
+    : !canManage
+      ? t('channels.needs', { permission: PERM.UPDATES_MANAGE })
+      : null;
+
+  return (
+    <div className="flex max-w-xs shrink-0 flex-col gap-1">
+      <label className="mc-control mc-glass flex items-center gap-2 rounded-lg px-3 text-xs font-medium text-foreground shadow-sm">
+        <Switch
+          checked={settings?.pluginPrereleases === true}
+          aria-disabled={locked}
+          aria-busy={busy}
+          aria-describedby={reason ? `${base}-hint ${base}-reason` : `${base}-hint`}
+          onCheckedChange={(next) => {
+            if (locked) return;
+            save.mutate({ pluginPrereleases: next });
+          }}
+        />
+        <span>{t('channels.store.label')}</span>
+        {busy && <Spinner size="sm" />}
+      </label>
+      <p id={`${base}-hint`} className="text-xs text-muted-foreground">
+        {t('channels.store.hint')}
+      </p>
+      {reason && (
+        <p id={`${base}-reason`} className="text-xs text-muted-foreground">
+          {reason}
+        </p>
+      )}
+      {isError && (
+        <div className="flex items-center gap-2 text-xs text-destructive">
+          <span>{t('channels.loadFailed')}</span>
+          <Button size="sm" variant="secondary" onClick={() => void refetch()}>
+            {t('channels.retry')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PluginStorePage() {
   // Load both the common and plugins namespaces so we can reference
   // page-level chrome and the
   // plugin-specific tab labels (tabs.updates, tabs.addons, …) from a
   // single t() call. The plugins.json keys are added in 6 locales.
   const { t } = useTranslation(['common', 'plugins']);
-  const [detailPlugin, setDetailPlugin] = useState<PluginEntry | null>(null);
+  const [detailSnapshot, setDetailPlugin] = useState<PluginEntry | null>(null);
   // Held alongside the confirm dialog. We resolve slug -> InstalledPlugin
   // here (not in PluginCard) so the row's metadata (version, enabled
   // flag, permissions_referenced) reaches the dialog straight from the
@@ -50,6 +106,10 @@ export default function PluginStorePage() {
   const installed = useInstalledPlugins();
   const catalog = usePluginCatalog();
   const catalogItems = catalog.data ?? [];
+  // The dialog reads the live catalog row by slug: a click-time snapshot goes stale once an override is saved.
+  const detailPlugin = detailSnapshot
+    ? (catalogItems.find((c) => c.slug === detailSnapshot.slug) ?? detailSnapshot)
+    : null;
   const { installedVersions, categoryCounts, categoryLabelMap, activeCategory, updatable } = usePluginStoreCategories({
     catalogItems,
     installed: installed.data,
@@ -116,6 +176,7 @@ export default function PluginStorePage() {
           />
           <span>{t('catalog.installedOnly', { ns: 'plugins' })}</span>
         </label>
+        <PrereleaseSwitch />
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-hidden lg:flex-row">
@@ -149,6 +210,7 @@ export default function PluginStorePage() {
         plugin={detailPlugin}
         open={!!detailPlugin}
         installed={detailPlugin ? installedVersions[detailPlugin.slug] !== undefined : false}
+        installedVersion={detailPlugin ? installedVersions[detailPlugin.slug] : undefined}
         onOpenChange={(openState) => {
           if (!openState) setDetailPlugin(null);
         }}

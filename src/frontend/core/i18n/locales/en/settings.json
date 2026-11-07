@@ -2034,5 +2034,83 @@
     "selfSubtitle": "systemd services on the machine McHarbor is installed on. This page always acts on that host, whatever environment is selected.",
     "warningTitle": "This changes the host, not McHarbor",
     "warningBody": "Stopping, disabling or reconfiguring a service here acts on the machine McHarbor runs on. McHarbor's own units and its container runtime can be restarted but not stopped or disabled."
+  },
+  "prerelease": {
+    "subtitle": "Test builds that are not final. All switches are off by default.",
+    "needsView": "Needs {{key}} to see these settings.",
+    "needs": "Needs {{key}}.",
+    "loadFailed": "Could not load the prerelease settings.",
+    "retry": "Try again",
+    "confirmAuto": {
+      "title": "Install prereleases automatically?",
+      "confirm": "Turn on"
+    },
+    "mcharbor": {
+      "title": "McHarbor prereleases",
+      "label": "Include prereleases",
+      "hint": "Offer McHarbor test builds that are not final. They install only when you choose them. You cannot go back to an older McHarbor version afterwards.",
+      "autoLabel": "Also install prereleases automatically",
+      "autoHint": "Applies to McHarbor updates only.",
+      "autoNeeds": "Needs Include prereleases and Install automatically.",
+      "running": "You are running {{version}} (Prerelease). Prerelease updates are off. Nothing changes now, and the next stable version newer than this one will be offered when it is published. No older version can be installed.",
+      "confirmAuto": "Test builds of McHarbor will install without asking. This applies to McHarbor updates only. Stable updates are not affected. You cannot go back to an older version afterwards."
+    },
+    "agents": {
+      "title": "Agent prereleases",
+      "label": "Include agent prereleases",
+      "hint": "Offer agent test builds that are not final. Independent of the McHarbor setting.",
+      "autoLabel": "Also update agents to prereleases automatically",
+      "autoHint": "Applies to agent updates only.",
+      "autoNeeds": "Needs Include agent prereleases and Update agents automatically.",
+      "running": "Target: {{version}} (Prerelease). Prerelease offers are off; the next stable will be offered.",
+      "confirmAuto": "Test builds of the agent will install without asking. This applies to agent updates only. Stable updates are not affected. Pinned and excluded agents are skipped."
+    },
+    "return": {
+      "title": "Return {{name}} to stable?",
+      "body": "Moves it from {{version}} to the newest stable version and pins it. Pinned: no update, automatic or manual, reaches it until you release the pin. That includes stable security updates. Release it under Updates, Agents, Exceptions.",
+      "confirm": "Return and pin",
+      "needs": "Needs {{keys}}.",
+      "needsMissing": "Missing {{keys}}.",
+      "alreadyPinned": "Already pinned; it stays listed once.",
+      "rowAria": "Return {{name}} to stable",
+      "retryAria": "Retry return of {{name}}",
+      "started": "Return started. The agent row shows the result."
+    },
+    "pin": {
+      "released": "Pin released",
+      "releaseFailed": "Could not release the pin",
+      "badge": "Pinned",
+      "meaning": "Pinned: no updates",
+      "returnFailed": "Return failed, still on {{version}}",
+      "summary": "Excluded agents: {{n}}. Of these, pinned: {{pinned}}.",
+      "listTitle": "Pinned agents",
+      "listDescription": "Pinned agents get no updates, including stable security updates. They stay excluded and cannot be edited here.",
+      "release": "Release pin",
+      "releaseAria": "Release pin for {{name}}",
+      "releaseTitle": "Release pin for {{name}}?",
+      "releaseBody": "Updates reach it again."
+    },
+    "storePointer": {
+      "text": "Plugin prereleases are set in the Plugin Store.",
+      "link": "Open Plugin Store"
+    },
+    "target": {
+      "channel": "Channel",
+      "stable": "Stable",
+      "prerelease": "Prerelease",
+      "offHint": "Turn on Include agent prereleases to choose a prerelease."
+    },
+    "filter": {
+      "prerelease": "Prerelease",
+      "pinned": "Pinned",
+      "shown_one": "{{count}} agent shown",
+      "shown_other": "{{count}} agents shown",
+      "noPrerelease": "No agents run a prerelease.",
+      "noPinned": "No agents are pinned."
+    },
+    "notConnected": "This agent is not connected. Connect it and try again.",
+    "cannotGoBack": "You cannot go back to an older version afterwards.",
+    "statusLabel": "Update status",
+    "badge": "Prerelease"
   }
 }

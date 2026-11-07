@@ -1,0 +1,51 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+contract: agent-update-delivery
+version: "1.1"
+supersedes: "1.0"
+note: 1.1 adds the version-specific binary and image routes and the agent return and pin routes; the target-serving routes are unchanged
+
+unchanged:
+  - GET,HEAD /api/agent/binary/{os}/{arch}: public, serves the selected target, else agent-local, else the bundled agent
+  - GET /api/agent/image/{os}/{arch}: agent bearer token, serves the selected target's image
+
+routes:
+  - method: GET
+    path: /api/agent/binary/{os}/{arch}/{version}
+    auth: the agent's own bearer token, compared in constant time by the token lookup; no session
+    served_to: only the agent pinned to exactly this version (pin rows agent_pinned_env_ids and agent_return_state); any other valid agent token answers 403
+    path_allow_list:
+      os_arch: '^[a-z0-9_]{1,16}$'
+      version: '^[0-9]{1,4}\.[0-9]{1,3}\.[0-9]{1,4}(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$, at most 128 characters, and it must also pass the strict version parser'
+    source: a ready store release of that exact version, opened through os.OpenInRoot after the store's own ValidVersion check; the bundled agent only when the version equals this host's version
+    prerelease: refused (404) while the agents prerelease switch is off
+    headers: X-Checksum-Sha256 when known
+    statuses: "401 no or wrong token, 403 not pinned to this version, 404 bad shape or nothing stored"
+  - method: GET
+    path: /api/agent/image/{os}/{arch}/{version}
+    auth: same as the binary route
+    served_to: same as the binary route
+    source: the stored `docker save` tarball of that exact version; no bundled fallback
+    statuses: same as the binary route
+  - method: POST
+    path: /api/updates/agents/{envId}/return
+    permission: [updates.manage, environments.manage]
+    pin_env_to_path: envId
+    effect: moves a connected agent running a prerelease to its platform's newest stable McHarbor can serve (a ready store release with the platform's asset, an image for a container agent, plus the bundled binary when this host is stable), pins it and excludes it from sweeps in one SQL transaction, then answers started and sends the update request with version-specific URLs in the background, waiting up to the sweep's ten-minute acknowledgement
+    refusals: "409 not connected, 409 no stable release for the platform, 409 agent too old to update itself or not on a prerelease; a refusal writes nothing"
+    failed_move: the pin stays; a redacted reason is stored in the agent_return_state settings row once the agent answers and shown in the agent inventory until the agent reports the pinned version; a retry is another return, which clears it
+    audit: action agent_return, entity the environment, state_before the version moved from with the pin it replaced (pinned, pinnedVersion), state_after the version moved to with exclusionAdded
+    bundled: for this host's own version the digest is that of the bundled binary, never the selected release's
+    unchanged: the global target and every other agent
+  - method: DELETE
+    path: /api/updates/agents/{envId}/pin
+    permission: [updates.manage, environments.manage]
+    pin_env_to_path: envId
+    effect: releases the pin and, when the pin added it, the exclusion, in one SQL transaction; clears the stored reason; 404 when the agent is not pinned
+    audit: action agent_pin_remove, entity the environment, state_before and state_after with the old and new values
+
+inventory:
+  GET /api/updates/agents rows gain: pinned (bool, omitted when false), returnReason (redacted string, omitted when empty)
+
+settings_union: Settings() and SaveSettings() union the pinned environments into agentExcludedEnvIds, so a whole-struct save made from an older read cannot drop a pin

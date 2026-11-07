@@ -1479,6 +1479,12 @@
                      "description":  "Eine kurze Übersicht über die neuesten Änderungen.",
                      "dismiss":  "Schließen",
                      "gotIt":  "Verstanden",
+                     "2026_11_02":  {
+                                        "prereleaseChannels":  {
+                                                               "title":  "Prerelease-Kanäle",
+                                                               "description":  "Testversionen von McHarbor, Agents und Plugins können jetzt angeboten werden, und jeder Schalter ist standardmäßig aus. Aktivieren Sie sie unter Einstellungen → Updates → McHarbor oder Agents sowie im Plugin Store. Ein Plugin oder ein Agent kann später zu Stable zurückkehren; ein Agent, der das tut, wird angepinnt, bis Sie den Pin lösen."
+                                        }
+                                    },
                      "2026_11_01":  {
                                         "catalogs":  {
                                                                "title":  "Kataloge kommen von GitHub",

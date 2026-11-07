@@ -1479,6 +1479,12 @@
                      "description":  "Un aperçu rapide des derniers changements.",
                      "dismiss":  "Ignorer",
                      "gotIt":  "Compris",
+                     "2026_11_02":  {
+                                        "prereleaseChannels":  {
+                                                               "title":  "Canaux de préversion",
+                                                               "description":  "Des versions de test de McHarbor, des agents et des plugins peuvent désormais être proposées, et chaque interrupteur est désactivé par défaut. Activez-les sous Paramètres → Mises à jour → McHarbor ou Agents, et dans le Plugin Store. Un plugin ou un agent peut revenir plus tard à la version stable ; un agent qui le fait est épinglé jusqu'à ce que vous libériez l'épingle."
+                                        }
+                                    },
                      "2026_11_01":  {
                                         "catalogs":  {
                                                                "title":  "Les catalogues viennent de GitHub",

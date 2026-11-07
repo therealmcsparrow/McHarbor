@@ -109,6 +109,10 @@ jobs:
           ref: ${{ steps.sha.outputs.sha }}
           fetch-depth: 0
 
+      - name: Assert stable version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh stable
+
       - name: Create promotion branch
         shell: bash
         run: |

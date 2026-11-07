@@ -17,6 +17,10 @@ type ConfirmDialogProps = {
   /** Disable the confirm button (e.g. while waiting on a form
    *  input or async check before allowing the destructive action). */
   disabled?: boolean;
+  /** Render `disabled` as aria-disabled so Confirm stays in the tab order and its reason can be heard. */
+  softDisabled?: boolean;
+  /** Id of the element holding the reason Confirm is off. */
+  confirmDescribedBy?: string;
   permission?: string | string[];
   onConfirm: () => void;
   children?: React.ReactNode;
@@ -31,6 +35,8 @@ export function ConfirmDialog({
   variant = 'destructive',
   loading = false,
   disabled = false,
+  softDisabled = false,
+  confirmDescribedBy,
   permission,
   onConfirm,
   children,
@@ -61,7 +67,18 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('actions.cancel')}
           </Button>
-          <Button variant={variant} onClick={onConfirm} disabled={disabled || loading} permission={permission}>
+          <Button
+            variant={variant}
+            className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+            onClick={() => {
+              if (softDisabled && disabled) return;
+              onConfirm();
+            }}
+            disabled={loading || (disabled && !softDisabled)}
+            aria-disabled={softDisabled && disabled && !loading ? true : undefined}
+            aria-describedby={confirmDescribedBy}
+            permission={permission}
+          >
             {loading ? t('actions.processing') : resolvedConfirmLabel}
           </Button>
         </DialogFooter>

@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 	"strings"
 	"time"
 
@@ -576,33 +575,10 @@ func randomTransferValue(length int) (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
+// agentVersionAtLeast delegates to the pool's order so a prerelease agent such
+// as 2026.11.02-alpha.1 is not read as 2026.11.0 by the transfer-probe gates.
 func agentVersionAtLeast(version, minimum string) bool {
-	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
-	minimum = strings.TrimPrefix(strings.TrimSpace(minimum), "v")
-	versionParts := strings.Split(version, ".")
-	minimumParts := strings.Split(minimum, ".")
-	for i := 0; i < 3; i++ {
-		versionPart := agentVersionPart(versionParts, i)
-		minimumPart := agentVersionPart(minimumParts, i)
-		if versionPart > minimumPart {
-			return true
-		}
-		if versionPart < minimumPart {
-			return false
-		}
-	}
-	return true
-}
-
-func agentVersionPart(parts []string, index int) int {
-	if index >= len(parts) {
-		return 0
-	}
-	value, err := strconv.Atoi(parts[index])
-	if err != nil {
-		return 0
-	}
-	return value
+	return coreagent.AgentVersionAtLeast(version, minimum)
 }
 
 func (s *Service) validateLegacyAgentToken(ctx context.Context, token, tokenHash string) (string, error) {

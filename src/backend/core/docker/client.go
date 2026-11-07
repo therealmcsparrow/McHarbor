@@ -19,6 +19,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/nodelink"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // CallTimeout bounds a single Docker SDK call.
@@ -268,6 +269,11 @@ func (p *ClientPool) AgentAtLeastContext(ctx context.Context, envID, minimum str
 }
 
 func compareAgentVersion(version, minimum string) int {
+	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
+	minimum = strings.TrimPrefix(strings.TrimSpace(minimum), "v")
+	if versionorder.IsPrerelease(version) || versionorder.IsPrerelease(minimum) || (parsable(version) && parsable(minimum)) {
+		return versionorder.Compare(version, minimum)
+	}
 	versionParts := parseAgentVersion(version)
 	minimumParts := parseAgentVersion(minimum)
 	for i := 0; i < 3; i++ {
@@ -279,6 +285,13 @@ func compareAgentVersion(version, minimum string) int {
 		}
 	}
 	return 0
+}
+
+// parsable reports whether v is a strict MAJOR.MINOR.PATCH version, build metadata included, which
+// the legacy part reader would misread as 0; short or odd legacy strings keep the lenient path.
+func parsable(v string) bool {
+	_, err := versionorder.Parse(v)
+	return err == nil
 }
 
 func parseAgentVersion(version string) [3]int {

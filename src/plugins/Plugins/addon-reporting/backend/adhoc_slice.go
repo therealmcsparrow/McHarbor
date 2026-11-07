@@ -155,8 +155,8 @@ func builtinSourceCatalog() []sourceDescriptor {
 		{srcGitops, "GitOps promotion history: environment, state, timestamp", []string{"pipeline_id", "environment", "state", "at"}},
 		{srcSystem, "Platform version info (no separate host-system data is collected for this source)", nil},
 		{srcVersions, "McHarbor and component versions", nil},
-		{srcAgents, "Remote agents: version, connection state, last seen", []string{"name", "version", "state", "last_seen"}},
-		{srcPlugins, "Installed plugins and their enabled state", []string{"slug", "version", "enabled"}},
+		{srcAgents, "Remote agents: version, connection state, last seen", []string{"name", "version", "prerelease", "state", "last_seen"}},
+		{srcPlugins, "Installed plugins and their enabled state", []string{"slug", "version", "prerelease", "enabled"}},
 		{srcUptime, "Per-container uptime history over the period", []string{"container", "uptime_percent", "downtime_minutes", "observed_days"}},
 		{srcCapacity, "Capacity headroom per filesystem and storage destination: used of total, and how many days until it is full at the current rate (or why no date could be given)", []string{"subject", "kind", "used_percent", "used_bytes", "total_bytes", "days_until_full", "full_on", "percent_per_day", "confidence", "observed_days", "refusal"}},
 	}
@@ -653,13 +653,14 @@ func projectSource(snap *Snapshot, key string, cap int) any {
 	case srcVersions:
 		agents := make([]map[string]any, 0, len(snap.Versions.Agents))
 		for _, a := range snap.Versions.Agents {
-			agents = append(agents, map[string]any{"name": a.Name, "version": a.Version})
+			agents = append(agents, map[string]any{"name": a.Name, "version": a.Version, "prerelease": isPrerelease(a.Version)})
 		}
 		return map[string]any{
-			"mcharbor_version": snap.Versions.McHarbor.Version,
-			"mcharbor_commit":  snap.Versions.McHarbor.Commit,
-			"mcharbor_built":   snap.Versions.McHarbor.Built,
-			"agents":           agents,
+			"mcharbor_version":    snap.Versions.McHarbor.Version,
+			"mcharbor_commit":     snap.Versions.McHarbor.Commit,
+			"mcharbor_built":      snap.Versions.McHarbor.Built,
+			"mcharbor_prerelease": isPrerelease(snap.Versions.McHarbor.Version),
+			"agents":              agents,
 		}
 
 	case srcAgents:
@@ -671,7 +672,8 @@ func projectSource(snap *Snapshot, key string, cap int) any {
 				break
 			}
 			out = append(out, map[string]any{
-				"name": a.Name, "version": a.Version, "state": a.Status, "last_seen": a.LastSeen,
+				"name": a.Name, "version": a.Version, "prerelease": isPrerelease(a.Version),
+				"state": a.Status, "last_seen": a.LastSeen,
 			})
 		}
 		return out
@@ -683,7 +685,7 @@ func projectSource(snap *Snapshot, key string, cap int) any {
 				break
 			}
 			out = append(out, map[string]any{
-				"slug": p.Slug, "version": p.Version, "enabled": p.Enabled,
+				"slug": p.Slug, "version": p.Version, "prerelease": isPrerelease(p.Version), "enabled": p.Enabled,
 			})
 		}
 		return out

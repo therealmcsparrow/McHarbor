@@ -4,7 +4,7 @@ Check a plugin's manifest, its route declarations and its build inputs
 
 ### Synopsis
 
-validate reads the source tree and reports what would go wrong once the plugin is installed. The check worth running it for is route drift: a plugin that registers a non-public route its plugin.yaml never declares gets no permission middleware at all, because the loader returns an empty permission on a miss and an empty permission is a pass-through — so the route is reachable by any authenticated user whatever their role. It also refuses a CRLF go.mod, a dependency version that disagrees with the host's, a permission key the installer will reject, a Version symbol that has drifted from the manifest, a UMD bundle older than its sources, and a contributes.capabilities entry the host would drop.
+validate reads the source tree and reports what would go wrong once the plugin is installed. The check worth running it for is route drift: a plugin that registers a non-public route its plugin.yaml never declares gets no permission middleware at all, because the loader returns an empty permission on a miss and an empty permission is a pass-through — so the route is reachable by any authenticated user whatever their role. It also refuses a CRLF go.mod, a dependency version that disagrees with the host's, a permission key the installer will reject, a Version symbol that has drifted from the manifest, and a UMD bundle older than its sources.
 
 With no slug it validates every plugin in the checkout. It exits 1 when any check is an error and 0 when the worst is a warning.
 

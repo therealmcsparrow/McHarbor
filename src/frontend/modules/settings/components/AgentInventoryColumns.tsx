@@ -12,6 +12,8 @@ import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { StatusError } from '@resources/components/ui/StatusError';
 import { PERM } from '@core/auth/permissionKeys';
+import { isPrerelease } from '@resources/utils/versionOrder';
+import { AgentReturnAction } from './AgentReturnDialog';
 import {
   agentPlatform,
   agentState,
@@ -107,7 +109,12 @@ export function useAgentInventoryColumns({
         id: 'version',
         accessorFn: (agent) => agent.version || DASH,
         header: t('about.agents.version'),
-        cell: ({ row }) => <span className="font-mono text-muted-foreground">{row.original.version || DASH}</span>,
+        cell: ({ row }) => (
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="font-mono text-muted-foreground">{row.original.version || DASH}</span>
+            {isPrerelease(row.original.version) ? <Badge variant="warning">{t('prerelease.badge')}</Badge> : null}
+          </span>
+        ),
       },
       {
         id: 'build',
@@ -148,7 +155,8 @@ export function useAgentInventoryColumns({
           label: t('labels.actions', { ns: 'common' }),
         } satisfies TableColumnMeta,
         cell: ({ row }) => (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <AgentReturnAction agent={row.original} />
             <Button
               variant="ghost"
               size="icon-sm"
@@ -167,7 +175,7 @@ export function useAgentInventoryColumns({
   );
 }
 
-function AgentStatusCell({ agent, excluded }: { agent: AgentRow; excluded: boolean }) {
+export function AgentStatusCell({ agent, excluded }: { agent: AgentRow; excluded: boolean }) {
   const { t } = useTranslation('settings');
   const state = agentState(agent, excluded);
   const progress = agent.progress;
@@ -185,13 +193,21 @@ function AgentStatusCell({ agent, excluded }: { agent: AgentRow; excluded: boole
     );
   }
 
+  const returnFailed = !!agent.pinned && !!agent.returnReason;
+
   return (
     <span className="flex flex-wrap items-center gap-1.5">
-      <Badge variant={STATE_VARIANT[state]}>{t(AGENT_STATE_KEY[state])}</Badge>
+      {returnFailed ? (
+        <Badge variant="destructive">{t('prerelease.pin.returnFailed', { version: agent.version ?? '' })}</Badge>
+      ) : (
+        <Badge variant={STATE_VARIANT[state]}>{t(AGENT_STATE_KEY[state])}</Badge>
+      )}
       {state === 'started' && progress?.mode ? (
         <span className="text-xs text-muted-foreground">{t(`about.agents.mode.${progress.mode}`)}</span>
       ) : null}
-      {state === 'failed' ? <StatusError error={progress?.error} /> : null}
+      {state === 'failed' && !returnFailed ? <StatusError error={progress?.error} /> : null}
+      {returnFailed ? <StatusError error={agent.returnReason} /> : null}
+      {agent.pinned ? <Badge variant="outline">{t('prerelease.pin.meaning')}</Badge> : null}
     </span>
   );
 }

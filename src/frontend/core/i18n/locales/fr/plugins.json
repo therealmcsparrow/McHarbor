@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Réparation nécessaire",
-    "explanation": "Conçue pour McHarbor {{builtFor}}, cette installation est en {{current}}.",
+    "explanation": "Ce plugin ne s'est pas chargé sur ce McHarbor. Réparer le télécharge à nouveau depuis le catalogue.",
     "action": "Réparer",
     "reconcile": "Réconcilier",
     "reconcileHint": "Épingler ce plugin à la version {{version}} du catalogue. L'hôte le conserve, le déplace ou le réinstalle afin que l'enregistrement, les fichiers et le binaire concordent ; les attributions de rôles sont conservées.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Créé par",
-    "readOnlyShort": "ro"
+    "readOnlyShort": "ro",
+    "prerelease": "Préversion",
+    "installedPrerelease": "Installé : préversion",
+    "prereleaseUpdate": "Mise à jour en préversion disponible",
+    "builtForPrereleaseHost": "Conçu pour cet hôte en préversion. Si le plugin ne peut pas se charger, la raison s'affiche ci-dessous ; mettez McHarbor à jour vers la prochaine version stable pour le déplacer.",
+    "versions": "Versions"
+  },
+  "channels": {
+    "saveFailed": "Impossible d’enregistrer le réglage des préversions",
+    "needs": "Nécessite {{permission}}.",
+    "unavailable": "Réglage indisponible. Nécessite {{permission}}.",
+    "loadFailed": "Impossible de charger le réglage des préversions.",
+    "retry": "Réessayer",
+    "store": {
+      "label": "Proposer les préversions des plugins",
+      "hint": "Affiche, pour chaque plugin, les versions de test qui ne sont pas définitives. Un plugin peut aussi l’activer sur sa page de détails."
+    },
+    "override": {
+      "label": "Proposer les préversions de ce plugin",
+      "hint": "Affiche les versions de test de ce plugin même lorsque l’interrupteur du Plugin Store est désactivé.",
+      "globalOn": "Activé pour tous les plugins du Plugin Store.",
+      "followsOff": "Les préversions sont désactivées pour ce plugin. La prochaine version stable sera proposée.",
+      "none": "Aucune préversion disponible."
+    }
+  },
+  "return": {
+    "open": "Revenir à la version stable",
+    "title": "Ramener {{name}} à la version stable ?",
+    "summary": "De {{from}} à {{to}}. Vos données sont conservées.",
+    "summaryFrom": "Depuis {{from}}. Vos données sont conservées.",
+    "checking": "Vérification que {{name}} peut revenir à la version stable...",
+    "ready": "Prêt à revenir. Rien ne le bloque.",
+    "blocked": "Retour impossible : la préversion a modifié la base de données ({{migration}}) et la version stable ne contient pas cette modification. Rien n’a été changé.",
+    "blockedGeneric": "Retour impossible : la vérification a donné un résultat que cette version ne connaît pas. Rien n’a été changé.",
+    "noStable": "Aucune version stable de {{name}} n’est disponible.",
+    "prereleaseHost": "Les plugins suivent cet hôte en préversion et restent sur ses préversions. Ils pourront revenir à la version stable une fois une version stable plus récente de McHarbor installée.",
+    "checkFailed": "La vérification n’a pas pu s’exécuter",
+    "checkAgain": "Vérifier à nouveau",
+    "unsigned": "Ce paquet n’a pas de signature, McHarbor ne peut donc pas confirmer qui l’a créé. Il n’a pas été ouvert. La vérification de la base de données ne s’exécute qu’après votre accord.",
+    "consent": "Je comprends et je veux ramener {{name}} avec un paquet non signé.",
+    "consentGiven": "Accord donné. Confirmez pour continuer.",
+    "refusedTitle": "Le retour a été refusé",
+    "confirm": "Revenir à la version stable",
+    "success": "{{name}} est revenu à la version stable",
+    "failed": "Impossible de ramener le plugin à la version stable"
   }
 }

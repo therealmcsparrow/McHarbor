@@ -114,7 +114,7 @@ func readRemoteCatalog(ctx context.Context, url string) ([]PluginEntry, error) {
 		out[at].Versions = merged
 		out[at].Version = merged[0].Version
 		out[at].Build = merged[0].Build
-		out[at].BuiltFor = merged[0].BuiltFor
+		out[at].MinMcharbor = merged[0].MinMcharbor
 		out[at].DownloadURL = merged[0].DownloadURL
 		out[at].Checksum = merged[0].Checksum
 		out[at].Signature = merged[0].Signature
@@ -183,11 +183,14 @@ func entryFromCatalogFile(cf catalogFile) (PluginEntry, bool) {
 
 	var versions []PluginVersion
 	for _, v := range cf.Versions {
-		if v.Version != "" && v.DownloadURL != "" {
+		if v.Version != "" && v.DownloadURL != "" && usableVersion(v.Version) {
 			versions = append(versions, v)
 		}
 	}
-	if cf.Version != "" && cf.DownloadURL != "" {
+	versions = append(versions, prereleaseRows(cf, func(v PluginVersion) (PluginVersion, bool) {
+		return v, v.DownloadURL != ""
+	})...)
+	if cf.Version != "" && cf.DownloadURL != "" && usableVersion(cf.Version) {
 		versions = append(versions, PluginVersion{
 			Version:     cf.Version,
 			DownloadURL: cf.DownloadURL,
@@ -215,7 +218,7 @@ func entryFromCatalogFile(cf catalogFile) (PluginEntry, bool) {
 		// Build is what the Store's Update compares when a rebuild keeps its
 		// version; without it a remote catalog never offers that update.
 		Build:       top.Build,
-		BuiltFor:    top.BuiltFor,
+		MinMcharbor: top.MinMcharbor,
 		DownloadURL: top.DownloadURL,
 		Checksum:    top.Checksum,
 		Signature:   top.Signature,

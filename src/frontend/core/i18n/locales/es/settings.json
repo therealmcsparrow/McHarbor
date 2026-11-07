@@ -2034,5 +2034,83 @@
     "selfSubtitle": "Servicios systemd de la máquina en la que está instalado McHarbor. Esta página siempre actúa sobre ese host, sea cual sea el entorno seleccionado.",
     "warningTitle": "Esto cambia el host, no McHarbor",
     "warningBody": "Detener, desactivar o reconfigurar un servicio aquí actúa sobre la máquina en la que se ejecuta McHarbor. Las unidades del propio McHarbor y su runtime de contenedores se pueden reiniciar, pero no detener ni desactivar."
+  },
+  "prerelease": {
+    "subtitle": "Versiones de prueba que aún no son finales. Todos los interruptores están desactivados por defecto.",
+    "needsView": "Se necesita {{key}} para ver estos ajustes.",
+    "needs": "Se necesita {{key}}.",
+    "loadFailed": "No se pudieron cargar los ajustes de preversiones.",
+    "retry": "Reintentar",
+    "confirmAuto": {
+      "title": "¿Instalar preversiones automáticamente?",
+      "confirm": "Activar"
+    },
+    "mcharbor": {
+      "title": "Preversiones de McHarbor",
+      "label": "Incluir preversiones",
+      "hint": "Ofrece versiones de prueba de McHarbor que aún no son finales. Solo se instalan cuando usted las elige. Después no podrá volver a una versión anterior de McHarbor.",
+      "autoLabel": "Instalar también preversiones automáticamente",
+      "autoHint": "Se aplica solo a las actualizaciones de McHarbor.",
+      "autoNeeds": "Requiere Incluir preversiones e Instalar automáticamente.",
+      "running": "Está ejecutando {{version}} (preversión). Las actualizaciones de preversiones están desactivadas. Ahora no cambia nada y se ofrecerá la siguiente versión estable más reciente que esta cuando se publique. No se puede instalar una versión anterior.",
+      "confirmAuto": "Las versiones de prueba de McHarbor se instalarán sin preguntar. Se aplica solo a las actualizaciones de McHarbor. Las actualizaciones estables no se ven afectadas. Después no podrá volver a una versión anterior."
+    },
+    "agents": {
+      "title": "Preversiones de agentes",
+      "label": "Incluir preversiones de agentes",
+      "hint": "Ofrece versiones de prueba del agente que aún no son finales. Independiente del ajuste de McHarbor.",
+      "autoLabel": "Actualizar también los agentes a preversiones automáticamente",
+      "autoHint": "Se aplica solo a las actualizaciones de agentes.",
+      "autoNeeds": "Requiere Incluir preversiones de agentes y Actualizar agentes automáticamente.",
+      "running": "Objetivo: {{version}} (preversión). Las ofertas de preversiones están desactivadas; se ofrecerá la siguiente versión estable.",
+      "confirmAuto": "Las versiones de prueba del agente se instalarán sin preguntar. Se aplica solo a las actualizaciones de agentes. Las actualizaciones estables no se ven afectadas. Los agentes fijados y excluidos se omiten."
+    },
+    "return": {
+      "title": "¿Devolver {{name}} a estable?",
+      "body": "Lo devuelve de {{version}} a la versión estable más reciente y lo fija. Fijado: ninguna actualización, automática o manual, lo alcanza hasta que quite la fijación. Esto incluye las actualizaciones de seguridad estables. Quítela en Actualizaciones, Agentes, Excepciones.",
+      "confirm": "Devolver y fijar",
+      "needs": "Se necesita {{keys}}.",
+      "needsMissing": "Falta {{keys}}.",
+      "alreadyPinned": "Ya está fijado; aparece una sola vez.",
+      "rowAria": "Devolver {{name}} a estable",
+      "retryAria": "Reintentar la devolución de {{name}}",
+      "started": "Devolución iniciada. La fila del agente muestra el resultado."
+    },
+    "pin": {
+      "released": "Fijación quitada",
+      "releaseFailed": "No se pudo quitar la fijación",
+      "badge": "Fijado",
+      "meaning": "Fijado: sin actualizaciones",
+      "returnFailed": "Falló la devolución, sigue en {{version}}",
+      "summary": "Agentes excluidos: {{n}}. De ellos, fijados: {{pinned}}.",
+      "listTitle": "Agentes fijados",
+      "listDescription": "Los agentes fijados no reciben actualizaciones, ni siquiera las de seguridad estables. Siguen excluidos y no se editan aquí.",
+      "release": "Quitar fijación",
+      "releaseAria": "Quitar la fijación de {{name}}",
+      "releaseTitle": "¿Quitar la fijación de {{name}}?",
+      "releaseBody": "Las actualizaciones volverán a llegarle."
+    },
+    "storePointer": {
+      "text": "Las versiones preliminares de los plugins se ajustan en la Plugin Store.",
+      "link": "Abrir Plugin Store"
+    },
+    "target": {
+      "channel": "Canal",
+      "stable": "Estable",
+      "prerelease": "Preliminar",
+      "offHint": "Active Incluir versiones preliminares de agentes para elegir una versión preliminar."
+    },
+    "filter": {
+      "prerelease": "Preliminar",
+      "pinned": "Fijado",
+      "shown_one": "{{count}} agente mostrado",
+      "shown_other": "{{count}} agentes mostrados",
+      "noPrerelease": "Ningún agente ejecuta una versión preliminar.",
+      "noPinned": "Ningún agente está fijado."
+    },
+    "notConnected": "Este agente no está conectado. Conéctelo e inténtelo de nuevo.",
+    "cannotGoBack": "Después no podrá volver a una versión anterior.",
+    "statusLabel": "Estado de actualización",
+    "badge": "Preversión"
   }
 }

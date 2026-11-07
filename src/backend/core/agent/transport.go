@@ -21,6 +21,7 @@ import (
 
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 	"github.com/therealmcsparrow/mcharbor/core/telemetry"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // pendingReq tracks an in-flight HTTP request waiting for a response.
@@ -1548,6 +1549,9 @@ func agentSupportsRequestStreaming(version string) bool {
 	parts := strings.Split(version, ".")
 	if len(parts) < 2 {
 		return false
+	}
+	if versionorder.IsPrerelease(version) {
+		return versionorder.Compare(version, agentRequestStreamingMinVersion) >= 0
 	}
 	return compareAgentProtocolVersion(parts, strings.Split(agentRequestStreamingMinVersion, ".")) >= 0
 }

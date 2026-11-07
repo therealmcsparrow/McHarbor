@@ -15,6 +15,7 @@ import (
 	"time"
 
 	coredb "github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
@@ -123,3 +124,33 @@ func TestSchedulesAreValidatedAndDefaulted(t *testing.T) {
 		t.Fatalf("defaults: %q %q %d", c, i, w)
 	}
 }
+
+func TestTheInstallWindowDefersOnlyForAnInstallThatWillHappen(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		patch        updatechannel.Patch
+		wantDeferred string
+	}{
+		{"prerelease option off", updatechannel.Patch{}, ""},
+		{"prerelease option on", updatechannel.Patch{McHarborPrereleases: boolPtr(true), McHarborAutoPrereleases: boolPtr(true)}, BusyBackupRunning},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newSchedFixture(t, SelfUpdateSettings{Enabled: true, AutoInstall: true, CheckCron: "0 4 * * *", InstallCron: "30 4 * * *", InstallWindowMinutes: 60})
+			ctx := context.Background()
+			if _, _, err := updatechannel.Apply(ctx, f.c.db, tc.patch); err != nil {
+				t.Fatal(err)
+			}
+			f.c.tick(ctx, at(4, 29))
+			state := f.c.State()
+			state.LatestVersion, state.UpdateAvailable, state.LatestIsPrerelease = "9999.01.01-rc.1", true, true
+			f.c.persistAndCache(ctx, state)
+			f.busy = BusyBackupRunning
+			f.c.tick(ctx, at(4, 30))
+			if got := f.c.State().InstallDeferred; got != tc.wantDeferred {
+				t.Fatalf("InstallDeferred = %q, want %q", got, tc.wantDeferred)
+			}
+		})
+	}
+}
+
+func boolPtr(v bool) *bool { return &v }

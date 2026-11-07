@@ -2034,5 +2034,83 @@
     "selfSubtitle": "systemd-Dienste auf dem Rechner, auf dem McHarbor installiert ist. Diese Seite wirkt immer auf diesen Host, unabhängig von der gewählten Umgebung.",
     "warningTitle": "Dies ändert den Host, nicht McHarbor",
     "warningBody": "Das Stoppen, Deaktivieren oder Umkonfigurieren eines Dienstes wirkt hier auf den Rechner, auf dem McHarbor läuft. Die eigenen Units von McHarbor und seine Container-Runtime können neu gestartet, aber nicht gestoppt oder deaktiviert werden."
+  },
+  "prerelease": {
+    "subtitle": "Testversionen, die noch nicht final sind. Alle Schalter sind standardmäßig aus.",
+    "needsView": "{{key}} ist nötig, um diese Einstellungen zu sehen.",
+    "needs": "{{key}} ist nötig.",
+    "loadFailed": "Die Einstellungen für Vorabversionen konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "confirmAuto": {
+      "title": "Vorabversionen automatisch installieren?",
+      "confirm": "Einschalten"
+    },
+    "mcharbor": {
+      "title": "McHarbor-Vorabversionen",
+      "label": "Vorabversionen einbeziehen",
+      "hint": "Bietet McHarbor-Testversionen an, die noch nicht final sind. Sie werden nur installiert, wenn Sie sie auswählen. Danach können Sie nicht zu einer älteren McHarbor-Version zurück.",
+      "autoLabel": "Vorabversionen auch automatisch installieren",
+      "autoHint": "Gilt nur für McHarbor-Updates.",
+      "autoNeeds": "Erfordert Vorabversionen einbeziehen und Automatisch installieren.",
+      "running": "Sie nutzen {{version}} (Vorabversion). Vorabversions-Updates sind aus. Jetzt ändert sich nichts, und die nächste stabile Version, die neuer ist als diese, wird angeboten, sobald sie erscheint. Eine ältere Version kann nicht installiert werden.",
+      "confirmAuto": "Testversionen von McHarbor werden ohne Nachfrage installiert. Das gilt nur für McHarbor-Updates. Stabile Updates sind nicht betroffen. Danach können Sie nicht zu einer älteren Version zurück."
+    },
+    "agents": {
+      "title": "Agent-Vorabversionen",
+      "label": "Agent-Vorabversionen einbeziehen",
+      "hint": "Bietet Testversionen des Agents an, die noch nicht final sind. Unabhängig von der McHarbor-Einstellung.",
+      "autoLabel": "Agents auch automatisch auf Vorabversionen aktualisieren",
+      "autoHint": "Gilt nur für Agent-Updates.",
+      "autoNeeds": "Erfordert Agent-Vorabversionen einbeziehen und Agents automatisch aktualisieren.",
+      "running": "Ziel: {{version}} (Vorabversion). Vorabversionen werden nicht angeboten; die nächste stabile Version wird angeboten.",
+      "confirmAuto": "Testversionen des Agents werden ohne Nachfrage installiert. Das gilt nur für Agent-Updates. Stabile Updates sind nicht betroffen. Angeheftete und ausgeschlossene Agents werden übersprungen."
+    },
+    "return": {
+      "title": "{{name}} auf stabil zurücksetzen?",
+      "body": "Setzt ihn von {{version}} auf die neueste stabile Version zurück und heftet ihn an. Angeheftet: Kein Update, weder automatisch noch manuell, erreicht ihn, bis Sie die Anheftung lösen. Das schließt stabile Sicherheitsupdates ein. Lösen unter Updates, Agents, Ausnahmen.",
+      "confirm": "Zurücksetzen und anheften",
+      "needs": "Erfordert {{keys}}.",
+      "needsMissing": "Fehlt: {{keys}}.",
+      "alreadyPinned": "Bereits angeheftet; er wird nur einmal aufgeführt.",
+      "rowAria": "{{name}} auf stabil zurücksetzen",
+      "retryAria": "Zurücksetzen von {{name}} erneut versuchen",
+      "started": "Zurücksetzen gestartet. Die Agent-Zeile zeigt das Ergebnis."
+    },
+    "pin": {
+      "released": "Anheftung gelöst",
+      "releaseFailed": "Die Anheftung konnte nicht gelöst werden",
+      "badge": "Angeheftet",
+      "meaning": "Angeheftet: keine Updates",
+      "returnFailed": "Zurücksetzen fehlgeschlagen, läuft noch auf {{version}}",
+      "summary": "Ausgeschlossene Agents: {{n}}. Davon angeheftet: {{pinned}}.",
+      "listTitle": "Angeheftete Agents",
+      "listDescription": "Angeheftete Agents erhalten keine Updates, auch keine stabilen Sicherheitsupdates. Sie bleiben ausgeschlossen und sind hier nicht bearbeitbar.",
+      "release": "Anheftung lösen",
+      "releaseAria": "Anheftung für {{name}} lösen",
+      "releaseTitle": "Anheftung für {{name}} lösen?",
+      "releaseBody": "Updates erreichen ihn wieder."
+    },
+    "storePointer": {
+      "text": "Plugin-Vorabversionen werden im Plugin Store eingestellt.",
+      "link": "Plugin Store öffnen"
+    },
+    "target": {
+      "channel": "Kanal",
+      "stable": "Stabil",
+      "prerelease": "Vorabversion",
+      "offHint": "Schalten Sie Agent-Vorabversionen einschließen ein, um eine Vorabversion zu wählen."
+    },
+    "filter": {
+      "prerelease": "Vorabversion",
+      "pinned": "Angeheftet",
+      "shown_one": "{{count}} Agent angezeigt",
+      "shown_other": "{{count}} Agents angezeigt",
+      "noPrerelease": "Kein Agent führt eine Vorabversion aus.",
+      "noPinned": "Kein Agent ist angeheftet."
+    },
+    "notConnected": "Dieser Agent ist nicht verbunden. Verbinden Sie ihn und versuchen Sie es erneut.",
+    "cannotGoBack": "Danach ist keine ältere Version mehr möglich.",
+    "statusLabel": "Update-Status",
+    "badge": "Vorabversion"
   }
 }

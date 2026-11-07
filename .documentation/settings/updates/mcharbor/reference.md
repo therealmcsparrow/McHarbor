@@ -8,6 +8,8 @@
 | **Keep the window open for (minutes)** | 120 | 15 to 720. How long an install waits for running work to finish before the window is skipped |
 | **Notify these channels on a new release** | none | "Leave empty to only surface the in-app banner" |
 | **Install McHarbor updates automatically** | Off | "Pull the image and restart into it without waiting for a confirmation" |
+| **Include prereleases** | Off | Offers McHarbor test builds that are not final; they install only when you choose them. Saved with `PUT /api/updates/channels`, read with `GET /api/updates/channels`. See [Prerelease channels](../prerelease-channels/README.md) |
+| **Also install prereleases automatically** | Off | A prerelease installs by itself only with **Include prereleases**, **Install McHarbor updates automatically** and this option all on |
 
 **Update now** confirms first: "McHarbor will pull the new image, stop the current
 container, and start a new one in its place. You will be disconnected and need to reload
@@ -21,6 +23,8 @@ leaving the switch looking armed: "The self-update checker is off, so nothing he
 
 A failure is reported rather than retried silently: "Automatic install of v3.1.0 failed.
 Update manually or check the logs."
+
+On a host that runs a prerelease, an update must name an explicit version: `latest` and an empty or unparsable tag are refused, since `latest` is the previous stable. A native host sends the offered version too when it runs stable, so installing an offered prerelease by hand names it there as well. Both prerelease options need `updates.manage`.
 
 ## When something does not behave
 
@@ -36,6 +40,8 @@ Update manually or check the logs."
 | Agents broke after an update | They were left on the old version | Enable automatic agent updates, or run a sweep |
 
 ## Related
+
+- [Prerelease channels](../prerelease-channels/README.md): the switches, the override, returning to stable and pins
 
 - [McHarbor](./README.md): what the section is for
 - [Settings](../../README.md): the other groups

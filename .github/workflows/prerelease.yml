@@ -1,0 +1,878 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Prerelease
+
+on:
+  workflow_dispatch:
+    inputs:
+      architectures:
+        description: Architectures to build native packages for
+        default: amd64
+        type: string
+      plugin_slugs:
+        description: Plugins to build and publish as prereleases, space-separated slugs; empty skips the plugin path
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prerelease-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CATALOG_REPO: therealmcsparrow/McHarbor-Catalog
+  CATALOG_BASE: https://raw.githubusercontent.com/therealmcsparrow/McHarbor-Catalog/main
+  GOVULNCHECK_VERSION: v1.1.4
+  NFPM_IMAGE: goreleaser/nfpm@sha256:a662cb167d7b6d3a83920c83d76b12d02b8ac5dd2c13e5c62c15270b23f6df0c
+  TRIVY_IMAGE: aquasec/trivy@sha256:a22415a38938a56c379387a8163fcb0ce38b10ace73e593475d3658d578b2436
+
+jobs:
+  verify:
+    name: Verify prerelease tree
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.channel.outputs.version }}
+      build: ${{ steps.channel.outputs.build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        id: channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(bash scripts/release/assert-version-channel.sh prerelease)"
+          build="$(tr -d '[:space:]' < BUILD)"
+          if [[ ! "$build" =~ ^[0-9]{12}$ ]]; then
+            echo "::error::BUILD is not a yyyyMMddHHmm stamp."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+      - name: Verify version lockstep
+        shell: bash
+        env:
+          VERSION: ${{ steps.channel.outputs.version }}
+        run: |
+          set -euo pipefail
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          frontend_version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' src/frontend/package.json | head -n1)"
+          if [[ "$agent_version" != "$VERSION" || "$frontend_version" != "$VERSION" ]]; then
+            echo "::error::Version drift detected. VERSION=$VERSION, agent=$agent_version, frontend=$frontend_version."
+            exit 1
+          fi
+
+      - name: Verify CHANGELOG entry
+        shell: bash
+        env:
+          VERSION: ${{ steps.channel.outputs.version }}
+        run: |
+          set -euo pipefail
+          if ! grep -qF "## [${VERSION}]" CHANGELOG.md; then
+            echo "::error::No CHANGELOG entry found for ${VERSION}."
+            exit 1
+          fi
+
+      - name: Verify the tag is free
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.channel.outputs.version }}
+        run: |
+          set -euo pipefail
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Release v${VERSION} already exists; a published prerelease is never overwritten."
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.2'
+          cache: true
+
+      - name: Verify build
+        working-directory: src/backend
+        run: go build ./...
+
+      - name: govulncheck
+        shell: bash
+        env:
+          GOWORK: off
+        run: |
+          set -euo pipefail
+          go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
+          status=0
+          for dir in src/backend src/agent; do
+            (cd "$dir" && "$(go env GOPATH)/bin/govulncheck" ./...) || status=1
+          done
+          exit "$status"
+
+  publish-image:
+    name: Scan and publish image
+    runs-on: ubuntu-latest
+    needs: verify
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build amd64 image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/mcharbor-amd64.tar
+          cache-to: type=gha,mode=max,scope=prerelease-mcharbor
+          cache-from: type=gha,scope=prerelease-mcharbor
+
+      - name: Build arm64 image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/arm64
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/mcharbor-arm64.tar
+          cache-to: type=gha,mode=max,scope=prerelease-mcharbor
+          cache-from: type=gha,scope=prerelease-mcharbor
+
+      - name: Scan both images
+        shell: bash
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            docker run --rm -v "$RUNNER_TEMP:/scan:ro" "$TRIVY_IMAGE" image \
+              --input "/scan/mcharbor-${arch}.tar" --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+          done
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=prerelease-mcharbor
+          tags: ghcr.io/${{ github.repository_owner }}/mcharbor:${{ needs.verify.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.verify.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+
+      - name: Sign image (keyless)
+        shell: bash
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/mcharbor@${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "$IMAGE"
+
+  publish-agent-image:
+    name: Scan and publish agent image
+    runs-on: ubuntu-latest
+    needs: verify
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build amd64 agent image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/mcharbor-agent-amd64.tar
+          cache-to: type=gha,mode=max,scope=prerelease-agent
+          cache-from: type=gha,scope=prerelease-agent
+
+      - name: Build arm64 agent image for scanning
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/arm64
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/mcharbor-agent-arm64.tar
+          cache-to: type=gha,mode=max,scope=prerelease-agent
+          cache-from: type=gha,scope=prerelease-agent
+
+      - name: Scan both agent images
+        shell: bash
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            docker run --rm -v "$RUNNER_TEMP:/scan:ro" "$TRIVY_IMAGE" image \
+              --input "/scan/mcharbor-agent-${arch}.tar" --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+          done
+
+      - name: Log in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Push agent image
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64,linux/arm64
+          push: true
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=prerelease-agent
+          tags: ghcr.io/${{ github.repository_owner }}/mcharbor-agent:${{ needs.verify.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.verify.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+
+      - name: Sign agent image (keyless)
+        shell: bash
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/mcharbor-agent@${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "$IMAGE"
+
+  build-agent-binaries:
+    name: Build agent binaries
+    runs-on: ubuntu-latest
+    needs: [verify, publish-agent-image]
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      BUILD: ${{ needs.verify.outputs.build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.2'
+          cache: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build agent binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/agent dist/agent-arm64
+          docker buildx build --target agentexport --output type=local,dest=dist/agent -f docker/Dockerfile .
+          docker buildx build --platform linux/arm64 --target agentexport --output type=local,dest=dist/agent-arm64 -f docker/Dockerfile .
+          mv dist/agent-arm64/mcharbor-agent-linux-amd64 dist/agent/mcharbor-agent-linux-arm64
+          for platform in darwin/amd64 darwin/arm64 windows/amd64; do
+            os="${platform%%/*}"
+            arch="${platform##*/}"
+            out="$GITHUB_WORKSPACE/dist/agent/mcharbor-agent-$os-$arch"
+            [ "$os" = "windows" ] && out="$out.exe"
+            (cd src/agent && GOWORK=off CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
+              go build -tags urfave_cli_no_docs -ldflags "-s -w -X main.agentBuild=$BUILD" -o "$out" .)
+          done
+
+      - name: Write release metadata and checksums
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.publish-agent-image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          cd dist/agent
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          printf '%s\n' "$BUILD" > BUILD
+          if [ -n "$IMAGE_DIGEST" ]; then
+            printf '%s\n' "ghcr.io/$owner/mcharbor-agent@$IMAGE_DIGEST" > image.txt
+          fi
+          sha256sum BUILD mcharbor-agent-* $( [ -f image.txt ] && echo image.txt ) > SHA256SUMS
+          printf '{"version":"%s","build":"%s"}\n' "$VERSION" "$BUILD" > latest.json
+          cat SHA256SUMS
+
+      - name: Upload unsigned agent release
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mcharbor-agent-unsigned
+          path: dist/agent/*
+          retention-days: 1
+          if-no-files-found: error
+
+  sign-agent-release:
+    name: Sign agent prerelease
+    runs-on: ubuntu-latest
+    needs: [verify, build-agent-binaries]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.2'
+          cache: false
+
+      - name: Download unsigned agent release
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: mcharbor-agent-unsigned
+          path: dist/agent
+
+      - name: Sign SHA256SUMS
+        shell: bash
+        env:
+          AGENT_SIGNING_KEY: ${{ secrets.AGENT_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$AGENT_SIGNING_KEY" ]; then
+            echo "::error::The AGENT_SIGNING_KEY secret is not set. Every McHarbor refuses an unsigned agent release."
+            exit 1
+          fi
+          (cd dist/agent && sha256sum -c SHA256SUMS)
+          key="$RUNNER_TEMP/agent-signing.key"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$AGENT_SIGNING_KEY" | base64 -d > "$key"
+          trust=()
+          if [ -f signing/agent-signing.pub ]; then
+            trust=(-trust "$GITHUB_WORKSPACE/signing/agent-signing.pub")
+          fi
+          (cd src/backend && GOWORK=off go run ./cmd/pluginsigner -file "$GITHUB_WORKSPACE/dist/agent/SHA256SUMS" -key "$key" "${trust[@]}")
+          test -s dist/agent/SHA256SUMS.sig
+
+      - name: Upload signed agent release
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mcharbor-agent-prerelease
+          path: dist/agent/*
+          retention-days: 90
+          if-no-files-found: error
+
+  publish-agent-binaries:
+    name: Publish signed agent prerelease
+    runs-on: ubuntu-latest
+    needs: [verify, sign-agent-release]
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Download signed agent release
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: mcharbor-agent-prerelease
+          path: dist/agent
+
+      - name: Publish to the agent repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.AGENT_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "AGENT_RELEASE_TOKEN is not set; the signed prerelease is available as the workflow artifact only."
+            exit 0
+          fi
+          test -s dist/agent/SHA256SUMS.sig
+          tag="v${VERSION}"
+          repo="therealmcsparrow/mcharbor-agent"
+          if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
+            echo "::error::Agent release $tag already exists; a published prerelease is never overwritten."
+            exit 1
+          fi
+          gh release create "$tag" dist/agent/* --repo "$repo" --title "McHarbor agent $tag"             --notes "Signed agent prerelease. Verify SHA256SUMS.sig against the key pinned in McHarbor."             --prerelease --latest=false
+
+  build-packages:
+    name: Build native packages
+    runs-on: ubuntu-latest
+    needs: verify
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build glibc payload and tarball
+        run: MCHARBOR_TARBALL=1 bash scripts/development/build-mcharbor.sh
+
+      - name: Package deb and rpm
+        shell: bash
+        env:
+          MCHARBOR_ARCH: amd64
+          MCHARBOR_PAYLOAD: dist/payload
+        run: |
+          set -euo pipefail
+          export MCHARBOR_VERSION="${VERSION//-/\~}"
+          mkdir -p dist/packages
+          for pkg in deb rpm; do
+            docker run --rm -v "$PWD:/w" -w /w \
+              -e MCHARBOR_VERSION -e MCHARBOR_ARCH -e MCHARBOR_PAYLOAD \
+              "$NFPM_IMAGE" package -f packaging/nfpm.yaml -p "$pkg" -t dist/packages
+          done
+          for f in dist/packages/*~*; do
+            [ -e "$f" ] || continue
+            mv "$f" "${f//\~/-}"
+          done
+
+      - name: Generate packages SBOM
+        uses: anchore/sbom-action@55dc4ee22412511ee8c3142cbea40418e6cec693
+        with:
+          path: dist/packages
+          format: spdx-json
+          output-file: dist/packages/mcharbor-packages.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Generate checksums
+        working-directory: dist/packages
+        run: sha256sum * > SHA256SUMS
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+
+      - name: Sign checksums (keyless)
+        working-directory: dist/packages
+        run: cosign sign-blob --yes --bundle SHA256SUMS.cosign.bundle SHA256SUMS
+
+      - name: Upload packages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mcharbor-packages-amd64
+          path: dist/packages/*
+          retention-days: 30
+
+  create-release:
+    name: Create GitHub prerelease
+    runs-on: ubuntu-latest
+    needs: [verify, publish-image, publish-agent-image, publish-agent-binaries, build-packages, publish-plugin-prereleases]
+    if: >-
+      ${{ !cancelled()
+      && needs.verify.result == 'success'
+      && needs.publish-image.result == 'success'
+      && needs.publish-agent-image.result == 'success'
+      && needs.publish-agent-binaries.result == 'success'
+      && needs.build-packages.result == 'success'
+      && (inputs.plugin_slugs == '' || needs.publish-plugin-prereleases.result == 'success') }}
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Download packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: mcharbor-packages-amd64
+          path: dist/packages
+
+      - name: Create GitHub prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          build="$(tr -d '[:space:]' < BUILD)"
+          printf '%s\n' "$build" > "$RUNNER_TEMP/BUILD"
+          notes="$(awk -v ver="## [${VERSION}]" '
+            index($0, ver) == 1 {flag=1; next}
+            flag && /^## \[/ {flag=0}
+            flag {print}
+          ' CHANGELOG.md)"
+          if [[ -z "$notes" ]]; then
+            notes="Prerelease ${VERSION}"
+          fi
+          gh release create "v${VERSION}" "$RUNNER_TEMP/BUILD" dist/packages/* \
+            --title "Prerelease ${VERSION}" \
+            --notes "$notes" \
+            --target "$GITHUB_SHA" \
+            --prerelease --latest=false
+
+  build-plugin-prereleases:
+    name: Build plugin prereleases (unsigned)
+    runs-on: ubuntu-latest
+    needs: verify
+    if: inputs.plugin_slugs != ''
+    timeout-minutes: 340
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Check the requested plugins are prereleases
+        shell: bash
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          [ "${#slugs[@]}" -gt 0 ] || { echo "::error::No plugin slug given."; exit 1; }
+          for slug in "${slugs[@]}"; do
+            if [[ ! "$slug" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+              echo "::error::'$slug' is not a plugin slug."
+              exit 1
+            fi
+            manifest="src/plugins/Plugins/$slug/plugin.yaml"
+            [ -f "$manifest" ] || { echo "::error::No plugin $slug in this tree."; exit 1; }
+            version="$(sed -n 's/^version:[[:space:]]*"\{0,1\}\([^"[:space:]]*\).*/\1/p' "$manifest" | head -n1)"
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.]+$ ]]; then
+              echo "::error::$slug is at '$version', not a prerelease; this workflow publishes plugin prereleases only."
+              exit 1
+            fi
+          done
+
+      - name: Stage the catalog outside the Docker build context
+        run: |
+          echo "PLUGIN_STAGE_DIR=${RUNNER_TEMP}/plugin-stage" >> "$GITHUB_ENV"
+
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '26'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+
+      - name: Build plugin frontend bundles
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          for slug in "${slugs[@]}"; do
+            dir="src/plugins/Plugins/$slug/frontend"
+            [ -f "$dir/package.json" ] || continue
+            (cd "$dir" && npm ci --ignore-scripts --legacy-peer-deps --no-audit --no-fund && npm run build)
+          done
+
+      - name: Package unsigned plugins
+        env:
+          MCHARBOR_PLUGIN_STAGE: build
+          MCHARBOR_PLUGIN_STAGE_DIR: ${{ env.PLUGIN_STAGE_DIR }}
+          MCHARBOR_PREBUILT_FRONTEND: '1'
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          for slug in "${slugs[@]}"; do
+            bash scripts/development/build-plugin.sh "$slug" "${CATALOG_BASE}/Plugins"
+          done
+
+      - name: Upload the unsigned plugins
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: plugin-prereleases-unsigned
+          path: ${{ env.PLUGIN_STAGE_DIR }}/
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+  sign-plugin-prereleases:
+    name: Sign plugin prereleases
+    runs-on: ubuntu-latest
+    needs: [verify, build-plugin-prereleases]
+    if: inputs.plugin_slugs != ''
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Assert prerelease version
+        shell: bash
+        run: bash scripts/release/assert-version-channel.sh prerelease
+
+      - name: Check the slugs
+        shell: bash
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          [ "${#slugs[@]}" -gt 0 ] || { echo "::error::No plugin slug given."; exit 1; }
+          for slug in "${slugs[@]}"; do
+            [[ "$slug" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::'$slug' is not a plugin slug."; exit 1; }
+          done
+          echo "PLUGIN_CATALOG_DIR=${RUNNER_TEMP}/plugin-catalog" >> "$GITHUB_ENV"
+          echo "PLUGIN_SEED_DIR=${RUNNER_TEMP}/plugin-seed" >> "$GITHUB_ENV"
+          echo "PLUGIN_STAGE_DIR=${RUNNER_TEMP}/plugin-stage" >> "$GITHUB_ENV"
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.2'
+          cache: false
+
+      - name: Download the unsigned plugins
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: plugin-prereleases-unsigned
+          path: ${{ env.PLUGIN_STAGE_DIR }}
+
+      - name: Seed from the published catalog
+        run: |
+          set -euo pipefail
+          git clone --depth 1 "https://github.com/${CATALOG_REPO}.git" "${RUNNER_TEMP}/catalog-seed"
+          mkdir -p "${PLUGIN_CATALOG_DIR}" "${PLUGIN_SEED_DIR}"
+          if [ -d "${RUNNER_TEMP}/catalog-seed/Plugins" ]; then
+            cp -a "${RUNNER_TEMP}/catalog-seed/Plugins/." "${PLUGIN_CATALOG_DIR}/"
+          fi
+          git -C "${RUNNER_TEMP}/catalog-seed" rev-parse HEAD:Plugins > "${PLUGIN_SEED_DIR}/seed-tree.txt" 2>/dev/null || echo none > "${PLUGIN_SEED_DIR}/seed-tree.txt"
+          rm -rf "${RUNNER_TEMP}/catalog-seed"
+
+      - name: Sign the plugins and write the catalog
+        env:
+          PLUGIN_SIGNING_KEY: ${{ secrets.PLUGIN_SIGNING_KEY }}
+          MCHARBOR_PLUGIN_STAGE: sign
+          MCHARBOR_PLUGIN_STAGE_DIR: ${{ env.PLUGIN_STAGE_DIR }}
+          MCHARBOR_PLUGIN_OUTPUT_DIR: ${{ env.PLUGIN_CATALOG_DIR }}
+          MCHARBOR_PLUGIN_SIGNING_KEY: ${{ runner.temp }}/plugin-signing.key
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PLUGIN_SIGNING_KEY" ]; then
+            echo "::error::Secret PLUGIN_SIGNING_KEY (base64) is required: a plugin signed with any other key installs as unsigned."
+            exit 1
+          fi
+          trap 'rm -f "$MCHARBOR_PLUGIN_SIGNING_KEY"' EXIT
+          printf '%s' "$PLUGIN_SIGNING_KEY" | base64 -d > "$MCHARBOR_PLUGIN_SIGNING_KEY"
+          if [ "$(wc -c < "$MCHARBOR_PLUGIN_SIGNING_KEY")" -ne 32 ]; then
+            echo "::error::PLUGIN_SIGNING_KEY must be the base64 of the 32-byte signing/plugin-signing.key."
+            exit 1
+          fi
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          for slug in "${slugs[@]}"; do
+            bash scripts/development/build-plugin.sh "$slug" "${CATALOG_BASE}/Plugins"
+          done
+          MCHARBOR_CATALOG_URL="${CATALOG_BASE}/Plugins" bash scripts/development/catalog.sh index
+
+      - name: Verify the prerelease entries
+        env:
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          node - <<'EOF'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const dir = process.env.PLUGIN_CATALOG_DIR;
+          const prefix = `${process.env.CATALOG_BASE}/Plugins/files/`;
+          const suffixed = (v) => /^[0-9]+\.[0-9]+\.[0-9]+-/.test(String(v));
+          const bad = [];
+          const entries = [];
+          for (const name of fs.readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+            const doc = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+            if (name === 'index.json') entries.push(...(Array.isArray(doc) ? doc : doc.plugins || []));
+            else entries.push(doc);
+          }
+          for (const e of entries) {
+            const id = e.slug || e.id;
+            for (const v of e.versions || []) {
+              if (suffixed(v.version)) bad.push(`${id}: prerelease ${v.version} sits in versions[]`);
+            }
+            for (const v of e.prerelease_versions || []) {
+              if (!suffixed(v.version)) bad.push(`${id}: stable ${v.version} sits in prerelease_versions[]`);
+            }
+            for (const v of [...(e.versions || []), ...(e.prerelease_versions || [])]) {
+              const url = v.download_url || '';
+              if (!url.startsWith(prefix)) bad.push(`${id}: ${url}`);
+              else if (!fs.existsSync(path.join(dir, 'files', url.slice(prefix.length)))) bad.push(`${id}: missing ${url.slice(prefix.length)}`);
+            }
+          }
+          for (const slug of process.env.PLUGIN_SLUGS.split(/\s+/).filter(Boolean)) {
+            const file = path.join(dir, `${slug}.json`);
+            const doc = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+            if (!(doc.prerelease_versions || []).length) bad.push(`${slug}: no row under prerelease_versions`);
+          }
+          if (bad.length) {
+            console.error(bad.join('\n'));
+            process.exit(1);
+          }
+          console.log(`${entries.length} catalog entries checked, every download_url under ${prefix}`);
+          EOF
+          if grep -l 'file:///' "${PLUGIN_CATALOG_DIR}"/*.json; then
+            echo "::error::A catalog entry still names a file:// URL."
+            exit 1
+          fi
+
+      - name: Upload the plugin catalog
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: catalog-plugin-prereleases
+          path: ${{ env.PLUGIN_CATALOG_DIR }}/
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload the seed tree
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: catalog-plugin-prereleases-seed
+          path: ${{ env.PLUGIN_SEED_DIR }}/seed-tree.txt
+          retention-days: 7
+          if-no-files-found: error
+
+  publish-plugin-prereleases:
+    name: Publish plugin prereleases to the catalog
+    runs-on: ubuntu-latest
+    needs: sign-plugin-prereleases
+    if: inputs.plugin_slugs != ''
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    concurrency:
+      group: catalog-publish
+      cancel-in-progress: false
+    steps:
+      - name: Download the plugin catalog
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: catalog-plugin-prereleases
+          path: .artifacts/plugins
+
+      - name: Download the seed tree
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: catalog-plugin-prereleases-seed
+          path: .artifacts/seed
+
+      - name: Publish
+        env:
+          CATALOG_REPO_TOKEN: ${{ secrets.CATALOG_REPO_TOKEN }}
+          PLUGIN_SLUGS: ${{ inputs.plugin_slugs }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CATALOG_REPO_TOKEN" ]; then
+            echo "CATALOG_REPO_TOKEN is not set; the plugin prereleases are available as the workflow artifact only."
+            exit 0
+          fi
+          git clone --depth 1 "https://x-access-token:${CATALOG_REPO_TOKEN}@github.com/${CATALOG_REPO}.git" .catalog
+          git -C .catalog checkout -B main
+          current="$(git -C .catalog rev-parse HEAD:Plugins 2>/dev/null || echo none)"
+          if [ "$current" != "$(cat .artifacts/seed/seed-tree.txt)" ]; then
+            echo "::error::Plugins/ changed in ${CATALOG_REPO} after this run was seeded; rerun so no entry is overwritten."
+            exit 1
+          fi
+          rm -rf .catalog/Plugins
+          mkdir -p .catalog/Plugins
+          cp -a .artifacts/plugins/. .catalog/Plugins/
+          oversized="$(find .catalog -path .catalog/.git -prune -o -type f -size +100M -print)"
+          if [ -n "$oversized" ]; then
+            echo "::error::GitHub refuses files over 100 MB: ${oversized}"
+            exit 1
+          fi
+          cd .catalog
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Catalog already current."
+            exit 0
+          fi
+          read -r -a slugs <<< "$PLUGIN_SLUGS"
+          alt="$(IFS='|'; echo "${slugs[*]}")"
+          unexpected="$(git diff --cached --name-only | grep -vE "^Plugins/(index\.json|(${alt})\.json|files/(${alt})-[0-9][^/]*|icons/(${alt})/[^/]+)$" || true)"
+          if [ -n "$unexpected" ]; then
+            echo "::error::The build changed files outside the requested plugins: ${unexpected}"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Publish plugin prereleases (${PLUGIN_SLUGS}) from McHarbor ${GITHUB_SHA::12}"
+          git push origin main
+          echo "Published plugin prereleases ${PLUGIN_SLUGS} to https://github.com/${CATALOG_REPO}" >> "$GITHUB_STEP_SUMMARY"

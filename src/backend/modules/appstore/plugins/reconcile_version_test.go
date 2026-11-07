@@ -9,7 +9,7 @@ import "testing"
 // that bumped the plugins with the host: the catalog carries only the new
 // version, and insisting on the installed one disabled every plugin.
 func TestRepairVersionFollowsAReleaseUpgrade(t *testing.T) {
-	catalog := []PluginVersion{{Version: "2026.10.01", BuiltFor: "2026.10.01", DownloadURL: "file:///x.tgz"}}
+	catalog := []PluginVersion{{Version: "2026.10.01", MinMcharbor: "2026.09.01", DownloadURL: "file:///x.tgz"}}
 
 	got, ok := repairVersion(catalog, "2026.09.01", "2026.10.01", true)
 	if !ok || got.Version != "2026.10.01" {
@@ -20,9 +20,9 @@ func TestRepairVersionFollowsAReleaseUpgrade(t *testing.T) {
 		t.Fatal("same release: a missing installed version must not silently move the plugin")
 	}
 
-	stale := []PluginVersion{{Version: "2026.10.01", BuiltFor: "2026.09.01"}}
-	if _, ok := repairVersion(stale, "2026.09.01", "2026.10.01", true); ok {
-		t.Fatal("release upgrade: an artifact built for another release must not be picked")
+	tooNew := []PluginVersion{{Version: "2026.10.01", MinMcharbor: "9999.01.01"}}
+	if _, ok := repairVersion(tooNew, "2026.09.01", "2026.10.01", true); ok {
+		t.Fatal("release upgrade: an artifact requiring a newer host must not be picked")
 	}
 }
 
@@ -30,8 +30,8 @@ func TestRepairVersionFollowsAReleaseUpgrade(t *testing.T) {
 // operator accepted whenever the catalog still has it.
 func TestRepairVersionPrefersTheInstalledVersion(t *testing.T) {
 	catalog := []PluginVersion{
-		{Version: "2026.10.02", BuiltFor: "2026.10.01"},
-		{Version: "2026.10.01", BuiltFor: "2026.10.01"},
+		{Version: "2026.10.02", MinMcharbor: "2026.09.01"},
+		{Version: "2026.10.01", MinMcharbor: "2026.09.01"},
 	}
 	got, ok := repairVersion(catalog, "2026.10.01", "2026.10.01", true)
 	if !ok || got.Version != "2026.10.01" {

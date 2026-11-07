@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -189,7 +190,7 @@ func (d *DefaultInstaller) stage(ctx context.Context, src Source, progress Progr
 	if !d.platformOK {
 		return nil, ErrPlatformUnsupported
 	}
-	if err := rejectIncompatible(src.BuiltFor); err != nil {
+	if err := rejectBelowMinimum(src.MinMcharbor); err != nil {
 		return nil, err
 	}
 
@@ -665,23 +666,15 @@ func validateManifest(m *plugin.Manifest) error {
 	if m.Mcharbor == "" {
 		return &ManifestError{Field: "mcharbor", Reason: "required (min host version)"}
 	}
+	if err := rejectBelowMinimum(m.Mcharbor); err != nil {
+		return err
+	}
 	for _, scope := range m.Perms {
 		if !isKnownScope(scope) {
 			return fmt.Errorf("%w: scope %q not recognized", plugin.ErrScopeViolation, scope)
 		}
 	}
 	return nil
-}
-
-// rejectIncompatible refuses an artifact compiled against a different core
-// release, so the operator sees the version pair instead of the opaque
-// "different version of package" error plugin.Open would raise at load.
-func rejectIncompatible(builtFor string) error {
-	if builtFor == "" || builtFor == appversion.Current() {
-		return nil
-	}
-	return fmt.Errorf("%w: built for %s, host is %s",
-		ErrBuiltForMismatch, builtFor, appversion.Current())
 }
 
 // isKnownScope defers to the canonical token list in
@@ -771,6 +764,37 @@ func (d *DefaultInstaller) appliedMigrations(ctx context.Context, slug string) (
 		applied[name] = true
 	}
 	return applied, rows.Err()
+}
+
+// LedgerBlockers lists the ledgered migrations absent from the staged tree. It
+// reads the same folder installStaged renames and runMigrations walks, and only
+// compares names; no tarball filename is ever joined into a path here.
+func (d *DefaultInstaller) LedgerBlockers(ctx context.Context, st *Staged) ([]string, error) {
+	if st == nil || st.Dir == "" {
+		return nil, errors.New("ledger check: nothing was staged")
+	}
+	carried := make(map[string]bool)
+	entries, err := os.ReadDir(filepath.Join(st.Dir, "migrations"))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("reading the staged migrations: %w", err)
+	}
+	for _, e := range entries {
+		if !e.IsDir() && strings.HasSuffix(e.Name(), ".sql") {
+			carried[e.Name()] = true
+		}
+	}
+	applied, err := d.appliedMigrations(ctx, st.Slug)
+	if err != nil {
+		return nil, err
+	}
+	var missing []string
+	for name := range applied {
+		if !carried[name] {
+			missing = append(missing, name)
+		}
+	}
+	sort.Strings(missing)
+	return missing, nil
 }
 
 // recordMigration notes one applied migration file, tolerating a row that is

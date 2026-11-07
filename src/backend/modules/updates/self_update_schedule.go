@@ -13,6 +13,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/cronspec"
 	"github.com/therealmcsparrow/mcharbor/core/quiesce"
 	"github.com/therealmcsparrow/mcharbor/core/runningwork"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 )
 
 // Reasons an install waits, stable codes the interface translates.
@@ -117,6 +118,11 @@ func (c *SelfUpdateChecker) tick(ctx context.Context, now time.Time) {
 	}
 	state := c.State()
 	pendingInstall := settings.AutoInstall && state.UpdateAvailable && state.LatestVersion != "" && state.AutoInstallVersion != releaseLabel(state.LatestVersion, state.LatestBuild)
+	if pendingInstall {
+		channels, err := updatechannel.Load(ctx, c.db)
+		// An unreadable setting fails closed, as AutoInstall does, so the window never defers for an install that will not run.
+		pendingInstall = err == nil && channels.AutoInstalls(updatechannel.PathMcHarbor, settings.AutoInstall, state.LatestVersion)
+	}
 	if !pendingInstall && !settings.AutoUpdateAgents {
 		c.closeWindow(ctx)
 		return
@@ -129,11 +135,7 @@ func (c *SelfUpdateChecker) tick(ctx context.Context, now time.Time) {
 		state.InstallDeferred, state.InstallSkipped = "", false
 		c.persistAndCache(ctx, state)
 	}
-	if settings.AutoUpdateAgents {
-		agentCtx, cancelAgents := context.WithTimeout(ctx, agentUpdateAckTimeout+time.Minute)
-		c.UpdateAgents(agentCtx, false, settings.AgentExcludedEnvIDs)
-		cancelAgents()
-	}
+	c.sweepAgentsAuto(ctx, settings)
 	c.closeWindow(ctx)
 	if pendingInstall {
 		installCtx, cancelInstall := context.WithTimeout(ctx, 2*time.Minute)

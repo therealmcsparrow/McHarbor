@@ -11,6 +11,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { StatusError } from '@resources/components/ui/StatusError';
 import { formatBytes, formatDate } from '@resources/utils/format';
+import { isPrerelease } from '@resources/utils/versionOrder';
 import { PERM } from '@core/auth/permissionKeys';
 import { releaseLabel, type AgentRelease } from '../hooks/useAgentReleases';
 import { STATUS_KEY, STATUS_VARIANT, platforms } from './agent-release-display';
@@ -45,6 +46,18 @@ export function useAgentReleaseColumns({
             {row.original.inUse ? <Badge variant="outline">{t('agentReleases.inUse')}</Badge> : null}
           </span>
         ),
+      },
+      {
+        id: 'channel',
+        accessorFn: (r) =>
+          isPrerelease(r.version) ? t('prerelease.target.prerelease') : t('prerelease.target.stable'),
+        header: t('prerelease.target.channel'),
+        cell: ({ row }) =>
+          isPrerelease(row.original.version) ? (
+            <Badge variant="warning">{t('prerelease.target.prerelease')}</Badge>
+          ) : (
+            <Badge variant="outline">{t('prerelease.target.stable')}</Badge>
+          ),
       },
       {
         id: 'build',

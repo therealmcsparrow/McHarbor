@@ -11371,6 +11371,32 @@
         ],
         "type": "object"
       },
+      "Plugins.ChannelRequest": {
+        "properties": {
+          "prereleases": {
+            "nullable": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "prereleases"
+        ],
+        "type": "object"
+      },
+      "Plugins.ChannelResult": {
+        "properties": {
+          "prereleases": {
+            "type": "boolean"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ],
+        "type": "object"
+      },
       "Plugins.InstallRequest": {
         "properties": {
           "allow_unsigned": {
@@ -11425,6 +11451,66 @@
           "slug",
           "version",
           "action"
+        ],
+        "type": "object"
+      },
+      "Plugins.ReturnCheckResult": {
+        "properties": {
+          "blocking_migration": {
+            "type": "string"
+          },
+          "blocking_migrations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "installed_version": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "target_version": {
+            "type": "string"
+          },
+          "unsigned": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "Plugins.ReturnRequest": {
+        "properties": {
+          "allow_unsigned": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "Plugins.ReturnResult": {
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "from",
+          "to"
         ],
         "type": "object"
       },
@@ -16281,6 +16367,53 @@
         ],
         "type": "object"
       },
+      "Updatechannel.Patch": {
+        "properties": {
+          "agentAutoPrereleases": {
+            "type": "boolean"
+          },
+          "agentPrereleases": {
+            "type": "boolean"
+          },
+          "mcharborAutoPrereleases": {
+            "type": "boolean"
+          },
+          "mcharborPrereleases": {
+            "type": "boolean"
+          },
+          "pluginPrereleases": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "Updatechannel.Settings": {
+        "properties": {
+          "agentAutoPrereleases": {
+            "type": "boolean"
+          },
+          "agentPrereleases": {
+            "type": "boolean"
+          },
+          "mcharborAutoPrereleases": {
+            "type": "boolean"
+          },
+          "mcharborPrereleases": {
+            "type": "boolean"
+          },
+          "pluginPrereleases": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mcharborPrereleases",
+          "agentPrereleases",
+          "pluginPrereleases",
+          "mcharborAutoPrereleases",
+          "agentAutoPrereleases"
+        ],
+        "type": "object"
+      },
       "Updates.CreatePolicyInput": {
         "properties": {
           "autoRestart": {
@@ -17037,6 +17170,9 @@
         "properties": {
           "image": {
             "type": "string"
+          },
+          "version": {
+            "type": "string"
           }
         },
         "required": [
@@ -17417,7 +17553,7 @@
     },
     "description": "McHarbor exposes a self-hosted control plane API for Docker, remote agents, workflows, notifications, store content, and operational telemetry. Most routes return the shared { success, data?, error?, message?, code? } envelope and require either the session cookie or a Bearer API key. Environment-scoped routes select the target runtime with ?env=\u003cenvironmentId\u003e.\n\nThis document is generated from the running router. Every operation carries the permission it enforces as x-mcharbor-permission, or x-mcharbor-exempt naming why it enforces none.",
     "title": "McHarbor API",
-    "version": "2026.11.01"
+    "version": "2026.11.02"
   },
   "openapi": "3.0.3",
   "paths": {
@@ -17965,6 +18101,62 @@
         }
       ]
     },
+    "/api/agent/binary/{os}/{arch}/{version}": {
+      "get": {
+        "operationId": "agentAgentBinaryVersion",
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [],
+        "summary": "Agent binary version",
+        "tags": [
+          "agent"
+        ],
+        "x-mcharbor-stream": "binary"
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "os",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "arch",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "version",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
     "/api/agent/image/{os}/{arch}": {
       "get": {
         "operationId": "agentAgentImage",
@@ -18006,6 +18198,62 @@
         {
           "in": "path",
           "name": "arch",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/api/agent/image/{os}/{arch}/{version}": {
+      "get": {
+        "operationId": "agentAgentImageVersion",
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [],
+        "summary": "Agent image version",
+        "tags": [
+          "agent"
+        ],
+        "x-mcharbor-stream": "binary"
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "os",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "arch",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "version",
           "required": true,
           "schema": {
             "type": "string"
@@ -23456,6 +23704,90 @@
         }
       ]
     },
+    "/api/appstore/plugins/{slug}/channel": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "slug",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "appstorePluginsSetChannel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Plugins.ChannelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plugins.ChannelResult"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Set channel",
+        "tags": [
+          "appstore/plugins"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "plugins.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      }
+    },
     "/api/appstore/plugins/{slug}/icon": {
       "get": {
         "operationId": "appstorePluginsCatalogIcon",
@@ -23612,6 +23944,164 @@
           }
         ]
       }
+    },
+    "/api/appstore/plugins/{slug}/return": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "slug",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "appstorePluginsReturn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Plugins.ReturnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plugins.ReturnResult"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Return",
+        "tags": [
+          "appstore/plugins"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "plugins.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      }
+    },
+    "/api/appstore/plugins/{slug}/return/check": {
+      "get": {
+        "operationId": "appstorePluginsReturnCheck",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Plugins.ReturnCheckResult"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Return check",
+        "tags": [
+          "appstore/plugins"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "plugins.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "slug",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "/api/appstore/plugins/{slug}/update/stream": {
       "parameters": [
@@ -69477,6 +69967,302 @@
           {
             "keys": [
               "environments.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      }
+    },
+    "/api/updates/agents/{envId}/pin": {
+      "delete": {
+        "operationId": "updatesAgentPinRemove",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Agent pin remove",
+        "tags": [
+          "updates"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "env_param": "envId",
+            "keys": [
+              "updates.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          },
+          {
+            "env_param": "envId",
+            "keys": [
+              "environments.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "envId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/api/updates/agents/{envId}/return": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "envId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "updatesAgentReturn",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Agent return",
+        "tags": [
+          "updates"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "env_param": "envId",
+            "keys": [
+              "updates.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          },
+          {
+            "env_param": "envId",
+            "keys": [
+              "environments.manage"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      }
+    },
+    "/api/updates/channels": {
+      "get": {
+        "operationId": "updatesGetChannels",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Updatechannel.Settings"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get channels",
+        "tags": [
+          "updates"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "updates.view"
+            ],
+            "match": "all",
+            "scope": "environment"
+          }
+        ]
+      },
+      "put": {
+        "operationId": "updatesPutChannels",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Updatechannel.Patch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Updatechannel.Settings"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Put channels",
+        "tags": [
+          "updates"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "updates.manage"
             ],
             "match": "all",
             "scope": "environment"

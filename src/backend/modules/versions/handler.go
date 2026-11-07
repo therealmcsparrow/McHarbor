@@ -78,11 +78,20 @@ func (h *Handler) HandleSelfUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.service.SelfUpdate(r.Context(), req.Image)
+	result, err := h.service.SelfUpdate(r.Context(), req.Image, req.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, errSelfUpdateNotLocal):
 			response.BadRequestCode(w, r, i18n.ErrSystemSelfUpdateNotLocal)
+		case errors.Is(err, ErrDowngradeRefused), errors.Is(err, nativeupdate.ErrVersionRequired):
+			h.app.Logger.Warn("versions: self-update refused as a downgrade", "image", req.Image, "version", req.Version)
+			response.BadRequestCode(w, r, i18n.ErrUpdateDowngradeRefused)
+		case errors.Is(err, ErrPrereleaseOff), errors.Is(err, nativeupdate.ErrPrereleaseLatest):
+			response.ForbiddenCode(w, r, i18n.ErrUpdatePrereleaseOff)
+		case errors.Is(err, ErrDigestPinned):
+			response.BadRequestCode(w, r, i18n.ErrImageDigestPinnedNoPrerelease)
+		case errors.Is(err, nativeupdate.ErrInvalidVersion):
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 		default:
 			h.app.Logger.Error("versions: self-update failed", "error", err)
 			response.BadRequestCause(w, r, i18n.ErrSystemSelfUpdateFailed, err)

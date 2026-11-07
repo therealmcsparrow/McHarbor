@@ -6,8 +6,8 @@ package cli
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,11 +35,12 @@ func addVersionCommands(root *cobra.Command, g *globals) {
 				} else {
 					out["server"] = server
 					out["compatibility"] = compatibility(server, permissions.SpecVersion)
+					out["serverChannel"] = versionChannel(server)
 				}
 			}
 			cols := []Column{{Header: "CLI", Path: "cli"}, {Header: "Build", Path: "build"}, {Header: "Built against API", Path: "api"}}
 			if !clientOnly {
-				cols = append(cols, Column{Header: "Server", Path: "server"}, Column{Header: "Compatibility", Path: "compatibility"})
+				cols = append(cols, Column{Header: "Server", Path: "server"}, Column{Header: "Server channel", Path: "serverChannel"}, Column{Header: "Compatibility", Path: "compatibility"})
 			}
 			return p.Object(out, cols)
 		},
@@ -179,7 +180,7 @@ func serverVersion(cmd *cobra.Command, g *globals) (string, error) {
 // unknown response fields, so a newer server is usable; an older one may lack
 // operations this CLI knows.
 func compatibility(server, api string) string {
-	switch c := compareVersions(server, api); {
+	switch c := compareVersions(strings.TrimPrefix(server, "v"), strings.TrimPrefix(api, "v")); {
 	case server == "" || api == "" || api == "dev":
 		return "unknown"
 	case c == 0:
@@ -191,22 +192,111 @@ func compatibility(server, api string) string {
 	}
 }
 
-func compareVersions(a, b string) int {
-	pa, pb := strings.Split(strings.TrimPrefix(a, "v"), "."), strings.Split(strings.TrimPrefix(b, "v"), ".")
-	for i := 0; i < len(pa) || i < len(pb); i++ {
-		var x, y int
-		if i < len(pa) {
-			x = valueOr(strconv.Atoi(strings.SplitN(pa[i], "-", 2)[0]))
+// versionPattern is the strict shape of a McHarbor version: three numbers, an
+// optional "-" prerelease and an optional "+" build; shared with versionorder cases.yaml.
+var versionPattern = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$`)
+
+type parsedVersion struct {
+	core [3]string
+	pre  []string
+}
+
+// parseVersion reads s strictly; "dev", "latest" and a "v" prefix are not versions.
+func parseVersion(s string) (parsedVersion, bool) {
+	m := versionPattern.FindStringSubmatch(s)
+	if m == nil {
+		return parsedVersion{}, false
+	}
+	v := parsedVersion{core: [3]string{m[1], m[2], m[3]}}
+	if m[4] != "" {
+		v.pre = strings.Split(m[4], ".")
+	}
+	return v, true
+}
+
+// isPrerelease reports a "-" suffix; build metadata after "+" never counts.
+func isPrerelease(s string) bool {
+	v, valid := parseVersion(s)
+	return valid && len(v.pre) > 0
+}
+
+func compareDigits(a, b string) int {
+	a, b = strings.TrimLeft(a, "0"), strings.TrimLeft(b, "0")
+	if len(a) != len(b) {
+		if len(a) > len(b) {
+			return 1
 		}
-		if i < len(pb) {
-			y = valueOr(strconv.Atoi(strings.SplitN(pb[i], "-", 2)[0]))
-		}
-		if x != y {
-			if x > y {
-				return 1
-			}
-			return -1
+		return -1
+	}
+	return strings.Compare(a, b)
+}
+
+func isDigits(s string) bool {
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
 		}
 	}
+	return s != ""
+}
+
+// compareVersions orders two versions as the version-order contract does: build
+// metadata is ignored, a prerelease sorts below its release, and unparsable
+// input reads as 0.0.0 so an agent gate keeps treating "dev" as oldest.
+func compareVersions(a, b string) int {
+	va, _ := parseVersion(a)
+	vb, _ := parseVersion(b)
+	for i := range va.core {
+		x, y := va.core[i], vb.core[i]
+		if x == "" {
+			x = "0"
+		}
+		if y == "" {
+			y = "0"
+		}
+		if c := compareDigits(x, y); c != 0 {
+			return c
+		}
+	}
+	switch {
+	case len(va.pre) == 0 && len(vb.pre) == 0:
+		return 0
+	case len(va.pre) == 0:
+		return 1
+	case len(vb.pre) == 0:
+		return -1
+	}
+	for i := 0; i < len(va.pre) && i < len(vb.pre); i++ {
+		x, y := va.pre[i], vb.pre[i]
+		xn, yn := isDigits(x), isDigits(y)
+		var c int
+		switch {
+		case xn && yn:
+			c = compareDigits(x, y)
+		case xn:
+			c = -1
+		case yn:
+			c = 1
+		default:
+			c = strings.Compare(x, y)
+		}
+		if c != 0 {
+			return c
+		}
+	}
+	switch {
+	case len(va.pre) > len(vb.pre):
+		return 1
+	case len(va.pre) < len(vb.pre):
+		return -1
+	}
 	return 0
+}
+
+// versionChannel names which channel a version belongs to, for display.
+func versionChannel(v string) string {
+	if isPrerelease(v) {
+		return "Prerelease"
+	}
+	return "Stable"
 }

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
@@ -37,6 +38,9 @@ type Service struct {
 	// loaded" badge reflects the runtime, not just the DB row.
 	runtimeLoadedFn func() map[string]bool
 	icons           remoteIcons
+	// overrideMu serialises override saves in this process: each is a read then a write, and two
+	// SQLite transactions that both read first deadlock on the lock upgrade without waiting.
+	overrideMu sync.Mutex
 }
 
 // NewService constructs a Service backed by db, an optional catalog
@@ -67,13 +71,13 @@ func (s *Service) SetRuntimeLoaded(fn func() map[string]bool) {
 
 // --- catalog (read-only) ----------------------------------------
 
-// ListCatalog reads every enabled plugin catalog source and returns
-// a merged, slug-sorted slice. Sources come from the resolver when
-// one is wired; the legacy single-directory path is used as a
+// listCatalogAll reads every enabled plugin catalog source and returns
+// a merged, slug-sorted slice, prereleases included. Sources come from the
+// resolver when one is wired; the legacy single-directory path is used as a
 // fallback when the resolver is nil. Per-source errors are logged
 // at warn level and skipped — one broken catalog must not blank out
-// the whole list.
-func (s *Service) ListCatalog(ctx context.Context) ([]PluginEntry, error) {
+// the whole list. Repair reads this raw list; ListCatalog filters it by channel.
+func (s *Service) listCatalogAll(ctx context.Context) ([]PluginEntry, error) {
 	sources, err := s.resolveSources(ctx)
 	if err != nil {
 		return nil, err
@@ -117,15 +121,7 @@ func (s *Service) ListCatalog(ctx context.Context) ([]PluginEntry, error) {
 			}
 			existing.Versions = dedupeVersions(combined)
 			sortVersionsDesc(existing.Versions)
-			if len(existing.Versions) > 0 {
-				top := existing.Versions[0]
-				existing.Version = top.Version
-				existing.Build = top.Build
-				existing.DownloadURL = top.DownloadURL
-				existing.Checksum = top.Checksum
-				existing.Signature = top.Signature
-				existing.BuiltFor = top.BuiltFor
-			}
+			setMirror(existing)
 		}
 	}
 

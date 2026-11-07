@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	versionPattern = regexp.MustCompile(`^[0-9]{1,4}\.[0-9]{1,3}\.[0-9]{1,4}$`)
+	versionPattern = regexp.MustCompile(`^[0-9]{1,4}\.[0-9]{1,3}\.[0-9]{1,4}(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$`)
 	buildPattern   = regexp.MustCompile(`^[0-9]{12}$`)
 	sumLinePattern = regexp.MustCompile(`^([0-9a-fA-F]{64}) [ *]([A-Za-z0-9._-]{1,128})$`)
 	binaryPattern  = regexp.MustCompile(`^mcharbor-agent-([a-z0-9_]{1,16})-([a-z0-9_]{1,16})(\.exe)?$`)
@@ -31,10 +31,15 @@ var (
 	platformPattern = regexp.MustCompile(`^linux/[a-z0-9_]{1,16}$`)
 )
 
-// ValidVersion reports whether v is a calendar version McHarbor will store.
-// It bounds what reaches a URL path and a directory name, so it is strict.
+// maxVersionLen bounds a version, prerelease suffix included, before the
+// pattern runs.
+const maxVersionLen = 128
+
+// ValidVersion reports whether v is a calendar version McHarbor will store,
+// with an optional alphanumeric dot-separated prerelease suffix. It bounds what
+// reaches a URL path and a directory name, so "..", "/" and a second "-" stay impossible.
 func ValidVersion(v string) bool {
-	return versionPattern.MatchString(v)
+	return len(v) <= maxVersionLen && versionPattern.MatchString(v)
 }
 
 // ParseSums reads a sha256sum-format file into name → lower-case hex digest.

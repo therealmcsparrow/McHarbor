@@ -33,6 +33,7 @@ mcharbor network [flags]
 * [mcharbor](mcharbor.md)	 - Operate McHarbor from a terminal or a CI job
 * [mcharbor network create](mcharbor_network_create.md)	 - Create a network
 * [mcharbor network get](mcharbor_network_get.md)	 - Show one network
+* [mcharbor network host-link](mcharbor_network_host-link.md)	 - The host interface of a macvlan network
 * [mcharbor network list](mcharbor_network_list.md)	 - List networks
 * [mcharbor network remove](mcharbor_network_remove.md)	 - Remove a network (irreversible)
 

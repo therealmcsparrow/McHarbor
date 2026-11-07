@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Requer reparo",
-    "explanation": "Compilado para o McHarbor {{builtFor}}; esta instalação está na {{current}}.",
+    "explanation": "Este plug-in não foi carregado neste McHarbor. Reparar transfere-o novamente do catálogo.",
     "action": "Reparar",
     "reconcile": "Reconciliar",
     "reconcileHint": "Fixa este plugin na versão {{version}} do catálogo. O host o mantém, move ou reinstala para que o registro, os arquivos e o binário coincidam; as concessões de função são mantidas.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Criado por",
-    "readOnlyShort": "só leitura"
+    "readOnlyShort": "só leitura",
+    "prerelease": "Pré-lançamento",
+    "installedPrerelease": "Instalado: pré-lançamento",
+    "prereleaseUpdate": "Atualização de pré-lançamento disponível",
+    "builtForPrereleaseHost": "Compilado para este host de pré-lançamento. Se o plugin não carregar, o motivo aparece abaixo; atualize o McHarbor para a próxima versão estável para movê-lo.",
+    "versions": "Versões"
+  },
+  "channels": {
+    "saveFailed": "Não foi possível guardar a definição de pré-lançamentos",
+    "needs": "Requer {{permission}}.",
+    "unavailable": "Definição indisponível. Requer {{permission}}.",
+    "loadFailed": "Não foi possível carregar a definição de pré-lançamentos.",
+    "retry": "Tentar novamente",
+    "store": {
+      "label": "Oferecer pré-lançamentos de plugins",
+      "hint": "Mostra versões de teste que ainda não são finais para todos os plugins. Um plugin também pode ativar isto na sua página de detalhes."
+    },
+    "override": {
+      "label": "Oferecer pré-lançamentos deste plugin",
+      "hint": "Mostra as versões de teste deste plugin mesmo com o interruptor da Plugin Store desligado.",
+      "globalOn": "Ativado para todos os plugins da Plugin Store.",
+      "followsOff": "Os pré-lançamentos estão desativados para este plugin. A próxima versão estável será oferecida.",
+      "none": "Nenhum pré-lançamento disponível."
+    }
+  },
+  "return": {
+    "open": "Voltar para estável",
+    "title": "Voltar {{name}} para estável?",
+    "summary": "De {{from}} para {{to}}. Os teus dados são mantidos.",
+    "summaryFrom": "A partir de {{from}}. Os teus dados são mantidos.",
+    "checking": "A verificar se {{name}} pode voltar para estável...",
+    "ready": "Pronto para voltar. Nada o bloqueia.",
+    "blocked": "Não é possível voltar: o pré-lançamento fez uma alteração na base de dados ({{migration}}) que a versão estável não inclui. Nada foi alterado.",
+    "blockedGeneric": "Não é possível voltar: a verificação deu um resultado que esta versão não conhece. Nada foi alterado.",
+    "noStable": "Não há nenhuma versão estável de {{name}} disponível.",
+    "prereleaseHost": "Os plugins seguem este host de pré-lançamento e ficam nas suas versões de pré-lançamento. Podem voltar para estável quando uma versão estável mais recente do McHarbor for instalada.",
+    "checkFailed": "Não foi possível executar a verificação",
+    "checkAgain": "Verificar novamente",
+    "unsigned": "Este pacote não tem assinatura, por isso o McHarbor não consegue confirmar quem o criou. Não foi aberto. A verificação da base de dados só corre depois de concordares.",
+    "consent": "Eu compreendo e quero voltar {{name}} com um pacote não assinado.",
+    "consentGiven": "Consentimento dado. Confirma para continuar.",
+    "refusedTitle": "O regresso foi recusado",
+    "confirm": "Voltar para estável",
+    "success": "{{name}} voltou para estável",
+    "failed": "Não foi possível voltar o plugin para estável"
   }
 }

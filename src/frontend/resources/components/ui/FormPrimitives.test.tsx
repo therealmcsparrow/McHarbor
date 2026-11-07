@@ -90,4 +90,17 @@ describe('form UI primitives', () => {
     expect(onCheckedChange).toHaveBeenCalledWith(true);
     expect(screen.getByRole('switch', { name: 'Enabled' })).toHaveClass('peer');
   });
+
+  it('styles a Switch locked with aria-disabled like a disabled one', () => {
+    render(
+      <>
+        <Switch checked={false} aria-disabled aria-label="Locked" />
+        <Switch checked={false} disabled aria-label="Off" />
+      </>,
+    );
+
+    const locked = screen.getByRole('switch', { name: 'Locked' });
+    expect(locked).toHaveClass('aria-disabled:opacity-50', 'aria-disabled:cursor-not-allowed');
+    expect(screen.getByRole('switch', { name: 'Off' })).toHaveClass('disabled:opacity-50');
+  });
 });

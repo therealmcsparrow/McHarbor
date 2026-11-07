@@ -98,10 +98,10 @@ export function PluginCategoryGrid({
     return map;
   }, [installed.data]);
   const repairState = useMemo(() => {
-    const map: Record<string, { builtFor: string; error: string }> = {};
+    const map: Record<string, { error: string }> = {};
     for (const row of installed.data ?? []) {
       if (row.repair_error) {
-        map[row.slug] = { builtFor: row.built_for, error: row.repair_error };
+        map[row.slug] = { error: row.repair_error };
       }
     }
     return map;
@@ -190,7 +190,6 @@ export function PluginCategoryGrid({
               installedUnsigned={unsignedSlugs.has(p.slug)}
               installedEnabled={!disabledSlugs.has(p.slug)}
               needsRepair={repairState[p.slug] !== undefined}
-              builtFor={repairState[p.slug]?.builtFor}
               repairError={repairState[p.slug]?.error}
             />
           );

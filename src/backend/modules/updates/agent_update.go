@@ -15,6 +15,7 @@ import (
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 	"github.com/therealmcsparrow/mcharbor/modules/agentreleases"
 )
@@ -46,8 +47,11 @@ type AgentUpdateResult struct {
 // attached right now, and a stored copy would keep describing one that has
 // gone.
 type AgentInventoryRow struct {
-	EnvID       string `json:"envId"`
-	Name        string `json:"name"`
+	EnvID string `json:"envId"`
+	Name  string `json:"name"`
+	// Connected is false for an agent environment with no live connection; its
+	// row carries a name only, so the UI can refuse an action up front.
+	Connected   bool   `json:"connected"`
 	Hostname    string `json:"hostname,omitempty"`
 	InstallKind string `json:"installKind,omitempty"`
 	RemoteIP    string `json:"remoteIp,omitempty"`
@@ -70,6 +74,11 @@ type AgentInventoryRow struct {
 	// Progress is this agent's place in the sweep running now, absent when
 	// none is.
 	Progress *AgentRunState `json:"progress,omitempty"`
+	// Pinned marks an agent returned to stable and held out of sweeps until the
+	// pin is removed; ReturnReason is why its last move failed, kept in a
+	// settings row because Progress exists only during a sweep.
+	Pinned       bool   `json:"pinned,omitempty"`
+	ReturnReason string `json:"returnReason,omitempty"`
 }
 
 // AgentUpdateSummary is the aggregate returned to the operator.
@@ -92,6 +101,17 @@ type AgentUpdater struct {
 	logger   *slog.Logger
 	releases *agentreleases.Store
 	bins     AgentBinaries
+
+	// returns, send and hostVersion are seams: the store's stable lookup, the
+	// agent transport call and this host's version, replaced only by tests.
+	returns     returnSource
+	send        func(ctx context.Context, envID string, p coreagent.AgentUpdatePayload) (*coreagent.AgentUpdatePayload, error)
+	hostVersion func() string
+	// selected replaces the release store's selected target; tests only.
+	selected func(ctx context.Context) (agentreleases.Release, bool)
+
+	// returnWG tracks the detached acknowledgement waits of agent returns.
+	returnWG sync.WaitGroup
 
 	mu        sync.Mutex
 	attempted map[string]agentAttempt // envID -> last attempt
@@ -187,6 +207,9 @@ type agentAttempt struct {
 // know what an agent would download; main wires it so updates never imports agent.
 type AgentBinaries interface {
 	AgentBinaryPath(osName, arch string) string
+	// BundledBinaryDigest hashes the binary shipped with this host, never a
+	// stored release, because that is the file the version route serves for it.
+	BundledBinaryDigest(osName, arch string) (string, error)
 	FileSHA256(path string) (string, error)
 	HasLocalAgentBinary(osName, arch string) bool
 	LocalAgentBuild() string
@@ -195,13 +218,17 @@ type AgentBinaries interface {
 // NewAgentUpdater creates an updater bound to the live agent pool, the release
 // store (nil means only built-in binaries are served) and bins, which must be non-nil.
 func NewAgentUpdater(pool *coreagent.AgentPool, logger *slog.Logger, releases *agentreleases.Store, bins AgentBinaries) *AgentUpdater {
-	return &AgentUpdater{
+	u := &AgentUpdater{
 		pool:      pool,
 		logger:    logger,
 		releases:  releases,
 		bins:      bins,
 		attempted: make(map[string]agentAttempt),
 	}
+	if releases != nil {
+		u.returns = releases
+	}
+	return u
 }
 
 // TargetVersion resolves the agent version agents should run: the selected
@@ -219,10 +246,27 @@ func (u *AgentUpdater) GlobalTarget(ctx context.Context) (version, build string)
 	if rel, ok := u.targetRelease(ctx); ok {
 		return rel.Version, rel.Build
 	}
-	return appversion.Current(), u.bins.LocalAgentBuild()
+	return u.bundledVersion(ctx), u.bins.LocalAgentBuild()
+}
+
+// bundledVersion is the version of the agent this McHarbor was built with, or
+// "" when that is a prerelease and the agents switch is off (or unknowable):
+// "" is never newer than any agent, so no sweep moves an agent to it.
+func (u *AgentUpdater) bundledVersion(ctx context.Context) string {
+	current := appversion.Current()
+	if !versionorder.IsPrerelease(current) {
+		return current
+	}
+	if u.releases == nil || !u.releases.AllowsVersion(ctx, current) {
+		return ""
+	}
+	return current
 }
 
 func (u *AgentUpdater) targetRelease(ctx context.Context) (agentreleases.Release, bool) {
+	if u.selected != nil {
+		return u.selected(ctx)
+	}
 	if u.releases == nil {
 		return agentreleases.Release{}, false
 	}
@@ -241,7 +285,7 @@ func (u *AgentUpdater) platformTarget(ctx context.Context, osName, arch string) 
 			}
 		}
 	}
-	return appversion.Current(), u.platformTargetBuild(osName, arch)
+	return u.bundledVersion(ctx), u.platformTargetBuild(osName, arch)
 }
 
 // Inventory lists every connected agent with what the table needs to show.
@@ -279,6 +323,14 @@ func (u *AgentUpdater) Inventory(ctx context.Context, db *sql.DB) ([]AgentInvent
 		}
 	}
 
+	var pins map[string]pinRecord
+	if db != nil {
+		var err error
+		if pins, err = (agentPins{db: db}).Records(ctx); err != nil {
+			return nil, target, fmt.Errorf("reading agent pins: %w", err)
+		}
+	}
+
 	agents := u.pool.List()
 	out := make([]AgentInventoryRow, 0, len(agents))
 	for i := range agents {
@@ -294,9 +346,11 @@ func (u *AgentUpdater) Inventory(ctx context.Context, db *sql.DB) ([]AgentInvent
 			copied := state
 			progress = &copied
 		}
+		pin, pinned := pins[conn.EnvID]
 		out = append(out, AgentInventoryRow{
 			EnvID:       conn.EnvID,
 			Name:        name,
+			Connected:   true,
 			Hostname:    conn.Hostname,
 			InstallKind: kinds[conn.EnvID],
 			RemoteIP:    conn.RemoteIP,
@@ -310,7 +364,20 @@ func (u *AgentUpdater) Inventory(ctx context.Context, db *sql.DB) ([]AgentInvent
 			TargetVersion: tv,
 			TargetBuild:   tb,
 			Progress:      progress,
+			Pinned:        pinned,
+			ReturnReason:  liveReturnReason(pin, conn.Version),
 		})
+	}
+	live := make(map[string]bool, len(out))
+	for _, row := range out {
+		live[row.EnvID] = true
+	}
+	for id, name := range names {
+		if live[id] {
+			continue
+		}
+		pin, pinned := pins[id]
+		out = append(out, AgentInventoryRow{EnvID: id, Name: name, InstallKind: kinds[id], Pinned: pinned, ReturnReason: pin.Reason})
 	}
 	sort.Slice(out, func(a, b int) bool { return out[a].Name < out[b].Name })
 	return out, target, nil
@@ -322,6 +389,13 @@ func (u *AgentUpdater) Inventory(ctx context.Context, db *sql.DB) ([]AgentInvent
 // stale `latest` tag cannot cause a restart loop on every tick. Agents in
 // excludedEnvIDs are reported as "excluded" and never contacted.
 func (u *AgentUpdater) UpdateOutdated(ctx context.Context, force bool, excludedEnvIDs []string) AgentUpdateSummary {
+	return u.updateOutdated(ctx, force, excludedEnvIDs, nil)
+}
+
+// updateOutdated is UpdateOutdated with an optional gate on each agent's target
+// version; an agent whose target the gate refuses is reported as skipped. The
+// automatic sweep passes one so a prerelease needs its auto-install option.
+func (u *AgentUpdater) updateOutdated(ctx context.Context, force bool, excludedEnvIDs []string, allow func(version string) bool) AgentUpdateSummary {
 	target := u.TargetVersion(ctx)
 	summary := AgentUpdateSummary{TargetVersion: target, Results: []AgentUpdateResult{}}
 	if u.pool == nil {
@@ -353,6 +427,12 @@ func (u *AgentUpdater) UpdateOutdated(ctx context.Context, force bool, excludedE
 		}
 		if !agentOutdated(conn.Version, conn.Build, tv, tb) {
 			res.Status = "up_to_date"
+			u.setRun(conn.EnvID, AgentRunState{Status: res.Status})
+			results[i] = res
+			continue
+		}
+		if allow != nil && !allow(tv) {
+			res.Status = "skipped"
 			u.setRun(conn.EnvID, AgentRunState{Status: res.Status})
 			results[i] = res
 			continue
@@ -557,6 +637,15 @@ func targetLabel(version, build string) string {
 		return version + " (" + build + ")"
 	}
 	return version
+}
+
+// liveReturnReason hides a failure reason once the agent reports the version it
+// was pinned to: the move has happened, so the old failure no longer applies.
+func liveReturnReason(pin pinRecord, running string) string {
+	if pin.Version != "" && pin.Version == running {
+		return ""
+	}
+	return pin.Reason
 }
 
 // keepProgress decides whether a finished sweep's verdict is still worth

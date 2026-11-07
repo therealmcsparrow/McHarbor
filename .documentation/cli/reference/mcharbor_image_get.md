@@ -9,7 +9,8 @@ mcharbor image get <id|ref> [flags]
 ### Options
 
 ```
-  -h, --help   help for get
+  -h, --help     help for get
+      --reveal   show credential-looking Config.Env values in the clear (needs images.manage; audit-logged)
 ```
 
 ### Options inherited from parent commands

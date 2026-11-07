@@ -60,4 +60,51 @@ describe('ConfirmDialog', () => {
 
     expect(screen.getByRole('button', { name: 'Processing' })).toBeDisabled();
   });
+
+  it('keeps a natively disabled Confirm by default', () => {
+    render(<ConfirmDialog open onOpenChange={vi.fn()} title="T" description="D" disabled onConfirm={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeDisabled();
+  });
+
+  it('with softDisabled, Confirm stays focusable, is aria-disabled, refuses activation and is described by the reason', () => {
+    const onConfirm = vi.fn();
+    render(
+      <ConfirmDialog
+        open
+        onOpenChange={vi.fn()}
+        title="T"
+        description="D"
+        disabled
+        softDisabled
+        confirmDescribedBy="why"
+        onConfirm={onConfirm}
+      >
+        <p id="why">Needs updates.manage.</p>
+      </ConfirmDialog>,
+    );
+    const button = screen.getByRole('button', { name: 'Remove' });
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).toHaveAccessibleDescription('Needs updates.manage.');
+    button.focus();
+    expect(button).toHaveFocus();
+    fireEvent.click(button);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('with softDisabled but not disabled, Confirm works and is not aria-disabled', () => {
+    const onConfirm = vi.fn();
+    render(<ConfirmDialog open onOpenChange={vi.fn()} title="T" description="D" softDisabled onConfirm={onConfirm} />);
+    const button = screen.getByRole('button', { name: 'Remove' });
+    expect(button).not.toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(button);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays natively disabled while loading even with softDisabled, so a double click sends one request', () => {
+    render(
+      <ConfirmDialog open onOpenChange={vi.fn()} title="T" description="D" loading softDisabled onConfirm={vi.fn()} />,
+    );
+    expect(screen.getByRole('button', { name: 'Processing' })).toBeDisabled();
+  });
 });

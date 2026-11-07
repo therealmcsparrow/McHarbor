@@ -32,8 +32,12 @@ type VersionInfo struct {
 // Image is optional: when empty, the current image is reused (i.e. the
 // helper re-pulls the same tag to refresh the digest, then recreates the
 // container with the new image).
+//
+// Version names the release a native install should take; empty reads the latest release, which a
+// prerelease host is refused. A container install takes its target from the image tag.
 type SelfUpdateRequest struct {
-	Image string `json:"image"`
+	Image   string `json:"image"`
+	Version string `json:"version,omitempty"`
 }
 
 // SelfUpdateResult is the response from POST /api/versions/self-update.

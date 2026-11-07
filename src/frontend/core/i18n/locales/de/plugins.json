@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Reparatur nötig",
-    "explanation": "Erstellt für McHarbor {{builtFor}}, diese Installation ist {{current}}.",
+    "explanation": "Dieses Plugin wurde auf diesem McHarbor nicht geladen. Reparieren lädt es erneut aus dem Katalog.",
     "action": "Reparieren",
     "reconcile": "Abgleichen",
     "reconcileHint": "Dieses Plugin auf Katalogversion {{version}} festlegen. Der Host behält es bei, verschiebt es oder installiert es neu, sodass Datensatz, Dateien und Binärdatei übereinstimmen; Rollenzuweisungen bleiben erhalten.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Erstellt von",
-    "readOnlyShort": "schreibgeschützt"
+    "readOnlyShort": "schreibgeschützt",
+    "prerelease": "Vorabversion",
+    "installedPrerelease": "Installiert: Vorabversion",
+    "prereleaseUpdate": "Vorabversion als Update verfügbar",
+    "builtForPrereleaseHost": "Für diesen Vorabversions-Host gebaut. Lässt sich das Plugin nicht laden, steht der Grund unten; aktualisieren Sie McHarbor auf die nächste stabile Version, um es zu verschieben.",
+    "versions": "Versionen"
+  },
+  "channels": {
+    "saveFailed": "Die Einstellung für Vorabversionen konnte nicht gespeichert werden",
+    "needs": "Erfordert {{permission}}.",
+    "unavailable": "Einstellung nicht verfügbar. Erfordert {{permission}}.",
+    "loadFailed": "Die Einstellung für Vorabversionen konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "store": {
+      "label": "Vorabversionen von Plugins anbieten",
+      "hint": "Zeigt für jedes Plugin Testversionen, die noch nicht final sind. Ein Plugin kann auch auf seiner Detailseite selbst teilnehmen."
+    },
+    "override": {
+      "label": "Vorabversionen für dieses Plugin anbieten",
+      "hint": "Zeigt die Testversionen dieses Plugins auch dann, wenn der Schalter des Plugin Store aus ist.",
+      "globalOn": "Für jedes Plugin im Plugin Store eingeschaltet.",
+      "followsOff": "Vorabversionen sind für dieses Plugin ausgeschaltet. Die nächste stabile Version wird angeboten.",
+      "none": "Keine Vorabversion verfügbar."
+    }
+  },
+  "return": {
+    "open": "Zu Stabil zurückkehren",
+    "title": "{{name}} auf Stabil zurücksetzen?",
+    "summary": "Von {{from}} auf {{to}}. Deine Daten bleiben erhalten.",
+    "summaryFrom": "Ab {{from}}. Deine Daten bleiben erhalten.",
+    "checking": "Es wird geprüft, ob {{name}} zu Stabil zurückkehren kann...",
+    "ready": "Bereit zur Rückkehr. Nichts blockiert sie.",
+    "blocked": "Rückkehr nicht möglich: Die Vorabversion hat eine Datenbankänderung ({{migration}}) vorgenommen, die der stabile Build nicht enthält. Es wurde nichts geändert.",
+    "blockedGeneric": "Rückkehr nicht möglich: Die Prüfung lieferte ein Ergebnis, das diese Version nicht kennt. Es wurde nichts geändert.",
+    "noStable": "Für {{name}} ist keine stabile Version verfügbar.",
+    "prereleaseHost": "Plugins folgen diesem Vorabversions-Host und bleiben auf dessen Vorabversionen. Sie können zu Stabil zurückkehren, sobald eine neuere stabile McHarbor-Version installiert ist.",
+    "checkFailed": "Die Prüfung konnte nicht ausgeführt werden",
+    "checkAgain": "Erneut prüfen",
+    "unsigned": "Dieses Paket hat keine Signatur, daher kann McHarbor nicht bestätigen, wer es erstellt hat. Es wurde nicht geöffnet. Die Datenbankprüfung läuft erst, nachdem du zugestimmt hast.",
+    "consent": "Ich verstehe das und möchte {{name}} mit einem unsignierten Paket zurücksetzen.",
+    "consentGiven": "Zustimmung erteilt. Bestätige, um fortzufahren.",
+    "refusedTitle": "Die Rückkehr wurde abgelehnt",
+    "confirm": "Zu Stabil zurückkehren",
+    "success": "{{name}} wurde auf Stabil zurückgesetzt",
+    "failed": "Das Plugin konnte nicht zurückgesetzt werden"
   }
 }

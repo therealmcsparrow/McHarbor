@@ -18,7 +18,7 @@ func TestRemoteCatalogCarriesTheBuild(t *testing.T) {
 	mux.HandleFunc("/catalog/plugins/index.json", func(w http.ResponseWriter, _ *http.Request) {
 		writeBody(t, w, `[
 			{"slug":"addon-kvm","name":"Virtual Machines","versions":[
-				{"version":"2026.10.01","build":"202610060901","built_for":"2026.10.01","download_url":"https://x/files/kvm.tar.gz"}]},
+				{"version":"2026.10.01","build":"202610060901","min_mcharbor":"2026.10.01","download_url":"https://x/files/kvm.tar.gz"}]},
 			{"slug":"comm-slack","name":"Slack","versions":[
 				{"version":"2026.10.01","build":"202610010800","download_url":"https://x/files/slack-a.tar.gz"}]},
 			{"slug":"comm-slack","name":"Slack","versions":[
@@ -40,8 +40,8 @@ func TestRemoteCatalogCarriesTheBuild(t *testing.T) {
 	for _, e := range entries {
 		got[e.Slug] = e
 	}
-	if kvm := got["addon-kvm"]; kvm.Build != "202610060901" || kvm.BuiltFor != "2026.10.01" {
-		t.Fatalf("addon-kvm build = %q built_for = %q; the Store cannot offer a same-version update without it", kvm.Build, kvm.BuiltFor)
+	if kvm := got["addon-kvm"]; kvm.Build != "202610060901" || kvm.MinMcharbor != "2026.10.01" {
+		t.Fatalf("addon-kvm build = %q min_mcharbor = %q; the Store cannot offer a same-version update without it", kvm.Build, kvm.MinMcharbor)
 	}
 	// Listed twice: the merged entry must carry the newest release's build,
 	// not the first file's and not none.

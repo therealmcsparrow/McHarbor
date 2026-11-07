@@ -25,9 +25,10 @@ import (
 
 	"github.com/rs/xid"
 
-	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/cronspec"
 	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 const (
@@ -147,6 +148,33 @@ func ensurePerBuildIndex(ctx context.Context, database *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+// ErrPrereleaseOff is returned when a prerelease agent is asked for while the
+// agents prerelease switch is off.
+var ErrPrereleaseOff = errors.New("agent prereleases are switched off")
+
+// channels reads the prerelease switches, and fails closed to all off when they
+// cannot be read, because a switch that cannot be proven on is off.
+func (s *Store) channels(ctx context.Context) updatechannel.Settings {
+	cs, err := updatechannel.Load(ctx, s.db)
+	if err != nil {
+		s.logger.Warn("agent-releases: reading update channels", "error", err)
+		return updatechannel.Settings{}
+	}
+	return cs
+}
+
+// allowsVersion reports whether version may be pulled or served under the
+// agents switch: stable always, a prerelease only with the switch on.
+func (s *Store) allowsVersion(ctx context.Context, version string) bool {
+	return s.channels(ctx).Allows(updatechannel.PathAgents, version)
+}
+
+// AllowsVersion reports whether version may be an agent target under the agents
+// switch, for callers outside the package that must not import the channel store.
+func (s *Store) AllowsVersion(ctx context.Context, version string) bool {
+	return s.allowsVersion(ctx, version)
 }
 
 // Root is the directory releases are stored under.
@@ -317,6 +345,9 @@ func (s *Store) SetTarget(ctx context.Context, version, build string) error {
 	version = strings.TrimSpace(version)
 	build = strings.TrimSpace(build)
 	if version != "" {
+		if !s.allowsVersion(ctx, version) {
+			return ErrPrereleaseOff
+		}
 		rel, err := s.Get(ctx, version, build)
 		if err != nil {
 			return err
@@ -352,8 +383,18 @@ func (s *Store) Check(ctx context.Context) (State, error) {
 	if checkErr != nil {
 		st.LastError = checkErr.Error()
 	} else {
+		channels := s.channels(ctx)
+		allow := func(v string) bool { return channels.Allows(updatechannel.PathAgents, v) }
+		st.Available = info.availableVersionsAllowing(allow)
 		st.LatestVersion, st.LatestBuild, st.LatestSource, st.LastError = info.Version, info.Build, src.URL, ""
-		st.Available = info.availableVersions()
+		if !allow(info.Version) {
+			// The index's headline is a prerelease the operator has not opted
+			// into, so the newest stable it lists is the answer, or none.
+			st.LatestVersion, st.LatestBuild = "", ""
+			if len(st.Available) > 0 {
+				st.LatestVersion, st.LatestBuild = st.Available[0].Version, st.Available[0].Build
+			}
+		}
 	}
 	if err := s.saveState(ctx, st); err != nil {
 		return st, err
@@ -368,6 +409,9 @@ func (s *Store) Check(ctx context.Context) (State, error) {
 func (s *Store) StartPull(ctx context.Context, version, build, by string, andTarget bool) error {
 	if !ValidVersion(version) {
 		return ErrInvalidVersion
+	}
+	if !s.allowsVersion(ctx, version) {
+		return ErrPrereleaseOff
 	}
 	if build != "" && !buildPattern.MatchString(build) {
 		return ErrInvalidBuild
@@ -410,6 +454,9 @@ func (s *Store) StartPull(ctx context.Context, version, build, by string, andTar
 func (s *Store) Pull(ctx context.Context, version, build, by string) (Release, error) {
 	if !ValidVersion(version) {
 		return Release{}, ErrInvalidVersion
+	}
+	if !s.allowsVersion(ctx, version) {
+		return Release{}, ErrPrereleaseOff
 	}
 	if build != "" && !buildPattern.MatchString(build) {
 		return Release{}, ErrInvalidBuild
@@ -1051,7 +1098,31 @@ func (s *Store) Overview(ctx context.Context) (Overview, error) {
 	if err != nil {
 		return Overview{}, err
 	}
-	return Overview{Releases: releases, Target: target, TargetBuild: targetBuild, State: st, Settings: settings}, nil
+	return Overview{Releases: releases, Target: target, TargetBuild: targetBuild, State: s.hidePrereleases(ctx, st), Settings: settings}, nil
+}
+
+// hidePrereleases drops from a saved check result what the agents switch no
+// longer allows, because the result was filtered when written and the switch
+// may have gone off since. The newest allowed version becomes the latest.
+func (s *Store) hidePrereleases(ctx context.Context, st State) State {
+	channels := s.channels(ctx)
+	if channels.Allows(updatechannel.PathAgents, st.LatestVersion) && len(st.Available) == 0 {
+		return st
+	}
+	kept := make([]AvailableVersion, 0, len(st.Available))
+	for _, v := range st.Available {
+		if channels.Allows(updatechannel.PathAgents, v.Version) {
+			kept = append(kept, v)
+		}
+	}
+	st.Available = kept
+	if !channels.Allows(updatechannel.PathAgents, st.LatestVersion) {
+		st.LatestVersion, st.LatestBuild = "", ""
+		if len(kept) > 0 {
+			st.LatestVersion, st.LatestBuild = kept[0].Version, kept[0].Build
+		}
+	}
+	return st
 }
 
 // TargetBinaryPath returns the stored binary of the target release for a
@@ -1108,7 +1179,7 @@ func (s *Store) TargetImageRef(ctx context.Context) string {
 
 func (s *Store) targetRelease(ctx context.Context) (Release, bool) {
 	target, build, err := s.targetKeys(ctx)
-	if err != nil || target == "" {
+	if err != nil || target == "" || !s.allowsVersion(ctx, target) {
 		return Release{}, false
 	}
 	rel, err := s.Get(ctx, target, build)
@@ -1259,7 +1330,7 @@ func (s *Store) writeSetting(ctx context.Context, key, value string) error {
 // first, then the build stamp, which is fixed-width so string order is time order.
 func newer(v1, b1, v2, b2 string) bool {
 	if v1 != v2 {
-		return !coreagent.AgentVersionAtLeast(v2, v1)
+		return versionorder.Compare(v1, v2) > 0
 	}
 	return b1 > b2
 }
@@ -1279,4 +1350,96 @@ func contains(list []string, v string) bool {
 // formatSize is used by audit details so a pull reads "37.2 MB" rather than bytes.
 func formatSize(n int64) string {
 	return strconv.FormatFloat(float64(n)/1e6, 'f', 1, 64) + " MB"
+}
+
+// ReturnCandidate is the stable release an agent can be returned to, with the
+// digests and image reference the update request carries.
+type ReturnCandidate struct {
+	Version   string
+	Build     string
+	BinarySHA string
+	ImageSHA  string
+	ImageRef  string
+}
+
+// NewestStable returns the newest ready stable release that holds the platform's
+// asset (an image when wantImage, else a binary), which is what an agent return
+// can serve; McHarbor offers only what it stores, so no match means no candidate.
+func (s *Store) NewestStable(ctx context.Context, osName, arch string, wantImage bool) (ReturnCandidate, bool) {
+	list, err := s.List(ctx)
+	if err != nil {
+		s.logger.Warn("agent-releases: listing for a return candidate", "error", err)
+		return ReturnCandidate{}, false
+	}
+	// List is sorted newest first, so the first match is the newest.
+	for _, rel := range list {
+		if rel.Status != StatusReady || !ValidVersion(rel.Version) || versionorder.IsPrerelease(rel.Version) {
+			continue
+		}
+		c := ReturnCandidate{Version: rel.Version, Build: rel.Build, ImageRef: LocalImageRef(rel.Version)}
+		var haveBinary, haveImage bool
+		for _, a := range rel.Assets {
+			if a.OS != osName || a.Arch != arch {
+				continue
+			}
+			info, err := os.Stat(filepath.Join(s.releaseDir(rel), a.Name))
+			if err != nil || info.IsDir() || info.Size() != a.Size {
+				continue
+			}
+			switch a.Kind {
+			case AssetBinary:
+				haveBinary, c.BinarySHA = true, a.SHA256
+			case AssetImage:
+				haveImage, c.ImageSHA = true, a.SHA256
+			}
+		}
+		if (wantImage && haveImage) || (!wantImage && haveBinary) {
+			return c, true
+		}
+	}
+	return ReturnCandidate{}, false
+}
+
+// OpenReleaseAsset opens the stored binary (or image tarball when image) of one
+// exact version for a platform and returns its recorded digest. The version is
+// checked with ValidVersion and the file is opened through os.OpenInRoot, so a
+// hostile version or asset name cannot leave the store directory by "..", a
+// separator or a symlink. A prerelease is refused while the agents switch is off.
+func (s *Store) OpenReleaseAsset(ctx context.Context, image bool, osName, arch, version string) (*os.File, string, error) {
+	if !ValidVersion(version) || !s.allowsVersion(ctx, version) {
+		return nil, "", ErrReleaseNotFound
+	}
+	rel, err := s.Get(ctx, version, "")
+	if err != nil {
+		return nil, "", err
+	}
+	if rel.Status != StatusReady || rel.Version != version {
+		return nil, "", ErrReleaseNotFound
+	}
+	kind := AssetBinary
+	if image {
+		kind = AssetImage
+	}
+	for _, a := range rel.Assets {
+		if a.Kind != kind || a.OS != osName || a.Arch != arch {
+			continue
+		}
+		relPath, err := filepath.Rel(s.root, filepath.Join(s.releaseDir(rel), a.Name))
+		if err != nil {
+			return nil, "", ErrReleaseNotFound
+		}
+		f, err := os.OpenInRoot(s.root, relPath)
+		if err != nil {
+			return nil, "", fmt.Errorf("opening stored agent asset: %w", err)
+		}
+		info, err := f.Stat()
+		if err != nil || info.IsDir() || info.Size() != a.Size {
+			if cerr := f.Close(); cerr != nil {
+				s.logger.Warn("agent-releases: closing a rejected asset", "error", cerr)
+			}
+			return nil, "", ErrReleaseNotFound
+		}
+		return f, a.SHA256, nil
+	}
+	return nil, "", ErrReleaseNotFound
 }

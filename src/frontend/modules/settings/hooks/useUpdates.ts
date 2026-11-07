@@ -170,7 +170,7 @@ export function useApplySelfUpdate() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('settings');
   return useMutation({
-    mutationFn: (input: { image?: string }) =>
+    mutationFn: (input: { image?: string; version?: string }) =>
       runWithMcHarborRestart(() =>
         api.post<SelfUpdateApplyResponse>('/versions/self-update', input).then((res) => {
           if (!res.success) {

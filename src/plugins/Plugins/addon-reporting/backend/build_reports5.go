@@ -1136,6 +1136,8 @@ func buildAgentFleet(b *buildCtx) []Section {
 		),
 		agentTable(snap),
 		agentVersionTable(snap))
+	ta.Blocks = append(ta.Blocks, heading(2, "Prerelease inventory"))
+	ta.Blocks = append(ta.Blocks, prereleaseBlocks(snap, b.meta.GeneratedAt)...)
 
 	if agentVersionSpread(snap) > 1 {
 		ta.Blocks = append(ta.Blocks, callout(StatusWarn, "Agents are not on one version",

@@ -28,9 +28,9 @@ type Source struct {
 	// Build is the artifact's own yyyyMMddHHmm compile stamp, recorded on the
 	// installed row so a later catalog can tell whether a rebuild is newer.
 	Build string
-	// BuiltFor names the McHarbor release the artifact was compiled for,
-	// taken from the catalog entry. Empty skips the compatibility check.
-	BuiltFor string
+	// MinMcharbor is the oldest McHarbor release the artifact accepts, taken from
+	// the catalog entry. Empty leaves the check to the tarball's own manifest.
+	MinMcharbor string
 	// AllowUnsigned is the operator's explicit consent to install a tarball no
 	// trust key verifies. Without it an unsigned install is refused with
 	// ErrUnsignedNotConfirmed, so a dialog skipped in devtools cannot bypass it.
@@ -138,6 +138,9 @@ type Upgrader interface {
 	RestorePrevious(ctx context.Context, prev PreviousInstall) error
 	HasPrevious(slug, version string) bool
 	FinishUpgrade(ctx context.Context, slug, prevVersion, newVersion string)
+	// LedgerBlockers names the migrations the ledger holds for the staged slug
+	// that the staged artifact does not carry, in sorted order.
+	LedgerBlockers(ctx context.Context, st *Staged) ([]string, error)
 }
 
 // Public errors returned from the installer. Handlers translate
@@ -149,7 +152,7 @@ var (
 	ErrPermissionInUse     = errors.New("permission still referenced by a role")
 	ErrPluginNotFound      = errors.New("plugin not found")
 	ErrPlatformUnsupported = errors.New("plugin runtime unsupported on this platform")
-	ErrBuiltForMismatch    = errors.New("plugin built for a different McHarbor release")
+	ErrHostBelowMinimum    = errors.New("plugin requires a newer McHarbor release")
 	// ErrUnsignedNotConfirmed is returned when a tarball is unsigned and the
 	// request did not carry the operator's explicit AllowUnsigned consent.
 	ErrUnsignedNotConfirmed = errors.New("plugin is unsigned and the install was not confirmed")

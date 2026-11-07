@@ -57,7 +57,7 @@ var (
 	// key is a plain RBAC key and must not gain a colon.
 	reScope     = regexp.MustCompile(`^[a-z][a-z0-9_.]{0,62}[a-z0-9](:[a-z0-9][a-z0-9_-]{0,62})?$`)
 	reVer       = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+([-+][a-zA-Z0-9.]+)?$`)
-	reRange     = regexp.MustCompile(`^[><=~^]*[0-9]+\.[0-9]+\.[0-9]+(\s*[><=~^]*[0-9]+\.[0-9]+\.[0-9]+)?$`)
+	reRange     = regexp.MustCompile(`^[><=~^]*[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?(\s*[><=~^]*[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?)?$`)
 	reChecksum  = regexp.MustCompile(`^[a-f0-9]{64}$`)
 	reAPIPath   = regexp.MustCompile(`^/api/[a-z0-9-]+(/.*)?$`)
 	reRoutePath = regexp.MustCompile(`^/[a-z0-9-]+(/.*)?$`)

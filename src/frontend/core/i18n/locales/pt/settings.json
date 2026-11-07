@@ -2034,5 +2034,83 @@
     "selfSubtitle": "Serviços systemd da máquina em que o McHarbor está instalado. Esta página sempre atua nesse host, seja qual for o ambiente selecionado.",
     "warningTitle": "Isto altera o host, não o McHarbor",
     "warningBody": "Parar, desativar ou reconfigurar um serviço aqui atua na máquina em que o McHarbor roda. As unidades do próprio McHarbor e o runtime de contêineres podem ser reiniciados, mas não parados nem desativados."
+  },
+  "prerelease": {
+    "subtitle": "Versões de teste que ainda não são finais. Todos os interruptores vêm desligados por padrão.",
+    "needsView": "É necessário {{key}} para ver estas configurações.",
+    "needs": "É necessário {{key}}.",
+    "loadFailed": "Não foi possível carregar as configurações de pré-lançamentos.",
+    "retry": "Tentar novamente",
+    "confirmAuto": {
+      "title": "Instalar pré-lançamentos automaticamente?",
+      "confirm": "Ativar"
+    },
+    "mcharbor": {
+      "title": "Pré-lançamentos do McHarbor",
+      "label": "Incluir pré-lançamentos",
+      "hint": "Oferece versões de teste do McHarbor que ainda não são finais. Elas só são instaladas quando você as escolhe. Depois, não será possível voltar a uma versão anterior do McHarbor.",
+      "autoLabel": "Instalar também pré-lançamentos automaticamente",
+      "autoHint": "Vale apenas para atualizações do McHarbor.",
+      "autoNeeds": "Requer Incluir pré-lançamentos e Instalar automaticamente.",
+      "running": "Você está executando {{version}} (pré-lançamento). As atualizações de pré-lançamentos estão desligadas. Nada muda agora, e a próxima versão estável mais nova que esta será oferecida quando for publicada. Nenhuma versão mais antiga pode ser instalada.",
+      "confirmAuto": "As versões de teste do McHarbor serão instaladas sem perguntar. Vale apenas para atualizações do McHarbor. As atualizações estáveis não são afetadas. Depois, não será possível voltar a uma versão anterior."
+    },
+    "agents": {
+      "title": "Pré-lançamentos de agentes",
+      "label": "Incluir pré-lançamentos de agentes",
+      "hint": "Oferece versões de teste do agente que ainda não são finais. Independente da configuração do McHarbor.",
+      "autoLabel": "Atualizar também os agentes para pré-lançamentos automaticamente",
+      "autoHint": "Vale apenas para atualizações de agentes.",
+      "autoNeeds": "Requer Incluir pré-lançamentos de agentes e Atualizar agentes automaticamente.",
+      "running": "Alvo: {{version}} (pré-lançamento). As ofertas de pré-lançamento estão desligadas; a próxima versão estável será oferecida.",
+      "confirmAuto": "As versões de teste do agente serão instaladas sem perguntar. Vale apenas para atualizações de agentes. As atualizações estáveis não são afetadas. Agentes fixados e excluídos são ignorados."
+    },
+    "return": {
+      "title": "Voltar {{name}} para a versão estável?",
+      "body": "Volta de {{version}} para a versão estável mais recente e o fixa. Fixado: nenhuma atualização, automática ou manual, o alcança até você remover a fixação. Isso inclui atualizações de segurança estáveis. Remova em Atualizações, Agentes, Exceções.",
+      "confirm": "Voltar e fixar",
+      "needs": "Requer {{keys}}.",
+      "needsMissing": "Faltando: {{keys}}.",
+      "alreadyPinned": "Já está fixado; aparece uma só vez.",
+      "rowAria": "Voltar {{name}} para a versão estável",
+      "retryAria": "Tentar novamente o retorno de {{name}}",
+      "started": "Retorno iniciado. A linha do agente mostra o resultado."
+    },
+    "pin": {
+      "released": "Fixação removida",
+      "releaseFailed": "Não foi possível remover a fixação",
+      "badge": "Fixado",
+      "meaning": "Fixado: sem atualizações",
+      "returnFailed": "O retorno falhou, ainda em {{version}}",
+      "summary": "Agentes excluídos: {{n}}. Destes, fixados: {{pinned}}.",
+      "listTitle": "Agentes fixados",
+      "listDescription": "Agentes fixados não recebem atualizações, nem as de segurança estáveis. Continuam excluídos e não são editados aqui.",
+      "release": "Remover fixação",
+      "releaseAria": "Remover a fixação de {{name}}",
+      "releaseTitle": "Remover a fixação de {{name}}?",
+      "releaseBody": "As atualizações voltam a alcançá-lo."
+    },
+    "storePointer": {
+      "text": "As pré-versões dos plugins são definidas na Plugin Store.",
+      "link": "Abrir Plugin Store"
+    },
+    "target": {
+      "channel": "Canal",
+      "stable": "Estável",
+      "prerelease": "Pré-lançamento",
+      "offHint": "Ative Incluir pré-lançamentos de agentes para escolher um pré-lançamento."
+    },
+    "filter": {
+      "prerelease": "Pré-lançamento",
+      "pinned": "Fixado",
+      "shown_one": "{{count}} agente mostrado",
+      "shown_other": "{{count}} agentes mostrados",
+      "noPrerelease": "Nenhum agente executa um pré-lançamento.",
+      "noPinned": "Nenhum agente está fixado."
+    },
+    "notConnected": "Este agente não está conectado. Conecte-o e tente novamente.",
+    "cannotGoBack": "Depois disso não será possível voltar a uma versão mais antiga.",
+    "statusLabel": "Estado da atualização",
+    "badge": "Pré-lançamento"
   }
 }

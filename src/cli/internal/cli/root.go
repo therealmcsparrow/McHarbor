@@ -234,6 +234,8 @@ func NewRoot(stdout, stderr io.Writer) (*cobra.Command, *globals) {
 	addRunbookCommands(root, g)
 	addComplianceCommands(root, g)
 	addSettingsCommands(root, g)
+	// After the settings, environment and platform groups it joins.
+	addChannelCommands(root, g)
 	// After addGitopsCommands, so `gitops preview` joins the existing group
 	// rather than creating a second, unreachable one.
 	addPreviewCommands(root, g)

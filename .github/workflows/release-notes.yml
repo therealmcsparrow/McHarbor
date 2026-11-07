@@ -89,6 +89,18 @@ jobs:
           fi
           echo "All version sources match tag $version."
 
+      - name: Classify the version channel
+        id: channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          if bash scripts/release/assert-version-channel.sh stable >/dev/null 2>&1; then
+            echo "channel=stable" >> "$GITHUB_OUTPUT"
+          else
+            bash scripts/release/assert-version-channel.sh prerelease >/dev/null
+            echo "channel=prerelease" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract CHANGELOG section for the version
         id: extract
         shell: bash
@@ -105,7 +117,7 @@ jobs:
           # (### Added / ### Changed / ### Fixed) of the target
           # version, in order.
           notes="$(awk -v ver="## [${version}]" '
-            $0 ~ ver {flag=1; next}
+            index($0, ver) == 1 {flag=1; next}
             flag && /^## \[/ {flag=0}
             flag {print}
           ' CHANGELOG.md)"
@@ -142,6 +154,8 @@ jobs:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "Release ${{ steps.tag.outputs.version }}"
           body: ${{ steps.extract.outputs.notes }}
+          prerelease: ${{ steps.channel.outputs.channel == 'prerelease' }}
+          make_latest: ${{ steps.channel.outputs.channel == 'stable' && 'legacy' || 'false' }}
           # `action_type: auto` is the default and lets the action
           # decide between create / update based on whether the
           # release already exists, so a re-pushed tag or

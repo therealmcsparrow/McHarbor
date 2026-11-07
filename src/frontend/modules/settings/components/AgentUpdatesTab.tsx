@@ -4,6 +4,8 @@
 // AgentUpdatesTab — the Updates > Agents section: how remote agent binaries are
 // kept in step with the host.
 
+import { PluginStorePointer } from './PluginStorePointer';
+import { PrereleaseChannelsCard } from './PrereleaseChannelsCard';
 import { AgentUpdateSettingsCard } from './AgentUpdateSettingsCard';
 import { AgentInventoryCard } from './AgentInventoryCard';
 import { AgentReleasesCard } from './AgentReleasesCard';
@@ -13,9 +15,11 @@ export function AgentUpdatesTab() {
   return (
     <div className="space-y-6">
       <AgentUpdateSettingsCard />
+      <PrereleaseChannelsCard scope="agents" />
       <AgentInventoryCard />
       <AgentReleasesCard />
       <AgentReleaseSettingsCard />
+      <PluginStorePointer />
     </div>
   );
 }

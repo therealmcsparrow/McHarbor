@@ -1248,6 +1248,7 @@ type ContainerBackupsBackupPlan struct {
 	IncludeFilesystem  bool                                        `json:"includeFilesystem"`
 	IncludeImage       bool                                        `json:"includeImage"`
 	IncludeLogs        bool                                        `json:"includeLogs"`
+	KeepLocalCopy      bool                                        `json:"keepLocalCopy"`
 	LastRunAt          *string                                     `json:"lastRunAt,omitempty"`
 	LogTailLines       int                                         `json:"logTailLines"`
 	Name               string                                      `json:"name"`
@@ -1281,6 +1282,7 @@ type ContainerBackupsBackupRun struct {
 	Error             *string                                `json:"error,omitempty"`
 	Id                string                                 `json:"id"`
 	IncludedItems     []string                               `json:"includedItems"`
+	LocalCopyDropped  *bool                                  `json:"localCopyDropped,omitempty"`
 	Operation         string                                 `json:"operation"`
 	Origin            *string                                `json:"origin,omitempty"`
 	PlanId            *string                                `json:"planId,omitempty"`
@@ -1329,6 +1331,7 @@ type ContainerBackupsCreateBackupPlanInput struct {
 	IncludeFilesystem  bool                                        `json:"includeFilesystem"`
 	IncludeImage       bool                                        `json:"includeImage"`
 	IncludeLogs        bool                                        `json:"includeLogs"`
+	KeepLocalCopy      *bool                                       `json:"keepLocalCopy,omitempty"`
 	LogTailLines       int                                         `json:"logTailLines"`
 	Name               string                                      `json:"name"`
 	RetentionCount     int                                         `json:"retentionCount"`
@@ -1392,6 +1395,7 @@ type ContainerBackupsUpdateBackupPlanInput struct {
 	IncludeFilesystem  *bool                                       `json:"includeFilesystem,omitempty"`
 	IncludeImage       *bool                                       `json:"includeImage,omitempty"`
 	IncludeLogs        *bool                                       `json:"includeLogs,omitempty"`
+	KeepLocalCopy      *bool                                       `json:"keepLocalCopy,omitempty"`
 	LogTailLines       *int                                        `json:"logTailLines,omitempty"`
 	Name               *string                                     `json:"name,omitempty"`
 	RetentionCount     *int                                        `json:"retentionCount,omitempty"`
@@ -3129,6 +3133,26 @@ type MetricsCapacityReport struct {
 	WindowDays   int                `json:"windowDays"`
 }
 
+// MetricsHostFSStatus defines model for Metrics.HostFSStatus.
+type MetricsHostFSStatus struct {
+	EnvironmentId string                  `json:"environmentId"`
+	LastSeen      *time.Time              `json:"lastSeen,omitempty"`
+	Level         *string                 `json:"level,omitempty"`
+	Path          string                  `json:"path"`
+	Percent       float64                 `json:"percent"`
+	Reason        *string                 `json:"reason,omitempty"`
+	State         string                  `json:"state"`
+	Thresholds    MetricsHostFSThresholds `json:"thresholds"`
+	TotalBytes    int                     `json:"totalBytes"`
+	UsedBytes     int                     `json:"usedBytes"`
+}
+
+// MetricsHostFSThresholds defines model for Metrics.HostFSThresholds.
+type MetricsHostFSThresholds struct {
+	Critical float64 `json:"critical"`
+	Warning  float64 `json:"warning"`
+}
+
 // MetricsIdleReport defines model for Metrics.IdleReport.
 type MetricsIdleReport struct {
 	Containers       []MetricsIdleResource `json:"containers"`
@@ -3514,6 +3538,17 @@ type PlugincapsSearchSource struct {
 	Permission string                  `json:"permission"`
 }
 
+// PluginsChannelRequest defines model for Plugins.ChannelRequest.
+type PluginsChannelRequest struct {
+	Prereleases *bool `json:"prereleases"`
+}
+
+// PluginsChannelResult defines model for Plugins.ChannelResult.
+type PluginsChannelResult struct {
+	Prereleases *bool  `json:"prereleases,omitempty"`
+	Slug        string `json:"slug"`
+}
+
 // PluginsInstallRequest defines model for Plugins.InstallRequest.
 type PluginsInstallRequest struct {
 	AllowUnsigned *bool   `json:"allow_unsigned,omitempty"`
@@ -3535,6 +3570,29 @@ type PluginsReconcileResult struct {
 	Action  string `json:"action"`
 	Slug    string `json:"slug"`
 	Version string `json:"version"`
+}
+
+// PluginsReturnCheckResult defines model for Plugins.ReturnCheckResult.
+type PluginsReturnCheckResult struct {
+	BlockingMigration  *string   `json:"blocking_migration,omitempty"`
+	BlockingMigrations *[]string `json:"blocking_migrations,omitempty"`
+	InstalledVersion   *string   `json:"installed_version,omitempty"`
+	Ok                 bool      `json:"ok"`
+	Outcome            string    `json:"outcome"`
+	TargetVersion      *string   `json:"target_version,omitempty"`
+	Unsigned           *bool     `json:"unsigned,omitempty"`
+}
+
+// PluginsReturnRequest defines model for Plugins.ReturnRequest.
+type PluginsReturnRequest struct {
+	AllowUnsigned *bool `json:"allow_unsigned,omitempty"`
+}
+
+// PluginsReturnResult defines model for Plugins.ReturnResult.
+type PluginsReturnResult struct {
+	From string `json:"from"`
+	Slug string `json:"slug"`
+	To   string `json:"to"`
 }
 
 // PluginsUninstallRequest defines model for Plugins.UninstallRequest.
@@ -5115,6 +5173,24 @@ type TableViewsImportTable struct {
 	TableId string                  `json:"tableId"`
 }
 
+// UpdatechannelPatch defines model for Updatechannel.Patch.
+type UpdatechannelPatch struct {
+	AgentAutoPrereleases    *bool `json:"agentAutoPrereleases,omitempty"`
+	AgentPrereleases        *bool `json:"agentPrereleases,omitempty"`
+	McharborAutoPrereleases *bool `json:"mcharborAutoPrereleases,omitempty"`
+	McharborPrereleases     *bool `json:"mcharborPrereleases,omitempty"`
+	PluginPrereleases       *bool `json:"pluginPrereleases,omitempty"`
+}
+
+// UpdatechannelSettings defines model for Updatechannel.Settings.
+type UpdatechannelSettings struct {
+	AgentAutoPrereleases    bool `json:"agentAutoPrereleases"`
+	AgentPrereleases        bool `json:"agentPrereleases"`
+	McharborAutoPrereleases bool `json:"mcharborAutoPrereleases"`
+	McharborPrereleases     bool `json:"mcharborPrereleases"`
+	PluginPrereleases       bool `json:"pluginPrereleases"`
+}
+
 // UpdatesCreatePolicyInput defines model for Updates.CreatePolicyInput.
 type UpdatesCreatePolicyInput struct {
 	AutoRestart    bool   `json:"autoRestart"`
@@ -5375,7 +5451,8 @@ type UsersUserRole struct {
 
 // VersionsSelfUpdateRequest defines model for Versions.SelfUpdateRequest.
 type VersionsSelfUpdateRequest struct {
-	Image string `json:"image"`
+	Image   string  `json:"image"`
+	Version *string `json:"version,omitempty"`
 }
 
 // VolumesCreateRequest defines model for Volumes.CreateRequest.
@@ -6625,6 +6702,12 @@ type MetricsHostInfoParams struct {
 	Env *string `form:"env,omitempty" json:"env,omitempty"`
 }
 
+// MetricsHostFSParams defines parameters for MetricsHostFS.
+type MetricsHostFSParams struct {
+	// Env Environment id the request applies to.
+	Env *string `form:"env,omitempty" json:"env,omitempty"`
+}
+
 // MetricsHostHistoryParams defines parameters for MetricsHostHistory.
 type MetricsHostHistoryParams struct {
 	// Env Environment id the request applies to.
@@ -7393,8 +7476,14 @@ type AppstorePluginsInstallStreamJSONRequestBody = PluginsInstallRequest
 // AppstorePluginsUninstallJSONRequestBody defines body for AppstorePluginsUninstall for application/json ContentType.
 type AppstorePluginsUninstallJSONRequestBody = PluginsUninstallRequest
 
+// AppstorePluginsSetChannelJSONRequestBody defines body for AppstorePluginsSetChannel for application/json ContentType.
+type AppstorePluginsSetChannelJSONRequestBody = PluginsChannelRequest
+
 // AppstorePluginsReconcileJSONRequestBody defines body for AppstorePluginsReconcile for application/json ContentType.
 type AppstorePluginsReconcileJSONRequestBody = PluginsReconcileRequest
+
+// AppstorePluginsReturnJSONRequestBody defines body for AppstorePluginsReturn for application/json ContentType.
+type AppstorePluginsReturnJSONRequestBody = PluginsReturnRequest
 
 // AppstorePluginsUpdateStreamJSONRequestBody defines body for AppstorePluginsUpdateStream for application/json ContentType.
 type AppstorePluginsUpdateStreamJSONRequestBody = PluginsUpdateRequest
@@ -7912,6 +8001,9 @@ type AgentreleasesSetTargetJSONRequestBody = AgentreleasesSetTargetRequest
 // UpdatesUpdateAgentsJSONRequestBody defines body for UpdatesUpdateAgents for application/json ContentType.
 type UpdatesUpdateAgentsJSONRequestBody = UpdatesUpdateAgentsRequest
 
+// UpdatesPutChannelsJSONRequestBody defines body for UpdatesPutChannels for application/json ContentType.
+type UpdatesPutChannelsJSONRequestBody = UpdatechannelPatch
+
 // UpdatesDismissJSONRequestBody defines body for UpdatesDismiss for application/json ContentType.
 type UpdatesDismissJSONRequestBody = UpdatesDismissRequest
 
@@ -8080,8 +8172,14 @@ type ClientInterface interface {
 	// AgentAgentBinaryHead request
 	AgentAgentBinaryHead(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AgentAgentBinaryVersion request
+	AgentAgentBinaryVersion(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AgentAgentImage request
 	AgentAgentImage(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AgentAgentImageVersion request
+	AgentAgentImageVersion(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AgentInstallScript request
 	AgentInstallScript(ctx context.Context, token string, params *AgentInstallScriptParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -8351,6 +8449,11 @@ type ClientInterface interface {
 	// AppstorePluginsGet request
 	AppstorePluginsGet(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AppstorePluginsSetChannelWithBody request with any body
+	AppstorePluginsSetChannelWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AppstorePluginsSetChannel(ctx context.Context, slug string, body AppstorePluginsSetChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AppstorePluginsCatalogIcon request
 	AppstorePluginsCatalogIcon(ctx context.Context, slug string, params *AppstorePluginsCatalogIconParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -8358,6 +8461,14 @@ type ClientInterface interface {
 	AppstorePluginsReconcileWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AppstorePluginsReconcile(ctx context.Context, slug string, body AppstorePluginsReconcileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppstorePluginsReturnWithBody request with any body
+	AppstorePluginsReturnWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AppstorePluginsReturn(ctx context.Context, slug string, body AppstorePluginsReturnJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AppstorePluginsReturnCheck request
+	AppstorePluginsReturnCheck(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AppstorePluginsUpdateStreamWithBody request with any body
 	AppstorePluginsUpdateStreamWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -9632,6 +9743,9 @@ type ClientInterface interface {
 	// MetricsHostInfo request
 	MetricsHostInfo(ctx context.Context, params *MetricsHostInfoParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// MetricsHostFS request
+	MetricsHostFS(ctx context.Context, params *MetricsHostFSParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// MetricsHostHistory request
 	MetricsHostHistory(ctx context.Context, params *MetricsHostHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -10650,6 +10764,20 @@ type ClientInterface interface {
 
 	UpdatesUpdateAgents(ctx context.Context, body UpdatesUpdateAgentsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdatesAgentPinRemove request
+	UpdatesAgentPinRemove(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatesAgentReturn request
+	UpdatesAgentReturn(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatesGetChannels request
+	UpdatesGetChannels(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdatesPutChannelsWithBody request with any body
+	UpdatesPutChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdatesPutChannels(ctx context.Context, body UpdatesPutChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UpdatesCheckUpdate request
 	UpdatesCheckUpdate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -11003,8 +11131,32 @@ func (c *Client) AgentAgentBinaryHead(ctx context.Context, os string, arch strin
 	return c.Client.Do(req)
 }
 
+func (c *Client) AgentAgentBinaryVersion(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentAgentBinaryVersionRequest(c.Server, os, arch, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AgentAgentImage(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAgentAgentImageRequest(c.Server, os, arch)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AgentAgentImageVersion(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAgentAgentImageVersionRequest(c.Server, os, arch, version)
 	if err != nil {
 		return nil, err
 	}
@@ -12167,6 +12319,30 @@ func (c *Client) AppstorePluginsGet(ctx context.Context, slug string, reqEditors
 	return c.Client.Do(req)
 }
 
+func (c *Client) AppstorePluginsSetChannelWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppstorePluginsSetChannelRequestWithBody(c.Server, slug, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppstorePluginsSetChannel(ctx context.Context, slug string, body AppstorePluginsSetChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppstorePluginsSetChannelRequest(c.Server, slug, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AppstorePluginsCatalogIcon(ctx context.Context, slug string, params *AppstorePluginsCatalogIconParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAppstorePluginsCatalogIconRequest(c.Server, slug, params)
 	if err != nil {
@@ -12193,6 +12369,42 @@ func (c *Client) AppstorePluginsReconcileWithBody(ctx context.Context, slug stri
 
 func (c *Client) AppstorePluginsReconcile(ctx context.Context, slug string, body AppstorePluginsReconcileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAppstorePluginsReconcileRequest(c.Server, slug, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppstorePluginsReturnWithBody(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppstorePluginsReturnRequestWithBody(c.Server, slug, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppstorePluginsReturn(ctx context.Context, slug string, body AppstorePluginsReturnJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppstorePluginsReturnRequest(c.Server, slug, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AppstorePluginsReturnCheck(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAppstorePluginsReturnCheckRequest(c.Server, slug)
 	if err != nil {
 		return nil, err
 	}
@@ -17663,6 +17875,18 @@ func (c *Client) MetricsHostInfo(ctx context.Context, params *MetricsHostInfoPar
 	return c.Client.Do(req)
 }
 
+func (c *Client) MetricsHostFS(ctx context.Context, params *MetricsHostFSParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewMetricsHostFSRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) MetricsHostHistory(ctx context.Context, params *MetricsHostHistoryParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewMetricsHostHistoryRequest(c.Server, params)
 	if err != nil {
@@ -22055,6 +22279,66 @@ func (c *Client) UpdatesUpdateAgents(ctx context.Context, body UpdatesUpdateAgen
 	return c.Client.Do(req)
 }
 
+func (c *Client) UpdatesAgentPinRemove(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatesAgentPinRemoveRequest(c.Server, envId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatesAgentReturn(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatesAgentReturnRequest(c.Server, envId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatesGetChannels(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatesGetChannelsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatesPutChannelsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatesPutChannelsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatesPutChannels(ctx context.Context, body UpdatesPutChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatesPutChannelsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UpdatesCheckUpdate(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdatesCheckUpdateRequest(c.Server)
 	if err != nil {
@@ -23596,6 +23880,54 @@ func NewAgentAgentBinaryHeadRequest(server string, os string, arch string) (*htt
 	return req, nil
 }
 
+// NewAgentAgentBinaryVersionRequest generates requests for AgentAgentBinaryVersion
+func NewAgentAgentBinaryVersionRequest(server string, os string, arch string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "os", runtime.ParamLocationPath, os)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "arch", runtime.ParamLocationPath, arch)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/agent/binary/%s/%s/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAgentAgentImageRequest generates requests for AgentAgentImage
 func NewAgentAgentImageRequest(server string, os string, arch string) (*http.Request, error) {
 	var err error
@@ -23620,6 +23952,54 @@ func NewAgentAgentImageRequest(server string, os string, arch string) (*http.Req
 	}
 
 	operationPath := fmt.Sprintf("/api/agent/image/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAgentAgentImageVersionRequest generates requests for AgentAgentImageVersion
+func NewAgentAgentImageVersionRequest(server string, os string, arch string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "os", runtime.ParamLocationPath, os)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "arch", runtime.ParamLocationPath, arch)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/agent/image/%s/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -26944,6 +27324,53 @@ func NewAppstorePluginsGetRequest(server string, slug string) (*http.Request, er
 	return req, nil
 }
 
+// NewAppstorePluginsSetChannelRequest calls the generic AppstorePluginsSetChannel builder with application/json body
+func NewAppstorePluginsSetChannelRequest(server string, slug string, body AppstorePluginsSetChannelJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAppstorePluginsSetChannelRequestWithBody(server, slug, "application/json", bodyReader)
+}
+
+// NewAppstorePluginsSetChannelRequestWithBody generates requests for AppstorePluginsSetChannel with any type of body
+func NewAppstorePluginsSetChannelRequestWithBody(server string, slug string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "slug", runtime.ParamLocationPath, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/appstore/plugins/%s/channel", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewAppstorePluginsCatalogIconRequest generates requests for AppstorePluginsCatalogIcon
 func NewAppstorePluginsCatalogIconRequest(server string, slug string, params *AppstorePluginsCatalogIconParams) (*http.Request, error) {
 	var err error
@@ -27043,6 +27470,87 @@ func NewAppstorePluginsReconcileRequestWithBody(server string, slug string, cont
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAppstorePluginsReturnRequest calls the generic AppstorePluginsReturn builder with application/json body
+func NewAppstorePluginsReturnRequest(server string, slug string, body AppstorePluginsReturnJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAppstorePluginsReturnRequestWithBody(server, slug, "application/json", bodyReader)
+}
+
+// NewAppstorePluginsReturnRequestWithBody generates requests for AppstorePluginsReturn with any type of body
+func NewAppstorePluginsReturnRequestWithBody(server string, slug string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "slug", runtime.ParamLocationPath, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/appstore/plugins/%s/return", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAppstorePluginsReturnCheckRequest generates requests for AppstorePluginsReturnCheck
+func NewAppstorePluginsReturnCheckRequest(server string, slug string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "slug", runtime.ParamLocationPath, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/appstore/plugins/%s/return/check", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -43734,6 +44242,55 @@ func NewMetricsHostInfoRequest(server string, params *MetricsHostInfoParams) (*h
 	return req, nil
 }
 
+// NewMetricsHostFSRequest generates requests for MetricsHostFS
+func NewMetricsHostFSRequest(server string, params *MetricsHostFSParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/metrics/host/fs")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Env != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "env", runtime.ParamLocationQuery, *params.Env); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewMetricsHostHistoryRequest generates requests for MetricsHostHistory
 func NewMetricsHostHistoryRequest(server string, params *MetricsHostHistoryParams) (*http.Request, error) {
 	var err error
@@ -56182,6 +56739,141 @@ func NewUpdatesUpdateAgentsRequestWithBody(server string, contentType string, bo
 	return req, nil
 }
 
+// NewUpdatesAgentPinRemoveRequest generates requests for UpdatesAgentPinRemove
+func NewUpdatesAgentPinRemoveRequest(server string, envId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "envId", runtime.ParamLocationPath, envId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/updates/agents/%s/pin", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdatesAgentReturnRequest generates requests for UpdatesAgentReturn
+func NewUpdatesAgentReturnRequest(server string, envId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "envId", runtime.ParamLocationPath, envId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/updates/agents/%s/return", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdatesGetChannelsRequest generates requests for UpdatesGetChannels
+func NewUpdatesGetChannelsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/updates/channels")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdatesPutChannelsRequest calls the generic UpdatesPutChannels builder with application/json body
+func NewUpdatesPutChannelsRequest(server string, body UpdatesPutChannelsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdatesPutChannelsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdatesPutChannelsRequestWithBody generates requests for UpdatesPutChannels with any type of body
+func NewUpdatesPutChannelsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/updates/channels")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUpdatesCheckUpdateRequest generates requests for UpdatesCheckUpdate
 func NewUpdatesCheckUpdateRequest(server string) (*http.Request, error) {
 	var err error
@@ -59094,8 +59786,14 @@ type ClientWithResponsesInterface interface {
 	// AgentAgentBinaryHeadWithResponse request
 	AgentAgentBinaryHeadWithResponse(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*AgentAgentBinaryHeadResponse, error)
 
+	// AgentAgentBinaryVersionWithResponse request
+	AgentAgentBinaryVersionWithResponse(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*AgentAgentBinaryVersionResponse, error)
+
 	// AgentAgentImageWithResponse request
 	AgentAgentImageWithResponse(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*AgentAgentImageResponse, error)
+
+	// AgentAgentImageVersionWithResponse request
+	AgentAgentImageVersionWithResponse(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*AgentAgentImageVersionResponse, error)
 
 	// AgentInstallScriptWithResponse request
 	AgentInstallScriptWithResponse(ctx context.Context, token string, params *AgentInstallScriptParams, reqEditors ...RequestEditorFn) (*AgentInstallScriptResponse, error)
@@ -59365,6 +60063,11 @@ type ClientWithResponsesInterface interface {
 	// AppstorePluginsGetWithResponse request
 	AppstorePluginsGetWithResponse(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*AppstorePluginsGetResponse, error)
 
+	// AppstorePluginsSetChannelWithBodyWithResponse request with any body
+	AppstorePluginsSetChannelWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsSetChannelResponse, error)
+
+	AppstorePluginsSetChannelWithResponse(ctx context.Context, slug string, body AppstorePluginsSetChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*AppstorePluginsSetChannelResponse, error)
+
 	// AppstorePluginsCatalogIconWithResponse request
 	AppstorePluginsCatalogIconWithResponse(ctx context.Context, slug string, params *AppstorePluginsCatalogIconParams, reqEditors ...RequestEditorFn) (*AppstorePluginsCatalogIconResponse, error)
 
@@ -59372,6 +60075,14 @@ type ClientWithResponsesInterface interface {
 	AppstorePluginsReconcileWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsReconcileResponse, error)
 
 	AppstorePluginsReconcileWithResponse(ctx context.Context, slug string, body AppstorePluginsReconcileJSONRequestBody, reqEditors ...RequestEditorFn) (*AppstorePluginsReconcileResponse, error)
+
+	// AppstorePluginsReturnWithBodyWithResponse request with any body
+	AppstorePluginsReturnWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnResponse, error)
+
+	AppstorePluginsReturnWithResponse(ctx context.Context, slug string, body AppstorePluginsReturnJSONRequestBody, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnResponse, error)
+
+	// AppstorePluginsReturnCheckWithResponse request
+	AppstorePluginsReturnCheckWithResponse(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnCheckResponse, error)
 
 	// AppstorePluginsUpdateStreamWithBodyWithResponse request with any body
 	AppstorePluginsUpdateStreamWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsUpdateStreamResponse, error)
@@ -60646,6 +61357,9 @@ type ClientWithResponsesInterface interface {
 	// MetricsHostInfoWithResponse request
 	MetricsHostInfoWithResponse(ctx context.Context, params *MetricsHostInfoParams, reqEditors ...RequestEditorFn) (*MetricsHostInfoResponse, error)
 
+	// MetricsHostFSWithResponse request
+	MetricsHostFSWithResponse(ctx context.Context, params *MetricsHostFSParams, reqEditors ...RequestEditorFn) (*MetricsHostFSResponse, error)
+
 	// MetricsHostHistoryWithResponse request
 	MetricsHostHistoryWithResponse(ctx context.Context, params *MetricsHostHistoryParams, reqEditors ...RequestEditorFn) (*MetricsHostHistoryResponse, error)
 
@@ -61664,6 +62378,20 @@ type ClientWithResponsesInterface interface {
 
 	UpdatesUpdateAgentsWithResponse(ctx context.Context, body UpdatesUpdateAgentsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatesUpdateAgentsResponse, error)
 
+	// UpdatesAgentPinRemoveWithResponse request
+	UpdatesAgentPinRemoveWithResponse(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*UpdatesAgentPinRemoveResponse, error)
+
+	// UpdatesAgentReturnWithResponse request
+	UpdatesAgentReturnWithResponse(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*UpdatesAgentReturnResponse, error)
+
+	// UpdatesGetChannelsWithResponse request
+	UpdatesGetChannelsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdatesGetChannelsResponse, error)
+
+	// UpdatesPutChannelsWithBodyWithResponse request with any body
+	UpdatesPutChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatesPutChannelsResponse, error)
+
+	UpdatesPutChannelsWithResponse(ctx context.Context, body UpdatesPutChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatesPutChannelsResponse, error)
+
 	// UpdatesCheckUpdateWithResponse request
 	UpdatesCheckUpdateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdatesCheckUpdateResponse, error)
 
@@ -62136,6 +62864,29 @@ func (r AgentAgentBinaryHeadResponse) StatusCode() int {
 	return 0
 }
 
+type AgentAgentBinaryVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON500      *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentAgentBinaryVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentAgentBinaryVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AgentAgentImageResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -62153,6 +62904,29 @@ func (r AgentAgentImageResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AgentAgentImageResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AgentAgentImageVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequest
+	JSON500      *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r AgentAgentImageVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AgentAgentImageVersionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -64357,6 +65131,36 @@ func (r AppstorePluginsGetResponse) StatusCode() int {
 	return 0
 }
 
+type AppstorePluginsSetChannelResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *PluginsChannelResult `json:"data,omitempty"`
+		Message *string               `json:"message,omitempty"`
+		Success bool                  `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r AppstorePluginsSetChannelResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppstorePluginsSetChannelResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AppstorePluginsCatalogIconResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -64406,6 +65210,66 @@ func (r AppstorePluginsReconcileResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AppstorePluginsReconcileResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppstorePluginsReturnResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Data    *PluginsReturnResult `json:"data,omitempty"`
+		Message *string              `json:"message,omitempty"`
+		Success bool                 `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r AppstorePluginsReturnResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppstorePluginsReturnResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AppstorePluginsReturnCheckResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *PluginsReturnCheckResult `json:"data,omitempty"`
+		Message *string                   `json:"message,omitempty"`
+		Success bool                      `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r AppstorePluginsReturnCheckResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AppstorePluginsReturnCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -74904,6 +75768,36 @@ func (r MetricsHostInfoResponse) StatusCode() int {
 	return 0
 }
 
+type MetricsHostFSResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *MetricsHostFSStatus `json:"data,omitempty"`
+		Message *string              `json:"message,omitempty"`
+		Success bool                 `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r MetricsHostFSResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r MetricsHostFSResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type MetricsHostHistoryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -83210,6 +84104,124 @@ func (r UpdatesUpdateAgentsResponse) StatusCode() int {
 	return 0
 }
 
+type UpdatesAgentPinRemoveResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Message *string `json:"message,omitempty"`
+		Success bool    `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatesAgentPinRemoveResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatesAgentPinRemoveResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdatesAgentReturnResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Message *string `json:"message,omitempty"`
+		Success bool    `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatesAgentReturnResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatesAgentReturnResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdatesGetChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *UpdatechannelSettings `json:"data,omitempty"`
+		Message *string                `json:"message,omitempty"`
+		Success bool                   `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatesGetChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatesGetChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdatesPutChannelsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *UpdatechannelSettings `json:"data,omitempty"`
+		Message *string                `json:"message,omitempty"`
+		Success bool                   `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatesPutChannelsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatesPutChannelsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UpdatesCheckUpdateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -85203,6 +86215,15 @@ func (c *ClientWithResponses) AgentAgentBinaryHeadWithResponse(ctx context.Conte
 	return ParseAgentAgentBinaryHeadResponse(rsp)
 }
 
+// AgentAgentBinaryVersionWithResponse request returning *AgentAgentBinaryVersionResponse
+func (c *ClientWithResponses) AgentAgentBinaryVersionWithResponse(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*AgentAgentBinaryVersionResponse, error) {
+	rsp, err := c.AgentAgentBinaryVersion(ctx, os, arch, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentAgentBinaryVersionResponse(rsp)
+}
+
 // AgentAgentImageWithResponse request returning *AgentAgentImageResponse
 func (c *ClientWithResponses) AgentAgentImageWithResponse(ctx context.Context, os string, arch string, reqEditors ...RequestEditorFn) (*AgentAgentImageResponse, error) {
 	rsp, err := c.AgentAgentImage(ctx, os, arch, reqEditors...)
@@ -85210,6 +86231,15 @@ func (c *ClientWithResponses) AgentAgentImageWithResponse(ctx context.Context, o
 		return nil, err
 	}
 	return ParseAgentAgentImageResponse(rsp)
+}
+
+// AgentAgentImageVersionWithResponse request returning *AgentAgentImageVersionResponse
+func (c *ClientWithResponses) AgentAgentImageVersionWithResponse(ctx context.Context, os string, arch string, version string, reqEditors ...RequestEditorFn) (*AgentAgentImageVersionResponse, error) {
+	rsp, err := c.AgentAgentImageVersion(ctx, os, arch, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAgentAgentImageVersionResponse(rsp)
 }
 
 // AgentInstallScriptWithResponse request returning *AgentInstallScriptResponse
@@ -86056,6 +87086,23 @@ func (c *ClientWithResponses) AppstorePluginsGetWithResponse(ctx context.Context
 	return ParseAppstorePluginsGetResponse(rsp)
 }
 
+// AppstorePluginsSetChannelWithBodyWithResponse request with arbitrary body returning *AppstorePluginsSetChannelResponse
+func (c *ClientWithResponses) AppstorePluginsSetChannelWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsSetChannelResponse, error) {
+	rsp, err := c.AppstorePluginsSetChannelWithBody(ctx, slug, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppstorePluginsSetChannelResponse(rsp)
+}
+
+func (c *ClientWithResponses) AppstorePluginsSetChannelWithResponse(ctx context.Context, slug string, body AppstorePluginsSetChannelJSONRequestBody, reqEditors ...RequestEditorFn) (*AppstorePluginsSetChannelResponse, error) {
+	rsp, err := c.AppstorePluginsSetChannel(ctx, slug, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppstorePluginsSetChannelResponse(rsp)
+}
+
 // AppstorePluginsCatalogIconWithResponse request returning *AppstorePluginsCatalogIconResponse
 func (c *ClientWithResponses) AppstorePluginsCatalogIconWithResponse(ctx context.Context, slug string, params *AppstorePluginsCatalogIconParams, reqEditors ...RequestEditorFn) (*AppstorePluginsCatalogIconResponse, error) {
 	rsp, err := c.AppstorePluginsCatalogIcon(ctx, slug, params, reqEditors...)
@@ -86080,6 +87127,32 @@ func (c *ClientWithResponses) AppstorePluginsReconcileWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseAppstorePluginsReconcileResponse(rsp)
+}
+
+// AppstorePluginsReturnWithBodyWithResponse request with arbitrary body returning *AppstorePluginsReturnResponse
+func (c *ClientWithResponses) AppstorePluginsReturnWithBodyWithResponse(ctx context.Context, slug string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnResponse, error) {
+	rsp, err := c.AppstorePluginsReturnWithBody(ctx, slug, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppstorePluginsReturnResponse(rsp)
+}
+
+func (c *ClientWithResponses) AppstorePluginsReturnWithResponse(ctx context.Context, slug string, body AppstorePluginsReturnJSONRequestBody, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnResponse, error) {
+	rsp, err := c.AppstorePluginsReturn(ctx, slug, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppstorePluginsReturnResponse(rsp)
+}
+
+// AppstorePluginsReturnCheckWithResponse request returning *AppstorePluginsReturnCheckResponse
+func (c *ClientWithResponses) AppstorePluginsReturnCheckWithResponse(ctx context.Context, slug string, reqEditors ...RequestEditorFn) (*AppstorePluginsReturnCheckResponse, error) {
+	rsp, err := c.AppstorePluginsReturnCheck(ctx, slug, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAppstorePluginsReturnCheckResponse(rsp)
 }
 
 // AppstorePluginsUpdateStreamWithBodyWithResponse request with arbitrary body returning *AppstorePluginsUpdateStreamResponse
@@ -90085,6 +91158,15 @@ func (c *ClientWithResponses) MetricsHostInfoWithResponse(ctx context.Context, p
 	return ParseMetricsHostInfoResponse(rsp)
 }
 
+// MetricsHostFSWithResponse request returning *MetricsHostFSResponse
+func (c *ClientWithResponses) MetricsHostFSWithResponse(ctx context.Context, params *MetricsHostFSParams, reqEditors ...RequestEditorFn) (*MetricsHostFSResponse, error) {
+	rsp, err := c.MetricsHostFS(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseMetricsHostFSResponse(rsp)
+}
+
 // MetricsHostHistoryWithResponse request returning *MetricsHostHistoryResponse
 func (c *ClientWithResponses) MetricsHostHistoryWithResponse(ctx context.Context, params *MetricsHostHistoryParams, reqEditors ...RequestEditorFn) (*MetricsHostHistoryResponse, error) {
 	rsp, err := c.MetricsHostHistory(ctx, params, reqEditors...)
@@ -93299,6 +94381,50 @@ func (c *ClientWithResponses) UpdatesUpdateAgentsWithResponse(ctx context.Contex
 	return ParseUpdatesUpdateAgentsResponse(rsp)
 }
 
+// UpdatesAgentPinRemoveWithResponse request returning *UpdatesAgentPinRemoveResponse
+func (c *ClientWithResponses) UpdatesAgentPinRemoveWithResponse(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*UpdatesAgentPinRemoveResponse, error) {
+	rsp, err := c.UpdatesAgentPinRemove(ctx, envId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatesAgentPinRemoveResponse(rsp)
+}
+
+// UpdatesAgentReturnWithResponse request returning *UpdatesAgentReturnResponse
+func (c *ClientWithResponses) UpdatesAgentReturnWithResponse(ctx context.Context, envId string, reqEditors ...RequestEditorFn) (*UpdatesAgentReturnResponse, error) {
+	rsp, err := c.UpdatesAgentReturn(ctx, envId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatesAgentReturnResponse(rsp)
+}
+
+// UpdatesGetChannelsWithResponse request returning *UpdatesGetChannelsResponse
+func (c *ClientWithResponses) UpdatesGetChannelsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdatesGetChannelsResponse, error) {
+	rsp, err := c.UpdatesGetChannels(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatesGetChannelsResponse(rsp)
+}
+
+// UpdatesPutChannelsWithBodyWithResponse request with arbitrary body returning *UpdatesPutChannelsResponse
+func (c *ClientWithResponses) UpdatesPutChannelsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatesPutChannelsResponse, error) {
+	rsp, err := c.UpdatesPutChannelsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatesPutChannelsResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdatesPutChannelsWithResponse(ctx context.Context, body UpdatesPutChannelsJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatesPutChannelsResponse, error) {
+	rsp, err := c.UpdatesPutChannels(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatesPutChannelsResponse(rsp)
+}
+
 // UpdatesCheckUpdateWithResponse request returning *UpdatesCheckUpdateResponse
 func (c *ClientWithResponses) UpdatesCheckUpdateWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdatesCheckUpdateResponse, error) {
 	rsp, err := c.UpdatesCheckUpdate(ctx, reqEditors...)
@@ -94492,6 +95618,39 @@ func ParseAgentAgentBinaryHeadResponse(rsp *http.Response) (*AgentAgentBinaryHea
 	return response, nil
 }
 
+// ParseAgentAgentBinaryVersionResponse parses an HTTP response from a AgentAgentBinaryVersionWithResponse call
+func ParseAgentAgentBinaryVersionResponse(rsp *http.Response) (*AgentAgentBinaryVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentAgentBinaryVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAgentAgentImageResponse parses an HTTP response from a AgentAgentImageWithResponse call
 func ParseAgentAgentImageResponse(rsp *http.Response) (*AgentAgentImageResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -94501,6 +95660,39 @@ func ParseAgentAgentImageResponse(rsp *http.Response) (*AgentAgentImageResponse,
 	}
 
 	response := &AgentAgentImageResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAgentAgentImageVersionResponse parses an HTTP response from a AgentAgentImageVersionWithResponse call
+func ParseAgentAgentImageVersionResponse(rsp *http.Response) (*AgentAgentImageVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AgentAgentImageVersionResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -98785,6 +99977,64 @@ func ParseAppstorePluginsGetResponse(rsp *http.Response) (*AppstorePluginsGetRes
 	return response, nil
 }
 
+// ParseAppstorePluginsSetChannelResponse parses an HTTP response from a AppstorePluginsSetChannelWithResponse call
+func ParseAppstorePluginsSetChannelResponse(rsp *http.Response) (*AppstorePluginsSetChannelResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppstorePluginsSetChannelResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *PluginsChannelResult `json:"data,omitempty"`
+			Message *string               `json:"message,omitempty"`
+			Success bool                  `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAppstorePluginsCatalogIconResponse parses an HTTP response from a AppstorePluginsCatalogIconWithResponse call
 func ParseAppstorePluginsCatalogIconResponse(rsp *http.Response) (*AppstorePluginsCatalogIconResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -98856,6 +100106,122 @@ func ParseAppstorePluginsReconcileResponse(rsp *http.Response) (*AppstorePlugins
 			return nil, err
 		}
 		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAppstorePluginsReturnResponse parses an HTTP response from a AppstorePluginsReturnWithResponse call
+func ParseAppstorePluginsReturnResponse(rsp *http.Response) (*AppstorePluginsReturnResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppstorePluginsReturnResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Data    *PluginsReturnResult `json:"data,omitempty"`
+			Message *string              `json:"message,omitempty"`
+			Success bool                 `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAppstorePluginsReturnCheckResponse parses an HTTP response from a AppstorePluginsReturnCheckWithResponse call
+func ParseAppstorePluginsReturnCheckResponse(rsp *http.Response) (*AppstorePluginsReturnCheckResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AppstorePluginsReturnCheckResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *PluginsReturnCheckResult `json:"data,omitempty"`
+			Message *string                   `json:"message,omitempty"`
+			Success bool                      `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest BadRequest
@@ -118934,6 +120300,64 @@ func ParseMetricsHostInfoResponse(rsp *http.Response) (*MetricsHostInfoResponse,
 	return response, nil
 }
 
+// ParseMetricsHostFSResponse parses an HTTP response from a MetricsHostFSWithResponse call
+func ParseMetricsHostFSResponse(rsp *http.Response) (*MetricsHostFSResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &MetricsHostFSResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *MetricsHostFSStatus `json:"data,omitempty"`
+			Message *string              `json:"message,omitempty"`
+			Success bool                 `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseMetricsHostHistoryResponse parses an HTTP response from a MetricsHostHistoryWithResponse call
 func ParseMetricsHostHistoryResponse(rsp *http.Response) (*MetricsHostHistoryResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -134842,6 +136266,236 @@ func ParseUpdatesUpdateAgentsResponse(rsp *http.Response) (*UpdatesUpdateAgentsR
 			return nil, err
 		}
 		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatesAgentPinRemoveResponse parses an HTTP response from a UpdatesAgentPinRemoveWithResponse call
+func ParseUpdatesAgentPinRemoveResponse(rsp *http.Response) (*UpdatesAgentPinRemoveResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatesAgentPinRemoveResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Message *string `json:"message,omitempty"`
+			Success bool    `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatesAgentReturnResponse parses an HTTP response from a UpdatesAgentReturnWithResponse call
+func ParseUpdatesAgentReturnResponse(rsp *http.Response) (*UpdatesAgentReturnResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatesAgentReturnResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Message *string `json:"message,omitempty"`
+			Success bool    `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatesGetChannelsResponse parses an HTTP response from a UpdatesGetChannelsWithResponse call
+func ParseUpdatesGetChannelsResponse(rsp *http.Response) (*UpdatesGetChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatesGetChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *UpdatechannelSettings `json:"data,omitempty"`
+			Message *string                `json:"message,omitempty"`
+			Success bool                   `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdatesPutChannelsResponse parses an HTTP response from a UpdatesPutChannelsWithResponse call
+func ParseUpdatesPutChannelsResponse(rsp *http.Response) (*UpdatesPutChannelsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatesPutChannelsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *UpdatechannelSettings `json:"data,omitempty"`
+			Message *string                `json:"message,omitempty"`
+			Success bool                   `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest BadRequest

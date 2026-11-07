@@ -1479,6 +1479,12 @@
                      "description":  "Um tour rápido pelas últimas mudanças.",
                      "dismiss":  "Dispensar",
                      "gotIt":  "Entendi",
+                     "2026_11_02":  {
+                                        "prereleaseChannels":  {
+                                                               "title":  "Canais de pré-lançamento",
+                                                               "description":  "As versões de teste do McHarbor, dos agentes e dos plugins agora podem ser oferecidas, e todos os interruptores vêm desligados por padrão. Ative-os em Configurações → Atualizações → McHarbor ou Agentes, e na Plugin Store. Um plugin ou um agente pode voltar depois para a versão estável; um agente que faz isso fica fixado até você soltar o pin."
+                                        }
+                                    },
                      "2026_11_01":  {
                                         "catalogs":  {
                                                                "title":  "Os catálogos vêm do GitHub",

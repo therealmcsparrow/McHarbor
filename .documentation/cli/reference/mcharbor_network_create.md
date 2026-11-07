@@ -2,6 +2,12 @@
 
 Create a network
 
+### Synopsis
+
+Creates a network. --gateway and --ip-range apply to the first --subnet.
+--host-link-name also creates a host interface on a macvlan network's parent so the host can reach the containers on it;
+give it an address with --host-link-ipv4 and/or --host-link-ipv6 (a CIDR inside a --subnet, or "auto" for SLAAC with --ipv6).
+
 ```
 mcharbor network create <name> [flags]
 ```
@@ -9,11 +15,19 @@ mcharbor network create <name> [flags]
 ### Options
 
 ```
-      --attachable          allow standalone containers to attach
-      --driver string       network driver; bridge when empty
-  -h, --help                help for create
-      --internal            no external connectivity
-      --label stringArray   label as key=value; repeatable
+      --attachable              allow standalone containers to attach
+      --driver string           network driver; bridge when empty
+      --gateway string          gateway of the first subnet
+  -h, --help                    help for create
+      --host-link-ipv4 string   IPv4 address of the host interface, in CIDR notation
+      --host-link-ipv6 string   IPv6 address of the host interface in CIDR notation, or "auto" for SLAAC
+      --host-link-name string   create a host interface with this name on the macvlan parent
+      --internal                no external connectivity
+      --ip-range string         address range of the first subnet, in CIDR notation
+      --ipv6                    enable IPv6 on the network
+      --label stringArray       label as key=value; repeatable
+      --opt stringArray         driver option as key=value, such as parent=eth0; repeatable
+      --subnet stringArray      IPAM subnet in CIDR notation; repeatable
 ```
 
 ### Options inherited from parent commands

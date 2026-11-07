@@ -157,14 +157,17 @@ step "indexing ${OUTPUT_DIR}"
 
 # No `|| die` here: the generator prints its own diagnosis and `set -e`
 # propagates the exit status, so a second generic line would only bury it.
-"${python_bin}" - "${OUTPUT_DIR}" "${INDEX_NAME}" <<'PY'
+"${python_bin}" - "${OUTPUT_DIR}" "${INDEX_NAME}" "${script_dir}" <<'PY'
+import functools
 import hashlib
 import json
 import os
-import re
 import sys
 
-out_dir, index_name = sys.argv[1:3]
+out_dir, index_name, script_dir = sys.argv[1:4]
+sys.dont_write_bytecode = True
+sys.path.insert(0, script_dir)
+import catalog_entry
 files_dir = os.path.join(out_dir, "files")
 icons_dir = os.path.join(out_dir, "icons")
 index_path = os.path.join(out_dir, index_name)
@@ -180,13 +183,9 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def version_key(value):
-    """Newest first. Numeric runs compare as numbers so 1.10.0 > 1.9.0;
-    anything non-numeric falls back to its string form."""
-    parts = []
-    for chunk in re.split(r"[.\-+]", str(value)):
-        parts.append((0, int(chunk), "") if chunk.isdigit() else (1, 0, chunk))
-    return parts
+version_key = functools.cmp_to_key(
+    lambda a, b: catalog_entry.compare(str(a.get("version")), str(b.get("version")))
+)
 
 
 # --- collect the per-plugin entries -----------------------------------------
@@ -221,19 +220,26 @@ for name in sorted(os.listdir(out_dir)):
             "version": entry["version"],
             "download_url": entry.get("download_url", ""),
         }]
-    if not isinstance(versions, list) or not versions:
+    prereleases = entry.get("prerelease_versions") or []
+    if not isinstance(versions, list):
+        versions = []
+    if not isinstance(prereleases, list):
+        prereleases = []
+    rows = [v for v in versions + prereleases if isinstance(v, dict)]
+    if not rows:
         warnings.append("skipped %s: no versions" % name)
         continue
 
     if slug in entries:
         # Two files for one plugin: keep the first file's metadata and
         # merge the version lists, the way readLocalCatalogDir does.
-        entries[slug]["versions"].extend(v for v in versions if isinstance(v, dict))
+        entries[slug]["versions"].extend(rows)
         continue
 
-    merged = {k: v for k, v in entry.items() if k not in ("versions", "version", "download_url")}
+    merged = {k: v for k, v in entry.items()
+              if k not in ("versions", "prerelease_versions", "version", "download_url")}
     merged["slug"] = slug
-    merged["versions"] = [v for v in versions if isinstance(v, dict)]
+    merged["versions"] = rows
     entries[slug] = merged
 
 if not entries:
@@ -265,7 +271,11 @@ for slug in sorted(entries):
         else:
             warnings.append("%s %s: files/%s is missing" % (slug, number, tarball))
 
-    entry["versions"] = sorted(seen.values(), key=lambda v: version_key(v.get("version")), reverse=True)
+    ranked = sorted(seen.values(), key=version_key, reverse=True)
+    entry["versions"] = [v for v in ranked if not catalog_entry.is_prerelease(str(v.get("version")))]
+    pre = [v for v in ranked if catalog_entry.is_prerelease(str(v.get("version")))]
+    if pre:
+        entry["prerelease_versions"] = pre
 
     if not os.path.isfile(os.path.join(icons_dir, slug, "plugin.svg")):
         warnings.append("%s: no icons/%s/plugin.svg" % (slug, slug))
@@ -287,12 +297,12 @@ with open(index_path, "w", encoding="utf-8") as fh:
 for line in warnings:
     sys.stderr.write(">>> WARNING: %s\n" % line)
 
-total_versions = sum(len(e["versions"]) for e in index)
+total_versions = sum(len(e["versions"]) + len(e.get("prerelease_versions", [])) for e in index)
 print(">>> indexed %d plugin(s), %d version(s)" % (len(index), total_versions))
 for entry in index:
     print("      %-28s %s" % (
         entry["slug"],
-        ", ".join(str(v.get("version")) for v in entry["versions"]),
+        ", ".join(str(v.get("version")) for v in entry["versions"] + entry.get("prerelease_versions", [])),
     ))
 PY
 

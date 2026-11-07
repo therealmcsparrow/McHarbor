@@ -10,6 +10,42 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-07 19:50 — McHarbor 2026.11.02 — Release 2026.11.02
+
+### Changed
+- `getting-started/changelog/README.md` — the 2026.11.02 section, what its upgrade asks of an operator, and its row in the release history.
+- `getting-started/deployment/compatibility.md` — the current release and the bundled agent version are 2026.11.02.
+- `settings/updates/prerelease-channels/README.md`, `how-to/plugin/packaging.md`, `cli/README.md` — the example prerelease is now `2026.11.03-rc.1`, because 2026.11.02 is final.
+
+## 2026-11-07 03:40 — McHarbor 2026.11.01 — Prerelease channels, review fixes
+
+### Changed
+- `settings/updates/prerelease-channels/README.md` — the **Offer plugin prereleases** key is `updates.manage`, **Release pin** is named where it is, a started agent return is read from the inventory, `agent pins` is listed, and the catalog sentence follows `prerelease_versions[]`.
+- `settings/updates/README.md` — the intro no longer counts sections, and a short section says a plain-http proxy that rewrites `Host`, or a UI on a sibling host, needs its origin in `ALLOWED_ORIGINS`.
+- `settings/updates/mcharbor/reference.md` — a stable native host names the offered prerelease version too.
+- `cli/README.md` — `agent pins`, and the started wording of `agent return`.
+- `how-to/plugin/packaging.md` — `prerelease_versions[]` replaces the two-entry `versions[]`, and the tree-version floor rule is gone.
+
+## 2026-11-07 07:10 — McHarbor 2026.11.01 — Prerelease channels
+
+### Added
+- `settings/updates/prerelease-channels/README.md` — the five switches and the per-plugin override with their keys,
+  what a prerelease host does, returning a plugin or an agent to stable, pins, the CLI commands and what fails.
+
+### Changed
+- `settings/updates/README.md` — a row and a pointer for the new page.
+- `settings/updates/mcharbor/reference.md` — the two McHarbor prerelease options and the explicit-version rule.
+- `settings/updates/agents/reference.md` — the two agent options, the return and pin routes with both keys, and a pinned-agent row.
+- `how-to/plugin/packaging.md` — the floor grammar with a `-` suffix and catalog format v2.
+
+## 2026-11-06 20:53 — McHarbor 2026.11.01 — Plugin minimum version
+
+### Changed
+
+- `how-to/plugin/abi-and-libc.md` — `built_for` replaced by `min_mcharbor`: what the floor checks,
+  what still forces a rebuild, when to raise the floor, and what a boot now reinstalls.
+- `how-to/plugin/packaging.md` — pointer renamed to `min_mcharbor`.
+
 ## 2026-11-06 07:18 — McHarbor 2026.11.01 — Agent image repository
 
 ### Changed

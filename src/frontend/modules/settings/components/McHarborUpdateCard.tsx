@@ -23,6 +23,14 @@ import { PERM } from '@core/auth/permissionKeys';
 import { PreUpgradeCheckDialog } from '@resources/components/support/PreUpgradeCheckDialog';
 import { useCheckUpdate, useApplySelfUpdate } from '../hooks/useUpdates';
 import { releaseLabel } from '../hooks/releaseLabel';
+import { isPrerelease } from '@resources/utils/versionOrder';
+import { useUpdateChannels } from '@resources/hooks/useUpdateChannels';
+
+// The word is text, not colour: the badge follows every version this card shows.
+function PrereleaseBadge({ version }: { version?: string }) {
+  const { t } = useTranslation('settings');
+  return isPrerelease(version) ? <Badge variant="warning">{t('prerelease.badge')}</Badge> : null;
+}
 
 export function McHarborUpdateCard() {
   const { t } = useTranslation('settings');
@@ -39,6 +47,7 @@ export function McHarborUpdateCard() {
     error: checkError,
     isFetching: isChecking,
   } = useCheckUpdate();
+  const { settings: channels } = useUpdateChannels();
   const applySelfUpdate = useApplySelfUpdate();
   const [selfUpdateOpen, setSelfUpdateOpen] = useState(false);
   const [preUpgradeOpen, setPreUpgradeOpen] = useState(false);
@@ -72,13 +81,15 @@ export function McHarborUpdateCard() {
                   })}
                 </span>
                 <Badge variant="default">{t('about.newVersion')}</Badge>
+                <PrereleaseBadge version={versionCheck.latestVersion} />
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('about.currentVersionLabel')}:{' '}
                 {t('about.versionTransition', {
                   current: releaseLabel(versionCheck.currentVersion, versionCheck.currentBuild),
                   latest: releaseLabel(versionCheck.latestVersion, versionCheck.latestBuild),
-                })}
+                })}{' '}
+                <PrereleaseBadge version={versionCheck.currentVersion} />
               </p>
               {versionCheck.releaseNotes && (
                 <p className="max-h-32 overflow-y-auto text-xs whitespace-pre-wrap text-muted-foreground">
@@ -126,7 +137,13 @@ export function McHarborUpdateCard() {
                   version: releaseLabel(versionCheck.currentVersion, versionCheck.currentBuild),
                 })}
               </span>
+              <PrereleaseBadge version={versionCheck.currentVersion} />
             </div>
+          )}
+          {channels && !channels.mcharborPrereleases && isPrerelease(versionCheck.currentVersion) && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {t('prerelease.mcharbor.running', { version: versionCheck.currentVersion })}
+            </p>
           )}
         </div>
       )}
@@ -146,12 +163,16 @@ export function McHarborUpdateCard() {
           if (!isOpen && applySelfUpdate.isPending) return;
         }}
         title={t('about.selfUpdateConfirmTitle')}
-        description={t(native ? 'about.selfUpdateConfirmDescriptionNative' : 'about.selfUpdateConfirmDescription')}
+        description={
+          t(native ? 'about.selfUpdateConfirmDescriptionNative' : 'about.selfUpdateConfirmDescription') +
+          (isPrerelease(versionCheck?.latestVersion) ? ` ${t('prerelease.cannotGoBack')}` : '')
+        }
         confirmLabel={t('about.selfUpdateConfirm')}
         variant="destructive"
         loading={applySelfUpdate.isPending}
         onConfirm={() => {
-          applySelfUpdate.mutate({});
+          // A native prerelease host refuses an unnamed target, because `latest` is the prior stable.
+          applySelfUpdate.mutate(native && versionCheck?.latestVersion ? { version: versionCheck.latestVersion } : {});
         }}
       />
     </div>

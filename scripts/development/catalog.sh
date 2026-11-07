@@ -93,7 +93,9 @@ for path in glob.glob(os.path.join(sys.argv[1], "*.json")):
         continue
     try:
         doc = json.load(io.open(path, encoding="utf-8"))
-        build = (doc.get("versions") or [{}])[0].get("build") or ""
+        rows = (doc.get("versions") or []) + (doc.get("prerelease_versions") or [])
+        builds = [str(v.get("build") or "") for v in rows]
+        build = max([b for b in builds if b.isdigit()] or [""])
     except Exception:
         continue
     if build.isdigit() and build > newest:
@@ -120,11 +122,25 @@ PY
 entry_build() {
     local slug="$1" file="${CATALOG_DIR}/$1.json"
     [ -f "${file}" ] || { printf 'missing'; return; }
-    "${PYTHON_BIN:-python}" - "${file}" <<'PY' 2>/dev/null || printf 'unreadable'
-import io, json, sys
+    local manifest="${REPO_ROOT}/src/plugins/Plugins/${slug}/plugin.yaml"
+    "${PYTHON_BIN:-python}" - "${file}" "${manifest}" <<'PY' 2>/dev/null || printf 'unreadable'
+import io, json, re, sys
 try:
     doc = json.load(io.open(sys.argv[1], encoding="utf-8"))
-    print((doc.get("versions") or [{}])[0].get("build") or "none")
+    rows = [v for key in ("versions", "prerelease_versions") for v in (doc.get(key) or [])]
+    want = ""
+    try:
+        for line in io.open(sys.argv[2], encoding="utf-8"):
+            m = re.match(r'version:\s*"?([^"\s#]+)', line)
+            if m:
+                want = m.group(1)
+                break
+    except Exception:
+        pass
+    if want:
+        rows = [v for v in rows if str(v.get("version") or "") == want]
+    digits = [b for b in (str(v.get("build") or "") for v in rows) if b.isdigit()]
+    print(max(digits) if digits else "none")
 except Exception:
     print("unreadable")
 PY

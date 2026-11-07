@@ -1479,6 +1479,12 @@
                      "description":  "A quick tour of the latest changes.",
                      "dismiss":  "Dismiss",
                      "gotIt":  "Got it",
+                     "2026_11_02":  {
+                                        "prereleaseChannels":  {
+                                                               "title":  "Prerelease channels",
+                                                               "description":  "Test builds of McHarbor, agents and plugins can now be offered, and every switch is off by default. Turn them on under Settings → Updates → McHarbor or Agents, and in the Plugin Store. A plugin or an agent can return to stable later; an agent that does is pinned until you release it."
+                                        }
+                                    },
                      "2026_11_01":  {
                                         "catalogs":  {
                                                                "title":  "Catalogs come from GitHub",

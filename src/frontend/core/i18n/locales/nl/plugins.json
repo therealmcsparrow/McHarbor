@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Herstel nodig",
-    "explanation": "Gebouwd voor McHarbor {{builtFor}}, deze installatie is {{current}}.",
+    "explanation": "Deze plug-in is niet geladen op deze McHarbor. Herstellen haalt de kopie opnieuw op uit de catalogus.",
     "action": "Herstellen",
     "reconcile": "Afstemmen",
     "reconcileHint": "Zet deze plugin vast op cataloguversie {{version}}. De host behoudt, verplaatst of herinstalleert deze zodat registratie, bestanden en binary overeenkomen; rolmachtigingen blijven behouden.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Gemaakt door",
-    "readOnlyShort": "ro"
+    "readOnlyShort": "ro",
+    "prerelease": "Voorlopige versie",
+    "installedPrerelease": "Geïnstalleerd: voorlopige versie",
+    "prereleaseUpdate": "Voorlopige update beschikbaar",
+    "builtForPrereleaseHost": "Gebouwd voor deze prerelease-host. Als de plugin niet kan laden, staat de reden hieronder; werk McHarbor bij naar de volgende stabiele versie om hem te verplaatsen.",
+    "versions": "Versies"
+  },
+  "channels": {
+    "saveFailed": "De instelling voor voorlopige versies kon niet worden opgeslagen",
+    "needs": "Vereist {{permission}}.",
+    "unavailable": "Instelling niet beschikbaar. Vereist {{permission}}.",
+    "loadFailed": "De instelling voor voorlopige versies kon niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "store": {
+      "label": "Voorlopige plugin-versies aanbieden",
+      "hint": "Toon testversies die nog niet definitief zijn voor elke plugin. Een plugin kan ook zelf meedoen op de detailpagina."
+    },
+    "override": {
+      "label": "Voorlopige versies aanbieden voor deze plugin",
+      "hint": "Toon de testversies van deze plugin, ook als de schakelaar van de Plugin Store uit staat.",
+      "globalOn": "Aan voor elke plugin in de Plugin Store.",
+      "followsOff": "Voorlopige versies staan uit voor deze plugin. De volgende stabiele versie wordt aangeboden.",
+      "none": "Geen voorlopige versie beschikbaar."
+    }
+  },
+  "return": {
+    "open": "Terug naar stabiel",
+    "title": "{{name}} terugzetten naar stabiel?",
+    "summary": "Van {{from}} naar {{to}}. Je gegevens blijven bewaard.",
+    "summaryFrom": "Vanaf {{from}}. Je gegevens blijven bewaard.",
+    "checking": "Controleren of {{name}} naar stabiel kan terugkeren...",
+    "ready": "Klaar om terug te zetten. Er is niets dat dit blokkeert.",
+    "blocked": "Terugzetten kan niet: de voorlopige versie maakte een databasewijziging ({{migration}}) die de stabiele versie niet bevat. Er is niets gewijzigd.",
+    "blockedGeneric": "Terugzetten kan niet: de controle gaf een resultaat dat deze versie niet kent. Er is niets gewijzigd.",
+    "noStable": "Er is geen stabiele versie van {{name}} beschikbaar.",
+    "prereleaseHost": "Plugins volgen deze voorlopige host en blijven op de voorlopige versies ervan. Ze kunnen terug naar stabiel zodra een nieuwere stabiele McHarbor-versie is geïnstalleerd.",
+    "checkFailed": "De controle kon niet worden uitgevoerd",
+    "checkAgain": "Opnieuw controleren",
+    "unsigned": "Dit pakket heeft geen handtekening, dus McHarbor kan niet bevestigen wie het maakte. Het is niet geopend. De databasecontrole kan pas draaien nadat je akkoord gaat.",
+    "consent": "Ik begrijp het en wil {{name}} terugzetten met een niet-ondertekend pakket.",
+    "consentGiven": "Toestemming gegeven. Bevestig om door te gaan.",
+    "refusedTitle": "Het terugzetten is geweigerd",
+    "confirm": "Terug naar stabiel",
+    "success": "{{name}} is teruggezet naar stabiel",
+    "failed": "Kon de plugin niet terugzetten"
   }
 }

@@ -6,7 +6,7 @@
 package permissions
 
 // SpecVersion is the McHarbor version whose API this CLI was generated from.
-const SpecVersion = "2026.10.01"
+const SpecVersion = "2026.11.02"
 
 var byOperation = map[string][]string{
 	"accessreviewCatalogExport":                []string{"permissions.view"},
@@ -90,6 +90,9 @@ var byOperation = map[string][]string{
 	"appstorePluginsListCatalog":               []string{"plugins.view", "plugins.manage"},
 	"appstorePluginsListInstalled":             []string{"plugins.view", "plugins.manage"},
 	"appstorePluginsReconcile":                 []string{"plugins.manage"},
+	"appstorePluginsReturn":                    []string{"plugins.manage"},
+	"appstorePluginsReturnCheck":               []string{"plugins.manage"},
+	"appstorePluginsSetChannel":                []string{"plugins.manage"},
 	"appstorePluginsUninstall":                 []string{"plugins.manage", "plugins.delete"},
 	"appstorePluginsUpdateStream":              []string{"plugins.manage"},
 	"appstoreSync":                             []string{"settings.manage"},
@@ -387,6 +390,7 @@ var byOperation = map[string][]string{
 	"metricsContainerHistory":                  []string{"host.view"},
 	"metricsContainerStatsStream":              []string{"host.view"},
 	"metricsHardware":                          []string{"host.view"},
+	"metricsHostFS":                            []string{"host.view"},
 	"metricsHostHistory":                       []string{"host.view"},
 	"metricsHostInfo":                          []string{"host.view"},
 	"metricsHostPrune":                         []string{"host.manage"},
@@ -622,14 +626,18 @@ var byOperation = map[string][]string{
 	"systemSelfHostUpdateState":                []string{"host_self.view"},
 	"systemSelfHostUpdateStream":               []string{"host_self.view"},
 	"updatesAgentInventory":                    []string{"environments.view"},
+	"updatesAgentPinRemove":                    []string{"updates.manage", "environments.manage"},
+	"updatesAgentReturn":                       []string{"updates.manage", "environments.manage"},
 	"updatesCheckUpdate":                       []string{"updates.view"},
 	"updatesCreate":                            []string{"updates.manage"},
 	"updatesDelete":                            []string{"updates.manage"},
 	"updatesDismiss":                           []string{"updates.manage"},
 	"updatesGet":                               []string{"updates.view"},
+	"updatesGetChannels":                       []string{"updates.view"},
 	"updatesGetSettings":                       []string{"updates.view"},
 	"updatesHistory":                           []string{"updates.view"},
 	"updatesList":                              []string{"updates.view"},
+	"updatesPutChannels":                       []string{"updates.manage"},
 	"updatesSaveSettings":                      []string{"updates.manage"},
 	"updatesState":                             []string{"updates.view"},
 	"updatesUpdate":                            []string{"updates.manage"},

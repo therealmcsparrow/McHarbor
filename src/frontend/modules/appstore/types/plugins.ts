@@ -73,6 +73,9 @@ export interface PluginEntry {
   /** Sorted descending by semver; the catalog loader guarantees
    *  this. Always non-empty for a valid entry. */
   versions: PluginVersion[];
+  /** This plugin's own prerelease override: true on, false off, absent when it follows the
+   *  Store switch. Must stay in sync with PluginEntry.PrereleaseOverride in the appstore Go model. */
+  prereleaseOverride?: boolean | null;
 }
 
 // One release of a plugin the catalog can serve.

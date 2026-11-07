@@ -88,6 +88,25 @@ export function useReconcilePlugin() {
   });
 }
 
+export type PluginChannelResult = { slug: string; prereleases: boolean | null };
+
+/**
+ * useSetPluginChannel saves one plugin's prerelease override; null clears it.
+ * The catalog is refreshed because the host filters its offer by the setting.
+ */
+export function useSetPluginChannel() {
+  const { t } = useTranslation('plugins');
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ slug, prereleases }: { slug: string; prereleases: boolean | null }) =>
+      assertSuccess(
+        await api.put<PluginChannelResult>(`/appstore/plugins/${encodeURIComponent(slug)}/channel`, { prereleases }),
+      ),
+    meta: { error: t('channels.saveFailed') },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: [PLUGIN_QUERY_KEY] }),
+  });
+}
+
 export function useUninstallPlugin() {
   const { t } = useTranslation('plugins');
   const qc = useQueryClient();

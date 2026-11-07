@@ -17,6 +17,7 @@ import (
 
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 	"github.com/therealmcsparrow/mcharbor/core/telemetry"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // transferRoute is a direct-transfer base URL proven to reach this agent from
@@ -237,6 +238,9 @@ func (p *AgentPool) Register(envID string, conn *AgentConnection) bool {
 func compareAgentVersions(a, b string) int {
 	a = strings.TrimPrefix(strings.TrimSpace(a), "v")
 	b = strings.TrimPrefix(strings.TrimSpace(b), "v")
+	if versionorder.IsPrerelease(a) || versionorder.IsPrerelease(b) || (strictVersion(a) && strictVersion(b)) {
+		return versionorder.Compare(a, b)
+	}
 	aParts := strings.Split(a, ".")
 	bParts := strings.Split(b, ".")
 	for i := 0; i < 3; i++ {
@@ -250,6 +254,13 @@ func compareAgentVersions(a, b string) int {
 		}
 	}
 	return 0
+}
+
+// strictVersion reports whether v is a strict MAJOR.MINOR.PATCH version, build metadata included; the
+// legacy part reader would read "02+build" as 0, so only short or odd legacy strings keep that path.
+func strictVersion(v string) bool {
+	_, err := versionorder.Parse(v)
+	return err == nil
 }
 
 func agentVersionPart(parts []string, index int) int {
@@ -379,6 +390,9 @@ func (ac *AgentConnection) BuildAtLeast(minimum string) bool {
 func agentAtLeast(a, minimum string) bool {
 	a = strings.TrimPrefix(strings.TrimSpace(a), "v")
 	minimum = strings.TrimPrefix(strings.TrimSpace(minimum), "v")
+	if versionorder.IsPrerelease(a) || versionorder.IsPrerelease(minimum) || (strictVersion(a) && strictVersion(minimum)) {
+		return versionorder.Compare(a, minimum) >= 0
+	}
 	aParts := strings.Split(a, ".")
 	mParts := strings.Split(minimum, ".")
 	for i := 0; i < 3; i++ {

@@ -13,6 +13,7 @@ mcharbor gitops pipeline promote <pipeline-id> [flags]
   -h, --help            help for promote
       --note string     note recorded with the promotion
       --stage string    stage id to promote to (required)
+      --wait            wait for the deploy to finish; exits 7 with the recorded reason when it fails
 ```
 
 ### Options inherited from parent commands

@@ -13,11 +13,11 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 	"github.com/therealmcsparrow/mcharbor/core/widgetsig"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
@@ -386,38 +386,10 @@ func (s *Service) readDefinition(key string) (WidgetDefinition, error) {
 	return def, nil
 }
 
-// compareVersions orders dotted versions numerically part by part (2026.09.10 is
-// newer than 2026.09.9), ignoring a -pre or +build suffix, and falls back to a
-// string comparison when a part is not a number.
+// compareVersions orders catalog widget versions with the shared order; a leading "v" is
+// dropped first because catalog entries have always been allowed to carry one.
 func compareVersions(a, b string) int {
-	trim := func(v string) string {
-		if i := strings.IndexAny(v, "-+"); i >= 0 {
-			return v[:i]
-		}
-		return v
-	}
-	pa, pb := strings.Split(trim(strings.TrimPrefix(a, "v")), "."), strings.Split(trim(strings.TrimPrefix(b, "v")), ".")
-	for i := 0; i < len(pa) || i < len(pb); i++ {
-		x, y := "0", "0"
-		if i < len(pa) {
-			x = pa[i]
-		}
-		if i < len(pb) {
-			y = pb[i]
-		}
-		nx, errX := strconv.Atoi(x)
-		ny, errY := strconv.Atoi(y)
-		if errX != nil || errY != nil {
-			return strings.Compare(a, b)
-		}
-		if nx != ny {
-			if nx < ny {
-				return -1
-			}
-			return 1
-		}
-	}
-	return 0
+	return versionorder.Compare(strings.TrimPrefix(a, "v"), strings.TrimPrefix(b, "v"))
 }
 
 // Install verifies a catalog widget's signed manifest and writes it under

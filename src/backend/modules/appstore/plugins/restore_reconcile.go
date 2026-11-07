@@ -63,12 +63,16 @@ func (h *Handler) reconcileTarget(ctx context.Context, p PluginTarget) (string, 
 	switch {
 	case installed == p.Version:
 	case installed != "":
-		if err := h.repairOne(ctx, InstalledPlugin{Slug: p.Slug, Version: p.Version}, p.AllowUnsigned, false); err != nil {
+		src, err := h.catalogSourceExact(ctx, p.Slug, p.Version)
+		if err != nil {
+			return "", err
+		}
+		if err := h.repairWith(ctx, InstalledPlugin{Slug: p.Slug, Version: p.Version}, src, p.AllowUnsigned); err != nil {
 			return "", err
 		}
 		action = "updated"
 	default:
-		src, err := h.catalogSourceFor(ctx, p.Slug, p.Version, false)
+		src, err := h.catalogSourceExact(ctx, p.Slug, p.Version)
 		if err != nil {
 			return "", err
 		}
@@ -109,6 +113,11 @@ func (h *Handler) handleReconcile(w http.ResponseWriter, r *http.Request) {
 	var in ReconcileRequest
 	if err := response.DecodeBody(r, &in); err != nil || slug == "" || strings.TrimSpace(in.Version) == "" {
 		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if err := h.refuseOffChannel(r.Context(), slug, in.Version); err != nil {
+		slog.Warn("plugin reconcile refused", "slug", slug, "version", in.Version, "error", err)
+		response.ConflictCause(w, r, i18n.ErrPluginUpdateFailed, err)
 		return
 	}
 	enabled := true

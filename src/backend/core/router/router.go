@@ -68,6 +68,7 @@ func New(app *AppDeps) chi.Router {
 		MaxAge:           300,
 	}))
 	r.Use(i18n.Middleware)
+	r.Use(crossSiteGuard(allowedOrigins))
 
 	// API routes (authenticated)
 	r.Route("/api", func(r chi.Router) {

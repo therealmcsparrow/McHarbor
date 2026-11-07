@@ -9,25 +9,21 @@ import (
 	"fmt"
 	"strings"
 
-	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
-// Reconcile reinstalls every plugin whose installed artifact no longer matches
-// the catalog, because anything that changes a package the plugins link
-// invalidates the ABI of every .so on disk.
+// Reconcile reinstalls a plugin when the catalog holds a different build of its
+// installed version, which is how a rebuild for a changed ABI reaches every host.
 //
-// Two things trigger it. A changed built_for is the obvious one: a core upgrade.
-// A changed build stamp at the same version is the one that matters more, and
-// the reason builds exist — a host rebuilt from edited source keeps its version,
-// so built_for still matches while every .so has become unloadable. Without the
-// build there is nothing left to compare and the operator has to reinstall each
-// plugin by hand.
+// A new host release alone reinstalls nothing: the .so may well still load, and
+// SettleRepairState reports what the load proves. The one exception is a plugin
+// whose installed version the catalog dropped, which follows the release upgrade.
 //
 // Nothing here is fatal. Plugins no longer ship inside the image, so a host that
 // refused to boot over an unreachable catalog would be unrecoverable offline —
 // a missing sidebar section is the far cheaper failure.
 func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
-	current := appversion.Current()
+	current := hostVersion()
 
 	// First, so a plugin an interrupted upgrade left half-done is whole again
 	// before its build stamp is compared.
@@ -43,23 +39,50 @@ func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
 
 	// Read once rather than per plugin: catalogSourceFor rescans the whole
 	// catalog on every call, and this loop already pays that in repairOne.
-	catalog, err := h.svc.ListCatalog(ctx)
+	catalog, err := h.svc.listCatalogAll(ctx)
 	if err != nil && logger != nil {
 		logger.Warn("plugins: reconcile could not read the catalog; "+
-			"falling back to built_for alone", "error", err.Error())
+			"keeping every installed build", "error", err.Error())
 	}
 
+	channels := h.svc.channelStateOrOff(ctx)
 	for _, p := range installed {
 		staleRelease := p.BuiltFor != current
+		carried := catalogCarries(catalog, p.Slug, p.Version)
 		catalogBuild := buildFor(catalog, p.Slug, p.Version)
 		staleBuild := catalogBuild != "" && catalogBuild != p.Build
-		if !staleRelease && !staleBuild {
+		optedIn := channels.prereleases(p.Slug)
+		followRelease := staleRelease && !carried
+		// A carried prerelease keeps followRelease false, so a plugin that left
+		// its channel reads the host's release change directly.
+		leftChannel := staleRelease && versionorder.IsPrerelease(p.Version) &&
+			!optedIn && !versionorder.IsPrerelease(current)
+		followRelease = followRelease || leftChannel
+		// A carried stable plugin still follows a host that moved onto a prerelease,
+		// when the catalog holds a prerelease build for it to take.
+		if staleRelease && !followRelease && versionorder.IsPrerelease(current) {
+			if v, ok := catalogPick(catalog, p, current, optedIn, true); ok && v.Version != p.Version {
+				followRelease = true
+			}
+		}
+		if !staleBuild && !followRelease {
+			// A refused return is only pending while the plugin leaves its channel; here
+			// it does not, so the reason would otherwise read "blocked" indefinitely.
+			reason := p.RepairError
+			if strings.HasPrefix(reason, ReturnBlockedPrefix) {
+				reason = ""
+			}
+			// Recorded so a version the catalog drops later, within this release,
+			// is not mistaken for a release upgrade and silently moved.
+			if staleRelease || reason != p.RepairError {
+				if err := h.svc.SetRepairState(ctx, p.Slug, current, reason); err != nil && logger != nil {
+					logger.Warn("plugins: could not record the host release", "slug", p.Slug, "error", err.Error())
+				}
+			}
 			continue
 		}
-		// A different release label does not mean the .so stopped loading, and a
-		// missing artifact is no reason to touch it: SettleRepairState reports what
-		// the load actually proves.
-		if !repairAvailable(catalog, p, current, staleRelease) {
+		// A missing artifact is no reason to touch a plugin that may still load.
+		if !repairAvailable(catalog, p, current, optedIn, followRelease) {
 			if logger != nil {
 				logger.Info("plugins: no catalog artifact for this release, keeping the installed build",
 					"slug", p.Slug, "built_for", p.BuiltFor, "host", current)
@@ -68,7 +91,7 @@ func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
 		}
 		// A repair reinstalls the version the operator already accepted, so an
 		// unsigned install stays repairable; one that was signed must still be.
-		if err := h.repairOne(ctx, p, !p.Signed, staleRelease); err != nil {
+		if err := h.repairOne(ctx, p, !p.Signed, followRelease); err != nil {
 			if logger != nil {
 				logger.Error("plugins: repair failed", "slug", p.Slug,
 					"built_for", p.BuiltFor, "host", current, "error", err.Error())
@@ -86,15 +109,19 @@ func (h *Handler) Reconcile(ctx context.Context, logger Logger) {
 
 // repairAvailable reports whether the catalog holds an artifact this host would
 // accept for p, so a repair is only attempted when it can succeed.
-func repairAvailable(catalog []PluginEntry, p InstalledPlugin, current string, releaseChanged bool) bool {
+func repairAvailable(catalog []PluginEntry, p InstalledPlugin, current string, optedIn, releaseChanged bool) bool {
+	v, ok := catalogPick(catalog, p, current, optedIn, releaseChanged)
+	return ok && hostMeets(current, v.MinMcharbor)
+}
+
+// catalogPick returns the artifact pickRepair chooses for p from the catalog.
+func catalogPick(catalog []PluginEntry, p InstalledPlugin, current string, optedIn, releaseChanged bool) (PluginVersion, bool) {
 	for _, entry := range catalog {
-		if entry.Slug != p.Slug {
-			continue
+		if entry.Slug == p.Slug {
+			return pickRepair(entry.Versions, p.Version, current, optedIn, releaseChanged)
 		}
-		v, ok := repairVersion(entry.Versions, p.Version, current, releaseChanged)
-		return ok && (v.BuiltFor == "" || v.BuiltFor == current)
 	}
-	return false
+	return PluginVersion{}, false
 }
 
 // SettleRepairState makes the store's "needs repair" state match the load that
@@ -114,7 +141,19 @@ func (h *Handler) SettleRepairState(ctx context.Context, results map[string]stri
 		if !attempted || loadErr == p.RepairError {
 			continue
 		}
-		if err := h.svc.SetRepairState(ctx, p.Slug, p.BuiltFor, loadErr); err != nil {
+		next := loadErr
+		if strings.HasPrefix(p.RepairError, ReturnBlockedPrefix) {
+			// The load cannot say whether the migration is still a problem, so the
+			// reason stays and a failed load only adds its own error.
+			next = returnBlockedBase(p.RepairError)
+			if loadErr != "" {
+				next += loadFailedSep + loadErr
+			}
+			if next == p.RepairError {
+				continue
+			}
+		}
+		if err := h.svc.SetRepairState(ctx, p.Slug, p.BuiltFor, next); err != nil {
 			if logger != nil {
 				logger.Error("plugins: could not record repair state", "slug", p.Slug, "error", err.Error())
 			}
@@ -128,6 +167,31 @@ func (h *Handler) SettleRepairState(ctx context.Context, results map[string]stri
 			}
 		}
 	}
+}
+
+// loadFailedSep joins a refused-return reason to the load error a boot adds.
+const loadFailedSep = " | load failed: "
+
+// returnBlockedBase cuts the load error a failed load appended, leaving the reason.
+func returnBlockedBase(reason string) string {
+	base, _, _ := strings.Cut(reason, loadFailedSep)
+	return base
+}
+
+// catalogCarries reports whether the catalog still offers this version of slug.
+func catalogCarries(catalog []PluginEntry, slug, version string) bool {
+	for _, entry := range catalog {
+		if entry.Slug != slug {
+			continue
+		}
+		for _, v := range entry.Versions {
+			if v.Version == version {
+				return true
+			}
+		}
+		return false
+	}
+	return false
 }
 
 // buildFor returns the catalog's build stamp for one slug at one version, and
@@ -162,11 +226,17 @@ func (h *Handler) repairOne(ctx context.Context, p InstalledPlugin, allowUnsigne
 	if err != nil {
 		return err
 	}
+	return h.repairWith(ctx, p, src, allowUnsigned)
+}
+
+// repairWith reinstalls p from a resolved source, shared by the channel-aware
+// repair and the exact-version restore.
+func (h *Handler) repairWith(ctx context.Context, p InstalledPlugin, src Source, allowUnsigned bool) error {
 	src.AllowUnsigned = allowUnsigned
 	if _, err := h.upgrade(ctx, p.Slug, src, nil); err != nil {
 		return err
 	}
-	if err := h.svc.SetRepairState(ctx, p.Slug, appversion.Current(), ""); err != nil {
+	if err := h.svc.SetRepairState(ctx, p.Slug, hostVersion(), ""); err != nil {
 		return err
 	}
 	h.notifyChange(p.Slug)
@@ -178,56 +248,46 @@ func (h *Handler) repairOne(ctx context.Context, p InstalledPlugin, allowUnsigne
 // newest release the catalog happens to carry. When the host release changed and
 // the catalog no longer carries that version, see repairVersion.
 func (h *Handler) catalogSourceFor(ctx context.Context, slug, version string, releaseChanged bool) (Source, error) {
-	entries, err := h.svc.ListCatalog(ctx)
+	entries, err := h.svc.listCatalogAll(ctx)
 	if err != nil {
 		return Source{}, fmt.Errorf("reading plugin catalog: %w", err)
 	}
+	optedIn := h.svc.channelStateOrOff(ctx).prereleases(slug)
 	for _, entry := range entries {
 		if entry.Slug != slug {
 			continue
 		}
-		v, ok := repairVersion(entry.Versions, version, appversion.Current(), releaseChanged)
+		v, ok := pickRepair(entry.Versions, version, hostVersion(), optedIn, releaseChanged)
 		if ok {
 			if strings.TrimSpace(v.DownloadURL) == "" {
 				return Source{}, fmt.Errorf("catalog entry %s@%s has no download", slug, v.Version)
 			}
 			return Source{
-				URL:       v.DownloadURL,
-				Checksum:  v.Checksum,
-				Signature: v.Signature,
-				Build:     v.Build,
-				BuiltFor:  v.BuiltFor,
+				URL:         v.DownloadURL,
+				Checksum:    v.Checksum,
+				Signature:   v.Signature,
+				Build:       v.Build,
+				MinMcharbor: v.MinMcharbor,
 			}, nil
 		}
-		return Source{}, fmt.Errorf("catalog has no %s@%s built for %s",
-			slug, version, appversion.Current())
+		return Source{}, fmt.Errorf("catalog has no %s@%s for McHarbor %s",
+			slug, version, hostVersion())
 	}
 	return Source{}, fmt.Errorf("%s is not in any configured plugin catalog", slug)
 }
 
 // repairVersion picks the catalog artifact a repair installs: the installed
 // version when the catalog still carries it, and otherwise — only when the host
-// release itself changed — the version built for the current release.
+// release itself changed — the newest version this release meets the minimum of.
 //
 // The catalog keeps one version per plugin, so after a release that bumped the
 // plugins too, the installed version is gone. Insisting on it disabled every
 // plugin on the first boot of the new release; the plugin moving with the host
 // is exactly what an operator who installed that release asked for.
+//
+// This is the stable-only form; pickRepair adds the prerelease channel.
 func repairVersion(versions []PluginVersion, installed, current string, releaseChanged bool) (PluginVersion, bool) {
-	for _, v := range versions {
-		if v.Version == installed {
-			return v, true
-		}
-	}
-	if !releaseChanged {
-		return PluginVersion{}, false
-	}
-	for _, v := range versions {
-		if v.BuiltFor == current {
-			return v, true
-		}
-	}
-	return PluginVersion{}, false
+	return pickRepair(versions, installed, current, false, releaseChanged)
 }
 
 // keepOrDisable decides what a failed repair leaves behind. A refusal in
@@ -235,7 +295,15 @@ func repairVersion(versions []PluginVersion, installed, current string, releaseC
 // version, so both keep the plugin as it was; the rollback also records why.
 // Anything else falls through to disableUnrepairable.
 func (h *Handler) keepOrDisable(ctx context.Context, p InstalledPlugin, cause error, logger Logger) {
+	var blocked *MigrationBlockError
 	switch {
+	case errors.As(cause, &blocked):
+		// Checked before ErrUpgradeRefused, which it also is: the plugin stays
+		// enabled at its old stamp so the next boot retries, and says why.
+		if err := h.svc.SetRepairState(ctx, p.Slug, p.BuiltFor, blocked.Error()); err != nil && logger != nil {
+			logger.Error("plugins: could not record the blocked return",
+				"slug", p.Slug, "error", err.Error())
+		}
 	case errors.Is(cause, ErrUpgradeRefused):
 		return
 	case errors.Is(cause, ErrUpgradeRolledBack):
@@ -261,9 +329,9 @@ func (h *Handler) disableUnrepairable(ctx context.Context, p InstalledPlugin, ca
 		}
 	}
 	reason := cause.Error()
-	if errors.Is(cause, ErrBuiltForMismatch) {
-		reason = fmt.Sprintf("catalog artifact is built for another release (host is %s)",
-			appversion.Current())
+	if errors.Is(cause, ErrHostBelowMinimum) {
+		reason = fmt.Sprintf("catalog artifact requires a newer McHarbor release (host is %s)",
+			hostVersion())
 	}
 	if err := h.svc.SetRepairState(ctx, p.Slug, p.BuiltFor, reason); err != nil && logger != nil {
 		logger.Error("plugins: could not record repair failure",

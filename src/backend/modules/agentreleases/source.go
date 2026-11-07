@@ -162,10 +162,17 @@ const maxBuildsPerVersion = 5
 // newest first, up to maxBuildsPerVersion builds of each version, and the latest
 // always present.
 func (info latestInfo) availableVersions() []AvailableVersion {
+	return info.availableVersionsAllowing(nil)
+}
+
+// availableVersionsAllowing is availableVersions with allow applied before the
+// list is capped, so hidden prereleases cannot crowd stable entries out of it;
+// a nil allow keeps everything.
+func (info latestInfo) availableVersionsAllowing(allow func(version string) bool) []AvailableVersion {
 	all := make([]AvailableVersion, 0, len(info.Versions)+1)
 	for _, v := range append([]AvailableVersion{{Version: info.Version, Build: info.Build}}, info.Versions...) {
 		v.Version = strings.TrimPrefix(strings.TrimSpace(v.Version), "v")
-		if !ValidVersion(v.Version) {
+		if !ValidVersion(v.Version) || (allow != nil && !allow(v.Version)) {
 			continue
 		}
 		if !buildPattern.MatchString(v.Build) {

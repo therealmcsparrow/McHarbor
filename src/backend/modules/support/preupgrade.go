@@ -17,6 +17,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/runningwork"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
@@ -33,49 +34,17 @@ var ErrInvalidVersion = errors.New("support: invalid target version")
 var versionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+([-+][a-zA-Z0-9.]+)?$`)
 
 // rangeToken is one comparator of a manifest `mcharbor:` range, such as ">=2026.09.01".
-var rangeToken = regexp.MustCompile(`^(>=|<=|>|<|=|\^|~)?([0-9]+\.[0-9]+\.[0-9]+)$`)
+var rangeToken = regexp.MustCompile(`^(>=|<=|>|<|=|\^|~)?([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)$`)
 
 // rangeSpacing splits ">=1.0.0<2.0.0" into two comparators.
 var rangeSpacing = regexp.MustCompile(`([0-9])\s*([><=~^])`)
-
-// parseVersion reads the three numeric parts; the calendar notation's leading zeros are
-// fine because each part is compared as a number, the same way the agent gate does.
-func parseVersion(v string) ([3]int, bool) {
-	var out [3]int
-	core, _, _ := strings.Cut(strings.TrimPrefix(strings.TrimSpace(v), "v"), "-")
-	core, _, _ = strings.Cut(core, "+")
-	parts := strings.Split(core, ".")
-	if len(parts) != 3 {
-		return out, false
-	}
-	for i, p := range parts {
-		n, err := strconv.Atoi(p)
-		if err != nil {
-			return out, false
-		}
-		out[i] = n
-	}
-	return out, true
-}
-
-func compareVersion(a, b [3]int) int {
-	for i := 0; i < 3; i++ {
-		if a[i] != b[i] {
-			if a[i] < b[i] {
-				return -1
-			}
-			return 1
-		}
-	}
-	return 0
-}
 
 // RangeAllows reports whether version satisfies a manifest `mcharbor:` range. The second
 // result is false when the range cannot be read, which the report shows as unknown rather
 // than guessing either way.
 func RangeAllows(rng, version string) (bool, bool) {
-	v, ok := parseVersion(version)
-	if !ok {
+	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
+	if _, err := versionorder.Parse(version); err != nil {
 		return false, false
 	}
 	rng = strings.TrimSpace(rng)
@@ -88,8 +57,8 @@ func RangeAllows(rng, version string) (bool, bool) {
 		if m == nil {
 			return false, false
 		}
-		want, _ := parseVersion(m[2])
-		c := compareVersion(v, want)
+		want := m[2]
+		c := versionorder.Compare(version, want)
 		allowed := true
 		switch m[1] {
 		case ">=":
@@ -102,16 +71,41 @@ func RangeAllows(rng, version string) (bool, bool) {
 			allowed = c < 0
 		case "", "=":
 			allowed = c == 0
-		case "^":
-			allowed = c >= 0 && v[0] == want[0]
-		case "~":
-			allowed = c >= 0 && v[0] == want[0] && v[1] == want[1]
+		case "^", "~":
+			// The upper bound is the lowest prerelease of the next major (or minor), so the
+			// bound itself and its prereleases stay outside the range.
+			upper, ok := rangeCeiling(m[1], want)
+			if !ok {
+				return false, false
+			}
+			allowed = c >= 0 && versionorder.Compare(version, upper) < 0
 		}
 		if !allowed {
 			return false, true
 		}
 	}
 	return true, true
+}
+
+// rangeCeiling returns the exclusive upper bound of a ^ or ~ comparator on want.
+func rangeCeiling(op, want string) (string, bool) {
+	core, _, _ := strings.Cut(want, "-")
+	parts := strings.Split(core, ".")
+	if len(parts) != 3 {
+		return "", false
+	}
+	major, err := strconv.ParseUint(parts[0], 10, 32)
+	if err != nil {
+		return "", false
+	}
+	if op == "^" {
+		return fmt.Sprintf("%d.0.0-0", major+1), true
+	}
+	minor, err := strconv.ParseUint(parts[1], 10, 32)
+	if err != nil {
+		return "", false
+	}
+	return fmt.Sprintf("%d.%d.0-0", major, minor+1), true
 }
 
 type installedPlugin struct {

@@ -270,16 +270,20 @@ func (d *DefaultInstaller) catalogSource(ctx context.Context, slug string) (Sour
 		if entry.Slug != slug {
 			continue
 		}
-		// Versions is sorted newest first; the top-level fields mirror it for
-		// the legacy single-version shape.
+		// Versions lists stable first and is not "what this host installs":
+		// the channel decides, so an opted plugin gets its prerelease.
 		if len(entry.Versions) > 0 {
-			latest := entry.Versions[0]
-			return Source{URL: latest.DownloadURL, Checksum: latest.Checksum, Build: latest.Build, BuiltFor: latest.BuiltFor}, nil
+			optedIn := d.svc.channelStateOrOff(ctx).prereleases(slug)
+			latest, ok := pickLatest(entry.Versions, hostVersion(), optedIn)
+			if !ok {
+				return Source{}, fmt.Errorf("catalog entry %s has no installable version", slug)
+			}
+			return Source{URL: latest.DownloadURL, Checksum: latest.Checksum, Build: latest.Build, MinMcharbor: latest.MinMcharbor}, nil
 		}
 		if entry.DownloadURL == "" {
 			return Source{}, fmt.Errorf("catalog entry %s has no download", slug)
 		}
-		return Source{URL: entry.DownloadURL, Checksum: entry.Checksum, Build: entry.Build, BuiltFor: entry.BuiltFor}, nil
+		return Source{URL: entry.DownloadURL, Checksum: entry.Checksum, Build: entry.Build, MinMcharbor: entry.MinMcharbor}, nil
 	}
 	return Source{}, fmt.Errorf("%s is not in any configured plugin catalog", slug)
 }

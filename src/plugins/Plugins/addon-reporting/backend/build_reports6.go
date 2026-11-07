@@ -643,6 +643,7 @@ func buildEnvironmentCompare(b *buildCtx) []Section {
 	ta.Blocks = append(ta.Blocks, environmentDriftBlock(b))
 	if len(snap.Agents) > 0 {
 		ta.Blocks = append(ta.Blocks, heading(2, "Agents"), agentTable(snap), agentVersionTable(snap))
+		ta.Blocks = append(ta.Blocks, prereleaseBlocks(snap, b.meta.GeneratedAt)...)
 	}
 	ta.Blocks = append(ta.Blocks, callout(StatusInfo, "Scope of this comparison",
 		"Workload, availability and engine figures are read for the environment this report was "+

@@ -37,6 +37,10 @@ func (agentBinaries) AgentBinaryPath(osName, arch string) string {
 	return modagent.AgentBinaryPath(osName, arch)
 }
 
+func (agentBinaries) BundledBinaryDigest(osName, arch string) (string, error) {
+	return modagent.BundledBinaryDigest(osName, arch)
+}
+
 func (agentBinaries) FileSHA256(path string) (string, error) { return modagent.FileSHA256(path) }
 
 func (agentBinaries) HasLocalAgentBinary(osName, arch string) bool {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -21,6 +22,8 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // agentBinaryDir is where the image puts the agent built alongside this host.
@@ -81,6 +84,15 @@ func binaryPath(ctx context.Context, osName, arch string) string {
 // usableBinary returns the agent binary in dir for a platform, or "" when
 // there is none worth serving.
 func usableBinary(dir, osName, arch string) string {
+	if name := usableBinaryName(dir, osName, arch); name != "" {
+		return filepath.Join(dir, name)
+	}
+	return ""
+}
+
+// usableBinaryName is usableBinary's file name inside dir, so a caller can open
+// it through os.OpenInRoot instead of joining a path.
+func usableBinaryName(dir, osName, arch string) string {
 	base := "mcharbor-agent-" + osName + "-" + arch
 	names := []string{base}
 	if osName == "windows" {
@@ -89,14 +101,58 @@ func usableBinary(dir, osName, arch string) string {
 		names = []string{base + ".exe", base}
 	}
 	for _, name := range names {
-		path := filepath.Join(dir, name)
-		info, err := os.Stat(path)
+		info, err := os.Stat(filepath.Join(dir, name))
 		if err != nil || info.IsDir() || info.Size() < agentBinaryMinSize {
 			continue
 		}
-		return path
+		return name
 	}
 	return ""
+}
+
+// openBundled opens the agent shipped with this host (agent-local, then
+// agent-bin), never a stored release, and returns it with its digest taken from
+// the same handle, so the bytes served are the bytes hashed. The caller closes it.
+func openBundled(osName, arch string) (*os.File, string, error) {
+	if !binaryPartPattern.MatchString(osName) || !binaryPartPattern.MatchString(arch) {
+		return nil, "", fmt.Errorf("no bundled agent for %q/%q", osName, arch)
+	}
+	for _, dir := range []string{localAgentDir, agentBinaryDir} {
+		name := usableBinaryName(dir, osName, arch)
+		if name == "" {
+			continue
+		}
+		f, err := os.OpenInRoot(dir, name)
+		if err != nil {
+			slog.Warn("opening the bundled agent binary failed", "error", err)
+			continue
+		}
+		h := sha256.New()
+		if _, err := io.Copy(h, f); err != nil {
+			closeErr := f.Close()
+			return nil, "", errors.Join(fmt.Errorf("hashing the bundled agent: %w", err), closeErr)
+		}
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
+			closeErr := f.Close()
+			return nil, "", errors.Join(fmt.Errorf("rewinding the bundled agent: %w", err), closeErr)
+		}
+		return f, hex.EncodeToString(h.Sum(nil)), nil
+	}
+	return nil, "", fmt.Errorf("no bundled agent for %s/%s", osName, arch)
+}
+
+// BundledBinaryDigest is the SHA-256 of the agent shipped with this host. An
+// agent return advertises it for the host's own version, so it must come from
+// the file HandleAgentBinaryVersion serves and not from the selected release.
+func BundledBinaryDigest(osName, arch string) (string, error) {
+	f, sum, err := openBundled(osName, arch)
+	if err != nil {
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		slog.Warn("closing the bundled agent file failed", "error", err)
+	}
+	return sum, nil
 }
 
 // LocalAgentBuild reports the build stamp of the binaries in the local agent
@@ -241,4 +297,134 @@ func servedImageRef(ctx context.Context) string {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return store.TargetImageRef(ctx)
+}
+
+// versionedPattern is the allow-list for the {version} path segment: three
+// numeric parts and an optional alphanumeric dot-separated prerelease, so "..",
+// separators, "_" and a second "-" cannot reach a path.
+var versionedPattern = regexp.MustCompile(`^[0-9]{1,4}\.[0-9]{1,3}\.[0-9]{1,4}(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$`)
+
+// maxServedVersionLen bounds the version segment before any pattern runs.
+const maxServedVersionLen = 128
+
+// validServedVersion accepts a version only when the allow-list and the strict
+// parser the rest of McHarbor orders versions with both read it the same way.
+func validServedVersion(v string) bool {
+	if len(v) > maxServedVersionLen || !versionedPattern.MatchString(v) {
+		return false
+	}
+	_, err := versionorder.Parse(v)
+	return err == nil
+}
+
+// authorizeVersioned runs the checks both version-specific routes share and
+// returns the validated path segments. The agent's bearer token must be valid,
+// the platform and version must pass their allow-lists, and the token's own
+// environment must be pinned to exactly this version, so a valid token for one
+// agent never reads another agent's release or any other stored version.
+func (h *Handler) authorizeVersioned(w http.ResponseWriter, r *http.Request) (osName, arch, version string, ok bool) {
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
+	if token == "" || token == r.Header.Get("Authorization") {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return "", "", "", false
+	}
+	envID, err := h.service.ValidateAgentToken(r.Context(), token)
+	if err != nil {
+		h.app.Logger.Warn("agent: versioned download with an invalid token", "error", err)
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return "", "", "", false
+	}
+	osName, arch, version = chi.URLParam(r, "os"), chi.URLParam(r, "arch"), chi.URLParam(r, "version")
+	if !binaryPartPattern.MatchString(osName) || !binaryPartPattern.MatchString(arch) || !validServedVersion(version) {
+		http.NotFound(w, r)
+		return "", "", "", false
+	}
+	pinned, err := pinnedReturnVersion(r.Context(), h.app.DB, envID)
+	if err != nil {
+		h.app.Logger.Error("agent: reading the pin for a versioned download", "env", envID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return "", "", "", false
+	}
+	if pinned == "" || pinned != version {
+		h.app.Logger.Warn("agent: versioned download refused, the agent is not pinned to this version", "env", envID, "version", version)
+		response.ForbiddenCode(w, r, i18n.ErrForbidden)
+		return "", "", "", false
+	}
+	return osName, arch, version, true
+}
+
+// HandleAgentBinaryVersion serves GET /api/agent/binary/{os}/{arch}/{version}:
+// the binary of one exact version, for an agent returning to a stable release
+// while a prerelease is the global target. Token-gated and limited to the
+// agent pinned to that version, unlike the public latest-target route.
+func (h *Handler) HandleAgentBinaryVersion(w http.ResponseWriter, r *http.Request) {
+	osName, arch, version, ok := h.authorizeVersioned(w, r)
+	if !ok {
+		return
+	}
+	var f *os.File
+	var sum string
+	if store := versionedReleases(); store != nil {
+		opened, digest, err := store.OpenReleaseAsset(r.Context(), false, osName, arch, version)
+		if err == nil {
+			f, sum = opened, digest
+		}
+	}
+	if f == nil && version == appversion.Current() {
+		// The agent bundled with this host is the one version McHarbor holds
+		// outside the store.
+		opened, digest, err := openBundled(osName, arch)
+		if err != nil {
+			h.app.Logger.Warn("agent: opening the bundled binary", "error", err)
+		} else {
+			f, sum = opened, digest
+		}
+	}
+	if f == nil {
+		http.NotFound(w, r)
+		return
+	}
+	h.serveOpened(w, r, f, sum, "application/octet-stream", "mcharbor-agent-"+osName+"-"+arch)
+}
+
+// HandleAgentImageVersion serves GET /api/agent/image/{os}/{arch}/{version}:
+// the `docker save` tarball of one exact stored version, under the same token
+// and pin checks as the binary.
+func (h *Handler) HandleAgentImageVersion(w http.ResponseWriter, r *http.Request) {
+	osName, arch, version, ok := h.authorizeVersioned(w, r)
+	if !ok {
+		return
+	}
+	store := versionedReleases()
+	if store == nil {
+		http.NotFound(w, r)
+		return
+	}
+	f, sum, err := store.OpenReleaseAsset(r.Context(), true, osName, arch, version)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	h.serveOpened(w, r, f, sum, "application/x-tar", "mcharbor-agent-image-"+osName+"-"+arch+".tar")
+}
+
+// serveOpened streams f with its digest header and closes it.
+func (h *Handler) serveOpened(w http.ResponseWriter, r *http.Request, f *os.File, sum, contentType, name string) {
+	defer func() {
+		if err := f.Close(); err != nil {
+			h.app.Logger.Warn("agent: closing a served file", "error", err)
+		}
+	}()
+	info, err := f.Stat()
+	if err != nil {
+		h.app.Logger.Error("agent: stat of a served file", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	if sum != "" {
+		w.Header().Set("X-Checksum-Sha256", sum)
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
+	http.ServeContent(w, r, name, info.ModTime(), f)
 }

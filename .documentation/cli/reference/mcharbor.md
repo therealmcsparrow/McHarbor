@@ -31,9 +31,11 @@ mcharbor is the command-line client for McHarbor. It is an API client with the s
 * [mcharbor app](mcharbor_app.md)	 - The Docker app catalog
 * [mcharbor audit](mcharbor_audit.md)	 - The audit log
 * [mcharbor backup](mcharbor_backup.md)	 - Container backup plans, runs and restores
+* [mcharbor capacity](mcharbor_capacity.md)	 - Disk and storage headroom, and what can be reclaimed
 * [mcharbor catalog](mcharbor_catalog.md)	 - App and plugin catalog sources
 * [mcharbor cluster](mcharbor_cluster.md)	 - Inspect a multi-node installation
 * [mcharbor completion](mcharbor_completion.md)	 - Generate the autocompletion script for the specified shell
+* [mcharbor compliance](mcharbor_compliance.md)	 - Evidence for a control framework: what was checked, what was not
 * [mcharbor container](mcharbor_container.md)	 - Containers in the selected environment
 * [mcharbor context](mcharbor_context.md)	 - Manage the McHarbor servers this CLI knows
 * [mcharbor doctor](mcharbor_doctor.md)	 - Diagnose configuration, connectivity, TLS, credentials, version and clock
@@ -41,6 +43,7 @@ mcharbor is the command-line client for McHarbor. It is an API client with the s
 * [mcharbor env](mcharbor_env.md)	 - Environments: the Docker hosts McHarbor manages
 * [mcharbor gitops](mcharbor_gitops.md)	 - GitOps pipelines and promotions
 * [mcharbor group](mcharbor_group.md)	 - User groups
+* [mcharbor host](mcharbor_host.md)	 - The host behind an environment: its systemd services, device nodes and OS updates
 * [mcharbor identity](mcharbor_identity.md)	 - Identity providers
 * [mcharbor image](mcharbor_image.md)	 - Images in the selected environment
 * [mcharbor login](mcharbor_login.md)	 - Save a server and an API key as a context, after checking the key works
@@ -50,7 +53,9 @@ mcharbor is the command-line client for McHarbor. It is an API client with the s
 * [mcharbor policy](mcharbor_policy.md)	 - Attribute-based access policies
 * [mcharbor restore](mcharbor_restore.md)	 - Restore an instance export on this host, for an instance whose interface will not start
 * [mcharbor role](mcharbor_role.md)	 - Roles and the permission catalog
+* [mcharbor runbook](mcharbor_runbook.md)	 - Runbooks, and the record of who followed them
 * [mcharbor scim](mcharbor_scim.md)	 - SCIM provisioning connections
+* [mcharbor settings](mcharbor_settings.md)	 - Read and change application settings by key, and read the security posture
 * [mcharbor stack](mcharbor_stack.md)	 - Compose stacks in the selected environment
 * [mcharbor status](mcharbor_status.md)	 - Check the server: health, version, identity, cluster and the selected environment
 * [mcharbor support](mcharbor_support.md)	 - Diagnostics, inventory, pre-upgrade checks and support bundles
@@ -59,4 +64,5 @@ mcharbor is the command-line client for McHarbor. It is an API client with the s
 * [mcharbor version](mcharbor_version.md)	 - Show the CLI version, the server version, and whether they are compatible
 * [mcharbor volume](mcharbor_volume.md)	 - Volumes in the selected environment
 * [mcharbor whoami](mcharbor_whoami.md)	 - Show who the API key acts as and, with --permissions, what it may do
+* [mcharbor widgets](mcharbor_widgets.md)	 - Downloadable dashboard widgets
 

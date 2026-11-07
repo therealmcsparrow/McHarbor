@@ -61,6 +61,8 @@ export function AgentInventoryCard() {
         </p>
       </div>
 
+      <output className="sr-only">{t('prerelease.filter.shown', { count: filters.rows.length })}</output>
+
       <TablePage
         id="settings-agent-inventory"
         header={false}
@@ -108,7 +110,14 @@ export function AgentInventoryCard() {
         loading={isPending}
         error={error ?? undefined}
         onRetry={() => void refetch()}
-        empty={{ title: t('about.agents.empty') }}
+        empty={{
+          title:
+            filters.statusFacet === 'prerelease' && agents.length > 0
+              ? t('prerelease.filter.noPrerelease')
+              : filters.statusFacet === 'pinned' && agents.length > 0
+                ? t('prerelease.filter.noPinned')
+                : t('about.agents.empty'),
+        }}
         selectable
         batchActions={batchActions}
         isRowDisabled={(agent) => !agent.updatable || inFlight(agent) || busy}

@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Necesita reparación",
-    "explanation": "Compilada para McHarbor {{builtFor}}, esta instalación es {{current}}.",
+    "explanation": "Este complemento no se cargó en este McHarbor. Reparar vuelve a descargarlo del catálogo.",
     "action": "Reparar",
     "reconcile": "Reconciliar",
     "reconcileHint": "Fije este plugin a la versión {{version}} del catálogo. El host lo conserva, mueve o reinstala para que el registro, los archivos y el binario coincidan; las concesiones de roles se conservan.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Creado por",
-    "readOnlyShort": "ro"
+    "readOnlyShort": "ro",
+    "prerelease": "Versión preliminar",
+    "installedPrerelease": "Instalado: versión preliminar",
+    "prereleaseUpdate": "Actualización preliminar disponible",
+    "builtForPrereleaseHost": "Compilado para este host de versión preliminar. Si el plugin no puede cargarse, el motivo se muestra abajo; actualice McHarbor a la siguiente versión estable para moverlo.",
+    "versions": "Versiones"
+  },
+  "channels": {
+    "saveFailed": "No se pudo guardar el ajuste de versiones preliminares",
+    "needs": "Requiere {{permission}}.",
+    "unavailable": "Ajuste no disponible. Requiere {{permission}}.",
+    "loadFailed": "No se pudo cargar el ajuste de versiones preliminares.",
+    "retry": "Intentar de nuevo",
+    "store": {
+      "label": "Ofrecer versiones preliminares de plugins",
+      "hint": "Muestra versiones de prueba que aún no son definitivas para todos los plugins. Un plugin también puede activarlo en su página de detalles."
+    },
+    "override": {
+      "label": "Ofrecer versiones preliminares de este plugin",
+      "hint": "Muestra las versiones de prueba de este plugin aunque el interruptor de la Plugin Store esté apagado.",
+      "globalOn": "Activado para todos los plugins de la Plugin Store.",
+      "followsOff": "Las versiones preliminares están desactivadas para este plugin. Se ofrecerá la siguiente versión estable.",
+      "none": "No hay ninguna versión preliminar disponible."
+    }
+  },
+  "return": {
+    "open": "Volver a estable",
+    "title": "¿Volver {{name}} a estable?",
+    "summary": "De {{from}} a {{to}}. Tus datos se conservan.",
+    "summaryFrom": "Desde {{from}}. Tus datos se conservan.",
+    "checking": "Comprobando si {{name}} puede volver a estable...",
+    "ready": "Listo para volver. Nada lo bloquea.",
+    "blocked": "No se puede volver: la versión preliminar hizo un cambio en la base de datos ({{migration}}) que la versión estable no incluye. No se cambió nada.",
+    "blockedGeneric": "No se puede volver: la comprobación dio un resultado que esta versión no conoce. No se cambió nada.",
+    "noStable": "No hay ninguna versión estable de {{name}} disponible.",
+    "prereleaseHost": "Los plugins siguen a este host preliminar y se quedan en sus versiones preliminares. Podrán volver a estable cuando se instale una versión estable de McHarbor más reciente.",
+    "checkFailed": "No se pudo ejecutar la comprobación",
+    "checkAgain": "Comprobar de nuevo",
+    "unsigned": "Este paquete no tiene firma, así que McHarbor no puede confirmar quién lo creó. No se abrió. La comprobación de la base de datos solo se ejecuta después de que aceptes.",
+    "consent": "Lo entiendo y quiero volver {{name}} con un paquete sin firmar.",
+    "consentGiven": "Consentimiento dado. Confirma para continuar.",
+    "refusedTitle": "Se rechazó la vuelta a estable",
+    "confirm": "Volver a estable",
+    "success": "{{name}} volvió a estable",
+    "failed": "No se pudo volver el plugin a estable"
   }
 }

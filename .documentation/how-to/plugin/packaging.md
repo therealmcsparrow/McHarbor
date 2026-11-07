@@ -177,7 +177,7 @@ the plugin**. Otherwise `plugin.Open` reports a version mismatch that reads like
 problem and is a build-context problem.
 
 [ABI and libc](./abi-and-libc.md) is the full account: what `plugin.Open` compares, why
-every artifact links glibc, why `go.work` must not come back, and how `built_for` and the
+every artifact links glibc, why `go.work` must not come back, and how `min_mcharbor` and the
 boot-time repair pass work.
 
 ## Versioning
@@ -186,6 +186,43 @@ boot-time repair pass work.
 - The host refuses a downgrade.
 - A breaking change in the shared plugin contract bumps the manifest `schema`, and the host
   enforces compatibility by inspecting both that and the version range.
+
+### The floor grammar
+
+`mcharbor:` in `plugin.yaml` is one or two comparators: `MAJOR.MINOR.PATCH`, with an optional
+`-suffix`, behind an optional operator, such as `">=2026.11.03-rc.1"`. Build metadata (`+`)
+is refused. The floor is compared with the shared version order, where a prerelease sorts
+below its final, so a floor of `2026.11.03-rc.1` admits `2026.11.03-rc.1`, later release
+candidates and `2026.11.03`. A host whose own version does not parse, such as a dev build,
+is never refused by a floor.
+
+A prerelease entry needs no floor tied to the tree that built it. Hosts without channels never
+read `prerelease_versions[]`, so they cannot reach a prerelease whatever its floor says; a host
+with channels enforces the floor on every row.
+
+### Catalog format v2
+
+`scripts/development/catalog_entry.py` writes each `<slug>.json` in format v2, which is a
+breaking change from v1. The contract is `src/contracts/plugincatalog/v2.yaml`.
+
+- `versions[]` holds stable releases only, at most one: the newest stable. It may be empty for
+  a plugin that has published only a prerelease. A host that does not know channels reads this
+  list alone, so it can never rank a prerelease first or install one.
+- `prerelease_versions[]` holds the newest prerelease, kept only while it is newer than the
+  newest stable. Hosts without channels ignore the key; a host with channels offers a row to a
+  prerelease host or to a plugin whose effective setting is on, and refuses a row that is not a
+  prerelease or does not parse.
+- `versions[0]` is the newest stable release. It never means what this host installs;
+  a host reads its channel to choose between the two lists.
+- Each row carries `version`, `build`, `download_url`, `min_mcharbor` and `signature`.
+  A version that does not parse is refused by the reader.
+- The writer merges with the entry already on disk, reads both lists so an entry an earlier writer
+  left with a prerelease inside `versions[]` is rewritten into the split, and refuses a version or floor that does
+  not parse, an existing entry that is not valid JSON, and an incoming row older than the
+  newest of its kind already in the catalog.
+
+Every plugin is rebuilt once for this change, because the host and the catalog reader moved
+together.
 
 ## Uninstall
 

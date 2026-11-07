@@ -38,6 +38,17 @@ backing up the data volume is step 1.
 
 ## Current release
 
+### 2026.11.02 (2026-11-07)
+
+Test builds of McHarbor, agents and plugins can be offered through switches that are all off by
+default, and a plugin or an agent can return to stable. See
+[Prerelease channels](../../settings/updates/prerelease-channels/README.md).
+
+**What an upgrade asks of you:** update McHarbor before its plugins, because every plugin in the catalog
+is rebuilt for this code and an older McHarbor cannot load it. Cross-site `POST`, `PUT`, `PATCH` and `DELETE` requests from a
+browser now get a 403, so add the origin of a UI on a sibling host, or of a plain-http proxy that
+rewrites Host, to `ALLOWED_ORIGINS`.
+
 ### 2026.11.01 (2026-11-05)
 
 Agent releases and the app, plugin and VM image catalogs now come from the
@@ -104,6 +115,7 @@ The full 2026.10.01 entry, including Fixed and Security, is in
 
 | Version | Date | What landed |
 |---|---|---|
+| **2026.11.02** | 2026-11-07 | Prerelease channels for McHarbor, agents and plugins; return to stable; one shared version order and plugin catalog format v2; cross-site writes refused on every route. |
 | **2026.11.01** | 2026-11-05 | Catalogs and agent releases served from the McHarbor-Catalog repository on GitHub; VM and LXC backup temp in the agent's data directory; an opt-out of the server's own container backup copy; LXC incremental listings staged beside the listing. No breaking changes. |
 | **2026.10.02** | 2026-10-22 | Disk-full detection: host disk alerts and three default rules; a grey "No disk data" state where McHarbor cannot read the disk; startup cleanup of orphaned temporary archives. Patch; no breaking changes. |
 | **2026.10.01** | 2026-09-21 | Plugin platform and Plugin Store; compute (VMs and system containers); RBAC on every route; tamper-evident audit log; encryption at rest; HTTPS by default; calendar versioning. **Breaking**; see above. |

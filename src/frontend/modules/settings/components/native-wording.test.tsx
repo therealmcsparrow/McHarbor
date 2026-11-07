@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -67,6 +67,25 @@ describe('native install wording', () => {
     expect(await screen.findByText(/download this host's \.deb, \.rpm or tarball/)).toBeInTheDocument();
     expect(screen.queryByText(/pull the new image/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Upgrade it with your package manager/)).not.toBeInTheDocument();
+  });
+
+  it('names the target version when a native host updates itself, because an unnamed target is refused', async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      about(true, false, true),
+      http.get('*/api/health', () => HttpResponse.json({ success: true, data: { status: 'ok', instanceId: 'a' } })),
+      http.post('*/api/versions/self-update', async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ success: true, data: { message: 'scheduled' } });
+      }),
+    );
+    renderWithProviders(<McHarborUpdateCard />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Check Now' }));
+    await user.click(await screen.findByTestId('self-update-button'));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Update now' }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toEqual({ version: '2026.10.02' });
   });
 
   it('keeps a sandboxed native install on the manual upgrade path', async () => {

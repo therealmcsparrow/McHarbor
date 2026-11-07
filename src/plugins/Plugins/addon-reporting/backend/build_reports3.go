@@ -798,6 +798,8 @@ func buildPlatformInventory(b *buildCtx) []Section {
 				{Label: "State", Width: 1.1},
 			}, rows, "Scheduled tasks", ""))
 	}
+	op.Blocks = append(op.Blocks, heading(2, "Prerelease inventory"))
+	op.Blocks = append(op.Blocks, prereleaseBlocks(b.snap, b.meta.GeneratedAt)...)
 	op.Blocks = append(op.Blocks, heading(2, "Container engine"), engineTable(b))
 	return []Section{op}
 }

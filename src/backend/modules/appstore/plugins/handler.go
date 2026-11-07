@@ -181,7 +181,7 @@ func (h *Handler) withCatalogStamp(ctx context.Context, src Source) Source {
 	for _, e := range entries {
 		for _, v := range e.Versions {
 			if v.DownloadURL == src.URL {
-				src.Build, src.BuiltFor = v.Build, v.BuiltFor
+				src.Build, src.MinMcharbor = v.Build, v.MinMcharbor
 				if src.Signature == "" {
 					src.Signature = v.Signature
 				}
@@ -189,7 +189,7 @@ func (h *Handler) withCatalogStamp(ctx context.Context, src Source) Source {
 			}
 		}
 		if e.DownloadURL == src.URL {
-			src.Build, src.BuiltFor = e.Build, e.BuiltFor
+			src.Build, src.MinMcharbor = e.Build, e.MinMcharbor
 			return src
 		}
 	}
@@ -232,7 +232,7 @@ func (h *Handler) handleInstallStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inst, err := h.installer.Install(r.Context(), src, sw.progress)
+	inst, err := h.installSideload(r.Context(), src, sw.progress)
 	if err != nil {
 		slog.Warn("plugin install failed", "error", err)
 		sw.writeError(streamErrorCode(err, i18n.ErrPluginInstallFailed), failureText("plugin install failed", err))
@@ -248,6 +248,25 @@ func (h *Handler) handleInstallStream(w http.ResponseWriter, r *http.Request) {
 		Path:        inst.Path,
 		NeedsEnable: inst.NeedsEnable,
 	})
+}
+
+// installSideload installs src after reading its manifest from the staged artifact,
+// so a client-named URL or tarball cannot put a prerelease on a stable host whose
+// setting for that plugin is off. An installer that cannot stage installs as before.
+func (h *Handler) installSideload(ctx context.Context, src Source, progress ProgressFunc) (*Installed, error) {
+	up, ok := h.installer.(Upgrader)
+	if !ok {
+		return h.installer.Install(ctx, src, progress)
+	}
+	st, err := up.Preflight(ctx, src, progress)
+	if err != nil {
+		return nil, err
+	}
+	if err := h.refuseOffChannel(ctx, st.Slug, st.Version); err != nil {
+		up.DiscardStaged(st)
+		return nil, err
+	}
+	return up.InstallStaged(ctx, st, progress)
 }
 
 // handleUpdateStream re-resolves a plugin's catalog entry by slug and
@@ -306,12 +325,22 @@ func (h *Handler) handleUpdateStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The top-level fields mirror the newest stable; an opted plugin updates to
+	// its prerelease row instead.
+	target := PluginVersion{DownloadURL: match.DownloadURL, Checksum: match.Checksum,
+		Signature: match.Signature, Build: match.Build, MinMcharbor: match.MinMcharbor}
+	if len(match.Versions) > 0 {
+		optedIn := h.svc.channelStateOrOff(r.Context()).prereleases(slug)
+		if v, ok := pickLatest(match.Versions, hostVersion(), optedIn); ok && v.DownloadURL != "" {
+			target = v
+		}
+	}
 	src := Source{
-		URL:           match.DownloadURL,
-		Checksum:      match.Checksum,
-		Signature:     match.Signature,
-		Build:         match.Build,
-		BuiltFor:      match.BuiltFor,
+		URL:           target.DownloadURL,
+		Checksum:      target.Checksum,
+		Signature:     target.Signature,
+		Build:         target.Build,
+		MinMcharbor:   target.MinMcharbor,
 		AllowUnsigned: req.AllowUnsigned,
 	}
 	// The new artifact is validated before the installed one is touched, the
@@ -373,13 +402,15 @@ func (h *Handler) handleUninstall(w http.ResponseWriter, r *http.Request) {
 // can ask for consent instead of reporting a generic failure.
 func streamErrorCode(err error, fallback i18n.MsgCode) i18n.MsgCode {
 	switch {
+	case errors.Is(err, ErrMigrationBlocksReturn):
+		return i18n.ErrUpdateMigrationBlocksStable
 	case errors.Is(err, ErrUnsignedNotConfirmed):
 		return i18n.ErrPluginUnsignedUnconfirmed
 	case errors.Is(err, ErrSignatureInvalid):
 		return i18n.ErrPluginSignatureInvalid
 	case errors.Is(err, ErrManifestInvalid):
 		return i18n.ErrPluginManifestInvalid
-	case errors.Is(err, ErrBuiltForMismatch):
+	case errors.Is(err, ErrHostBelowMinimum):
 		return i18n.ErrPluginBuiltForMismatch
 	default:
 		return fallback
@@ -408,8 +439,8 @@ func (h *Handler) fail(w http.ResponseWriter, r *http.Request, err error) {
 		response.NotFoundCode(w, r, i18n.ErrPluginNotFound)
 	case errors.Is(err, ErrPlatformUnsupported):
 		response.BadRequestCode(w, r, i18n.ErrPlatformUnsupported)
-	case errors.Is(err, ErrBuiltForMismatch):
-		slog.Error("plugin built for another release", "error", err)
+	case errors.Is(err, ErrHostBelowMinimum):
+		slog.Error("plugin requires a newer McHarbor release", "error", err)
 		response.BadRequestCause(w, r, i18n.ErrPluginBuiltForMismatch, err)
 	default:
 		// Untyped error: the installer bubble-wrapped something we

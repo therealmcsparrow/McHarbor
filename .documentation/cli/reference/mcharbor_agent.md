@@ -31,5 +31,10 @@ mcharbor agent [flags]
 ### SEE ALSO
 
 * [mcharbor](mcharbor.md)	 - Operate McHarbor from a terminal or a CI job
+* [mcharbor agent install-prereqs](mcharbor_agent_install-prereqs.md)	 - Install the named prerequisites on a host over SSH
 * [mcharbor agent list](mcharbor_agent_list.md)	 - List agents with their connection health
+* [mcharbor agent probe](mcharbor_agent_probe.md)	 - Report what a host has for an agent over SSH, changing nothing
+* [mcharbor agent releases](mcharbor_agent_releases.md)	 - Agent releases stored in McHarbor, which every install and update is served from
+* [mcharbor agent return](mcharbor_agent_return.md)	 - Return an agent from a prerelease to stable and pin it
+* [mcharbor agent unpin](mcharbor_agent_unpin.md)	 - Release an agent's pin so updates reach it again
 

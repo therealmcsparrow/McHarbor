@@ -261,11 +261,22 @@ case "${catalog_url}" in
 esac
 
 [ -f "${PACKAGER_DOCKERFILE}" ] || die "packager dockerfile not found: ${PACKAGER_DOCKERFILE}"
-[ -f "${SIGNING_KEY}" ] || die "signing key not found: ${SIGNING_KEY} (see --help)"
+stage="${MCHARBOR_PLUGIN_STAGE:-all}"
+stage_dir="${MCHARBOR_PLUGIN_STAGE_DIR:-}"
+case "${stage}" in
+    all) ;;
+    build|sign) [ -n "${stage_dir}" ] || die "MCHARBOR_PLUGIN_STAGE=${stage} needs MCHARBOR_PLUGIN_STAGE_DIR" ;;
+    *) die "MCHARBOR_PLUGIN_STAGE must be all, build or sign, got '${stage}'" ;;
+esac
 
-command -v docker >/dev/null 2>&1 || die "docker not found on PATH"
+if [ "${stage}" != build ]; then
+    [ -f "${SIGNING_KEY}" ] || die "signing key not found: ${SIGNING_KEY} (see --help)"
+    command -v go >/dev/null 2>&1 || die "go not found on PATH — needed to sign the tarball"
+fi
+if [ "${stage}" != sign ]; then
+    command -v docker >/dev/null 2>&1 || die "docker not found on PATH"
+fi
 command -v tar >/dev/null 2>&1 || die "tar not found on PATH"
-command -v go >/dev/null 2>&1 || die "go not found on PATH — needed to sign the tarball"
 
 # Signing moved to cmd/pluginsigner, so python is only needed for the catalog
 # entry below - stdlib json, no third-party import. On Windows, `python3` is
@@ -281,14 +292,19 @@ for candidate in "${MCHARBOR_PYTHON:-}" python3 python py; do
         break
     fi
 done
-[ -n "${python_bin}" ] || die "no usable python found — needed to write the catalog entry"
+if [ "${stage}" != build ]; then
+    [ -n "${python_bin}" ] || die "no usable python found — needed to write the catalog entry"
+fi
 
 # The output folder mirrors a live catalog: files/ for payloads, icons/<slug>/
 # for the brand icon, and the entry JSON at the root.
 output_files_dir="${OUTPUT_DIR}/files"
 output_icons_dir="${OUTPUT_DIR}/icons/${slug}"
-mkdir -p "${output_files_dir}" || die "cannot create ${output_files_dir}"
-mkdir -p "${output_icons_dir}" || die "cannot create ${output_icons_dir}"
+if [ "${stage}" != build ]; then
+    mkdir -p "${output_files_dir}" || die "cannot create ${output_files_dir}"
+    mkdir -p "${output_icons_dir}" || die "cannot create ${output_icons_dir}"
+fi
+mkdir -p "${stage_dir:-${OUTPUT_DIR}}" || die "cannot create the stage dir"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -309,13 +325,18 @@ echo ""
 # ---------------------------------------------------------------------------
 
 frontend_dir="${plugin_dir}/frontend"
-if [ -d "${frontend_dir}" ]; then
+if [ "${stage}" = sign ]; then
+    step "sign stage: no frontend or plugin build code runs here"
+elif [ -d "${frontend_dir}" ]; then
     command -v npm >/dev/null 2>&1 || die "npm not found on PATH but ${slug} ships a frontend/"
 
     umd_target="${frontend_dir}/${slug}.umd.cjs"
     step "building frontend UMD bundle for ${slug}"
 
-    if [ ! -d "${frontend_dir}/node_modules" ]; then
+    if [ "${MCHARBOR_PREBUILT_FRONTEND:-0}" = 1 ]; then
+        [ -f "${umd_target}" ] || die "MCHARBOR_PREBUILT_FRONTEND=1 but ${umd_target} was not built beforehand"
+        step "using the prebuilt bundle ${umd_target}"
+    elif [ ! -d "${frontend_dir}/node_modules" ]; then
         step "installing frontend dependencies (first run / clean checkout)"
         # --legacy-peer-deps: @vitejs/plugin-react@4 peers vite ^4-7 while the
         # project pins ^8; without it npm aborts with ERESOLVE and vite never
@@ -324,7 +345,9 @@ if [ -d "${frontend_dir}" ]; then
             || die "npm install failed in ${frontend_dir}"
     fi
 
-    (cd "${frontend_dir}" && npm run build) || die "frontend build failed for ${slug}"
+    if [ "${MCHARBOR_PREBUILT_FRONTEND:-0}" != 1 ]; then
+        (cd "${frontend_dir}" && npm run build) || die "frontend build failed for ${slug}"
+    fi
     [ -f "${umd_target}" ] || die "frontend build did not produce ${umd_target}"
 
     # A vite config regression (raw rollupOptions UMD instead of build.lib)
@@ -359,6 +382,26 @@ fi
 # does not understand MSYS paths. MSYS auto-converts bare arguments but not a
 # value embedded after a comma, so `type=tar,dest=/tmp/...` would land in
 # C:\tmp\... while the shell looks under the MSYS root. Convert explicitly.
+tarball_name="${slug}-${version}.tar.gz"
+
+if [ "${stage}" = sign ]; then
+    mkdir -p "${tmp_dir}/packaged"
+    for f in "${tarball_name}" "${tarball_name}.sha256" "${slug}.build"; do
+        [ -f "${stage_dir}/${f}" ] || die "stage dir has no ${f}; run the build stage first"
+    done
+    build_stamp="$(tr -d '[:space:]' < "${stage_dir}/${slug}.build")"
+    case "${build_stamp}" in
+        [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]) ;;
+        *) die "stage build stamp '${build_stamp}' is not yyyyMMddHHmm" ;;
+    esac
+    cp "${stage_dir}/${tarball_name}" "${tmp_dir}/packaged/${tarball_name}" || die "cannot stage ${tarball_name}"
+    expected_sum="$(awk '{print $1; exit}' "${stage_dir}/${tarball_name}.sha256")"
+    actual_sum="$(sha256sum "${tmp_dir}/packaged/${tarball_name}" | awk '{print $1}')"
+    [ -n "${expected_sum}" ] && [ "${expected_sum}" = "${actual_sum}" ] || die "${tarball_name} does not match its recorded sha256"
+    tar -tzf "${tmp_dir}/packaged/${tarball_name}" | grep -qE "^(\./)?backend/${slug}\.so$" \
+        || die "${tarball_name} holds no backend/${slug}.so"
+    step "verified ${tarball_name} (sha256 ${actual_sum})"
+else
 if command -v cygpath >/dev/null 2>&1; then
     docker_context="$(cygpath -w "${REPO_ROOT}")"
     docker_dockerfile="$(cygpath -w "${PACKAGER_DOCKERFILE}")"
@@ -383,13 +426,22 @@ docker buildx build \
     "${docker_context}" \
     || die "docker buildx build failed for ${slug}@${version}"
 
-tarball_name="${slug}-${version}.tar.gz"
-
 step "extracting packaged/${tarball_name}"
 tar -x -f "${tmp_dir}/packager.tar" -C "${tmp_dir}" "packaged/${tarball_name}" \
     || die "packager output did not contain packaged/${tarball_name}"
 [ -f "${tmp_dir}/packaged/${tarball_name}" ] || \
     die "packager output did not contain packaged/${tarball_name}"
+tar -tzf "${tmp_dir}/packaged/${tarball_name}" | grep -qE "^(\./)?backend/${slug}\.so$" \
+    || die "${tarball_name} holds no backend/${slug}.so"
+fi
+
+if [ "${stage}" = build ]; then
+    cp "${tmp_dir}/packaged/${tarball_name}" "${stage_dir}/${tarball_name}" || die "cannot write the stage tarball"
+    ( cd "${stage_dir}" && sha256sum "${tarball_name}" > "${tarball_name}.sha256" ) || die "cannot hash ${tarball_name}"
+    printf '%s\n' "${build_stamp}" > "${stage_dir}/${slug}.build"
+    step "build stage done: ${stage_dir}/${tarball_name} (unsigned)"
+    exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # 3. Sign
@@ -454,10 +506,8 @@ icon_count="$(find "${output_icons_dir}" -type f -name '*.svg' | wc -l | tr -d '
 entry_src="${CATALOG_SOURCE_DIR}/${slug}.json"
 entry_out="${OUTPUT_DIR}/${slug}.json"
 
-# The release the .so was compiled against. The installer refuses an artifact
-# whose built_for differs from the running host rather than letting plugin.Open
-# fail with "different version of package" after a successful download.
-built_for="$(tr -d '[:space:]' < "${REPO_ROOT}/VERSION")"
+min_mcharbor="$(sed -n 's/^mcharbor:[[:space:]]*"\{0,1\}[>=~^[:space:]]*\([0-9][0-9.]*\(-[0-9A-Za-z][0-9A-Za-z.]*\)\{0,1\}\).*/\1/p' "${plugin_dir}/plugin.yaml" | head -n 1)"
+[ -n "${min_mcharbor}" ] || die "no minimum version in ${plugin_dir}/plugin.yaml"
 download_url="${catalog_url}/files/${tarball_name}"
 
 if [ ! -f "${entry_src}" ]; then
@@ -468,51 +518,12 @@ fi
 signature="$(tr -d '[:space:]' < "${output_files_dir}/${sig_name}")"
 
 step "generating $(basename "${entry_out}")"
-"${python_bin}" - "${entry_src}" "${entry_out}" "${slug}" "${version}" \
-    "${download_url}" "${plugin_dir}/plugin.yaml" "${built_for}" "${signature}" \
-    "${build_stamp}" \
-    <<'PY' || die "failed to generate ${entry_out}"
-import json, os, sys
-
-src, out, slug, version, url, manifest, built_for, signature, build = sys.argv[1:10]
-
-entry = {}
-if os.path.isfile(src):
-    with open(src, encoding="utf-8") as fh:
-        entry = json.load(fh)
-else:
-    # Best-effort scrape of the manifest's top-level scalars. plugin.yaml
-    # keeps these as `key: "value"` one-liners; anything block-scalar is
-    # skipped rather than mangled.
-    wanted = ("name", "author", "license", "homepage", "description", "category")
-    with open(manifest, encoding="utf-8") as fh:
-        for line in fh:
-            key, sep, raw = line.partition(":")
-            if not sep or key != key.strip() or key.strip() not in wanted:
-                continue
-            value = raw.strip().strip('"')
-            if value and value not in ("|", ">"):
-                entry.setdefault(key.strip(), value)
-
-entry["slug"] = slug
-entry.setdefault("name", slug)
-# The deployed catalog always names the mirrored file, never a component.
-entry["icon"] = "plugin.svg"
-# The signature travels with the entry that names the archive, so the
-# installer can verify it without a second fetch for the .sig sidecar -
-# a catalog served over plain static hosting need not expose one at all.
-entry["versions"] = [{
-    "version": version,
-    "build": build,
-    "download_url": url,
-    "built_for": built_for,
-    "signature": signature,
-}]
-
-with open(out, "w", encoding="utf-8") as fh:
-    json.dump(entry, fh, indent=2, ensure_ascii=False)
-    fh.write("\n")
-PY
+"${python_bin}" -I "${script_dir}/catalog_entry.py" write \
+    --src "${entry_src}" --out "${entry_out}" --slug "${slug}" --version "${version}" \
+    --url "${download_url}" --manifest "${plugin_dir}/plugin.yaml" \
+    --min-mcharbor "${min_mcharbor}" --signature "${signature}" \
+    --build "${build_stamp}" \
+    || die "failed to generate ${entry_out}"
 
 size="$(du -h "${output_files_dir}/${tarball_name}" | cut -f1)"
 

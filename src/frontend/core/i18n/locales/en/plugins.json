@@ -208,7 +208,7 @@
   },
   "repair": {
     "needed": "Needs repair",
-    "explanation": "Built for McHarbor {{builtFor}}, this install is {{current}}.",
+    "explanation": "This plugin did not load on this McHarbor. Repair fetches its copy from the catalog again.",
     "action": "Repair",
     "reconcile": "Reconcile",
     "reconcileHint": "Pin this plugin to catalog version {{version}}. The host keeps, moves or reinstalls it so the record, files and binary agree; role grants are kept.",
@@ -220,6 +220,50 @@
   },
   "card": {
     "createdBy": "Created by",
-    "readOnlyShort": "ro"
+    "readOnlyShort": "ro",
+    "prerelease": "Prerelease",
+    "installedPrerelease": "Installed: prerelease",
+    "prereleaseUpdate": "Prerelease update available",
+    "builtForPrereleaseHost": "Built for this prerelease host. If the plugin cannot load, the reason is shown below; update McHarbor to the next stable version to move it.",
+    "versions": "Versions"
+  },
+  "channels": {
+    "saveFailed": "Could not save the prerelease setting",
+    "needs": "Needs {{permission}}.",
+    "unavailable": "Setting unavailable. Needs {{permission}}.",
+    "loadFailed": "Could not load the prerelease setting.",
+    "retry": "Try again",
+    "store": {
+      "label": "Offer plugin prereleases",
+      "hint": "Show test builds that are not final for every plugin. A plugin can also opt in on its details page."
+    },
+    "override": {
+      "label": "Offer prereleases for this plugin",
+      "hint": "Show this plugin's test builds even when the Plugin Store switch is off.",
+      "globalOn": "On for every plugin in the Plugin Store.",
+      "followsOff": "Prerelease offers are off for this plugin. The next stable will be offered.",
+      "none": "No prerelease available."
+    }
+  },
+  "return": {
+    "open": "Return to stable",
+    "title": "Return {{name}} to stable?",
+    "summary": "From {{from}} to {{to}}. Your data is kept.",
+    "summaryFrom": "From {{from}}. Your data is kept.",
+    "checking": "Checking whether {{name}} can return to stable...",
+    "ready": "Ready to return. Nothing else blocks it.",
+    "blocked": "Cannot return: the prerelease made a database change ({{migration}}) that the stable build does not include. Nothing was changed.",
+    "blockedGeneric": "Cannot return: the check gave a result this version does not know. Nothing was changed.",
+    "noStable": "No stable version of {{name}} is available.",
+    "prereleaseHost": "Plugins follow this prerelease host and stay on its prerelease builds. They can return to stable once a newer stable McHarbor version is installed.",
+    "checkFailed": "The check could not run",
+    "checkAgain": "Check again",
+    "unsigned": "This package has no signature, so McHarbor cannot confirm who made it. It was not opened. The database check can only run after you agree.",
+    "consent": "I understand and want to return {{name}} using an unsigned package.",
+    "consentGiven": "Consent given. Confirm to continue.",
+    "refusedTitle": "The return was refused",
+    "confirm": "Return to stable",
+    "success": "{{name}} returned to stable",
+    "failed": "Could not return the plugin"
   }
 }

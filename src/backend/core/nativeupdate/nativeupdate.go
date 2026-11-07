@@ -27,10 +27,14 @@ import (
 	"time"
 
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // DefaultReleaseURL is the release the native updater installs, the same one the update check reads.
 const DefaultReleaseURL = "https://api.github.com/repos/therealmcsparrow/mcharbor/releases/latest"
+
+// DefaultTagURL is the prefix a named version is appended to as "v<version>"; the version is validated first.
+const DefaultTagURL = "https://api.github.com/repos/therealmcsparrow/mcharbor/releases/tags/"
 
 // Kinds an install can report through MCHARBOR_INSTALL_KIND that the updater can upgrade in place.
 const (
@@ -40,6 +44,7 @@ const (
 )
 
 const (
+	maxVersionLen   = 64
 	checksumsAsset  = "SHA256SUMS"
 	smallLimit      = 1 << 20
 	packageLimit    = 1 << 30
@@ -58,10 +63,18 @@ var (
 	ErrNoPackage = errors.New("the release has no package for this host")
 	// ErrChecksum is a package whose digest does not match the release's SHA256SUMS.
 	ErrChecksum = errors.New("the downloaded package does not match the release checksum")
+	// ErrVersionRequired is an empty version on a prerelease host, where latest is the prior stable and would be a downgrade.
+	ErrVersionRequired = errors.New("a prerelease host must name the version to install")
+	// ErrInvalidVersion is a version outside the release grammar, refused before any request is made.
+	ErrInvalidVersion = errors.New("the version is not a valid release version")
+	// ErrPrereleaseLatest is a release marked latest that carries a prerelease suffix, which an unnamed install must never take.
+	ErrPrereleaseLatest = errors.New("the latest release is a prerelease")
+	// ErrTagMismatch is a release whose tag is not the version that was asked for.
+	ErrTagMismatch = errors.New("the release is not the version that was requested")
 )
 
 var (
-	versionPattern   = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
+	versionPattern   = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$`)
 	assetNamePattern = regexp.MustCompile(`^[A-Za-z0-9._+-]+$`)
 )
 
@@ -70,12 +83,15 @@ type Updater struct {
 	Kind       string
 	DataDir    string
 	ReleaseURL string
-	Client     *http.Client
-	Logger     *slog.Logger
+	// TagURL is the prefix a named version's tag is appended to.
+	TagURL string
+	Client *http.Client
+	Logger *slog.Logger
 
 	goos         string
 	goarch       string
 	euid         func() int
+	current      func() string
 	lookPath     func(string) (string, error)
 	run          func(ctx context.Context, name string, args ...string) ([]byte, error)
 	assetAllowed func(*url.URL) bool
@@ -92,7 +108,7 @@ func IsNativeKind(kind string) bool {
 // New returns an Updater for this process: kind is MCHARBOR_INSTALL_KIND and dataDir is DATA_DIR,
 // under which the package and the install log are kept.
 func New(kind, dataDir string, logger *slog.Logger) *Updater {
-	return &Updater{Kind: strings.TrimSpace(kind), DataDir: dataDir, ReleaseURL: DefaultReleaseURL, Logger: logger}
+	return &Updater{Kind: strings.TrimSpace(kind), DataDir: dataDir, ReleaseURL: DefaultReleaseURL, TagURL: DefaultTagURL, Logger: logger}
 }
 
 // Result names what Apply started, so the operator can find it: the transient unit's journal and the log file.
@@ -131,24 +147,49 @@ func (u *Updater) Supported() error {
 	return nil
 }
 
-// Apply downloads and verifies the latest release's package and starts its install in a transient
-// systemd unit. It returns once the unit has started; the install then restarts McHarbor.
-func (u *Updater) Apply(ctx context.Context) (Result, error) {
+// ValidVersion reports whether v is a bare release version, stable or prerelease, that is safe to
+// put in a URL path and a file name; the pattern is anchored and has no "/", ".." or "%".
+func ValidVersion(v string) bool {
+	return len(v) <= maxVersionLen && versionPattern.MatchString(v)
+}
+
+// Apply downloads and verifies a release's package and starts its install in a transient systemd
+// unit. An empty version reads releases/latest and only a stable host may pass it; a named version
+// reads that tag. It returns once the unit has started; the install then restarts McHarbor.
+func (u *Updater) Apply(ctx context.Context, version string) (Result, error) {
 	if err := u.Supported(); err != nil {
 		return Result{}, err
+	}
+	if version == "" {
+		if versionorder.IsPrerelease(u.currentOr()) {
+			return Result{}, ErrVersionRequired
+		}
+	} else if !ValidVersion(version) {
+		return Result{}, ErrInvalidVersion
 	}
 	dataDir, err := filepath.Abs(u.DataDir)
 	if err != nil || strings.ContainsAny(dataDir, "'\n") {
 		return Result{}, fmt.Errorf("unusable data directory %q", u.DataDir)
 	}
-	rel, err := u.latestRelease(ctx)
+	releaseURL := u.ReleaseURL
+	if version != "" {
+		releaseURL = u.TagURL + "v" + version
+	}
+	rel, err := u.fetchRelease(ctx, releaseURL)
 	if err != nil {
 		return Result{}, err
 	}
-	version := strings.TrimPrefix(strings.TrimSpace(rel.TagName), "v")
-	if !versionPattern.MatchString(version) {
+	tag := strings.TrimPrefix(strings.TrimSpace(rel.TagName), "v")
+	if !ValidVersion(tag) {
 		return Result{}, fmt.Errorf("the release names an invalid version %q", rel.TagName)
 	}
+	if version == "" && !versionorder.IsPlainStable(tag) {
+		return Result{}, fmt.Errorf("%w: %s", ErrPrereleaseLatest, tag)
+	}
+	if version != "" && tag != version {
+		return Result{}, fmt.Errorf("%w: asked for %s, got %s", ErrTagMismatch, version, tag)
+	}
+	version = tag
 	asset, ok := findAsset(rel.Assets, u.Kind, version, u.goarchOr())
 	if !ok {
 		return Result{}, fmt.Errorf("%w: %s %s/%s", ErrNoPackage, u.Kind, version, u.goarchOr())
@@ -251,6 +292,8 @@ func packageArch(kind, goarch string) string {
 // findAsset picks the release file a kind installs from, by the names the Prod workflow publishes.
 func findAsset(assets []releaseAsset, kind, version, goarch string) (releaseAsset, bool) {
 	arch := packageArch(kind, goarch)
+	// The package's internal version spells a prerelease with "~", but GitHub may rewrite "~" in an
+	// uploaded name, so prerelease.yml uploads every asset under the dashed version.
 	for _, a := range assets {
 		if !assetNamePattern.MatchString(a.Name) {
 			continue
@@ -299,10 +342,10 @@ func parseChecksums(r io.Reader) map[string]string {
 	return out
 }
 
-func (u *Updater) latestRelease(ctx context.Context) (release, error) {
+func (u *Updater) fetchRelease(ctx context.Context, releaseURL string) (release, error) {
 	ctx, cancel := context.WithTimeout(ctx, metadataTimeout)
 	defer cancel()
-	body, err := u.get(ctx, u.ReleaseURL, "application/vnd.github+json", false)
+	body, err := u.get(ctx, releaseURL, "application/vnd.github+json", false)
 	if err != nil {
 		return release{}, err
 	}
@@ -427,6 +470,13 @@ func (u *Updater) goarchOr() string {
 		return u.goarch
 	}
 	return runtime.GOARCH
+}
+
+func (u *Updater) currentOr() string {
+	if u.current != nil {
+		return u.current()
+	}
+	return appversion.Current()
 }
 
 func (u *Updater) euidOr() int {

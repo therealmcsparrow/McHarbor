@@ -1,0 +1,37 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+# Shared by core/plugin/host (range) and core/agent (meets).
+# range: valid says whether the manifest "mcharbor:" field passes the schema.
+# meets: want says whether a host or agent at version host meets the floor.
+range:
+  - { floor: ">=2026.11.02", valid: true }
+  - { floor: ">=2026.11.02-rc.1", valid: true }
+  - { floor: ">=2026.11.02-rc.1 <2027.01.01", valid: true }
+  - { floor: ">=2.1.0 <3.0.0", valid: true }
+  - { floor: ">=2026.11.02-rc", valid: true }
+  - { floor: ">=2026.11.02-", valid: false }
+  - { floor: ">=2026.11.02-rc..1", valid: false }
+  - { floor: ">=2026.11.02-rc/1", valid: false }
+  - { floor: ">=2026.11.02-../x", valid: false }
+  - { floor: ">=2026.11.02-rc.1\n", valid: false }
+  - { floor: ">=2026.11.02-rc 1", valid: false }
+  - { floor: ">=2026.11.02-rc.1 junk", valid: false }
+  - { floor: ">=2026.11.02--x", valid: false }
+  - { floor: ">=2026.11.02-rc.1+build", valid: false }
+  - { floor: ">=2026.11.02-rc.", valid: false }
+meets:
+  - { host: "2026.11.02-rc.1", floor: "2026.11.02-rc.1", want: true }
+  - { host: "2026.11.02-rc.2", floor: "2026.11.02-rc.1", want: true }
+  - { host: "2026.11.02-rc.1", floor: "2026.11.02", want: false }
+  - { host: "2026.11.02", floor: "2026.11.02-rc.1", want: true }
+  - { host: "2026.11.03-rc.1", floor: "2026.11.02", want: true }
+  - { host: "2026.11.02-rc.1", floor: "2026.11.01", want: true }
+  - { host: "3.8.0", floor: "3.8.0", want: true }
+  - { host: "3.7.9", floor: "3.8.0", want: false }
+  - { host: "3.5.3", floor: "3.8.0", want: false }
+  - { host: "2026.09.01", floor: "3.8.0", want: true }
+  - { host: "2026.11.02-rc.1", floor: "3.8.0", want: true }
+  - { host: "v2026.11.02-rc.1", floor: "2026.11.02-rc.1", want: true }
+  - { host: "3.8", floor: "3.8.0", want: true }
+  - { host: "dev", floor: "3.0.0", want: false }

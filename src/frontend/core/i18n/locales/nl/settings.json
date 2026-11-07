@@ -2034,5 +2034,83 @@
     "selfSubtitle": "systemd-services op de machine waarop McHarbor is geïnstalleerd. Deze pagina werkt altijd op die host, welke omgeving er ook is geselecteerd.",
     "warningTitle": "Dit wijzigt de host, niet McHarbor",
     "warningBody": "Een service hier stoppen, uitschakelen of herconfigureren werkt op de machine waarop McHarbor draait. De eigen units van McHarbor en zijn containerruntime kunnen worden herstart maar niet gestopt of uitgeschakeld."
+  },
+  "prerelease": {
+    "subtitle": "Testversies die nog niet definitief zijn. Alle schakelaars staan standaard uit.",
+    "needsView": "{{key}} is nodig om deze instellingen te zien.",
+    "needs": "{{key}} is nodig.",
+    "loadFailed": "De instellingen voor voorlopige versies konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "confirmAuto": {
+      "title": "Voorlopige versies automatisch installeren?",
+      "confirm": "Inschakelen"
+    },
+    "mcharbor": {
+      "title": "Voorlopige McHarbor-versies",
+      "label": "Voorlopige versies opnemen",
+      "hint": "Bied testversies van McHarbor aan die nog niet definitief zijn. Ze worden alleen geïnstalleerd als u ze kiest. Daarna kunt u niet terug naar een oudere McHarbor-versie.",
+      "autoLabel": "Voorlopige versies ook automatisch installeren",
+      "autoHint": "Geldt alleen voor McHarbor-updates.",
+      "autoNeeds": "Vereist Voorlopige versies opnemen en Automatisch installeren.",
+      "running": "U draait {{version}} (Voorlopige versie). Updates naar voorlopige versies staan uit. Er verandert nu niets en de volgende stabiele versie die nieuwer is dan deze wordt aangeboden zodra die verschijnt. Er kan geen oudere versie worden geïnstalleerd.",
+      "confirmAuto": "Testversies van McHarbor worden zonder te vragen geïnstalleerd. Dit geldt alleen voor McHarbor-updates. Stabiele updates blijven ongemoeid. Daarna kunt u niet terug naar een oudere versie."
+    },
+    "agents": {
+      "title": "Voorlopige agentversies",
+      "label": "Voorlopige agentversies opnemen",
+      "hint": "Bied testversies van de agent aan die nog niet definitief zijn. Los van de McHarbor-instelling.",
+      "autoLabel": "Agents ook automatisch naar voorlopige versies bijwerken",
+      "autoHint": "Geldt alleen voor agent-updates.",
+      "autoNeeds": "Vereist Voorlopige agentversies opnemen en Agents automatisch bijwerken.",
+      "running": "Doel: {{version}} (Voorlopige versie). Aanbod van voorlopige versies staat uit; de volgende stabiele versie wordt aangeboden.",
+      "confirmAuto": "Testversies van de agent worden zonder te vragen geïnstalleerd. Dit geldt alleen voor agent-updates. Stabiele updates blijven ongemoeid. Vastgezette en uitgesloten agents worden overgeslagen."
+    },
+    "return": {
+      "title": "{{name}} terugzetten naar stabiel?",
+      "body": "Zet de agent terug van {{version}} naar de nieuwste stabiele versie en zet hem vast. Vastgezet: geen update, automatisch of handmatig, bereikt hem tot u de vastzetting opheft. Dat geldt ook voor stabiele beveiligingsupdates. Opheffen kan onder Updates, Agents, Uitzonderingen.",
+      "confirm": "Terugzetten en vastzetten",
+      "needs": "Vereist {{keys}}.",
+      "needsMissing": "Ontbreekt: {{keys}}.",
+      "alreadyPinned": "Al vastgezet; hij blijft één keer vermeld.",
+      "rowAria": "{{name}} terugzetten naar stabiel",
+      "retryAria": "Terugzetten van {{name}} opnieuw proberen",
+      "started": "Terugzetten gestart. De agentrij toont het resultaat."
+    },
+    "pin": {
+      "released": "Vastzetting opgeheven",
+      "releaseFailed": "De vastzetting kon niet worden opgeheven",
+      "badge": "Vastgezet",
+      "meaning": "Vastgezet: geen updates",
+      "returnFailed": "Terugzetten mislukt, draait nog {{version}}",
+      "summary": "Uitgesloten agents: {{n}}. Hiervan vastgezet: {{pinned}}.",
+      "listTitle": "Vastgezette agents",
+      "listDescription": "Vastgezette agents krijgen geen updates, ook geen stabiele beveiligingsupdates. Ze blijven uitgesloten en zijn hier niet te bewerken.",
+      "release": "Vastzetting opheffen",
+      "releaseAria": "Vastzetting opheffen voor {{name}}",
+      "releaseTitle": "Vastzetting opheffen voor {{name}}?",
+      "releaseBody": "Updates bereiken hem weer."
+    },
+    "storePointer": {
+      "text": "Voorlopige pluginversies stel je in via de Plugin Store.",
+      "link": "Plugin Store openen"
+    },
+    "target": {
+      "channel": "Kanaal",
+      "stable": "Stabiel",
+      "prerelease": "Voorlopige versie",
+      "offHint": "Zet Voorlopige agentversies opnemen aan om een voorlopige versie te kiezen."
+    },
+    "filter": {
+      "prerelease": "Voorlopige versie",
+      "pinned": "Vastgezet",
+      "shown_one": "{{count}} agent getoond",
+      "shown_other": "{{count}} agents getoond",
+      "noPrerelease": "Geen enkele agent draait een voorlopige versie.",
+      "noPinned": "Geen enkele agent is vastgezet."
+    },
+    "notConnected": "Deze agent is niet verbonden. Verbind hem en probeer het opnieuw.",
+    "cannotGoBack": "Je kunt daarna niet terug naar een oudere versie.",
+    "statusLabel": "Updatestatus",
+    "badge": "Voorlopige versie"
   }
 }

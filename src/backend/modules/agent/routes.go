@@ -46,6 +46,9 @@ func mountRoutes(app *router.AppDeps, h *Handler) {
 		// Agent-token authenticated inside the handler: a container agent loads
 		// its replacement image from here instead of from a registry.
 		r.Get("/agent/image/{os}/{arch}", h.HandleAgentImage, apispec.Binary())
+		// Token-gated and limited to the agent pinned to that exact version.
+		r.Get("/agent/binary/{os}/{arch}/{version}", h.HandleAgentBinaryVersion, apispec.Binary())
+		r.Get("/agent/image/{os}/{arch}/{version}", h.HandleAgentImageVersion, apispec.Binary())
 	})
 
 	// Admin endpoints — session-protected

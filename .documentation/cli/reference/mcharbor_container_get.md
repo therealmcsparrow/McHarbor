@@ -9,7 +9,8 @@ mcharbor container get <id|name> [flags]
 ### Options
 
 ```
-  -h, --help   help for get
+  -h, --help     help for get
+      --reveal   show credential-looking env values in the clear (needs containers.manage; audit-logged)
 ```
 
 ### Options inherited from parent commands

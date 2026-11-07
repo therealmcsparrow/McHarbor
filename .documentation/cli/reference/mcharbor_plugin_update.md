@@ -9,7 +9,8 @@ mcharbor plugin update <slug> [flags]
 ### Options
 
 ```
-  -h, --help   help for update
+      --allow-unsigned   update even when no trusted key verifies the new release
+  -h, --help             help for update
 ```
 
 ### Options inherited from parent commands

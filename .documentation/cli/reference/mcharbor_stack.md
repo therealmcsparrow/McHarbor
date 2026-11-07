@@ -33,6 +33,7 @@ mcharbor stack [flags]
 * [mcharbor](mcharbor.md)	 - Operate McHarbor from a terminal or a CI job
 * [mcharbor stack compose](mcharbor_stack_compose.md)	 - Print a stack's compose file
 * [mcharbor stack down](mcharbor_stack_down.md)	 - Stop and remove a stack's containers; the stack definition stays
+* [mcharbor stack env](mcharbor_stack_env.md)	 - Show a stack's environment variables, or change them with set and unset
 * [mcharbor stack get](mcharbor_stack_get.md)	 - Show one stack
 * [mcharbor stack list](mcharbor_stack_list.md)	 - List stacks
 * [mcharbor stack remove](mcharbor_stack_remove.md)	 - Delete a stack from McHarbor (irreversible)

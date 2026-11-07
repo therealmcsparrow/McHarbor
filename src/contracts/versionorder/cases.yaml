@@ -1,0 +1,59 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+# Shared by src/backend/core/versionorder, the CLI and the frontend.
+# compare: want is -1, 0 or 1 for Compare(a, b); unparsable input reads as 0.0.0.
+# parse: valid says whether strict Parse accepts the input.
+# prerelease: want says whether the input is a prerelease (a "-" suffix; "+" is build metadata).
+compare:
+  - { a: "2026.11.02-rc.1", b: "2026.11.02", want: -1 }
+  - { a: "2026.11.02", b: "2026.11.02-rc.1", want: 1 }
+  - { a: "2026.11.02-rc.1", b: "2026.11.01", want: 1 }
+  - { a: "2026.11.02-rc.2", b: "2026.11.02-rc.10", want: -1 }
+  - { a: "2026.11.02-rc.10", b: "2026.11.02-rc.2", want: 1 }
+  - { a: "2026.09.01", b: "2026.9.1", want: 0 }
+  - { a: "2026.11.02+build.5", b: "2026.11.02", want: 0 }
+  - { a: "2026.11.02+a", b: "2026.11.02+b", want: 0 }
+  - { a: "2026.11.02-rc.1+a", b: "2026.11.02-rc.1", want: 0 }
+  - { a: "2026.11.02-rc", b: "2026.11.02-rc.1", want: -1 }
+  - { a: "2026.11.02-1", b: "2026.11.02-rc", want: -1 }
+  - { a: "2026.11.02-alpha", b: "2026.11.02-beta", want: -1 }
+  - { a: "3.8.0", b: "2026.09.01", want: -1 }
+  - { a: "99999999999999999999999.0.0", b: "99999999999999999999998.0.0", want: 1 }
+  - { a: "1.0.0-99999999999999999999999", b: "1.0.0-99999999999999999999998", want: 1 }
+  - { a: "dev", b: "0.0.0", want: 0 }
+  - { a: "dev", b: "3.8.0", want: -1 }
+  - { a: "", b: "1.0.0", want: -1 }
+  - { a: "latest", b: "2026.09.01", want: -1 }
+parse:
+  - { input: "2026.11.02", valid: true }
+  - { input: "2026.9.1", valid: true }
+  - { input: "2026.11.02-rc.1", valid: true }
+  - { input: "2026.11.02-rc.1+build.7", valid: true }
+  - { input: "2026.11.02+build.7", valid: true }
+  - { input: "", valid: false }
+  - { input: "dev", valid: false }
+  - { input: "latest", valid: false }
+  - { input: "v2026.11.02", valid: false }
+  - { input: "2026.11", valid: false }
+  - { input: "2026.11.02.1", valid: false }
+  - { input: "2026.11.02-", valid: false }
+  - { input: "2026.11.02-rc..1", valid: false }
+  - { input: "2026.11.02-rc.", valid: false }
+  - { input: "2026.11.02-..", valid: false }
+  - { input: "2026.11.02-rc/1", valid: false }
+  - { input: "2026.11.02-../x", valid: false }
+  - { input: "2026.11.02+", valid: false }
+  - { input: "2026.11.-1", valid: false }
+  - { input: "2026.11.+1", valid: false }
+  - { input: "2026.11.02 ", valid: false }
+  - { input: "2026.11.02\n", valid: false }
+  - { input: "２０２６.11.02", valid: false }
+prerelease:
+  - { input: "2026.11.02-rc.1", want: true }
+  - { input: "2026.11.02-rc.1+build", want: true }
+  - { input: "2026.11.02", want: false }
+  - { input: "2026.11.02+rc.1", want: false }
+  - { input: "2026.11.02+x-y", want: false }
+  - { input: "dev", want: false }
+  - { input: "", want: false }

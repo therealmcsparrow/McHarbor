@@ -1,0 +1,80 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+sites:
+  - file: src/backend/core/versionorder/order.go
+    name: Compare
+    kind: reference
+    tested_by: src/backend/core/versionorder/order_test.go
+  - file: src/cli/internal/cli/cmd_system.go
+    name: compareVersions
+    kind: copy
+    tested_by: src/cli/internal/cli/cmd_channels_test.go
+  - file: src/backend/modules/widgets/catalog.go
+    name: compareVersions
+    kind: delegates
+    tested_by: src/backend/modules/widgets/catalog_test.go
+  - file: src/frontend/resources/utils/versionOrder.ts
+    name: compareVersions
+    kind: copy
+    tested_by: src/frontend/modules/appstore/pages/pluginStoreCategories.test.ts
+  - file: src/frontend/modules/appstore/pages/pluginStoreCategories.ts
+    name: isNewerVersion
+    kind: delegates
+    tested_by: src/frontend/modules/appstore/pages/pluginStoreCategories.test.ts
+  - file: scripts/development/catalog_entry.py
+    name: compare
+    kind: copy
+    tested_by: src/backend/modules/appstore/plugins/catalog_channel_test.go
+  - file: src/backend/core/agent/pool.go
+    name: agentAtLeast
+    kind: delegates
+    tested_by: src/backend/core/agent/version_order_test.go
+  - file: src/backend/core/docker/client.go
+    name: compareAgentVersion
+    kind: delegates
+    tested_by: src/backend/core/docker/compare_agent_version_test.go
+  - file: src/backend/modules/agentreleases/store.go
+    name: newer
+    kind: delegates
+    tested_by: src/backend/modules/agentreleases/channel_test.go
+  - file: src/plugins/Plugins/addon-reporting/backend/prerelease.go
+    name: isPrerelease
+    kind: copy
+    tested_by: src/plugins/Plugins/addon-reporting/backend/prerelease_test.go
+  - file: src/backend/core/agent/pool.go
+    name: compareAgentVersions
+    kind: delegates
+    tested_by: src/backend/core/agent/version_order_test.go
+  - file: src/backend/core/agent/pool.go
+    name: BuildAtLeast
+    kind: copy
+    tested_by: src/backend/core/agent/pool_test.go
+  - file: src/backend/core/agent/transport.go
+    name: compareAgentProtocolVersion
+    kind: copy
+    tested_by: src/backend/core/agent/version_order_test.go
+  - file: src/backend/core/agent/version.go
+    name: AgentVersionAtLeast
+    kind: delegates
+    tested_by: src/backend/core/agent/version_order_test.go
+  - file: src/backend/core/docker/client.go
+    name: AgentAtLeast
+    kind: delegates
+    tested_by: src/backend/core/docker/compare_agent_version_test.go
+  - file: src/backend/modules/agent/service.go
+    name: agentVersionAtLeast
+    kind: delegates
+    tested_by: src/backend/core/agent/version_order_test.go
+  - file: src/backend/modules/agentreleases/scheduler.go
+    name: isNewerThanServed
+    kind: delegates
+    tested_by: src/backend/modules/agentreleases/channel_test.go
+  - file: src/backend/modules/appstore/plugins/min_host.go
+    name: releaseAtLeast
+    kind: delegates
+    tested_by: src/backend/modules/appstore/plugins/min_host_test.go
+  - file: src/frontend/modules/appstore/pages/pluginStoreCategories.ts
+    name: isNewerArtifact
+    kind: delegates
+    tested_by: src/frontend/modules/appstore/pages/pluginStoreCategories.test.ts

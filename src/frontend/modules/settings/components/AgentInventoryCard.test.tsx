@@ -89,6 +89,51 @@ describe('AgentInventoryCard', () => {
     expect(await screen.findByText(failure)).toBeInTheDocument();
   });
 
+  describe('prerelease and pinned chips', () => {
+    const rows = [
+      ...inventory.agents,
+      { envId: 'env-p', name: 'edge-rc', version: '2026.11.02-rc.1', outdated: false, updatable: true },
+      { envId: 'env-q', name: 'edge-pin', version: '2026.09.01', outdated: false, updatable: true, pinned: true },
+    ];
+    const serve = (agents: unknown[]) =>
+      server.use(
+        http.get('*/api/updates/agents', () => HttpResponse.json({ success: true, data: { ...inventory, agents } })),
+      );
+
+    it('narrows to the agents on a prerelease, reports the pressed state and the count', async () => {
+      serve(rows);
+      const user = userEvent.setup();
+      renderWithProviders(<AgentInventoryCard />);
+      await screen.findByTestId('agent-row-env-1');
+      const chip = screen.getByRole('button', { name: /^Prerelease/ });
+      expect(chip).toHaveAttribute('aria-pressed', 'false');
+      await user.click(chip);
+      await waitFor(() => expect(screen.queryByTestId('agent-row-env-1')).not.toBeInTheDocument());
+      expect(screen.getByTestId('agent-row-env-p')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Prerelease/ })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('status')).toHaveTextContent('1 agent shown');
+    });
+
+    it('narrows to the pinned agents', async () => {
+      serve(rows);
+      const user = userEvent.setup();
+      renderWithProviders(<AgentInventoryCard />);
+      await screen.findByTestId('agent-row-env-1');
+      await user.click(screen.getByRole('button', { name: /^Pinned/ }));
+      await waitFor(() => expect(screen.queryByTestId('agent-row-env-1')).not.toBeInTheDocument());
+      expect(screen.getByTestId('agent-row-env-q')).toBeInTheDocument();
+    });
+
+    it('says so when no agent runs a prerelease, instead of an empty table', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<AgentInventoryCard />);
+      await screen.findByTestId('agent-row-env-1');
+      await user.click(screen.getByRole('button', { name: /^Prerelease/ }));
+      expect(await screen.findByText('No agents run a prerelease.')).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('0 agents shown');
+    });
+  });
+
   it('narrows the rows with the status facet', async () => {
     const user = userEvent.setup();
     renderWithProviders(<AgentInventoryCard />);

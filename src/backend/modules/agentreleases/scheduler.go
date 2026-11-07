@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/cronspec"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 )
 
@@ -136,7 +137,10 @@ func (s *Store) CheckAndAct(ctx context.Context, notify Notifier) error {
 	if err != nil {
 		return err
 	}
-	if settings.Mode == ModeRollout && rel.Status == StatusReady {
+	// A prerelease is downloaded under the agents switch but becomes the target
+	// on its own only with the separate auto flag, so an operator reviews it first.
+	if settings.Mode == ModeRollout && rel.Status == StatusReady &&
+		s.channels(ctx).AutoInstalls(updatechannel.PathAgents, true, rel.Version) {
 		return s.SetTarget(ctx, rel.Version, rel.Build)
 	}
 	return nil

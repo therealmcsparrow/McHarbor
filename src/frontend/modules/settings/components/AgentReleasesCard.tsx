@@ -10,6 +10,8 @@ import { Spinner } from '@resources/components/ui/Spinner';
 import { StatusError } from '@resources/components/ui/StatusError';
 import { TablePage } from '@resources/layout/TablePage';
 import { formatDate } from '@resources/utils/format';
+import { isPrerelease } from '@resources/utils/versionOrder';
+import { useUpdateChannels } from '@resources/hooks/useUpdateChannels';
 import type { SearchMode } from '@resources/utils/search-filter';
 import {
   useAgentReleases,
@@ -39,7 +41,13 @@ export function AgentReleasesCard() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('contains');
 
-  const releases = useMemo(() => data?.releases ?? [], [data]);
+  const { settings: channels } = useUpdateChannels();
+  const prereleasesOn = channels?.agentPrereleases === true;
+  // The current target and a build agents run stay listed, or they could never be inspected or removed.
+  const releases = useMemo(
+    () => (data?.releases ?? []).filter((r) => prereleasesOn || !isPrerelease(r.version) || r.isTarget || r.inUse),
+    [data, prereleasesOn],
+  );
   const state = data?.state;
   const latest = state?.latestVersion ?? '';
   const latestBuild = state?.latestBuild ?? '';
@@ -83,6 +91,8 @@ export function AgentReleasesCard() {
           <StatusError error={state?.lastError} title={t('agentReleases.checkFailed')} />
         </div>
       </div>
+
+      {!prereleasesOn && <p className="mb-2 text-xs text-muted-foreground">{t('prerelease.target.offHint')}</p>}
 
       <TablePage
         id="settings-agent-releases"

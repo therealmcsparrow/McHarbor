@@ -28,6 +28,11 @@ export type AgentRow = {
   targetVersion?: string;
   targetBuild?: string;
   progress?: AgentProgress;
+  /** Set by POST /updates/agents/{envId}/return; a pinned agent gets no update until the pin is released. */
+  pinned?: boolean;
+  returnReason?: string;
+  /** False for an agent environment with no live connection; absent from older servers, read as connected. */
+  connected?: boolean;
 };
 
 export type AgentInventory = {

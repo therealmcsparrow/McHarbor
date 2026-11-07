@@ -147,8 +147,15 @@ func (b *schemaBuilder) inlineStruct(t reflect.Type) map[string]any {
 		if f.PkgPath != "" {
 			continue // unexported embedded non-struct, which encoding/json ignores
 		}
-		props[jsonName] = b.fromType(f.Type)
-		if !hasOmitEmpty(parts) && f.Type.Kind() != reflect.Pointer {
+		prop := b.fromType(f.Type)
+		nullable := f.Type.Kind() == reflect.Pointer && hasOpenAPIFlag(f.Tag.Get("openapi"), "nullable")
+		if _, isRef := prop["$ref"]; nullable && !isRef {
+			prop["nullable"] = true
+		} else {
+			nullable = false
+		}
+		props[jsonName] = prop
+		if !hasOmitEmpty(parts) && (f.Type.Kind() != reflect.Pointer || nullable) {
 			required = append(required, jsonName)
 		}
 	}
@@ -158,6 +165,16 @@ func (b *schemaBuilder) inlineStruct(t reflect.Type) map[string]any {
 		schema["required"] = required
 	}
 	return schema
+}
+
+// hasOpenAPIFlag reports whether the comma-separated openapi struct tag names flag.
+func hasOpenAPIFlag(tag, flag string) bool {
+	for _, p := range strings.Split(tag, ",") {
+		if strings.TrimSpace(p) == flag {
+			return true
+		}
+	}
+	return false
 }
 
 // hasOmitEmpty reports whether encoding/json may leave the field out; omitzero counts,

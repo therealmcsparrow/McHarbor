@@ -28,6 +28,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 	"github.com/therealmcsparrow/mcharbor/core/tlsconfig"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 )
 
 // Setting represents a key-value setting.
@@ -148,9 +149,16 @@ var sensitiveKeys = map[string]struct{}{
 	"webpush_vapid_private": {},
 }
 
+// isProtectedWrite reports whether a generic write of key under category is refused: either a
+// sensitive key or a row the update-channel and pin stores own. It is separate from sensitiveKeys
+// so those rows stay readable.
+func isProtectedWrite(key, category string) bool {
+	return isSensitiveKey(key) || updatechannel.Reserved(key, category)
+}
+
 // isSensitiveKey reports whether key is one of sensitiveKeys.
 func isSensitiveKey(key string) bool {
-	_, blocked := sensitiveKeys[key]
+	_, blocked := sensitiveKeys[updatechannel.Fold(key)]
 	return blocked
 }
 
@@ -429,7 +437,7 @@ func (h *Handler) HandleBulkUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, setting := range input.Settings {
-		if isSensitiveKey(setting.Key) {
+		if isProtectedWrite(setting.Key, setting.Category) {
 			response.BadRequestCode(w, r, i18n.ErrProtectedTarget)
 			return
 		}
@@ -493,14 +501,14 @@ func (h *Handler) HandleGetByKey(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleSetByKey(w http.ResponseWriter, r *http.Request) {
 	key := chi.URLParam(r, "key")
 
-	if isSensitiveKey(key) {
-		response.BadRequestCode(w, r, i18n.ErrProtectedTarget)
-		return
-	}
-
 	var input SettingInput
 	if err := response.DecodeBody(r, &input); err != nil {
 		response.BadRequestCause(w, r, i18n.ErrInvalidBody, err)
+		return
+	}
+
+	if isProtectedWrite(key, input.Category) {
+		response.BadRequestCode(w, r, i18n.ErrProtectedTarget)
 		return
 	}
 

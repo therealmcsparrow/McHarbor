@@ -99,6 +99,8 @@ const overview = {
   ],
 };
 
+let agentPre = false;
+
 describe('AgentReleasesCard', () => {
   const targets = vi.fn();
   const pulls = vi.fn();
@@ -114,8 +116,12 @@ describe('AgentReleasesCard', () => {
     deletes.mockReset();
     deleteBuilds.mockReset();
     inventoryReads.mockReset();
+    agentPre = false;
     grantPermissions(['updates.view', 'updates.manage']);
     server.use(
+      http.get('*/api/updates/channels', () =>
+        HttpResponse.json({ success: true, data: { agentPrereleases: agentPre } }),
+      ),
       http.get('*/api/table-views/settings-agent-releases', () =>
         HttpResponse.json({
           success: true,
@@ -138,6 +144,50 @@ describe('AgentReleasesCard', () => {
         return HttpResponse.json({ success: true, data: {} });
       }),
     );
+  });
+
+  const withPrerelease = () =>
+    server.use(
+      http.get('*/api/updates/agents/releases', () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            ...overview,
+            releases: [
+              ...overview.releases,
+              {
+                ...release,
+                id: 'rc',
+                version: '2026.09.05-rc.1',
+                status: 'ready',
+                signatureStatus: 'verified',
+                signatureKey: 'a1b2c3d4e5f60718',
+              },
+            ],
+          },
+        }),
+      ),
+    );
+
+  it('lists no prerelease while agent prereleases are off, and says how to see one', async () => {
+    withPrerelease();
+    renderWithProviders(<AgentReleasesCard />);
+    await screen.findByTestId('agent-release-2026.09.01');
+    expect(screen.queryByTestId('agent-release-2026.09.05-rc.1')).not.toBeInTheDocument();
+    expect(screen.getByText('Turn on Include agent prereleases to choose a prerelease.')).toBeInTheDocument();
+  });
+
+  it('labels the channel in text and lets a prerelease become the target when they are on', async () => {
+    agentPre = true;
+    withPrerelease();
+    const user = userEvent.setup();
+    renderWithProviders(<AgentReleasesCard />);
+    const row = await screen.findByTestId('agent-release-2026.09.05-rc.1');
+    expect(within(row).getByText('Prerelease')).toBeInTheDocument();
+    expect(within(screen.getByTestId('agent-release-2026.09.01')).getByText('Stable')).toBeInTheDocument();
+    expect(screen.queryByText('Turn on Include agent prereleases to choose a prerelease.')).not.toBeInTheDocument();
+    await user.click(within(row).getByRole('button', { name: 'Make 2026.09.05-rc.1 the target' }));
+    await waitFor(() => expect(targets).toHaveBeenCalledWith({ version: '2026.09.05-rc.1' }));
   });
 
   it('marks a pinned build so the operator knows checks will leave it alone', async () => {

@@ -1,0 +1,57 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+contract: update-channels
+version: "1.0"
+envelope: "{ success, data?, error?, code?, detail?, requestId? }"
+defaults: every switch and option reads false on a fresh or upgraded install
+
+settings:
+  mcharborPrereleases: bool
+  agentPrereleases: bool
+  pluginPrereleases: bool
+  mcharborAutoPrereleases: bool
+  agentAutoPrereleases: bool
+
+routes:
+  - method: GET
+    path: /api/updates/channels
+    permission: updates.view
+    response: settings
+  - method: PUT
+    path: /api/updates/channels
+    permission: updates.manage
+    body: partial settings; every field optional, an absent field stays as stored, unknown fields and bodies over 4 KiB answer 400
+    response: settings after the save
+    audit: action update_channels_change, only the fields that changed, old and new; no row when nothing changed
+  - method: PUT
+    path: /api/appstore/plugins/{slug}/channel
+    permission: plugins.manage
+    body: '{ "prereleases": true | false | null }, null clears the override'
+    audit: entity the plugin slug, old and new override
+  - method: POST
+    path: /api/appstore/plugins/{slug}/return
+    permission: plugins.manage
+    body: '{ "allow_unsigned": bool }, true only from the operator explicit consent'
+    audit: entity the plugin slug, version moved from and to
+  - method: GET
+    path: /api/appstore/plugins/{slug}/return/check
+    permission: plugins.manage
+    read_only: true
+    response: '{ "ok": bool, "blocking_migration"?: string, "unsigned"?: bool }; reports unsigned without extracting'
+  - method: POST
+    path: /api/updates/agents/{envId}/return
+    permission: [updates.manage, environments.manage]
+    pin_env_to_path: envId
+    audit: entity the environment, version moved from and to, and the exclusion added
+    note: the pin is written before the move and stays when the move fails
+  - method: DELETE
+    path: /api/updates/agents/{envId}/pin
+    permission: [updates.manage, environments.manage]
+    pin_env_to_path: envId
+    audit: entity the environment, the exclusion removed
+
+policy:
+  offered: a stable release is always allowed; a prerelease only with that path switch on
+  auto_install: a prerelease installs automatically only with the path switch, its auto-install flag and its own option all on; plugins have no option
+  image: a floating or digest-pinned image reaches a prerelease through updatechannel.PrereleaseImage, which pins the tag and refuses a digest

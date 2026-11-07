@@ -4,14 +4,9 @@
 // Category tabs of the plugin store and the version comparison the
 // Updates tab relies on. Pure data + helpers, no React.
 
-// ponytail: ponytail ceiling — handles MAJOR.MINOR.PATCH only. Upgrade to
-// real semver (Masterminds/semver) when a plugin ships a pre-release.
-export const isNewerVersion = (a: string, b: string): boolean => {
-  const [a1, a2, a3] = a.split('.').map(Number);
-  const [b1, b2, b3] = b.split('.').map(Number);
-  const diff = (a1 ?? 0) - (b1 ?? 0) || (a2 ?? 0) - (b2 ?? 0) || (a3 ?? 0) - (b3 ?? 0);
-  return diff > 0;
-};
+import { compareVersions } from '@resources/utils/versionOrder';
+
+export const isNewerVersion = (a: string, b: string): boolean => compareVersions(a, b) > 0;
 
 export const isNewerArtifact = (
   catalogVersion: string,

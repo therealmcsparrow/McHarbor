@@ -19,6 +19,8 @@ type MutationConfirmDialogProps<TData, TVariables> = {
   variables: TVariables;
   blocked?: boolean;
   disabled?: boolean;
+  softDisabled?: boolean;
+  confirmDescribedBy?: string;
   onSuccess?: (data: TData) => void;
   children?: ReactNode;
 };
@@ -35,6 +37,8 @@ export function MutationConfirmDialog<TData, TVariables>({
   variables,
   blocked = false,
   disabled = false,
+  softDisabled,
+  confirmDescribedBy,
   onSuccess,
   children,
 }: MutationConfirmDialogProps<TData, TVariables>) {
@@ -69,6 +73,8 @@ export function MutationConfirmDialog<TData, TVariables>({
       variant={variant}
       loading={mutation.isPending}
       disabled={held || disabled}
+      softDisabled={softDisabled}
+      confirmDescribedBy={confirmDescribedBy}
       permission={permission}
       onConfirm={handleConfirm}
     >

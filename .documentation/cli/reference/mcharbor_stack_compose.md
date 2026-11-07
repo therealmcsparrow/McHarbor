@@ -9,7 +9,8 @@ mcharbor stack compose <name> [flags]
 ### Options
 
 ```
-  -h, --help   help for compose
+  -h, --help     help for compose
+      --reveal   show credential-looking environment values in the clear (needs stacks.manage; audit-logged)
 ```
 
 ### Options inherited from parent commands

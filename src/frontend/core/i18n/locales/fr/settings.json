@@ -2034,5 +2034,83 @@
     "selfSubtitle": "Services systemd de la machine sur laquelle McHarbor est installé. Cette page agit toujours sur cet hôte, quel que soit l'environnement sélectionné.",
     "warningTitle": "Cela modifie l'hôte, pas McHarbor",
     "warningBody": "Arrêter, désactiver ou reconfigurer un service ici agit sur la machine qui exécute McHarbor. Les unités propres à McHarbor et son moteur de conteneurs peuvent être redémarrés mais pas arrêtés ni désactivés."
+  },
+  "prerelease": {
+    "subtitle": "Versions de test qui ne sont pas encore finales. Tous les interrupteurs sont désactivés par défaut.",
+    "needsView": "{{key}} est requis pour voir ces réglages.",
+    "needs": "{{key}} est requis.",
+    "loadFailed": "Impossible de charger les réglages des préversions.",
+    "retry": "Réessayer",
+    "confirmAuto": {
+      "title": "Installer les préversions automatiquement ?",
+      "confirm": "Activer"
+    },
+    "mcharbor": {
+      "title": "Préversions de McHarbor",
+      "label": "Inclure les préversions",
+      "hint": "Propose des versions de test de McHarbor qui ne sont pas encore finales. Elles ne s'installent que si vous les choisissez. Vous ne pourrez ensuite plus revenir à une version antérieure de McHarbor.",
+      "autoLabel": "Installer aussi les préversions automatiquement",
+      "autoHint": "S'applique uniquement aux mises à jour de McHarbor.",
+      "autoNeeds": "Requiert Inclure les préversions et Installer automatiquement.",
+      "running": "Vous utilisez {{version}} (préversion). Les mises à jour de préversions sont désactivées. Rien ne change maintenant, et la prochaine version stable plus récente que celle-ci sera proposée dès sa publication. Aucune version antérieure ne peut être installée.",
+      "confirmAuto": "Les versions de test de McHarbor s'installeront sans demander. Cela s'applique uniquement aux mises à jour de McHarbor. Les mises à jour stables ne sont pas concernées. Vous ne pourrez ensuite plus revenir à une version antérieure."
+    },
+    "agents": {
+      "title": "Préversions des agents",
+      "label": "Inclure les préversions des agents",
+      "hint": "Propose des versions de test de l'agent qui ne sont pas encore finales. Indépendant du réglage de McHarbor.",
+      "autoLabel": "Mettre aussi les agents à jour vers les préversions automatiquement",
+      "autoHint": "S'applique uniquement aux mises à jour des agents.",
+      "autoNeeds": "Requiert Inclure les préversions des agents et Mettre les agents à jour automatiquement.",
+      "running": "Cible : {{version}} (préversion). Les offres de préversions sont désactivées ; la prochaine version stable sera proposée.",
+      "confirmAuto": "Les versions de test de l'agent s'installeront sans demander. Cela s'applique uniquement aux mises à jour des agents. Les mises à jour stables ne sont pas concernées. Les agents épinglés et exclus sont ignorés."
+    },
+    "return": {
+      "title": "Ramener {{name}} à la version stable ?",
+      "body": "Le ramène de {{version}} à la dernière version stable et l'épingle. Épinglé : aucune mise à jour, automatique ou manuelle, ne l'atteint tant que vous n'avez pas retiré l'épingle. Cela inclut les mises à jour de sécurité stables. Retirez-la sous Mises à jour, Agents, Exceptions.",
+      "confirm": "Ramener et épingler",
+      "needs": "Requiert {{keys}}.",
+      "needsMissing": "Manquant : {{keys}}.",
+      "alreadyPinned": "Déjà épinglé ; il n'apparaît qu'une fois.",
+      "rowAria": "Ramener {{name}} à la version stable",
+      "retryAria": "Réessayer le retour de {{name}}",
+      "started": "Retour lancé. La ligne de l'agent affiche le résultat."
+    },
+    "pin": {
+      "released": "Épingle retirée",
+      "releaseFailed": "Impossible de retirer l'épingle",
+      "badge": "Épinglé",
+      "meaning": "Épinglé : aucune mise à jour",
+      "returnFailed": "Le retour a échoué, toujours sur {{version}}",
+      "summary": "Agents exclus : {{n}}. Dont épinglés : {{pinned}}.",
+      "listTitle": "Agents épinglés",
+      "listDescription": "Les agents épinglés ne reçoivent aucune mise à jour, y compris les mises à jour de sécurité stables. Ils restent exclus et ne se modifient pas ici.",
+      "release": "Retirer l'épingle",
+      "releaseAria": "Retirer l'épingle de {{name}}",
+      "releaseTitle": "Retirer l'épingle de {{name}} ?",
+      "releaseBody": "Les mises à jour l'atteignent de nouveau."
+    },
+    "storePointer": {
+      "text": "Les préversions des plugins se règlent dans le Plugin Store.",
+      "link": "Ouvrir le Plugin Store"
+    },
+    "target": {
+      "channel": "Canal",
+      "stable": "Stable",
+      "prerelease": "Préversion",
+      "offHint": "Activez Inclure les préversions d'agent pour choisir une préversion."
+    },
+    "filter": {
+      "prerelease": "Préversion",
+      "pinned": "Épinglé",
+      "shown_one": "{{count}} agent affiché",
+      "shown_other": "{{count}} agents affichés",
+      "noPrerelease": "Aucun agent n'exécute de préversion.",
+      "noPinned": "Aucun agent n'est épinglé."
+    },
+    "notConnected": "Cet agent n'est pas connecté. Connectez-le et réessayez.",
+    "cannotGoBack": "Vous ne pourrez plus revenir à une version plus ancienne ensuite.",
+    "statusLabel": "État des mises à jour",
+    "badge": "Préversion"
   }
 }

@@ -6,9 +6,19 @@ import { useTranslation } from 'react-i18next';
 import type { FilterFacet } from '@resources/components/FilterChips';
 import type { ActiveFilterChip, TablePageSavedFilters } from '@resources/layout/table-page/types';
 import type { SearchMode } from '@resources/utils/search-filter';
+import { isPrerelease } from '@resources/utils/versionOrder';
 import { agentPlatform, agentState, type AgentRow, type AgentState } from '@resources/hooks/useAgentInventory';
 
-export type AgentStatusFacet = 'all' | 'current' | 'outdated' | 'excluded' | 'tooOld' | 'inProgress' | 'failed';
+export type AgentStatusFacet =
+  | 'all'
+  | 'current'
+  | 'outdated'
+  | 'excluded'
+  | 'tooOld'
+  | 'inProgress'
+  | 'failed'
+  | 'prerelease'
+  | 'pinned';
 export type AgentUpdateFilter = '' | 'yes' | 'no';
 
 const FACETS: { id: Exclude<AgentStatusFacet, 'all'>; key: string; states: AgentState[] }[] = [
@@ -20,7 +30,12 @@ const FACETS: { id: Exclude<AgentStatusFacet, 'all'>; key: string; states: Agent
   { id: 'failed', key: 'about.agents.progress.failed', states: ['failed'] },
 ];
 
-const FACET_IDS = new Set<string>(['all', ...FACETS.map((facet) => facet.id)]);
+const ROW_FACETS: { id: 'prerelease' | 'pinned'; key: string; test: (agent: AgentRow) => boolean }[] = [
+  { id: 'prerelease', key: 'prerelease.filter.prerelease', test: (agent) => isPrerelease(agent.version) },
+  { id: 'pinned', key: 'prerelease.filter.pinned', test: (agent) => agent.pinned === true },
+];
+
+const FACET_IDS = new Set<string>(['all', ...FACETS.map((facet) => facet.id), ...ROW_FACETS.map((f) => f.id)]);
 
 function distinct(values: (string | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))].sort();
@@ -41,9 +56,12 @@ export function useAgentInventoryFilters(agents: AgentRow[], excluded: ReadonlyS
     return map;
   }, [agents, excluded]);
 
-  const inFacet = (agent: AgentRow, facet: AgentStatusFacet) =>
-    facet === 'all' ||
-    (FACETS.find((f) => f.id === facet)?.states.includes(stateOf.get(agent.envId) ?? 'current') ?? false);
+  const inFacet = (agent: AgentRow, facet: AgentStatusFacet) => {
+    if (facet === 'all') return true;
+    const byRow = ROW_FACETS.find((f) => f.id === facet);
+    if (byRow) return byRow.test(agent);
+    return FACETS.find((f) => f.id === facet)?.states.includes(stateOf.get(agent.envId) ?? 'current') ?? false;
+  };
 
   const rows = agents.filter(
     (agent) =>
@@ -55,7 +73,7 @@ export function useAgentInventoryFilters(agents: AgentRow[], excluded: ReadonlyS
 
   const facets: FilterFacet<string>[] = [
     { id: 'all', label: t('labels.all', { ns: 'common' }), count: agents.length },
-    ...FACETS.map((facet) => ({
+    ...[...FACETS, ...ROW_FACETS].map((facet) => ({
       id: facet.id,
       label: t(facet.key),
       count: agents.filter((agent) => inFacet(agent, facet.id)).length,
@@ -108,6 +126,7 @@ export function useAgentInventoryFilters(agents: AgentRow[], excluded: ReadonlyS
 
   return {
     rows,
+    statusFacet,
     search: { value: query, onChange: setQuery, mode, onModeChange: setMode },
     facets: { items: facets, value: statusFacet, onChange: (next: string) => setStatus(next as AgentStatusFacet) },
     selects: { update, setUpdate, platform, setPlatform, platforms, version, setVersion, versions },

@@ -5,7 +5,6 @@ package updates
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,8 +18,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
-	appversion "github.com/therealmcsparrow/mcharbor/core/version"
-	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 )
 
 // Policy represents an auto-update policy.
@@ -195,6 +193,8 @@ type githubRelease struct {
 	HTMLURL     string        `json:"html_url"`
 	PublishedAt string        `json:"published_at"`
 	Body        string        `json:"body"`
+	Draft       bool          `json:"draft"`
+	Prerelease  bool          `json:"prerelease"`
 	Assets      []githubAsset `json:"assets"`
 }
 
@@ -205,97 +205,35 @@ type VersionCheck struct {
 	LatestVersion   string `json:"latestVersion"`
 	LatestBuild     string `json:"latestBuild,omitempty"`
 	UpdateAvailable bool   `json:"updateAvailable"`
-	ReleaseURL      string `json:"releaseUrl,omitempty"`
-	PublishedAt     string `json:"publishedAt,omitempty"`
-	ReleaseNotes    string `json:"releaseNotes,omitempty"`
+	// LatestIsPrerelease labels the offered release as a prerelease.
+	LatestIsPrerelease bool   `json:"latestIsPrerelease,omitempty"`
+	ReleaseURL         string `json:"releaseUrl,omitempty"`
+	PublishedAt        string `json:"publishedAt,omitempty"`
+	ReleaseNotes       string `json:"releaseNotes,omitempty"`
 }
 
 // HandleCheckUpdate checks GitHub for a newer McHarbor release.
 func (h *Handler) HandleCheckUpdate(w http.ResponseWriter, r *http.Request) {
-	currentVersion := appversion.Current()
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
-		"https://api.github.com/repos/therealmcsparrow/mcharbor/releases/latest", nil)
+	st, err := h.selfUpdate.fetchRelease(ctx)
 	if err != nil {
-		h.app.Logger.Error("updates: build github request", "error", err)
-		response.InternalErrorCause(w, r, i18n.ErrUpdateCheckFailed, err)
-		return
-	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "McHarbor/"+currentVersion)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		h.app.Logger.Warn("updates: github unreachable", "error", err)
+		h.app.Logger.Warn("updates: release check failed", "error", err)
 		response.ErrCode(w, r, http.StatusBadGateway, i18n.ErrUpdateCheckFailed)
 		return
 	}
-	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
-
-	if resp.StatusCode != http.StatusOK {
-		h.app.Logger.Warn("updates: github returned non-200", "status", resp.StatusCode)
-		response.ErrCode(w, r, http.StatusBadGateway, i18n.ErrUpdateCheckFailed)
-		return
-	}
-
-	var rel githubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		h.app.Logger.Error("updates: decode github response", "error", err)
-		response.InternalErrorCause(w, r, i18n.ErrUpdateCheckFailed, err)
-		return
-	}
-
-	latest := strings.TrimPrefix(rel.TagName, "v")
-	latestBuild := h.selfUpdate.releaseBuild(ctx, rel.Assets)
-	currentBuild := appversion.Build()
-	notes := rel.Body
-	if len(notes) > 2000 {
-		notes = notes[:2000]
-	}
-
 	response.OK(w, VersionCheck{
-		CurrentVersion:  currentVersion,
-		CurrentBuild:    currentBuild,
-		LatestVersion:   latest,
-		LatestBuild:     latestBuild,
-		UpdateAvailable: releaseNewer(currentVersion, currentBuild, latest, latestBuild),
-		ReleaseURL:      rel.HTMLURL,
-		PublishedAt:     rel.PublishedAt,
-		ReleaseNotes:    notes,
+		CurrentVersion:     st.CurrentVersion,
+		CurrentBuild:       st.CurrentBuild,
+		LatestVersion:      st.LatestVersion,
+		LatestBuild:        st.LatestBuild,
+		UpdateAvailable:    st.UpdateAvailable,
+		LatestIsPrerelease: st.LatestIsPrerelease,
+		ReleaseURL:         st.ReleaseURL,
+		PublishedAt:        st.PublishedAt,
+		ReleaseNotes:       st.ReleaseNotes,
 	})
-}
-
-// leadingInt parses the digits at the start of a version part and yields 0 when there are none, like "%d" scanning did.
-func leadingInt(part string) int {
-	var n int
-	if _, err := fmt.Sscanf(part, "%d", &n); err != nil {
-		return 0
-	}
-	return n
-}
-
-// compareVersions does a simple semver comparison (a > b → 1, a == b → 0, a < b → -1).
-func compareVersions(a, b string) int {
-	pa := strings.Split(a, ".")
-	pb := strings.Split(b, ".")
-	for i := 0; i < 3; i++ {
-		var va, vb int
-		if i < len(pa) {
-			va = leadingInt(pa[i])
-		}
-		if i < len(pb) {
-			vb = leadingInt(pb[i])
-		}
-		if va > vb {
-			return 1
-		}
-		if va < vb {
-			return -1
-		}
-	}
-	return 0
 }
 
 // HandleState returns the cached self-update check result. The
@@ -320,7 +258,26 @@ func (h *Handler) HandleState(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	state.IntervalHours = settings.IntervalHours
+	state = h.hideDisallowed(r.Context(), state)
 	response.OK(w, state)
+}
+
+// hideDisallowed drops a cached prerelease offer the McHarbor switch no longer
+// allows. The cache is filtered when a check writes it, so a switch turned off
+// afterwards would otherwise keep offering the prerelease until the next check.
+func (h *Handler) hideDisallowed(ctx context.Context, state SelfUpdateState) SelfUpdateState {
+	channels, err := updatechannel.Load(ctx, h.app.DB)
+	if err != nil {
+		h.app.Logger.Warn("self-update: reading update channels for the state", "error", err)
+		channels = updatechannel.Settings{}
+	}
+	if channels.Allows(updatechannel.PathMcHarbor, state.LatestVersion) {
+		return state
+	}
+	state.LatestVersion, state.LatestBuild = "", ""
+	state.UpdateAvailable, state.LatestIsPrerelease = false, false
+	state.ReleaseURL, state.PublishedAt, state.ReleaseNotes = "", "", ""
+	return state
 }
 
 // HandleGetSettings returns the operator-facing self-update config.

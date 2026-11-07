@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -20,7 +21,9 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/notify"
+	"github.com/therealmcsparrow/mcharbor/core/updatechannel"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 	"github.com/therealmcsparrow/mcharbor/internal/closeutil"
 )
 
@@ -34,13 +37,16 @@ type SelfUpdateState struct {
 	LatestVersion   string `json:"latestVersion"`
 	LatestBuild     string `json:"latestBuild,omitempty"`
 	UpdateAvailable bool   `json:"updateAvailable"`
-	ReleaseURL      string `json:"releaseUrl,omitempty"`
-	PublishedAt     string `json:"publishedAt,omitempty"`
-	ReleaseNotes    string `json:"releaseNotes,omitempty"`
-	LastCheckedAt   string `json:"lastCheckedAt,omitempty"`
-	LastError       string `json:"lastError,omitempty"`
-	NextCheckAt     string `json:"nextCheckAt,omitempty"`
-	IntervalHours   int    `json:"intervalHours"`
+	// LatestIsPrerelease labels the offered release as a prerelease, so the UI
+	// never presents it as the stable one.
+	LatestIsPrerelease bool   `json:"latestIsPrerelease,omitempty"`
+	ReleaseURL         string `json:"releaseUrl,omitempty"`
+	PublishedAt        string `json:"publishedAt,omitempty"`
+	ReleaseNotes       string `json:"releaseNotes,omitempty"`
+	LastCheckedAt      string `json:"lastCheckedAt,omitempty"`
+	LastError          string `json:"lastError,omitempty"`
+	NextCheckAt        string `json:"nextCheckAt,omitempty"`
+	IntervalHours      int    `json:"intervalHours"`
 	// NotifiedVersion is the releaseLabel last announced, so a rebuild of
 	// an announced version is announced again.
 	NotifiedVersion string `json:"notifiedVersion,omitempty"`
@@ -130,6 +136,9 @@ const (
 	maxUpdateCheckIntervalHr = 168 // one week
 	defaultUpdateCheckURL    = "https://api.github.com/repos/therealmcsparrow/mcharbor/releases/latest"
 	selfUpdateHTTPTimeout    = 10 * time.Second
+	defaultReleasesListURL   = "https://api.github.com/repos/therealmcsparrow/mcharbor/releases?per_page=30"
+	maxReleaseBody           = 4 << 20
+	pinnedImageRefusal       = "the running image is pinned by digest and cannot move to a prerelease; use a tag or update manually"
 )
 
 // ErrSelfUpdateDisabled indicates the operator has disabled the
@@ -144,11 +153,14 @@ type SelfUpdateApplier func(ctx context.Context, targetImage string) error
 // the result, emits notifications on new releases and, when the
 // operator opted in, installs the release and updates remote agents.
 type SelfUpdateChecker struct {
-	db          *sql.DB
-	dispatcher  *notify.Dispatcher
-	logger      *slog.Logger
-	httpClient  *http.Client
-	releaseURL  string
+	db         *sql.DB
+	dispatcher *notify.Dispatcher
+	logger     *slog.Logger
+	httpClient *http.Client
+	releaseURL string
+	// releasesURL lists releases including prereleases; it is read only with the
+	// McHarbor prerelease switch on, because /latest never returns one.
+	releasesURL string
 	coordinator checkerCoordinator
 	nodeID      string
 	hasCoord    bool
@@ -180,12 +192,13 @@ type checkerCoordinator interface {
 // it can fire notifications on new releases.
 func NewSelfUpdateChecker(db *sql.DB, dispatcher *notify.Dispatcher, logger *slog.Logger) *SelfUpdateChecker {
 	return &SelfUpdateChecker{
-		db:         db,
-		dispatcher: dispatcher,
-		logger:     logger,
-		httpClient: &http.Client{Timeout: selfUpdateHTTPTimeout},
-		releaseURL: defaultUpdateCheckURL,
-		stopCh:     make(chan struct{}),
+		db:          db,
+		dispatcher:  dispatcher,
+		logger:      logger,
+		httpClient:  &http.Client{Timeout: selfUpdateHTTPTimeout},
+		releaseURL:  defaultUpdateCheckURL,
+		releasesURL: defaultReleasesListURL,
+		stopCh:      make(chan struct{}),
 	}
 }
 
@@ -308,9 +321,13 @@ func (c *SelfUpdateChecker) Settings(ctx context.Context) (SelfUpdateSettings, e
 	if !foundLastSeen {
 		s.LastSeenVersion = ""
 	}
-	if s.AgentExcludedEnvIDs == nil {
-		s.AgentExcludedEnvIDs = []string{}
+	// Pins are unioned in on every read, so a whole-struct save made from an
+	// older read can neither drop a pin nor hide it from a sweep.
+	pinned, err := agentPins{db: c.db}.IDs(ctx)
+	if err != nil {
+		return s, fmt.Errorf("loading agent pins: %w", err)
 	}
+	s.AgentExcludedEnvIDs = normalizeIDList(append(s.AgentExcludedEnvIDs, pinned...))
 	return s, nil
 }
 
@@ -354,7 +371,11 @@ func (c *SelfUpdateChecker) SaveSettings(ctx context.Context, in SelfUpdateSetti
 	if err := upsertSetting(ctx, c.db, selfUpdateAutoAgentsKey, strconv.FormatBool(in.AutoUpdateAgents)); err != nil {
 		return in, err
 	}
-	excluded := normalizeIDList(in.AgentExcludedEnvIDs)
+	pinned, err := agentPins{db: c.db}.IDs(ctx)
+	if err != nil {
+		return in, fmt.Errorf("loading agent pins: %w", err)
+	}
+	excluded := normalizeIDList(append(append([]string{}, in.AgentExcludedEnvIDs...), pinned...))
 	if err := upsertSetting(ctx, c.db, selfUpdateAgentExclKey, encodeStringList(excluded)); err != nil {
 		return in, err
 	}
@@ -467,9 +488,43 @@ func (c *SelfUpdateChecker) AutoInstall(ctx context.Context, settings SelfUpdate
 		return false
 	}
 
-	target := ""
+	latest, ok := releaseTag(state.LatestVersion)
+	if !ok {
+		return false
+	}
+	// The cached state may predate a restart, so the live version decides
+	// whether this is a move forward.
+	running, runningBuild := c.runningRelease()
+	if !releaseNewer(running, runningBuild, latest, state.LatestBuild) {
+		return false
+	}
+	channels, err := updatechannel.Load(ctx, c.db)
+	if err != nil {
+		c.logger.Warn("self-update: update channels unreadable, install skipped", "error", err)
+		return false
+	}
+	if !channels.AutoInstalls(updatechannel.PathMcHarbor, settings.AutoInstall, latest) {
+		return false
+	}
+
+	// A native install has no image; the applier reads the version itself.
+	target := latest
 	if c.currentImg != nil {
-		target = imageForVersion(c.currentImg(ctx), state.LatestVersion)
+		img := c.currentImg(ctx)
+		if versionorder.IsPrerelease(latest) {
+			pinned, err := updatechannel.PrereleaseImage(img, latest)
+			if err != nil {
+				state.AutoInstallVersion = label
+				state.AutoInstallAt = time.Now().UTC().Format(time.RFC3339)
+				state.AutoInstallError = pinnedImageRefusal
+				c.persistAndCache(ctx, state)
+				c.logger.Warn("self-update: prerelease install refused", "version", label, "error", err)
+				return false
+			}
+			target = pinned
+		} else {
+			target = imageForVersion(img, latest)
+		}
 	}
 
 	state.AutoInstallVersion = label
@@ -501,10 +556,37 @@ func (c *SelfUpdateChecker) AutoInstall(ctx context.Context, settings SelfUpdate
 // the cached state. force bypasses the per-agent retry backoff. Agents on
 // the exclusion list are never touched, forced or not.
 func (c *SelfUpdateChecker) UpdateAgents(ctx context.Context, force bool, excludedEnvIDs []string) AgentUpdateSummary {
+	return c.updateAgents(ctx, force, excludedEnvIDs, nil)
+}
+
+// sweepAgentsAuto is the scheduler's agent sweep: it runs only with automatic
+// agent updates on, and moves an agent to a prerelease only when the agents
+// switch and its auto-install option allow it. An unreadable setting fails
+// closed to stable-only. ran is false when nothing was attempted.
+func (c *SelfUpdateChecker) sweepAgentsAuto(ctx context.Context, settings SelfUpdateSettings) (summary AgentUpdateSummary, ran bool) {
+	if !settings.AutoUpdateAgents || c.agentUpdate == nil {
+		return AgentUpdateSummary{Results: []AgentUpdateResult{}}, false
+	}
+	channels, err := updatechannel.Load(ctx, c.db)
+	if err != nil {
+		c.logger.Warn("self-update: reading update channels for the agent sweep", "error", err)
+	}
+	allow := func(version string) bool {
+		if err != nil {
+			return !versionorder.IsPrerelease(version)
+		}
+		return channels.AutoInstalls(updatechannel.PathAgents, true, version)
+	}
+	agentCtx, cancel := context.WithTimeout(ctx, agentUpdateAckTimeout+time.Minute)
+	defer cancel()
+	return c.updateAgents(agentCtx, false, settings.AgentExcludedEnvIDs, allow), true
+}
+
+func (c *SelfUpdateChecker) updateAgents(ctx context.Context, force bool, excludedEnvIDs []string, allow func(string) bool) AgentUpdateSummary {
 	if c.agentUpdate == nil {
 		return AgentUpdateSummary{Results: []AgentUpdateResult{}}
 	}
-	summary := c.agentUpdate.UpdateOutdated(ctx, force, excludedEnvIDs)
+	summary := c.agentUpdate.updateOutdated(ctx, force, excludedEnvIDs, allow)
 	state := c.State()
 	state.LatestAgentVersion = summary.TargetVersion
 	state.AgentsUpdatedAt = time.Now().UTC().Format(time.RFC3339)
@@ -584,30 +666,32 @@ func (c *SelfUpdateChecker) leaderFor(ctx context.Context) bool {
 // returned to the caller; the caller's CheckNow handles the
 // persistence and notification logic.
 func (c *SelfUpdateChecker) fetchRelease(ctx context.Context) (SelfUpdateState, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.releaseURL, nil)
+	channels, err := updatechannel.Load(ctx, c.db)
 	if err != nil {
-		return SelfUpdateState{}, fmt.Errorf("build github request: %w", err)
+		return SelfUpdateState{}, fmt.Errorf("load update channels: %w", err)
 	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "McHarbor/"+appversion.Current())
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return SelfUpdateState{}, fmt.Errorf("github unreachable: %w", err)
-	}
-	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
-
-	if resp.StatusCode != http.StatusOK {
-		return SelfUpdateState{}, fmt.Errorf("github returned status %d", resp.StatusCode)
-	}
-
 	var rel githubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&rel); err != nil {
-		return SelfUpdateState{}, fmt.Errorf("decode github response: %w", err)
+	if channels.McHarborPrereleases {
+		var list []githubRelease
+		if err := c.getJSON(ctx, c.releasesURL, &list); err != nil {
+			return SelfUpdateState{}, err
+		}
+		picked, ok := selectRelease(list, channels)
+		if !ok {
+			return SelfUpdateState{}, errors.New("no usable release found")
+		}
+		rel = picked
+	} else {
+		if err := c.getJSON(ctx, c.releaseURL, &rel); err != nil {
+			return SelfUpdateState{}, err
+		}
+		if _, ok := selectRelease([]githubRelease{rel}, channels); !ok {
+			return SelfUpdateState{}, errors.New("latest release tag is not a usable stable version")
+		}
 	}
 
 	current, currentBuild := c.runningRelease()
-	latest := strings.TrimPrefix(rel.TagName, "v")
+	latest, _ := releaseTag(rel.TagName) // selectRelease only returns parsable tags
 	latestBuild := c.releaseBuild(ctx, rel.Assets)
 	if prev := c.State(); latestBuild == "" && prev.LatestVersion == latest {
 		// A failed BUILD download must not turn "v+build" back into "v": the
@@ -620,19 +704,43 @@ func (c *SelfUpdateChecker) fetchRelease(ctx context.Context) (SelfUpdateState, 
 	}
 
 	return SelfUpdateState{
-		CurrentVersion:  current,
-		CurrentBuild:    currentBuild,
-		LatestVersion:   latest,
-		LatestBuild:     latestBuild,
-		UpdateAvailable: releaseNewer(current, currentBuild, latest, latestBuild),
-		ReleaseURL:      rel.HTMLURL,
-		PublishedAt:     rel.PublishedAt,
-		ReleaseNotes:    notes,
-		LastCheckedAt:   time.Now().UTC().Format(time.RFC3339),
-		LastError:       "",
-		IntervalHours:   0,
-		NotifiedVersion: "",
+		CurrentVersion:     current,
+		CurrentBuild:       currentBuild,
+		LatestVersion:      latest,
+		LatestBuild:        latestBuild,
+		UpdateAvailable:    releaseNewer(current, currentBuild, latest, latestBuild),
+		LatestIsPrerelease: versionorder.IsPrerelease(latest),
+		ReleaseURL:         rel.HTMLURL,
+		PublishedAt:        rel.PublishedAt,
+		ReleaseNotes:       notes,
+		LastCheckedAt:      time.Now().UTC().Format(time.RFC3339),
+		LastError:          "",
+		IntervalHours:      0,
+		NotifiedVersion:    "",
 	}, nil
+}
+
+// getJSON fetches one GitHub API document with the checker's timeout and a body
+// cap, because the response is untrusted input.
+func (c *SelfUpdateChecker) getJSON(ctx context.Context, rawURL string, out any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	if err != nil {
+		return fmt.Errorf("build github request: %w", err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("User-Agent", "McHarbor/"+appversion.Current())
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("github unreachable: %w", err)
+	}
+	defer func() { closeutil.Report(resp.Body.Close(), "resp.Body") }()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("github returned status %d", resp.StatusCode)
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, maxReleaseBody)).Decode(out); err != nil {
+		return fmt.Errorf("decode github response: %w", err)
+	}
+	return nil
 }
 
 // runningRelease is the version and build of this process.

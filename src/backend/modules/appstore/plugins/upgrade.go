@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
+
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // ErrUpgradeRefused marks an upgrade the new artifact failed in preflight. The
@@ -17,6 +20,56 @@ var ErrUpgradeRefused = errors.New("plugin upgrade refused before anything was u
 // ErrUpgradeRolledBack marks an upgrade whose install failed after the
 // uninstall, and whose previous version, enabled flag and grants were reinstated.
 var ErrUpgradeRolledBack = errors.New("plugin upgrade failed and the previous version was restored")
+
+// ErrMigrationBlocksReturn marks a prerelease-to-stable move the stable build
+// cannot follow, because the ledger holds a migration it does not carry.
+var ErrMigrationBlocksReturn = errors.New("the stable release lacks a migration the prerelease applied")
+
+// ReturnBlockedPrefix starts the repair_error of a refused return, so a later
+// load result can tell it from a failure it may replace.
+const ReturnBlockedPrefix = "return to stable blocked by migration: "
+
+// maxNamedMigrations bounds how many filenames a reason spells out.
+const maxNamedMigrations = 10
+
+// MigrationBlockError names the ledgered migrations a stable target lacks. It
+// is an ErrUpgradeRefused, so every caller already treats it as "nothing changed".
+type MigrationBlockError struct {
+	Files []string
+}
+
+// Error spells the files with %q because they are ledger data, never trusted text.
+func (e *MigrationBlockError) Error() string {
+	shown := e.Files
+	more := 0
+	if len(shown) > maxNamedMigrations {
+		more = len(shown) - maxNamedMigrations
+		shown = shown[:maxNamedMigrations]
+	}
+	quoted := make([]string, len(shown))
+	for i, f := range shown {
+		quoted[i] = fmt.Sprintf("%q", f)
+	}
+	out := ReturnBlockedPrefix + strings.Join(quoted, ", ")
+	if more > 0 {
+		out += fmt.Sprintf(" and %d more", more)
+	}
+	return out
+}
+
+// Unwrap lets errors.Is match both the refusal and the specific sentinel.
+func (e *MigrationBlockError) Unwrap() []error {
+	return []error{ErrUpgradeRefused, ErrMigrationBlocksReturn}
+}
+
+// returnBlockers is the one ledger check upgrade and the dry-run share. It runs
+// only for a prerelease moving to a stable; every other move installs as before.
+func returnBlockers(ctx context.Context, up Upgrader, st *Staged, installedVersion string) ([]string, error) {
+	if !versionorder.IsPrerelease(installedVersion) || versionorder.IsPrerelease(st.Version) {
+		return nil, nil
+	}
+	return up.LedgerBlockers(ctx, st)
+}
 
 // upgrade replaces the installed slug with src, the one path both the Store
 // Update and the boot repair take. Order is the whole point: validate the new
@@ -54,6 +107,16 @@ func (h *Handler) upgrade(ctx context.Context, slug string, src Source, progress
 		}
 		h.applyPendingSnapshot(ctx, slug)
 		return inst, nil
+	}
+
+	blockers, err := returnBlockers(ctx, up, st, prev.Version)
+	if err != nil {
+		up.DiscardStaged(st)
+		return nil, fmt.Errorf("%w: %w", ErrUpgradeRefused, err)
+	}
+	if len(blockers) > 0 {
+		up.DiscardStaged(st)
+		return nil, &MigrationBlockError{Files: blockers}
 	}
 
 	snap, err := h.snapshotFor(ctx, prev, enabled)

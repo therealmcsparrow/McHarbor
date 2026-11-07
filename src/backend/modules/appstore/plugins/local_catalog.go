@@ -11,8 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
+
+	"github.com/therealmcsparrow/mcharbor/core/versionorder"
 )
 
 // catalogIndexFile is the aggregate build-plugin-catalog-index.sh writes beside
@@ -138,22 +139,29 @@ func readLocalCatalogDir(dir string) ([]PluginEntry, error) {
 		// DownloadURL, Checksum, Signature) on the same file.
 		versions := make([]PluginVersion, 0, len(raw_catalogFile.Versions)+1)
 		for _, v := range raw_catalogFile.Versions {
-			if strings.TrimSpace(v.Version) == "" || strings.TrimSpace(v.DownloadURL) == "" {
-				slog.Warn("plugin catalog: version row missing version/url",
+			if strings.TrimSpace(v.Version) == "" || strings.TrimSpace(v.DownloadURL) == "" || !usableVersion(v.Version) {
+				slog.Warn("plugin catalog: version row missing or unparsable version/url",
 					"file", name, "version", v.Version)
 				continue
 			}
 			v.DownloadURL = rebaseLocalFileURL(dir, v.DownloadURL)
 			versions = append(versions, v)
 		}
-		if strings.TrimSpace(raw_catalogFile.Version) != "" && strings.TrimSpace(raw_catalogFile.DownloadURL) != "" {
+		versions = append(versions, prereleaseRows(raw_catalogFile, func(v PluginVersion) (PluginVersion, bool) {
+			if strings.TrimSpace(v.DownloadURL) == "" {
+				return v, false
+			}
+			v.DownloadURL = rebaseLocalFileURL(dir, v.DownloadURL)
+			return v, true
+		})...)
+		if strings.TrimSpace(raw_catalogFile.Version) != "" && strings.TrimSpace(raw_catalogFile.DownloadURL) != "" && usableVersion(raw_catalogFile.Version) {
 			versions = append(versions, PluginVersion{
 				Version:     raw_catalogFile.Version,
 				Build:       raw_catalogFile.Build,
 				DownloadURL: rebaseLocalFileURL(dir, raw_catalogFile.DownloadURL),
 				Checksum:    raw_catalogFile.Checksum,
 				Signature:   raw_catalogFile.Signature,
-				BuiltFor:    raw_catalogFile.BuiltFor,
+				MinMcharbor: raw_catalogFile.MinMcharbor,
 			})
 		}
 		if len(versions) == 0 {
@@ -243,7 +251,7 @@ func readLocalCatalogDir(dir string) ([]PluginEntry, error) {
 			p.DownloadURL = top.DownloadURL
 			p.Checksum = top.Checksum
 			p.Signature = top.Signature
-			p.BuiltFor = top.BuiltFor
+			p.MinMcharbor = top.MinMcharbor
 		}
 		if p.Name == "" {
 			// Last-resort display name: the slug. Keeps the row
@@ -283,10 +291,32 @@ type catalogFile struct {
 	Icon        string `json:"icon,omitempty"`
 	Checksum    string `json:"checksum,omitempty"`
 	Signature   string `json:"signature,omitempty"`
-	BuiltFor    string `json:"built_for,omitempty"`
+	MinMcharbor string `json:"min_mcharbor,omitempty"`
 	DownloadURL string `json:"download_url"`
-	// Versions is the explicit multi-version list when present.
+	// Versions is the explicit multi-version list when present; plugin-catalog v2
+	// writes stable rows only, so a host that does not know prerelease_versions
+	// never sees a prerelease.
 	Versions []PluginVersion `json:"versions,omitempty"`
+	// PrereleaseVersions holds the prerelease rows under a key earlier hosts ignore.
+	PrereleaseVersions []PluginVersion `json:"prerelease_versions,omitempty"`
+}
+
+// prereleaseRows returns the usable prerelease rows of cf. A stable row under
+// this key is dropped: the key is how a prerelease stays out of the stable list,
+// and it must not become a second way to publish a stable.
+func prereleaseRows(cf catalogFile, accept func(PluginVersion) (PluginVersion, bool)) []PluginVersion {
+	var out []PluginVersion
+	for _, v := range cf.PrereleaseVersions {
+		if !usableVersion(v.Version) || !versionorder.IsPrerelease(v.Version) {
+			slog.Warn("plugin catalog: prerelease_versions row is not a usable prerelease",
+				"slug", cf.Slug, "version", v.Version)
+			continue
+		}
+		if row, ok := accept(v); ok {
+			out = append(out, row)
+		}
+	}
+	return out
 }
 
 func fillIfEmpty(dst *string, src string) {
@@ -342,72 +372,29 @@ func dedupeVersions(in []PluginVersion) []PluginVersion {
 	return out
 }
 
-// semverTuple splits "1.2.3" into (1, 2, 3) and tolerates
-// non-numeric trailing parts (pre-release / build). Missing parts
-// default to 0.
-func semverTuple(v string) (int, int, int) {
-	parts := strings.SplitN(v, ".", 3)
-	return atoiOrZero(firstNumericPart(parts[0])),
-		atoiOrZero(firstNumericPart(getOr(parts, 1, "0"))),
-		atoiOrZero(firstNumericPart(getOr(parts, 2, "0")))
-}
-
-// atoiOrZero parses a version component, reading anything unparseable as 0 to match the missing-part default.
-func atoiOrZero(s string) int {
-	n, err := strconv.Atoi(s)
-	if err != nil {
-		return 0
-	}
-	return n
-}
-
-func firstNumericPart(s string) string {
-	// Strip leading non-digits (e.g. "v1" → "1") and trailing
-	// non-digits (e.g. "3-rc1" → "3").
-	for i, r := range s {
-		if r >= '0' && r <= '9' {
-			s = s[i:]
-			break
-		}
-	}
-	for i, r := range s {
-		if r < '0' || r > '9' {
-			s = s[:i]
-			break
-		}
-	}
-	if s == "" {
-		return "0"
-	}
-	return s
-}
-
-func getOr(s []string, idx int, def string) string {
-	if idx < len(s) {
-		return s[idx]
-	}
-	return def
-}
-
-// sortVersionsDesc orders in place: numeric MAJOR.MINOR.PATCH
-// descending, then full-string descending as a stable tie-break so
-// "1.0.0-rc1" and "1.0.0" never flip depending on map iteration.
+// sortVersionsDesc orders in place: the newest stable release first, then older
+// stable ones, then prereleases newest first. A host that reads only Versions[0]
+// therefore never lands on a prerelease it did not opt into. The string tie-break
+// keeps equal-order spellings (2026.9.1, 2026.09.01) from flipping between reads.
 func sortVersionsDesc(in []PluginVersion) {
 	if len(in) < 2 {
 		return
 	}
 	sort.SliceStable(in, func(i, j int) bool {
-		ai, bi, ci := semverTuple(in[i].Version)
-		aj, bj, cj := semverTuple(in[j].Version)
-		if ai != aj {
-			return ai > aj
+		pi, pj := versionorder.IsPrerelease(in[i].Version), versionorder.IsPrerelease(in[j].Version)
+		if pi != pj {
+			return pj
 		}
-		if bi != bj {
-			return bi > bj
-		}
-		if ci != cj {
-			return ci > cj
+		if c := versionorder.Compare(in[i].Version, in[j].Version); c != 0 {
+			return c > 0
 		}
 		return in[i].Version > in[j].Version
 	})
+}
+
+// usableVersion reports whether a catalog row names a version the shared order can
+// parse; a catalog is untrusted input, so a row like "latest" is refused, not guessed.
+func usableVersion(version string) bool {
+	_, err := versionorder.Parse(version)
+	return err == nil
 }

@@ -1479,6 +1479,12 @@
                      "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
                      "dismiss":  "Sluiten",
                      "gotIt":  "Begrepen",
+                     "2026_11_02":  {
+                                        "prereleaseChannels":  {
+                                                               "title":  "Prerelease-kanalen",
+                                                               "description":  "Testversies van McHarbor, agents en plugins kunnen nu worden aangeboden, en elke schakelaar staat standaard uit. Zet ze aan onder Instellingen → Updates → McHarbor of Agents, en in de Plugin Store. Een plugin of agent kan later terug naar stable; een agent die dat doet wordt vastgezet tot je de pin loslaat."
+                                        }
+                                    },
                      "2026_11_01":  {
                                         "catalogs":  {
                                                                "title":  "Catalogi komen van GitHub",

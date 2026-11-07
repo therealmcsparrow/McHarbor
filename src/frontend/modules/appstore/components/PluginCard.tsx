@@ -8,7 +8,9 @@ import type { PluginEntry } from '../types/plugins';
 import { PluginIcon } from './plugin-icons';
 import { parseAuthor } from './PluginSignature';
 import { PluginCardActions } from './PluginCardActions';
+import { PluginHostNote } from './PluginHostNote';
 import { versionLabel } from '../utils/versionLabel';
+import { isPrerelease } from '@resources/utils/versionOrder';
 
 type PluginCardProps = {
   plugin: PluginEntry & { installed?: boolean };
@@ -41,7 +43,6 @@ type PluginCardProps = {
   installedUnsigned?: boolean;
   installedEnabled?: boolean;
   needsRepair?: boolean;
-  builtFor?: string;
   repairError?: string;
 };
 
@@ -56,7 +57,6 @@ export function PluginCard({
   installedUnsigned,
   installedEnabled,
   needsRepair,
-  builtFor,
   repairError,
 }: PluginCardProps) {
   const { t } = useTranslation(['common', 'plugins']);
@@ -65,6 +65,21 @@ export function PluginCard({
   // name, and the address — when there is one — becomes the link target
   // rather than visible text.
   const { name: creator, email: creatorEmail } = parseAuthor(plugin.author ?? '');
+
+  // Text labels, not colour: the same strings name the badges and feed the card's accessible name.
+  const installedPre = Boolean(plugin.installed && installedVersion && isPrerelease(installedVersion));
+  const updatePre = Boolean(hasUpdate && isPrerelease(plugin.version));
+  const labels = [
+    installedPre ? t('card.installedPrerelease', { ns: 'plugins' }) : null,
+    updatePre ? t('card.prereleaseUpdate', { ns: 'plugins' }) : null,
+  ].filter((l): l is string => l !== null);
+  const cardName = [
+    plugin.name,
+    plugin.installed && installedVersion ? t('store.installedVersion', { version: installedVersion }) : null,
+    ...labels,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   function handleInstall() {
     onInstall(plugin);
@@ -75,7 +90,10 @@ export function PluginCard({
   }
 
   return (
-    <div className="mc-glass flex h-full flex-col gap-3 rounded-lg p-4 transition-colors hover:border-primary/40">
+    <article
+      aria-label={cardName}
+      className="mc-glass flex h-full flex-col gap-3 rounded-lg p-4 transition-colors hover:border-primary/40"
+    >
       {/* Header: the icon sits beside a two-line identity block —
           name on top, version directly beneath it — so every card
           presents the same anchor regardless of name length. */}
@@ -93,10 +111,16 @@ export function PluginCard({
           <h3 className="truncate text-sm font-medium text-foreground">{plugin.name}</h3>
           <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
             {versionLabel(plugin.version)}
+            {isPrerelease(plugin.version) && (
+              <span className="ml-1.5 rounded border border-border px-1 text-[10px] text-foreground">
+                {t('card.prerelease', { ns: 'plugins' })}
+              </span>
+            )}
             {plugin.installed && installedVersion && installedVersion !== plugin.version && (
               <span className="ml-1.5">({t('store.installedVersion', { version: installedVersion })})</span>
             )}
           </p>
+          {installedPre && <PluginHostNote override={plugin.prereleaseOverride} />}
         </div>
       </div>
 
@@ -135,7 +159,12 @@ export function PluginCard({
         )}
         <div className="flex items-start justify-end gap-2">
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-            {hasUpdate && <Badge variant="destructive">{t('store.updateAvailable')}</Badge>}
+            {installedPre && <Badge variant="warning">{t('card.installedPrerelease', { ns: 'plugins' })}</Badge>}
+            {hasUpdate && (
+              <Badge variant="destructive">
+                {updatePre ? t('card.prereleaseUpdate', { ns: 'plugins' }) : t('store.updateAvailable')}
+              </Badge>
+            )}
             {plugin.installed && !needsRepair && <Badge variant="success">{t('store.installed')}</Badge>}
             {plugin.installed && installedUnsigned && (
               <Badge variant="warning">{t('unsigned.badge', { ns: 'plugins' })}</Badge>
@@ -146,11 +175,7 @@ export function PluginCard({
                 <StatusError
                   error={repairError}
                   title={t('repair.failed', { ns: 'plugins' })}
-                  description={t('repair.explanation', {
-                    ns: 'plugins',
-                    builtFor: builtFor ?? '',
-                    current: installedVersion ?? '',
-                  })}
+                  description={t('repair.explanation', { ns: 'plugins' })}
                 />
               </>
             )}
@@ -173,6 +198,6 @@ export function PluginCard({
         onUninstall={onUninstall}
         onViewDetail={onViewDetail}
       />
-    </div>
+    </article>
   );
 }

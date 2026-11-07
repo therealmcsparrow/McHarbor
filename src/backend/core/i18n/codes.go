@@ -569,6 +569,18 @@ const (
 	ErrUpdateNameRequired      MsgCode = "err.update.name_required"
 )
 
+// --- Update channels (prerelease) ---
+const (
+	ErrUpdateDowngradeRefused        MsgCode = "err.update.downgrade_refused"
+	ErrUpdateMigrationBlocksStable   MsgCode = "err.update.migration_blocks_stable"
+	ErrUpdateReturnOnPrereleaseHost  MsgCode = "err.update.return_on_prerelease_host"
+	ErrAgentNoStableRelease          MsgCode = "err.agent.no_stable_release"
+	ErrPluginNoStableRelease         MsgCode = "err.plugin.no_stable_release"
+	ErrAgentNotConnected             MsgCode = "err.agent.not_connected"
+	ErrImageDigestPinnedNoPrerelease MsgCode = "err.image.digest_pinned_no_prerelease"
+	ErrUpdatePrereleaseOff           MsgCode = "err.update.prerelease_off"
+)
+
 // --- Plugins ---
 const (
 	ErrPluginListFailed       MsgCode = "err.plugin.list_failed"

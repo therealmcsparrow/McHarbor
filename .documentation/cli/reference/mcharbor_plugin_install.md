@@ -2,6 +2,10 @@
 
 Install a plugin from the catalog; its signature and checksum are verified by the server
 
+### Synopsis
+
+install fetches the catalog entry and has the server install it. A release no trusted key verifies is refused unless --allow-unsigned is passed, because an unsigned plugin runs as native code with the same host privileges as McHarbor.
+
 ```
 mcharbor plugin install <slug> [flags]
 ```
@@ -9,6 +13,7 @@ mcharbor plugin install <slug> [flags]
 ### Options
 
 ```
+      --allow-unsigned   install even when no trusted key verifies the release (it runs with full host privileges)
   -h, --help             help for install
       --version string   catalog version to install; the newest when omitted
 ```
