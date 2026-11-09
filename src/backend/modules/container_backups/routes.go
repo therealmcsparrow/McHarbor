@@ -75,6 +75,7 @@ func MountWithRuntime(app *router.AppDeps, runtime any, recreator ContainerRecre
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermRestoreRun)).Post("/upload", h.HandleStageUpload, apispec.Scoped(), apispec.Response(BackupRun{}))
 		})
 		r.Route("/container-backups", func(r *apispec.Router) {
+			mountTempRoutes(r, app, h)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermBackupsView)).Get("/", h.HandleListPlans, apispec.Scoped(), apispec.Query("containerId", "Only plans for this container."), apispec.Response([]BackupPlan{}))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermBackupsManage)).Post("/", h.HandleCreatePlan, apispec.Scoped(), apispec.Request(CreateBackupPlanInput{}), apispec.Response(BackupPlan{}))
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermBackupsView)).Get("/runs", h.HandleListRuns, apispec.Scoped(), apispec.Query("containerId", ""))

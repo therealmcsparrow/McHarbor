@@ -1479,6 +1479,12 @@
                      "description":  "Um tour rápido pelas últimas mudanças.",
                      "dismiss":  "Dispensar",
                      "gotIt":  "Entendi",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Pasta temporária de backup e limpeza",
+                                                           "description":  "Escolha em Backups → Configurações, ou com MCHARBOR_BACKUP_TEMP_DIR, onde backups e restaurações guardam seus arquivos de trabalho. Cada execução remove sua própria pasta temporária, uma limpeza a cada hora apaga sobras de uma falha e Limpar temporários esvazia a pasta quando você quiser."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Canais de pré-lançamento",

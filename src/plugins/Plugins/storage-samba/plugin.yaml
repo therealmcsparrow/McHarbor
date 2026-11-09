@@ -6,7 +6,7 @@ description: "Backup destination backed by an SMB/CIFS share (samba.org). Anonym
 author: "McSparrow <support@mcsparrow.eu>"
 homepage: "https://www.mcharbor.eu/docs/plugins"
 
-mcharbor: ">=2026.11.01"
+mcharbor: ">=2026.11.03"
 go: ">=1.23"
 
 permissions:

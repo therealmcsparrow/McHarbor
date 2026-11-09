@@ -149,11 +149,19 @@ var sensitiveKeys = map[string]struct{}{
 	"webpush_vapid_private": {},
 }
 
+// moduleOwnedKeys are rows a module writes through its own validated, audited route; a generic write
+// would skip that validation. The list is local so settings imports no sibling module.
+var moduleOwnedKeys = map[string]struct{}{
+	"backup_temp_dir":         {},
+	"backup_temp_dir_retired": {},
+}
+
 // isProtectedWrite reports whether a generic write of key under category is refused: either a
-// sensitive key or a row the update-channel and pin stores own. It is separate from sensitiveKeys
-// so those rows stay readable.
+// sensitive key, a module-owned row or a row the update-channel and pin stores own. It is separate
+// from sensitiveKeys so those rows stay readable.
 func isProtectedWrite(key, category string) bool {
-	return isSensitiveKey(key) || updatechannel.Reserved(key, category)
+	_, owned := moduleOwnedKeys[updatechannel.Fold(key)]
+	return isSensitiveKey(key) || owned || updatechannel.Reserved(key, category)
 }
 
 // isSensitiveKey reports whether key is one of sensitiveKeys.

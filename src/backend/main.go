@@ -344,7 +344,6 @@ func main() {
 		logger.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
-	bootstrap.SweepLocalBackupOrphans(cfg.DataDir, logger)
 	if driverName == string(db.DriverMySQL) {
 		if err := sqldialect.LoadMySQLTimeColumns(context.Background(), database); err != nil {
 			logger.Error("failed to read the DATETIME columns; RFC3339 timestamps will be refused", "error", err)
@@ -713,6 +712,7 @@ func main() {
 	)
 	containerBackupCtx, containerBackupCancel := context.WithCancel(context.Background())
 	defer containerBackupCancel()
+	bootstrap.StartBackupTempSweeper(containerBackupCtx, database, cfg.DataDir, logger)
 	if !coredemo.Active() {
 		go containerBackupScheduler.Start(containerBackupCtx)
 	}

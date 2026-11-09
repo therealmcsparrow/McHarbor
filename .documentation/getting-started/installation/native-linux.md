@@ -241,6 +241,23 @@ Lead with the two failures most likely to occur, in order of likelihood:
    | The service sees it writable | `sudo nsenter -t "$(systemctl show -p MainPID --value mcharbor)" -m findmnt -T /mcharbor/backup` | `rw` in the options |
    | The account may write | `sudo -u mcharbor touch /mcharbor/backup/probe` | No error; every parent directory needs execute for `mcharbor` (`namei -l` shows each level) |
 
+   The same two steps apply when you move the **backup temp location** off
+   `/var/lib/mcharbor`, whether through `MCHARBOR_BACKUP_TEMP_DIR` or the saved setting
+   (see [Configuration](../configuration/README.md#backup-temporary-files)). A refused save
+   with a "not writable" message on a `--no-run-as-root` install is this case. Use the file
+   `backup-temp.conf` and your temp folder, for example `/mnt/scratch/mcharbor-tmp`:
+
+   ```bash
+   sudo mkdir -p /etc/systemd/system/mcharbor.service.d
+   printf '[Service]\nReadWritePaths=/mnt/scratch/mcharbor-tmp\n' \
+     | sudo tee /etc/systemd/system/mcharbor.service.d/backup-temp.conf
+   sudo systemctl daemon-reload && sudo systemctl restart mcharbor
+   sudo chown -R mcharbor:mcharbor /mnt/scratch/mcharbor-tmp
+   ```
+
+   If you use the environment variable, also add `MCHARBOR_BACKUP_TEMP_DIR=<path>` to
+   `/etc/mcharbor/mcharbor.env`. The three checks in the table above work unchanged.
+
    A native agent runs as root without this sandbox and needs neither step, and neither does
    McHarbor in its default, root mode. `--run-as-root` is the other way out
    ([section 7](#running-as-the-mcharbor-account)).

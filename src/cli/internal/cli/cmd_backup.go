@@ -198,6 +198,7 @@ func addBackupCommands(root *cobra.Command, g *globals) {
 	restore.Flags().BoolVar(&keyFromStdin, "secret-key-stdin", false, "read the backup's secret key from stdin, for archives that need one")
 	restore.Flags().BoolVar(&restoreNoFollow, "no-follow", false, "print the run id and return immediately")
 	bk.AddCommand(restore)
+	addBackupTempCommands(bk, g)
 	root.AddCommand(bk)
 }
 

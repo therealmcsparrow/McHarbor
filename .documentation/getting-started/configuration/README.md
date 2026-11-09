@@ -175,6 +175,60 @@ put a private key in the directory; the trust store needs the certificate alone.
 | `MCHARBOR_THEME_CATALOG_ROOT` | native: `/opt/mcharbor` | Native install only. Root the binary reads bundled theme payloads from |
 | `MCHARBOR_DEBUG_BIN_DIR` | `debug/` beside the binary (`/app/debug` in the image, `/opt/mcharbor/debug` native) | Directory holding `busybox-amd64` and `busybox-arm64` for the container [debug shell](../../screens/containers/debug-shell/README.md). Set it only for a development build run with `go run`, which has no `debug/` directory |
 
+## Backup temporary files
+
+A container backup or restore stages files in a temporary folder while it runs. Each run
+works in its own `mcharbor-run-<run id>` folder (mode 0700) under the temp root and removes
+it when the run ends.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `MCHARBOR_BACKUP_TEMP_DIR` | _(empty)_ | Absolute path of the temp root. When set it wins over the saved setting, and the setting is shown read-only |
+
+The root is chosen in this order, and the first that applies is used:
+
+1. `MCHARBOR_BACKUP_TEMP_DIR`.
+2. The location saved in the setting `backup_temp_dir`.
+3. `<data directory>/backups/tmp`.
+
+A new run uses the root resolved at the moment it starts. Changing the location does not
+move a run already in progress; the old root is kept on a list of retired roots until it
+holds no McHarbor-named entry.
+
+**Validation.** The path must be absolute and must not contain a `..` segment. It is refused
+when it is `/`, one of `/etc`, `/proc`, `/sys`, `/dev`, `/boot`, `/bin`, `/sbin`, `/lib`,
+`/lib64`, `/usr/bin`, `/usr/sbin`, `/usr/lib` or anything under them, the data directory,
+the local backup directory, or an ancestor of either. The check applies to the cleaned path
+and to where symbolic links lead. A world-writable folder is refused, and McHarbor must be
+able to create and delete a file there. A rejected value in the environment variable is
+logged, reported on the status, and the default root is used instead. A rejected saved value
+is returned as an error and nothing changes.
+
+**Cleanup.** An hourly sweep and the manual cleanup delete only McHarbor-named entries
+(`mcharbor-run-`, `mcharbor-backup-entry-`, `mcharbor-frozen-`, `mcharbor-probe-`,
+`restore-subset-`), never anything else in the folder, and both skip entries that belong to a
+running backup. The hourly sweep also skips entries less than an hour old. Manual cleanup
+removes every McHarbor-named entry that no run owns when no backup is running, and only
+entries older than an hour while one is. The sweep also removes `.mcharbor-backup-` and
+`.mcharbor-agent-backup-` partial files older than an hour from local backup destinations.
+Manual cleanup covers the current and retired temp roots only.
+
+**Spooled data.** Temporary entries can hold unencrypted copies of volume data, which may
+include personal data. Choose a folder on an access-restricted or encrypted volume.
+
+**Permissions and API.** Reading the status, saving a location and running the cleanup all
+need `backups.manage` as a **global** grant; a grant limited to one environment does not
+reach them. Routes: `GET /api/container-backups/temp`, `PUT /api/container-backups/temp`
+(an empty `path` resets to the default; refused with 409 while the variable is set) and
+`POST /api/container-backups/temp/cleanup`. From the CLI: `mcharbor backup temp status` and
+`mcharbor backup temp clean`.
+
+**Containers and the native sandbox.** In the container, mount the chosen folder into it.
+On a native install running as the `mcharbor` account the service can write only under
+`/var/lib/mcharbor`, so any other location needs a `ReadWritePaths=` drop-in and
+`mcharbor` ownership; see
+[Native Linux install, section 8](../installation/native-linux.md#8-troubleshooting).
+
 ## Native install
 
 These apply only outside the container: a `.deb`, `.rpm` or tarball install

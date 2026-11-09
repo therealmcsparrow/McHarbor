@@ -8,6 +8,14 @@ export type WhatsNewItem = {
 };
 
 export function getReleaseItems(version: string): WhatsNewItem[] {
+  if (version === '2026.11.03') {
+    return [
+      {
+        titleKey: 'whatsNew.2026_11_03.backupTemp.title',
+        descriptionKey: 'whatsNew.2026_11_03.backupTemp.description',
+      },
+    ];
+  }
   if (version === '2026.11.02') {
     return [
       {

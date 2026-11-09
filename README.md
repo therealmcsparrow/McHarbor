@@ -6,7 +6,7 @@ McHarbor is a self-hosted control plane for Docker environments, extendable to K
 
 Deploy it as a Docker container, connect it to the host Docker socket, and start managing infrastructure from one clean, dark-first interface. Add remote Docker hosts through the outbound McHarbor agent, install the Kubernetes or Swarm plugin to manage clusters beside Docker environments, stream logs, open browser terminals, build dashboards, automate routine work, and keep a clear record of operational changes without handing your infrastructure to a third party. McHarbor is free for personal and homelab use. Commercial and business use requires a commercial license.
 
-**Current release: 2026.11.02.** See [What's New in 2026.11.02](#whats-new-in-20261102) and the [CHANGELOG](CHANGELOG.md). Upgrading from 2.x? Read the breaking changes of [2026.10.01](CHANGELOG.md#20261001---2026-10-21) first.
+**Current release: 2026.11.03.** See [What's New in 2026.11.03](#whats-new-in-20261103) and the [CHANGELOG](CHANGELOG.md). Upgrading from 2.x? Read the breaking changes of [2026.10.01](CHANGELOG.md#20261001---2026-10-21) first.
 
 ## Why McHarbor
 
@@ -81,6 +81,13 @@ McHarbor is built for the work that happens after deployment.
 - **High Availability**: Run active/passive McHarbor nodes on a shared PostgreSQL, MySQL, MariaDB or SQL Server database — one active node fenced by a database lock, standbys that refuse changes, readiness probes for the load balancer, and Make active / Drain / Resume from Enterprise → High availability. Plugin packages are kept in the database, a shared mount or a storage location so every node can load them.
 - **HTTPS by Default**: McHarbor is its own certificate authority. A ten-year root signs a 90-day certificate on first boot and renews it without a restart; install the root once from Settings → Security → HTTPS and the browser warning is gone. Upload your own certificate there instead, or issue one automatically with the bundled ACME companion app. Connections negotiate **TLS 1.3**, the preferred and shipped floor; TLS 1.2 stays available for clients that predate 2019 via `TLS_MIN_VERSION=1.2`, and TLS 1.1 and below are refused.
 - **Self-Update Checker**: McHarbor periodically compares the running version and build against the latest GitHub release, surfaces an in-app banner when a newer version, or a newer build of the same version, is available, and notifies configured channels. The check interval is configurable from Settings.
+
+## What's New in 2026.11.03
+
+McHarbor 2026.11.03 lets you move the backup temp folder and cleans it up on its own. Update McHarbor before its plugins, because every plugin is rebuilt for this release. The full list is in [CHANGELOG.md](CHANGELOG.md).
+
+- **Backup temp location and cleanup**: Choose where backups and restores spool their work files under Backups → Settings, or with `MCHARBOR_BACKUP_TEMP_DIR`. Each run cleans up after itself, an hourly sweep removes crash leftovers, and "Clean up temp" empties the folder on demand. The CLI has `mcharbor backup temp status` and `clean`.
+- **Containers page after re-login**: Logging in again after an idle timeout no longer leaves the Containers page on a "Too many re-renders" error, and the page also loads when the container list fails to load.
 
 ## What's New in 2026.11.02
 

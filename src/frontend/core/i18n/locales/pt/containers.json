@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "Aguardando a API do McHarbor voltar a ficar on-line...",
       "apiRecoveryTimeout": "A API do McHarbor não voltou a ficar on-line a tempo."
     }
+  },
+  "backupTemp": {
+    "title": "Local temporário dos backups",
+    "description": "Onde os backups e as restaurações armazenam dados temporários enquanto são executados. Cada execução usa uma pasta própria e a remove quando termina.",
+    "location": "Local",
+    "locationHelp": "Deixe vazio para usar o padrão: {{path}}",
+    "reset": "Restaurar o padrão",
+    "saving": "Salvando...",
+    "envNote": "Definido pela variável de ambiente MCHARBOR_BACKUP_TEMP_DIR. Remova a variável e reinicie o McHarbor para alterá-lo aqui.",
+    "envInvalidTitle": "Valor da variável de ambiente ignorado",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR não é utilizável ({{reason}}). Usando o local padrão.",
+    "source": {
+        "default": "Padrão",
+        "setting": "Configuração salva",
+        "env": "Variável de ambiente"
+    },
+    "inUse": "Em uso",
+    "size": "Tamanho",
+    "entries": "Itens",
+    "activeRuns": "Execuções ativas",
+    "activeNote": "Os itens usados por um backup ou restauração em andamento são mantidos.",
+    "retired_one": "{{count}} local anterior ainda pode conter restos.",
+    "retired_other": "{{count}} locais anteriores ainda podem conter restos.",
+    "refusedTitle": "Não é possível usar este local",
+    "scopedOnly": "Gerenciar o local temporário dos backups requer {{permission}} como permissão global. Uma permissão limitada a um ambiente não se aplica a esta configuração de toda a instância. Peça a permissão global a um administrador.",
+    "remedy": {
+        "sandboxedIntro": "O McHarbor é executado aqui em um ambiente isolado, por isso são necessários dois passos.",
+        "step1": "Permita que o serviço grave ali. Salve isto como {{file}}:",
+        "reload": "Depois execute: sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Dê acesso de gravação ao usuário mcharbor:",
+        "again": "Depois clique em Salvar novamente.",
+        "container": "Monte uma pasta do host no contêiner neste caminho (um volume ou bind mount no seu arquivo compose) e salve novamente.",
+        "dropInLabel": "Conteúdo do arquivo drop-in",
+        "chownLabel": "Comando chown"
+    },
+    "cleanup": {
+        "title": "Limpar temporários",
+        "description": "Remove as pastas temporárias que sobraram dos locais acima. Tudo o que um backup ou restauração ativos estiver usando é mantido.",
+        "none": "Não há nada para limpar.",
+        "button": "Limpar temporários",
+        "confirmTitle": "Limpar os temporários dos backups?",
+        "confirmBody": "Isto remove {{entries}} itens que sobraram ({{size}}) de {{path}} e de locais anteriores. Não pode ser desfeito. Os restos nos destinos de backup são removidos pela limpeza horária.",
+        "confirmActive": "Há uma execução ativa, por isso só são removidos os itens com mais de uma hora.",
+        "result_one": "{{count}} item removido ({{size}}).",
+        "result_other": "{{count}} itens removidos ({{size}}).",
+        "resultNothing": "Nada foi removido.",
+        "keptOwned_one": "{{count}} mantido por estar em uso em um backup ou restauração em andamento.",
+        "keptOwned_other": "{{count}} mantidos por estarem em uso em um backup ou restauração em andamento.",
+        "keptRecent_one": "{{count}} mantido por ter menos de uma hora.",
+        "keptRecent_other": "{{count}} mantidos por terem menos de uma hora."
+    },
+    "reply": {
+        "malformedStatus": "O servidor enviou um estado ilegível do local temporário dos backups.",
+        "malformedCleanup": "O servidor enviou um resultado ilegível da limpeza do local temporário dos backups."
+    },
+    "toast": {
+        "saved": "Local temporário salvo",
+        "saveFailed": "Não foi possível salvar o local temporário",
+        "cleanupFailed": "Não foi possível limpar os temporários"
+    }
   }
 }

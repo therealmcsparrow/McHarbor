@@ -1479,6 +1479,12 @@
                      "description":  "Un aperçu rapide des derniers changements.",
                      "dismiss":  "Ignorer",
                      "gotIt":  "Compris",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Dossier temporaire des sauvegardes et nettoyage",
+                                                           "description":  "Choisissez dans Sauvegardes → Paramètres, ou avec MCHARBOR_BACKUP_TEMP_DIR, où les sauvegardes et restaurations stockent leurs fichiers de travail. Chaque exécution supprime son propre dossier temporaire, un nettoyage horaire efface les restes après un plantage et Nettoyer les fichiers temporaires vide le dossier à la demande."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Canaux de préversion",

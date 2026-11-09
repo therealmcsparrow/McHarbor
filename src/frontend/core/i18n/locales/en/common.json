@@ -1479,6 +1479,12 @@
                      "description":  "A quick tour of the latest changes.",
                      "dismiss":  "Dismiss",
                      "gotIt":  "Got it",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Backup temp location and cleanup",
+                                                           "description":  "Choose where backups and restores spool their work files under Backups → Settings, or with MCHARBOR_BACKUP_TEMP_DIR. Each run removes its own temp folder, an hourly sweep clears crash leftovers, and Clean up temp empties the folder on demand."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Prerelease channels",

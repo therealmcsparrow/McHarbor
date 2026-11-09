@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "Es wird gewartet, bis die McHarbor-API wieder online ist...",
       "apiRecoveryTimeout": "Die McHarbor-API ist nicht rechtzeitig wieder online gegangen."
     }
+  },
+  "backupTemp": {
+    "title": "Temporärer Speicherort für Backups",
+    "description": "Wo Backups und Wiederherstellungen Daten zwischenspeichern, solange sie laufen. Jeder Lauf erhält einen eigenen Ordner und entfernt ihn am Ende.",
+    "location": "Speicherort",
+    "locationHelp": "Leer lassen, um den Standard zu verwenden: {{path}}",
+    "reset": "Auf Standard zurücksetzen",
+    "saving": "Wird gespeichert...",
+    "envNote": "Gesetzt durch die Umgebungsvariable MCHARBOR_BACKUP_TEMP_DIR. Entfernen Sie die Variable und starten Sie McHarbor neu, um den Wert hier zu ändern.",
+    "envInvalidTitle": "Wert der Umgebungsvariable ignoriert",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR ist nicht verwendbar ({{reason}}). Der Standardspeicherort wird verwendet.",
+    "source": {
+        "default": "Standard",
+        "setting": "Gespeicherte Einstellung",
+        "env": "Umgebungsvariable"
+    },
+    "inUse": "In Verwendung",
+    "size": "Größe",
+    "entries": "Einträge",
+    "activeRuns": "Aktive Läufe",
+    "activeNote": "Einträge, die ein laufendes Backup oder eine laufende Wiederherstellung verwendet, bleiben erhalten.",
+    "retired_one": "{{count}} früherer Speicherort enthält möglicherweise noch Reste.",
+    "retired_other": "{{count}} frühere Speicherorte enthalten möglicherweise noch Reste.",
+    "refusedTitle": "Dieser Speicherort kann nicht verwendet werden",
+    "scopedOnly": "Zum Verwalten des temporären Backup-Speicherorts ist {{permission}} als globale Berechtigung nötig. Eine auf eine Umgebung beschränkte Berechtigung gilt nicht für diese Einstellung der gesamten Instanz. Bitten Sie einen Administrator um die globale Berechtigung.",
+    "remedy": {
+        "sandboxedIntro": "McHarbor läuft hier in einer Sandbox, daher sind zwei Schritte nötig.",
+        "step1": "Erlauben Sie dem Dienst, dort zu schreiben. Speichern Sie dies als {{file}}:",
+        "reload": "Führen Sie danach aus: sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Geben Sie dem Benutzer mcharbor Schreibzugriff:",
+        "again": "Klicken Sie danach erneut auf Speichern.",
+        "container": "Binden Sie einen Host-Ordner unter diesem Pfad in den Container ein (ein Volume oder Bind-Mount in Ihrer Compose-Datei) und speichern Sie dann erneut.",
+        "dropInLabel": "Inhalt der Drop-in-Datei",
+        "chownLabel": "chown-Befehl"
+    },
+    "cleanup": {
+        "title": "Temp-Ordner bereinigen",
+        "description": "Entfernt übrig gebliebene Zwischenordner aus den obigen Speicherorten. Alles, was ein aktives Backup oder eine aktive Wiederherstellung verwendet, bleibt erhalten.",
+        "none": "Nichts zu bereinigen.",
+        "button": "Temp-Ordner bereinigen",
+        "confirmTitle": "Backup-Temp-Ordner bereinigen?",
+        "confirmBody": "Dies entfernt {{entries}} übrig gebliebene Einträge ({{size}}) aus {{path}} und früheren Speicherorten. Das lässt sich nicht rückgängig machen. Reste in Backup-Zielen entfernt die stündliche Bereinigung.",
+        "confirmActive": "Ein Lauf ist aktiv, daher werden nur Einträge entfernt, die älter als eine Stunde sind.",
+        "result_one": "{{count}} Eintrag entfernt ({{size}}).",
+        "result_other": "{{count}} Einträge entfernt ({{size}}).",
+        "resultNothing": "Es wurde nichts entfernt.",
+        "keptOwned_one": "{{count}} behalten, weil ein laufendes Backup oder eine laufende Wiederherstellung ihn verwendet.",
+        "keptOwned_other": "{{count}} behalten, weil ein laufendes Backup oder eine laufende Wiederherstellung sie verwendet.",
+        "keptRecent_one": "{{count}} behalten, weil er jünger als eine Stunde ist.",
+        "keptRecent_other": "{{count}} behalten, weil sie jünger als eine Stunde sind."
+    },
+    "reply": {
+        "malformedStatus": "Der Server hat einen unlesbaren Status des temporären Backup-Speicherorts gesendet.",
+        "malformedCleanup": "Der Server hat ein unlesbares Ergebnis der Bereinigung des temporären Backup-Speicherorts gesendet."
+    },
+    "toast": {
+        "saved": "Temporärer Backup-Speicherort gespeichert",
+        "saveFailed": "Der temporäre Backup-Speicherort konnte nicht gespeichert werden",
+        "cleanupFailed": "Der Backup-Temp-Ordner konnte nicht bereinigt werden"
+    }
   }
 }

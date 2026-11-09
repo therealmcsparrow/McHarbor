@@ -7,6 +7,7 @@ import { PERM } from '@core/auth/permissionKeys';
 import { usePermission } from '@core/auth/usePermission';
 import { BackupEncryptionKeyCard } from '@resources/components/settings/BackupEncryptionKeyCard';
 import { BackupLogRetentionCard } from '@resources/components/settings/BackupLogRetentionCard';
+import { BackupTempCard } from './BackupTempCard';
 
 /**
  * Backups → Settings: the instance-wide settings that shape every backup,
@@ -22,20 +23,21 @@ export function BackupSettingsTab() {
   const { t } = useTranslation('common');
   const canView = usePermission(PERM.SETTINGS_VIEW);
 
-  if (!canView) {
-    return (
-      <Alert
-        variant="warning"
-        title={t('permission.denied')}
-        description={t('permission.requires', { permission: PERM.SETTINGS_VIEW })}
-      />
-    );
-  }
-
   return (
     <div className="space-y-4 pb-4">
-      <BackupEncryptionKeyCard />
-      <BackupLogRetentionCard />
+      {canView ? (
+        <>
+          <BackupEncryptionKeyCard />
+          <BackupLogRetentionCard />
+        </>
+      ) : (
+        <Alert
+          variant="warning"
+          title={t('permission.denied')}
+          description={t('permission.requires', { permission: PERM.SETTINGS_VIEW })}
+        />
+      )}
+      <BackupTempCard />
     </div>
   );
 }

@@ -10,6 +10,30 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-09 12:39 — McHarbor 2026.11.03 — Containers page re-login fix
+
+### Changed
+- `getting-started/changelog/README.md` — the 2026.11.03 summary notes that the Containers page no longer fails with "Too many re-renders" after logging in again or when the container list cannot be loaded.
+
+## 2026-11-09 03:13 — McHarbor 2026.11.03 — Release 2026.11.03
+
+### Changed
+- `getting-started/changelog/README.md` — 2026.11.03 is the current release (backup temp location and cleanup, every plugin rebuilt for 2026.11.03), with its release-history row.
+- `getting-started/deployment/compatibility.md` — current release and bundled agent version are 2026.11.03.
+
+## 2026-11-09 01:50 — McHarbor 2026.11.02 — Backup temp cleanup wording
+
+### Changed
+- `getting-started/configuration/README.md` — the Cleanup paragraph now gives the one-hour age rule for the hourly sweep only, states what manual cleanup removes with and without a running backup, and advises an access-restricted or encrypted volume for the temp folder.
+
+## 2026-11-09 01:10 — McHarbor 2026.11.02 — Backup temp location
+
+### Added
+- `getting-started/configuration/README.md` — a "Backup temporary files" section: `MCHARBOR_BACKUP_TEMP_DIR`, the resolution order, validation, cleanup scope, the `backups.manage` global grant and the sandbox pointer.
+
+### Changed
+- `getting-started/installation/native-linux.md` — section 8 item 3 covers a backup temp location outside `/var/lib/mcharbor`, with the `backup-temp.conf` drop-in.
+
 ## 2026-11-07 19:50 — McHarbor 2026.11.02 — Release 2026.11.02
 
 ### Changed

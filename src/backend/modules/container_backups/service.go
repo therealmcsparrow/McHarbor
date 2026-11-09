@@ -126,6 +126,9 @@ type Service struct {
 	enc          *encryption.Service
 	logger       *slog.Logger
 
+	// getenv is injectable so tests set MCHARBOR_BACKUP_TEMP_DIR without touching the process environment.
+	getenv func(string) string
+
 	snapshotAdapter any
 
 	// builtinSnapshots owns the drivers McHarbor ships itself (zfs,
@@ -188,6 +191,7 @@ var runCancelers sync.Map
 
 // NewService creates a backup service.
 func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) *Service {
+	configureTempRoot(database, dataDir, os.Getenv)
 	return &Service{
 		db:           database,
 		pool:         pool,
@@ -195,6 +199,7 @@ func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, b
 		backupCrypto: backupCrypto,
 		enc:          enc,
 		logger:       logger,
+		getenv:       os.Getenv,
 		// The builtin drivers are always available: they are core, not
 		// a plugin, so there is nothing to install before an operator
 		// can snapshot a ZFS or btrfs host.
@@ -913,6 +918,12 @@ func (s *Service) adhocPlan(ctx context.Context, envID, containerID string, inpu
 func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
 	done := markBackupRunActive(runID)
 	defer done()
+
+	ctx, _, releaseTemp, err := acquireRunTemp(ctx, runID)
+	if err != nil {
+		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("preparing backup temp folder: %w", err))
+	}
+	defer releaseTemp()
 
 	if s.canRunAgentCentralizedBackup(ctx, plan) {
 		return s.executeAgentCentralizedBackup(ctx, plan, runID)
@@ -2200,6 +2211,11 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	if err != nil {
 		return nil, err
 	}
+	ctx, _, releaseTemp, err := acquireRunTemp(ctx, "restore-"+xid.New().String())
+	if err != nil {
+		return nil, fmt.Errorf("preparing restore temp folder: %w", err)
+	}
+	defer releaseTemp()
 	return s.restoreFromRun(ctx, "", run, input)
 }
 
@@ -2238,7 +2254,12 @@ func (s *Service) startBackgroundRestore(parent context.Context, restoreRunID, s
 			runCancelers.Delete(restoreRunID)
 		}()
 
-		sourceRun, err := s.runByID(ctx, sourceRunID)
+		var sourceRun *BackupRun
+		ctx, _, releaseTemp, err := acquireRunTemp(ctx, restoreRunID)
+		if err == nil {
+			defer releaseTemp()
+			sourceRun, err = s.runByID(ctx, sourceRunID)
+		}
 		if err == nil && sourceRun != nil {
 			var result *RestoreBackupResult
 			result, err = s.restoreFromRun(ctx, restoreRunID, sourceRun, input)
@@ -4216,7 +4237,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		if err != nil {
 			return fmt.Errorf("reading container logs: %w", err)
 		}
-		if err := writeStream(ctx, tw, "container/logs.txt", reader, s.backupTempDir(), func() {
+		if err := writeStream(ctx, tw, "container/logs.txt", reader, runTempDir(ctx), func() {
 			s.updateRunProgress(ctx, runID, "logs", "")
 		}); err != nil {
 			return err
@@ -4233,7 +4254,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		if filesystemSelection.partial() {
 			source = filteredTarReader(reader, captureFilesystemPaths(filesystemSelection.Paths), "container/filesystem.tar", s.logger)
 		}
-		if err := writeStream(ctx, tw, "container/filesystem.tar", source, s.backupTempDir(), func() {
+		if err := writeStream(ctx, tw, "container/filesystem.tar", source, runTempDir(ctx), func() {
 			s.updateRunProgress(ctx, runID, "filesystem", "")
 		}); err != nil {
 			return err
@@ -4255,7 +4276,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 			if err != nil {
 				return fmt.Errorf("saving container image: %w", err)
 			}
-			if err := writeStream(ctx, tw, "image/image.tar", reader, s.backupTempDir(), func() {
+			if err := writeStream(ctx, tw, "image/image.tar", reader, runTempDir(ctx), func() {
 				s.updateRunProgress(ctx, runID, "image", "")
 			}); err != nil {
 				return err
@@ -4284,7 +4305,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		// paused. Partial selections still go through the live copy:
 		// the path filter runs over a tar stream, not a directory.
 		if frozenPath, frozen := frozenMountPath(frozenMounts, cleanMount); frozen && !mountSelection.partial() {
-			if err := s.writeFrozenMount(ctx, tw, name, frozenPath, cleanMount, s.backupTempDir(), func() {
+			if err := s.writeFrozenMount(ctx, tw, name, frozenPath, cleanMount, runTempDir(ctx), func() {
 				s.updateRunProgress(ctx, runID, "mounts", "")
 			}); err != nil {
 				return err
@@ -4300,7 +4321,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		if mountSelection.partial() {
 			source = filteredTarReader(reader, captureMountPaths(cleanMount, mountSelection.Paths), name, s.logger)
 		}
-		if err := writeStream(ctx, tw, name, source, s.backupTempDir(), func() {
+		if err := writeStream(ctx, tw, name, source, runTempDir(ctx), func() {
 			s.updateRunProgress(ctx, runID, "mounts", "")
 		}); err != nil {
 			return err
@@ -4435,14 +4456,6 @@ func LocalBackupDir(dataDir string) string {
 	abs, err := filepath.Abs(filepath.Join(dataDir, "backups", "containers"))
 	if err != nil {
 		return filepath.Join(dataDir, "backups", "containers")
-	}
-	return abs
-}
-
-func (s *Service) backupTempDir() string {
-	abs, err := filepath.Abs(filepath.Join(s.dataDir, "backups", "tmp"))
-	if err != nil {
-		return filepath.Join(s.dataDir, "backups", "tmp")
 	}
 	return abs
 }

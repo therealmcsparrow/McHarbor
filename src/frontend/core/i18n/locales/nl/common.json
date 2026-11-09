@@ -1479,6 +1479,12 @@
                      "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
                      "dismiss":  "Sluiten",
                      "gotIt":  "Begrepen",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Tijdelijke back-upmap en opschonen",
+                                                           "description":  "Kies onder Back-ups → Instellingen, of met MCHARBOR_BACKUP_TEMP_DIR, waar back-ups en herstelacties hun werkbestanden opslaan. Elke run verwijdert zijn eigen tijdelijke map, een opschoning per uur ruimt restanten na een crash op en Tijdelijke map opschonen leegt de map wanneer u wilt."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Prerelease-kanalen",

@@ -2,6 +2,41 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [2026.11.03] - 2026-11-09
+
+The backup temp folder can now be moved and cleans itself up. Update McHarbor before its plugins: every plugin is
+rebuilt for this release and needs McHarbor 2026.11.03 or newer.
+
+### Added
+
+- **Configurable backup temp location.** Container backups and restores spool their work files in
+  `<data directory>/backups/tmp` unless you set another folder under Backups → Settings, or with
+  `MCHARBOR_BACKUP_TEMP_DIR`, which overrides the saved setting. A new folder must be absolute, outside system
+  folders, the data directory and the local backup directory, not world-writable, and pass a write test. On a
+  native install with `--no-run-as-root` a refused folder shows the exact `ReadWritePaths=` drop-in and `chown`
+  to run. Changing the folder needs a global grant of `backups.manage` and is audited.
+- **Temp cleanup.** Each backup and restore works in its own folder, removed when it ends, whatever the outcome.
+  McHarbor sweeps the temp folder, its previous locations and leftover partial copies in local destinations at
+  startup and every hour, removing McHarbor-named entries older than an hour that no running backup owns. "Clean
+  up temp" in Backups → Settings shows the size and entry count first and removes every McHarbor entry when no
+  backup is running; it needs a global grant of `backups.manage` and is audited.
+- **`mcharbor backup temp status` and `mcharbor backup temp clean`** in the CLI, with the same permission.
+
+### Changed
+
+- The startup sweep of `.mcharbor-agent-backup-*` partials now waits an hour instead of ten minutes, and also
+  removes `.mcharbor-backup-*` partials.
+- The generic settings route refuses `backup_temp_dir` and `backup_temp_dir_retired`; only the backup temp route,
+  which validates and audits, writes them.
+
+### Fixed
+
+- **The Containers page no longer crashes after you log in again.** Logging back in after an idle timeout or an
+  expired session returns you to the page you were on. When that page was Containers, it failed with "Too many
+  re-renders" (React error #301 in a production build), and reloading did not help. The same happened whenever
+  the container list could not be loaded, for example while an environment's agent was disconnected. The page now
+  loads and shows its own load-error banner in that case.
+
 ## [2026.11.02] - 2026-11-07
 
 Test builds of McHarbor, agents and plugins can now be offered, through switches that are all off by default.

@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "Esperando a que la API de McHarbor vuelva a estar en línea...",
       "apiRecoveryTimeout": "La API de McHarbor no volvió a estar en línea a tiempo."
     }
+  },
+  "backupTemp": {
+    "title": "Ubicación temporal de las copias de seguridad",
+    "description": "Dónde guardan datos temporales las copias de seguridad y las restauraciones mientras se ejecutan. Cada ejecución usa su propia carpeta y la elimina al terminar.",
+    "location": "Ubicación",
+    "locationHelp": "Déjalo vacío para usar la predeterminada: {{path}}",
+    "reset": "Restablecer la predeterminada",
+    "saving": "Guardando...",
+    "envNote": "Definida por la variable de entorno MCHARBOR_BACKUP_TEMP_DIR. Quita la variable y reinicia McHarbor para cambiarla aquí.",
+    "envInvalidTitle": "Valor de la variable de entorno ignorado",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR no se puede usar ({{reason}}). Se usa la ubicación predeterminada.",
+    "source": {
+        "default": "Predeterminada",
+        "setting": "Ajuste guardado",
+        "env": "Variable de entorno"
+    },
+    "inUse": "En uso",
+    "size": "Tamaño",
+    "entries": "Elementos",
+    "activeRuns": "Ejecuciones activas",
+    "activeNote": "Los elementos que usa una copia o una restauración en curso se conservan.",
+    "retired_one": "{{count}} ubicación anterior aún puede contener restos.",
+    "retired_other": "{{count}} ubicaciones anteriores aún pueden contener restos.",
+    "refusedTitle": "No se puede usar esta ubicación",
+    "scopedOnly": "Gestionar la ubicación temporal de las copias necesita {{permission}} como permiso global. Un permiso limitado a un entorno no se aplica a este ajuste de toda la instancia. Pide a un administrador el permiso global.",
+    "remedy": {
+        "sandboxedIntro": "McHarbor se ejecuta aquí en un entorno aislado, así que hacen falta dos pasos.",
+        "step1": "Permite que el servicio escriba allí. Guarda esto como {{file}}:",
+        "reload": "Después ejecuta: sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Da acceso de escritura al usuario mcharbor:",
+        "again": "Después pulsa Guardar de nuevo.",
+        "container": "Monta una carpeta del host en el contenedor en esta ruta (un volumen o bind mount en tu archivo compose) y vuelve a guardar.",
+        "dropInLabel": "Contenido del archivo drop-in",
+        "chownLabel": "Comando chown"
+    },
+    "cleanup": {
+        "title": "Limpiar temporales",
+        "description": "Elimina las carpetas temporales sobrantes de las ubicaciones anteriores. Todo lo que use una copia o una restauración activa se conserva.",
+        "none": "No hay nada que limpiar.",
+        "button": "Limpiar temporales",
+        "confirmTitle": "¿Limpiar los temporales de las copias?",
+        "confirmBody": "Esto elimina {{entries}} elementos sobrantes ({{size}}) de {{path}} y de ubicaciones anteriores. No se puede deshacer. Los restos en los destinos de copia los elimina la limpieza horaria.",
+        "confirmActive": "Hay una ejecución activa, así que solo se eliminan los elementos con más de una hora.",
+        "result_one": "Se eliminó {{count}} elemento ({{size}}).",
+        "result_other": "Se eliminaron {{count}} elementos ({{size}}).",
+        "resultNothing": "No se eliminó nada.",
+        "keptOwned_one": "Se conservó {{count}} en uso por una copia o restauración en curso.",
+        "keptOwned_other": "Se conservaron {{count}} en uso por una copia o restauración en curso.",
+        "keptRecent_one": "Se conservó {{count}} con menos de una hora.",
+        "keptRecent_other": "Se conservaron {{count}} con menos de una hora."
+    },
+    "reply": {
+        "malformedStatus": "El servidor envió un estado ilegible de la ubicación temporal de las copias de seguridad.",
+        "malformedCleanup": "El servidor envió un resultado ilegible de la limpieza de la ubicación temporal de las copias de seguridad."
+    },
+    "toast": {
+        "saved": "Ubicación temporal guardada",
+        "saveFailed": "No se pudo guardar la ubicación temporal",
+        "cleanupFailed": "No se pudieron limpiar los temporales"
+    }
   }
 }

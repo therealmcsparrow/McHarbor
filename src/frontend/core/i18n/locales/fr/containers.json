@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "En attente du retour en ligne de l'API McHarbor...",
       "apiRecoveryTimeout": "L'API McHarbor n'est pas revenue en ligne à temps."
     }
+  },
+  "backupTemp": {
+    "title": "Emplacement temporaire des sauvegardes",
+    "description": "Où les sauvegardes et restaurations stockent des données pendant leur exécution. Chaque exécution a son propre dossier et le supprime à la fin.",
+    "location": "Emplacement",
+    "locationHelp": "Laissez vide pour utiliser l'emplacement par défaut : {{path}}",
+    "reset": "Rétablir la valeur par défaut",
+    "saving": "Enregistrement...",
+    "envNote": "Défini par la variable d'environnement MCHARBOR_BACKUP_TEMP_DIR. Supprimez la variable et redémarrez McHarbor pour le modifier ici.",
+    "envInvalidTitle": "Valeur de la variable d'environnement ignorée",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR est inutilisable ({{reason}}). L'emplacement par défaut est utilisé.",
+    "source": {
+        "default": "Par défaut",
+        "setting": "Réglage enregistré",
+        "env": "Variable d'environnement"
+    },
+    "inUse": "Utilisé",
+    "size": "Taille",
+    "entries": "Éléments",
+    "activeRuns": "Exécutions actives",
+    "activeNote": "Les éléments utilisés par une sauvegarde ou une restauration en cours sont conservés.",
+    "retired_one": "{{count}} ancien emplacement peut encore contenir des restes.",
+    "retired_other": "{{count}} anciens emplacements peuvent encore contenir des restes.",
+    "refusedTitle": "Cet emplacement ne peut pas être utilisé",
+    "scopedOnly": "La gestion de l'emplacement temporaire des sauvegardes nécessite {{permission}} en droit global. Un droit limité à un environnement ne s'applique pas à ce réglage de toute l'instance. Demandez le droit global à un administrateur.",
+    "remedy": {
+        "sandboxedIntro": "McHarbor s'exécute ici dans un bac à sable, deux étapes sont donc nécessaires.",
+        "step1": "Autorisez le service à écrire à cet endroit. Enregistrez ceci dans {{file}} :",
+        "reload": "Exécutez ensuite : sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Donnez l'accès en écriture à l'utilisateur mcharbor :",
+        "again": "Appuyez ensuite à nouveau sur Enregistrer.",
+        "container": "Montez un dossier de l'hôte dans le conteneur à ce chemin (un volume ou un bind mount dans votre fichier compose), puis enregistrez à nouveau.",
+        "dropInLabel": "Contenu du fichier drop-in",
+        "chownLabel": "Commande chown"
+    },
+    "cleanup": {
+        "title": "Nettoyer les fichiers temporaires",
+        "description": "Supprime les dossiers temporaires restants des emplacements ci-dessus. Tout ce qu'une sauvegarde ou une restauration active utilise est conservé.",
+        "none": "Rien à nettoyer.",
+        "button": "Nettoyer les fichiers temporaires",
+        "confirmTitle": "Nettoyer les fichiers temporaires des sauvegardes ?",
+        "confirmBody": "Cela supprime {{entries}} éléments restants ({{size}}) de {{path}} et des anciens emplacements. Cette action est irréversible. Les restes dans les destinations de sauvegarde sont supprimés par le nettoyage horaire.",
+        "confirmActive": "Une exécution est active : seuls les éléments de plus d'une heure sont supprimés.",
+        "result_one": "{{count}} élément supprimé ({{size}}).",
+        "result_other": "{{count}} éléments supprimés ({{size}}).",
+        "resultNothing": "Rien n'a été supprimé.",
+        "keptOwned_one": "{{count}} conservé car utilisé par une sauvegarde ou une restauration en cours.",
+        "keptOwned_other": "{{count}} conservés car utilisés par une sauvegarde ou une restauration en cours.",
+        "keptRecent_one": "{{count}} conservé car datant de moins d'une heure.",
+        "keptRecent_other": "{{count}} conservés car datant de moins d'une heure."
+    },
+    "reply": {
+        "malformedStatus": "Le serveur a renvoyé un état illisible de l'emplacement temporaire des sauvegardes.",
+        "malformedCleanup": "Le serveur a renvoyé un résultat illisible du nettoyage de l'emplacement temporaire des sauvegardes."
+    },
+    "toast": {
+        "saved": "Emplacement temporaire enregistré",
+        "saveFailed": "Impossible d'enregistrer l'emplacement temporaire",
+        "cleanupFailed": "Impossible de nettoyer les fichiers temporaires"
+    }
   }
 }

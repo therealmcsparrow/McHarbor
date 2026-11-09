@@ -44,6 +44,7 @@ const FLOOR: Record<string, number> = {
   'modules/appstore/components/InstallDialog.reset.test.tsx': 1,
   'modules/containers/types/exposed-ports.test.ts': 3,
   'modules/containers/hooks/container-sort-values.test.ts': 4,
+  'modules/containers/hooks/useContainerChangeHighlights.test.ts': 3,
   'resources/utils/ip-sort.test.ts': 2,
   'modules/containers/components/tabs/NetworkTabPortsSection.exposed.test.tsx': 2,
   'modules/networks/components/ParentInterfaceField.test.tsx': 2,
@@ -295,6 +296,11 @@ const FLOOR: Record<string, number> = {
   'modules/settings/components/formatKeyList.test.ts': 2,
   'resources/components/ui/FormPrimitives.test.tsx': 7,
   'modules/settings/components/UpdateStatusRegion.test.tsx': 3,
+  'modules/containers/components/backupTempRemedy.test.ts': 13,
+  'modules/containers/components/BackupTempLocationField.test.tsx': 12,
+  'modules/containers/components/BackupTempCleanup.test.tsx': 10,
+  'modules/containers/components/BackupTempCard.test.tsx': 3,
+  'modules/containers/hooks/useBackupTemp.test.ts': 5,
 };
 
 function countTests(source: string): number {

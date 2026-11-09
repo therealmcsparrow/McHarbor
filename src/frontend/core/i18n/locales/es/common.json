@@ -1479,6 +1479,12 @@
                      "description":  "Un recorrido rápido por los últimos cambios.",
                      "dismiss":  "Descartar",
                      "gotIt":  "Entendido",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Carpeta temporal de copias y limpieza",
+                                                           "description":  "Elija en Copias de seguridad → Configuración, o con MCHARBOR_BACKUP_TEMP_DIR, dónde guardan las copias y restauraciones sus archivos de trabajo. Cada ejecución elimina su propia carpeta temporal, una limpieza cada hora quita los restos de un fallo y Limpiar temporales vacía la carpeta cuando lo necesite."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Canales de prelanzamiento",

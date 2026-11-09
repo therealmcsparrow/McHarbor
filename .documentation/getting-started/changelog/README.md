@@ -38,6 +38,16 @@ backing up the data volume is step 1.
 
 ## Current release
 
+### 2026.11.03 (2026-11-09)
+
+The backup temp folder can be moved, with `MCHARBOR_BACKUP_TEMP_DIR` or under Backups → Settings, and it cleans
+itself up: each backup and restore removes its own folder, an hourly sweep clears leftovers, and "Clean up temp"
+empties it on demand. Every plugin is rebuilt and needs McHarbor 2026.11.03 or newer, so update McHarbor first. See
+[Configuration](../configuration/README.md).
+
+The Containers page no longer fails with "Too many re-renders" when you log in again after an idle timeout, or
+when the container list cannot be loaded.
+
 ### 2026.11.02 (2026-11-07)
 
 Test builds of McHarbor, agents and plugins can be offered through switches that are all off by
@@ -115,6 +125,7 @@ The full 2026.10.01 entry, including Fixed and Security, is in
 
 | Version | Date | What landed |
 |---|---|---|
+| **2026.11.03** | 2026-11-09 | Configurable backup temp location with startup, hourly and on-demand cleanup; `mcharbor backup temp status` and `clean`; every plugin rebuilt and requiring 2026.11.03. |
 | **2026.11.02** | 2026-11-07 | Prerelease channels for McHarbor, agents and plugins; return to stable; one shared version order and plugin catalog format v2; cross-site writes refused on every route. |
 | **2026.11.01** | 2026-11-05 | Catalogs and agent releases served from the McHarbor-Catalog repository on GitHub; VM and LXC backup temp in the agent's data directory; an opt-out of the server's own container backup copy; LXC incremental listings staged beside the listing. No breaking changes. |
 | **2026.10.02** | 2026-10-22 | Disk-full detection: host disk alerts and three default rules; a grey "No disk data" state where McHarbor cannot read the disk; startup cleanup of orphaned temporary archives. Patch; no breaking changes. |

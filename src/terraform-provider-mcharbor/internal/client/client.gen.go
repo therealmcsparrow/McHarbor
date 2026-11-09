@@ -1321,6 +1321,34 @@ type ContainerBackupsBackupSelection struct {
 	Paths *[]string `json:"paths,omitempty"`
 }
 
+// ContainerBackupsBackupTempCleanupResult defines model for ContainerBackups.BackupTempCleanupResult.
+type ContainerBackupsBackupTempCleanupResult struct {
+	ActiveRuns     int `json:"activeRuns"`
+	KeptOwned      int `json:"keptOwned"`
+	KeptRecent     int `json:"keptRecent"`
+	RemovedBytes   int `json:"removedBytes"`
+	RemovedEntries int `json:"removedEntries"`
+}
+
+// ContainerBackupsBackupTempLocationInput defines model for ContainerBackups.BackupTempLocationInput.
+type ContainerBackupsBackupTempLocationInput struct {
+	Path string `json:"path"`
+}
+
+// ContainerBackupsBackupTempStatus defines model for ContainerBackups.BackupTempStatus.
+type ContainerBackupsBackupTempStatus struct {
+	ActiveRuns     int      `json:"activeRuns"`
+	DefaultPath    string   `json:"defaultPath"`
+	Entries        int      `json:"entries"`
+	EnvInvalidCode string   `json:"envInvalidCode"`
+	EnvOverride    bool     `json:"envOverride"`
+	Path           string   `json:"path"`
+	RetiredPaths   []string `json:"retiredPaths"`
+	SettingPath    string   `json:"settingPath"`
+	SizeBytes      int      `json:"sizeBytes"`
+	Source         string   `json:"source"`
+}
+
 // ContainerBackupsCreateBackupPlanInput defines model for ContainerBackups.CreateBackupPlanInput.
 type ContainerBackupsCreateBackupPlanInput struct {
 	ConsistencyMode    string                                      `json:"consistencyMode"`
@@ -7569,6 +7597,9 @@ type ContainerBackupsRestoreMountEntriesJSONRequestBody = ContainerBackupsRestor
 // ContainerBackupsRestoreOptionsJSONRequestBody defines body for ContainerBackupsRestoreOptions for application/json ContentType.
 type ContainerBackupsRestoreOptionsJSONRequestBody = ContainerBackupsRestoreBackupOptionsInput
 
+// ContainerBackupsSaveTempJSONRequestBody defines body for ContainerBackupsSaveTemp for application/json ContentType.
+type ContainerBackupsSaveTempJSONRequestBody = ContainerBackupsBackupTempLocationInput
+
 // ContainerBackupsUpdatePlanJSONRequestBody defines body for ContainerBackupsUpdatePlan for application/json ContentType.
 type ContainerBackupsUpdatePlanJSONRequestBody = ContainerBackupsUpdateBackupPlanInput
 
@@ -8882,6 +8913,17 @@ type ClientInterface interface {
 
 	// ContainerBackupsRecentSnapshots request
 	ContainerBackupsRecentSnapshots(ctx context.Context, params *ContainerBackupsRecentSnapshotsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ContainerBackupsGetTemp request
+	ContainerBackupsGetTemp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ContainerBackupsSaveTempWithBody request with any body
+	ContainerBackupsSaveTempWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ContainerBackupsSaveTemp(ctx context.Context, body ContainerBackupsSaveTempJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ContainerBackupsCleanupTemp request
+	ContainerBackupsCleanupTemp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ContainerBackupsDeletePlan request
 	ContainerBackupsDeletePlan(ctx context.Context, planId string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -14169,6 +14211,54 @@ func (c *Client) ContainerBackupsDetectSnapshotDrivers(ctx context.Context, para
 
 func (c *Client) ContainerBackupsRecentSnapshots(ctx context.Context, params *ContainerBackupsRecentSnapshotsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewContainerBackupsRecentSnapshotsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ContainerBackupsGetTemp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewContainerBackupsGetTempRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ContainerBackupsSaveTempWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewContainerBackupsSaveTempRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ContainerBackupsSaveTemp(ctx context.Context, body ContainerBackupsSaveTempJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewContainerBackupsSaveTempRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ContainerBackupsCleanupTemp(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewContainerBackupsCleanupTempRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -32822,6 +32912,100 @@ func NewContainerBackupsRecentSnapshotsRequest(server string, params *ContainerB
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewContainerBackupsGetTempRequest generates requests for ContainerBackupsGetTemp
+func NewContainerBackupsGetTempRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/container-backups/temp")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewContainerBackupsSaveTempRequest calls the generic ContainerBackupsSaveTemp builder with application/json body
+func NewContainerBackupsSaveTempRequest(server string, body ContainerBackupsSaveTempJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewContainerBackupsSaveTempRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewContainerBackupsSaveTempRequestWithBody generates requests for ContainerBackupsSaveTemp with any type of body
+func NewContainerBackupsSaveTempRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/container-backups/temp")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewContainerBackupsCleanupTempRequest generates requests for ContainerBackupsCleanupTemp
+func NewContainerBackupsCleanupTempRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/container-backups/temp/cleanup")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60497,6 +60681,17 @@ type ClientWithResponsesInterface interface {
 	// ContainerBackupsRecentSnapshotsWithResponse request
 	ContainerBackupsRecentSnapshotsWithResponse(ctx context.Context, params *ContainerBackupsRecentSnapshotsParams, reqEditors ...RequestEditorFn) (*ContainerBackupsRecentSnapshotsResponse, error)
 
+	// ContainerBackupsGetTempWithResponse request
+	ContainerBackupsGetTempWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ContainerBackupsGetTempResponse, error)
+
+	// ContainerBackupsSaveTempWithBodyWithResponse request with any body
+	ContainerBackupsSaveTempWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ContainerBackupsSaveTempResponse, error)
+
+	ContainerBackupsSaveTempWithResponse(ctx context.Context, body ContainerBackupsSaveTempJSONRequestBody, reqEditors ...RequestEditorFn) (*ContainerBackupsSaveTempResponse, error)
+
+	// ContainerBackupsCleanupTempWithResponse request
+	ContainerBackupsCleanupTempWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ContainerBackupsCleanupTempResponse, error)
+
 	// ContainerBackupsDeletePlanWithResponse request
 	ContainerBackupsDeletePlanWithResponse(ctx context.Context, planId string, reqEditors ...RequestEditorFn) (*ContainerBackupsDeletePlanResponse, error)
 
@@ -68698,6 +68893,96 @@ func (r ContainerBackupsRecentSnapshotsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ContainerBackupsRecentSnapshotsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ContainerBackupsGetTempResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *ContainerBackupsBackupTempStatus `json:"data,omitempty"`
+		Message *string                           `json:"message,omitempty"`
+		Success bool                              `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r ContainerBackupsGetTempResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ContainerBackupsGetTempResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ContainerBackupsSaveTempResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data    *ContainerBackupsBackupTempStatus `json:"data,omitempty"`
+		Message *string                           `json:"message,omitempty"`
+		Success bool                              `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r ContainerBackupsSaveTempResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ContainerBackupsSaveTempResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ContainerBackupsCleanupTempResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *struct {
+		Data    *ContainerBackupsBackupTempCleanupResult `json:"data,omitempty"`
+		Message *string                                  `json:"message,omitempty"`
+		Success bool                                     `json:"success"`
+	}
+	JSON400 *BadRequest
+	JSON401 *Unauthorized
+	JSON403 *Forbidden
+	JSON500 *ServerError
+}
+
+// Status returns HTTPResponse.Status
+func (r ContainerBackupsCleanupTempResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ContainerBackupsCleanupTempResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -88450,6 +88735,41 @@ func (c *ClientWithResponses) ContainerBackupsRecentSnapshotsWithResponse(ctx co
 	return ParseContainerBackupsRecentSnapshotsResponse(rsp)
 }
 
+// ContainerBackupsGetTempWithResponse request returning *ContainerBackupsGetTempResponse
+func (c *ClientWithResponses) ContainerBackupsGetTempWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ContainerBackupsGetTempResponse, error) {
+	rsp, err := c.ContainerBackupsGetTemp(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseContainerBackupsGetTempResponse(rsp)
+}
+
+// ContainerBackupsSaveTempWithBodyWithResponse request with arbitrary body returning *ContainerBackupsSaveTempResponse
+func (c *ClientWithResponses) ContainerBackupsSaveTempWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ContainerBackupsSaveTempResponse, error) {
+	rsp, err := c.ContainerBackupsSaveTempWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseContainerBackupsSaveTempResponse(rsp)
+}
+
+func (c *ClientWithResponses) ContainerBackupsSaveTempWithResponse(ctx context.Context, body ContainerBackupsSaveTempJSONRequestBody, reqEditors ...RequestEditorFn) (*ContainerBackupsSaveTempResponse, error) {
+	rsp, err := c.ContainerBackupsSaveTemp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseContainerBackupsSaveTempResponse(rsp)
+}
+
+// ContainerBackupsCleanupTempWithResponse request returning *ContainerBackupsCleanupTempResponse
+func (c *ClientWithResponses) ContainerBackupsCleanupTempWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ContainerBackupsCleanupTempResponse, error) {
+	rsp, err := c.ContainerBackupsCleanupTemp(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseContainerBackupsCleanupTempResponse(rsp)
+}
+
 // ContainerBackupsDeletePlanWithResponse request returning *ContainerBackupsDeletePlanResponse
 func (c *ClientWithResponses) ContainerBackupsDeletePlanWithResponse(ctx context.Context, planId string, reqEditors ...RequestEditorFn) (*ContainerBackupsDeletePlanResponse, error) {
 	rsp, err := c.ContainerBackupsDeletePlan(ctx, planId, reqEditors...)
@@ -106718,6 +107038,180 @@ func ParseContainerBackupsRecentSnapshotsResponse(rsp *http.Response) (*Containe
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseContainerBackupsGetTempResponse parses an HTTP response from a ContainerBackupsGetTempWithResponse call
+func ParseContainerBackupsGetTempResponse(rsp *http.Response) (*ContainerBackupsGetTempResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ContainerBackupsGetTempResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *ContainerBackupsBackupTempStatus `json:"data,omitempty"`
+			Message *string                           `json:"message,omitempty"`
+			Success bool                              `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseContainerBackupsSaveTempResponse parses an HTTP response from a ContainerBackupsSaveTempWithResponse call
+func ParseContainerBackupsSaveTempResponse(rsp *http.Response) (*ContainerBackupsSaveTempResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ContainerBackupsSaveTempResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data    *ContainerBackupsBackupTempStatus `json:"data,omitempty"`
+			Message *string                           `json:"message,omitempty"`
+			Success bool                              `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseContainerBackupsCleanupTempResponse parses an HTTP response from a ContainerBackupsCleanupTempWithResponse call
+func ParseContainerBackupsCleanupTempResponse(rsp *http.Response) (*ContainerBackupsCleanupTempResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ContainerBackupsCleanupTempResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest struct {
+			Data    *ContainerBackupsBackupTempCleanupResult `json:"data,omitempty"`
+			Message *string                                  `json:"message,omitempty"`
+			Success bool                                     `json:"success"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest BadRequest

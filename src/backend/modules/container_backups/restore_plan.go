@@ -313,10 +313,10 @@ func (s *Service) restoreSubsetEntry(
 	if len(paths) == 0 {
 		return false, nil
 	}
-	if err := os.MkdirAll(s.backupTempDir(), 0750); err != nil {
+	if err := os.MkdirAll(runTempDir(ctx), 0750); err != nil {
 		return false, fmt.Errorf("creating restore subset directory: %w", err)
 	}
-	spool, err := os.CreateTemp(s.backupTempDir(), "restore-subset-*.tar")
+	spool, err := os.CreateTemp(runTempDir(ctx), "restore-subset-*.tar")
 	if err != nil {
 		return false, fmt.Errorf("creating restore subset archive: %w", err)
 	}

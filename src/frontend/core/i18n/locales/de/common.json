@@ -1479,6 +1479,12 @@
                      "description":  "Eine kurze Übersicht über die neuesten Änderungen.",
                      "dismiss":  "Schließen",
                      "gotIt":  "Verstanden",
+                     "2026_11_03":  {
+                                        "backupTemp":  {
+                                                           "title":  "Temporärer Backup-Ordner und Bereinigung",
+                                                           "description":  "Legen Sie unter Backups → Einstellungen oder mit MCHARBOR_BACKUP_TEMP_DIR fest, wo Backups und Wiederherstellungen ihre Arbeitsdateien ablegen. Jeder Lauf entfernt seinen eigenen temporären Ordner, eine stündliche Bereinigung räumt Reste nach einem Absturz auf, und Temp-Ordner bereinigen leert den Ordner bei Bedarf."
+                                                       }
+                                    },
                      "2026_11_02":  {
                                         "prereleaseChannels":  {
                                                                "title":  "Prerelease-Kanäle",

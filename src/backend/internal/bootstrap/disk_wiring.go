@@ -5,6 +5,7 @@ package bootstrap
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"time"
 
@@ -69,15 +70,22 @@ func WireHostFSThresholds(svc *alerts.Service) {
 	metrics.SetHostFSThresholds(hostFSThresholds{src: svc})
 }
 
-// SweepLocalBackupOrphans removes agent backup archives a crash left in the local backup directory, so a restart frees the space a full disk is missing.
-func SweepLocalBackupOrphans(dataDir string, logger *slog.Logger) {
-	if logger == nil {
-		logger = slog.Default()
-	}
-	removed, bytes := containerbackups.SweepOrphanAgentBackups(containerbackups.LocalBackupDir(dataDir), time.Now())
-	if removed > 0 {
-		logger.Info("removed orphaned agent backup archives", "count", removed, "bytes", bytes)
-	}
+// StartBackupTempSweeper sweeps crash leftovers from the backup temp folders and local destinations once now and then
+// every hour, so a restart frees the space a full disk is missing; it stops when ctx ends.
+func StartBackupTempSweeper(ctx context.Context, db *sql.DB, dataDir string, logger *slog.Logger) {
+	// goroutine lifecycle: ends when ctx is cancelled; the ticker is stopped on return.
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for {
+			containerbackups.RunTempSweep(ctx, db, dataDir, logger)
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
 }
 
 // WireMergeInvalidation registers, through set, what must be forgotten when an

@@ -4449,6 +4449,94 @@
         ],
         "type": "object"
       },
+      "ContainerBackups.BackupTempCleanupResult": {
+        "properties": {
+          "activeRuns": {
+            "type": "integer"
+          },
+          "keptOwned": {
+            "type": "integer"
+          },
+          "keptRecent": {
+            "type": "integer"
+          },
+          "removedBytes": {
+            "type": "integer"
+          },
+          "removedEntries": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "removedEntries",
+          "removedBytes",
+          "keptOwned",
+          "keptRecent",
+          "activeRuns"
+        ],
+        "type": "object"
+      },
+      "ContainerBackups.BackupTempLocationInput": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "ContainerBackups.BackupTempStatus": {
+        "properties": {
+          "activeRuns": {
+            "type": "integer"
+          },
+          "defaultPath": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "integer"
+          },
+          "envInvalidCode": {
+            "type": "string"
+          },
+          "envOverride": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "retiredPaths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "settingPath": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "source",
+          "settingPath",
+          "envOverride",
+          "envInvalidCode",
+          "defaultPath",
+          "sizeBytes",
+          "entries",
+          "activeRuns",
+          "retiredPaths"
+        ],
+        "type": "object"
+      },
       "ContainerBackups.CreateBackupPlanInput": {
         "properties": {
           "consistencyMode": {
@@ -32280,6 +32368,206 @@
             ],
             "match": "all",
             "scope": "environment"
+          }
+        ]
+      }
+    },
+    "/api/container-backups/temp": {
+      "get": {
+        "operationId": "containerBackupsGetTemp",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContainerBackups.BackupTempStatus"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get temp",
+        "tags": [
+          "container_backups"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "backups.manage"
+            ],
+            "match": "all",
+            "scope": "global"
+          }
+        ]
+      },
+      "put": {
+        "operationId": "containerBackupsSaveTemp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContainerBackups.BackupTempLocationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContainerBackups.BackupTempStatus"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Save temp",
+        "tags": [
+          "container_backups"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "backups.manage"
+            ],
+            "match": "all",
+            "scope": "global"
+          }
+        ]
+      }
+    },
+    "/api/container-backups/temp/cleanup": {
+      "post": {
+        "operationId": "containerBackupsCleanupTemp",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ContainerBackups.BackupTempCleanupResult"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Cleanup temp",
+        "tags": [
+          "container_backups"
+        ],
+        "x-mcharbor-permission": [
+          {
+            "keys": [
+              "backups.manage"
+            ],
+            "match": "all",
+            "scope": "global"
           }
         ]
       }

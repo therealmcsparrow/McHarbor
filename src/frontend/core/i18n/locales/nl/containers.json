@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "Wachten tot de McHarbor-API weer online komt...",
       "apiRecoveryTimeout": "De McHarbor-API is niet op tijd weer online gekomen."
     }
+  },
+  "backupTemp": {
+    "title": "Tijdelijke locatie voor back-ups",
+    "description": "Waar back-ups en herstelacties gegevens tijdelijk neerzetten terwijl ze draaien. Elke run krijgt een eigen map en ruimt die op als hij klaar is.",
+    "location": "Locatie",
+    "locationHelp": "Laat leeg om de standaardlocatie te gebruiken: {{path}}",
+    "reset": "Standaard herstellen",
+    "saving": "Opslaan...",
+    "envNote": "Ingesteld via de omgevingsvariabele MCHARBOR_BACKUP_TEMP_DIR. Verwijder de variabele en herstart McHarbor om dit hier te wijzigen.",
+    "envInvalidTitle": "Waarde van omgevingsvariabele genegeerd",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR is niet bruikbaar ({{reason}}). De standaardlocatie wordt gebruikt.",
+    "source": {
+        "default": "Standaard",
+        "setting": "Opgeslagen instelling",
+        "env": "Omgevingsvariabele"
+    },
+    "inUse": "In gebruik",
+    "size": "Grootte",
+    "entries": "Items",
+    "activeRuns": "Actieve runs",
+    "activeNote": "Items die door een lopende back-up of herstelactie worden gebruikt, blijven staan.",
+    "retired_one": "{{count}} eerdere locatie kan nog restanten bevatten.",
+    "retired_other": "{{count}} eerdere locaties kunnen nog restanten bevatten.",
+    "refusedTitle": "Deze locatie kan niet worden gebruikt",
+    "scopedOnly": "Voor het beheren van de tijdelijke back-uplocatie is {{permission}} nodig als globale toekenning. Een toekenning die tot één omgeving beperkt is, geldt niet voor deze instellingen voor de hele instantie. Vraag een beheerder om de globale toekenning.",
+    "remedy": {
+        "sandboxedIntro": "McHarbor draait hier in een sandbox, dus er zijn twee stappen nodig.",
+        "step1": "Sta de service toe daar te schrijven. Sla dit op als {{file}}:",
+        "reload": "Voer daarna uit: sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Geef de gebruiker mcharbor schrijftoegang:",
+        "again": "Druk daarna opnieuw op Opslaan.",
+        "container": "Koppel een map van de host aan de container op dit pad (een volume of bind mount in je compose-bestand) en sla daarna opnieuw op.",
+        "dropInLabel": "Inhoud van het drop-in-bestand",
+        "chownLabel": "chown-opdracht"
+    },
+    "cleanup": {
+        "title": "Tijdelijke map opschonen",
+        "description": "Verwijder achtergebleven werkmappen uit de bovenstaande locaties. Alles wat een actieve back-up of herstelactie gebruikt, blijft staan.",
+        "none": "Er valt niets op te schonen.",
+        "button": "Tijdelijke map opschonen",
+        "confirmTitle": "Tijdelijke back-upmap opschonen?",
+        "confirmBody": "Dit verwijdert {{entries}} achtergebleven items ({{size}}) uit {{path}} en eerdere locaties. Dit kan niet ongedaan worden gemaakt. Restanten in back-upbestemmingen worden door de uurlijkse opruiming verwijderd.",
+        "confirmActive": "Er is een run actief, dus alleen items die ouder zijn dan een uur worden verwijderd.",
+        "result_one": "{{count}} item verwijderd ({{size}}).",
+        "result_other": "{{count}} items verwijderd ({{size}}).",
+        "resultNothing": "Er is niets verwijderd.",
+        "keptOwned_one": "{{count}} behouden omdat een lopende back-up of herstelactie het gebruikt.",
+        "keptOwned_other": "{{count}} behouden omdat een lopende back-up of herstelactie ze gebruikt.",
+        "keptRecent_one": "{{count}} behouden omdat het nieuwer is dan een uur.",
+        "keptRecent_other": "{{count}} behouden omdat ze nieuwer zijn dan een uur."
+    },
+    "reply": {
+        "malformedStatus": "De server stuurde een onleesbare status van de tijdelijke back-uplocatie.",
+        "malformedCleanup": "De server stuurde een onleesbaar resultaat van het opruimen van de tijdelijke back-upmap."
+    },
+    "toast": {
+        "saved": "Tijdelijke back-uplocatie opgeslagen",
+        "saveFailed": "Kan de tijdelijke back-uplocatie niet opslaan",
+        "cleanupFailed": "Kan de tijdelijke back-upmap niet opschonen"
+    }
   }
 }

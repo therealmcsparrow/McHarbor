@@ -31,6 +31,17 @@ function buildContainerSignature(container: ContainerInfo, updateResult: Contain
   });
 }
 
+// Compared by content because callers may hand over a fresh array each render (`data = []` while the query
+// is still empty); an identity check there sets state on every render and loops (React #301).
+function sameSignatures(a: Map<string, string>, b: Map<string, string>): boolean {
+  if (a === b) return true;
+  if (a.size !== b.size) return false;
+  for (const [id, signature] of a) {
+    if (b.get(id) !== signature) return false;
+  }
+  return true;
+}
+
 type UseContainerChangeHighlightsOptions = {
   containers: ContainerInfo[];
   updateResults: Map<string, ContainerUpdateResult> | undefined;
@@ -53,7 +64,7 @@ export function useContainerChangeHighlights({
   const [previous, setPrevious] = useState(signatures);
   const [highlights, setHighlights] = useState<Map<string, number>>(new Map());
 
-  if (previous !== signatures) {
+  if (!sameSignatures(previous, signatures)) {
     setPrevious(signatures);
     if (enabled) {
       const changedIds: string[] = [];

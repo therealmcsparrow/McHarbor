@@ -1728,5 +1728,65 @@
       "waitingForApiRecovery": "Waiting for the McHarbor API to come back online...",
       "apiRecoveryTimeout": "The McHarbor API did not come back online in time."
     }
+  },
+  "backupTemp": {
+    "title": "Backup temp location",
+    "description": "Where backups and restores spool data while they run. Each run gets its own folder and removes it when it ends.",
+    "location": "Location",
+    "locationHelp": "Leave empty to use the default: {{path}}",
+    "reset": "Reset to default",
+    "saving": "Saving...",
+    "envNote": "Set by the MCHARBOR_BACKUP_TEMP_DIR environment variable. Remove the variable and restart McHarbor to change it here.",
+    "envInvalidTitle": "Environment value ignored",
+    "envInvalidBody": "MCHARBOR_BACKUP_TEMP_DIR is not usable ({{reason}}). Using the default location.",
+    "source": {
+        "default": "Default",
+        "setting": "Saved setting",
+        "env": "Environment variable"
+    },
+    "inUse": "In use",
+    "size": "Size",
+    "entries": "Entries",
+    "activeRuns": "Active runs",
+    "activeNote": "Entries used by a running backup or restore are kept.",
+    "retired_one": "{{count}} earlier location may still hold leftovers.",
+    "retired_other": "{{count}} earlier locations may still hold leftovers.",
+    "refusedTitle": "Cannot use this location",
+    "scopedOnly": "Managing the backup temp location needs {{permission}} as a global grant. A grant limited to one environment does not apply to this instance-wide setting. Ask an administrator for the global grant.",
+    "remedy": {
+        "sandboxedIntro": "McHarbor runs sandboxed here, so two steps are needed.",
+        "step1": "Allow the service to write there. Save this as {{file}}:",
+        "reload": "Then run: sudo systemctl daemon-reload && sudo systemctl restart mcharbor",
+        "step2": "Give the mcharbor user write access:",
+        "again": "Then press Save again.",
+        "container": "Mount a host folder into the container at this path (a volume or bind mount in your compose file), then save again.",
+        "dropInLabel": "Drop-in file contents",
+        "chownLabel": "chown command"
+    },
+    "cleanup": {
+        "title": "Clean up temp",
+        "description": "Remove leftover spool folders from the locations above. Anything an active backup or restore is using stays.",
+        "none": "Nothing to clean up.",
+        "button": "Clean up temp",
+        "confirmTitle": "Clean up backup temp?",
+        "confirmBody": "This removes {{entries}} leftover entries ({{size}}) from {{path}} and earlier locations. This cannot be undone. Leftovers in backup destinations are removed by the hourly sweep.",
+        "confirmActive": "A run is active, so only entries older than an hour are removed.",
+        "result_one": "Removed {{count}} entry ({{size}}).",
+        "result_other": "Removed {{count}} entries ({{size}}).",
+        "resultNothing": "Nothing was removed.",
+        "keptOwned_one": "Kept {{count}} in use by a running backup or restore.",
+        "keptOwned_other": "Kept {{count}} in use by a running backup or restore.",
+        "keptRecent_one": "Kept {{count}} newer than an hour.",
+        "keptRecent_other": "Kept {{count}} newer than an hour."
+    },
+    "reply": {
+        "malformedStatus": "The server sent an unreadable backup temp status.",
+        "malformedCleanup": "The server sent an unreadable backup temp cleanup result."
+    },
+    "toast": {
+        "saved": "Backup temp location saved",
+        "saveFailed": "Could not save the backup temp location",
+        "cleanupFailed": "Could not clean up backup temp"
+    }
   }
 }

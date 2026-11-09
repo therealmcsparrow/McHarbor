@@ -145,6 +145,7 @@ func (s *Service) receiveAgentArchive(ctx context.Context, entry agentArchiveTra
 		return fmt.Errorf("creating agent backup temp file: %w", err)
 	}
 	tmpName := tmp.Name()
+	defer ownTempPath(tmpName)()
 	keepTemp := false
 	defer func() {
 		if !keepTemp {

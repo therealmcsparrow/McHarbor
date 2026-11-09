@@ -818,6 +818,7 @@ func (s *Service) copyBackupFileAtomic(ctx context.Context, archivePath, targetP
 		return fmt.Errorf("creating local backup temp file: %w", err)
 	}
 	tmpName := tmp.Name()
+	defer ownTempPath(tmpName)()
 	keepTemp := false
 	defer func() {
 		if !keepTemp {
