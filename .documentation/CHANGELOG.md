@@ -10,6 +10,11 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-11 22:55 — McHarbor 2026.11.03 — Large upload on agent environments
+
+### Changed
+- `getting-started/changelog/README.md` — the 2026.11.03 summary notes that uploads over 8 MiB into a container on a remote-agent environment no longer fail with HTTP 500, that a failed upload shows the server's reason, and that every plugin is rebuilt again.
+
 ## 2026-11-09 12:39 — McHarbor 2026.11.03 — Containers page re-login fix
 
 ### Changed

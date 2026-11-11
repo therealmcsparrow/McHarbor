@@ -14,6 +14,7 @@ class FakeXhr {
   status = 0;
   withCredentials = false;
   headers: Record<string, string> = {};
+  responseHeaders: Record<string, string> = {};
   constructor() {
     FakeXhr.last = this;
   }
@@ -22,6 +23,9 @@ class FakeXhr {
     this.headers[name] = value;
   }
   send() {}
+  getResponseHeader(name: string) {
+    return this.responseHeaders[name] ?? null;
+  }
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -69,5 +73,26 @@ describe('postFormWithProgress', () => {
     const pending = postFormWithProgress('/api/x', new FormData());
     FakeXhr.last.onerror?.();
     await expect(pending).rejects.toThrow('Could not reach the McHarbor server.');
+  });
+
+  it('carries the HTTP status of a failed upload', async () => {
+    vi.stubGlobal('XMLHttpRequest', FakeXhr);
+    const pending = postFormWithProgress('/api/x', new FormData());
+    const xhr = FakeXhr.last;
+    xhr.status = 500;
+    xhr.responseText = JSON.stringify({ success: false, error: 'Copy failed.', code: 'err.copy', requestId: 'req-2' });
+    xhr.onload?.();
+    await expect(pending).rejects.toMatchObject({ status: 500, details: expect.objectContaining({ status: 500 }) });
+  });
+
+  it('falls back to the X-Request-Id header when the envelope has no request ID', async () => {
+    vi.stubGlobal('XMLHttpRequest', FakeXhr);
+    const pending = postFormWithProgress('/api/x', new FormData());
+    const xhr = FakeXhr.last;
+    xhr.status = 500;
+    xhr.responseHeaders['X-Request-Id'] = 'hdr-7';
+    xhr.responseText = JSON.stringify({ success: false, error: 'Copy failed.' });
+    xhr.onload?.();
+    await expect(pending).rejects.toMatchObject({ details: expect.objectContaining({ requestId: 'hdr-7' }) });
   });
 });

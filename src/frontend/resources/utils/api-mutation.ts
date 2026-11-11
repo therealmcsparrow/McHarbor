@@ -137,9 +137,13 @@ export class ApiError extends Error {
   }
 }
 
-/** apiErrorOf builds the ApiError a failed envelope stands for, outside assertSuccess's throw. */
-export function apiErrorOf(res: ApiResponse<unknown>): ApiError {
-  const httpStatus = envelopeStatus(res);
+/**
+ * apiErrorOf builds the ApiError a failed envelope stands for, outside assertSuccess's throw.
+ * Pass `knownStatus` when the envelope did not come through the api client (an XHR upload), whose
+ * side table is the only other place the HTTP status is recorded.
+ */
+export function apiErrorOf(res: ApiResponse<unknown>, knownStatus?: number): ApiError {
+  const httpStatus = knownStatus ?? envelopeStatus(res);
   return new ApiError(describeApiError(res), httpStatus, {
     summary: summarizeApiError(res),
     detail: res.detail?.trim() || undefined,

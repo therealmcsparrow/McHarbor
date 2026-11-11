@@ -66,7 +66,8 @@ export function postFormWithProgress<T>(
         return;
       }
       if (!envelope.success) {
-        reject(apiErrorOf(envelope));
+        const requestId = envelope.requestId || request.getResponseHeader('X-Request-Id') || undefined;
+        reject(apiErrorOf({ ...envelope, requestId }, request.status || undefined));
         return;
       }
       resolve(envelope.data as T);

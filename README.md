@@ -88,6 +88,7 @@ McHarbor 2026.11.03 lets you move the backup temp folder and cleans it up on its
 
 - **Backup temp location and cleanup**: Choose where backups and restores spool their work files under Backups → Settings, or with `MCHARBOR_BACKUP_TEMP_DIR`. Each run cleans up after itself, an hourly sweep removes crash leftovers, and "Clean up temp" empties the folder on demand. The CLI has `mcharbor backup temp status` and `clean`.
 - **Containers page after re-login**: Logging in again after an idle timeout no longer leaves the Containers page on a "Too many re-renders" error, and the page also loads when the container list fails to load.
+- **Large uploads on agent environments**: Uploading a file over 8 MiB into a container on a remote-agent environment no longer fails with HTTP 500, and a failed upload shows the server's reason with a Details action.
 
 ## What's New in 2026.11.02
 

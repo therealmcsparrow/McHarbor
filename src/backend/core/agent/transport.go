@@ -1524,17 +1524,19 @@ func (t *AgentTransport) sendRequest(req *http.Request, reqID string, wsReq *WSH
 	return nil
 }
 
+// shouldStreamRequestBody reports whether a body goes over the agent as chunks. A zero length on a
+// body other than http.NoBody means unknown: http.NewRequest leaves an io.Pipe (CopyToContainer) at 0.
 func shouldStreamRequestBody(req *http.Request) bool {
-	if req.Body == nil {
+	if req.Body == nil || req.Body == http.NoBody {
 		return false
 	}
 	if strings.HasSuffix(req.URL.Path, "/images/load") {
 		return true
 	}
-	if req.ContentLength < 0 {
+	if req.ContentLength <= 0 {
 		return true
 	}
-	return req.ContentLength > 8<<20
+	return req.ContentLength > maxBufferedAgentRequestBytes
 }
 
 func shouldDiscardResponseStream(req *WSHTTPRequest) bool {

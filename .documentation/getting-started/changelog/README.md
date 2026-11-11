@@ -48,6 +48,10 @@ empties it on demand. Every plugin is rebuilt and needs McHarbor 2026.11.03 or n
 The Containers page no longer fails with "Too many re-renders" when you log in again after an idle timeout, or
 when the container list cannot be loaded.
 
+Uploading a file over 8 MiB into a container on a remote-agent environment no longer fails with HTTP 500, and a
+failed upload shows the server's reason with a Details action. Every plugin is rebuilt again for this fix, so
+update McHarbor before its plugins.
+
 ### 2026.11.02 (2026-11-07)
 
 Test builds of McHarbor, agents and plugins can be offered through switches that are all off by

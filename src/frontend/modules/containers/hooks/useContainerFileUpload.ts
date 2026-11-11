@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useUploadActivityStore } from '@resources/stores/upload-activity';
+import { postFormWithProgress } from '@resources/hooks/containerBackups/uploadWithProgress';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -35,33 +36,13 @@ export function useUploadFile(containerId: string) {
       });
       directories.forEach((dir) => form.append('dirs', dir));
 
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', `/api/containers/${containerId}/files/upload?${params}`);
-        xhr.withCredentials = true;
-        xhr.upload.onprogress = (progressEvent) => {
-          if (!progressEvent.lengthComputable) {
-            setProgress(null);
-            return;
-          }
-          setProgress(Math.min(100, Math.round((progressEvent.loaded / progressEvent.total) * 100)));
-        };
-        xhr.onload = () => {
-          if (xhr.status < 200 || xhr.status >= 300) {
-            reject(new Error(uploadErrorMessage(xhr)));
-            return;
-          }
-          setProgress(100);
-          try {
-            resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        xhr.onerror = () => reject(new Error('Upload failed'));
-        xhr.onabort = () => reject(new Error('Upload aborted'));
-        xhr.send(form);
-      });
+      const data = await postFormWithProgress<unknown>(
+        `/api/containers/${containerId}/files/upload?${params}`,
+        form,
+        ({ loaded, total }) => setProgress(total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : null),
+      );
+      setProgress(100);
+      return data;
     },
     onMutate: async () => {
       setProgress(0);
@@ -93,16 +74,4 @@ export function useUploadFile(containerId: string) {
   });
 
   return { ...mutation, progress, resetProgress: () => setProgress(null) };
-}
-
-function uploadErrorMessage(xhr: XMLHttpRequest): string {
-  if (xhr.responseText) {
-    try {
-      const response = JSON.parse(xhr.responseText) as { error?: string; message?: string };
-      return response.error || response.message || `Upload failed: ${xhr.status}`;
-    } catch {
-      return xhr.responseText;
-    }
-  }
-  return `Upload failed: ${xhr.status}`;
 }

@@ -36,6 +36,12 @@ rebuilt for this release and needs McHarbor 2026.11.03 or newer.
   re-renders" (React error #301 in a production build), and reloading did not help. The same happened whenever
   the container list could not be loaded, for example while an environment's agent was disconnected. The page now
   loads and shows its own load-error banner in that case.
+- **Large uploads into a container on a remote-agent environment work.** Uploading a file over 8 MiB into a
+  container directory on an environment reached through the agent failed with HTTP 500, because McHarbor tried to
+  hold the whole upload in memory instead of streaming it to the agent. It now streams. A failed upload now shows
+  the server's own reason, with a Details action carrying the error code, HTTP status and request ID, instead of a
+  bare status code. The fix is in a part of McHarbor every plugin links against, so every plugin is rebuilt again:
+  update McHarbor before its plugins.
 
 ## [2026.11.02] - 2026-11-07
 
