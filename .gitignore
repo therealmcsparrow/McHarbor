@@ -85,6 +85,8 @@ cookies.txt
 /scripts/compute/*
 !/scripts/compute/build-image-index.mjs
 !/mnt/compute-catalog/
+!/scripts/plugins/
+/scripts/plugins/output/
 .tmp_c.jar
 
 # AI-Sanity
