@@ -428,7 +428,7 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 		includeConfig, includeLogs, includeFilesystem, includeImage, string(selected),
 		encodedSelections, input.LogTailLines,
 		nullString(input.Cron), input.Enabled, input.RetentionCount, input.RetentionDays, nullString(nextRun),
-		consistencyMode, nullString(snapshotConfigID), input.KeepLocalCopy == nil || *input.KeepLocalCopy, now, now,
+		consistencyMode, nullString(snapshotConfigID), input.KeepLocalCopy != nil && *input.KeepLocalCopy, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating backup plan: %w", err)
@@ -930,10 +930,23 @@ func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string
 	}
 
 	archive, execErr := s.writeArchive(ctx, plan, runID)
+	complete := execErr == nil
 	if execErr == nil {
 		execErr = s.uploadArchiveDestinations(ctx, plan, runID, archive)
 	}
-	return s.finishRun(ctx, runID, archive, execErr)
+	return s.finishSettledRun(ctx, plan, runID, archive, complete, execErr)
+}
+
+// finishSettledRun settles the archive out of the run's temp folder, which releaseTemp removes next, and
+// then finishes the run. A settle failure fails an otherwise successful run.
+func (s *Service) finishSettledRun(ctx context.Context, plan *BackupPlan, runID string, archive archiveResult, complete bool, execErr error) (*BackupRun, error) {
+	settled, settleErr := s.settleArchive(ctx, plan.ID, runID, archive, complete)
+	if execErr == nil {
+		execErr = settleErr
+	} else if settleErr != nil && s.logger != nil {
+		s.logger.Warn("container backup: keeping the archive of a failed run failed", "run", runID, "error", settleErr)
+	}
+	return s.finishRun(ctx, runID, settled, execErr)
 }
 
 // canRunAgentCentralizedBackup reports whether this plan should run through
@@ -981,9 +994,9 @@ func (s *Service) canRunAgentCentralizedBackup(ctx context.Context, plan *Backup
 // executeAgentCentralizedBackup drives an agent-side backup through the
 // centralized-upload pipeline:
 //
-//  1. Pre-compute the McHarbor-side temp archive path ($DATA_DIR/backups/
-//     containers/<runID>/mcharbor.tar) so the agent has a single,
-//     known upload target.
+//  1. Pre-compute the McHarbor-side archive path in the run's backup temp
+//     folder (<temp root>/mcharbor-run-<runID>/mcharbor.tar) so the agent
+//     has a single, known upload target.
 //  2. Hand the agent a one-use upload transfer entry pointing at the
 //     temp path; the agent creates the encrypted archive on its local
 //     host and uploads it once via the standard agent-archives
@@ -1002,14 +1015,7 @@ func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *Backu
 	if !ok || agentConn.Transport == nil {
 		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("agent not connected for environment %s", plan.EnvironmentID))
 	}
-	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
-		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("creating backup directory: %w", err))
-	}
-	runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(runID, "-"))
-	if err := os.MkdirAll(runDir, 0750); err != nil {
-		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("creating backup run directory: %w", err))
-	}
-	tempArchivePath := filepath.Join(runDir, "mcharbor.tar")
+	tempArchivePath := stagedArchivePath(ctx)
 
 	entry, transferErr := agentArchiveTransfers.createUpload(runID, tempArchivePath)
 	if transferErr != nil {
@@ -1073,13 +1079,13 @@ func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *Backu
 		archive.size = result.Size
 	}
 	if execErr != nil {
-		return s.finishRun(ctx, runID, archive, execErr)
+		return s.finishSettledRun(ctx, plan, runID, archive, false, execErr)
 	}
 	// Fan the on-disk archive out to every configured destination in
 	// parallel. uploadArchiveDestinations creates the per-destination
 	// rows, runs the upload, and writes success/failure per destination.
 	uploadErr := s.uploadArchiveDestinations(ctx, plan, runID, archive)
-	return s.finishRun(ctx, runID, archive, uploadErr)
+	return s.finishSettledRun(ctx, plan, runID, archive, true, uploadErr)
 }
 
 func (s *Service) startBackgroundRun(ctx context.Context, plan *BackupPlan, runID string) {
@@ -1213,6 +1219,8 @@ type archiveResult struct {
 	size       int64
 	encryption string
 	keyID      string
+	// dropped means path is the managed path but no file was kept there: every destination holds it.
+	dropped bool
 }
 
 func (s *Service) finishRun(ctx context.Context, runID string, archive archiveResult, execErr error) (*BackupRun, error) {
@@ -1251,10 +1259,12 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 		result, execErr = s.db.ExecContext(finishCtx, `
 		UPDATE container_backup_runs
 		SET status = ?, archive_path = ?, archive_size = ?, archive_encryption = ?, archive_key_id = ?,
+		    local_copy_dropped = ?,
 		    error = ?, progress_stage = ?, progress_message = ?, progress_updated_at = ?,
 		    completed_at = ?, duration_ms = ?, updated_at = ?
 		WHERE id = ? AND status = 'running'`,
 			status, nullString(archive.path), archive.size, archive.encryption, archive.keyID,
+			archive.dropped,
 			nullString(errorText), finalProgressStage, progressMessage, now.Format(time.RFC3339),
 			now.Format(time.RFC3339), duration, now.Format(time.RFC3339), runID)
 		return execErr
@@ -4117,14 +4127,7 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	}()
 
 	s.updateRunProgress(opCtx, runID, "preparing", "")
-	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
-		return archiveResult{}, fmt.Errorf("creating backup directory: %w", err)
-	}
-	runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(runID, "-"))
-	if err := os.MkdirAll(runDir, 0750); err != nil {
-		return archiveResult{}, fmt.Errorf("creating backup run directory: %w", err)
-	}
-	archivePath := filepath.Join(runDir, "mcharbor.tar")
+	archivePath := stagedArchivePath(ctx)
 	file, err := os.OpenFile(archivePath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0640)
 	if err != nil {
 		return archiveResult{}, fmt.Errorf("creating backup archive: %w", err)

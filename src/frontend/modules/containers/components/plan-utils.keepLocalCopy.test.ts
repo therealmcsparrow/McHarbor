@@ -27,8 +27,9 @@ const plan: ContainerBackupPlan = {
 // Saving an edit sends the whole input back, so a wrong default here would silently delete the
 // server copy of every plan an operator merely opened and saved.
 describe('keepLocalCopy in the plan form', () => {
-  it('keeps the local copy for a new plan', () => {
-    expect(EMPTY_BACKUP_INPUT.keepLocalCopy).toBe(true);
+  // A new plan keeps no server copy, so archives land only on the destinations the operator chose.
+  it('keeps no local copy for a new plan', () => {
+    expect(EMPTY_BACKUP_INPUT.keepLocalCopy).toBe(false);
   });
 
   it('keeps the local copy for a plan that never stored the setting', () => {

@@ -35,7 +35,7 @@ const DEFAULT_INPUT: ContainerBackupInput = {
   enabled: true,
   retentionCount: 0,
   retentionDays: 0,
-  keepLocalCopy: true,
+  keepLocalCopy: false,
   consistencyMode: 'pause',
   snapshotConfigId: '',
 };

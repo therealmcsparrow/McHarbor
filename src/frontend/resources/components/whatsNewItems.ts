@@ -14,6 +14,10 @@ export function getReleaseItems(version: string): WhatsNewItem[] {
         titleKey: 'whatsNew.2026_11_03.backupTemp.title',
         descriptionKey: 'whatsNew.2026_11_03.backupTemp.description',
       },
+      {
+        titleKey: 'whatsNew.2026_11_03.backupDisk.title',
+        descriptionKey: 'whatsNew.2026_11_03.backupDisk.description',
+      },
     ];
   }
   if (version === '2026.11.02') {

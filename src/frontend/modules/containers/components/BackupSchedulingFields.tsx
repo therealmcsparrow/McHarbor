@@ -69,7 +69,7 @@ export function BackupSchedulingFields({ value, onChange }: BackupSchedulingFiel
           <p className="text-xs text-muted-foreground">{t('backups.keepLocalCopyHint')}</p>
         </div>
         <Switch
-          checked={value.keepLocalCopy ?? true}
+          checked={value.keepLocalCopy ?? false}
           onCheckedChange={(keepLocalCopy) => onChange({ keepLocalCopy })}
           aria-label={t('backups.keepLocalCopy')}
         />

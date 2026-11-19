@@ -1483,6 +1483,10 @@
                                         "backupTemp":  {
                                                            "title":  "Dossier temporaire des sauvegardes et nettoyage",
                                                            "description":  "Choisissez dans Sauvegardes → Paramètres, ou avec MCHARBOR_BACKUP_TEMP_DIR, où les sauvegardes et restaurations stockent leurs fichiers de travail. Chaque exécution supprime son propre dossier temporaire, un nettoyage horaire efface les restes après un plantage et Nettoyer les fichiers temporaires vide le dossier à la demande."
+                                                       },
+                                        "backupDisk":  {
+                                                           "title":  "Sauvegardes hors du disque système",
+                                                           "description":  "Une sauvegarde crée désormais son archive dans le dossier temporaire des sauvegardes, et un nouveau plan ne conserve aucune copie sur ce serveur. Dans Sauvegardes, désactivez Conserver une copie sur ce serveur sur les plans existants pour libérer les copies déjà présentes dans le répertoire de données."
                                                        }
                                     },
                      "2026_11_02":  {

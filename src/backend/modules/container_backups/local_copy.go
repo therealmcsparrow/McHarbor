@@ -55,17 +55,140 @@ func storedOnEveryDestination(destinations []BackupRunDestination) bool {
 	return true
 }
 
-// dropLocalCopyAfterRun removes a successful plan run's server-side archive when the plan asked not to
-// keep it. The flag is written before the file goes, so a failed removal leaves a usable archive.
+// stagedArchivePath is where a run builds its archive: inside its own backup temp folder, so the
+// operator's temp location rather than the data directory takes the write.
+func stagedArchivePath(ctx context.Context) string {
+	return filepath.Join(runTempDir(ctx), "mcharbor.tar")
+}
+
+// planKeepsLocalCopy reports whether a run's plan asked for a server copy. A run with no plan (an
+// ad-hoc backup) or whose plan was deleted follows the default, which is not to keep one.
+func (s *Service) planKeepsLocalCopy(ctx context.Context, planID string) (bool, error) {
+	if strings.TrimSpace(planID) == "" {
+		return false, nil
+	}
+	var keep bool
+	err := s.db.QueryRowContext(ctx, "SELECT keep_local_copy FROM container_backup_plans WHERE id = ?", planID).Scan(&keep)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("reading the plan's local copy setting: %w", err)
+	}
+	return keep, nil
+}
+
+// storedEverywhere reports whether every destination of runID already holds its archive.
+func (s *Service) storedEverywhere(ctx context.Context, runID string) (bool, error) {
+	run := &BackupRun{ID: runID}
+	if err := s.hydrateRunDestinations(ctx, run); err != nil {
+		return false, err
+	}
+	return storedOnEveryDestination(run.Destinations), nil
+}
+
+// settleArchive moves a run's archive out of its temp folder before releaseTemp deletes that folder.
+// An incomplete or cancelled archive is discarded; one every destination holds and the plan does not
+// keep is never copied to the server's disk at all. Anything else lands on the managed path, where
+// download, restore and retry upload expect it.
+func (s *Service) settleArchive(ctx context.Context, planID, runID string, archive archiveResult, complete bool) (archiveResult, error) {
+	staged := strings.TrimSpace(archive.path)
+	managed := s.managedArchivePath(runID)
+	if staged == "" || staged == managed {
+		return archive, nil
+	}
+	if !complete || ctx.Err() != nil {
+		removeLogged(staged)
+		return archiveResult{}, nil
+	}
+	// The run's own ctx may be at its deadline; the settle must still finish, and the move is bounded by
+	// the archive's size.
+	settleCtx := context.WithoutCancel(ctx)
+	queryCtx, cancel := context.WithTimeout(settleCtx, backupRunFinalizeTimeout)
+	defer cancel()
+	everywhere, err := s.storedEverywhere(queryCtx, runID)
+	if err != nil && s.logger != nil {
+		s.logger.Warn("container backup: listing destinations before settling the archive failed", "run", runID, "error", err)
+	}
+	keep, err := s.planKeepsLocalCopy(queryCtx, planID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("container backup: reading the plan's local copy setting failed", "run", runID, "plan", planID, "error", err)
+		}
+		keep = true
+	}
+	if everywhere && !keep {
+		removeLogged(staged)
+		archive.path, archive.dropped = managed, true
+		return archive, nil
+	}
+	lock := localCopyLock(runID)
+	lock.Lock()
+	defer lock.Unlock()
+	if err := moveArchive(settleCtx, staged, managed); err != nil {
+		if everywhere {
+			// The destinations hold it, so the run stays usable: restore fetches it back.
+			if s.logger != nil {
+				s.logger.Warn("container backup: keeping a server copy failed, it will be fetched back on demand", "run", runID, "error", err)
+			}
+			archive.path, archive.dropped = managed, true
+			return archive, nil
+		}
+		return archiveResult{}, fmt.Errorf("keeping the backup archive on this server: %w", err)
+	}
+	archive.path = managed
+	return archive, nil
+}
+
+// moveArchive renames src to dst, and copies through a temporary file when the two sit on different
+// filesystems, so dst is never a partial archive.
+func moveArchive(ctx context.Context, src, dst string) error {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
+		return fmt.Errorf("creating the backup run directory: %w", err)
+	}
+	if err := os.Rename(src, dst); err == nil {
+		return nil
+	}
+	in, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("opening the staged archive: %w", err)
+	}
+	defer closeLogged(in, "staged backup archive")
+	tmp := dst + ".move"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o640)
+	if err != nil {
+		return fmt.Errorf("creating the archive copy: %w", err)
+	}
+	_, copyErr := copyWithContext(ctx, out, in)
+	if copyErr == nil {
+		copyErr = out.Sync()
+	}
+	if closeErr := out.Close(); copyErr == nil {
+		copyErr = closeErr
+	}
+	if copyErr == nil {
+		copyErr = os.Rename(tmp, dst)
+	}
+	if copyErr != nil {
+		removeLogged(tmp)
+		return fmt.Errorf("copying the archive to the backup directory: %w", copyErr)
+	}
+	removeLogged(src)
+	return nil
+}
+
+// dropLocalCopyAfterRun removes a successful run's server-side archive when its plan asked not to keep
+// it, or when it has no plan. The flag is written before the file goes, so a failed removal leaves a
+// usable archive.
 func (s *Service) dropLocalCopyAfterRun(ctx context.Context, run *BackupRun) {
 	s.sweepRefetchedCopies(ctx)
-	if run == nil || run.Operation != "backup" || run.Status != "success" || run.PlanID == "" ||
+	if run == nil || run.Operation != "backup" || run.Status != "success" || run.LocalCopyDropped ||
 		!s.isManagedArchive(run.ID, run.ArchivePath) {
 		return
 	}
-	var keep bool
-	if err := s.db.QueryRowContext(ctx, "SELECT keep_local_copy FROM container_backup_plans WHERE id = ?", run.PlanID).Scan(&keep); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) && s.logger != nil {
+	keep, err := s.planKeepsLocalCopy(ctx, run.PlanID)
+	if err != nil {
+		if s.logger != nil {
 			s.logger.Warn("container backup: reading the plan's local copy setting failed", "run", run.ID, "plan", run.PlanID, "error", err)
 		}
 		return

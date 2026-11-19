@@ -286,6 +286,8 @@ func (s *Service) reconcileRunStatusAfterRetry(ctx context.Context, runID string
 	}
 	s.runStageCache.Delete(runID)
 	s.recordFinalRunLog(queryCtx, run)
+	// The archive was kept only so this retry could read it; now every destination holds it.
+	s.dropLocalCopyAfterRun(queryCtx, run)
 	if s.logger != nil {
 		s.logger.Info(
 			"container backup run recovered after destination retry",

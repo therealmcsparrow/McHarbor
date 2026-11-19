@@ -1483,6 +1483,10 @@
                                         "backupTemp":  {
                                                            "title":  "Tijdelijke back-upmap en opschonen",
                                                            "description":  "Kies onder Back-ups → Instellingen, of met MCHARBOR_BACKUP_TEMP_DIR, waar back-ups en herstelacties hun werkbestanden opslaan. Elke run verwijdert zijn eigen tijdelijke map, een opschoning per uur ruimt restanten na een crash op en Tijdelijke map opschonen leegt de map wanneer u wilt."
+                                                       },
+                                        "backupDisk":  {
+                                                           "title":  "Back-ups niet meer op de systeemschijf",
+                                                           "description":  "Een back-up bouwt zijn archief nu in de tijdelijke back-upmap, en een nieuw plan bewaart geen kopie op deze server. Zet onder Back-ups Kopie op deze server bewaren uit bij bestaande plannen om de kopieën in de datamap vrij te maken."
                                                        }
                                     },
                      "2026_11_02":  {

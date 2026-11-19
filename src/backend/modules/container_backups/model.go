@@ -29,7 +29,7 @@ type BackupPlan struct {
 	Enabled            bool                       `json:"enabled"`
 	RetentionCount     int                        `json:"retentionCount"`
 	RetentionDays      int                        `json:"retentionDays"`
-	// KeepLocalCopy false removes the archive under <DATA_DIR>/backups/containers once every
+	// KeepLocalCopy false leaves no archive under <DATA_DIR>/backups/containers once every
 	// destination holds it; restore and download then fetch it back from a destination.
 	KeepLocalCopy    bool   `json:"keepLocalCopy"`
 	LastRunAt        string `json:"lastRunAt,omitempty"`
@@ -264,7 +264,8 @@ type CreateBackupPlanInput struct {
 	Enabled            bool                       `json:"enabled"`
 	RetentionCount     int                        `json:"retentionCount"`
 	RetentionDays      int                        `json:"retentionDays"`
-	// KeepLocalCopy is a pointer so a caller that never sends it keeps the server copy.
+	// KeepLocalCopy is a pointer so a caller that never sends it gets no server copy, which keeps
+	// archives off the server's own disk unless someone asks for them there.
 	KeepLocalCopy *bool `json:"keepLocalCopy"`
 	// ConsistencyMode decides how the archive is made consistent:
 	// "pause" stops the container for the duration, "snapshot" freezes

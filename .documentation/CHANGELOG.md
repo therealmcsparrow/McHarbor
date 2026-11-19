@@ -10,6 +10,15 @@ Every entry is stamped with the **date and the local 24-hour time** it was writt
 changes made on one day stay distinguishable and in order. Entries written before this
 convention carry a date only.
 
+## 2026-11-19 19:39 — McHarbor 2026.11.03 — Backup archives off the system disk
+
+### Changed
+- `backup/screen/fields.md` — **Keep a copy on this server** is off by default for a new plan; the section under the table now says the archive is built in the run's temp folder and where it ends up (nowhere on the server, the managed path, or deleted), that one-off runs follow the off default, that a failed run's archive is removed after seven days, and what the hourly sweep clears from `backups/containers`.
+- `getting-started/configuration/README.md` — "Backup temporary files" says the archive is built in the run folder, so the temp root needs room for a whole archive; the Cleanup paragraph adds the server-copy sweep.
+- `settings/system/support/state-inventory.md` — the `backups/containers/` row names what clears it besides retention.
+- `screens/environments/troubleshooting.md` — leftover agent backup partials are removed after an hour, at startup and hourly, not after ten minutes.
+- `getting-started/changelog/README.md` — the 2026.11.03 summary covers the system-disk fix and the new default.
+
 ## 2026-11-11 22:55 — McHarbor 2026.11.03 — Large upload on agent environments
 
 ### Changed

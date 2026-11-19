@@ -34,7 +34,7 @@ volume and the database driver.
 | Widget state | `widgets-state.json` | Included | Keep |
 | Workflow node state | `workflow-nodes/` | Included | Keep |
 | Git working copies | `git/` | Not included | Recreated on demand |
-| Container backups | `backups/containers/` | Not included | Pruned by retention |
+| Container backups | `backups/containers/` | Not included | Pruned by retention; the hourly backup sweep removes copies no plan keeps, failed runs' archives after seven days, and folders no run refers to |
 | Backup staging | `backups/tmp/` | Not included | Safe to remove while no backup runs |
 | Instance backups | `instance-backups/` | Not included | Pruned by retention |
 | Restore staging | `.restore/` | Not included | Pruned by retention |

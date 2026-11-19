@@ -75,8 +75,9 @@ func RunTempSweep(ctx context.Context, db *sql.DB, dataDir string, logger *slog.
 	logger.Info("backup temp sweep", "removed", res.Removed, "bytes", res.Bytes, "kept_owned", res.KeptOwned, "older_than_2h", res.OlderThan2h)
 }
 
-// sweepTemp removes every unowned McHarbor-named entry older than an hour from the current and retired roots, and stale
-// partial files from the local destinations. A retired root that holds no McHarbor entry afterwards leaves the list.
+// sweepTemp removes every unowned McHarbor-named entry older than an hour from the current and retired roots, stale
+// partial files from the local destinations, and server archive copies nothing needs (sweepLocalCopies). A retired root
+// that holds no McHarbor entry afterwards leaves the list.
 func sweepTemp(ctx context.Context, db *sql.DB, dataDir string, getenv func(string) string, now time.Time) (tempSweepResult, error) {
 	tempSweepMu.Lock()
 	defer tempSweepMu.Unlock()
@@ -115,6 +116,13 @@ func sweepTemp(ctx context.Context, db *sql.DB, dataDir string, getenv func(stri
 		res.Bytes += b
 		res.KeptOwned += k
 	}
+
+	copies, err := sweepLocalCopies(ctx, db, dataDir, now)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	res.Removed += copies.removed
+	res.Bytes += copies.bytes
 	return res, errors.Join(errs...)
 }
 

@@ -179,7 +179,11 @@ put a private key in the directory; the trust store needs the certificate alone.
 
 A container backup or restore stages files in a temporary folder while it runs. Each run
 works in its own `mcharbor-run-<run id>` folder (mode 0700) under the temp root and removes
-it when the run ends.
+it when the run ends. A backup also builds its encrypted archive there before uploading it,
+so the temp root needs room for the largest archive a run produces. When the data directory
+is on a small system disk, put the temp root on the same disk as your backups. Where the
+archive goes after the upload is described under
+[Keep a copy on this server](../../backup/screen/fields.md).
 
 | Variable | Default | What it does |
 |---|---|---|
@@ -210,8 +214,9 @@ is returned as an error and nothing changes.
 running backup. The hourly sweep also skips entries less than an hour old. Manual cleanup
 removes every McHarbor-named entry that no run owns when no backup is running, and only
 entries older than an hour while one is. The sweep also removes `.mcharbor-backup-` and
-`.mcharbor-agent-backup-` partial files older than an hour from local backup destinations.
-Manual cleanup covers the current and retired temp roots only.
+`.mcharbor-agent-backup-` partial files older than an hour from local backup destinations,
+and archive copies in `<data directory>/backups/containers` that no plan keeps and every
+destination holds. Manual cleanup covers the current and retired temp roots only.
 
 **Spooled data.** Temporary entries can hold unencrypted copies of volume data, which may
 include personal data. Choose a folder on an access-restricted or encrypted volume.

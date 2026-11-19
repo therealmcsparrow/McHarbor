@@ -52,6 +52,11 @@ Uploading a file over 8 MiB into a container on a remote-agent environment no lo
 failed upload shows the server's reason with a Details action. Every plugin is rebuilt again for this fix, so
 update McHarbor before its plugins.
 
+Backups no longer fill the system disk when they are stored elsewhere. A backup builds its archive in the backup
+temp folder instead of `<DATA_DIR>/backups/containers`, and a new plan keeps no copy on this server by default.
+Existing plans keep their setting; turn **Keep a copy on this server** off to have the hourly sweep free their
+earlier copies. See [Keep a copy on this server](../../backup/screen/fields.md).
+
 ### 2026.11.02 (2026-11-07)
 
 Test builds of McHarbor, agents and plugins can be offered through switches that are all off by

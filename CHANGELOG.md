@@ -24,6 +24,14 @@ rebuilt for this release and needs McHarbor 2026.11.03 or newer.
 
 ### Changed
 
+- **A new backup plan keeps no copy on this server.** "Keep a copy on this server" now starts off for a new plan,
+  and a plan created through the API without the field gets off too. A manual one-off backup follows the same
+  default. Existing plans keep the value they have. Restore and download fetch an archive back from a destination
+  when the server has none, which needs the storage plugin that wrote it.
+- **Backups build their archive in the backup temp folder.** The archive used to be written to
+  `<data directory>/backups/containers` and copied to the destinations from there. It is now built in the run's
+  own temp folder, and the temp folder needs room for the largest archive a run produces. It moves to
+  `backups/containers` only when the plan keeps a copy or a destination failed.
 - The startup sweep of `.mcharbor-agent-backup-*` partials now waits an hour instead of ten minutes, and also
   removes `.mcharbor-backup-*` partials.
 - The generic settings route refuses `backup_temp_dir` and `backup_temp_dir_retired`; only the backup temp route,
@@ -42,6 +50,12 @@ rebuilt for this release and needs McHarbor 2026.11.03 or newer.
   the server's own reason, with a Details action carrying the error code, HTTP status and request ID, instead of a
   bare status code. The fix is in a part of McHarbor every plugin links against, so every plugin is rebuilt again:
   update McHarbor before its plugins.
+- **Backups stored on another disk no longer fill the system disk.** Every archive was also kept under
+  `<data directory>/backups/containers` unless a plan turned that off, and nothing removed archives from one-off
+  backups, failed runs or a run that died while writing. The hourly backup sweep now removes copies every
+  destination holds from plans that do not keep one and from one-off runs, archives of failed or cancelled runs
+  seven days after they ended (Retry upload then reports the archive gone), and run folders older than a day that
+  no run refers to. Turn "Keep a copy on this server" off on existing plans to free their earlier copies.
 
 ## [2026.11.02] - 2026-11-07
 

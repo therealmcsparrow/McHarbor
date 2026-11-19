@@ -1483,6 +1483,10 @@
                                         "backupTemp":  {
                                                            "title":  "Temporärer Backup-Ordner und Bereinigung",
                                                            "description":  "Legen Sie unter Backups → Einstellungen oder mit MCHARBOR_BACKUP_TEMP_DIR fest, wo Backups und Wiederherstellungen ihre Arbeitsdateien ablegen. Jeder Lauf entfernt seinen eigenen temporären Ordner, eine stündliche Bereinigung räumt Reste nach einem Absturz auf, und Temp-Ordner bereinigen leert den Ordner bei Bedarf."
+                                                       },
+                                        "backupDisk":  {
+                                                           "title":  "Backups nicht mehr auf der Systemplatte",
+                                                           "description":  "Ein Backup erstellt sein Archiv jetzt im temporären Backup-Ordner, und ein neuer Plan behält keine Kopie auf diesem Server. Schalten Sie unter Backups bei bestehenden Plänen Kopie auf diesem Server behalten aus, um die Kopien im Datenverzeichnis freizugeben."
                                                        }
                                     },
                      "2026_11_02":  {

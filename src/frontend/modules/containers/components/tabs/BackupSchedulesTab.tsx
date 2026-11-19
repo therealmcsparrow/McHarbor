@@ -47,7 +47,7 @@ const EMPTY_INPUT: ContainerBackupInput = {
   enabled: true,
   retentionCount: 0,
   retentionDays: 0,
-  keepLocalCopy: true,
+  keepLocalCopy: false,
 };
 
 export function BackupSchedulesTab({ containerId }: BackupSchedulesTabProps) {

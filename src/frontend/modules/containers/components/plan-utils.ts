@@ -60,7 +60,7 @@ export const EMPTY_BACKUP_INPUT: ContainerBackupInput = {
   enabled: true,
   retentionCount: 0,
   retentionDays: 0,
-  keepLocalCopy: true,
+  keepLocalCopy: false,
 };
 
 // withPrimaryDestination keeps the legacy single `storageLocationId`

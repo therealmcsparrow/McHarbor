@@ -1483,6 +1483,10 @@
                                         "backupTemp":  {
                                                            "title":  "Backup temp location and cleanup",
                                                            "description":  "Choose where backups and restores spool their work files under Backups → Settings, or with MCHARBOR_BACKUP_TEMP_DIR. Each run removes its own temp folder, an hourly sweep clears crash leftovers, and Clean up temp empties the folder on demand."
+                                                       },
+                                        "backupDisk":  {
+                                                           "title":  "Backups off the system disk",
+                                                           "description":  "A backup now builds its archive in the backup temp folder, and a new plan keeps no copy on this server. Under Backups, turn Keep a copy on this server off on existing plans to free the copies already in the data directory."
                                                        }
                                     },
                      "2026_11_02":  {
