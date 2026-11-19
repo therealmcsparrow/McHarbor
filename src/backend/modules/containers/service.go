@@ -1755,7 +1755,15 @@ func (s *Service) Top(ctx context.Context, envID, id string) (container.TopRespo
 		return container.TopResponse{}, fmt.Errorf("getting top for %s: %w", id, err)
 	}
 
-	return container.TopResponse{Processes: top.Processes, Titles: top.Titles}, nil
+	// Docker reports an empty process list as nil, which would encode as JSON null.
+	processes, titles := top.Processes, top.Titles
+	if processes == nil {
+		processes = [][]string{}
+	}
+	if titles == nil {
+		titles = []string{}
+	}
+	return container.TopResponse{Processes: processes, Titles: titles}, nil
 }
 
 // DetectShells probes a container for available shells.

@@ -45,6 +45,7 @@ const FLOOR: Record<string, number> = {
   'modules/containers/types/exposed-ports.test.ts': 3,
   'modules/containers/hooks/container-sort-values.test.ts': 4,
   'modules/containers/hooks/useContainerChangeHighlights.test.ts': 3,
+  'modules/containers/hooks/normalizeProcesses.test.ts': 3,
   'modules/containers/hooks/useContainerFileUpload.test.tsx': 3,
   'resources/utils/ip-sort.test.ts': 2,
   'modules/containers/components/tabs/NetworkTabPortsSection.exposed.test.tsx': 2,

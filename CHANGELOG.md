@@ -56,6 +56,9 @@ rebuilt for this release and needs McHarbor 2026.11.03 or newer.
   destination holds from plans that do not keep one and from one-off runs, archives of failed or cancelled runs
   seven days after they ended (Retry upload then reports the archive gone), and run folders older than a day that
   no run refers to. Turn "Keep a copy on this server" off on existing plans to free their earlier copies.
+- **The Processes tab no longer crashes for a container with no listable processes.** Docker reports an empty
+  process list as `null`, and the tab failed with "Cannot read properties of null (reading 'length')". McHarbor now
+  returns an empty list, and the tab shows "No processes found" instead.
 
 ## [2026.11.02] - 2026-11-07
 

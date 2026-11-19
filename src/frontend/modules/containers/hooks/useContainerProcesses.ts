@@ -6,13 +6,17 @@ import { api } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import type { ContainerProcesses } from '@core/types/docker';
 import { assertSuccess } from '@resources/utils/api-mutation';
+import { normalizeProcesses } from './normalizeProcesses';
 
 export function useContainerProcesses(containerId: string, enabled = true, poll = true) {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
     queryKey: ['container-processes', envId, containerId],
     queryFn: () =>
-      api.get<ContainerProcesses>(`/containers/${containerId}/top`, envId ? { env: envId } : {}).then(assertSuccess),
+      api
+        .get<ContainerProcesses>(`/containers/${containerId}/top`, envId ? { env: envId } : {})
+        .then(assertSuccess)
+        .then(normalizeProcesses),
     enabled: enabled && !!containerId,
     refetchInterval: poll ? 5_000 : false,
   });
