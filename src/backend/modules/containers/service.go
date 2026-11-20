@@ -2322,6 +2322,9 @@ func parseServicesOutput(output string) ContainerServicesResult {
 	default:
 		return empty
 	}
+	if services == nil {
+		services = []ContainerService{}
+	}
 
 	return ContainerServicesResult{
 		InitSystem: initSystem,

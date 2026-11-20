@@ -23,7 +23,8 @@ export function useContainerServices(containerId: string, enabled = true) {
     queryFn: () =>
       api
         .get<ContainerServicesResult>(`/containers/${containerId}/services`, envId ? { env: envId } : {})
-        .then((r) => r.data ?? { initSystem: '', services: [] }),
+        // An older backend or agent sends `services: null` when an init system lists nothing.
+        .then((r) => ({ initSystem: r.data?.initSystem ?? '', services: r.data?.services ?? [] })),
     enabled: enabled && !!containerId,
     staleTime: 30_000,
   });
